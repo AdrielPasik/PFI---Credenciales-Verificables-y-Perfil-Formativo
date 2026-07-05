@@ -9,7 +9,10 @@
     "record_id",
     "credential_id",
     "credential_hash",
+    "hash_algorithm",
+    "canonicalization_version",
     "network",
+    "chain_id",
     "contract_address",
     "tx_hash",
     "issuer_address",
@@ -32,6 +35,14 @@
       "type": "string",
       "pattern": "^0x[a-fA-F0-9]{64}$"
     },
+    "hash_algorithm": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonicalization_version": {
+      "type": "string",
+      "minLength": 1
+    },
     "network": {
       "type": "string",
       "enum": [
@@ -39,6 +50,10 @@
         "base-sepolia",
         "base-mainnet"
       ]
+    },
+    "chain_id": {
+      "type": "integer",
+      "minimum": 1
     },
     "contract_address": {
       "type": "string",
@@ -62,6 +77,13 @@
         "registered",
         "revoked"
       ]
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revocation_reason": {
+      "type": "string"
     }
   }
 }

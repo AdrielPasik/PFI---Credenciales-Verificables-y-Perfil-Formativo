@@ -8,6 +8,9 @@
     "schema_version",
     "analysis_id",
     "credential_id",
+    "status",
+    "pipeline_version",
+    "taxonomy_version",
     "analyzed_at",
     "areas",
     "skills",
@@ -26,6 +29,21 @@
       "minLength": 1
     },
     "credential_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "partial"
+      ]
+    },
+    "pipeline_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "taxonomy_version": {
       "type": "string",
       "minLength": 1
     },
