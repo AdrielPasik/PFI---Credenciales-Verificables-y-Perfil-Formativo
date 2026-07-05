@@ -1,4 +1,4 @@
-# Credential Intelligence Platform
+# Plataforma de crecenciales verificables y perfil formativo
 
 Repositorio monorepo para el Proyecto Final de Ingenieria Informatica orientado a credenciales educativas digitales verificables con soporte de blockchain y analisis semantico del perfil formativo.
 
