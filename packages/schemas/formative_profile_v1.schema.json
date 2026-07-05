@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/formative_profile_v1.schema.json",
+  "title": "formative_profile_v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "user_id",
+    "generated_at",
+    "credentials_count",
+    "total_hours",
+    "areas_summary",
+    "skills_summary",
+    "evidence_by_area",
+    "quality_flags"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "formative_profile_v1"
+    },
+    "profile_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_did": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "credentials_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_hours": {
+      "type": "number",
+      "minimum": 0
+    },
+    "areas_summary": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/areaSummary"
+      }
+    },
+    "skills_summary": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/skillSummary"
+      }
+    },
+    "evidence_by_area": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "quality_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "areaSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "area",
+        "level",
+        "hours_estimated",
+        "credentials",
+        "confidence"
+      ],
+      "properties": {
+        "area": {
+          "type": "string",
+          "minLength": 1
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "no_evidence",
+            "exposure",
+            "basic",
+            "intermediate",
+            "solid"
+          ]
+        },
+        "hours_estimated": {
+          "type": "number",
+          "minimum": 0
+        },
+        "credentials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "skillSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "skill",
+        "evidence_count",
+        "supporting_credentials",
+        "confidence"
+      ],
+      "properties": {
+        "skill": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supporting_credentials": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

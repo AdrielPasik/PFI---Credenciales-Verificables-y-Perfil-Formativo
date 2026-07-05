@@ -1,0 +1,11 @@
+{
+  "name": "@credential-intelligence/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Placeholder workspace for the Next.js web application.",
+  "scripts": {
+    "dev": "node -e \"console.log('Bootstrap only: scaffold Next.js in apps/web before starting the web app.')\"",
+    "lint": "node -e \"console.log('Bootstrap only: add web linting after scaffolding the app.')\"",
+    "test": "node -e \"console.log('Bootstrap only: add web tests after the first UI routes exist.')\""
+  }
+}

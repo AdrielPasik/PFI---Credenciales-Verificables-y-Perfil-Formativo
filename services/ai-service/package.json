@@ -1,0 +1,10 @@
+{
+  "name": "@credential-intelligence/ai-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workspace metadata placeholder for the FastAPI semantic service.",
+  "scripts": {
+    "dev": "node -e \"console.log('Bootstrap only: scaffold FastAPI in services/ai-service before starting the semantic service.')\"",
+    "test": "node -e \"console.log('Bootstrap only: add AI service tests after the first endpoints exist.')\""
+  }
+}

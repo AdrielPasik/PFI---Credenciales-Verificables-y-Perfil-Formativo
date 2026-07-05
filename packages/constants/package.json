@@ -1,0 +1,6 @@
+{
+  "name": "@credential-intelligence/constants",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared constants for the credential intelligence platform."
+}

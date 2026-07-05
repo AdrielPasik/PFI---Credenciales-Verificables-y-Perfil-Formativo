@@ -1,0 +1,18 @@
+{
+  "name": "credential-intelligence-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo bootstrap para credenciales verificables y perfil formativo.",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node -e \"console.log('Bootstrap only: connect workspace-level dev scripts in the next implementation phase.')\"",
+    "dev:web": "node -e \"console.log('Bootstrap only: scaffold apps/web before running a real dev server.')\"",
+    "dev:api": "node -e \"console.log('Bootstrap only: scaffold services/api before running a real dev server.')\"",
+    "lint": "node -e \"console.log('Bootstrap only: add repo linting once the application packages are scaffolded.')\"",
+    "test": "node -e \"console.log('Bootstrap only: add automated tests after the first runnable modules are scaffolded.')\""
+  }
+}

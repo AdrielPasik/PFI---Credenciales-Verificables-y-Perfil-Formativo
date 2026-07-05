@@ -1,0 +1,6 @@
+{
+  "name": "@credential-intelligence/schemas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JSON Schemas shared across the credential intelligence platform."
+}

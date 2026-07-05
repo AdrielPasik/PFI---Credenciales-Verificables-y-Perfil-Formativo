@@ -1,0 +1,63 @@
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node.js / TypeScript
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+.npm/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Prisma / local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Foundry
+cache/
+broadcast/
+out/
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs and caches
+*.log
+tmp/
+temp/
+.cache/
+
+# Large or generated raw datasets
+data/academic_raw/*
+!data/academic_raw/.gitkeep
+data/courses_raw/*
+!data/courses_raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep

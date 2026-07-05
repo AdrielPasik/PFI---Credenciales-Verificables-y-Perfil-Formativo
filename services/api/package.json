@@ -1,0 +1,11 @@
+{
+  "name": "@credential-intelligence/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Placeholder workspace for the NestJS API service.",
+  "scripts": {
+    "dev": "node -e \"console.log('Bootstrap only: scaffold NestJS in services/api before starting the API.')\"",
+    "lint": "node -e \"console.log('Bootstrap only: add API linting after scaffolding the service.')\"",
+    "test": "node -e \"console.log('Bootstrap only: add API tests after the first modules exist.')\""
+  }
+}
