@@ -23,4 +23,4 @@ Actua como orquestador central entre:
 
 ## Estado actual
 
-Se dejo preparado el modulo y su documentacion. El scaffold real de NestJS, los modulos internos y el schema Prisma quedan para la siguiente fase de implementacion.
+Se dejo preparado el modulo y su documentacion. En esta etapa ya existe un `schema.prisma` v0 en `services/api/prisma/`, pero todavia no se scaffoldo NestJS, no se generaron clientes, no se corrieron migraciones y no se implementaron modulos internos.

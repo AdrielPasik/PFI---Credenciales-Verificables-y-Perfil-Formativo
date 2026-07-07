@@ -1,0 +1,451 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  active
+  pending
+  suspended
+  archived
+}
+
+enum IssuerAuthorizationStatus {
+  pending
+  authorized
+  revoked
+}
+
+enum IssuerMembershipRole {
+  admin
+  operator
+  viewer
+}
+
+enum IssuerMembershipStatus {
+  active
+  pending
+  revoked
+}
+
+enum CredentialType {
+  academic_subject
+  course
+  certification
+  degree
+}
+
+enum CredentialStatus {
+  draft
+  issued
+  revoked
+}
+
+enum CredentialSourceType {
+  academic_pdf
+  course_dataset
+  manual_issuer
+  institutional_system
+  external_import
+}
+
+enum SemanticAnalysisStatus {
+  completed
+  partial
+}
+
+enum BlockchainNetwork {
+  anvil
+  base_sepolia @map("base-sepolia")
+  base_mainnet @map("base-mainnet")
+}
+
+enum BlockchainRecordStatus {
+  registered
+  revoked
+}
+
+enum VerificationResult {
+  valid
+  revoked
+  invalid
+  not_found
+  indeterminate
+}
+
+enum RevocationStatus {
+  active
+  revoked
+  unknown
+}
+
+enum ActorType {
+  holder
+  issuer_admin
+  verifier
+  system_admin
+  public_link
+  system
+}
+
+enum VerificationChannel {
+  api
+  qr_link
+  shared_link
+  internal_audit
+}
+
+enum ProgramStatus {
+  draft
+  active
+  archived
+}
+
+enum CurriculumVersionStatus {
+  draft
+  active
+  archived
+}
+
+enum CourseStatus {
+  active
+  inactive
+  archived
+}
+
+enum SharingGrantScope {
+  credential
+  profile
+  credential_and_profile
+}
+
+model User {
+  id                  String              @id @default(uuid())
+  did                 String?             @unique
+  email               String?
+  firstName           String?
+  lastName            String?
+  displayName         String?
+  status              UserStatus          @default(active)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  issuerMemberships   IssuerMembership[]
+  subjectCredentials  Credential[]        @relation("CredentialSubject")
+  verifierEvents      VerificationEvent[] @relation("VerifierUser")
+  profiles            FormativeProfile[]
+  sharingGrants       SharingGrant[]      @relation("SharingGrantOwner")
+  createdSharingGrants SharingGrant[]     @relation("SharingGrantCreator")
+
+  @@index([email])
+}
+
+model Issuer {
+  id                  String                    @id @default(uuid())
+  name                String
+  legalName           String?
+  did                 String?                   @unique
+  walletAddress       String?                   @unique
+  authorizationStatus IssuerAuthorizationStatus @default(pending)
+  authorizedAt        DateTime?
+  revokedAt           DateTime?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  metadata            Json?
+  credentials         Credential[]
+  memberships         IssuerMembership[]
+  programs            Program[]
+  academicCourses     AcademicCourse[]
+
+  @@index([authorizationStatus])
+}
+
+model IssuerMembership {
+  id        String                 @id @default(uuid())
+  userId    String
+  issuerId  String
+  role      IssuerMembershipRole   @default(operator)
+  status    IssuerMembershipStatus @default(pending)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuer    Issuer                 @relation(fields: [issuerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, issuerId])
+  @@index([userId])
+  @@index([issuerId])
+  @@index([status])
+}
+
+model Credential {
+  id                       String               @id @default(uuid())
+  schemaVersion            String               @default("credential_v1")
+  type                     CredentialType
+  issuerId                 String
+  subjectUserId            String
+  academicCourseId         String?
+  externalCourseId         String?
+  title                    String
+  description              String?              @db.Text
+  sourceType               CredentialSourceType
+  status                   CredentialStatus     @default(draft)
+  hours                    Decimal?             @db.Decimal(10, 2)
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  issuedAt                 DateTime?
+  revokedAt                DateTime?
+  revocationReason         String?              @db.Text
+  canonicalHash            String?
+  canonicalizationVersion  String?
+  credentialSubject        Json
+  metadata                 Json?
+  rawData                  Json?
+  issuer                   Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  subjectUser              User                 @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
+  academicCourse           AcademicCourse?      @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
+  externalCourse           ExternalCourse?      @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
+  semanticAnalyses         SemanticAnalysis[]
+  blockchainRecords        BlockchainRecord[]
+  verificationEvents       VerificationEvent[]
+  sharingGrants            SharingGrant[]
+
+  @@index([issuerId])
+  @@index([subjectUserId])
+  @@index([status])
+  @@index([canonicalHash])
+  @@index([type])
+  @@index([academicCourseId])
+  @@index([externalCourseId])
+}
+
+model SemanticAnalysis {
+  id               String                 @id @default(uuid())
+  credentialId     String
+  schemaVersion    String                 @default("semantic_analysis_v1")
+  status           SemanticAnalysisStatus
+  pipelineVersion  String
+  taxonomyVersion  String
+  analyzedAt       DateTime
+  confidence       Decimal?               @db.Decimal(5, 4)
+  areas            Json
+  skills           Json
+  concepts         Json
+  qualityFlags     Json
+  evidenceMap      Json
+  textForEmbedding String                 @db.Text
+  analysisJson     Json?
+  credential       Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([credentialId])
+  @@index([pipelineVersion])
+  @@index([credentialId, pipelineVersion, taxonomyVersion])
+}
+
+model FormativeProfile {
+  id               String         @id @default(uuid())
+  schemaVersion    String         @default("formative_profile_v1")
+  userId           String
+  generatedAt      DateTime
+  credentialsCount Int
+  totalHours       Decimal        @db.Decimal(10, 2)
+  profileVersion   String?
+  isCurrent        Boolean        @default(false)
+  generationMethod String?
+  areasSummary     Json
+  skillsSummary    Json
+  evidenceByArea   Json
+  qualityFlags     Json
+  profileJson      Json?
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharingGrants    SharingGrant[]
+
+  @@index([userId])
+  @@index([generatedAt])
+  @@index([isCurrent])
+}
+
+model BlockchainRecord {
+  id                      String                @id @default(uuid())
+  schemaVersion           String                @default("blockchain_record_v1")
+  credentialId            String
+  credentialHash          String
+  hashAlgorithm           String
+  canonicalizationVersion String
+  network                 BlockchainNetwork
+  chainId                 Int
+  contractAddress         String
+  txHash                  String
+  issuerAddress           String
+  registeredAt            DateTime
+  status                  BlockchainRecordStatus
+  revokedAt               DateTime?
+  revocationReason        String?               @db.Text
+  credential              Credential            @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@index([credentialId])
+  @@index([credentialHash])
+  @@index([network])
+  @@index([chainId])
+  @@index([txHash])
+  @@index([credentialId, network, chainId])
+}
+
+model VerificationEvent {
+  id                String              @id @default(uuid())
+  credentialId      String
+  verifierUserId    String?
+  sharingGrantId    String?
+  actorType         ActorType
+  verificationChannel VerificationChannel
+  result            VerificationResult
+  verifiedAt        DateTime            @default(now())
+  hashMatch         Boolean?
+  issuerValid       Boolean?
+  revocationStatus  RevocationStatus?
+  requestContext    Json?
+  responseSummary   Json?
+  credential        Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  verifierUser      User?               @relation("VerifierUser", fields: [verifierUserId], references: [id], onDelete: SetNull)
+  sharingGrant      SharingGrant?       @relation(fields: [sharingGrantId], references: [id], onDelete: SetNull)
+
+  @@index([credentialId])
+  @@index([verifierUserId])
+  @@index([sharingGrantId])
+  @@index([verifiedAt])
+}
+
+model AcademicCourse {
+  id            String          @id @default(uuid())
+  issuerId      String
+  code          String
+  name          String
+  description   String?         @db.Text
+  hours         Decimal?        @db.Decimal(10, 2)
+  status        CourseStatus    @default(active)
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  issuer        Issuer          @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  programCourses ProgramCourse[]
+  credentials   Credential[]    @relation("AcademicCourseCredentials")
+
+  @@unique([issuerId, code])
+  @@index([issuerId])
+  @@index([status])
+}
+
+model ExternalCourse {
+  id                    String       @id @default(uuid())
+  providerName          String
+  externalReference     String?
+  title                 String
+  description           String?      @db.Text
+  category              String?
+  subCategory           String?
+  level                 String?
+  durationRaw           String?
+  durationHoursEstimate Decimal?     @db.Decimal(10, 2)
+  status                CourseStatus @default(active)
+  metadata              Json?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  credentials           Credential[] @relation("ExternalCourseCredentials")
+
+  @@index([providerName])
+  @@index([externalReference])
+  @@index([status])
+}
+
+model Program {
+  id                 String              @id @default(uuid())
+  issuerId           String
+  name               String
+  programType        String?
+  status             ProgramStatus       @default(active)
+  metadata           Json?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  issuer             Issuer              @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  curriculumVersions CurriculumVersion[]
+
+  @@index([issuerId])
+  @@index([status])
+}
+
+model CurriculumVersion {
+  id              String                   @id @default(uuid())
+  programId       String
+  versionLabel    String
+  effectiveFrom   DateTime?
+  effectiveTo     DateTime?
+  status          CurriculumVersionStatus  @default(active)
+  metadata        Json?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  program         Program                  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programCourses  ProgramCourse[]
+
+  @@index([programId])
+  @@index([status])
+  @@unique([programId, versionLabel])
+}
+
+model ProgramCourse {
+  id                  String            @id @default(uuid())
+  curriculumVersionId String
+  academicCourseId    String
+  semester            Int?
+  year                Int?
+  isRequired          Boolean           @default(true)
+  ordering            Int?
+  credits             Decimal?          @db.Decimal(10, 2)
+  hours               Decimal?          @db.Decimal(10, 2)
+  curriculumVersion   CurriculumVersion @relation(fields: [curriculumVersionId], references: [id], onDelete: Cascade)
+  academicCourse      AcademicCourse    @relation(fields: [academicCourseId], references: [id], onDelete: Restrict)
+
+  @@index([curriculumVersionId])
+  @@index([academicCourseId])
+  @@index([curriculumVersionId, academicCourseId])
+}
+
+model AuditLog {
+  id           String    @id @default(uuid())
+  actorId      String?
+  actorType    ActorType
+  action       String
+  resourceType String
+  resourceId   String
+  occurredAt   DateTime  @default(now())
+  metadata     Json?
+
+  @@index([actorId])
+  @@index([resourceType, resourceId])
+  @@index([occurredAt])
+}
+
+model SharingGrant {
+  id              String            @id @default(uuid())
+  userId          String
+  credentialId    String?
+  profileId       String?
+  createdByUserId String?
+  scope           SharingGrantScope
+  tokenHash       String            @unique
+  expiresAt       DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime          @default(now())
+  lastUsedAt      DateTime?
+  metadata        Json?
+  user            User              @relation("SharingGrantOwner", fields: [userId], references: [id], onDelete: Cascade)
+  credential      Credential?       @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  profile         FormativeProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  createdByUser   User?             @relation("SharingGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  verificationEvents VerificationEvent[]
+
+  @@index([userId])
+  @@index([credentialId])
+  @@index([profileId])
+}
