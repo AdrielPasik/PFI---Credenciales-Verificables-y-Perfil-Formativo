@@ -126,7 +126,7 @@ enum SharingGrantScope {
 model User {
   id                  String              @id @default(uuid())
   did                 String?             @unique
-  email               String?
+  email               String?             @unique
   firstName           String?
   lastName            String?
   displayName         String?
@@ -139,8 +139,6 @@ model User {
   profiles            FormativeProfile[]
   sharingGrants       SharingGrant[]      @relation("SharingGrantOwner")
   createdSharingGrants SharingGrant[]     @relation("SharingGrantCreator")
-
-  @@index([email])
 }
 
 model Issuer {

@@ -47,6 +47,7 @@ Esto mantiene compatibilidad con los JSON Schemas existentes y evita sobreingeni
 
 ## Decisiones importantes
 
+- `User.email` es opcional pero unico para permitir usuarios sin login inicial y evitar duplicados cuando el email exista.
 - `IssuerMembership` existe para limitar `issuer_admin` a uno o mas `issuer_id`.
 - `IssuerMembership @@unique([userId, issuerId])` representa el estado actual de pertenencia institucional; el historial fino de cambios debera conservarse mediante `AuditLog`, no con multiples filas historicas de membresia en esta etapa.
 - `BlockchainRecord` permite multiples registros por credencial para soportar Anvil, Base Sepolia, reintentos e historial.
