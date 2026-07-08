@@ -2,10 +2,27 @@
   "name": "@credential-intelligence/api",
   "version": "0.1.0",
   "private": true,
-  "description": "Placeholder workspace for the NestJS API service.",
+  "description": "Minimal NestJS backend scaffold with Prisma tooling.",
   "scripts": {
-    "dev": "node -e \"console.log('Bootstrap only: scaffold NestJS in services/api before starting the API.')\"",
-    "lint": "node -e \"console.log('Bootstrap only: add API linting after scaffolding the service.')\"",
-    "test": "node -e \"console.log('Bootstrap only: add API tests after the first modules exist.')\""
+    "dev": "node --watch --require ts-node/register --require reflect-metadata src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:format": "prisma format --schema prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.27",
+    "@nestjs/core": "^11.1.27",
+    "@nestjs/platform-express": "^11.1.27",
+    "@prisma/client": "6.19.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "prisma": "6.19.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   }
 }
