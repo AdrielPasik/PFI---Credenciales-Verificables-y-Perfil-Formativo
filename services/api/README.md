@@ -48,8 +48,47 @@ Scripts disponibles:
 - `npm run prisma:validate --workspace @credential-intelligence/api`
 - `npm run prisma:format --workspace @credential-intelligence/api`
 - `npm run prisma:generate --workspace @credential-intelligence/api`
+- `npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name init`
+- `npm run prisma:seed --workspace @credential-intelligence/api`
 
 `prisma generate` solo genera el cliente local y no corre migraciones ni crea base de datos.
+
+## PostgreSQL local
+
+La opcion local minima del repo usa Docker Compose en:
+
+- `infra/docker/docker-compose.postgres.yml`
+
+Levantar PostgreSQL:
+
+- `docker compose -f infra/docker/docker-compose.postgres.yml up -d`
+
+Bajar PostgreSQL:
+
+- `docker compose -f infra/docker/docker-compose.postgres.yml down`
+
+La configuracion queda alineada con `services/api/.env.example`:
+
+- host: `localhost`
+- port: `5432`
+- db: `credential_intelligence`
+- user: `postgres`
+- password: `postgres`
+
+## Migraciones y seed
+
+Secuencia recomendada para desarrollo local:
+
+1. Levantar PostgreSQL con Docker Compose.
+2. Ejecutar `npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name init`.
+3. Ejecutar `npm run prisma:seed --workspace @credential-intelligence/api`.
+
+El seed es idempotente y crea un set minimo reproducible:
+
+- `Demo University` como emisor autorizado;
+- `Demo Holder` como titular con DID;
+- `Issuer Admin` como usuario institucional;
+- membresia `admin` activa entre `Issuer Admin` y `Demo University`.
 
 ## Variables de entorno
 
@@ -57,6 +96,8 @@ Ver `services/api/.env.example` para el set minimo esperado:
 
 - `PORT`
 - `DATABASE_URL`
+
+Para trabajo local con Prisma, copiar `services/api/.env.example` a `services/api/.env` antes de correr migraciones o seed.
 
 ## Que no esta implementado todavia
 
@@ -66,12 +107,13 @@ Ver `services/api/.env.example` para el set minimo esperado:
 - logica de emision, verificacion, hashing o revocacion;
 - integracion real con blockchain;
 - integracion real con AI service;
-- migraciones Prisma;
-- generacion automatica de la base de datos.
+- endpoints de credenciales;
+- logica de BlockchainRecord mock/local;
+- integracion semantica real del primer vertical slice.
 
 ## Notas
 
-- No se corrieron migraciones en esta etapa.
+- El backend ya tiene scripts y compose preparados para correr migraciones y seed locales.
 - El schema Prisma sigue siendo la base v0 existente, sin cambios funcionales de dominio.
 - `PrismaService` queda configurado, pero sin forzar conexion al iniciar el proceso.
 - Los modulos de dominio se crearan en iteraciones posteriores.

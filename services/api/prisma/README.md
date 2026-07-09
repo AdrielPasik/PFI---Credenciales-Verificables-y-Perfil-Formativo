@@ -1,6 +1,6 @@
 # Prisma Schema v0
 
-Este directorio contiene el primer `schema.prisma` del backend API. El objetivo es dejar una base realista del dominio final del sistema, manteniendo una implementacion incremental y evitando un modelo descartable para entregas intermedias.
+Este directorio contiene el `schema.prisma` base del backend API y los artefactos locales de persistencia asociados, como migraciones y seed, a medida que el proyecto avanza.
 
 ## Enfoque
 
@@ -8,7 +8,8 @@ Este directorio contiene el primer `schema.prisma` del backend API. El objetivo 
 - relaciones centrales modeladas desde el inicio;
 - campos opcionales donde el flujo todavia no completa toda la informacion;
 - `Json` para artefactos versionados, flexibles o aun no normalizados;
-- sin migraciones, sin generacion de cliente y sin servicios NestJS implementados todavia.
+- con migraciones versionadas como estrategia preferida para trazabilidad;
+- con seed minimo reproducible para desarrollo local.
 
 ## Entidades principales
 
@@ -58,8 +59,7 @@ Esto mantiene compatibilidad con los JSON Schemas existentes y evita sobreingeni
 
 ## Que no esta implementado todavia
 
-- migraciones Prisma;
-- NestJS modules, controllers o services;
+- endpoints de negocio;
 - autenticacion real;
 - logica de emision, hashing, blockchain o AI service;
 - generacion de tokens de sharing;
@@ -79,7 +79,8 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 
 ## Estado operativo
 
-- no se corrieron migraciones;
-- no se genero cliente Prisma;
-- no se implemento backend, auth, IA ni blockchain;
+- el backend NestJS ya existe como scaffold minimo;
+- el cliente Prisma puede generarse localmente con scripts del workspace;
+- las migraciones y el seed local se preparan desde `services/api/package.json`;
+- sigue sin haber implementacion de negocio para credenciales, auth, IA o blockchain real;
 - este schema queda como base revisable del sistema final, preparada para implementacion incremental.
