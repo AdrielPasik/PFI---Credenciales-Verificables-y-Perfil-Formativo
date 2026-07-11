@@ -11,15 +11,23 @@ Alcance actual:
 
 - modulo NestJS minimo;
 - service vacio sin metodos de negocio;
+- validator manual para artifacts `semantic_analysis_v1`;
+- mapper intermedio para preparar datos conceptuales de `SemanticAnalysis` sin escribir DB;
+- fixtures y tests unitarios del contrato de artifact;
 - sin controllers;
 - sin cliente HTTP;
 - sin pipeline;
 - sin analisis mock;
-- sin queries Prisma.
+- sin queries Prisma;
+- sin persistencia real;
+- sin endpoints de ingestion.
 
 Principios:
 
 - `semantic` sera adaptador u orquestador semantico, no dueno de `Credential`;
 - no debe consultar ni modificar tablas de credenciales por fuera de contratos de servicio;
 - debe evitar dependencias circulares con `credentials`;
-- el backend seguira controlando permisos y coordinacion general desde modulos de dominio.
+- el backend seguira controlando permisos y coordinacion general desde modulos de dominio;
+- el backend no debe consumir outputs crudos del pipeline IA;
+- `semantic_analysis_v1` no participa de `canon_v1`;
+- `credential_candidate_v1` queda fuera de este alcance.
