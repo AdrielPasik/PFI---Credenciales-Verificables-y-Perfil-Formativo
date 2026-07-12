@@ -10,16 +10,15 @@ Responsabilidad futura:
 Alcance actual:
 
 - modulo NestJS minimo;
-- service vacio sin metodos de negocio;
+- service con persistencia interna controlada, sin endpoints;
 - validator manual para artifacts `semantic_analysis_v1`;
 - mapper intermedio para preparar datos conceptuales de `SemanticAnalysis` sin escribir DB;
+- persistencia interna controlada para guardar `semantic_analysis_v1` en `SemanticAnalysis`;
 - fixtures y tests unitarios del contrato de artifact;
 - sin controllers;
 - sin cliente HTTP;
 - sin pipeline;
 - sin analisis mock;
-- sin queries Prisma;
-- sin persistencia real;
 - sin endpoints de ingestion.
 
 Principios:
