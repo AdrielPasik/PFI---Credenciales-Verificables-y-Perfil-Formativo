@@ -16,7 +16,8 @@
     "test:hashing": "node --require ts-node/register/transpile-only --test src/credentials/credential-hashing.service.test.ts",
     "test:semantic-artifact": "node --require ts-node/register/transpile-only --test src/semantic/semantic-analysis-artifact.mapper.test.ts",
     "test:semantic-service": "node --require ts-node/register/transpile-only --test src/semantic/semantic.service.test.ts",
-    "test:semantic-cli": "node --require ts-node/register/transpile-only --test src/semantic/scripts/ingest-semantic-analysis-file.test.ts"
+    "test:semantic-cli": "node --require ts-node/register/transpile-only --test src/semantic/scripts/ingest-semantic-analysis-file.test.ts",
+    "test:semantic-read": "node --require ts-node/register/transpile-only --test src/semantic/semantic.controller.test.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.27",

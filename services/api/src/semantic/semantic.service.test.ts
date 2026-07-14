@@ -12,10 +12,12 @@ import { SemanticService } from './semantic.service';
 function createSemanticServiceTestContext(options?: {
   credentialExists?: boolean;
   artifactCreateResult?: Record<string, unknown>;
+  latestSemanticAnalysisResult?: Record<string, unknown> | null;
 }) {
   const calls = {
     credentialFindUnique: [] as Array<Record<string, unknown>>,
     semanticAnalysisCreate: [] as Array<Record<string, unknown>>,
+    semanticAnalysisFindFirst: [] as Array<Record<string, unknown>>,
     credentialUpdate: 0,
     blockchainRecordCreate: 0
   };
@@ -47,6 +49,14 @@ function createSemanticServiceTestContext(options?: {
           id: 'semantic-123',
           ...(args.data as Record<string, unknown>)
         };
+      },
+      findFirst: async (args: Record<string, unknown>) => {
+        calls.semanticAnalysisFindFirst.push(args);
+        if (options && 'latestSemanticAnalysisResult' in options) {
+          return options.latestSemanticAnalysisResult;
+        }
+
+        return null;
       }
     },
     blockchainRecord: {
@@ -64,6 +74,86 @@ function createSemanticServiceTestContext(options?: {
     calls
   };
 }
+
+test('getLatestForCredential fails when credential does not exist', async () => {
+  const { service, calls } = createSemanticServiceTestContext({
+    credentialExists: false
+  });
+
+  await assert.rejects(
+    () => service.getLatestForCredential('cred-missing'),
+    NotFoundException
+  );
+
+  assert.equal(calls.semanticAnalysisFindFirst.length, 0);
+});
+
+test('getLatestForCredential returns null when credential exists without semantic analysis', async () => {
+  const { service, calls } = createSemanticServiceTestContext({
+    latestSemanticAnalysisResult: null
+  });
+
+  const response = await service.getLatestForCredential('cred-123');
+
+  assert.deepEqual(response, {
+    credentialId: 'cred-123',
+    latestSemanticAnalysis: null
+  });
+  assert.equal(calls.credentialUpdate, 0);
+  assert.equal(calls.blockchainRecordCreate, 0);
+});
+
+test('getLatestForCredential queries latest semantic analysis by analyzedAt desc', async () => {
+  const { service, calls } = createSemanticServiceTestContext({
+    latestSemanticAnalysisResult: {
+      id: 'semantic-latest',
+      credentialId: 'cred-123',
+      schemaVersion: 'semantic_analysis_v1',
+      status: 'completed',
+      pipelineVersion: 'unversioned_current',
+      taxonomyVersion: 'unversioned_current',
+      confidence: { toString: () => '0.9800' },
+      areas: [],
+      skills: [],
+      concepts: [],
+      qualityFlags: ['semantic_quality_high'],
+      evidenceMap: {},
+      textForEmbedding: 'text',
+      analysisJson: { sourceRefs: { documentId: '3.4.080' } },
+      analyzedAt: new Date('2026-07-14T12:00:00.000Z')
+    }
+  });
+
+  const response = await service.getLatestForCredential('cred-123');
+
+  assert.deepEqual(calls.semanticAnalysisFindFirst[0], {
+    where: {
+      credentialId: 'cred-123'
+    },
+    orderBy: {
+      analyzedAt: 'desc'
+    }
+  });
+  assert.deepEqual(response, {
+    credentialId: 'cred-123',
+    latestSemanticAnalysis: {
+      id: 'semantic-latest',
+      schemaVersion: 'semantic_analysis_v1',
+      status: 'completed',
+      pipelineVersion: 'unversioned_current',
+      taxonomyVersion: 'unversioned_current',
+      confidence: 0.98,
+      areas: [],
+      skills: [],
+      concepts: [],
+      qualityFlags: ['semantic_quality_high'],
+      evidenceMap: {},
+      textForEmbedding: 'text',
+      analysisJson: { sourceRefs: { documentId: '3.4.080' } },
+      analyzedAt: '2026-07-14T12:00:00.000Z'
+    }
+  });
+});
 
 test('persistForCredential validates, maps and persists a valid artifact', async () => {
   const { service, calls } = createSemanticServiceTestContext();

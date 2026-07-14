@@ -6,6 +6,7 @@ import {
 import { Prisma, type SemanticAnalysis } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { CredentialLatestSemanticAnalysisResponseDto } from './dto/latest-semantic-analysis-response.dto';
 import { createSemanticAnalysisArtifactMapping } from './semantic-analysis-artifact.mapper';
 import {
   type SemanticAnalysisArtifact,
@@ -16,6 +17,41 @@ import { validateSemanticAnalysisArtifact } from './semantic-analysis-artifact.v
 @Injectable()
 export class SemanticService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getLatestForCredential(
+    credentialId: string
+  ): Promise<CredentialLatestSemanticAnalysisResponseDto> {
+    this.assertNonEmptyString(credentialId, 'credentialId');
+
+    const credential = await this.prisma.credential.findUnique({
+      where: {
+        id: credentialId
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!credential) {
+      throw new NotFoundException(`Credential ${credentialId} no existe.`);
+    }
+
+    const latestSemanticAnalysis = await this.prisma.semanticAnalysis.findFirst({
+      where: {
+        credentialId
+      },
+      orderBy: {
+        analyzedAt: 'desc'
+      }
+    });
+
+    return {
+      credentialId: credential.id,
+      latestSemanticAnalysis: latestSemanticAnalysis
+        ? this.toLatestSemanticAnalysisResponse(latestSemanticAnalysis)
+        : null
+    };
+  }
 
   async persistForCredential(
     credentialId: string,
@@ -98,6 +134,30 @@ export class SemanticService {
     });
   }
 
+  private toLatestSemanticAnalysisResponse(semanticAnalysis: SemanticAnalysis) {
+    return {
+      id: semanticAnalysis.id,
+      schemaVersion: semanticAnalysis.schemaVersion,
+      status: semanticAnalysis.status,
+      pipelineVersion: semanticAnalysis.pipelineVersion,
+      taxonomyVersion: semanticAnalysis.taxonomyVersion,
+      confidence: this.toNullableNumber(semanticAnalysis.confidence),
+      areas: this.toArray(semanticAnalysis.areas, 'areas'),
+      skills: this.toArray(semanticAnalysis.skills, 'skills'),
+      concepts: this.toArray(semanticAnalysis.concepts, 'concepts'),
+      qualityFlags: this.toStringArray(
+        semanticAnalysis.qualityFlags,
+        'qualityFlags'
+      ),
+      evidenceMap: this.toObject(semanticAnalysis.evidenceMap, 'evidenceMap'),
+      textForEmbedding: semanticAnalysis.textForEmbedding,
+      analysisJson: semanticAnalysis.analysisJson
+        ? this.toObject(semanticAnalysis.analysisJson, 'analysisJson')
+        : null,
+      analyzedAt: semanticAnalysis.analyzedAt.toISOString()
+    };
+  }
+
   private assertNonEmptyString(
     value: unknown,
     fieldName: string
@@ -109,5 +169,59 @@ export class SemanticService {
 
   private cloneJsonLike<T>(value: T): T {
     return JSON.parse(JSON.stringify(value)) as T;
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      'toString' in value &&
+      typeof value.toString === 'function'
+    ) {
+      const parsed = Number.parseFloat(value.toString());
+      if (Number.isFinite(parsed)) {
+        return parsed;
+      }
+    }
+
+    throw new BadRequestException('confidence almacenado no tiene un formato valido.');
+  }
+
+  private toArray(value: unknown, fieldName: string): unknown[] {
+    if (!Array.isArray(value)) {
+      throw new BadRequestException(`${fieldName} almacenado no tiene un formato valido.`);
+    }
+
+    return this.cloneJsonLike(value);
+  }
+
+  private toStringArray(value: unknown, fieldName: string): string[] {
+    if (!Array.isArray(value)) {
+      throw new BadRequestException(`${fieldName} almacenado no tiene un formato valido.`);
+    }
+
+    return value.map((entry) => {
+      if (typeof entry !== 'string') {
+        throw new BadRequestException(`${fieldName} almacenado no tiene un formato valido.`);
+      }
+
+      return entry;
+    });
+  }
+
+  private toObject(value: unknown, fieldName: string): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new BadRequestException(`${fieldName} almacenado no tiene un formato valido.`);
+    }
+
+    return this.cloneJsonLike(value as Record<string, unknown>);
   }
 }

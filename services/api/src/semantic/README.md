@@ -10,12 +10,12 @@ Responsabilidad futura:
 Alcance actual:
 
 - modulo NestJS minimo;
-- service con persistencia interna controlada, sin endpoints;
+- service con persistencia interna controlada y lectura read-only del latest analysis;
 - validator manual para artifacts `semantic_analysis_v1`;
 - mapper intermedio para preparar datos conceptuales de `SemanticAnalysis` sin escribir DB;
 - persistencia interna controlada para guardar `semantic_analysis_v1` en `SemanticAnalysis`;
 - fixtures y tests unitarios del contrato de artifact;
-- sin controllers;
+- controller read-only para exponer el ultimo `SemanticAnalysis` persistido por credencial;
 - sin cliente HTTP;
 - sin pipeline;
 - sin analisis mock;
@@ -36,6 +36,20 @@ Este comando:
 - lee un archivo `semantic_analysis_v1` desde un path recibido por argumento;
 - persiste una fila `SemanticAnalysis` asociada a una credencial existente;
 - no crea endpoints ni integra HTTP con el modulo IA.
+
+Endpoint read-only actual:
+
+```text
+GET /credentials/:id/semantic-analysis/latest
+```
+
+Comportamiento:
+
+- verifica que la credencial exista;
+- si no existe, responde `404`;
+- si existe y no tiene analisis, devuelve `latestSemanticAnalysis: null`;
+- si existe y tiene analisis, devuelve el mas reciente por `analyzedAt desc`;
+- no modifica ninguna tabla ni dispara logica semantica nueva.
 
 Principios:
 
