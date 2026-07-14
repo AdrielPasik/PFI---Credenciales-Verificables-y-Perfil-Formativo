@@ -6,6 +6,7 @@ import { HealthController } from './health/health.controller';
 import { IssuersModule } from './issuers/issuers.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SemanticModule } from './semantic/semantic.module';
+import { VerificationModule } from './verification/verification.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { SemanticModule } from './semantic/semantic.module';
     IssuersModule,
     BlockchainModule,
     SemanticModule,
-    CredentialsModule
+    CredentialsModule,
+    VerificationModule
   ],
   controllers: [HealthController]
 })
