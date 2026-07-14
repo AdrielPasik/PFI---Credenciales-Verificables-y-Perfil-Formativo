@@ -21,6 +21,22 @@ Alcance actual:
 - sin analisis mock;
 - sin endpoints de ingestion.
 
+Comando local de ingestion manual:
+
+```bash
+npm run semantic:ingest:file --workspace @credential-intelligence/api -- \
+  --credentialId <credential-id> \
+  --file <path-to-semantic-analysis-v1-json>
+```
+
+Este comando:
+
+- crea un Nest application context local;
+- resuelve `SemanticService` via DI real del backend;
+- lee un archivo `semantic_analysis_v1` desde un path recibido por argumento;
+- persiste una fila `SemanticAnalysis` asociada a una credencial existente;
+- no crea endpoints ni integra HTTP con el modulo IA.
+
 Principios:
 
 - `semantic` sera adaptador u orquestador semantico, no dueno de `Credential`;
