@@ -1,5 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CredentialStatus } from '@prisma/client';
+import {
+  BlockchainRecordStatus,
+  CredentialStatus
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { SemanticService } from '../semantic/semantic.service';
@@ -43,7 +46,10 @@ export class VerificationService {
       verificationStatus: this.getVerificationStatus({
         status: credential.status,
         canonicalHash: credential.canonicalHash,
-        canonicalizationVersion: credential.canonicalizationVersion
+        canonicalizationVersion: credential.canonicalizationVersion,
+        blockchainRecords: credential.blockchainRecords.map((record) => ({
+          status: record.status
+        }))
       }),
       credential: {
         id: credential.id,
@@ -99,6 +105,9 @@ export class VerificationService {
     status: CredentialStatus;
     canonicalHash: string | null;
     canonicalizationVersion: string | null;
+    blockchainRecords: Array<{
+      status: BlockchainRecordStatus;
+    }>;
   }): CredentialVerificationStatus {
     if (input.status === CredentialStatus.revoked) {
       return 'revoked';
@@ -111,7 +120,10 @@ export class VerificationService {
     if (
       input.status === CredentialStatus.issued &&
       input.canonicalHash &&
-      input.canonicalizationVersion
+      input.canonicalizationVersion &&
+      input.blockchainRecords.some(
+        (record) => record.status === BlockchainRecordStatus.registered
+      )
     ) {
       return 'valid';
     }

@@ -142,6 +142,28 @@ test('credential issued with hash and blockchain record returns verificationStat
   });
 });
 
+test('credential issued with hash and canon but without blockchain record returns verificationStatus incomplete', async () => {
+  const { service } = createVerificationServiceTestContext({
+    credentialResult: {
+      id: 'cred-issued-no-chain',
+      title: 'Materia emitida sin blockchain',
+      status: 'issued',
+      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
+      revokedAt: null,
+      revocationReason: null,
+      canonicalHash: '0xabc',
+      canonicalizationVersion: 'canon_v1',
+      blockchainRecords: []
+    }
+  });
+
+  const response = await service.getCredentialVerification(
+    'cred-issued-no-chain'
+  );
+
+  assert.equal(response.verificationStatus, 'incomplete');
+});
+
 test('credential draft returns verificationStatus draft', async () => {
   const { service } = createVerificationServiceTestContext({
     credentialResult: {
@@ -198,6 +220,37 @@ test('credential issued without hash or canonicalizationVersion returns verifica
   });
 
   const response = await service.getCredentialVerification('cred-incomplete');
+
+  assert.equal(response.verificationStatus, 'incomplete');
+});
+
+test('credential issued with non-registered blockchain records returns verificationStatus incomplete', async () => {
+  const { service } = createVerificationServiceTestContext({
+    credentialResult: {
+      id: 'cred-issued-revoked-chain',
+      title: 'Materia con evidencia no valida',
+      status: 'issued',
+      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
+      revokedAt: null,
+      revocationReason: null,
+      canonicalHash: '0xabc',
+      canonicalizationVersion: 'canon_v1',
+      blockchainRecords: [
+        {
+          id: 'blockchain-revoked',
+          network: 'anvil',
+          chainId: 31337,
+          txHash: '0xtxhashrevoked',
+          registeredAt: new Date('2026-07-14T12:10:00.000Z'),
+          status: 'revoked'
+        }
+      ]
+    }
+  });
+
+  const response = await service.getCredentialVerification(
+    'cred-issued-revoked-chain'
+  );
 
   assert.equal(response.verificationStatus, 'incomplete');
 });
