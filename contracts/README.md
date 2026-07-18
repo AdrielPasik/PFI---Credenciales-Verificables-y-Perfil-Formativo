@@ -6,13 +6,20 @@ Modulo blockchain del proyecto basado en Solidity + Foundry.
 
 Registrar evidencia minima verificable on-chain sin almacenar el contenido completo de las credenciales.
 
+## Alcance implementado en v0
+
+- contrato `CredentialRegistry.sol`;
+- registro on-chain de hashes de credenciales;
+- revocacion on-chain del hash por el registrant original;
+- consulta simple de estado por hash;
+- tests locales con Forge.
+
 ## Alcance futuro
 
 - emisores autorizados;
-- hashes de credenciales;
-- timestamps de emision;
-- revocacion;
-- consultas de estado.
+- integracion backend real contra contrato;
+- despliegue controlado a redes de prueba;
+- politicas mas finas de autorizacion.
 
 ## Entorno esperado
 
@@ -23,4 +30,19 @@ Registrar evidencia minima verificable on-chain sin almacenar el contenido compl
 
 ## Estado actual
 
-Se dejo una estructura minima compatible con Foundry y un contrato placeholder sin logica de negocio definitiva.
+Estado actual del slice:
+
+- se guarda on-chain solo evidencia minima:
+  - `credentialHash`
+  - `issuer`/registrant
+  - `registeredAt`
+  - `revoked`
+  - `revokedAt`
+- no se guarda:
+  - PII
+  - JSON de credencial
+  - `SemanticAnalysis`
+  - texto sensible
+  - `revocationReason` como `string`
+
+Este contrato es deliberadamente un registry minimo de hashes, no un NFT, no un DID registry y no un contrato de negocio completo.
