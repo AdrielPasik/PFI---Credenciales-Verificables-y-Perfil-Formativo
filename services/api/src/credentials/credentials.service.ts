@@ -164,7 +164,7 @@ export class CredentialsService {
         }
       });
 
-      const blockchainRecord = await this.blockchainEvidenceService.createMockRecord(
+      const blockchainRecord = await this.blockchainEvidenceService.createRecord(
         transaction,
         {
           credentialId: updatedCredential.id,

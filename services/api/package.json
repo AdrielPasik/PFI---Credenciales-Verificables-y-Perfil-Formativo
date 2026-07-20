@@ -16,6 +16,7 @@
     "blockchain:revoke": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/blockchain/scripts/revoke-credential-on-registry.ts",
     "blockchain:status": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/blockchain/scripts/check-credential-registry-status.ts",
     "semantic:ingest:file": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/semantic/scripts/ingest-semantic-analysis-file.ts",
+    "test:blockchain-evidence": "node --require ts-node/register/transpile-only --test src/blockchain/blockchain-evidence.service.test.ts",
     "test:blockchain-read-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-read-client.test.ts",
     "test:blockchain-write-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-write-client.test.ts",
     "test:hashing": "node --require ts-node/register/transpile-only --test src/credentials/credential-hashing.service.test.ts",

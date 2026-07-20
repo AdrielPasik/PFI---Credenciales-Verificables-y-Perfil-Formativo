@@ -13,6 +13,7 @@ Alcance actual:
 
 - modulo NestJS minimo;
 - `BlockchainEvidenceService` para mock/local DB ya existente;
+- `BlockchainEvidenceService` con modo configurable para mock o `credential_registry_anvil`;
 - `CredentialRegistryReadClient` read-only contra contrato EVM;
 - `CredentialRegistryWriteClient` para transacciones locales de prueba contra Anvil;
 - `ethers@6.15.0` se usa solo dentro de los clientes blockchain encapsulados;
@@ -61,12 +62,29 @@ npm run blockchain:revoke --workspace @credential-intelligence/api -- --hash 0x1
 
 Notas de uso:
 
+- `BLOCKCHAIN_EVIDENCE_MODE=mock` es el default, incluso si la variable no existe;
+- `BLOCKCHAIN_EVIDENCE_MODE=credential_registry_anvil` activa registro on-chain local/dev;
+- si `BLOCKCHAIN_EVIDENCE_MODE` tiene otro valor, el backend falla con error claro;
+- si falta RPC URL, contract address o private key en contract mode, no hay fallback silencioso a mock;
 - `blockchain:register` y `blockchain:revoke` son solo para Anvil/local-dev;
 - no escriben en la base de datos;
 - no crean `BlockchainRecord`;
 - no se integran todavia con `POST /credentials/:id/issue`;
 - el estado final de una credencial debe consultarse luego con `blockchain:status`;
 - no hay Base Sepolia ni signer productivo en este slice.
+
+Integracion con `BlockchainEvidenceService`:
+
+- en `mock`, el comportamiento sigue siendo el actual: tx hash deterministico local y `BlockchainRecord` local;
+- en `credential_registry_anvil`, el service llama a `registerCredential(bytes32)` mediante `CredentialRegistryWriteClient`;
+- solo despues de una tx `success` se crea `BlockchainRecord` con `txHash` real de Anvil;
+- no hay read-after-write obligatorio en el issue flow.
+
+Riesgo conocido:
+
+- DB transaction != blockchain transaction;
+- si la tx on-chain sale bien y luego falla el write de `BlockchainRecord` en PostgreSQL, la blockchain no puede rollbackearse;
+- para este slice local/dev se acepta esa limitacion, pero queda documentada como deuda tecnica para una estrategia futura de reconciliacion/idempotencia/outbox.
 
 La salida se normaliza a tipos serializables:
 
