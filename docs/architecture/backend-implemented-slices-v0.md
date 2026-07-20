@@ -9,7 +9,7 @@ Estado actual del flujo:
 ```text
 Credential draft/issue
 -> canonical hash canon_v1
--> BlockchainRecord mock/local
+-> BlockchainRecord mock o credential_registry_anvil
 -> semantic_analysis_v1 ingestion
 -> SemanticAnalysis persistido
 -> lectura latest semantic analysis
@@ -20,7 +20,7 @@ Este estado ya permite demostrar un backend real que:
 
 - crea y emite credenciales;
 - calcula y persiste hash canonico;
-- registra evidencia blockchain mock/local;
+- registra evidencia blockchain mock/local o en contrato Anvil segun configuracion;
 - persiste artifacts semanticos validados;
 - expone lectura read-only para verificadores.
 
@@ -61,7 +61,9 @@ Que hace:
 - fija `issuedAt`;
 - calcula `canonicalHash`;
 - fija `canonicalizationVersion = canon_v1`;
-- crea un `BlockchainRecord` mock/local asociado.
+- crea un `BlockchainRecord` asociado;
+- en modo default usa evidencia mock/local;
+- en modo `credential_registry_anvil` registra el hash on-chain y persiste `txHash` real.
 
 Estado resultante esperado:
 
@@ -70,7 +72,7 @@ status issued
 issuedAt
 canonicalHash
 canonicalizationVersion canon_v1
-BlockchainRecord mock/local
+BlockchainRecord mock o credential_registry_anvil
 ```
 
 ### Credential read/status
@@ -109,26 +111,60 @@ A nivel conceptual:
 - `semantic_analysis_v1` no participa del hash;
 - `BlockchainRecord` no participa del hash.
 
-### Blockchain evidence mock/local
+### Smart contract y evidencia blockchain
 
-Componente persistido:
+Estado implementado:
+
+```text
+contracts/src/CredentialRegistry.sol
+Foundry tests locales
+deploy manual en Anvil
+cast registerCredential(bytes32)
+cast revokeCredential(bytes32)
+backend read-only client
+backend write client local/dev
+BlockchainEvidenceService con modo configurable
+```
+
+Componente persistido principal:
 
 ```text
 BlockchainRecord
 ```
 
-Estado actual:
+Capacidades actuales:
 
 ```text
+CredentialRegistry.sol probado con Foundry
+flujo manual Anvil documentado
+backend read-only client contra CredentialRegistry
+backend write client local/dev contra CredentialRegistry
+BLOCKCHAIN_EVIDENCE_MODE=mock por default
+BLOCKCHAIN_EVIDENCE_MODE=credential_registry_anvil como modo opcional explicito
+```
+
+En modo `mock`:
+
+```text
+se preserva el comportamiento anterior
 network anvil
 chainId 31337
 txHash mock/deterministic
 status registered
-no smart contract real todavia
-no Base Sepolia todavia
 ```
 
-Esto permite probar el flujo de evidencia blockchain sin depender aun de contrato real ni red externa.
+En modo `credential_registry_anvil`:
+
+```text
+registerCredential(canonicalHash) on-chain
+BlockchainRecord con txHash real de Anvil
+network anvil
+chainId 31337
+contractAddress desde env
+status registered
+```
+
+Esto permite validar tanto el flujo local/mock como un flujo local/dev contra contrato real sin acoplar todavia blockchain al resto del dominio de forma productiva.
 
 ### semantic_analysis_v1 backend contract
 
@@ -189,6 +225,9 @@ Validaciones ya ejecutadas:
 
 ```text
 test:hashing
+test:blockchain-read-client
+test:blockchain-write-client
+test:blockchain-evidence
 test:semantic-artifact
 test:semantic-service
 test:semantic-cli
@@ -197,6 +236,7 @@ test:verification-read
 build
 prisma:validate
 prueba manual con PostgreSQL real
+prueba manual con Anvil real
 ```
 
 Prueba manual conceptual realizada:
@@ -209,15 +249,40 @@ semantic_analysis_v1 JSON real
 -> GET verify credential
 ```
 
-## 4. Que sigue siendo mock/local
-
-Todavia sigue siendo mock/local:
+Pruebas manuales blockchain realizadas:
 
 ```text
-BlockchainRecord todavia no viene de smart contract real
-txHash todavia es mock/local
-Anvil/Base Sepolia todavia no integrados al backend
-no hay adapter ethers.js todavia
+CredentialRegistry.sol
+-> deploy manual en Anvil
+-> registerCredential(bytes32) con cast
+-> revokeCredential(bytes32) con cast
+-> backend blockchain:status
+-> backend blockchain:register
+-> backend blockchain:revoke
+-> issue flow en modo mock
+-> issue flow en modo credential_registry_anvil
+```
+
+## 4. Que sigue siendo mock/local
+
+Todavia sigue siendo local/dev o parcial:
+
+```text
+Anvil es la unica red integrada
+Base Sepolia no esta integrada
+MetaMask no esta integrado
+el modo credential_registry_anvil es local/dev y explicito
+no hay wallet real de usuario
+no hay hardening productivo de transacciones blockchain
+```
+
+Riesgo/deuda tecnica conocida:
+
+```text
+DB transaction != blockchain transaction
+si la tx on-chain sale bien pero falla el write en DB, la blockchain no puede rollbackearse
+esto se acepta en este slice local/dev
+futuro: idempotencia, reconciliacion, outbox o estrategia equivalente
 ```
 
 ## 5. Que NO esta implementado todavia
@@ -225,16 +290,17 @@ no hay adapter ethers.js todavia
 Pendientes importantes:
 
 ```text
-smart contract real
-Foundry project
-backend adapter real contra contrato
-revocation endpoint
+Base Sepolia
+MetaMask
+frontend
+revocacion backend completa
+wallet real del usuario
+DID completo
+integracion mobile
+hardening productivo de transacciones blockchain
 FormativeProfile aggregation
 IA HTTP integration
-frontend
 mobile app
-MetaMask integration
-Base Sepolia deployment
 ```
 
 ## 6. Proximos pasos recomendados
@@ -242,9 +308,9 @@ Base Sepolia deployment
 Orden sugerido:
 
 ```text
-1. Foundry + CredentialRegistry.sol + tests locales
-2. Backend adapter real hacia Anvil/contrato
-3. Revocation flow
-4. Verifier frontend minimo
+1. Revocation flow backend completo usando el contrato ya existente
+2. Endurecimiento de transacciones blockchain con estrategia de reconciliacion/idempotencia
+3. Verifier frontend minimo
+4. Base Sepolia cuando el flujo local/dev este suficientemente estable
 5. FormativeProfile cuando el modulo IA este mas estable
 ```
