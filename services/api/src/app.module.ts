@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { AuthModule } from './auth/auth.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { CredentialsModule } from './credentials/credentials.module';
 import { HealthController } from './health/health.controller';
@@ -11,6 +12,7 @@ import { VerificationModule } from './verification/verification.module';
 @Module({
   imports: [
     PrismaModule,
+    AuthModule,
     IssuersModule,
     BlockchainModule,
     SemanticModule,

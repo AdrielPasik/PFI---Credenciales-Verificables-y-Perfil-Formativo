@@ -23,12 +23,14 @@ Actua como orquestador central entre:
 
 ## Estado actual
 
-En esta iteracion `services/api` quedo convertido en un backend NestJS minimo ejecutable.
+En esta iteracion `services/api` funciona como backend NestJS ejecutable con auth demo-grade minima y slices tecnicos iniciales.
 
 Incluye:
 
 - bootstrap tecnico de NestJS;
 - endpoint `GET /health` con respuesta `{ "status": "ok" }`;
+- endpoints `POST /auth/login` y `GET /auth/me`;
+- `AuthCredential` separado para password hash por usuario;
 - `PrismaModule` y `PrismaService` minimos;
 - scripts para compilar, ejecutar y validar `schema.prisma`;
 - uso del schema existente en `services/api/prisma/schema.prisma`.
@@ -89,6 +91,7 @@ El seed es idempotente y crea un set minimo reproducible:
 - `Demo Holder` como titular con DID;
 - `Issuer Admin` como usuario institucional;
 - membresia `admin` activa entre `Issuer Admin` y `Demo University`.
+- credenciales auth demo local/dev para holder e issuer admin.
 
 ## Variables de entorno
 
@@ -96,20 +99,27 @@ Ver `services/api/.env.example` para el set minimo esperado:
 
 - `PORT`
 - `DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
 
 Para trabajo local con Prisma, copiar `services/api/.env.example` a `services/api/.env` antes de correr migraciones o seed.
 
+Credenciales demo local/dev:
+
+- `issuer.admin@example.com / DemoIssuer123!`
+- `holder.demo@example.com / DemoHolder123!`
+
+En base de datos solo se persisten hashes `scrypt:v1:...`.
+
 ## Que no esta implementado todavia
 
-- modulos de dominio (`users`, `issuers`, `credentials`, `verification`, `semantic`, `profiles`, `blockchain`, `sharing`, `audit`);
-- controllers o endpoints de negocio;
-- auth, permisos y sesiones;
-- logica de emision, verificacion, hashing o revocacion;
-- integracion real con blockchain;
+- protected issuance;
+- autorizacion efectiva por rol y alcance institucional;
+- refresh tokens o sesiones avanzadas;
+- recuperacion de password;
 - integracion real con AI service;
-- endpoints de credenciales;
-- logica de BlockchainRecord mock/local;
-- integracion semantica real del primer vertical slice.
+- frontend;
+- Base Sepolia o wallets externas para holder.
 
 ## Notas
 

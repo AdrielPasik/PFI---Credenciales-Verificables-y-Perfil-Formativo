@@ -6,9 +6,13 @@ import {
   UserStatus
 } from '@prisma/client';
 
+import { hashPassword } from '../src/auth/password-hashing';
+
 const prisma = new PrismaClient();
 
 const FIXED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z');
+const DEMO_ISSUER_PASSWORD = 'DemoIssuer123!';
+const DEMO_HOLDER_PASSWORD = 'DemoHolder123!';
 
 async function main() {
   const issuer = await prisma.issuer.upsert({
@@ -86,12 +90,44 @@ async function main() {
     }
   });
 
+  await prisma.authCredential.upsert({
+    where: {
+      userId: holder.id
+    },
+    update: {
+      passwordHash: await hashPassword(DEMO_HOLDER_PASSWORD)
+    },
+    create: {
+      userId: holder.id,
+      passwordHash: await hashPassword(DEMO_HOLDER_PASSWORD)
+    }
+  });
+
+  await prisma.authCredential.upsert({
+    where: {
+      userId: issuerAdmin.id
+    },
+    update: {
+      passwordHash: await hashPassword(DEMO_ISSUER_PASSWORD)
+    },
+    create: {
+      userId: issuerAdmin.id,
+      passwordHash: await hashPassword(DEMO_ISSUER_PASSWORD)
+    }
+  });
+
   console.log(
     JSON.stringify(
       {
         issuerId: issuer.id,
         holderUserId: holder.id,
-        issuerAdminUserId: issuerAdmin.id
+        issuerAdminUserId: issuerAdmin.id,
+        demoAuth: {
+          issuerAdminEmail: issuerAdmin.email,
+          issuerAdminPassword: DEMO_ISSUER_PASSWORD,
+          holderEmail: holder.email,
+          holderPassword: DEMO_HOLDER_PASSWORD
+        }
       },
       null,
       2
