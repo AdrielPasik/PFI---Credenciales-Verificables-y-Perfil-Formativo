@@ -5,6 +5,7 @@ import { BlockchainModule } from './blockchain/blockchain.module';
 import { CredentialsModule } from './credentials/credentials.module';
 import { HealthController } from './health/health.controller';
 import { IssuersModule } from './issuers/issuers.module';
+import { MeModule } from './me/me.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SemanticModule } from './semantic/semantic.module';
 import { VerificationModule } from './verification/verification.module';
@@ -13,6 +14,7 @@ import { VerificationModule } from './verification/verification.module';
   imports: [
     PrismaModule,
     AuthModule,
+    MeModule,
     IssuersModule,
     BlockchainModule,
     SemanticModule,

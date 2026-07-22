@@ -20,6 +20,7 @@
     "test:blockchain-read-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-read-client.test.ts",
     "test:blockchain-write-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-write-client.test.ts",
     "test:auth": "node --require ts-node/register/transpile-only --test src/auth/password-hashing.test.ts src/auth/auth.service.test.ts src/auth/auth.guard.test.ts src/auth/auth.controller.test.ts",
+    "test:me-wallet": "node --require ts-node/register/transpile-only --test src/me/me.controller.test.ts src/me/me.service.test.ts",
     "test:protected-issuance": "node --require ts-node/register/transpile-only --test src/credentials/credentials.controller.test.ts src/credentials/credentials.service.test.ts",
     "test:hashing": "node --require ts-node/register/transpile-only --test src/credentials/credential-hashing.service.test.ts",
     "test:semantic-artifact": "node --require ts-node/register/transpile-only --test src/semantic/semantic-analysis-artifact.mapper.test.ts",
