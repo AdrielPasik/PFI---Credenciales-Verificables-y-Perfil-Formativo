@@ -1,4 +1,8 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+
+import { AuthGuard } from '../auth/auth.guard';
+import { type AuthenticatedUser } from '../auth/auth.types';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialStatusResponseDto } from './dto/credential-status-response.dto';
@@ -16,11 +20,13 @@ export class CredentialsController {
   }
 
   @Post(':id/issue')
+  @UseGuards(AuthGuard)
   issueCredential(
     @Param('id') credentialId: string,
-    @Body() dto: IssueCredentialDto
+    @Body() dto: IssueCredentialDto,
+    @CurrentUser() currentUser: AuthenticatedUser
   ): Promise<CredentialSummaryResponseDto> {
-    return this.credentialsService.issueCredential(credentialId, dto);
+    return this.credentialsService.issueCredential(credentialId, dto, currentUser);
   }
 
   @Get(':id')

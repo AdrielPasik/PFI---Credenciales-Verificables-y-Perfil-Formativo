@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ import {
 import { BlockchainEvidenceService } from '../blockchain/blockchain-evidence.service';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { type AuthenticatedUser } from '../auth/auth.types';
 import { CredentialHashingService } from './credential-hashing.service';
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialStatusResponseDto } from './dto/credential-status-response.dto';
@@ -81,10 +83,12 @@ export class CredentialsService {
 
   async issueCredential(
     credentialId: string,
-    dto: IssueCredentialDto
+    dto: IssueCredentialDto,
+    currentUser: AuthenticatedUser
   ): Promise<CredentialSummaryResponseDto> {
     this.assertNonEmptyString(credentialId, 'credentialId');
     this.assertNonEmptyString(dto.issuerId, 'issuerId');
+    this.assertAuthenticatedUser(currentUser);
 
     const credential = await this.prisma.credential.findUnique({
       where: {
@@ -108,10 +112,14 @@ export class CredentialsService {
 
     if (credential.issuerId !== dto.issuerId) {
       throw new BadRequestException(
-        `La credencial ${credentialId} no pertenece al issuer ${dto.issuerId}.`
+        `El issuerId del request no coincide con el issuer real de la credencial ${credentialId}.`
       );
     }
 
+    await this.issuersService.assertUserCanIssueForIssuer(
+      currentUser.id,
+      credential.issuerId
+    );
     this.issuersService.assertIssuerCanIssue(credential.issuer);
 
     if (!credential.subjectUser.did) {
@@ -350,6 +358,14 @@ export class CredentialsService {
   private assertNonEmptyString(value: unknown, fieldName: string): asserts value is string {
     if (typeof value !== 'string' || value.trim().length === 0) {
       throw new BadRequestException(`${fieldName} es requerido.`);
+    }
+  }
+
+  private assertAuthenticatedUser(
+    currentUser: AuthenticatedUser | undefined
+  ): asserts currentUser is AuthenticatedUser {
+    if (!currentUser?.id) {
+      throw new ForbiddenException('Usuario autenticado invalido.');
     }
   }
 

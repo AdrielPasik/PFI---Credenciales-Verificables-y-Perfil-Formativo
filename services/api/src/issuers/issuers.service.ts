@@ -1,11 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
 import {
   Issuer,
-  IssuerAuthorizationStatus
+  IssuerAuthorizationStatus,
+  IssuerMembershipRole,
+  IssuerMembershipStatus
 } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -26,6 +29,40 @@ export class IssuersService {
     }
 
     return issuer;
+  }
+
+  async assertUserCanIssueForIssuer(userId: string, issuerId: string) {
+    const membership = await this.prisma.issuerMembership.findUnique({
+      where: {
+        userId_issuerId: {
+          userId,
+          issuerId
+        }
+      }
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        `El usuario ${userId} no tiene membresia para emitir sobre el issuer ${issuerId}.`
+      );
+    }
+
+    if (membership.status !== IssuerMembershipStatus.active) {
+      throw new ForbiddenException(
+        `La membresia del usuario ${userId} para el issuer ${issuerId} no esta activa.`
+      );
+    }
+
+    if (
+      membership.role !== IssuerMembershipRole.admin &&
+      membership.role !== IssuerMembershipRole.operator
+    ) {
+      throw new ForbiddenException(
+        `El rol ${membership.role} no tiene permisos para emitir sobre el issuer ${issuerId}.`
+      );
+    }
+
+    return membership;
   }
 
   assertIssuerCanIssue(issuer: Issuer) {

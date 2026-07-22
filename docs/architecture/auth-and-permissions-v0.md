@@ -16,6 +16,56 @@
 - verificacion publica limitada a lo explicitamente compartido;
 - el backend es el unico punto que decide permisos efectivos.
 
+## 2.1 Quien se autentica realmente
+
+En este sistema la autenticacion corresponde a usuarios humanos del modelo `User`, no a la institucion `Issuer` como entidad abstracta.
+
+Esto implica:
+
+- un operador institucional inicia sesion como `User`;
+- un holder inicia sesion como `User`;
+- la institucion emisora existe como `Issuer` en DB;
+- el `Issuer` no "loguea" directamente con password propia.
+
+Modelo mental esperado:
+
+```text
+Issuer
+= universidad / institucion / entidad emisora
+
+User
+= persona o cuenta que usa el sistema
+
+IssuerMembership
+= vinculo entre User e Issuer
+
+AuthCredential
+= password hash para que ese User pueda iniciar sesion
+```
+
+Ejemplo institucional:
+
+```text
+issuer.admin@example.com
+-> User real
+-> tiene AuthCredential
+-> tiene IssuerMembership admin con Demo University
+-> puede operar en nombre de esa institucion
+```
+
+Ejemplo holder:
+
+```text
+holder.demo@example.com
+-> User real
+-> tiene AuthCredential
+-> tiene DID propio
+-> entra a su wallet/app interna
+-> ve sus credenciales y perfil formativo
+-> no firma transacciones blockchain
+-> no necesita MetaMask
+```
+
 ## 3. Acciones por rol
 
 ### `holder`
@@ -42,6 +92,8 @@
 - verificar credenciales o perfiles compartidos;
 - consultar solo la informacion habilitada por el flujo de verificacion;
 - no modificar credenciales, emisores ni perfiles.
+- para la demo basica puede operar sin login mediante endpoint publico controlado o link/token de sharing;
+- no necesita cuenta propia salvo que en el futuro se agreguen auditoria avanzada, paneles privados o controles finos de acceso.
 
 ### `system_admin`
 
@@ -103,6 +155,46 @@
 - la wallet web debe exponer permisos y consentimiento de forma clara en pantallas pequenas;
 - la experiencia mobile no cambia las reglas de autorizacion del backend;
 - una futura app nativa deberia reutilizar el mismo modelo de roles y grants.
+- el holder usa una wallet/app interna del sistema y no depende de MetaMask para la demo;
+- el holder no firma transacciones blockchain en este modelo.
+
+## 8.1 Wallet institucional y signer blockchain
+
+La blockchain se firma del lado institucional, no del lado holder.
+
+Principios:
+
+- el signer blockchain corresponde al issuer autorizado o a un signer backend local/dev controlado por ese issuer;
+- la direccion publica puede persistirse en base de datos;
+- la private key no debe guardarse en PostgreSQL;
+- la private key debe vivir fuera de la DB, por ejemplo en variable de entorno local/dev o en custodia institucional futura.
+
+En el estado actual del modelo:
+
+- `Issuer.walletAddress` representa la direccion publica institucional activa;
+- esto alcanza para la demo inicial y para el flujo actual con Anvil;
+- la emision blockchain no requiere MetaMask del holder.
+
+Evolucion futura posible:
+
+```text
+Issuer
+= entidad legal/institucional
+
+IssuerMembership
+= que usuarios humanos pueden operar en nombre del issuer
+
+IssuerSigner o IssuerWallet
+= que direcciones publicas estan autorizadas para firmar evidencia blockchain por ese issuer
+```
+
+Esa separacion todavia no es obligatoria para el slice actual, pero el principio funcional ya queda fijado:
+
+```text
+solo instituciones autorizadas pueden emitir,
+y dentro de cada institucion solo usuarios autorizados pueden operar,
+usando signers institucionales registrados.
+```
 
 ## 9. Consideraciones de privacidad
 
