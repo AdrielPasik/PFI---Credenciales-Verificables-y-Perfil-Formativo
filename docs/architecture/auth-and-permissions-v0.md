@@ -1,6 +1,6 @@
 # Auth y permisos v0
 
-> Este documento define una estrategia inicial de autenticacion y autorizacion. No implementa login ni selecciona un proveedor definitivo.
+> Este documento describe la estrategia v0 y el alcance demo-grade actualmente implementado. No selecciona todavia un proveedor de identidad definitivo ni define hardening productivo.
 
 ## 1. Actores
 
@@ -66,12 +66,39 @@ holder.demo@example.com
 -> no necesita MetaMask
 ```
 
+## 2.2 Estado implementado actual
+
+El backend ya implementa autenticacion local/demo para `User`:
+
+- `AuthCredential` separado de `User`;
+- password hash con `scrypt`;
+- `POST /auth/login` por email y password;
+- JWT minimo con `sub = userId`;
+- `GET /auth/me`;
+- `AuthGuard` reusable y decorador `CurrentUser`.
+
+No hay refresh tokens, recuperacion de password, MFA, OAuth ni proveedor externo. El esquema actual es suficiente para la demo local, no para custodia o identidad productiva.
+
+La emision ya aplica esta identidad:
+
+```text
+JWT currentUser
+-> Credential.issuerId persistido
+-> IssuerMembership activa
+-> rol admin u operator
+-> Issuer autorizado
+-> issue permitido
+```
+
+El `issuerId` del request, si existe por compatibilidad, no es fuente de autoridad y no puede cambiar el issuer real de la credencial.
+
 ## 3. Acciones por rol
 
 ### `holder`
 
-- ver sus credenciales;
-- ver su perfil formativo;
+- ver sus credenciales propias `issued` o `revoked` mediante `GET /me/credentials` y `GET /me/credentials/:id`;
+- ver su perfil formativo actual mediante `GET /me/profile/current`;
+- reconstruir explicitamente su perfil en local/dev mediante `POST /me/profile/rebuild`;
 - generar links o tokens de comparticion cuando exista esa funcionalidad;
 - no emitir ni revocar credenciales institucionales.
 
@@ -86,6 +113,8 @@ holder.demo@example.com
 - revocar credenciales emitidas por su institucion cuando la politica lo permita;
 - no acceder libremente a todos los perfiles de usuarios fuera de su alcance;
 - toda accion de emision, consulta o revocacion debe validar pertenencia al emisor.
+
+Estado actual implementado: puede emitir solo cuando esta autenticado, activo, tiene membresia activa en el issuer persistido de la credencial, rol permitido e issuer autorizado. La lectura institucional de todas las credenciales emitidas y la revocacion siguen pendientes.
 
 ### `verifier`
 
@@ -102,13 +131,15 @@ holder.demo@example.com
 - ejecutar reconstrucciones o acciones de mantenimiento;
 - acceso ampliado sujeto a trazabilidad reforzada.
 
+Este rol no tiene endpoints ni permisos runtime implementados todavia.
+
 ## 4. Datos visibles por actor
 
 ### Holder
 
-- detalle completo de sus credenciales;
-- estado de verificacion;
-- perfil formativo completo propio;
+- detalle de sus propias credenciales visibles, sin `rawData`;
+- estado de verificacion y evidencia blockchain incluida cuando existe;
+- perfil formativo actual propio;
 - historial de comparticion futuro si se implementa.
 
 ### Issuer admin
@@ -210,3 +241,6 @@ usando signers institucionales registrados.
 - soporte futuro para multi-factor o wallet-based auth institucional;
 - modelo exacto de grants compartibles y expiracion;
 - politica de retencion de eventos de verificacion.
+- endpoint issuer-facing para lectura institucional y controles de privacidad asociados;
+- estrategia de autorizacion de rebuild administrativo de perfiles;
+- constraint de DB o estrategia de reintento para reforzar la unicidad de `FormativeProfile.isCurrent`.

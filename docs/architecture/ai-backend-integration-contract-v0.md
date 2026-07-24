@@ -13,7 +13,7 @@ El objetivo no es describir la implementacion interna del pipeline IA ni cerrar 
 
 ## 2. Diagnostico actual
 
-El estado actual del proyecto muestra que el trabajo de IA ya esta avanzado y produce resultados utiles, pero todavia no existe un contrato formal y versionado de integracion con el backend.
+El estado actual del proyecto combina un contrato versionado de `semantic_analysis_v1`, exporter offline/aditivo del lado IA y validacion/persistencia controlada del lado backend. La integracion sigue siendo local/offline: no existe HTTP entre NestJS y el runtime IA.
 
 ### Situacion actual
 
@@ -38,7 +38,10 @@ Credential draft -> issue -> canonical hash -> mock/local BlockchainRecord
   - errores parciales;
 - las salidas de PDFs academicos y cursos online no necesariamente exponen los mismos campos ni la misma granularidad;
 - no existe todavia un `credential_candidate_v1` formal;
-- `semantic_analysis_v1` existe como intencion conceptual, pero no como contrato final estable de intercambio entre modulos.
+- `semantic_analysis_v1` ya tiene validator/mapper backend, persistencia en `SemanticAnalysis` y script local `semantic:ingest:file`;
+- el backend no depende de imports, rutas internas ni runtime Python del extractor;
+- `credential_candidate_v1` sigue siendo solo contrato futuro y no se ingiere;
+- `formative_profile_result_v0` sigue siendo un artifact externo futuro: el backend actual construye su propio snapshot deterministico desde `SemanticAnalysis` persistidos.
 
 ### Conclusiones
 
@@ -621,7 +624,7 @@ current AI output
 -> IA exporter/adapter
 -> semantic_analysis_v1
 -> SemanticAnalysis
--> future FormativeProfile
+-> FormativeProfile snapshot backend local/dev
 ```
 
 ## 8.3 Principio operativo
@@ -696,10 +699,11 @@ El backend debe recibir artifacts ya normalizados o, como alternativa transitori
 
 | Campo conceptual | Fuente esperada | Hash canonico | Requerido | Estado actual |
 | --- | --- | --- | --- | --- |
-| agregados por area | calculado desde semantic | no | futuro | no implementado |
-| agregados por skill | calculado desde semantic | no | futuro | no implementado |
-| coverage/confidence | calculado | no | futuro | no implementado |
-| profile versioning | backend/IA contract | no | futuro | pendiente |
+| agregados por area | `SemanticAnalysis` persistido | no | si para snapshot | implementado en rebuild backend local/dev |
+| agregados por skill | `SemanticAnalysis` persistido | no | si para snapshot | implementado en rebuild backend local/dev |
+| concepts/evidence | `SemanticAnalysis` persistido | no | si para snapshot | implementado en `profileJson` con ids trazables |
+| coverage/confidence | promedio simple backend | no | si disponible | implementado como `derived` o `unavailable` |
+| profile versioning | backend | no | si | `formative_profile_result_v0` en el snapshot actual |
 
 ## 10. Campos que no deben venir desde IA
 
@@ -742,11 +746,10 @@ Antes de implementar integracion real conviene resolver:
 La recomendacion para esta etapa es:
 
 1. Aprobar este contrato v0 como capa intermedia de integracion.
-2. Pedir al modulo IA un exporter/adapter hacia:
-   - `credential_candidate_v1`
-   - `semantic_analysis_v1`
-3. Recien despues implementar ingestion backend real para esos artifacts.
-4. Mantener `canon_v1` protegido y sin mezclarlo con JSON crudos del pipeline IA.
+2. Mantener `semantic_analysis_v1` como artifact offline/aditivo y usar la ingestion local controlada mientras no exista HTTP.
+3. Mantener `credential_candidate_v1` documentado, pero sin ingestion real hasta contar con evidencia confiable de holder, completion e issuer.
+4. Definir el contrato futuro de `formative_profile_result_v0` sin mezclarlo con el snapshot backend actual.
+5. Mantener `canon_v1` protegido y sin mezclarlo con JSON crudos del pipeline IA.
 
 ## 13. Criterio operativo para la siguiente iteracion
 
@@ -773,8 +776,8 @@ Esto implica:
 - el primer exporter debe vivir del lado IA;
 - el exporter debe ser aditivo y de solo lectura sobre los outputs actuales;
 - el backend no debe consumir outputs crudos de IA;
-- no se crean todavia endpoints de ingestion;
-- no se toca Prisma;
+- no se crea todavia endpoint HTTP de ingestion;
+- el backend recibe el artifact mediante el script local controlado `semantic:ingest:file` y lo persiste en `SemanticAnalysis`;
 - no se toca `canon_v1`.
 
 ### 14.2 Estado de `credential_candidate_v1`
@@ -821,4 +824,17 @@ Esto permite diferenciar:
 
 ### 14.5 Proximo paso recomendado
 
-El siguiente paso recomendado para el modulo IA es implementar primero un exporter offline y aditivo de `semantic_analysis_v1`, con ejemplos reales revisables, sin tocar backend, Prisma ni endpoints.
+El exporter offline/aditivo de `semantic_analysis_v1` ya puede alimentar el backend por el script local controlado. El siguiente paso de integracion debe definir como se validara y entregara `formative_profile_result_v0` externo, sin confundirlo con el snapshot backend actual ni con un payload de frontend.
+
+### 14.6 Estado de perfil formativo en backend
+
+El backend implementa actualmente `GET /me/profile/current` y `POST /me/profile/rebuild` para holder autenticado.
+
+- el rebuild consume solo credenciales `issued` y el ultimo `SemanticAnalysis` por credencial;
+- agrega datos ya persistidos sin ejecutar NLP ni Python;
+- conserva trazabilidad por `credentialId` y `semanticAnalysisId`;
+- crea snapshots `FormativeProfile` y mantiene uno actual mediante transaccion;
+- excluye drafts y credenciales revoked del calculo;
+- no modifica `Credential`, `SemanticAnalysis`, `BlockchainRecord`, `canonicalHash` ni `canon_v1`.
+
+Este snapshot no equivale todavia a ingestion de `formative_profile_result_v0` producido por IA. Una futura integracion debera decidir si ese artifact externo reemplaza, complementa o se compara con la agregacion deterministica actual.

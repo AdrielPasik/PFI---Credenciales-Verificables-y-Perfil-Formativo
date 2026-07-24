@@ -1,129 +1,80 @@
 # Backend API
 
-Backend principal en Node.js + NestJS + TypeScript con Prisma como capa ORM sobre PostgreSQL.
+Backend NestJS + TypeScript con Prisma sobre PostgreSQL. El estado actual soporta una demo local/dev de autenticacion, emision protegida, evidencia blockchain local, ingestion semantica, wallet interna de holder y perfiles formativos.
 
-## Rol arquitectonico
+## Endpoints actuales
 
-Actua como orquestador central entre:
+Publicos:
 
-- frontend web;
-- base de datos off-chain;
-- servicio de IA;
-- integracion blockchain.
+```text
+GET  /health
+GET  /credentials/:id
+GET  /credentials/:id/status
+GET  /credentials/:id/semantic-analysis/latest
+GET  /verify/credentials/:id
+POST /credentials/draft
+```
 
-## Responsabilidades futuras
+Protegidos por JWT:
 
-- gestion de usuarios e instituciones emisoras;
-- construccion y persistencia de credenciales;
-- calculo de hashes y evidencia verificable;
-- verificacion de estado on-chain;
-- invocacion del AI service;
-- exposicion de APIs para issuer, wallet y verifier;
-- trazabilidad y auditoria.
+```text
+POST /auth/login
+GET  /auth/me
+POST /credentials/:id/issue
+GET  /me/credentials
+GET  /me/credentials/:id
+GET  /me/profile/current
+POST /me/profile/rebuild
+```
 
-## Estado actual
+`POST /credentials/:id/issue` requiere un usuario autenticado con `IssuerMembership` activa, rol permitido y un issuer autorizado. El `issuerId` del body no es fuente de autoridad: la credencial persistida define el issuer efectivo.
 
-En esta iteracion `services/api` funciona como backend NestJS ejecutable con auth demo-grade minima y slices tecnicos iniciales.
+`/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
-Incluye:
+## Perfil formativo
 
-- bootstrap tecnico de NestJS;
-- endpoint `GET /health` con respuesta `{ "status": "ok" }`;
-- endpoints `POST /auth/login` y `GET /auth/me`;
-- `AuthCredential` separado para password hash por usuario;
-- `PrismaModule` y `PrismaService` minimos;
-- scripts para compilar, ejecutar y validar `schema.prisma`;
-- uso del schema existente en `services/api/prisma/schema.prisma`.
+`POST /me/profile/rebuild` es un trigger local/dev explicito. Construye un snapshot `FormativeProfile` desde credenciales `issued` del holder y el ultimo `SemanticAnalysis` persistido por credencial.
+
+- no ejecuta IA ni Python;
+- no inventa areas, skills o concepts;
+- no modifica `Credential`, `SemanticAnalysis` ni `BlockchainRecord`;
+- conserva evidencia por `credentialId` y `semanticAnalysisId` dentro de `profileJson`;
+- si una credencial no tiene analisis, genera warning y continua;
+- mantiene un perfil actual mediante transaccion Prisma.
+
+No se ingiere todavia `formative_profile_result_v0` externo ni existe integracion HTTP con el modulo IA.
 
 ## Desarrollo
 
-Instalar dependencias del monorepo con `npm install` desde la raiz y luego ejecutar:
+Instalar dependencias desde la raiz del monorepo y ejecutar:
 
 - `npm run dev --workspace @credential-intelligence/api`
 - `npm run build --workspace @credential-intelligence/api`
-- `npm run start --workspace @credential-intelligence/api`
-
-## Prisma
-
-Scripts disponibles:
-
 - `npm run prisma:validate --workspace @credential-intelligence/api`
-- `npm run prisma:format --workspace @credential-intelligence/api`
-- `npm run prisma:generate --workspace @credential-intelligence/api`
-- `npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name init`
-- `npm run prisma:seed --workspace @credential-intelligence/api`
 
-`prisma generate` solo genera el cliente local y no corre migraciones ni crea base de datos.
+Tests de slices:
+
+- `npm run test:auth --workspace @credential-intelligence/api`
+- `npm run test:protected-issuance --workspace @credential-intelligence/api`
+- `npm run test:me-wallet --workspace @credential-intelligence/api`
+- `npm run test:profiles --workspace @credential-intelligence/api`
+- `npm run test:hashing --workspace @credential-intelligence/api`
 
 ## PostgreSQL local
 
-La opcion local minima del repo usa Docker Compose en:
+```text
+docker compose -f infra/docker/docker-compose.postgres.yml up -d
+npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name <migration-name>
+npm run prisma:seed --workspace @credential-intelligence/api
+```
 
-- `infra/docker/docker-compose.postgres.yml`
-
-Levantar PostgreSQL:
-
-- `docker compose -f infra/docker/docker-compose.postgres.yml up -d`
-
-Bajar PostgreSQL:
-
-- `docker compose -f infra/docker/docker-compose.postgres.yml down`
-
-La configuracion queda alineada con `services/api/.env.example`:
-
-- host: `localhost`
-- port: `5432`
-- db: `credential_intelligence`
-- user: `postgres`
-- password: `postgres`
-
-## Migraciones y seed
-
-Secuencia recomendada para desarrollo local:
-
-1. Levantar PostgreSQL con Docker Compose.
-2. Ejecutar `npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name init`.
-3. Ejecutar `npm run prisma:seed --workspace @credential-intelligence/api`.
-
-El seed es idempotente y crea un set minimo reproducible:
-
-- `Demo University` como emisor autorizado;
-- `Demo Holder` como titular con DID;
-- `Issuer Admin` como usuario institucional;
-- membresia `admin` activa entre `Issuer Admin` y `Demo University`.
-- credenciales auth demo local/dev para holder e issuer admin.
-
-## Variables de entorno
-
-Ver `services/api/.env.example` para el set minimo esperado:
-
-- `PORT`
-- `DATABASE_URL`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
-
-Para trabajo local con Prisma, copiar `services/api/.env.example` a `services/api/.env` antes de correr migraciones o seed.
-
-Credenciales demo local/dev:
+El seed idempotente crea `Demo University`, `Issuer Admin` y `Demo Holder`. Las credenciales demo local/dev son:
 
 - `issuer.admin@example.com / DemoIssuer123!`
 - `holder.demo@example.com / DemoHolder123!`
 
-En base de datos solo se persisten hashes `scrypt:v1:...`.
+Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
 
-## Que no esta implementado todavia
+## Limites
 
-- protected issuance;
-- autorizacion efectiva por rol y alcance institucional;
-- refresh tokens o sesiones avanzadas;
-- recuperacion de password;
-- integracion real con AI service;
-- frontend;
-- Base Sepolia o wallets externas para holder.
-
-## Notas
-
-- El backend ya tiene scripts y compose preparados para correr migraciones y seed locales.
-- El schema Prisma sigue siendo la base v0 existente, sin cambios funcionales de dominio.
-- `PrismaService` queda configurado, pero sin forzar conexion al iniciar el proceso.
-- Los modulos de dominio se crearan en iteraciones posteriores.
+El backend no tiene frontend, mobile, MetaMask, Base Sepolia, IA HTTP, ejecucion Python desde NestJS, sharing/link/QR, revocacion completa ni hardening productivo blockchain. El modo `credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo el comportamiento por default.

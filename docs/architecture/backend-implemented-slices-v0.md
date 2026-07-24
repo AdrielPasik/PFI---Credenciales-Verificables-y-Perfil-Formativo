@@ -2,315 +2,187 @@
 
 ## 1. Resumen ejecutivo
 
-El backend ya tiene implementado un flujo inicial y funcional de credenciales verificables con persistencia local y lectura compuesta.
-
-Estado actual del flujo:
+El backend NestJS ya implementa un flujo local/dev funcional de credenciales verificables, autenticacion demo-grade, wallet interna de holder y perfil formativo agregado.
 
 ```text
-Credential draft/issue
+User login
+-> protected credential issue
 -> canonical hash canon_v1
 -> BlockchainRecord mock o credential_registry_anvil
 -> semantic_analysis_v1 ingestion
 -> SemanticAnalysis persistido
--> lectura latest semantic analysis
--> endpoint de verificacion compuesto
+-> holder wallet read
+-> FormativeProfile current rebuild/read
+-> verifier read compuesto
 ```
 
-Este estado ya permite demostrar un backend real que:
-
-- crea y emite credenciales;
-- calcula y persiste hash canonico;
-- registra evidencia blockchain mock/local o en contrato Anvil segun configuracion;
-- persiste artifacts semanticos validados;
-- expone lectura read-only para verificadores.
+El flujo usa PostgreSQL real, Prisma y Anvil local cuando se habilita el modo de contrato. No hay frontend, mobile, IA HTTP ni red blockchain publica integrados.
 
 ## 2. Slices implementados
 
-### Credential draft
-
-Endpoint:
-
-```text
-POST /credentials/draft
-```
-
-Que hace:
-
-- crea una `Credential` en estado `draft`;
-- valida campos minimos del request;
-- persiste `credentialSubject`, `metadata` y `rawData` si corresponden.
-
-Que no hace:
-
-- no emite la credencial;
-- no calcula hash;
-- no crea `BlockchainRecord`;
-- no ejecuta IA.
-
-### Credential issue
-
-Endpoint:
-
-```text
-POST /credentials/:id/issue
-```
-
-Que hace:
-
-- cambia la credencial a estado `issued`;
-- fija `issuedAt`;
-- calcula `canonicalHash`;
-- fija `canonicalizationVersion = canon_v1`;
-- crea un `BlockchainRecord` asociado;
-- en modo default usa evidencia mock/local;
-- en modo `credential_registry_anvil` registra el hash on-chain y persiste `txHash` real.
-
-Estado resultante esperado:
-
-```text
-status issued
-issuedAt
-canonicalHash
-canonicalizationVersion canon_v1
-BlockchainRecord mock o credential_registry_anvil
-```
-
-### Credential read/status
+### Auth foundation demo-grade
 
 Endpoints:
 
 ```text
-GET /credentials/:id
-GET /credentials/:id/status
+POST /auth/login
+GET  /auth/me
 ```
 
-Que hacen:
+- `AuthCredential` mantiene el password hash separado de `User`;
+- passwords hasheados con `scrypt`;
+- JWT minimo con `sub = userId`;
+- `AuthGuard` y `CurrentUser` resuelven la identidad para endpoints protegidos;
+- el seed local crea `Issuer Admin` y `Demo Holder` con credenciales demo.
 
-- permiten consultar la credencial persistida;
-- exponen estado general;
-- exponen hash canonico y evidencia blockchain disponible segun el caso.
+No incluye refresh tokens, recuperacion de password, MFA ni proveedor de identidad externo.
+
+### Credential draft y protected issuance
+
+Endpoints:
+
+```text
+POST /credentials/draft
+POST /credentials/:id/issue
+GET  /credentials/:id
+GET  /credentials/:id/status
+```
+
+El issue requiere JWT. La autoridad no proviene del `issuerId` del body: el emisor efectivo es `credential.issuerId` persistido y el usuario debe tener `IssuerMembership` activa, rol emisor permitido e `Issuer` autorizado. El holder no puede emitir.
+
+Al emitir, el backend fija `issuedAt`, calcula `canonicalHash` con `canon_v1`, guarda `canonicalizationVersion` y crea un `BlockchainRecord` asociado.
 
 ### Canonical hashing
 
-Componente principal:
-
-```text
-CredentialHashingService
-```
-
-Resumen tecnico:
-
-- usa `canon_v1`;
-- usa `sha-256`;
-- calcula hash deterministico sobre la proyeccion canonica de la credencial emitida.
-
-A nivel conceptual:
+`CredentialHashingService` usa `sha-256` y una proyeccion deterministica `canon_v1`.
 
 - incluye datos centrales de la credencial emitida;
 - excluye datos operativos e internos;
-- `semantic_analysis_v1` no participa del hash;
-- `BlockchainRecord` no participa del hash.
+- `semantic_analysis_v1`, `FormativeProfile` y `BlockchainRecord` no participan del hash;
+- el contrato esta protegido con tests unitarios y golden test.
 
-### Smart contract y evidencia blockchain
+### Evidencia blockchain local
 
-Estado implementado:
+Estado actual:
 
 ```text
-contracts/src/CredentialRegistry.sol
+CredentialRegistry.sol
 Foundry tests locales
-deploy manual en Anvil
-cast registerCredential(bytes32)
-cast revokeCredential(bytes32)
-backend read-only client
-backend write client local/dev
+deploy y pruebas manuales con Anvil/cast
+read client backend
+write client local/dev
 BlockchainEvidenceService con modo configurable
 ```
 
-Componente persistido principal:
+Modos:
 
-```text
-BlockchainRecord
-```
+- `mock` es el default y conserva `txHash` mock/deterministico;
+- `credential_registry_anvil` es explicito y registra el hash en `CredentialRegistry`, guardando un `txHash` real de Anvil.
 
-Capacidades actuales:
+Ambos persisten `BlockchainRecord` con `network = anvil`, `chainId = 31337` y estado `registered`. No hay Base Sepolia, MetaMask ni signer productivo.
 
-```text
-CredentialRegistry.sol probado con Foundry
-flujo manual Anvil documentado
-backend read-only client contra CredentialRegistry
-backend write client local/dev contra CredentialRegistry
-BLOCKCHAIN_EVIDENCE_MODE=mock por default
-BLOCKCHAIN_EVIDENCE_MODE=credential_registry_anvil como modo opcional explicito
-```
+Riesgo aceptado local/dev: una transaccion de PostgreSQL no puede rollbackear una transaccion on-chain. Idempotencia, reconciliacion u outbox quedan para una etapa posterior.
 
-En modo `mock`:
+### semantic_analysis_v1
 
-```text
-se preserva el comportamiento anterior
-network anvil
-chainId 31337
-txHash mock/deterministic
-status registered
-```
-
-En modo `credential_registry_anvil`:
-
-```text
-registerCredential(canonicalHash) on-chain
-BlockchainRecord con txHash real de Anvil
-network anvil
-chainId 31337
-contractAddress desde env
-status registered
-```
-
-Esto permite validar tanto el flujo local/mock como un flujo local/dev contra contrato real sin acoplar todavia blockchain al resto del dominio de forma productiva.
-
-### semantic_analysis_v1 backend contract
-
-Estado implementado:
+Capacidades implementadas:
 
 ```text
 validator/mapper backend
 SemanticService.persistForCredential()
-script semantic:ingest:file
+semantic:ingest:file
 GET /credentials/:id/semantic-analysis/latest
 ```
 
-Aclaraciones clave:
+El backend recibe solo artifacts JSON versionados y validados. No ejecuta Python, no consume formatos internos crudos del extractor, no modifica `Credential`, no recalcula hash y no toca `canon_v1`.
+
+### Holder wallet read
+
+Endpoints protegidos:
 
 ```text
-no ejecuta IA
-no consume outputs crudos
-no modifica Credential
-no recalcula hash
-no toca canon_v1
+GET /me/credentials
+GET /me/credentials/:id
 ```
 
-El backend solo consume artifacts `semantic_analysis_v1` ya exportados y validados.
+La identidad sale exclusivamente del JWT. El holder solo ve credenciales propias en estado `issued` o `revoked`; drafts y credenciales de otros holders se ocultan. Las respuestas no exponen `rawData`, `AuthCredential` ni `passwordHash`.
+
+### FormativeProfile persistence/read
+
+Endpoints protegidos:
+
+```text
+GET  /me/profile/current
+POST /me/profile/rebuild
+```
+
+El rebuild local/dev toma credenciales `issued` del holder y el ultimo `SemanticAnalysis` de cada una. Agrega solo areas, skills, concepts, confidence y evidencia ya persistidos; conserva `credentialIds`, `semanticAnalysisIds` y `evidenceCount` en `profileJson`.
+
+- drafts y credenciales revoked no participan;
+- una credencial sin analisis genera warning y no rompe el rebuild;
+- catalogos online se marcan como no equivalentes a evidencia de completion;
+- el backend no genera NLP, skills o areas nuevas;
+- una transaccion Prisma desmarca perfiles anteriores y crea un unico snapshot `isCurrent = true`.
+
+El modelo reutilizado es `FormativeProfile`; no se ingiere todavia `formative_profile_result_v0` externo ni existe integracion HTTP con IA.
 
 ### Verification endpoint
-
-Endpoint:
 
 ```text
 GET /verify/credentials/:id
 ```
 
-Compone en una sola lectura:
-
-```text
-Credential
-canonicalHash
-canonicalizationVersion
-BlockchainRecord(s)
-latest SemanticAnalysis resumido
-verificationStatus
-```
-
-Logica actual de `verificationStatus`:
+Compone `Credential`, hash, evidencia blockchain y ultimo `SemanticAnalysis` resumido. Su estado es:
 
 ```text
 revoked     -> credential.status === revoked
 draft       -> credential.status === draft
-valid       -> issued + canonicalHash + canonicalizationVersion + al menos un BlockchainRecord status registered
+valid       -> issued + hash + canon + BlockchainRecord registered
 incomplete  -> cualquier otro caso
 ```
 
-No realiza verificacion criptografica real ni consulta blockchain externa.
+No ejecuta una verificacion criptografica externa en tiempo real.
 
 ## 3. Que fue probado
 
-Validaciones ya ejecutadas:
+Se ejecutan tests separados para hashing, auth, protected issuance, holder wallet, perfiles, semantic artifact/service/CLI/read, blockchain read/write/evidence y verification read, ademas de `build` y `prisma:validate`.
 
-```text
-test:hashing
-test:blockchain-read-client
-test:blockchain-write-client
-test:blockchain-evidence
-test:semantic-artifact
-test:semantic-service
-test:semantic-cli
-test:semantic-read
-test:verification-read
-build
-prisma:validate
-prueba manual con PostgreSQL real
-prueba manual con Anvil real
-```
-
-Prueba manual conceptual realizada:
+Pruebas manuales realizadas:
 
 ```text
 semantic_analysis_v1 JSON real
 -> semantic:ingest:file
 -> SemanticAnalysis en PostgreSQL
--> GET latest semantic analysis
--> GET verify credential
+-> POST /me/profile/rebuild
+-> FormativeProfile current en PostgreSQL
+-> GET /me/profile/current
 ```
 
-Pruebas manuales blockchain realizadas:
+Tambien se probaron deploy, register y revoke de `CredentialRegistry.sol` en Anvil, junto con issue flow en modo `mock` y `credential_registry_anvil`.
+
+## 4. Limites actuales
+
+No esta implementado todavia:
+
+- frontend, PWA o app mobile;
+- Base Sepolia, MetaMask o wallet externa del holder;
+- signer institucional productivo, custodia segura o multiples signers por issuer;
+- revocacion backend completa;
+- sharing/link/QR;
+- endpoint issuer-facing para listar credenciales institucionales;
+- IA HTTP, jobs/colas o ejecucion Python desde Nest;
+- ingestion de `credential_candidate_v1`;
+- ingestion externa de `formative_profile_result_v0`;
+- hardening productivo de transacciones blockchain;
+- constraint de base de datos parcial para garantizar `FormativeProfile.isCurrent`.
+
+## 5. Proximos pasos recomendados
 
 ```text
-CredentialRegistry.sol
--> deploy manual en Anvil
--> registerCredential(bytes32) con cast
--> revokeCredential(bytes32) con cast
--> backend blockchain:status
--> backend blockchain:register
--> backend blockchain:revoke
--> issue flow en modo mock
--> issue flow en modo credential_registry_anvil
-```
-
-## 4. Que sigue siendo mock/local
-
-Todavia sigue siendo local/dev o parcial:
-
-```text
-Anvil es la unica red integrada
-Base Sepolia no esta integrada
-MetaMask no esta integrado
-el modo credential_registry_anvil es local/dev y explicito
-no hay wallet real de usuario
-no hay hardening productivo de transacciones blockchain
-```
-
-Riesgo/deuda tecnica conocida:
-
-```text
-DB transaction != blockchain transaction
-si la tx on-chain sale bien pero falla el write en DB, la blockchain no puede rollbackearse
-esto se acepta en este slice local/dev
-futuro: idempotencia, reconciliacion, outbox o estrategia equivalente
-```
-
-## 5. Que NO esta implementado todavia
-
-Pendientes importantes:
-
-```text
-Base Sepolia
-MetaMask
-frontend
-revocacion backend completa
-wallet real del usuario
-DID completo
-integracion mobile
-hardening productivo de transacciones blockchain
-FormativeProfile aggregation
-IA HTTP integration
-mobile app
-```
-
-## 6. Proximos pasos recomendados
-
-Orden sugerido:
-
-```text
-1. Revocation flow backend completo usando el contrato ya existente
-2. Endurecimiento de transacciones blockchain con estrategia de reconciliacion/idempotencia
-3. Verifier frontend minimo
-4. Base Sepolia cuando el flujo local/dev este suficientemente estable
-5. FormativeProfile cuando el modulo IA este mas estable
+1. Revocation flow protegido y sincronizado con BlockchainRecord/contrato.
+2. Reconciliacion e idempotencia de evidencia blockchain.
+3. Endpoint issuer-facing de lectura institucional.
+4. Verifier frontend minimo sobre los endpoints existentes.
+5. Definir si formative_profile_result_v0 externo reemplaza, complementa o compara el agregado backend actual.
+6. Base Sepolia y signer institucional seguro solo despues de estabilizar el flujo local/dev.
 ```
