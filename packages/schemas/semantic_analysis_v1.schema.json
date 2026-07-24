@@ -2,33 +2,36 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://credential-intelligence-platform.local/schemas/semantic_analysis_v1.schema.json",
   "title": "semantic_analysis_v1",
+  "description": "Artifact semantico versionado producido por el modulo IA y asociado a una Credential por contexto externo del backend.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version",
-    "analysis_id",
-    "credential_id",
+    "schemaVersion",
+    "pipelineVersion",
+    "taxonomyVersion",
     "status",
-    "pipeline_version",
-    "taxonomy_version",
-    "analyzed_at",
+    "sourceType",
+    "sourceRefs",
     "areas",
     "skills",
     "concepts",
-    "quality_flags",
-    "evidence_map",
-    "text_for_embedding",
-    "confidence"
+    "hoursDistribution",
+    "evidenceMap",
+    "confidence",
+    "qualityFlags",
+    "warnings",
+    "partialReasons",
+    "textForEmbedding"
   ],
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "semantic_analysis_v1"
     },
-    "analysis_id": {
+    "pipelineVersion": {
       "type": "string",
       "minLength": 1
     },
-    "credential_id": {
+    "taxonomyVersion": {
       "type": "string",
       "minLength": 1
     },
@@ -39,141 +42,261 @@
         "partial"
       ]
     },
-    "pipeline_version": {
+    "sourceType": {
       "type": "string",
-      "minLength": 1
+      "enum": [
+        "academic_pdf",
+        "online_course_catalog"
+      ]
     },
-    "taxonomy_version": {
-      "type": "string",
-      "minLength": 1
-    },
-    "analyzed_at": {
-      "type": "string",
-      "format": "date-time"
+    "sourceRefs": {
+      "$ref": "#/$defs/sourceRefs"
     },
     "areas": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/areaResult"
+        "$ref": "#/$defs/areaEntry"
       }
     },
     "skills": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/skillResult"
+        "$ref": "#/$defs/skillEntry"
       }
     },
     "concepts": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/conceptResult"
+        "$ref": "#/$defs/conceptEntry"
       }
     },
-    "quality_flags": {
+    "hoursDistribution": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hoursDistributionEntry"
+      }
+    },
+    "evidenceMap": {
+      "$ref": "#/$defs/evidenceMap"
+    },
+    "confidence": {
+      "$ref": "#/$defs/confidenceSummary"
+    },
+    "qualityFlags": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "warnings": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "partialReasons": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "textForEmbedding": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "confidenceMethod": {
+      "type": "string",
+      "enum": [
+        "measured",
+        "derived",
+        "heuristic",
+        "unavailable"
+      ]
+    },
+    "nullableConfidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "stringArray": {
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "evidence_map": {
+    "sourceRefs": {
       "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
-      }
-    },
-    "text_for_embedding": {
-      "type": "string"
-    },
-    "confidence": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
-    }
-  },
-  "$defs": {
-    "areaResult": {
-      "type": "object",
-      "additionalProperties": false,
       "required": [
-        "name",
-        "score",
-        "evidence"
+        "documentId"
       ],
       "properties": {
-        "name": {
+        "documentId": {
           "type": "string",
           "minLength": 1
         },
-        "score": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "fileName": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
-      }
+      },
+      "additionalProperties": true
     },
-    "skillResult": {
+    "areaEntry": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "name",
-        "source",
+        "id",
+        "label",
         "confidence",
-        "evidence"
+        "confidenceMethod",
+        "source"
       ],
       "properties": {
-        "name": {
+        "id": {
           "type": "string",
           "minLength": 1
         },
-        "source": {
+        "label": {
           "type": "string",
           "minLength": 1
         },
         "confidence": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
+          "$ref": "#/$defs/nullableConfidence"
         },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "confidenceMethod": {
+          "$ref": "#/$defs/confidenceMethod"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred"
+          ]
         }
       }
     },
-    "conceptResult": {
+    "skillEntry": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "name",
-        "relevance",
-        "evidence"
+        "id",
+        "label",
+        "confidence",
+        "confidenceMethod",
+        "source"
       ],
       "properties": {
-        "name": {
+        "id": {
           "type": "string",
           "minLength": 1
         },
-        "relevance": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
+        "label": {
+          "type": "string",
+          "minLength": 1
         },
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "confidence": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "confidenceMethod": {
+          "$ref": "#/$defs/confidenceMethod"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred"
+          ]
+        }
+      }
+    },
+    "conceptEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "confidence",
+        "confidenceMethod"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "confidenceMethod": {
+          "$ref": "#/$defs/confidenceMethod"
+        }
+      }
+    },
+    "hoursDistributionEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "areaId",
+        "hours"
+      ],
+      "properties": {
+        "areaId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hours": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "evidenceMapSection": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/stringArray"
+      }
+    },
+    "evidenceMap": {
+      "type": "object",
+      "required": [
+        "areas",
+        "skills",
+        "concepts"
+      ],
+      "properties": {
+        "areas": {
+          "$ref": "#/$defs/evidenceMapSection"
+        },
+        "skills": {
+          "$ref": "#/$defs/evidenceMapSection"
+        },
+        "concepts": {
+          "$ref": "#/$defs/evidenceMapSection"
+        }
+      },
+      "additionalProperties": true
+    },
+    "confidenceSummary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "global",
+        "globalMethod",
+        "coverage",
+        "coverageMethod"
+      ],
+      "properties": {
+        "global": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "globalMethod": {
+          "$ref": "#/$defs/confidenceMethod"
+        },
+        "coverage": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "coverageMethod": {
+          "$ref": "#/$defs/confidenceMethod"
         }
       }
     }
