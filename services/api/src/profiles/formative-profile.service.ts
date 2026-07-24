@@ -11,7 +11,7 @@ import {
   type FormativeProfileSnapshotDto
 } from './dto/current-profile-response.dto';
 
-const PROFILE_VERSION = 'formative_profile_result_v0';
+const PROFILE_VERSION = 'backend_formative_profile_snapshot_v0';
 const PROFILE_SCHEMA_VERSION = 'formative_profile_v1';
 const GENERATION_METHOD = 'backend_deterministic_aggregation_v0';
 

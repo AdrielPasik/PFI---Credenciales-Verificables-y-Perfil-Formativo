@@ -703,7 +703,7 @@ El backend debe recibir artifacts ya normalizados o, como alternativa transitori
 | agregados por skill | `SemanticAnalysis` persistido | no | si para snapshot | implementado en rebuild backend local/dev |
 | concepts/evidence | `SemanticAnalysis` persistido | no | si para snapshot | implementado en `profileJson` con ids trazables |
 | coverage/confidence | promedio simple backend | no | si disponible | implementado como `derived` o `unavailable` |
-| profile versioning | backend | no | si | `formative_profile_result_v0` en el snapshot actual |
+| profile versioning | backend | no | si | `backend_formative_profile_snapshot_v0` en el snapshot actual |
 
 ## 10. Campos que no deben venir desde IA
 

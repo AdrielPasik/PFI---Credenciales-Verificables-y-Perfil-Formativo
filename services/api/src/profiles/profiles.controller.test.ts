@@ -51,7 +51,7 @@ test('ProfilesController rebuilds profile using current user id', async () => {
     userId: 'holder-1',
     currentProfile: {
       id: 'profile-1',
-      profileVersion: 'formative_profile_result_v0',
+      profileVersion: 'backend_formative_profile_snapshot_v0',
       isCurrent: true,
       credentialsCount: 1,
       totalHours: 64,

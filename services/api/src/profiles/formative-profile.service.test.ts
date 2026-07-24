@@ -19,7 +19,7 @@ function persistedProfile(overrides?: Record<string, unknown>) {
     generatedAt: new Date('2026-07-24T12:00:00.000Z'),
     credentialsCount: 1,
     totalHours: decimalLike('64.00'),
-    profileVersion: 'formative_profile_result_v0',
+    profileVersion: 'backend_formative_profile_snapshot_v0',
     isCurrent: true,
     generationMethod: 'backend_deterministic_aggregation_v0',
     areasSummary: [],
@@ -84,7 +84,7 @@ test('FormativeProfileService returns the current persisted profile', async () =
   assert.equal(response.currentProfile?.id, 'profile-1');
   assert.equal(
     response.currentProfile?.profileVersion,
-    'formative_profile_result_v0'
+    'backend_formative_profile_snapshot_v0'
   );
   assert.equal(response.currentProfile?.totalHours, 64);
 });
