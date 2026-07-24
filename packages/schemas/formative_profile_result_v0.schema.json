@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/formative_profile_result_v0.schema.json",
+  "title": "formative_profile_result_v0",
+  "description": "Artifact agregado producido por el profile_builder del modulo IA a partir de semantic_analysis_v1. No contiene una identidad confiable del holder, no prueba finalizacion y no participa en canon_v1 ni en evidencia blockchain.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileVersion",
+    "generatedFrom",
+    "summary",
+    "confidence",
+    "areas",
+    "skills",
+    "concepts",
+    "strengths",
+    "possibleDirections",
+    "limitations",
+    "warnings",
+    "evidence",
+    "audit"
+  ],
+  "properties": {
+    "profileVersion": {
+      "const": "formative_profile_result_v0"
+    },
+    "generatedFrom": {
+      "$ref": "#/$defs/generatedFrom"
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    },
+    "confidence": {
+      "$ref": "#/$defs/profileConfidence"
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/area"
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/skill"
+      }
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/concept"
+      }
+    },
+    "strengths": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "possibleDirections": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "limitations": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "warnings": {
+      "$ref": "#/$defs/stringArray"
+    },
+    "evidence": {
+      "$ref": "#/$defs/evidence"
+    },
+    "audit": {
+      "$ref": "#/$defs/audit"
+    }
+  },
+  "$defs": {
+    "sourceType": {
+      "type": "string",
+      "enum": [
+        "academic_pdf",
+        "online_course_catalog"
+      ]
+    },
+    "nullableConfidence": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "nonEmptyStringArray": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "sourceTypeCounts": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/sourceType"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "codeCounts": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentId",
+        "fileName",
+        "sourceType"
+      ],
+      "properties": {
+        "documentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fileName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceType": {
+          "$ref": "#/$defs/sourceType"
+        }
+      }
+    },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRef"
+      }
+    },
+    "sourceTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceType"
+      },
+      "uniqueItems": true
+    },
+    "generatedFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactSchema",
+        "artifactCount",
+        "sourceTypes",
+        "pipelineVersions",
+        "taxonomyVersions"
+      ],
+      "properties": {
+        "artifactSchema": {
+          "const": "semantic_analysis_v1"
+        },
+        "artifactCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sourceTypes": {
+          "$ref": "#/$defs/sourceTypeCounts"
+        },
+        "pipelineVersions": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        },
+        "taxonomyVersions": {
+          "$ref": "#/$defs/nonEmptyStringArray"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "language",
+        "style"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "language": {
+          "const": "es"
+        },
+        "style": {
+          "const": "cautious_explanatory"
+        }
+      }
+    },
+    "profileConfidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "band",
+        "score",
+        "scoreMethod",
+        "explanation",
+        "drivers",
+        "limitations"
+      ],
+      "properties": {
+        "band": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "unavailable"
+          ]
+        },
+        "score": {
+          "type": "null"
+        },
+        "scoreMethod": {
+          "type": "string",
+          "enum": [
+            "qualitative_only",
+            "unavailable"
+          ]
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "drivers": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "limitations": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    },
+    "area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "evidenceCount",
+        "hours",
+        "confidence",
+        "sourceTypes",
+        "sourceRefs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "hours": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "confidence": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "sourceTypes": {
+          "$ref": "#/$defs/sourceTypes"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      }
+    },
+    "skill": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "evidenceCount",
+        "confidence",
+        "source",
+        "sourceTypes",
+        "sourceRefs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "explicit",
+            "inferred",
+            "mixed",
+            "unknown"
+          ]
+        },
+        "sourceTypes": {
+          "$ref": "#/$defs/sourceTypes"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      }
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "evidenceCount",
+        "confidence",
+        "sourceTypes",
+        "sourceRefs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidenceCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confidence": {
+          "$ref": "#/$defs/nullableConfidence"
+        },
+        "sourceTypes": {
+          "$ref": "#/$defs/sourceTypes"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      }
+    },
+    "sourceCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceArtifactsCount",
+        "bySourceType",
+        "sourceRefs",
+        "note"
+      ],
+      "properties": {
+        "sourceArtifactsCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "bySourceType": {
+          "$ref": "#/$defs/sourceTypeCounts"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "evidenceOverview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifacts_with_area_evidence",
+        "artifacts_with_skill_evidence",
+        "artifacts_with_concept_evidence",
+        "total_area_evidence_entries",
+        "total_skill_evidence_entries",
+        "total_concept_evidence_entries"
+      ],
+      "properties": {
+        "artifacts_with_area_evidence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifacts_with_skill_evidence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifacts_with_concept_evidence": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_area_evidence_entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_skill_evidence_entries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_concept_evidence_entries": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceCoverage",
+        "evidenceOverview",
+        "sourceRefs"
+      ],
+      "properties": {
+        "sourceCoverage": {
+          "$ref": "#/$defs/sourceCoverage"
+        },
+        "evidenceOverview": {
+          "$ref": "#/$defs/evidenceOverview"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "qualityFlags",
+        "partialReasons",
+        "rawWarningCodes",
+        "rawPartialReasonCodes"
+      ],
+      "properties": {
+        "qualityFlags": {
+          "$ref": "#/$defs/codeCounts"
+        },
+        "partialReasons": {
+          "$ref": "#/$defs/codeCounts"
+        },
+        "rawWarningCodes": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "rawPartialReasonCodes": {
+          "$ref": "#/$defs/stringArray"
+        }
+      }
+    }
+  }
+}
