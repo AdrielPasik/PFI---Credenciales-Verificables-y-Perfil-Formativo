@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CredentialStatus,
   Prisma,
@@ -10,6 +10,8 @@ import {
   type CurrentProfileResponseDto,
   type FormativeProfileSnapshotDto
 } from './dto/current-profile-response.dto';
+import { mapFormativeProfileResultArtifact } from './formative-profile-result-artifact.mapper';
+import { FORMATIVE_PROFILE_SCHEMA_VERSION } from './formative-profile-result-artifact.types';
 
 const PROFILE_VERSION = 'backend_formative_profile_snapshot_v0';
 const PROFILE_SCHEMA_VERSION = 'formative_profile_v1';
@@ -173,6 +175,71 @@ export class FormativeProfileService {
             })) as Prisma.InputJsonValue,
             qualityFlags: profileJson.warnings,
             profileJson: profileJson as unknown as Prisma.InputJsonValue
+          }
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable
+      }
+    );
+
+    return {
+      userId,
+      currentProfile: this.toCurrentProfileResponse(profile)
+    };
+  }
+
+  async persistAiArtifactForUser(
+    userId: string,
+    artifact: unknown
+  ): Promise<CurrentProfileResponseDto> {
+    const mapped = mapFormativeProfileResultArtifact(artifact);
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: userId
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    const generatedAt = new Date();
+    const profile = await this.prisma.$transaction(
+      async (transaction) => {
+        await transaction.formativeProfile.updateMany({
+          where: {
+            userId,
+            isCurrent: true
+          },
+          data: {
+            isCurrent: false
+          }
+        });
+
+        return transaction.formativeProfile.create({
+          data: {
+            schemaVersion: FORMATIVE_PROFILE_SCHEMA_VERSION,
+            userId,
+            generatedAt,
+            credentialsCount: mapped.credentialsCount,
+            totalHours: new Prisma.Decimal(mapped.totalHours),
+            profileVersion: mapped.profileVersion,
+            isCurrent: true,
+            generationMethod: mapped.generationMethod,
+            areasSummary:
+              mapped.areasSummary as unknown as Prisma.InputJsonValue,
+            skillsSummary:
+              mapped.skillsSummary as unknown as Prisma.InputJsonValue,
+            evidenceByArea:
+              mapped.evidenceByArea as unknown as Prisma.InputJsonValue,
+            qualityFlags:
+              mapped.qualityFlags as unknown as Prisma.InputJsonValue,
+            profileJson:
+              mapped.profileJson as unknown as Prisma.InputJsonValue
           }
         });
       },
