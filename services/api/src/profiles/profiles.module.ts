@@ -7,6 +7,7 @@ import { ProfilesController } from './profiles.controller';
 @Module({
   imports: [AuthModule],
   controllers: [ProfilesController],
-  providers: [FormativeProfileService]
+  providers: [FormativeProfileService],
+  exports: [FormativeProfileService]
 })
 export class ProfilesModule {}
