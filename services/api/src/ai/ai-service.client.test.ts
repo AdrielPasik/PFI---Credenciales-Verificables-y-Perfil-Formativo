@@ -85,6 +85,34 @@ test('analyzePdf sends native multipart fields and file', async (context) => {
   });
 });
 
+test('analyzePdf accepts an in-memory PDF without filesystem access', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      assert.ok(init?.body instanceof FormData);
+      const file = (init.body as FormData).get('file');
+      assert.ok(file instanceof File);
+      assert.equal(file.name, 'browser-upload.pdf');
+      assert.equal(await file.text(), '%PDF-1.4\nin-memory test');
+
+      return jsonResponse({
+        schemaVersion: 'semantic_analysis_v1'
+      });
+    }
+  );
+
+  const response = await new AiServiceClient().analyzePdf({
+    fileBytes: Buffer.from('%PDF-1.4\nin-memory test', 'utf8'),
+    fileName: 'browser-upload.pdf'
+  });
+
+  assert.deepEqual(response, {
+    schemaVersion: 'semantic_analysis_v1'
+  });
+});
+
 test('analyzePdf preserves useful detail from a 422 response', async (context) => {
   configureAiEnv(context);
   await withTemporaryPdf(async (filePath) => {

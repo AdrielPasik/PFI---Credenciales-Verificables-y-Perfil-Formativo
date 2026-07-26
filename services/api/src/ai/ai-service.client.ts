@@ -35,11 +35,9 @@ export class AiServiceClient {
   }
 
   async analyzePdf(input: AnalyzePdfWithAiInput): Promise<unknown> {
-    const filePath = this.expectNonEmptyString(input.filePath, 'filePath');
-    await this.assertReadableFile(filePath);
-    const fileBytes = await readFile(filePath);
+    const { fileBytes, defaultFileName } = await this.readPdfInput(input);
     const effectiveFileName =
-      this.optionalNonEmptyString(input.fileName) ?? basename(filePath);
+      this.optionalNonEmptyString(input.fileName) ?? defaultFileName;
     const formData = new FormData();
 
     formData.append(
@@ -66,6 +64,47 @@ export class AiServiceClient {
       method: 'POST',
       body: formData
     });
+  }
+
+  private async readPdfInput(input: AnalyzePdfWithAiInput): Promise<{
+    fileBytes: Uint8Array;
+    defaultFileName: string;
+  }> {
+    const hasFilePath =
+      typeof input.filePath === 'string' && input.filePath.trim().length > 0;
+    const hasFileBytes = input.fileBytes !== undefined;
+
+    if (hasFilePath === hasFileBytes) {
+      throw new AiServiceClientError(
+        'Exactly one PDF source is required: filePath or fileBytes.',
+        'configuration'
+      );
+    }
+
+    if (hasFileBytes) {
+      if (
+        !(input.fileBytes instanceof Uint8Array) ||
+        input.fileBytes.byteLength === 0
+      ) {
+        throw new AiServiceClientError(
+          'fileBytes must contain a non-empty PDF.',
+          'file'
+        );
+      }
+
+      return {
+        fileBytes: input.fileBytes,
+        defaultFileName: 'upload.pdf'
+      };
+    }
+
+    const filePath = this.expectNonEmptyString(input.filePath, 'filePath');
+    await this.assertReadableFile(filePath);
+
+    return {
+      fileBytes: await readFile(filePath),
+      defaultFileName: basename(filePath)
+    };
   }
 
   async buildFormativeProfile(

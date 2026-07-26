@@ -4,7 +4,8 @@ export interface AiServiceHealthResponse {
 }
 
 export interface AnalyzePdfWithAiInput {
-  filePath: string;
+  filePath?: string;
+  fileBytes?: Uint8Array;
   documentId?: string;
   fileName?: string;
   pipelineVersion?: string;

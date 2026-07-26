@@ -30,6 +30,7 @@ test('analyzePdf validates and optionally persists semantic_analysis_v1', async 
         };
       }
     } as never,
+    {} as never,
     {} as never
   );
 
@@ -92,7 +93,8 @@ test('buildProfileForUser validates ownership and uses stored source artifacts',
           }
         };
       }
-    } as never
+    } as never,
+    {} as never
   );
 
   const result = await service.buildProfileForUser('holder-1', [
@@ -128,6 +130,7 @@ test('buildProfileForUser rejects a credential owned by another holder', async (
         aiCalled = true;
       }
     } as never,
+    {} as never,
     {} as never,
     {} as never
   );
