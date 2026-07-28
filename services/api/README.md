@@ -31,6 +31,12 @@ POST /me/profile/rebuild
 
 `POST /credentials/:id/issue` aplica las mismas reglas institucionales sobre el issuer persistido de la credencial. El `issuerId` del body no puede cambiar el issuer efectivo.
 
+`GET /auth/me` devuelve solo memberships activas y agrega para cada una un
+resumen seguro del issuer: `issuerId`, `issuerName`, `issuerDid` e
+`issuerAuthorizationStatus`. Una membership activa solo es un contexto emisor
+operativo si ademas tiene rol `admin` u `operator` y el issuer esta
+`authorized`.
+
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
 ## Perfil formativo

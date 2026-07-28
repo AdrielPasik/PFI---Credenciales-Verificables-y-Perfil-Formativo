@@ -58,6 +58,11 @@ documentación inspeccionada:
 Esta screen specification corresponde a ese snapshot. Debe revisarse si
 cambian endpoints, DTOs, permisos, view models o componentes normativos.
 
+Actualizaciones posteriores al snapshot base:
+
+- P0.1 protegió `POST /credentials/draft`.
+- P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+
 Precedencia:
 
 1. Backend real para comportamiento, requiredness, permisos y errores.
@@ -95,7 +100,7 @@ placeholder para esa ruta.
 | Ruta | Actor | Objetivo | Disponibilidad | Backend principal | Dependencia o límite |
 |---|---|---|---|---|---|
 | `/login` | Usuario sin sesión válida | Autenticar y resolver contexto | A | `POST /auth/login`, `GET /auth/me` | Sin refresh token |
-| `/issuer` | `admin` u `operator` activo | Entrada institucional honesta | B | `GET /auth/me` | Sin issuer summary |
+| `/issuer` | `admin` u `operator` activo | Entrada institucional honesta | B | `GET /auth/me` | Issuer summary disponible; selector multi-issuer no implementado |
 | `/issuer/credentials/new` | `admin` u `operator` activo | Crear draft demo-grade | B | `POST /credentials/draft` | Backend protegido; sin resolución de titular |
 | `/issuer/credentials/[credentialId]` | `admin` u `operator` activo | Emitir, ver evidencia y analizar PDF | B | Reads por ID, issue y análisis PDF | Reads públicos y acceso por ID conocido |
 
@@ -314,14 +319,25 @@ onSubmitLogin
 Redirect:
 
 ```text
-membership activa admin/operator
+exactamente una membership operativa
 -> /issuer
 
-sin contexto emisor operativo
+más de una membership operativa
+-> selección explícita requerida
+-> no elegir una silenciosamente
+-> estado bloqueado para el vertical actual
+
+ninguna membership operativa
 -> /wallet/credentials
 ```
 
-No se muestra selector de rol ni selector multi-issuer.
+Una membership es operativa solo si está `active`, tiene rol `admin` u
+`operator` y su `issuerAuthorizationStatus` es `authorized`. Una membership
+activa con issuer `pending` o `revoked` es contexto conocido, pero no habilita
+creación ni emisión.
+
+No se crea selector de rol ni selector multi-issuer. Para la demo controlada se
+asume un usuario con exactamente una membership operativa.
 
 ### Foco y accesibilidad
 
@@ -366,8 +382,9 @@ No se muestra selector de rol ni selector multi-issuer.
 | Modelos | `CurrentUserVM`, `UserContextVM`, `IssuerHomeVM`, `FeedbackErrorVM` |
 | Componentes | `IssuerShell`, `ProductHeader`, `AuthenticatedUserMenu`, `IssuerNavigation`, `IssuerHomeIntro`, `Card`, `Button`, `FeedbackAlert`, `UnsupportedDataState` |
 
-La disponibilidad es B porque `/auth/me` devuelve `issuerId`, rol y status,
-pero no un issuer summary con nombre o DID.
+La disponibilidad se mantiene en B: `/auth/me` ya devuelve un issuer summary
+seguro, pero el frontend y la selección explícita entre múltiples contextos
+todavía no están implementados.
 
 ### Composición conceptual
 
@@ -375,7 +392,7 @@ pero no un issuer summary con nombre o DID.
 |---:|---|---|---|
 | 1 | Shell | `IssuerShell` | Marca, sesión y navegación real |
 | 2 | Identidad de sesión | `AuthenticatedUserMenu` | Email y cierre de sesión |
-| 3 | Contexto | `IssuerHomeIntro` | Contexto institucional genérico y rol cuando aporte |
+| 3 | Contexto | `IssuerHomeIntro` | Nombre, DID nullable, autorización institucional y rol |
 | 4 | Introducción | Copy operativo | Explicación breve del flujo |
 | 5 | Acción | `Button` primary | Crear credencial |
 | 6 | Limitación | `FeedbackAlert` o `UnsupportedDataState` | Solo una limitación relevante para la demo |
@@ -385,7 +402,7 @@ pero no un issuer summary con nombre o DID.
 - wordmark;
 - identidad de sesión;
 - rol operativo cuando aporte claridad;
-- contexto institucional genérico;
+- contexto institucional seguro;
 - explicación del flujo;
 - CTA de creación;
 - logout.
@@ -408,8 +425,8 @@ pero no un issuer summary con nombre o DID.
 | Estado | Tratamiento |
 |---|---|
 | Cargando contexto | `LoadingState` o skeleton estructural |
-| Contexto operativo por referencia | Mostrar contexto institucional genérico |
-| Issuer summary ausente | No inventar; omitir nombre |
+| Contexto operativo | Mostrar issuer name, DID cuando exista y rol |
+| Issuer `pending` o `revoked` | Mostrar contexto conocido como no operativo y no habilitar creación |
 | Contexto emisor no disponible | `UnsupportedDataState` y salida segura |
 | Membership viewer | No habilitar portal; resolver contexto personal |
 | Sesión expirada | Limpiar sesión y redirigir a login |
@@ -540,8 +557,9 @@ de un catálogo.
 - no concede autorización;
 - usa un label diferente y explícito.
 
-Mientras no exista issuer summary y regla de coincidencia, la pantalla no
-precompleta una identidad inventada.
+Aunque ya existe issuer summary, todavía no hay una regla de dominio que lo
+iguale a `credentialSubject.institution_name`. La pantalla no debe
+precompletar una identidad del logro basándose solo en el contexto emisor.
 
 ### Titular de la demo
 
@@ -1128,7 +1146,7 @@ logout
 | Ruta | Initial loading | Empty | Error | Forbidden | Success transitorio | Unsupported |
 |---|---|---|---|---|---|---|
 | `/login` | Resolución opcional de sesión | No aplica | Auth, red o backend | No aplica | Redirect | Response de auth inválida |
-| `/issuer` | Contexto desde `/auth/me` | No es dashboard vacío | Backend o sesión | Sin contexto operativo | No aplica | Issuer summary ausente se trata como contexto genérico |
+| `/issuer` | Contexto desde `/auth/me` | No es dashboard vacío | Backend o sesión | Sin contexto operativo | No aplica | Varias memberships operativas requieren selección; bloqueado en el vertical actual |
 | `/issuer/credentials/new` | Contexto demo | No aplica | Validación, red o backend | Ruta UX sin contexto emisor | Draft creado antes del redirect | Titular demo o issuer context ausente |
 | `/issuer/credentials/[credentialId]` | Credential por ID | No aplica | 404, red, conflict o IA | 403 al operar | Draft, issue o analysis feedback | Shape de detalle/análisis no segura |
 
@@ -1288,7 +1306,6 @@ contenido y microcopy.
 
 | Limitación | Pantalla afectada | Impacto UX | Tratamiento permitido | Tratamiento prohibido | Contrato futuro |
 |---|---|---|---|---|---|
-| Issuer summary ausente | Inicio, nueva y detalle | No hay nombre institucional seguro | Contexto institucional genérico | Mostrar UUID o nombre inventado | Summary en `/auth/me` |
 | Resolución de holder ausente | Nueva credencial | No hay selección humana autorizada | Titular demo preparado fuera de UI | Campo UUID o búsqueda fake | Resolver por email/DID autorizado |
 | Reads institucionales públicos | Detalle | Ownership no se valida al leer | ID preparado y adapter mínimo | Presentarlo como acceso productivo | Reads protegidos por membership |
 | Latest analysis amplio | Detalle | Puede incluir campos internos | Adapter allowlist y descarte | Pasar response o guardar artifact | DTO protegido y resumido |
@@ -1414,7 +1431,6 @@ No cerrar todavía:
 - reanálisis;
 - autosave;
 - endpoint de resolución del holder;
-- issuer summary;
 - storage;
 - revocación;
 - sharing;

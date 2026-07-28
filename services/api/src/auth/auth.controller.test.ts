@@ -51,6 +51,9 @@ test('AuthController delegates /auth/me lookup using current user id', async () 
     issuerMemberships: [
       {
         issuerId: 'issuer-1',
+        issuerName: 'Demo University',
+        issuerDid: 'did:example:issuer-demo',
+        issuerAuthorizationStatus: 'authorized',
         role: 'admin',
         status: 'active'
       }

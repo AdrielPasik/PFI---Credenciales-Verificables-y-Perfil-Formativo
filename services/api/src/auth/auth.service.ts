@@ -3,7 +3,7 @@ import {
   UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserStatus } from '@prisma/client';
+import { IssuerMembershipStatus, UserStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
@@ -79,12 +79,19 @@ export class AuthService {
         status: true,
         issuerMemberships: {
           where: {
-            status: 'active'
+            status: IssuerMembershipStatus.active
           },
           select: {
             issuerId: true,
             role: true,
-            status: true
+            status: true,
+            issuer: {
+              select: {
+                name: true,
+                did: true,
+                authorizationStatus: true
+              }
+            }
           }
         }
       }
@@ -98,12 +105,37 @@ export class AuthService {
       throw new UnauthorizedException('El usuario no esta activo.');
     }
 
+    const issuerMemberships = user.issuerMemberships
+      .map((membership) => ({
+        issuerId: membership.issuerId,
+        issuerName: membership.issuer.name,
+        issuerDid: membership.issuer.did,
+        issuerAuthorizationStatus: membership.issuer.authorizationStatus,
+        role: membership.role,
+        status: membership.status
+      }))
+      .sort((left, right) => {
+        if (left.issuerName < right.issuerName) {
+          return -1;
+        }
+
+        if (left.issuerName > right.issuerName) {
+          return 1;
+        }
+
+        if (left.issuerId < right.issuerId) {
+          return -1;
+        }
+
+        return left.issuerId > right.issuerId ? 1 : 0;
+      });
+
     return {
       id: user.id,
       email: user.email,
       did: user.did,
       status: user.status,
-      issuerMemberships: user.issuerMemberships
+      issuerMemberships
     };
   }
 

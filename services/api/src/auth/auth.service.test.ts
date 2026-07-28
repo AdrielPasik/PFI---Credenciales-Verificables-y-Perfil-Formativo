@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { UnauthorizedException } from '@nestjs/common';
 import {
+  IssuerAuthorizationStatus,
   IssuerMembershipRole,
   IssuerMembershipStatus,
   UserStatus
@@ -188,6 +189,26 @@ test('AuthService.resolveAuthenticatedUser accepts a valid JWT and loads current
   });
 });
 
+test('AuthService.resolveAuthenticatedUser rejects a valid token when the user no longer exists', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return null;
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  await assert.rejects(
+    service.resolveAuthenticatedUser('valid-token'),
+    UnauthorizedException
+  );
+});
+
 test('AuthService.resolveAuthenticatedUser rejects an inactive authenticated user', async () => {
   process.env.JWT_SECRET = 'demo-secret';
 
@@ -231,7 +252,12 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
               {
                 issuerId: 'issuer-1',
                 role: IssuerMembershipRole.admin,
-                status: IssuerMembershipStatus.active
+                status: IssuerMembershipStatus.active,
+                issuer: {
+                  name: 'Demo University',
+                  did: 'did:example:issuer-demo',
+                  authorizationStatus: IssuerAuthorizationStatus.authorized
+                }
               }
             ]
           };
@@ -251,12 +277,23 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
     issuerMemberships: [
       {
         issuerId: 'issuer-1',
+        issuerName: 'Demo University',
+        issuerDid: 'did:example:issuer-demo',
+        issuerAuthorizationStatus: IssuerAuthorizationStatus.authorized,
         role: IssuerMembershipRole.admin,
         status: IssuerMembershipStatus.active
       }
     ]
   });
   assert.equal('passwordHash' in response, false);
+  assert.deepEqual(Object.keys(response.issuerMemberships[0]).sort(), [
+    'issuerAuthorizationStatus',
+    'issuerDid',
+    'issuerId',
+    'issuerName',
+    'role',
+    'status'
+  ]);
   assert.deepEqual(findUniqueCalls, [
     {
       where: {
@@ -269,15 +306,220 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
         status: true,
         issuerMemberships: {
           where: {
-            status: 'active'
+            status: IssuerMembershipStatus.active
           },
           select: {
             issuerId: true,
             role: true,
-            status: true
+            status: true,
+            issuer: {
+              select: {
+                name: true,
+                did: true,
+                authorizationStatus: true
+              }
+            }
           }
         }
       }
+    }
+  ]);
+});
+
+test('AuthService.getCurrentUserProfile preserves issuer status and orders active memberships deterministically', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-123',
+            email: 'issuer.admin@example.com',
+            did: 'did:example:issuer-admin-demo',
+            status: UserStatus.active,
+            issuerMemberships: [
+              {
+                issuerId: 'issuer-z',
+                role: IssuerMembershipRole.operator,
+                status: IssuerMembershipStatus.active,
+                issuer: {
+                  name: 'Same Institution',
+                  did: null,
+                  authorizationStatus: IssuerAuthorizationStatus.pending
+                }
+              },
+              {
+                issuerId: 'issuer-a',
+                role: IssuerMembershipRole.operator,
+                status: IssuerMembershipStatus.active,
+                issuer: {
+                  name: 'Same Institution',
+                  did: 'did:example:revoked',
+                  authorizationStatus: IssuerAuthorizationStatus.revoked
+                }
+              },
+              {
+                issuerId: 'issuer-authorized',
+                role: IssuerMembershipRole.admin,
+                status: IssuerMembershipStatus.active,
+                issuer: {
+                  name: 'Alpha University',
+                  did: 'did:example:alpha',
+                  authorizationStatus: IssuerAuthorizationStatus.authorized
+                }
+              }
+            ]
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.deepEqual(response.issuerMemberships, [
+    {
+      issuerId: 'issuer-authorized',
+      issuerName: 'Alpha University',
+      issuerDid: 'did:example:alpha',
+      issuerAuthorizationStatus: IssuerAuthorizationStatus.authorized,
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
+    },
+    {
+      issuerId: 'issuer-a',
+      issuerName: 'Same Institution',
+      issuerDid: 'did:example:revoked',
+      issuerAuthorizationStatus: IssuerAuthorizationStatus.revoked,
+      role: IssuerMembershipRole.operator,
+      status: IssuerMembershipStatus.active
+    },
+    {
+      issuerId: 'issuer-z',
+      issuerName: 'Same Institution',
+      issuerDid: null,
+      issuerAuthorizationStatus: IssuerAuthorizationStatus.pending,
+      role: IssuerMembershipRole.operator,
+      status: IssuerMembershipStatus.active
+    }
+  ]);
+});
+
+test('AuthService.getCurrentUserProfile returns an empty membership list when none are active', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique(args: {
+          select: {
+            issuerMemberships: {
+              where: {
+                status: IssuerMembershipStatus;
+              };
+            };
+          };
+        }) {
+          assert.equal(
+            args.select.issuerMemberships.where.status,
+            IssuerMembershipStatus.active
+          );
+
+          return {
+            id: 'holder-123',
+            email: 'holder.demo@example.com',
+            did: 'did:example:holder-demo',
+            status: UserStatus.active,
+            issuerMemberships: []
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.getCurrentUserProfile('holder-123');
+
+  assert.deepEqual(response.issuerMemberships, []);
+});
+
+test('AuthService.getCurrentUserProfile excludes pending and revoked memberships', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const memberships = [
+    {
+      issuerId: 'issuer-active',
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active,
+      issuer: {
+        name: 'Active Institution',
+        did: 'did:example:active',
+        authorizationStatus: IssuerAuthorizationStatus.authorized
+      }
+    },
+    {
+      issuerId: 'issuer-pending-membership',
+      role: IssuerMembershipRole.operator,
+      status: IssuerMembershipStatus.pending,
+      issuer: {
+        name: 'Pending Membership Institution',
+        did: null,
+        authorizationStatus: IssuerAuthorizationStatus.authorized
+      }
+    },
+    {
+      issuerId: 'issuer-revoked-membership',
+      role: IssuerMembershipRole.operator,
+      status: IssuerMembershipStatus.revoked,
+      issuer: {
+        name: 'Revoked Membership Institution',
+        did: null,
+        authorizationStatus: IssuerAuthorizationStatus.authorized
+      }
+    }
+  ];
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique(args: {
+          select: {
+            issuerMemberships: {
+              where: {
+                status: IssuerMembershipStatus;
+              };
+            };
+          };
+        }) {
+          const requiredStatus = args.select.issuerMemberships.where.status;
+
+          return {
+            id: 'user-123',
+            email: 'issuer.admin@example.com',
+            did: 'did:example:issuer-admin-demo',
+            status: UserStatus.active,
+            issuerMemberships: memberships.filter(
+              (membership) => membership.status === requiredStatus
+            )
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.deepEqual(response.issuerMemberships, [
+    {
+      issuerId: 'issuer-active',
+      issuerName: 'Active Institution',
+      issuerDid: 'did:example:active',
+      issuerAuthorizationStatus: IssuerAuthorizationStatus.authorized,
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
     }
   ]);
 });

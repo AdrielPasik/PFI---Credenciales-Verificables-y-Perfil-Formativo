@@ -10,14 +10,16 @@
 
 ## 1. Identity / Users
 
-### `GET /users/me`
+### `GET /auth/me`
 
 - Proposito: devolver identidad y contexto basico del usuario autenticado.
 - Actor: `holder`, `issuer_admin`, `system_admin`.
 - Request conceptual: token de sesion o auth bearer.
-- Response conceptual: `user_id`, rol, did, permisos principales.
-- Errores esperados: `401 unauthorized`, `403 forbidden`.
-- Estado: `v1_candidate`.
+- Response conceptual: usuario autenticado y memberships activas. Cada
+  membership incluye `issuerId`, `issuerName`, `issuerDid`,
+  `issuerAuthorizationStatus`, `role` y `status`.
+- Errores esperados: `401 unauthorized`.
+- Estado: implementado, demo-grade.
 
 ### `GET /users/:id`
 

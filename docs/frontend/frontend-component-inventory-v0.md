@@ -50,6 +50,11 @@ branch: main
 commit: e7319e1
 ```
 
+Actualizaciones posteriores al snapshot base:
+
+- P0.1 protegió `POST /credentials/draft`.
+- P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+
 Documentos normativos leídos:
 
 ```text
@@ -644,10 +649,10 @@ la unidad funcional.
 
 | Componente | Categoría | Experiencia | Modelo recibido | Intenciones emitidas | Responsabilidad | Variantes/estados | Responsive | Accesibilidad | Reutilización | Fase | No debe conocer |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `IssuerShell` | Shell | Emisor | `UserContextVM` e identidad segura | Navegación y logout | Marco institucional contextual | Context known by reference, unavailable | Navegación adaptable; funciones completas | Landmarks, skip link, foco lógico | Baja | F1 | Fetching, membership efectiva |
+| `IssuerShell` | Shell | Emisor | `UserContextVM` e identidad segura | Navegación y logout | Marco institucional contextual | Context available, known non-operational, unavailable | Navegación adaptable; funciones completas | Landmarks, skip link, foco lógico | Baja | F1 | Fetching, membership efectiva |
 | `IssuerNavigation` | Shell | Emisor | Destinos habilitados por la arquitectura vigente | Navegar | Mostrar solo áreas reales | Inicio; futuras rutas solo cuando existan | Compacta o mobile navigation confirmada | Estado activo y teclado | Baja | F1 | Rutas C/D o permisos efectivos |
 | `AuthenticatedUserMenu` | Shell | Emisor y titular | `CurrentUserVM` minimizado | `onLogout` | Identidad de sesión y cierre | Open, closed | Menú o patrón móvil equivalente | Control expandible y foco | Alta | F1 | JWT, AuthCredential, password |
-| `IssuerHomeIntro` | Feature | Emisor | `IssuerHomeVM` | Ir a crear draft | Explicar flujo y acción real | Context available/unavailable | Texto y CTA se apilan | Heading y acción clara | Baja | F1 | Métricas, lista reciente, issuer inventado |
+| `IssuerHomeIntro` | Feature | Emisor | `IssuerHomeVM` | Ir a crear draft | Explicar flujo y acción real | Context available, known non-operational, unavailable | Texto y CTA se apilan | Heading y acción clara | Baja | F1 | Métricas, lista reciente, issuer inventado |
 | `CreateCredentialDraftForm` | Feature | Emisor | `CreateCredentialDraftFormModel` | `onCreateDraft` | Capturar datos humanos permitidos | Idle, validating, submitting, error | Varias columnas solo en ancho suficiente | Labels, errores asociados, foco en primer error | Baja | F1 | `issuerId` editable, JSON, rawData |
 | `CredentialDraftSummary` | Feature | Emisor | `IssuerCredentialDetailVM` parcial | Abrir detalle o continuar | Confirmar draft creado | Draft, incomplete read | Apilado en mobile | Heading y estado explícito | Baja | F1 | Verificación válida o issuer inventado |
 | `IssueCredentialSection` | Feature | Emisor | `IssuerCredentialDetailVM`, `IssueCredentialActionVM` | `onIssueCredential` | Explicar y confirmar emisión | Available, submitting, success, conflict, forbidden | CTA y consecuencias apiladas | Confirmación en dialog; resultado persistente | Baja | F1 | Hashing, signer, endpoint directo |
@@ -814,7 +819,7 @@ No se implementan placeholders ni opciones `Próximamente`.
 | `IssuerAnalyticsDashboard` | D | Endpoints agregados y métricas definidas | No existe contrato analítico | KPIs, gráficos o actividad reciente |
 | `IssuerUsersManagement` | D | Gestión de memberships y permisos | No hay endpoints administrativos | Altas, bajas o roles ficticios |
 | `IssuerSettings` | D | Configuración institucional | No hay contrato de lectura/escritura | Nombre, DID o signer editable fake |
-| `MultiIssuerSwitcher` | B | Issuer summaries y selección de contexto | `/auth/me` no ofrece nombres suficientes | Selector con UUID o elección silenciosa |
+| `MultiIssuerSwitcher` | B | Selección explícita y persistencia de contexto | `/auth/me` ya ofrece summaries, pero no define selección | Selector con UUID o elección silenciosa |
 | `SharingPanel` | D | Grants, expiración y revocación | Acceso por ID no es sharing seguro | Links compartidos con falsa privacidad |
 | `QrSharePanel` | D | Sharing grant y QR real | No existe token controlado | QR que codifica solo un ID |
 | `RevocationPanel` | B | Endpoint protegido de revocación | Lifecycle incompleto | Botón sin efecto o estado local |

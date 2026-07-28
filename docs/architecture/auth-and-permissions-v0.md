@@ -77,6 +77,14 @@ El backend ya implementa autenticacion local/demo para `User`:
 - `GET /auth/me`;
 - `AuthGuard` reusable y decorador `CurrentUser`.
 
+`GET /auth/me` devuelve solamente memberships activas. Cada item conserva
+separados `status` (estado de la membership) e
+`issuerAuthorizationStatus` (estado del issuer), y agrega un resumen seguro
+con `issuerId`, `issuerName` e `issuerDid`. Una membership activa vinculada a
+un issuer `pending` o `revoked` sigue apareciendo como contexto conocido, pero
+no es operativa. Para operar se requiere ademas rol `admin` u `operator` e
+issuer `authorized`.
+
 No hay refresh tokens, recuperacion de password, MFA, OAuth ni proveedor externo. El esquema actual es suficiente para la demo local, no para custodia o identidad productiva.
 
 La emision ya aplica esta identidad:

@@ -125,6 +125,11 @@ services/api/src/issuers
 El inventario de responses, nullability, permisos y errores corresponde a este
 snapshot.
 
+Actualizaciones posteriores al snapshot base:
+
+- P0.1 protegió `POST /credentials/draft`.
+- P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+
 > Cuando cambien controllers, DTOs, serializers, permisos o responses del
 > backend, deberán revisarse los adapters y view models definidos por este
 > documento.
@@ -793,7 +798,10 @@ reemplaza esas reglas.
 - `user.did` es `string | null`;
 - `AuthMeResponseDto.issuerMemberships` es array requerido y puede estar
   vacío;
-- las memberships devueltas por `/auth/me` ya están filtradas a `active`.
+- las memberships devueltas por `/auth/me` ya están filtradas a `active`;
+- cada membership conserva `issuerId`, `role` y `status`, y agrega
+  `issuerName: string`, `issuerDid: string | null` e
+  `issuerAuthorizationStatus: pending | authorized | revoked`.
 
 #### Credential summary y status
 
@@ -863,7 +871,7 @@ versión pueden omitirse.
 | Endpoint | Actor | Disp. | Auth/permiso | Response real | Adapter | VM o command | Permitidos | Descartados | Estados derivados | Errores | Notas UX |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `POST /auth/login` | Institucional/titular | A | Público; usuario activo | `AuthLoginResponseDto` | `adaptLoginResponse` | `SessionVM`; `LoginCommand` | token para sesión; user email, DID, status | response desconocida; token fuera de componentes | authenticated | `invalid_credentials`, network, unexpected | El 401 de login no se presenta como sesión expirada |
-| `GET /auth/me` | Usuario autenticado | A | Bearer JWT | `AuthMeResponseDto` | `adaptCurrentUserContext` | `CurrentUserVM`; `UserContextVM` | id adapter-only; email, DID, status, memberships activas | campos desconocidos | issuer operational/personal destination | `authentication_required` o `session_expired`, network, unexpected | Distinguir ausencia de sesión de rechazo de una sesión previa |
+| `GET /auth/me` | Usuario autenticado | A | Bearer JWT | `AuthMeResponseDto` | `adaptCurrentUserContext` | `CurrentUserVM`; `UserContextVM` | id adapter-only; email, DID, status, memberships activas con issuer name, DID y authorization status | campos desconocidos | issuer operational/personal destination | `authentication_required` o `session_expired`, network, unexpected | Una membership solo es operativa con rol admin/operator e issuer authorized |
 
 ### Credenciales y Portal del Emisor
 
@@ -960,40 +968,69 @@ Adapter-only:
 No disponible:
 
 - display name en auth responses;
-- nombre y DID de cada issuer;
 - avatar;
 - preferencias.
+
+El nombre, DID y estado de autorización del issuer pertenecen al contexto de
+membership, no a `CurrentUserVM`.
 
 ### `IssuerMembershipVM`
 
 ```text
 issuerReference: adapter-only issuerId
+issuerName: string
+issuerDid: string | null
+issuerAuthorizationStatus: pending | authorized | revoked
 role: admin | operator | viewer | unknown
 status: active
 operational: boolean
-issuerSummary: unsupported
 ```
 
 `GET /auth/me` ya filtra memberships activas. El frontend no debe asumir que
 una membership omitida está pendiente o revocada.
 
+`operational` solo puede ser verdadero cuando la membership está `active`, el
+rol es `admin` u `operator` y `issuerAuthorizationStatus` es `authorized`. Un
+issuer `pending` o `revoked` se conserva como contexto conocido, pero no
+habilita creación ni emisión.
+
 ### `UserContextVM`
 
 ```text
 personalContext: available
-issuerContexts: operational memberships
+issuerContexts: active memberships con estado operativo derivado
+operationalIssuerContexts:
+  memberships activas admin/operator con issuer authorized
 recommendedDestination:
   /issuer
   | /wallet/credentials
-multiIssuerSelection: unsupported | required_future
+  | null
+multiIssuerSelection:
+  not_required
+  | required
+  | unsupported
 ```
 
-Regla MVP:
+Semántica:
 
 ```text
-al menos una membership activa admin/operator -> /issuer
-sin contexto emisor operativo -> /wallet/credentials
+cero operationalIssuerContexts
+-> multiIssuerSelection: not_required
+-> recommendedDestination: /wallet/credentials
+
+un operationalIssuerContext
+-> multiIssuerSelection: not_required
+-> recommendedDestination: /issuer
+
+más de un operationalIssuerContext
+-> multiIssuerSelection: required
+-> recommendedDestination: null
+-> nunca seleccionar por orden del array
 ```
+
+El vertical actual trata `required` como un estado bloqueado porque el selector
+y la persistencia del contexto todavía están `unsupported`. No debe degradarlo
+a una selección silenciosa.
 
 `viewer` no abre el Portal del Emisor en v0.
 
@@ -1020,8 +1057,8 @@ No puede contener:
 Estado de issuer:
 
 ```text
-{ kind: "known_by_reference", issuerId: adapter-only }
-| { kind: "available", summary: future issuer summary }
+{ kind: "available", summary: safe issuer summary }
+| { kind: "known_non_operational", summary: safe issuer summary }
 | { kind: "unavailable" }
 ```
 
@@ -1074,11 +1111,11 @@ Un valor escrito por el usuario nunca reemplaza:
 - membership;
 - autorización backend.
 
-Cuando exista issuer summary confiable y la regla de dominio determine que
-ambos valores deben coincidir, el frontend podrá precompletar o bloquear
-`Institución del logro`. Mientras esa regla no exista, la duplicación es un gap
-de dominio y no deben mostrarse dos campos indistinguibles llamados
-`Institución`.
+El issuer summary ya es confiable como contexto institucional, pero todavía no
+existe una regla de dominio que obligue a que coincida con
+`credentialSubject.institution_name`. Hasta definir esa regla, el frontend no
+debe precompletar o bloquear `Institución del logro`, ni mostrar dos campos
+indistinguibles llamados `Institución`.
 
 ### `CreateCredentialDraftCommand`
 
@@ -1185,7 +1222,8 @@ Limitación:
 
 - el read actual es público y demo-grade;
 - no existe ownership issuer-facing;
-- no existe issuer summary;
+- el read de credencial no incluye issuer summary, aunque `/auth/me` sí lo
+  expone para el contexto de sesión;
 - no se puede reconstruir de forma completa y segura tras recarga.
 
 ### `IssueCredentialCommand`
@@ -2033,7 +2071,6 @@ Regla:
 | Gap | View model afectado | Dato faltante | Workaround demo permitido | Workaround prohibido | Contrato recomendado |
 |---|---|---|---|---|---|
 | Sin listado issuer-facing | `IssuerCredentialListItemVM` | Colección institucional | Navegar al detalle recién creado o ID preparado | Lista hardcodeada | Read protegido por issuer con paginación |
-| `/auth/me` sin issuer summary | `UserContextVM`, `IssuerHomeVM` | Nombre, DID, autorización | Contexto institucional genérico | Mostrar UUID como nombre | Memberships con issuer summary seguro |
 | Issuer activo vs `institution_name` sin regla | Draft y detalle | Relación entre autoridad emisora e institución del logro | Labels diferenciados | Tratar texto libre como autorización | Regla de dominio y DTO que indiquen coincidencia o diferencia |
 | Sin resolución humana del titular | Draft form | Buscar usuario por email/DID | Preparación técnica de demo fuera de UI | Hardcodear holder en producto | Endpoint autorizado de búsqueda/resolución |
 | Reads institucionales públicos | `IssuerCredentialDetailVM` | Ownership issuer-facing | Direct ID demo con allowlist | Reutilizar para producto | Reads protegidos por membership |

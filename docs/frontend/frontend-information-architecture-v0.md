@@ -95,6 +95,11 @@ El inventario de endpoints, DTOs, permisos y limitaciones de este documento
 corresponde a ese snapshot. No debe interpretarse como una descripción
 automáticamente vigente ante cambios posteriores del repositorio.
 
+Actualizaciones posteriores al snapshot base:
+
+- P0.1 protegió `POST /credentials/draft`.
+- P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+
 > Cuando cambien controllers, DTOs, permisos o rutas del backend, debe
 > revisarse la clasificación A/B/C/D de este documento.
 
@@ -195,9 +200,10 @@ POST /me/profile/build-from-ai
 
 - no existe listado de credenciales por institución emisora;
 - no existe búsqueda o resolución de titulares;
-- `/auth/me` devuelve memberships activas con `issuerId`, rol y estado, pero
-  no nombre ni DID de la institución;
-- no existe endpoint de instituciones disponibles para la sesión;
+- `/auth/me` devuelve memberships activas con `issuerId`, nombre, DID nullable,
+  estado de autorización institucional, rol y estado de membership;
+- `/auth/me` devuelve issuer summaries para memberships activas, pero todavía
+  no existe un contrato de selección y persistencia del contexto multi-issuer;
 - no existe análisis desde texto;
 - no existe revocación backend completa;
 - no existen sharing links ni QR;
@@ -483,7 +489,7 @@ seguro.
 |---|---|---|---|---|---|---|---|---|
 | `/` | Inicio | Todos | Opcional | Ninguno | Resolver entrada | Sesión local + `/auth/me` | A | Estrategia técnica de sesión |
 | `/login` | Iniciar sesión | Institucional y titular | No | Usuario activo | Obtener JWT | `POST /auth/login` | A | Sin refresh token |
-| `/issuer` | Inicio | Admin/operator | Sí | Membership activa | Entrada institucional | `GET /auth/me` | B | Falta nombre y detalle de la institución |
+| `/issuer` | Inicio | Admin/operator | Sí | Membership activa e issuer autorizado | Entrada institucional | `GET /auth/me` | B | Summary disponible; selector multi-issuer no implementado |
 | `/issuer/credentials` | Credenciales | Admin/operator | Sí | Membership activa | Listar credenciales institucionales | No existe | C | Endpoint issuer-facing, paginación y filtros. No implementar ni enlazar en MVP |
 | `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Crear draft | `POST /credentials/draft` | B | Backend protegido; falta resolución de titular |
 | `/issuer/credentials/[credentialId]` | Detalle de credencial | Admin/operator | Sí en UI | Membership del issuer | Consultar y operar por ID | `GET /credentials/:id`, status, issue, AI PDF, latest analysis | B | Reads sin autorización, ID conocido y DTO semántico demasiado amplio |
@@ -503,7 +509,7 @@ seguro.
 | Capacidad | Emisor | Titular | Verificador | Estado actual | Observación |
 |---|---|---|---|---|---|
 | Iniciar sesión | Sí | Sí | No requerido | A | Login único |
-| Resolver contexto | Parcial | Sí | No aplica | B | Membership sin nombre de issuer |
+| Resolver contexto | Parcial | Sí | No aplica | B | Issuer summaries disponibles; selección y persistencia multi-issuer pendientes |
 | Crear draft | Sí | No | No | B | JWT + membership; holder todavía por ID |
 | Emitir | Sí | No | No | A | Requiere admin/operator e issuer autorizado |
 | Listar por institución | Sí | No | No | C | No existe endpoint |
@@ -548,20 +554,24 @@ POST /auth/login
 ### Redirect del MVP
 
 ```text
-usuario activo con al menos una membership activa
-y rol admin u operator
+exactamente una membership operativa
 -> /issuer
 
-usuario activo sin contexto emisor operativo
+más de una membership operativa
+-> selección explícita requerida
+-> no seleccionar silenciosamente la primera
+
+ninguna membership operativa
 -> /wallet/credentials
 ```
 
-Este criterio cierra el redirect de la demo sin decidir cómo se almacena
-técnicamente la sesión.
+Una membership es operativa únicamente cuando está `active`, su rol es `admin`
+u `operator` y `issuerAuthorizationStatus` es `authorized`. Para la demo
+controlada puede usarse una cuenta con exactamente una membership operativa.
 
 ### Usuario solo titular
 
-Si no posee membership activa con rol `admin` u `operator`, redirigir a:
+Si no posee ninguna membership operativa, redirigir a:
 
 ```text
 /wallet/credentials
@@ -569,7 +579,7 @@ Si no posee membership activa con rol `admin` u `operator`, redirigir a:
 
 Una lista vacía es un estado válido.
 
-### Usuario con una membership emisora
+### Usuario con exactamente una membership operativa
 
 Para la demo, redirigir a:
 
@@ -577,24 +587,28 @@ Para la demo, redirigir a:
 /issuer
 ```
 
-`GET /auth/me` permite conocer `issuerId` y rol, pero no el nombre de la
-institución. La UI no debe presentar el ID como nombre institucional.
+`GET /auth/me` permite mostrar nombre, DID nullable, rol y estado institucional.
+La UI no debe presentar el ID como nombre institucional. Si el issuer está
+`pending` o `revoked`, el contexto es conocido pero no operativo.
 
-### Usuario con varias memberships
+### Usuario con varias memberships operativas
 
-El schema y `/auth/me` permiten varias memberships, pero faltan nombres y
-detalles de issuer para un selector comprensible.
+El schema y `/auth/me` permiten varias memberships y entregan summaries
+comprensibles. Si más de una es operativa, la selección explícita es
+obligatoria, pero el selector y la persistencia de la elección todavía no
+están implementados.
 
 Comportamiento:
 
 - no inventar un selector en el MVP demo;
-- no elegir silenciosamente una institución en un escenario real;
-- habilitar cambio de contexto cuando el backend exponga resúmenes
-  institucionales.
+- no elegir silenciosamente la primera institución ni depender del orden del
+  array;
+- mantener el acceso institucional bloqueado hasta implementar selección y
+  persistencia del contexto.
 
-Las cuentas demo separadas permiten posponer este selector. En producto real,
-un usuario con múltiples memberships debe elegir explícitamente la institución
-antes de operar.
+Las cuentas demo separadas y con una sola membership operativa permiten
+posponer este selector. En producto real, un usuario con múltiples memberships
+operativas debe elegir explícitamente la institución antes de operar.
 
 ### Usuario titular e institucional
 
@@ -778,7 +792,7 @@ completa continúa bloqueada hasta contar con esos contratos.
 Prioridad alta:
 
 1. Completado: proteger create draft y validar membership.
-2. Exponer contexto institucional con nombre, DID y rol.
+2. Completado: exponer contexto institucional con nombre, DID, autorización y rol.
 3. Resolver o buscar titulares de forma autorizada.
 4. Agregar listado de credenciales por issuer.
 5. Proteger detalle, status y latest analysis según issuer.
@@ -1180,7 +1194,7 @@ visual.
 Para una experiencia institucional defendible:
 
 1. Completado: proteger `POST /credentials/draft`.
-2. Enriquecer contexto de issuer en `/auth/me` o endpoint equivalente.
+2. Completado: enriquecer contexto de issuer en `/auth/me`.
 3. Agregar resolución autorizada de titular.
 
 El listado issuer-facing puede llegar después del primer flujo transaccional
@@ -1322,7 +1336,7 @@ Reglas:
 |---|---|---|---|
 | P0 completado | Proteger create draft | Emisor | Solo miembros autorizados crean para su issuer |
 | P0 | Resolver titular | Emisor | Selección por dato humano autorizado, no UUID |
-| P0 | Enriquecer contexto issuer | Emisor | Nombre, DID y rol visibles |
+| P0 completado | Enriquecer contexto issuer | Emisor | Nombre, DID, autorización y rol visibles |
 | P1 | Listado issuer-facing | Emisor | Lista real filtrada por membership |
 | P1 | Reads issuer protegidos | Emisor | Detalle, status y análisis con ownership |
 | P1 | DTO seguro latest analysis | Emisor | Sin `analysisJson` o texto interno |
@@ -1375,7 +1389,7 @@ No incorporar al MVP actual:
 | Ocultar gaps con estado local | Mentir sobre persistencia | Mostrar solo estados backend o de request |
 | Navegación sobredimensionada | MVP vacío | Dos áreas holder, inicio emisor y verificador focal |
 | Mobile recortado | Portal inoperable | Reorganización responsive, no eliminación de acciones |
-| Selector multi-issuer prematuro | IDs sin significado | Esperar issuer summaries |
+| Selector multi-issuer prematuro | Selección sin contrato persistente | Mantenerlo bloqueado hasta definir selección y persistencia |
 | Usar latest analysis público | Exposición de datos internos | Crear read protegido y DTO seguro |
 | Asumir verificación on-chain en vivo | Confianza incorrecta | Explicar evidencia persistida actual |
 

@@ -33,6 +33,8 @@ GET  /auth/me
 - passwords hasheados con `scrypt`;
 - JWT minimo con `sub = userId`;
 - `AuthGuard` y `CurrentUser` resuelven la identidad para endpoints protegidos;
+- `/auth/me` devuelve memberships activas con resumen seguro del issuer
+  (`issuerId`, nombre, DID nullable y estado de autorizacion);
 - el seed local crea `Issuer Admin` y `Demo Holder` con credenciales demo.
 
 No incluye refresh tokens, recuperacion de password, MFA ni proveedor de identidad externo.

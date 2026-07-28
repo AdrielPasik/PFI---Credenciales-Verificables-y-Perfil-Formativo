@@ -11,7 +11,11 @@ Alcance actual:
 
 - usa `AuthCredential` separado para no mezclar password hash con `User`;
 - persiste solo `passwordHash`, nunca password plana;
-- `GET /auth/me` devuelve membresias activas del usuario autenticado;
+- `GET /auth/me` devuelve membresias activas del usuario autenticado con
+  `issuerId`, nombre, DID nullable, estado de autorizacion institucional, rol
+  y estado de membership;
+- una membership es contexto emisor operativo solo si esta `active`, su rol es
+  `admin` u `operator` y el issuer esta `authorized`;
 - falla con error claro si falta `JWT_SECRET`.
 
 Fuera de alcance en este slice:

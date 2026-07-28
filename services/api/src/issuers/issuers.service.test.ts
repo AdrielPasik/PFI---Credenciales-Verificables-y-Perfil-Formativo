@@ -116,6 +116,19 @@ test('IssuersService rejects inactive memberships for draft creation', async () 
   );
 });
 
+test('IssuersService rejects pending memberships for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      status: IssuerMembershipStatus.pending
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
 test('IssuersService rejects viewer memberships for draft creation', async () => {
   const { service } = createService(
     createMembershipFixture({
