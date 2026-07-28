@@ -61,3 +61,5 @@ data/courses_raw/*
 !data/courses_raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
+
+*-review-bundle.txt

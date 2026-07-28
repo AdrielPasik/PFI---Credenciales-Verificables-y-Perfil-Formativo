@@ -1,9 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { HttpStatus } from '@nestjs/common';
+import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { UserStatus } from '@prisma/client';
 
 import { AuthController } from './auth.controller';
+
+test('AuthController login responds with explicit HTTP 200 OK', () => {
+  const statusCode = Reflect.getMetadata(
+    HTTP_CODE_METADATA,
+    AuthController.prototype.login
+  );
+
+  assert.equal(statusCode, HttpStatus.OK);
+});
 
 test('AuthController delegates login to the service', async () => {
   const calls: Array<Record<string, unknown>> = [];

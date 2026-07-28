@@ -68,8 +68,31 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
 - `npm run build --workspace @credential-intelligence/api`
 - `npm run prisma:validate --workspace @credential-intelligence/api`
 
+Para consumir el API desde la futura web local en
+`http://127.0.0.1:3000`, iniciar NestJS en otro puerto y habilitar CORS
+exclusivamente para ese origen:
+
+```powershell
+$env:PORT="3001"
+$env:WEB_ORIGIN="http://127.0.0.1:3000"
+npm run dev --workspace @credential-intelligence/api
+```
+
+Si `WEB_ORIGIN` no esta definida o esta vacia, el API inicia sin habilitar
+CORS. Un valor no vacio debe ser un origen HTTP o HTTPS valido y no puede
+incluir path, query, fragmento ni credenciales. La configuracion permite
+`Authorization`, `Content-Type` y preflight `OPTIONS`, pero no usa wildcard,
+cookies ni `credentials: true`.
+
+Bearer JWT no requiere cookies. En multipart, el navegador agrega el boundary
+de `Content-Type` automaticamente; el frontend no debe establecer ese header
+manualmente al enviar `FormData`. `localhost` y `127.0.0.1` son origenes
+distintos, por lo que la URL del navegador debe coincidir exactamente con
+`WEB_ORIGIN`.
+
 Tests de slices:
 
+- `npm run test:web-cors --workspace @credential-intelligence/api`
 - `npm run test:auth --workspace @credential-intelligence/api`
 - `npm run test:holder-resolution --workspace @credential-intelligence/api`
 - `npm run test:protected-issuance --workspace @credential-intelligence/api`
