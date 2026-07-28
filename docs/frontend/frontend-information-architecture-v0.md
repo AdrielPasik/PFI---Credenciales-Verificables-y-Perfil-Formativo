@@ -137,16 +137,16 @@ login institucional
 ```text
 GET  /health
 POST /auth/login
-POST /credentials/draft
 GET  /credentials/:id
 GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
 GET  /verify/credentials/:id
 ```
 
-`POST /credentials/draft` y los tres reads genéricos bajo `/credentials/:id`
-son públicos en el código actual. Esto es una limitación, no una decisión de
-seguridad que el frontend deba consolidar.
+Los tres reads genéricos bajo `/credentials/:id` son públicos en el código
+actual. Esto es una limitación, no una decisión de seguridad que el frontend
+deba consolidar. `POST /credentials/draft` ya requiere JWT, membership activa
+`admin` u `operator` e issuer autorizado.
 
 ### Límite de los endpoints públicos demo-grade
 
@@ -154,7 +154,6 @@ Los siguientes endpoints públicos son soporte transitorio del slice y no
 contratos frontend productivos:
 
 ```text
-POST /credentials/draft
 GET  /credentials/:id
 GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
@@ -486,7 +485,7 @@ seguro.
 | `/login` | Iniciar sesión | Institucional y titular | No | Usuario activo | Obtener JWT | `POST /auth/login` | A | Sin refresh token |
 | `/issuer` | Inicio | Admin/operator | Sí | Membership activa | Entrada institucional | `GET /auth/me` | B | Falta nombre y detalle de la institución |
 | `/issuer/credentials` | Credenciales | Admin/operator | Sí | Membership activa | Listar credenciales institucionales | No existe | C | Endpoint issuer-facing, paginación y filtros. No implementar ni enlazar en MVP |
-| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí en UI | Emisión institucional | Crear draft | `POST /credentials/draft` | B | Endpoint público y falta resolución de titular |
+| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Crear draft | `POST /credentials/draft` | B | Backend protegido; falta resolución de titular |
 | `/issuer/credentials/[credentialId]` | Detalle de credencial | Admin/operator | Sí en UI | Membership del issuer | Consultar y operar por ID | `GET /credentials/:id`, status, issue, AI PDF, latest analysis | B | Reads sin autorización, ID conocido y DTO semántico demasiado amplio |
 | `/wallet` | Entrada personal | Titular | Sí | Usuario activo | Entrar a experiencia personal | `/auth/me` | A | Redirect interno |
 | `/wallet/credentials` | Mis credenciales | Titular | Sí | Ownership por JWT | Listar credenciales propias | `GET /me/credentials` | A | Sin paginación |
@@ -505,7 +504,7 @@ seguro.
 |---|---|---|---|---|---|
 | Iniciar sesión | Sí | Sí | No requerido | A | Login único |
 | Resolver contexto | Parcial | Sí | No aplica | B | Membership sin nombre de issuer |
-| Crear draft | Sí | No | No | B | Endpoint público y holder por ID |
+| Crear draft | Sí | No | No | B | JWT + membership; holder todavía por ID |
 | Emitir | Sí | No | No | A | Requiere admin/operator e issuer autorizado |
 | Listar por institución | Sí | No | No | C | No existe endpoint |
 | Abrir detalle institucional | Sí, por ID | No | No | B | Read genérico sin ownership |
@@ -703,18 +702,18 @@ El backend requiere:
 
 Límites:
 
-- el endpoint no está protegido;
-- no valida membership al crear;
+- el endpoint exige JWT, membership activa `admin` u `operator` e issuer
+  autorizado;
+- `issuerId` sigue siendo command-only en el body y se valida contra la sesión;
 - no existe búsqueda de titular por email, DID o criterio institucional;
 - no existe catálogo frontend de instituciones;
 - el `subjectUserId` debe estar preparado para la demo.
 
 El frontend no debe hardcodear IDs ni presentarlos como UX definitiva.
 
-Aunque la UI requiera sesión, eso no protege el endpoint público. Esta ruta
-permanece B y temporal: no debe consolidarse como contrato productivo ni
-extenderse para otras operaciones hasta que el backend valide membership y
-derive el issuer autorizado.
+La ruta permanece B por la falta de resolución humana del titular y de issuer
+summary. La seguridad efectiva de creación ya reside en el backend; los route
+guards frontend siguen siendo únicamente UX.
 
 ### Emitir
 
@@ -778,7 +777,7 @@ completa continúa bloqueada hasta contar con esos contratos.
 
 Prioridad alta:
 
-1. Proteger create draft y validar membership.
+1. Completado: proteger create draft y validar membership.
 2. Exponer contexto institucional con nombre, DID y rol.
 3. Resolver o buscar titulares de forma autorizada.
 4. Agregar listado de credenciales por issuer.
@@ -1148,7 +1147,7 @@ Antes de la demo:
 
 ### Limitaciones que deben declararse
 
-- create draft sigue público;
+- create draft requiere JWT y autorización institucional backend;
 - el titular se resuelve mediante dato preparado, no búsqueda UI;
 - no hay lista institucional;
 - el detalle emisor usa ID directo;
@@ -1180,7 +1179,7 @@ visual.
 
 Para una experiencia institucional defendible:
 
-1. Proteger `POST /credentials/draft`.
+1. Completado: proteger `POST /credentials/draft`.
 2. Enriquecer contexto de issuer en `/auth/me` o endpoint equivalente.
 3. Agregar resolución autorizada de titular.
 
@@ -1262,7 +1261,7 @@ Solo después de implementar:
 |---|---|---|---|---|---|
 | Login | Envío de credenciales | No aplica | Credenciales inválidas, config JWT | Sesión ya válida redirige | Backend caído |
 | Context resolver | `/auth/me` | Usuario sin contexto emisor | Sesión inválida | `401` | Membership incompleta |
-| Create draft | Envío | No aplica | Validación, holder o issuer inexistente | Gap actual: endpoint público | Sin resolver titular |
+| Create draft | Envío | No aplica | `400`, `401`, `403`, `404` | JWT + membership | Sin resolver titular |
 | Detalle emisor | Carga por ID | No aplica | `404`, conflicto de estado | `403` al operar | Read genérico sin ownership |
 | Issue | Acción en curso | No aplica | `400`, `403`, `409` | JWT + membership | Blockchain local/config caída |
 | PDF analysis | Request indeterminado | Sin análisis | PDF inválido, `502/503/504` | `401/403` | `partial`, confidence unavailable |
@@ -1321,7 +1320,7 @@ Reglas:
 
 | Prioridad | Dependencia | Experiencia afectada | Resultado esperado |
 |---|---|---|---|
-| P0 | Proteger create draft | Emisor | Solo miembros autorizados crean para su issuer |
+| P0 completado | Proteger create draft | Emisor | Solo miembros autorizados crean para su issuer |
 | P0 | Resolver titular | Emisor | Selección por dato humano autorizado, no UUID |
 | P0 | Enriquecer contexto issuer | Emisor | Nombre, DID y rol visibles |
 | P1 | Listado issuer-facing | Emisor | Lista real filtrada por membership |

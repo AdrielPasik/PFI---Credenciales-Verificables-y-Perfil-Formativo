@@ -94,8 +94,8 @@ GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
 ```
 
-`issue` requiere JWT y permiso institucional. `draft` todavia es publico y
-debe considerarse deuda backend antes de produccion.
+`issue` y `draft` requieren JWT y permiso institucional. En `draft`, el
+`issuerId` del body se valida contra la membership activa del usuario.
 
 ### IA mediante backend
 

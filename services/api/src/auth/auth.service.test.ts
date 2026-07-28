@@ -188,6 +188,31 @@ test('AuthService.resolveAuthenticatedUser accepts a valid JWT and loads current
   });
 });
 
+test('AuthService.resolveAuthenticatedUser rejects an inactive authenticated user', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-123',
+            email: 'issuer.admin@example.com',
+            did: 'did:example:issuer-admin-demo',
+            status: UserStatus.suspended
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  await assert.rejects(
+    service.resolveAuthenticatedUser('valid-token'),
+    UnauthorizedException
+  );
+});
+
 test('AuthService.getCurrentUserProfile returns only active issuer memberships', async () => {
   process.env.JWT_SECRET = 'demo-secret';
 

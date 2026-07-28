@@ -4,13 +4,17 @@ import test from 'node:test';
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException
+  ForbiddenException,
+  NotFoundException
 } from '@nestjs/common';
 import {
+  CredentialSourceType,
   CredentialStatus,
+  CredentialType,
   UserStatus
 } from '@prisma/client';
 
+import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialsService } from './credentials.service';
 
 const currentUser = {
@@ -98,6 +102,85 @@ type CredentialFixture = {
     did: string | null;
   };
 };
+
+const validDraftDto = {
+  issuerId: 'issuer-1',
+  subjectUserId: 'holder-1',
+  type: CredentialType.academic_subject,
+  title: 'Algoritmos y Estructuras de Datos',
+  description: 'Asignatura aprobada',
+  sourceType: CredentialSourceType.manual_issuer,
+  hours: '96',
+  credentialSubject: {
+    achievement_name: 'Algoritmos y Estructuras de Datos',
+    institution_name: 'Demo University'
+  }
+} satisfies CreateCredentialDraftDto;
+
+function createDraftService(options?: {
+  assertUserCanCreateDraftForIssuer?: (
+    userId: string,
+    issuerId: string
+  ) => Promise<unknown>;
+  subjectUser?: { id: string } | null;
+}) {
+  const authorizationCalls: Array<Record<string, unknown>> = [];
+  const subjectLookupCalls: Array<Record<string, unknown>> = [];
+  const createCalls: Array<Record<string, unknown>> = [];
+  const operationOrder: string[] = [];
+
+  const prisma = {
+    user: {
+      async findUnique(args: Record<string, unknown>) {
+        operationOrder.push('subject_lookup');
+        subjectLookupCalls.push(args);
+        return options?.subjectUser === undefined
+          ? {
+              id: 'holder-1'
+            }
+          : options.subjectUser;
+      }
+    },
+    credential: {
+      async create(args: Record<string, unknown>) {
+        operationOrder.push('credential_create');
+        createCalls.push(args);
+        return {
+          ...createCredentialFixture(),
+          blockchainRecords: []
+        };
+      }
+    }
+  };
+
+  const issuersService = {
+    async assertUserCanCreateDraftForIssuer(userId: string, issuerId: string) {
+      operationOrder.push('issuer_authorization');
+      authorizationCalls.push({ userId, issuerId });
+
+      if (options?.assertUserCanCreateDraftForIssuer) {
+        return options.assertUserCanCreateDraftForIssuer(userId, issuerId);
+      }
+
+      return {
+        id: 'membership-1'
+      };
+    }
+  };
+
+  return {
+    service: new CredentialsService(
+      prisma as never,
+      issuersService as never,
+      {} as never,
+      {} as never
+    ),
+    authorizationCalls,
+    subjectLookupCalls,
+    createCalls,
+    operationOrder
+  };
+}
 
 function createService(options?: {
   credential?: CredentialFixture | null;
@@ -205,6 +288,110 @@ function createService(options?: {
     blockchainCalls
   };
 }
+
+test('CredentialsService creates a draft only after issuer authorization and holder lookup', async () => {
+  const {
+    service,
+    authorizationCalls,
+    subjectLookupCalls,
+    createCalls,
+    operationOrder
+  } = createDraftService();
+
+  const response = await service.createDraft(validDraftDto, currentUser);
+
+  assert.deepEqual(authorizationCalls, [
+    {
+      userId: currentUser.id,
+      issuerId: validDraftDto.issuerId
+    }
+  ]);
+  assert.deepEqual(subjectLookupCalls, [
+    {
+      where: {
+        id: validDraftDto.subjectUserId
+      }
+    }
+  ]);
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'subject_lookup',
+    'credential_create'
+  ]);
+  assert.equal(createCalls.length, 1);
+  assert.equal(
+    (createCalls[0].data as Record<string, unknown>).issuerId,
+    validDraftDto.issuerId
+  );
+  assert.equal(response.id, 'cred-123');
+  assert.equal(response.status, CredentialStatus.draft);
+  assert.equal(response.canonicalHash, undefined);
+  assert.equal(response.latestBlockchainRecord, undefined);
+});
+
+test('CredentialsService rejects arbitrary issuerIds before holder lookup or credential creation', async () => {
+  const { service, subjectLookupCalls, createCalls, operationOrder } =
+    createDraftService({
+      async assertUserCanCreateDraftForIssuer() {
+        throw new ForbiddenException(
+          'El usuario no tiene permisos para crear borradores para el issuer solicitado.'
+        );
+      }
+    });
+
+  await assert.rejects(
+    service.createDraft(
+      {
+        ...validDraftDto,
+        issuerId: 'issuer-arbitrary'
+      },
+      currentUser
+    ),
+    ForbiddenException
+  );
+
+  assert.deepEqual(operationOrder, ['issuer_authorization']);
+  assert.equal(subjectLookupCalls.length, 0);
+  assert.equal(createCalls.length, 0);
+});
+
+test('CredentialsService preserves not found behavior for a missing holder after authorization', async () => {
+  const { service, createCalls, operationOrder } = createDraftService({
+    subjectUser: null
+  });
+
+  await assert.rejects(
+    service.createDraft(validDraftDto, currentUser),
+    NotFoundException
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'subject_lookup'
+  ]);
+  assert.equal(createCalls.length, 0);
+});
+
+test('CredentialsService does not create a draft when current domain validation fails', async () => {
+  const { service, createCalls, operationOrder } = createDraftService();
+
+  await assert.rejects(
+    service.createDraft(
+      {
+        ...validDraftDto,
+        hours: 0
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'subject_lookup'
+  ]);
+  assert.equal(createCalls.length, 0);
+});
 
 test('CredentialsService rejects issuerId mismatches from the request body', async () => {
   const { service } = createService();

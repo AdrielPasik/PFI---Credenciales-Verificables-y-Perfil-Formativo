@@ -96,7 +96,7 @@ placeholder para esa ruta.
 |---|---|---|---|---|---|
 | `/login` | Usuario sin sesión válida | Autenticar y resolver contexto | A | `POST /auth/login`, `GET /auth/me` | Sin refresh token |
 | `/issuer` | `admin` u `operator` activo | Entrada institucional honesta | B | `GET /auth/me` | Sin issuer summary |
-| `/issuer/credentials/new` | `admin` u `operator` activo | Crear draft demo-grade | B | `POST /credentials/draft` | Endpoint público y sin resolución de titular |
+| `/issuer/credentials/new` | `admin` u `operator` activo | Crear draft demo-grade | B | `POST /credentials/draft` | Backend protegido; sin resolución de titular |
 | `/issuer/credentials/[credentialId]` | `admin` u `operator` activo | Emitir, ver evidencia y analizar PDF | B | Reads por ID, issue y análisis PDF | Reads públicos y acceso por ID conocido |
 
 La disponibilidad B no permite datos fake ni seguridad simulada. Exige hacer
@@ -465,12 +465,13 @@ pero no crea una pantalla intermedia.
 
 ### Limitaciones de backend
 
-- `POST /credentials/draft` permanece público;
-- el backend no deriva issuer desde la sesión;
-- el backend no valida membership al crear;
+- `POST /credentials/draft` requiere JWT, membership activa `admin` u
+  `operator` e issuer autorizado;
+- `issuerId` permanece en el command y selecciona contexto, pero se valida
+  contra la sesión;
 - no existe búsqueda o resolución autorizada del titular;
 - `issuerId` y `subjectUserId` siguen siendo requeridos por el command;
-- la protección de la ruta frontend no corrige esos gaps.
+- la protección de la ruta frontend no reemplaza la autorización backend.
 
 ### Composición conceptual
 
@@ -1287,7 +1288,6 @@ contenido y microcopy.
 
 | Limitación | Pantalla afectada | Impacto UX | Tratamiento permitido | Tratamiento prohibido | Contrato futuro |
 |---|---|---|---|---|---|
-| Create draft público | Nueva credencial | La UI autenticada no garantiza seguridad | Declarar deuda y limitar a demo | Tratar route guard como auth backend | Proteger endpoint y derivar issuer |
 | Issuer summary ausente | Inicio, nueva y detalle | No hay nombre institucional seguro | Contexto institucional genérico | Mostrar UUID o nombre inventado | Summary en `/auth/me` |
 | Resolución de holder ausente | Nueva credencial | No hay selección humana autorizada | Titular demo preparado fuera de UI | Campo UUID o búsqueda fake | Resolver por email/DID autorizado |
 | Reads institucionales públicos | Detalle | Ownership no se valida al leer | ID preparado y adapter mínimo | Presentarlo como acceso productivo | Reads protegidos por membership |
@@ -1455,7 +1455,7 @@ El documento queda aprobado si:
 
 Resolver primero los gaps P0:
 
-1. Proteger `POST /credentials/draft`.
+1. Completado: proteger `POST /credentials/draft`.
 2. Enriquecer el contexto del issuer.
 3. Resolver titulares mediante un dato humano autorizado.
 

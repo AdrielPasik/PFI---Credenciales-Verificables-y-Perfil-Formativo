@@ -17,6 +17,52 @@ import { PrismaService } from '../prisma/prisma.service';
 export class IssuersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async assertUserCanCreateDraftForIssuer(userId: string, issuerId: string) {
+    const membership = await this.prisma.issuerMembership.findUnique({
+      where: {
+        userId_issuerId: {
+          userId,
+          issuerId
+        }
+      },
+      include: {
+        issuer: true
+      }
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        'El usuario no tiene permisos para crear borradores para el issuer solicitado.'
+      );
+    }
+
+    if (membership.status !== IssuerMembershipStatus.active) {
+      throw new ForbiddenException(
+        'La membresia para crear borradores no esta activa.'
+      );
+    }
+
+    if (
+      membership.role !== IssuerMembershipRole.admin &&
+      membership.role !== IssuerMembershipRole.operator
+    ) {
+      throw new ForbiddenException(
+        `El rol ${membership.role} no tiene permisos para crear borradores.`
+      );
+    }
+
+    if (
+      membership.issuer.authorizationStatus !==
+      IssuerAuthorizationStatus.authorized
+    ) {
+      throw new ForbiddenException(
+        'El issuer solicitado no esta habilitado para crear borradores.'
+      );
+    }
+
+    return membership;
+  }
+
   async getIssuerOrThrow(issuerId: string) {
     const issuer = await this.prisma.issuer.findUnique({
       where: {

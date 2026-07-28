@@ -246,14 +246,15 @@ $draftBody = @{
 $draft = Invoke-RestMethod `
   -Uri "$apiBaseUrl/credentials/draft" `
   -Method Post `
+  -Headers @{ Authorization = "Bearer $issuerToken" } `
   -ContentType "application/json" `
   -Body $draftBody
 
 $credentialId = $draft.id
 ```
 
-En el estado actual, `POST /credentials/draft` todavia es publico. Es una
-limitacion demo-grade que debe corregirse antes de un frontend productivo.
+`POST /credentials/draft` requiere el token del issuer admin y valida su
+membership activa, rol permitido y el estado autorizado del issuer.
 
 Emitir con el issuer admin:
 

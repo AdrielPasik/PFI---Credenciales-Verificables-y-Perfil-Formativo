@@ -29,7 +29,7 @@ Ya existen:
 Gaps que afectan al frontend:
 
 - no existe listado issuer-facing de credenciales institucionales;
-- `POST /credentials/draft` todavia es publico;
+- no existe resolución autorizada del titular por dato humano;
 - no hay endpoint de analisis desde texto;
 - no hay upload a storage;
 - no hay jobs ni progreso asincronico;
@@ -83,7 +83,7 @@ fuera una credencial emitida.
 Antes de una implementacion completa hacen falta:
 
 - endpoint issuer-facing para listar credenciales del issuer;
-- proteccion de `POST /credentials/draft`;
+- resolución autorizada del titular;
 - definicion de paginacion y filtros basicos.
 
 Para una demo temprana, crear y abrir una credencial por ID es posible, pero
@@ -308,7 +308,7 @@ Empezar por un Portal del emisor minimo, pero primero cerrar los dos gaps
 backend que bloquean una UI honesta:
 
 ```text
-proteger create draft
+resolver titular mediante dato humano autorizado
 agregar listado issuer-facing
 ```
 

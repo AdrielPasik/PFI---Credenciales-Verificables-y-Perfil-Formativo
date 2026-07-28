@@ -9,12 +9,11 @@ Responsabilidad futura:
 
 Alcance actual:
 
-- modulo NestJS minimo;
-- service vacio sin metodos de negocio;
-- sin controllers;
-- sin auth;
-- sin validaciones reales;
-- sin queries Prisma.
+- modulo NestJS sin controllers;
+- validacion de membership activa y roles `admin`/`operator`;
+- validacion de issuer autorizado para crear drafts;
+- validaciones adicionales de DID y wallet exclusivamente al emitir;
+- queries Prisma acotadas a issuer y membership.
 
 Principios:
 

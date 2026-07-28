@@ -15,8 +15,8 @@ Alcance actual:
 - persistencia Prisma para `Credential`;
 - hashing canonico `sha-256`;
 - creacion de `BlockchainRecord` mock/local;
+- autenticacion y autorizacion institucional para crear drafts y emitir;
 - sin revocacion;
-- sin auth;
 - sin integracion IA.
 
 Principios:
@@ -28,6 +28,8 @@ Principios:
 
 Notas operativas del slice:
 
+- `POST /credentials/draft` requiere JWT, membership activa `admin` u `operator` e issuer autorizado;
+- crear un draft no exige todavia DID, wallet ni configuracion blockchain del issuer;
 - `rawData` puede persistirse al crear un draft;
 - `rawData` no se expone por defecto en `GET /credentials/:id`;
 - esto es intencional para no devolver datos crudos o internos en respuestas publicas u operativas;

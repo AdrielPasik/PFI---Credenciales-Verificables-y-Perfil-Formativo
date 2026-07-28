@@ -8,17 +8,17 @@ Publicos:
 
 ```text
 GET  /health
+POST /auth/login
 GET  /credentials/:id
 GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
 GET  /verify/credentials/:id
-POST /credentials/draft
 ```
 
 Protegidos por JWT:
 
 ```text
-POST /auth/login
+POST /credentials/draft
 GET  /auth/me
 POST /credentials/:id/issue
 GET  /me/credentials
@@ -27,7 +27,9 @@ GET  /me/profile/current
 POST /me/profile/rebuild
 ```
 
-`POST /credentials/:id/issue` requiere un usuario autenticado con `IssuerMembership` activa, rol permitido y un issuer autorizado. El `issuerId` del body no es fuente de autoridad: la credencial persistida define el issuer efectivo.
+`POST /credentials/draft` requiere un usuario autenticado con `IssuerMembership` activa, rol `admin` u `operator` y un issuer autorizado. El `issuerId` del body selecciona el contexto institucional, pero no es autoridad por si solo.
+
+`POST /credentials/:id/issue` aplica las mismas reglas institucionales sobre el issuer persistido de la credencial. El `issuerId` del body no puede cambiar el issuer efectivo.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 

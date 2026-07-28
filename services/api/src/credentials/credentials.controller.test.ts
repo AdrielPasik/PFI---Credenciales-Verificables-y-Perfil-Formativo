@@ -7,6 +7,75 @@ import { UserStatus } from '@prisma/client';
 import { AuthGuard } from '../auth/auth.guard';
 import { CredentialsController } from './credentials.controller';
 
+test('CredentialsController protects createDraft with AuthGuard', () => {
+  const guards = Reflect.getMetadata(
+    GUARDS_METADATA,
+    CredentialsController.prototype.createDraft
+  ) as unknown[];
+
+  assert.deepEqual(guards, [AuthGuard]);
+});
+
+test('CredentialsController delegates createDraft with current user to the service', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const dto = {
+    issuerId: 'issuer-1',
+    subjectUserId: 'holder-1',
+    type: 'academic_subject',
+    title: 'Materia demo',
+    sourceType: 'manual_issuer',
+    credentialSubject: {
+      achievement_name: 'Materia demo',
+      institution_name: 'Demo University'
+    }
+  };
+  const authenticatedUser = {
+    id: 'issuer-user-1',
+    email: 'issuer.admin@example.com',
+    did: 'did:example:issuer-admin-demo',
+    status: UserStatus.active
+  };
+  const expectedResponse = {
+    id: 'cred-draft-1',
+    schemaVersion: 'credential_v1',
+    issuerId: 'issuer-1',
+    subjectUserId: 'holder-1',
+    type: 'academic_subject',
+    title: 'Materia demo',
+    sourceType: 'manual_issuer',
+    status: 'draft'
+  };
+
+  const controller = new CredentialsController({
+    async createDraft(
+      receivedDto: Record<string, unknown>,
+      currentUser: Record<string, unknown>
+    ) {
+      calls.push({ dto: receivedDto, currentUser });
+      return expectedResponse;
+    },
+    async issueCredential() {
+      throw new Error('should not be called');
+    },
+    async getCredential() {
+      throw new Error('should not be called');
+    },
+    async getCredentialStatus() {
+      throw new Error('should not be called');
+    }
+  } as never);
+
+  const response = await controller.createDraft(dto as never, authenticatedUser);
+
+  assert.deepEqual(calls, [
+    {
+      dto,
+      currentUser: authenticatedUser
+    }
+  ]);
+  assert.deepEqual(response, expectedResponse);
+});
+
 test('CredentialsController protects issueCredential with AuthGuard', () => {
   const guards = Reflect.getMetadata(
     GUARDS_METADATA,

@@ -92,6 +92,12 @@ JWT currentUser
 
 El `issuerId` del request, si existe por compatibilidad, no es fuente de autoridad y no puede cambiar el issuer real de la credencial.
 
+La creacion de drafts tambien requiere JWT, membership activa con rol `admin`
+u `operator` e issuer `authorized`. El `issuerId` del body selecciona el
+contexto institucional, pero el backend valida que pertenezca al usuario. En
+esta etapa no se exigen DID, wallet ni configuracion blockchain para crear el
+draft; esos requisitos permanecen en emision.
+
 ## 3. Acciones por rol
 
 ### `holder`

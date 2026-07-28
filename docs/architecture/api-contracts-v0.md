@@ -119,7 +119,8 @@
 - Actor: `issuer_admin`.
 - Request conceptual: datos base de `credential_v1` sin `issued_at`.
 - Response conceptual: credencial en estado `draft`.
-- Errores esperados: `400`, `403`, `409`.
+- Autorizacion: JWT, membership activa `admin` u `operator` sobre el `issuerId` solicitado e issuer `authorized`.
+- Errores esperados: `400`, `401`, `403`, `404`.
 - Estado: `v1_candidate`.
 
 ### `POST /credentials/:id/issue`

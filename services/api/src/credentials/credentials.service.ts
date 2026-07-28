@@ -31,8 +31,18 @@ export class CredentialsService {
     private readonly credentialHashingService: CredentialHashingService
   ) {}
 
-  async createDraft(dto: CreateCredentialDraftDto): Promise<CredentialSummaryResponseDto> {
+  async createDraft(
+    dto: CreateCredentialDraftDto,
+    currentUser: AuthenticatedUser
+  ): Promise<CredentialSummaryResponseDto> {
+    this.assertAuthenticatedUser(currentUser);
     this.assertNonEmptyString(dto.issuerId, 'issuerId');
+
+    await this.issuersService.assertUserCanCreateDraftForIssuer(
+      currentUser.id,
+      dto.issuerId
+    );
+
     this.assertNonEmptyString(dto.subjectUserId, 'subjectUserId');
     this.assertNonEmptyString(dto.type, 'type');
     this.assertNonEmptyString(dto.title, 'title');
@@ -49,7 +59,6 @@ export class CredentialsService {
       );
     }
 
-    await this.issuersService.getIssuerOrThrow(dto.issuerId);
     await this.getSubjectUserOrThrow(dto.subjectUserId);
 
     const credential = await this.prisma.credential.create({

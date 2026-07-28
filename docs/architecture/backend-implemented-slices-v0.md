@@ -48,7 +48,9 @@ GET  /credentials/:id
 GET  /credentials/:id/status
 ```
 
-El issue requiere JWT. La autoridad no proviene del `issuerId` del body: el emisor efectivo es `credential.issuerId` persistido y el usuario debe tener `IssuerMembership` activa, rol emisor permitido e `Issuer` autorizado. El holder no puede emitir.
+Crear un draft requiere JWT, `IssuerMembership` activa, rol `admin` u `operator` e `Issuer` autorizado. El `issuerId` del body selecciona el contexto institucional, pero no es autoridad por si solo.
+
+El issue tambien requiere JWT. La autoridad no proviene del `issuerId` del body: el emisor efectivo es `credential.issuerId` persistido y el usuario debe tener `IssuerMembership` activa, rol emisor permitido e `Issuer` autorizado. El holder no puede emitir.
 
 Al emitir, el backend fija `issuedAt`, calcula `canonicalHash` con `canon_v1`, guarda `canonicalizationVersion` y crea un `BlockchainRecord` asociado.
 

@@ -15,8 +15,12 @@ export class CredentialsController {
   constructor(private readonly credentialsService: CredentialsService) {}
 
   @Post('draft')
-  createDraft(@Body() dto: CreateCredentialDraftDto): Promise<CredentialSummaryResponseDto> {
-    return this.credentialsService.createDraft(dto);
+  @UseGuards(AuthGuard)
+  createDraft(
+    @Body() dto: CreateCredentialDraftDto,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<CredentialSummaryResponseDto> {
+    return this.credentialsService.createDraft(dto, currentUser);
   }
 
   @Post(':id/issue')
