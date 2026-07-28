@@ -1,0 +1,2262 @@
+P0.3 REVIEW BUNDLE - FINAL PRE-COMMIT CORRECTION
+Generated from the current working tree. This file is intentionally untracked.
+
+## A. Estado Git
+
+===== git status --short =====
+ M docs/architecture/api-contracts-v0.md
+ M docs/architecture/auth-and-permissions-v0.md
+ M docs/architecture/backend-implemented-slices-v0.md
+ M docs/demo/ai-end-to-end-demo-script-v0.md
+ M docs/frontend/frontend-component-inventory-v0.md
+ M docs/frontend/frontend-data-and-view-models-v0.md
+ M docs/frontend/frontend-information-architecture-v0.md
+ M docs/frontend/frontend-issuer-portal-screen-spec-v0.md
+ M docs/frontend/frontend-roadmap-v0.md
+ M docs/frontend/ui-ux-handoff-context-v0.md
+ M services/api/README.md
+ M services/api/package.json
+ M services/api/src/issuers/README.md
+ M services/api/src/issuers/issuers.module.ts
+ M services/api/src/issuers/issuers.service.test.ts
+ M services/api/src/issuers/issuers.service.ts
+?? p0-3-review-bundle.txt
+?? services/api/src/issuers/dto/
+?? services/api/src/issuers/issuer-holder-resolution.controller.test.ts
+?? services/api/src/issuers/issuer-holder-resolution.controller.ts
+?? services/api/src/issuers/issuer-holder-resolution.service.test.ts
+?? services/api/src/issuers/issuer-holder-resolution.service.ts
+
+===== git diff --stat =====
+ docs/architecture/api-contracts-v0.md              |  16 ++++
+ docs/architecture/auth-and-permissions-v0.md       |  18 ++++
+ docs/architecture/backend-implemented-slices-v0.md |  23 ++++-
+ docs/demo/ai-end-to-end-demo-script-v0.md          |  22 +++++
+ docs/frontend/frontend-component-inventory-v0.md   |  12 ++-
+ docs/frontend/frontend-data-and-view-models-v0.md  |  67 +++++++++++++-
+ .../frontend-information-architecture-v0.md        |  38 +++++---
+ .../frontend-issuer-portal-screen-spec-v0.md       |  85 +++++++++++-------
+ docs/frontend/frontend-roadmap-v0.md               |  25 +++---
+ docs/frontend/ui-ux-handoff-context-v0.md          |  10 +++
+ services/api/README.md                             |   9 ++
+ services/api/package.json                          |   1 +
+ services/api/src/issuers/README.md                 |  12 ++-
+ services/api/src/issuers/issuers.module.ts         |   5 +-
+ services/api/src/issuers/issuers.service.test.ts   | 100 ++++++++++++++++++++-
+ services/api/src/issuers/issuers.service.ts        |  41 +++++++--
+ 16 files changed, 410 insertions(+), 74 deletions(-)
+
+Nota: git diff --stat no contabiliza archivos untracked; sus contenidos completos aparecen en la seccion B.
+
+## B. Archivos TypeScript completos
+
+===== services/api/src/issuers/dto/holder-summary-response.dto.ts =====
+export interface HolderSummaryResponseDto {
+  id: string;
+  email: string;
+  did: string | null;
+  displayLabel: string;
+}
+
+===== services/api/src/issuers/dto/resolve-holder.dto.ts =====
+export class ResolveHolderDto {
+  email!: string;
+}
+
+===== services/api/src/issuers/issuer-holder-resolution.controller.ts =====
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards
+} from '@nestjs/common';
+
+import { AuthGuard } from '../auth/auth.guard';
+import { type AuthenticatedUser } from '../auth/auth.types';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { HolderSummaryResponseDto } from './dto/holder-summary-response.dto';
+import { ResolveHolderDto } from './dto/resolve-holder.dto';
+import { IssuerHolderResolutionService } from './issuer-holder-resolution.service';
+
+@Controller('issuers/:issuerId/holders')
+export class IssuerHolderResolutionController {
+  constructor(
+    private readonly holderResolutionService: IssuerHolderResolutionService
+  ) {}
+
+  @Post('resolve')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  resolveHolder(
+    @Param('issuerId') issuerId: string,
+    @Body() dto: ResolveHolderDto,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<HolderSummaryResponseDto> {
+    return this.holderResolutionService.resolveHolder(
+      issuerId,
+      dto?.email,
+      currentUser
+    );
+  }
+}
+
+===== services/api/src/issuers/issuer-holder-resolution.controller.test.ts =====
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  GUARDS_METADATA,
+  HTTP_CODE_METADATA,
+  METHOD_METADATA,
+  PATH_METADATA
+} from '@nestjs/common/constants';
+import { HttpStatus, RequestMethod } from '@nestjs/common';
+import { UserStatus } from '@prisma/client';
+
+import { AuthGuard } from '../auth/auth.guard';
+import { IssuerHolderResolutionController } from './issuer-holder-resolution.controller';
+
+test('holder resolution route is POST /issuers/:issuerId/holders/resolve and requires AuthGuard', () => {
+  const controllerPath = Reflect.getMetadata(
+    PATH_METADATA,
+    IssuerHolderResolutionController
+  );
+  const methodPath = Reflect.getMetadata(
+    PATH_METADATA,
+    IssuerHolderResolutionController.prototype.resolveHolder
+  );
+  const requestMethod = Reflect.getMetadata(
+    METHOD_METADATA,
+    IssuerHolderResolutionController.prototype.resolveHolder
+  );
+  const statusCode = Reflect.getMetadata(
+    HTTP_CODE_METADATA,
+    IssuerHolderResolutionController.prototype.resolveHolder
+  );
+  const guards = Reflect.getMetadata(
+    GUARDS_METADATA,
+    IssuerHolderResolutionController.prototype.resolveHolder
+  ) as unknown[];
+
+  assert.equal(controllerPath, 'issuers/:issuerId/holders');
+  assert.equal(methodPath, 'resolve');
+  assert.equal(requestMethod, RequestMethod.POST);
+  assert.equal(statusCode, HttpStatus.OK);
+  assert.deepEqual(guards, [AuthGuard]);
+  assert.equal(`${controllerPath}/${methodPath}`.includes(':email'), false);
+});
+
+test('controller delegates path issuerId, DTO email and current user and preserves safe response', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const currentUser = {
+    id: 'issuer-user-1',
+    email: 'issuer.admin@example.com',
+    did: 'did:example:issuer-admin-demo',
+    status: UserStatus.active
+  };
+  const expectedResponse = {
+    id: 'holder-1',
+    email: 'holder.demo@example.com',
+    did: null,
+    displayLabel: 'Demo Holder'
+  };
+  const controller = new IssuerHolderResolutionController({
+    async resolveHolder(
+      issuerId: string,
+      email: unknown,
+      authenticatedUser: Record<string, unknown>
+    ) {
+      calls.push({ issuerId, email, currentUser: authenticatedUser });
+      return expectedResponse;
+    }
+  } as never);
+
+  const response = await controller.resolveHolder(
+    'issuer-1',
+    {
+      email: ' Holder.Demo@Example.com '
+    },
+    currentUser
+  );
+
+  assert.deepEqual(calls, [
+    {
+      issuerId: 'issuer-1',
+      email: ' Holder.Demo@Example.com ',
+      currentUser
+    }
+  ]);
+  assert.deepEqual(response, expectedResponse);
+  assert.deepEqual(Object.keys(response).sort(), [
+    'did',
+    'displayLabel',
+    'email',
+    'id'
+  ]);
+});
+
+===== services/api/src/issuers/issuer-holder-resolution.service.ts =====
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common';
+import { UserStatus } from '@prisma/client';
+
+import { type AuthenticatedUser } from '../auth/auth.types';
+import { PrismaService } from '../prisma/prisma.service';
+import { HolderSummaryResponseDto } from './dto/holder-summary-response.dto';
+import { IssuersService } from './issuers.service';
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const HOLDER_NOT_FOUND_MESSAGE =
+  'No se encontro un titular elegible con el email indicado.';
+
+@Injectable()
+export class IssuerHolderResolutionService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly issuersService: IssuersService
+  ) {}
+
+  async resolveHolder(
+    issuerId: string,
+    email: unknown,
+    currentUser: AuthenticatedUser
+  ): Promise<HolderSummaryResponseDto> {
+    await this.issuersService.assertUserCanResolveHolderForIssuer(
+      currentUser.id,
+      issuerId
+    );
+
+    const normalizedEmail = this.normalizeAndValidateEmail(email);
+    const matches = await this.prisma.user.findMany({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: 'insensitive'
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        did: true,
+        displayName: true,
+        firstName: true,
+        lastName: true,
+        status: true
+      },
+      take: 2
+    });
+
+    if (matches.length > 1) {
+      throw new InternalServerErrorException(
+        'No se pudo resolver el titular por una inconsistencia de datos.'
+      );
+    }
+
+    const holder = matches[0];
+    const holderEmail = this.normalizeStoredEmail(holder?.email);
+
+    if (
+      !holder ||
+      holder.status !== UserStatus.active ||
+      holderEmail === null
+    ) {
+      throw new NotFoundException(HOLDER_NOT_FOUND_MESSAGE);
+    }
+
+    return {
+      id: holder.id,
+      email: holderEmail,
+      did: holder.did,
+      displayLabel: this.buildDisplayLabel(
+        holder.displayName,
+        holder.firstName,
+        holder.lastName,
+        holderEmail
+      )
+    };
+  }
+
+  private normalizeAndValidateEmail(email: unknown): string {
+    if (typeof email !== 'string') {
+      throw new BadRequestException('email debe ser un string valido.');
+    }
+
+    const normalized = email.trim().toLowerCase();
+
+    if (!normalized || !EMAIL_PATTERN.test(normalized)) {
+      throw new BadRequestException('email debe tener un formato valido.');
+    }
+
+    return normalized;
+  }
+
+  private normalizeStoredEmail(email: string | null | undefined): string | null {
+    if (typeof email !== 'string') {
+      return null;
+    }
+
+    const normalized = email.trim().toLowerCase();
+    return normalized && EMAIL_PATTERN.test(normalized) ? normalized : null;
+  }
+
+  private buildDisplayLabel(
+    displayName: string | null,
+    firstName: string | null,
+    lastName: string | null,
+    email: string
+  ): string {
+    const normalizedDisplayName = this.normalizeLabelPart(displayName);
+
+    if (normalizedDisplayName) {
+      return normalizedDisplayName;
+    }
+
+    const normalizedFirstName = this.normalizeLabelPart(firstName);
+    const normalizedLastName = this.normalizeLabelPart(lastName);
+
+    if (normalizedFirstName && normalizedLastName) {
+      return `${normalizedFirstName} ${normalizedLastName}`;
+    }
+
+    return normalizedFirstName ?? normalizedLastName ?? email;
+  }
+
+  private normalizeLabelPart(value: string | null): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim().replace(/\s+/g, ' ');
+    return normalized || null;
+  }
+}
+
+===== services/api/src/issuers/issuer-holder-resolution.service.test.ts =====
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common';
+import { UserStatus } from '@prisma/client';
+
+import { type AuthenticatedUser } from '../auth/auth.types';
+import { IssuerHolderResolutionService } from './issuer-holder-resolution.service';
+
+interface HolderFixture {
+  id: string;
+  email: string | null;
+  did: string | null;
+  displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  status: UserStatus;
+}
+
+const currentUser: AuthenticatedUser = {
+  id: 'issuer-user-1',
+  email: 'issuer.admin@example.com',
+  did: 'did:example:issuer-admin-demo',
+  status: UserStatus.active
+};
+
+function createHolderFixture(
+  overrides: Partial<HolderFixture> = {}
+): HolderFixture {
+  return {
+    id: 'holder-1',
+    email: 'holder.demo@example.com',
+    did: 'did:example:holder-demo',
+    displayName: 'Demo Holder',
+    firstName: 'Demo',
+    lastName: 'Holder',
+    status: UserStatus.active,
+    ...overrides
+  };
+}
+
+function createHarness(options?: {
+  holders?: HolderFixture[];
+  authorizationError?: Error;
+}) {
+  const authorizationCalls: Array<Record<string, string>> = [];
+  const findManyCalls: Array<Record<string, unknown>> = [];
+  const writeCalls: string[] = [];
+  const holders = options?.holders ?? [createHolderFixture()];
+
+  const service = new IssuerHolderResolutionService(
+    {
+      user: {
+        async findMany(args: Record<string, unknown>) {
+          findManyCalls.push(args);
+          return holders;
+        },
+        async create() {
+          writeCalls.push('user.create');
+        },
+        async update() {
+          writeCalls.push('user.update');
+        },
+        async delete() {
+          writeCalls.push('user.delete');
+        }
+      },
+      credential: {
+        async create() {
+          writeCalls.push('credential.create');
+        }
+      },
+      issuerMembership: {
+        async create() {
+          writeCalls.push('issuerMembership.create');
+        }
+      }
+    } as never,
+    {
+      async assertUserCanResolveHolderForIssuer(
+        userId: string,
+        issuerId: string
+      ) {
+        authorizationCalls.push({ userId, issuerId });
+
+        if (options?.authorizationError) {
+          throw options.authorizationError;
+        }
+      }
+    } as never
+  );
+
+  return {
+    service,
+    authorizationCalls,
+    findManyCalls,
+    writeCalls
+  };
+}
+
+test('resolution authorizes the actor before looking up the holder', async () => {
+  const harness = createHarness({
+    authorizationError: new ForbiddenException('forbidden')
+  });
+
+  await assert.rejects(
+    harness.service.resolveHolder(
+      'issuer-arbitrary',
+      'holder.demo@example.com',
+      currentUser
+    ),
+    ForbiddenException
+  );
+
+  assert.deepEqual(harness.authorizationCalls, [
+    {
+      userId: 'issuer-user-1',
+      issuerId: 'issuer-arbitrary'
+    }
+  ]);
+  assert.equal(harness.findManyCalls.length, 0);
+});
+
+test('resolution normalizes email and uses exact case-insensitive equality with a minimal select', async () => {
+  const harness = createHarness();
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    '  Holder.Demo@Example.COM  ',
+    currentUser
+  );
+
+  assert.equal(response.email, 'holder.demo@example.com');
+  assert.deepEqual(harness.findManyCalls, [
+    {
+      where: {
+        email: {
+          equals: 'holder.demo@example.com',
+          mode: 'insensitive'
+        }
+      },
+      select: {
+        id: true,
+        email: true,
+        did: true,
+        displayName: true,
+        firstName: true,
+        lastName: true,
+        status: true
+      },
+      take: 2
+    }
+  ]);
+  assert.equal(
+    JSON.stringify(harness.findManyCalls).includes('contains'),
+    false
+  );
+});
+
+test('resolution rejects missing, empty, non-string and invalid email inputs', async () => {
+  for (const email of [
+    undefined,
+    null,
+    '',
+    '   ',
+    'not-an-email',
+    ['holder.demo@example.com'],
+    { email: 'holder.demo@example.com' },
+    42,
+    true
+  ]) {
+    const harness = createHarness();
+
+    await assert.rejects(
+      harness.service.resolveHolder('issuer-1', email, currentUser),
+      BadRequestException
+    );
+    assert.equal(harness.findManyCalls.length, 0);
+  }
+});
+
+test('resolution does not accept a partial email match', async () => {
+  const harness = createHarness({ holders: [] });
+
+  await assert.rejects(
+    harness.service.resolveHolder(
+      'issuer-1',
+      'holder.demo@example.co',
+      currentUser
+    ),
+    NotFoundException
+  );
+
+  const query = harness.findManyCalls[0];
+  assert.deepEqual(query, {
+    where: {
+      email: {
+        equals: 'holder.demo@example.co',
+        mode: 'insensitive'
+      }
+    },
+    select: {
+      id: true,
+      email: true,
+      did: true,
+      displayName: true,
+      firstName: true,
+      lastName: true,
+      status: true
+    },
+    take: 2
+  });
+});
+
+test('active holder with DID resolves to the exact minimized response', async () => {
+  const harness = createHarness();
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.deepEqual(response, {
+    id: 'holder-1',
+    email: 'holder.demo@example.com',
+    did: 'did:example:holder-demo',
+    displayLabel: 'Demo Holder'
+  });
+  assert.deepEqual(Object.keys(response).sort(), [
+    'did',
+    'displayLabel',
+    'email',
+    'id'
+  ]);
+
+  for (const forbiddenField of [
+    'status',
+    'memberships',
+    'authCredential',
+    'passwordHash',
+    'createdAt',
+    'updatedAt',
+    'displayName',
+    'firstName',
+    'lastName',
+    'credentials',
+    'metadata'
+  ]) {
+    assert.equal(forbiddenField in response, false);
+  }
+});
+
+test('active holder without DID resolves with did null', async () => {
+  const harness = createHarness({
+    holders: [createHolderFixture({ did: null })]
+  });
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.equal(response.did, null);
+});
+
+test('missing, inactive and email-less holders return the same safe 404', async () => {
+  const scenarios: HolderFixture[][] = [
+    [],
+    [createHolderFixture({ status: UserStatus.suspended })],
+    [createHolderFixture({ email: null })],
+    [createHolderFixture({ email: 'invalid stored email' })]
+  ];
+
+  for (const holders of scenarios) {
+    const harness = createHarness({ holders });
+
+    await assert.rejects(
+      harness.service.resolveHolder(
+        'issuer-1',
+        'holder.demo@example.com',
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof NotFoundException);
+        assert.equal(
+          error.message,
+          'No se encontro un titular elegible con el email indicado.'
+        );
+        assert.equal(error.message.includes('holder.demo@example.com'), false);
+        return true;
+      }
+    );
+  }
+});
+
+test('logical duplicate emails fail as an internal integrity error without PII', async () => {
+  const harness = createHarness({
+    holders: [
+      createHolderFixture({ id: 'holder-1' }),
+      createHolderFixture({ id: 'holder-2', email: 'Holder.Demo@example.com' })
+    ]
+  });
+
+  await assert.rejects(
+    harness.service.resolveHolder(
+      'issuer-1',
+      'holder.demo@example.com',
+      currentUser
+    ),
+    (error: unknown) => {
+      assert.ok(error instanceof InternalServerErrorException);
+      assert.equal(error.message.includes('holder.demo@example.com'), false);
+      return true;
+    }
+  );
+});
+
+test('displayLabel prefers displayName and compacts whitespace', async () => {
+  const harness = createHarness({
+    holders: [
+      createHolderFixture({
+        displayName: '  Demo    Holder  ',
+        firstName: 'Ignored',
+        lastName: 'Name'
+      })
+    ]
+  });
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.equal(response.displayLabel, 'Demo Holder');
+});
+
+test('displayLabel falls back to first and last name', async () => {
+  const harness = createHarness({
+    holders: [
+      createHolderFixture({
+        displayName: '   ',
+        firstName: '  Ada ',
+        lastName: ' Lovelace  '
+      })
+    ]
+  });
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.equal(response.displayLabel, 'Ada Lovelace');
+});
+
+test('displayLabel falls back to first name or last name separately', async () => {
+  const scenarios = [
+    {
+      holder: createHolderFixture({
+        displayName: null,
+        firstName: ' Ada ',
+        lastName: ' '
+      }),
+      expected: 'Ada'
+    },
+    {
+      holder: createHolderFixture({
+        displayName: null,
+        firstName: ' ',
+        lastName: ' Lovelace '
+      }),
+      expected: 'Lovelace'
+    }
+  ];
+
+  for (const scenario of scenarios) {
+    const harness = createHarness({ holders: [scenario.holder] });
+    const response = await harness.service.resolveHolder(
+      'issuer-1',
+      'holder.demo@example.com',
+      currentUser
+    );
+
+    assert.equal(response.displayLabel, scenario.expected);
+  }
+});
+
+test('displayLabel uses normalized email as the final fallback', async () => {
+  const harness = createHarness({
+    holders: [
+      createHolderFixture({
+        email: 'Holder.Demo@Example.com',
+        displayName: null,
+        firstName: ' ',
+        lastName: null
+      })
+    ]
+  });
+
+  const response = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.equal(response.displayLabel, 'holder.demo@example.com');
+});
+
+test('a user with institutional memberships remains eligible as a holder', async () => {
+  const harness = createHarness();
+
+  await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  const queryText = JSON.stringify(harness.findManyCalls[0]);
+  assert.equal(queryText.includes('memberships'), false);
+  assert.equal(queryText.includes('role'), false);
+});
+
+test('resolution is idempotent and performs no writes', async () => {
+  const harness = createHarness();
+
+  const first = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+  const second = await harness.service.resolveHolder(
+    'issuer-1',
+    'holder.demo@example.com',
+    currentUser
+  );
+
+  assert.deepEqual(second, first);
+  assert.equal(harness.findManyCalls.length, 2);
+  assert.deepEqual(harness.writeCalls, []);
+});
+
+===== services/api/src/issuers/issuers.module.ts =====
+import { Module } from '@nestjs/common';
+
+import { IssuerHolderResolutionController } from './issuer-holder-resolution.controller';
+import { IssuerHolderResolutionService } from './issuer-holder-resolution.service';
+import { IssuersService } from './issuers.service';
+
+@Module({
+  controllers: [IssuerHolderResolutionController],
+  providers: [IssuersService, IssuerHolderResolutionService],
+  exports: [IssuersService]
+})
+export class IssuersModule {}
+
+===== services/api/src/issuers/issuers.service.ts =====
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
+import {
+  Issuer,
+  IssuerAuthorizationStatus,
+  IssuerMembershipRole,
+  IssuerMembershipStatus
+} from '@prisma/client';
+
+import { PrismaService } from '../prisma/prisma.service';
+
+@Injectable()
+export class IssuersService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async assertUserCanCreateDraftForIssuer(userId: string, issuerId: string) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'crear borradores'
+    );
+  }
+
+  async assertUserCanResolveHolderForIssuer(userId: string, issuerId: string) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'resolver titulares'
+    );
+  }
+
+  private async assertUserCanOperateAuthorizedIssuer(
+    userId: string,
+    issuerId: string,
+    operation: string
+  ) {
+    const membership = await this.prisma.issuerMembership.findUnique({
+      where: {
+        userId_issuerId: {
+          userId,
+          issuerId
+        }
+      },
+      select: {
+        id: true,
+        userId: true,
+        issuerId: true,
+        role: true,
+        status: true,
+        issuer: {
+          select: {
+            authorizationStatus: true
+          }
+        }
+      }
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        `El usuario no tiene permisos para ${operation} para el issuer solicitado.`
+      );
+    }
+
+    if (membership.status !== IssuerMembershipStatus.active) {
+      throw new ForbiddenException(
+        `La membresia para ${operation} no esta activa.`
+      );
+    }
+
+    if (
+      membership.role !== IssuerMembershipRole.admin &&
+      membership.role !== IssuerMembershipRole.operator
+    ) {
+      throw new ForbiddenException(
+        `El rol ${membership.role} no tiene permisos para ${operation}.`
+      );
+    }
+
+    if (
+      membership.issuer.authorizationStatus !==
+      IssuerAuthorizationStatus.authorized
+    ) {
+      throw new ForbiddenException(
+        `El issuer solicitado no esta habilitado para ${operation}.`
+      );
+    }
+
+    return membership;
+  }
+
+  async getIssuerOrThrow(issuerId: string) {
+    const issuer = await this.prisma.issuer.findUnique({
+      where: {
+        id: issuerId
+      }
+    });
+
+    if (!issuer) {
+      throw new NotFoundException(`Issuer ${issuerId} no existe.`);
+    }
+
+    return issuer;
+  }
+
+  async assertUserCanIssueForIssuer(userId: string, issuerId: string) {
+    const membership = await this.prisma.issuerMembership.findUnique({
+      where: {
+        userId_issuerId: {
+          userId,
+          issuerId
+        }
+      }
+    });
+
+    if (!membership) {
+      throw new ForbiddenException(
+        `El usuario ${userId} no tiene membresia para emitir sobre el issuer ${issuerId}.`
+      );
+    }
+
+    if (membership.status !== IssuerMembershipStatus.active) {
+      throw new ForbiddenException(
+        `La membresia del usuario ${userId} para el issuer ${issuerId} no esta activa.`
+      );
+    }
+
+    if (
+      membership.role !== IssuerMembershipRole.admin &&
+      membership.role !== IssuerMembershipRole.operator
+    ) {
+      throw new ForbiddenException(
+        `El rol ${membership.role} no tiene permisos para emitir sobre el issuer ${issuerId}.`
+      );
+    }
+
+    return membership;
+  }
+
+  assertIssuerCanIssue(issuer: Issuer) {
+    if (issuer.authorizationStatus !== IssuerAuthorizationStatus.authorized) {
+      throw new BadRequestException(
+        `El issuer ${issuer.id} no esta autorizado para emitir.`
+      );
+    }
+
+    if (!issuer.walletAddress) {
+      throw new BadRequestException(
+        `El issuer ${issuer.id} no tiene walletAddress configurado.`
+      );
+    }
+
+    if (!issuer.did) {
+      throw new BadRequestException(`El issuer ${issuer.id} no tiene DID configurado.`);
+    }
+  }
+}
+
+===== services/api/src/issuers/issuers.service.test.ts =====
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { ForbiddenException } from '@nestjs/common';
+import {
+  IssuerAuthorizationStatus,
+  IssuerMembershipRole,
+  IssuerMembershipStatus
+} from '@prisma/client';
+
+import { IssuersService } from './issuers.service';
+
+function createMembershipFixture(
+  overrides?: Partial<{
+    role: IssuerMembershipRole;
+    status: IssuerMembershipStatus;
+    authorizationStatus: IssuerAuthorizationStatus;
+  }>
+) {
+  return {
+    id: 'membership-1',
+    userId: 'issuer-user-1',
+    issuerId: 'issuer-1',
+    role: overrides?.role ?? IssuerMembershipRole.admin,
+    status: overrides?.status ?? IssuerMembershipStatus.active,
+    issuer: {
+      id: 'issuer-1',
+      authorizationStatus:
+        overrides?.authorizationStatus ?? IssuerAuthorizationStatus.authorized,
+      did: null,
+      walletAddress: null
+    }
+  };
+}
+
+function createService(
+  membership: ReturnType<typeof createMembershipFixture> | null
+) {
+  const findUniqueCalls: Array<Record<string, unknown>> = [];
+  const service = new IssuersService({
+    issuerMembership: {
+      async findUnique(args: Record<string, unknown>) {
+        findUniqueCalls.push(args);
+        return membership;
+      }
+    }
+  } as never);
+
+  return {
+    service,
+    findUniqueCalls
+  };
+}
+
+test('IssuersService allows an active admin to create drafts without DID or wallet requirements', async () => {
+  const membership = createMembershipFixture();
+  const { service, findUniqueCalls } = createService(membership);
+
+  const result = await service.assertUserCanCreateDraftForIssuer(
+    'issuer-user-1',
+    'issuer-1'
+  );
+
+  assert.equal(result, membership);
+  assert.deepEqual(findUniqueCalls, [
+    {
+      where: {
+        userId_issuerId: {
+          userId: 'issuer-user-1',
+          issuerId: 'issuer-1'
+        }
+      },
+      select: {
+        id: true,
+        userId: true,
+        issuerId: true,
+        role: true,
+        status: true,
+        issuer: {
+          select: {
+            authorizationStatus: true
+          }
+        }
+      }
+    }
+  ]);
+});
+
+test('IssuersService allows an active operator to create drafts', async () => {
+  const membership = createMembershipFixture({
+    role: IssuerMembershipRole.operator
+  });
+  const { service } = createService(membership);
+
+  const result = await service.assertUserCanCreateDraftForIssuer(
+    'issuer-user-1',
+    'issuer-1'
+  );
+
+  assert.equal(result, membership);
+});
+
+test('IssuersService rejects draft creation without a membership for the requested issuer', async () => {
+  const { service } = createService(null);
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer(
+      'issuer-user-1',
+      'issuer-arbitrary'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects inactive memberships for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      status: IssuerMembershipStatus.revoked
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending memberships for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      status: IssuerMembershipStatus.pending
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects viewer memberships for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      role: IssuerMembershipRole.viewer
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending issuers for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      authorizationStatus: IssuerAuthorizationStatus.pending
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects revoked issuers for draft creation', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      authorizationStatus: IssuerAuthorizationStatus.revoked
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService allows active admins and operators to resolve holders', async () => {
+  for (const role of [
+    IssuerMembershipRole.admin,
+    IssuerMembershipRole.operator
+  ]) {
+    const membership = createMembershipFixture({ role });
+    const { service } = createService(membership);
+
+    const result = await service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-1'
+    );
+
+    assert.equal(result, membership);
+  }
+});
+
+test('IssuersService rejects holder resolution without a membership', async () => {
+  const { service } = createService(null);
+
+  await assert.rejects(
+    service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-arbitrary'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked memberships for holder resolution', async () => {
+  for (const status of [
+    IssuerMembershipStatus.pending,
+    IssuerMembershipStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({
+        status
+      })
+    );
+
+    await assert.rejects(
+      service.assertUserCanResolveHolderForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
+});
+
+test('IssuersService rejects viewer memberships for holder resolution', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      role: IssuerMembershipRole.viewer
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-1'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked issuers for holder resolution', async () => {
+  for (const authorizationStatus of [
+    IssuerAuthorizationStatus.pending,
+    IssuerAuthorizationStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({
+        authorizationStatus
+      })
+    );
+
+    await assert.rejects(
+      service.assertUserCanResolveHolderForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
+});
+
+===== services/api/package.json (diff P0.3) =====
+diff --git a/services/api/package.json b/services/api/package.json
+index 3b72886..10c7980 100644
+--- a/services/api/package.json
++++ b/services/api/package.json
+@@ -29,6 +29,7 @@
+     "test:profile-ingest": "node --require ts-node/register/transpile-only --test src/profiles/formative-profile-result-artifact.mapper.test.ts src/profiles/formative-profile-ai-ingest.service.test.ts src/profiles/scripts/ingest-formative-profile-file.test.ts",
+     "test:ai-service-client": "node --require ts-node/register/transpile-only --test src/ai/ai-service.client.test.ts src/ai/ai-integration.service.test.ts src/ai/scripts/ai-script.utils.test.ts",
+     "test:ai-endpoints": "node --require ts-node/register/transpile-only --test src/ai/ai-service-http-error.mapper.test.ts src/ai/ai-endpoints.test.ts",
++    "test:holder-resolution": "node --require ts-node/register/transpile-only --test src/issuers/issuer-holder-resolution.controller.test.ts src/issuers/issuer-holder-resolution.service.test.ts src/issuers/issuers.service.test.ts",
+     "test:protected-issuance": "node --require ts-node/register/transpile-only --test src/credentials/credentials.controller.test.ts src/credentials/credentials.service.test.ts src/issuers/issuers.service.test.ts",
+     "test:hashing": "node --require ts-node/register/transpile-only --test src/credentials/credential-hashing.service.test.ts",
+     "test:semantic-artifact": "node --require ts-node/register/transpile-only --test src/semantic/semantic-analysis-artifact.mapper.test.ts",
+
+## C. Diff documental completo
+
+===== git diff -- docs/architecture/api-contracts-v0.md =====
+diff --git a/docs/architecture/api-contracts-v0.md b/docs/architecture/api-contracts-v0.md
+index 85e4e0e..8df1a7f 100644
+--- a/docs/architecture/api-contracts-v0.md
++++ b/docs/architecture/api-contracts-v0.md
+@@ -77,6 +77,22 @@
+ - Errores esperados: `401`, `403`, `404`.
+ - Estado: `v1_candidate`.
+ 
++### `POST /issuers/:issuerId/holders/resolve`
++
++- Proposito: resolver un titular elegible por igualdad exacta de email dentro
++  de un contexto institucional autorizado.
++- Actor: usuario autenticado con membership `active`, rol `admin` u
++  `operator` e issuer `authorized`.
++- Request: JSON `{ "email": "holder.demo@example.com" }`.
++- Response `200 OK`: `{ id, email, did, displayLabel }`; `did` puede ser
++  `null`.
++- Privacidad: no lista usuarios, no realiza busqueda parcial, no refleja el
++  email en errores y usa el mismo `404` para usuario inexistente o inactivo.
++- Efectos: operacion read-only; el `id` se usa luego como `subjectUserId`
++  command-only.
++- Errores esperados: `400`, `401`, `403`, `404`.
++- Estado: `implemented`.
++
+ ### `PATCH /issuers/:id`
+ 
+ - Proposito: actualizar metadata basica del emisor.
+
+===== git diff -- docs/architecture/auth-and-permissions-v0.md =====
+diff --git a/docs/architecture/auth-and-permissions-v0.md b/docs/architecture/auth-and-permissions-v0.md
+index 2f393a1..dbbfaac 100644
+--- a/docs/architecture/auth-and-permissions-v0.md
++++ b/docs/architecture/auth-and-permissions-v0.md
+@@ -106,6 +106,23 @@ contexto institucional, pero el backend valida que pertenezca al usuario. En
+ esta etapa no se exigen DID, wallet ni configuracion blockchain para crear el
+ draft; esos requisitos permanecen en emision.
+ 
++La resolucion institucional de titulares tambien esta protegida:
++
++```text
++POST /issuers/:issuerId/holders/resolve
++JWT currentUser activo
++-> membership active sobre issuerId
++-> rol admin u operator
++-> issuer authorized
++-> lookup exacto por email normalizado
++```
++
++El lookup ocurre despues de autorizar el contexto institucional. Devuelve solo
++`id`, email normalizado, DID nullable y `displayLabel`; usa un `404` uniforme
++para titulares inexistentes o inactivos y no tiene efectos secundarios. No
++exige DID porque resolver un titular y autorizar la emision son operaciones
++distintas.
++
+ ## 3. Acciones por rol
+ 
+ ### `holder`
+@@ -121,6 +138,7 @@ draft; esos requisitos permanecen en emision.
+ - siempre esta limitado a uno o mas `issuer_id`;
+ - no existe un `issuer_admin` global salvo que tambien tenga rol `system_admin`;
+ - crear borradores;
++- resolver titulares elegibles por email exacto dentro de su issuer autorizado;
+ - emitir credenciales para su institucion;
+ - consultar credenciales emitidas por su institucion;
+ - solicitar analisis semantico sobre credenciales autorizadas;
+
+===== git diff -- docs/architecture/backend-implemented-slices-v0.md =====
+diff --git a/docs/architecture/backend-implemented-slices-v0.md b/docs/architecture/backend-implemented-slices-v0.md
+index 2ce809f..10a711d 100644
+--- a/docs/architecture/backend-implemented-slices-v0.md
++++ b/docs/architecture/backend-implemented-slices-v0.md
+@@ -39,6 +39,24 @@ GET  /auth/me
+ 
+ No incluye refresh tokens, recuperacion de password, MFA ni proveedor de identidad externo.
+ 
++### Resolucion institucional de titulares
++
++Endpoint protegido:
++
++```text
++POST /issuers/:issuerId/holders/resolve
++```
++
++Un usuario autenticado puede resolver un titular por email exacto solo si
++tiene membership `active`, rol `admin` u `operator` y el issuer esta
++`authorized`. La busqueda ocurre despues de la autorizacion, acepta usuarios
++`active` con DID nullable y devuelve exclusivamente `id`, `email`, `did` y
++`displayLabel`.
++
++Es una lectura sin efectos secundarios: no crea ni modifica usuarios,
++memberships, drafts o credenciales. No es listado, autocomplete ni buscador
++global. El ID retornado queda destinado a `subjectUserId` command-only.
++
+ ### Credential draft y protected issuance
+ 
+ Endpoints:
+@@ -149,7 +167,10 @@ No ejecuta una verificacion criptografica externa en tiempo real.
+ 
+ ## 3. Que fue probado
+ 
+-Se ejecutan tests separados para hashing, auth, protected issuance, holder wallet, perfiles, semantic artifact/service/CLI/read, blockchain read/write/evidence y verification read, ademas de `build` y `prisma:validate`.
++Se ejecutan tests separados para hashing, auth, resolucion de titulares,
++protected issuance, holder wallet, perfiles, semantic artifact/service/CLI/read,
++blockchain read/write/evidence y verification read, ademas de `build` y
++`prisma:validate`.
+ 
+ Pruebas manuales realizadas:
+
+===== git diff -- docs/demo/ai-end-to-end-demo-script-v0.md =====
+diff --git a/docs/demo/ai-end-to-end-demo-script-v0.md b/docs/demo/ai-end-to-end-demo-script-v0.md
+index ee3c227..ae75db2 100644
+--- a/docs/demo/ai-end-to-end-demo-script-v0.md
++++ b/docs/demo/ai-end-to-end-demo-script-v0.md
+@@ -226,6 +226,28 @@ Si `$credentialId` queda vacio, usar la opcion B.
+ 
+ ### Opcion B: crear draft y emitir
+ 
++Resolver el titular dentro del contexto institucional:
++
++```powershell
++$holderResolutionBody = @{
++  email = "holder.demo@example.com"
++} | ConvertTo-Json
++
++$resolvedHolder = Invoke-RestMethod `
++  -Uri "$apiBaseUrl/issuers/$issuerId/holders/resolve" `
++  -Method Post `
++  -Headers @{ Authorization = "Bearer $issuerToken" } `
++  -ContentType "application/json" `
++  -Body $holderResolutionBody
++
++$holderUserId = $resolvedHolder.id
++$resolvedHolder.displayLabel
++```
++
++La resolución usa igualdad exacta de email, requiere membership institucional
++autorizada y no muestra el UUID como input de interfaz. El ID se conserva solo
++como `subjectUserId` command-only.
++
+ Crear draft:
+ 
+ ```powershell
+
+===== git diff -- docs/frontend/frontend-component-inventory-v0.md =====
+diff --git a/docs/frontend/frontend-component-inventory-v0.md b/docs/frontend/frontend-component-inventory-v0.md
+index 48cfc23..6c0ede1 100644
+--- a/docs/frontend/frontend-component-inventory-v0.md
++++ b/docs/frontend/frontend-component-inventory-v0.md
+@@ -54,6 +54,7 @@ Actualizaciones posteriores al snapshot base:
+ 
+ - P0.1 protegió `POST /credentials/draft`.
+ - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
++- P0.3 agregó resolución autorizada del titular por email exacto.
+ 
+ Documentos normativos leídos:
+ 
+@@ -653,6 +654,7 @@ la unidad funcional.
+ | `IssuerNavigation` | Shell | Emisor | Destinos habilitados por la arquitectura vigente | Navegar | Mostrar solo áreas reales | Inicio; futuras rutas solo cuando existan | Compacta o mobile navigation confirmada | Estado activo y teclado | Baja | F1 | Rutas C/D o permisos efectivos |
+ | `AuthenticatedUserMenu` | Shell | Emisor y titular | `CurrentUserVM` minimizado | `onLogout` | Identidad de sesión y cierre | Open, closed | Menú o patrón móvil equivalente | Control expandible y foco | Alta | F1 | JWT, AuthCredential, password |
+ | `IssuerHomeIntro` | Feature | Emisor | `IssuerHomeVM` | Ir a crear draft | Explicar flujo y acción real | Context available, known non-operational, unavailable | Texto y CTA se apilan | Heading y acción clara | Baja | F1 | Métricas, lista reciente, issuer inventado |
++| `HolderResolutionField` | Feature | Emisor | `HolderResolutionFormModel`, `HolderResolutionStateVM`, `HolderSummaryVM` cuando está resolved | `onEmailChange`, `onResolveHolder`, `onChangeHolder` | Capturar email exacto y presentar el resultado seguro | Idle, invalid, resolving, resolved, not found, network/error, session expired, forbidden | Input, acción y summary se apilan | Label permanente, estado anunciado y foco en error | Baja | F1 | Commands, fetching, DTOs, autorización, UUID visible, búsqueda global o autocomplete |
+ | `CreateCredentialDraftForm` | Feature | Emisor | `CreateCredentialDraftFormModel` | `onCreateDraft` | Capturar datos humanos permitidos | Idle, validating, submitting, error | Varias columnas solo en ancho suficiente | Labels, errores asociados, foco en primer error | Baja | F1 | `issuerId` editable, JSON, rawData |
+ | `CredentialDraftSummary` | Feature | Emisor | `IssuerCredentialDetailVM` parcial | Abrir detalle o continuar | Confirmar draft creado | Draft, incomplete read | Apilado en mobile | Heading y estado explícito | Baja | F1 | Verificación válida o issuer inventado |
+ | `IssueCredentialSection` | Feature | Emisor | `IssuerCredentialDetailVM`, `IssueCredentialActionVM` | `onIssueCredential` | Explicar y confirmar emisión | Available, submitting, success, conflict, forbidden | CTA y consecuencias apiladas | Confirmación en dialog; resultado persistente | Baja | F1 | Hashing, signer, endpoint directo |
+@@ -747,7 +749,8 @@ Implementar únicamente lo consumido por F1:
+ 
+ `Checkbox`, `ConfidenceDisplay`, `QualityFlagsList`, `IssuerSummary` y
+ `HolderSummary` se implementan en F0/F1 solo si el flujo y los VMs del primer
+-slice realmente los consumen.
++slice realmente los consumen. P0.3 confirma que `HolderSummary` es consumido
++por `HolderResolutionField`.
+ 
+ ### F1: Portal del Emisor mínimo
+ 
+@@ -756,6 +759,7 @@ slice realmente los consumen.
+ - `IssuerNavigation`;
+ - `AuthenticatedUserMenu`;
+ - `IssuerHomeIntro`;
++- `HolderResolutionField`;
+ - `CreateCredentialDraftForm`;
+ - `CredentialDraftSummary`;
+ - `IssueCredentialSection`;
+@@ -775,6 +779,12 @@ Restricciones:
+ - no persistir responses o artifacts en el browser;
+ - no tratar la protección de rutas frontend como autorización.
+ 
++`HolderResolutionField` recibe modelos normalizados y emite intenciones. No
++recibe `HolderResolutionCommand`: la orquestación lo construye después de
++`onResolveHolder`. El componente no hace fetching, no interpreta DTOs, no
++autoriza y no funciona como buscador global o autocomplete. Cambiar email o
++issuer invalida el holder resuelto antes del submit.
++
+ ## 18. Componentes F2 y F3
+ 
+ ### F2: Wallet y Perfil
+
+===== git diff -- docs/frontend/frontend-data-and-view-models-v0.md =====
+diff --git a/docs/frontend/frontend-data-and-view-models-v0.md b/docs/frontend/frontend-data-and-view-models-v0.md
+index 4c3122f..dc4c43d 100644
+--- a/docs/frontend/frontend-data-and-view-models-v0.md
++++ b/docs/frontend/frontend-data-and-view-models-v0.md
+@@ -129,6 +129,7 @@ Actualizaciones posteriores al snapshot base:
+ 
+ - P0.1 protegió `POST /credentials/draft`.
+ - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
++- P0.3 agregó resolución autorizada del titular por email exacto.
+ 
+ > Cuando cambien controllers, DTOs, serializers, permisos o responses del
+ > backend, deberán revisarse los adapters y view models definidos por este
+@@ -770,6 +771,7 @@ información.
+ |---|---|---|
+ | `POST /auth/login` | Sin parámetros | JSON con `email`, `password` |
+ | `GET /auth/me` | Sin parámetros | Sin body |
++| `POST /issuers/:issuerId/holders/resolve` | `issuerId` institucional | JSON con `email` |
+ | `POST /credentials/draft` | Sin parámetros | `CreateCredentialDraftDto` |
+ | `POST /credentials/:id/issue` | `id` de credencial | `IssueCredentialDto`: `issuerId`, `issuedAt?` |
+ | `POST /credentials/:id/semantic-analysis/from-pdf` | `id` de credencial | Multipart `file`; `documentId?`, `fileName?`, `pipelineVersion?`, `taxonomyVersion?` |
+@@ -877,6 +879,7 @@ versión pueden omitirse.
+ 
+ | Endpoint | Actor | Disp. | Auth/permiso | Response real | Adapter | VM o command | Permitidos | Descartados | Estados derivados | Errores | Notas UX |
+ |---|---|---|---|---|---|---|---|---|---|---|---|
++| `POST /issuers/:issuerId/holders/resolve` | Emisor | A dentro de ruta B | JWT; membership activa admin/operator; issuer autorizado | `HolderSummaryResponseDto` | `adaptHolderResolution` | `HolderResolutionFormModel`; `HolderResolutionCommand`; `HolderSummaryVM`; `HolderResolutionStateVM` | `id` se transforma en `holderReference` adapter-only; email, DID nullable, displayLabel | cualquier campo extra; referencias internas no se presentan | idle/invalid/resolving/resolved/not_found/error/session_expired/forbidden | 400, 401, 403, 404, network | `200 OK`; igualdad exacta; no listado ni autocomplete |
+ | `POST /credentials/draft` | Emisor | B | JWT; membership activa admin/operator; issuer autorizado | `CredentialSummaryResponseDto` | `adaptIssuerCredentialSummary` | `CreateCredentialDraftCommand`; `IssuerCredentialDetailVM` parcial | id, title, type, status, fechas, hash/evidencia si existen | metadata desconocida; credentialSubject no allowlisted; campos extra | draft lifecycle | 400, 401, 403, 404, network | `issuerId` es command-only y se valida contra la sesión |
+ | `POST /credentials/:id/issue` | Emisor | A dentro de ruta B | JWT; membership activa admin/operator; issuer autorizado | `CredentialSummaryResponseDto` | `adaptIssuedCredentialSummary` | `IssueCredentialCommand`; `IssueCredentialActionVM` | estado, issuedAt, hash, canon, latest record | metadata amplia; campos desconocidos | issued y evidence | 400, 401, 403, 404, 409, network | `issuerId` es command-only y no editable |
+ | `POST /credentials/:id/semantic-analysis/from-pdf` | Emisor | A dentro de ruta B | JWT; membership admin/operator sobre issuer | `SemanticAnalysisFromPdfResponseDto` | `adaptPdfAnalysisResult` | `AnalyzePdfCommand`; `PdfAnalysisResultVM` | status, fecha, conteos, confidence, warnings, quality flags | campos extra; nunca artifact | completed/partial | 400, 401, 403, 404, 409, 422, 502, 503, 504 | Request síncrono; PDF máximo 20 MB |
+@@ -1071,7 +1074,7 @@ Campos humanos:
+ - descripción;
+ - fuente;
+ - horas opcionales;
+-- titular seleccionado mediante un mecanismo autorizado futuro;
++- referencia a una resolución autorizada vigente del titular;
+ - nombre del logro;
+ - institución del logro;
+ - campos formativos explícitamente aprobados.
+@@ -1079,6 +1082,7 @@ Campos humanos:
+ No incluye como inputs libres:
+ 
+ - `issuerId`;
++- `subjectUserId`;
+ - JSON arbitrario;
+ - `rawData`;
+ - private key;
+@@ -1086,6 +1090,63 @@ No incluye como inputs libres:
+ - status;
+ - canonicalization version.
+ 
++La captura editable y los estados de resolución se mantienen en modelos
++separados.
++
++### `HolderResolutionFormModel`
++
++```text
++email: string
++```
++
++Representa exclusivamente el valor editable. Aplica validación local de
++formato, conserva el email ante errores y debe invalidar una resolución previa
++cuando cambia. No contiene IDs ni referencias internas.
++
++### `HolderResolutionCommand`
++
++```text
++issuerReference: adapter-only issuerId
++email: string normalizado
++```
++
++`issuerReference` proviene de `UserContextVM`: no es editable, no se muestra y
++no puede ser escrito por el operador. La orquestación construye el command y el
++API client usa `issuerReference` para formar el path. El backend vuelve a
++validarlo mediante membership; la identidad del actor sigue proviniendo de la
++sesión.
++
++### `HolderSummaryVM`
++
++```text
++holderReference: adapter-only user id
++email: string
++did: string | null
++displayLabel: string
++```
++
++El adapter transforma `response.id` en `holderReference`.
++`holderReference` no se renderiza, no es un input y no se persiste en
++`localStorage`. Se usa únicamente para construir
++`CreateCredentialDraftCommand.subjectUserId`.
++
++### `HolderResolutionStateVM`
++
++```text
++idle
++invalid_email
++resolving
++resolved(HolderSummaryVM)
++not_found
++network_error
++session_expired
++forbidden
++```
++
++Cambiar el email o el issuer invalida inmediatamente cualquier resultado
++`resolved`. La carga de resolución es independiente de la carga de creación
++del draft.
++
+ ### Institución emisora e institución del logro
+ 
+ Son conceptos distintos.
+@@ -1145,7 +1206,8 @@ Reglas:
+ - `hours`, si existe, es mayor a cero;
+ - la validación frontend no reemplaza validación backend.
+ 
+-La falta de resolución de titulares bloquea una experiencia productiva.
++La resolución autorizada ya existe. El frontend debe completarla antes de
++construir el command y nunca aceptar un UUID escrito por el operador.
+ 
+ ### Allowlist frontend v0 de `credentialSubject`
+ 
+@@ -2072,7 +2134,6 @@ Regla:
+ |---|---|---|---|---|---|
+ | Sin listado issuer-facing | `IssuerCredentialListItemVM` | Colección institucional | Navegar al detalle recién creado o ID preparado | Lista hardcodeada | Read protegido por issuer con paginación |
+ | Issuer activo vs `institution_name` sin regla | Draft y detalle | Relación entre autoridad emisora e institución del logro | Labels diferenciados | Tratar texto libre como autorización | Regla de dominio y DTO que indiquen coincidencia o diferencia |
+-| Sin resolución humana del titular | Draft form | Buscar usuario por email/DID | Preparación técnica de demo fuera de UI | Hardcodear holder en producto | Endpoint autorizado de búsqueda/resolución |
+ | Reads institucionales públicos | `IssuerCredentialDetailVM` | Ownership issuer-facing | Direct ID demo con allowlist | Reutilizar para producto | Reads protegidos por membership |
+ | Latest semantic público amplio | `SemanticAnalysisSummaryVM` | DTO seguro | Usar resumen inmediato del POST | Guardar artifact o pasar response | Read protegido y resumido |
+ | Verify sin issuer | `VerificationResultVM` | Issuer name, DID y referencia | Omitir bloque o ausencia transparente | Encadenar GET genérico | Issuer summary dentro de verify DTO |
+
+===== git diff -- docs/frontend/frontend-information-architecture-v0.md =====
+diff --git a/docs/frontend/frontend-information-architecture-v0.md b/docs/frontend/frontend-information-architecture-v0.md
+index 6dd883e..61b5a39 100644
+--- a/docs/frontend/frontend-information-architecture-v0.md
++++ b/docs/frontend/frontend-information-architecture-v0.md
+@@ -99,6 +99,7 @@ Actualizaciones posteriores al snapshot base:
+ 
+ - P0.1 protegió `POST /credentials/draft`.
+ - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
++- P0.3 agregó resolución autorizada del titular por email exacto.
+ 
+ > Cuando cambien controllers, DTOs, permisos o rutas del backend, debe
+ > revisarse la clasificación A/B/C/D de este documento.
+@@ -187,6 +188,7 @@ Reglas:
+ 
+ ```text
+ GET  /auth/me
++POST /issuers/:issuerId/holders/resolve
+ POST /credentials/:id/issue
+ POST /credentials/:id/semantic-analysis/from-pdf
+ GET  /me/credentials
+@@ -199,7 +201,8 @@ POST /me/profile/build-from-ai
+ ### Límites relevantes
+ 
+ - no existe listado de credenciales por institución emisora;
+-- no existe búsqueda o resolución de titulares;
++- existe resolución exacta de un titular por email dentro de un issuer
++  autorizado; no existe listado, autocomplete ni búsqueda parcial;
+ - `/auth/me` devuelve memberships activas con `issuerId`, nombre, DID nullable,
+   estado de autorización institucional, rol y estado de membership;
+ - `/auth/me` devuelve issuer summaries para memberships activas, pero todavía
+@@ -436,8 +439,9 @@ implementarse como lista fake.
+ 
+ ### `/issuer/credentials/new`
+ 
+-Creación de draft. El endpoint existe, pero la experiencia completa está
+-limitada por falta de protección y resolución del titular.
++Creación de draft. El endpoint y la resolución autorizada del titular existen;
++la experiencia institucional completa sigue limitada por la selección de
++contexto multi-issuer y los reads issuer-facing pendientes.
+ 
+ ### `/issuer/credentials/[credentialId]`
+ 
+@@ -491,7 +495,7 @@ seguro.
+ | `/login` | Iniciar sesión | Institucional y titular | No | Usuario activo | Obtener JWT | `POST /auth/login` | A | Sin refresh token |
+ | `/issuer` | Inicio | Admin/operator | Sí | Membership activa e issuer autorizado | Entrada institucional | `GET /auth/me` | B | Summary disponible; selector multi-issuer no implementado |
+ | `/issuer/credentials` | Credenciales | Admin/operator | Sí | Membership activa | Listar credenciales institucionales | No existe | C | Endpoint issuer-facing, paginación y filtros. No implementar ni enlazar en MVP |
+-| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Crear draft | `POST /credentials/draft` | B | Backend protegido; falta resolución de titular |
++| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Resolver titular y crear draft | `POST /issuers/:issuerId/holders/resolve`, `POST /credentials/draft` | B | Flujo transaccional disponible; selector multi-issuer no implementado |
+ | `/issuer/credentials/[credentialId]` | Detalle de credencial | Admin/operator | Sí en UI | Membership del issuer | Consultar y operar por ID | `GET /credentials/:id`, status, issue, AI PDF, latest analysis | B | Reads sin autorización, ID conocido y DTO semántico demasiado amplio |
+ | `/wallet` | Entrada personal | Titular | Sí | Usuario activo | Entrar a experiencia personal | `/auth/me` | A | Redirect interno |
+ | `/wallet/credentials` | Mis credenciales | Titular | Sí | Ownership por JWT | Listar credenciales propias | `GET /me/credentials` | A | Sin paginación |
+@@ -719,15 +723,19 @@ Límites:
+ - el endpoint exige JWT, membership activa `admin` u `operator` e issuer
+   autorizado;
+ - `issuerId` sigue siendo command-only en el body y se valida contra la sesión;
+-- no existe búsqueda de titular por email, DID o criterio institucional;
++- el titular se resuelve por email exacto mediante
++  `POST /issuers/:issuerId/holders/resolve`;
++- la respuesta segura aporta un `subjectUserId` interno, DID nullable y label
++  humano; no ofrece listado ni búsqueda parcial;
+ - no existe catálogo frontend de instituciones;
+-- el `subjectUserId` debe estar preparado para la demo.
++- el `subjectUserId` nunca es un input editable ni visible.
+ 
+ El frontend no debe hardcodear IDs ni presentarlos como UX definitiva.
+ 
+-La ruta permanece B por la falta de resolución humana del titular y de issuer
+-summary. La seguridad efectiva de creación ya reside en el backend; los route
+-guards frontend siguen siendo únicamente UX.
++La ruta permanece B solo por la falta de selector/persistencia del contexto
++multi-issuer y por las limitaciones de continuidad de los reads
++institucionales. La resolución humana y la seguridad efectiva de creación ya
++residen en el backend; los route guards frontend siguen siendo únicamente UX.
+ 
+ ### Emitir
+ 
+@@ -1195,10 +1203,11 @@ Para una experiencia institucional defendible:
+ 
+ 1. Completado: proteger `POST /credentials/draft`.
+ 2. Completado: enriquecer contexto de issuer en `/auth/me`.
+-3. Agregar resolución autorizada de titular.
++3. Completado: agregar resolución autorizada de titular por email exacto.
+ 
+-El listado issuer-facing puede llegar después del primer flujo transaccional
+-por ID.
++P0 queda cerrado para comenzar F0/F1. El listado issuer-facing y los reads
++protegidos permanecen como P1 y pueden llegar después del primer flujo
++transaccional por ID.
+ 
+ ### Fase 0: fundamentos compartidos
+ 
+@@ -1275,7 +1284,8 @@ Solo después de implementar:
+ |---|---|---|---|---|---|
+ | Login | Envío de credenciales | No aplica | Credenciales inválidas, config JWT | Sesión ya válida redirige | Backend caído |
+ | Context resolver | `/auth/me` | Usuario sin contexto emisor | Sesión inválida | `401` | Membership incompleta |
+-| Create draft | Envío | No aplica | `400`, `401`, `403`, `404` | JWT + membership | Sin resolver titular |
++| Holder resolution | Request exacto por email | Sin selección | Email inválido, `404`, network | JWT + membership + issuer autorizado | Sin listado ni autocomplete |
++| Create draft | Envío | No aplica | `400`, `401`, `403`, `404` | JWT + membership | Requiere holder resuelto vigente |
+ | Detalle emisor | Carga por ID | No aplica | `404`, conflicto de estado | `403` al operar | Read genérico sin ownership |
+ | Issue | Acción en curso | No aplica | `400`, `403`, `409` | JWT + membership | Blockchain local/config caída |
+ | PDF analysis | Request indeterminado | Sin análisis | PDF inválido, `502/503/504` | `401/403` | `partial`, confidence unavailable |
+@@ -1335,7 +1345,7 @@ Reglas:
+ | Prioridad | Dependencia | Experiencia afectada | Resultado esperado |
+ |---|---|---|---|
+ | P0 completado | Proteger create draft | Emisor | Solo miembros autorizados crean para su issuer |
+-| P0 | Resolver titular | Emisor | Selección por dato humano autorizado, no UUID |
++| P0 completado | Resolver titular | Emisor | Selección por email exacto autorizado, no UUID visible |
+ | P0 completado | Enriquecer contexto issuer | Emisor | Nombre, DID, autorización y rol visibles |
+ | P1 | Listado issuer-facing | Emisor | Lista real filtrada por membership |
+ | P1 | Reads issuer protegidos | Emisor | Detalle, status y análisis con ownership |
+
+===== git diff -- docs/frontend/frontend-issuer-portal-screen-spec-v0.md =====
+diff --git a/docs/frontend/frontend-issuer-portal-screen-spec-v0.md b/docs/frontend/frontend-issuer-portal-screen-spec-v0.md
+index 2a8c6c8..4ef7ef2 100644
+--- a/docs/frontend/frontend-issuer-portal-screen-spec-v0.md
++++ b/docs/frontend/frontend-issuer-portal-screen-spec-v0.md
+@@ -62,6 +62,7 @@ Actualizaciones posteriores al snapshot base:
+ 
+ - P0.1 protegió `POST /credentials/draft`.
+ - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
++- P0.3 agregó resolución autorizada del titular por email exacto.
+ 
+ Precedencia:
+ 
+@@ -101,7 +102,7 @@ placeholder para esa ruta.
+ |---|---|---|---|---|---|
+ | `/login` | Usuario sin sesión válida | Autenticar y resolver contexto | A | `POST /auth/login`, `GET /auth/me` | Sin refresh token |
+ | `/issuer` | `admin` u `operator` activo | Entrada institucional honesta | B | `GET /auth/me` | Issuer summary disponible; selector multi-issuer no implementado |
+-| `/issuer/credentials/new` | `admin` u `operator` activo | Crear draft demo-grade | B | `POST /credentials/draft` | Backend protegido; sin resolución de titular |
++| `/issuer/credentials/new` | `admin` u `operator` activo | Resolver titular y crear draft demo-grade | B | `POST /issuers/:issuerId/holders/resolve`, `POST /credentials/draft` | Flujo disponible; selector multi-issuer pendiente |
+ | `/issuer/credentials/[credentialId]` | `admin` u `operator` activo | Emitir, ver evidencia y analizar PDF | B | Reads por ID, issue y análisis PDF | Reads públicos y acceso por ID conocido |
+ 
+ La disponibilidad B no permite datos fake ni seguridad simulada. Exige hacer
+@@ -233,7 +234,7 @@ No existe una transición hacia `/issuer/credentials`.
+ |---|---|---|---|---|
+ | `/login` | Iniciar sesión | Ninguna funcional en v0 | Campos mínimos válidos y request idle | Resolver contexto y redirigir |
+ | `/issuer` | Crear credencial | Cerrar sesión | Contexto emisor operativo | Abrir nueva credencial |
+-| `/issuer/credentials/new` | Guardar borrador | Volver al inicio | Form válido, issuer contextual y titular demo preparado | Crear draft y redirigir al detalle |
++| `/issuer/credentials/new` | Guardar borrador | Volver al inicio | Form válido, issuer contextual y titular resuelto vigente | Crear draft y redirigir al detalle |
+ | `/issuer/credentials/[credentialId]` draft | Emitir credencial | Copiar identificador técnico; volver al inicio | VM draft, allowed action y request idle | Actualizar lifecycle y evidencia |
+ | `/issuer/credentials/[credentialId]` issued sin análisis | Analizar contenido | Seleccionar/reemplazar PDF; copiar detalle técnico | VM issued, PDF válido y request idle | Persistir y mostrar análisis |
+ | `/issuer/credentials/[credentialId]` analyzed | Ninguna primaria nueva | Expandir detalle y copiar valores permitidos | Resultado seguro disponible | Mantener lectura del resultado |
+@@ -471,11 +472,11 @@ bloqueado.
+ | Actor | `admin` u `operator` autenticado |
+ | Objetivo | Crear una credencial draft dentro del vertical demo-grade |
+ | Disponibilidad | B |
+-| Precondición | Contexto emisor operativo y titular demo preparado |
++| Precondición | Contexto emisor operativo |
+ | Entrada | CTA desde `/issuer` |
+ | Salida exitosa | `/issuer/credentials/[credentialId]` |
+-| Modelos | `CreateCredentialDraftFormModel`, `CreateCredentialDraftCommand`, `IssuerCredentialDetailVM` parcial, `FeedbackErrorVM`, `AsyncActionStateVM` |
+-| Componentes | `IssuerShell`, `CreateCredentialDraftForm`, `FormField`, `TextInput`, `Textarea`, `Select`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
++| Modelos | `HolderResolutionFormModel`, `HolderResolutionStateVM`, `HolderSummaryVM`, `HolderResolutionCommand` solo en orquestación, `CreateCredentialDraftFormModel`, `CreateCredentialDraftCommand`, `IssuerCredentialDetailVM` parcial, `FeedbackErrorVM`, `AsyncActionStateVM` |
++| Componentes | `IssuerShell`, `HolderResolutionField`, `HolderSummary`, `CreateCredentialDraftForm`, `FormField`, `TextInput`, `Textarea`, `Select`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
+ 
+ `CredentialDraftSummary` puede alimentar feedback breve antes de la navegación,
+ pero no crea una pantalla intermedia.
+@@ -486,7 +487,10 @@ pero no crea una pantalla intermedia.
+   `operator` e issuer autorizado;
+ - `issuerId` permanece en el command y selecciona contexto, pero se valida
+   contra la sesión;
+-- no existe búsqueda o resolución autorizada del titular;
++- `POST /issuers/:issuerId/holders/resolve` resuelve por email exacto dentro
++  del mismo contexto autorizado;
++- la resolución no lista usuarios, no busca parcialmente y devuelve un DTO
++  minimizado;
+ - `issuerId` y `subjectUserId` siguen siendo requeridos por el command;
+ - la protección de la ruta frontend no reemplaza la autorización backend.
+ 
+@@ -496,7 +500,7 @@ pero no crea una pantalla intermedia.
+ |---:|---|---|---|
+ | 1 | Encabezado | Título, subtítulo y contexto | Explicar creación de borrador |
+ | 2 | Contexto emisor | Resumen genérico no editable | Indicar autoridad sin UUID |
+-| 3 | Titular demo | Referencia humana segura o estado preconfigurado | Explicar asociación externa |
++| 3 | Resolución del titular | `HolderResolutionField` y `HolderSummary` | Resolver email exacto y conservar `holderReference` interno |
+ | 4 | Datos principales | `CreateCredentialDraftForm` | Tipo, título, fuente y descripción |
+ | 5 | Datos del logro | Campos allowlisted mínimos | Construir `credentialSubject` |
+ | 6 | Datos opcionales | Horas y contexto formativo | Completar información útil |
+@@ -508,7 +512,8 @@ pero no crea una pantalla intermedia.
+ | Campo visible | Campo del modelo | Requerido | Fuente | Editable | Validación | Ayuda | Responsive | Clasificación |
+ |---|---|---:|---|---:|---|---|---|---|
+ | Institución emisora | Contexto de `UserContextVM`; `issuerId` command-only | Sí para command | Sesión/membership y preparación demo | No | Contexto operativo disponible | La institución en cuyo nombre se opera | Bloque compacto antes del form | Backend requerido; no input |
+-| Titular de demostración | Referencia segura; `subjectUserId` command-only | Sí para command | Seed o configuración demo externa | No | Contexto demo válido | No se muestra UUID | Bloque compacto | Backend requerido; gap P0 |
++| Email del titular | `HolderResolutionFormModel.email` y `HolderResolutionStateVM` | Sí para resolver | Usuario institucional | Sí | Email válido; resolución exacta requerida | Buscar titular sin exponer UUID | Input, acción y resultado se apilan | Backend requerido |
++| Titular resuelto | `HolderSummaryVM.holderReference`; `subjectUserId` command-only | Sí para command | Response minimizada adaptada | No | Debe corresponder al email e issuer vigentes | DID puede no estar disponible | Bloque compacto | Backend requerido; no input |
+ | Tipo de credencial | `CreateCredentialDraftFormModel.type` | Sí | Selección de opciones normalizadas | Sí | Valor soportado de `CredentialType` | Explica el tipo de logro | Full-width en mobile | Backend requerido |
+ | Título | `CreateCredentialDraftFormModel.title` | Sí | Usuario institucional | Sí | String no vacío; límite de UI razonable | Nombre principal de la credencial | Full-width | Backend requerido |
+ | Descripción | `CreateCredentialDraftFormModel.description` | No | Usuario institucional | Sí | Texto plano; opcional | Contexto breve del logro | Full-width | Opcional inicial |
+@@ -561,32 +566,47 @@ Aunque ya existe issuer summary, todavía no hay una regla de dominio que lo
+ iguale a `credentialSubject.institution_name`. La pantalla no debe
+ precompletar una identidad del logro basándose solo en el contexto emisor.
+ 
+-### Titular de la demo
++### Resolución del titular
+ 
+-Modo objetivo productivo:
++Flujo v0:
+ 
+ ```text
+-resolución autorizada por email, DID u otro dato humano
+--> selección segura
+--> subjectUserId command-only
++HolderResolutionField
++-> emite intencion con email
++-> orquestacion agrega issuerReference
++-> construye HolderResolutionCommand
++-> API client construye path
++-> adapter transforma response.id en holderReference
++-> HolderSummaryVM
++-> subjectUserId interno al crear el draft
+ ```
+ 
+-Modo demo actual:
++Estados obligatorios:
+ 
+-- `subjectUserId` se prepara fuera de la UI mediante seed o configuración;
+-- la pantalla no expone el UUID;
+-- la pantalla no permite modificarlo;
+-- solo muestra una referencia humana si está disponible de forma segura;
+-- puede indicar `Titular de demostración preconfigurado`;
+-- si el contexto demo falta, bloquea submit y explica la dependencia;
+-- no persiste el ID en storage de presentación;
+-- no presenta este mecanismo como UX productiva.
++- `idle`;
++- email inválido;
++- `resolving`;
++- `resolved`;
++- titular no encontrado;
++- error de red o inesperado;
++- sesión expirada;
++- operación prohibida.
++
++Reglas:
++
++- cambiar el email invalida inmediatamente el holder resuelto;
++- cambiar el issuer invalida inmediatamente el holder resuelto;
++- el submit permanece bloqueado hasta una resolución vigente;
++- resolución y creación tienen estados de carga separados;
++- `id`, `issuerId` y `subjectUserId` nunca se muestran ni se editan;
++- el ID no se persiste en storage de presentación;
++- el `404` no revela si el usuario no existe o está inactivo.
+ 
+ Está prohibido:
+ 
+ - escribir o pegar `subjectUserId`;
+ - mostrar un selector de UUID;
+-- simular búsqueda;
++- convertir el control en búsqueda parcial, autocomplete o listado global;
+ - usar una lista hardcodeada presentada como real.
+ 
+ ### Submit
+@@ -594,8 +614,10 @@ Está prohibido:
+ ```text
+ onCreateDraft
+ -> validar form model
++-> exigir HolderResolutionStateVM resolved y vigente
+ -> construir CreateCredentialDraftCommand en orquestación
+--> agregar issuerId y subjectUserId command-only
++-> mapear issuerReference a issuerId command-only
++-> mapear holderReference a subjectUserId command-only
+ -> POST /credentials/draft
+ -> validar response
+ -> adaptar resultado
+@@ -1246,13 +1268,15 @@ Contratos transversales:
+ | Título | Crear credencial | Default | Acción institucional |
+ | Subtítulo | Cargá los datos del logro y guardá un borrador antes de emitir. | Default | Explica secuencia |
+ | Emisor | Institución emisora | Contexto | No editable |
+-| Titular | Titular de demostración preconfigurado | Demo actual | Solo si no hay referencia humana segura |
++| Titular | Email del titular | Resolución | Búsqueda exacta institucional |
++| Acción titular | Buscar titular | Idle válido | No crea el draft |
++| Titular resuelto | `displayLabel` y email | Resolved | No muestra UUID; DID puede ser null |
+ | Logro | Nombre del logro | Campo | `achievement_name` |
+ | Institución logro | Institución del logro | Campo | No confundir con issuer |
+ | CTA | Guardar borrador | Idle | No dice emitir |
+ | Loading | Guardando borrador… | Submitting | Indeterminado |
+ | Success | Borrador creado. | Redirect | Se muestra en detalle |
+-| Sin titular | Falta configurar el titular de demostración antes de crear la credencial. | Dependencia | No expone UUID |
++| Sin titular | Buscá y seleccioná un titular antes de guardar el borrador. | Dependencia | No expone UUID |
+ 
+ ### Detalle, emisión y evidencia
+ 
+@@ -1352,7 +1376,7 @@ contenido y microcopy.
+ - AI Service activo;
+ - seed ejecutado;
+ - usuario emisor demo disponible;
+-- titular demo preparado;
++- titular demo existente y resoluble por email;
+ - issuer autorizado;
+ - issuer con DID y wallet address;
+ - holder con DID;
+@@ -1366,7 +1390,7 @@ contenido y microcopy.
+ 3. Resolver `/auth/me`.
+ 4. Entrar a `/issuer`.
+ 5. Abrir `/issuer/credentials/new`.
+-6. Crear el draft con titular preconfigurado.
++6. Resolver el titular por email exacto y crear el draft.
+ 7. Redirigir al detalle.
+ 8. Emitir la credencial.
+ 9. Mostrar evidencia.
+@@ -1430,7 +1454,6 @@ No cerrar todavía:
+ - sticky actions;
+ - reanálisis;
+ - autosave;
+-- endpoint de resolución del holder;
+ - storage;
+ - revocación;
+ - sharing;
+@@ -1472,8 +1495,8 @@ El documento queda aprobado si:
+ Resolver primero los gaps P0:
+ 
+ 1. Completado: proteger `POST /credentials/draft`.
+-2. Enriquecer el contexto del issuer.
+-3. Resolver titulares mediante un dato humano autorizado.
++2. Completado: enriquecer el contexto del issuer.
++3. Completado: resolver titulares por email exacto autorizado.
+ 
+ Después, implementar F0/F1.
+
+===== git diff -- docs/frontend/frontend-roadmap-v0.md =====
+diff --git a/docs/frontend/frontend-roadmap-v0.md b/docs/frontend/frontend-roadmap-v0.md
+index 3de9ac8..f638d01 100644
+--- a/docs/frontend/frontend-roadmap-v0.md
++++ b/docs/frontend/frontend-roadmap-v0.md
+@@ -29,7 +29,6 @@ Ya existen:
+ Gaps que afectan al frontend:
+ 
+ - no existe listado issuer-facing de credenciales institucionales;
+-- no existe resolución autorizada del titular por dato humano;
+ - no hay endpoint de analisis desde texto;
+ - no hay upload a storage;
+ - no hay jobs ni progreso asincronico;
+@@ -83,11 +82,12 @@ fuera una credencial emitida.
+ Antes de una implementacion completa hacen falta:
+ 
+ - endpoint issuer-facing para listar credenciales del issuer;
+-- resolución autorizada del titular;
+ - definicion de paginacion y filtros basicos.
+ 
+-Para una demo temprana, crear y abrir una credencial por ID es posible, pero
+-no debe ocultarse esta deuda con una lista hardcodeada.
++P0.3 ya permite resolver al titular por email exacto y crear una credencial
++sin UUID visible. Para una demo temprana, crear y abrir la credencial recién
++creada por ID es posible; la deuda P1 del listado no debe ocultarse con una
++colección hardcodeada.
+ 
+ ## 4. Experiencia B: Wallet y perfil del holder
+ 
+@@ -304,14 +304,11 @@ Agregar despues del MVP:
+ 
+ ## 11. Recomendacion final
+ 
+-Empezar por un Portal del emisor minimo, pero primero cerrar los dos gaps
+-backend que bloquean una UI honesta:
++P0.1, P0.2 y P0.3 están completados, por lo que puede comenzar F0/F1 con login,
++contexto institucional, resolución exacta del titular, creación de draft,
++detalle por ID recién creado y upload PDF contra datos reales.
+ 
+-```text
+-resolver titular mediante dato humano autorizado
+-agregar listado issuer-facing
+-```
+-
+-Mientras esos endpoints se preparan, se puede implementar login, sistema
+-visual, detalle de credencial y upload PDF contra datos reales. La wallet del
+-holder debe ser el segundo vertical frontend.
++El listado issuer-facing, la paginación y los reads institucionales protegidos
++permanecen como P1. No deben bloquear el primer flujo transaccional ni
++simularse con datos hardcodeados. La wallet del holder debe ser el segundo
++vertical frontend.
+
+===== git diff -- docs/frontend/ui-ux-handoff-context-v0.md =====
+diff --git a/docs/frontend/ui-ux-handoff-context-v0.md b/docs/frontend/ui-ux-handoff-context-v0.md
+index 8673a94..7f76a38 100644
+--- a/docs/frontend/ui-ux-handoff-context-v0.md
++++ b/docs/frontend/ui-ux-handoff-context-v0.md
+@@ -88,6 +88,7 @@ GET  /auth/me
+ 
+ ```text
+ POST /credentials/draft
++POST /issuers/:issuerId/holders/resolve
+ POST /credentials/:id/issue
+ GET  /credentials/:id
+ GET  /credentials/:id/status
+@@ -97,6 +98,11 @@ GET  /credentials/:id/semantic-analysis/latest
+ `issue` y `draft` requieren JWT y permiso institucional. En `draft`, el
+ `issuerId` del body se valida contra la membership activa del usuario.
+ 
++La resolución del titular también requiere ese contexto institucional. Busca
++por igualdad exacta de email, devuelve un resumen minimizado con DID nullable
++y entrega el `id` solo para construir `subjectUserId` command-only. No lista
++usuarios ni admite autocomplete.
++
+ ### IA mediante backend
+ 
+ ```text
+@@ -143,6 +149,10 @@ GET /verify/credentials/:id
+ Gap actual: no existe listado issuer-facing. No resolverlo con datos fake;
+ marcarlo como dependencia backend.
+ 
++P0.3 de resolución del titular está implementado. F0/F1 puede usar el flujo
++email exacto -> titular resuelto -> draft, sin mostrar UUID ni aceptar
++`userId` editable.
++
+ ### Wallet del holder
+ 
+ 1. Login.
+
+===== git diff -- services/api/README.md =====
+diff --git a/services/api/README.md b/services/api/README.md
+index a71fcc3..dcf0eda 100644
+--- a/services/api/README.md
++++ b/services/api/README.md
+@@ -20,6 +20,7 @@ Protegidos por JWT:
+ ```text
+ POST /credentials/draft
+ GET  /auth/me
++POST /issuers/:issuerId/holders/resolve
+ POST /credentials/:id/issue
+ GET  /me/credentials
+ GET  /me/credentials/:id
+@@ -37,6 +38,13 @@ resumen seguro del issuer: `issuerId`, `issuerName`, `issuerDid` e
+ operativo si ademas tiene rol `admin` u `operator` y el issuer esta
+ `authorized`.
+ 
++`POST /issuers/:issuerId/holders/resolve` permite a un `admin` u `operator`
++activo de un issuer autorizado resolver un titular por igualdad exacta de
++email normalizado. Devuelve solo `id`, `email`, `did` nullable y
++`displayLabel`; no lista usuarios, no busca parcialmente y no produce
++escrituras. El `id` resultante se usa como `subjectUserId` command-only al
++crear un draft.
++
+ `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
+ 
+ ## Perfil formativo
+@@ -63,6 +71,7 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
+ Tests de slices:
+ 
+ - `npm run test:auth --workspace @credential-intelligence/api`
++- `npm run test:holder-resolution --workspace @credential-intelligence/api`
+ - `npm run test:protected-issuance --workspace @credential-intelligence/api`
+ - `npm run test:me-wallet --workspace @credential-intelligence/api`
+ - `npm run test:profiles --workspace @credential-intelligence/api`
+
+===== git diff -- services/api/src/issuers/README.md =====
+diff --git a/services/api/src/issuers/README.md b/services/api/src/issuers/README.md
+index 6e583cd..d6cfa42 100644
+--- a/services/api/src/issuers/README.md
++++ b/services/api/src/issuers/README.md
+@@ -9,9 +9,12 @@ Responsabilidad futura:
+ 
+ Alcance actual:
+ 
+-- modulo NestJS sin controllers;
++- endpoint protegido `POST /issuers/:issuerId/holders/resolve`;
+ - validacion de membership activa y roles `admin`/`operator`;
+ - validacion de issuer autorizado para crear drafts;
++- validacion institucional equivalente para resolver titulares;
++- resolucion read-only por email exacto normalizado;
++- response minimizada con `id`, `email`, DID nullable y `displayLabel`;
+ - validaciones adicionales de DID y wallet exclusivamente al emitir;
+ - queries Prisma acotadas a issuer y membership.
+ 
+@@ -20,4 +23,11 @@ Principios:
+ - `issuers` sera la fuente de validacion institucional;
+ - no debe convertirse en el orquestador de emision;
+ - no debe contener integracion blockchain;
++- no debe convertirse en un buscador global ni listar usuarios;
++- no debe registrar emails consultados ni exponer credenciales de autenticacion;
+ - debe exportar servicios de dominio cuando otras areas necesiten validar emisor o membresia.
++
++El `subjectUserId` resuelto es un dato interno command-only. La resolucion no
++crea usuarios, drafts, credenciales ni memberships. Un usuario activo es
++elegible aunque no tenga DID; la emision mantiene su validacion posterior de
++DID.
+
+## D. Contrato final
+
+Metodo y ruta:
+POST /issuers/:issuerId/holders/resolve
+
+Status exitoso confirmado:
+200 OK mediante @HttpCode(HttpStatus.OK).
+No devuelve el 201 Created por defecto de @Post().
+
+Headers:
+Authorization: Bearer <token>
+Content-Type: application/json
+
+Request:
+{
+  "email": "holder.demo@example.com"
+}
+
+Response 200:
+{
+  "id": "holder-user-id",
+  "email": "holder.demo@example.com",
+  "did": "did:example:holder-demo",
+  "displayLabel": "Demo Holder"
+}
+
+Nullability:
+- id: string requerido
+- email: string requerido y normalizado
+- did: string | null
+- displayLabel: string requerido y no vacio
+
+Tabla de errores:
+- 400: email ausente, no string, vacio o con formato invalido.
+- 401: token ausente/invalido/expirado o usuario autenticado inexistente/inactivo, garantizado por AuthGuard.
+- 403: sin membership, membership pending/revoked, viewer, issuer pending/revoked o issuer arbitrario.
+- 404: mensaje uniforme para titular inexistente, inactivo o sin email elegible.
+- 500: inconsistencia interna inesperada, incluida una duplicidad logica case-insensitive.
+- 429: no implementado; rate limiting queda como hardening futuro.
+
+No existe eligibility en la response. Una respuesta exitosa ya representa elegibilidad v0.
+## E. Autorizacion y queries
+
+Orden exacto:
+auth
+-> membership
+-> rol
+-> issuer authorization
+-> holder lookup
+
+AuthGuard valida JWT y resuelve un User active antes del controller.
+IssuerHolderResolutionService llama assertUserCanResolveHolderForIssuer() antes de normalizar o consultar el titular.
+
+===== Query institucional exacta =====
+const membership = await this.prisma.issuerMembership.findUnique({
+  where: {
+    userId_issuerId: {
+      userId,
+      issuerId
+    }
+  },
+  select: {
+    id: true,
+    userId: true,
+    issuerId: true,
+    role: true,
+    status: true,
+    issuer: {
+      select: {
+        authorizationStatus: true
+      }
+    }
+  }
+});
+
+===== Query de holder exacta =====
+const matches = await this.prisma.user.findMany({
+  where: {
+    email: {
+      equals: normalizedEmail,
+      mode: 'insensitive'
+    }
+  },
+  select: {
+    id: true,
+    email: true,
+    did: true,
+    displayName: true,
+    firstName: true,
+    lastName: true,
+    status: true
+  },
+  take: 2
+});
+
+No usa contains, startsWith, fuzzy search, listado ni autocomplete. take: 2 permite detectar una duplicidad logica historica sin devolver multiples resultados.
+## F. Mapping backend y modelos frontend
+
+Normalizacion backend del email:
+1. debe ser string;
+2. trim;
+3. lowercase;
+4. no vacio;
+5. patron /^[^\s@]+@[^\s@]+\.[^\s@]+$/.
+
+Algoritmo de displayLabel:
+1. displayName normalizado;
+2. firstName + lastName;
+3. firstName;
+4. lastName;
+5. email normalizado.
+
+Mapping Prisma -> DTO backend:
+return {
+  id: holder.id,
+  email: holderEmail,
+  did: holder.did,
+  displayLabel: this.buildDisplayLabel(
+    holder.displayName,
+    holder.firstName,
+    holder.lastName,
+    holderEmail
+  )
+};
+
+HolderResolutionFormModel:
+- email: string editable.
+- valida formato local, conserva email ante errores e invalida resolution previa al cambiar.
+- no contiene IDs.
+
+HolderResolutionCommand:
+- issuerReference: adapter-only issuerId proveniente de UserContextVM.
+- email: string normalizado.
+- orquestacion construye el command; API client usa issuerReference para el path.
+- actor proviene de la sesion y backend revalida membership.
+
+HolderSummaryVM:
+- holderReference: adapter-only user id.
+- email: string.
+- did: string | null.
+- displayLabel: string.
+- adapter mapea response.id -> holderReference.
+- holderReference no se renderiza, no es input, no va a localStorage y solo construye subjectUserId.
+
+HolderResolutionStateVM permanece separado: idle, invalid_email, resolving, resolved, not_found, network_error, session_expired, forbidden.
+
+HolderResolutionField recibe FormModel, StateVM y HolderSummaryVM cuando resolved. Emite onEmailChange, onResolveHolder y onChangeHolder. No recibe commands, no hace fetching, no interpreta DTOs y no autoriza.
+## G. Tests
+
+issuer-holder-resolution.controller.test.ts:
+- ruta y metodo exactos;
+- AuthGuard;
+- HTTP_CODE_METADATA === HttpStatus.OK (200);
+- email fuera de URL;
+- delegacion de issuerId, email y currentUser;
+- shape segura exacta.
+
+issuer-holder-resolution.service.test.ts:
+- autorizacion antes del lookup;
+- trim/lowercase/formato;
+- igualdad exacta case-insensitive;
+- 400 para inputs invalidos;
+- holder active con/sin DID;
+- 404 uniforme sin PII;
+- duplicidad logica sin PII;
+- fallbacks de displayLabel;
+- response minimizada;
+- idempotencia y ausencia de writes.
+
+issuers.service.test.ts:
+- admin/operator permitidos;
+- sin membership, pending/revoked y viewer rechazados;
+- issuer pending/revoked rechazado;
+- P0.1 preservado sin requisitos de DID/wallet.
+## H. Validaciones finales
+
+1. npm run test:holder-resolution --workspace @credential-intelligence/api
+Resultado: PASS, 29 tests, 29 pass, 0 fail. Incluye metadata HTTP 200.
+
+2. npm run test:protected-issuance --workspace @credential-intelligence/api
+Resultado: PASS, 27 tests, 27 pass, 0 fail.
+
+3. npm run test:auth --workspace @credential-intelligence/api
+Resultado: PASS, 19 tests, 19 pass, 0 fail.
+
+4. npm run build --workspace @credential-intelligence/api
+Resultado: PASS; tsc -p tsconfig.build.json sin errores.
+
+5. npm run prisma:validate --workspace @credential-intelligence/api
+Resultado: PASS; schema valido. No se ejecutaron migraciones.
+
+6. git diff --check
+Resultado: PASS; sin whitespace errors. Git informa solo advertencias locales LF/CRLF.
+
+La suite completa no se repitio tras esta correccion acotada. Antes de ella habian pasado los 17 scripts test:* (213 tests); el cambio final se limita a metadata HTTP, su test y documentacion.
+## I. Confirmaciones
+
+- No se modifico services/api/prisma/schema.prisma.
+- No se modifico services/api/prisma/seed.ts.
+- No se crearon ni ejecutaron migraciones.
+- No se modifico package-lock.json ni se instalaron dependencias.
+- No se implemento frontend, Next.js, React ni adapters frontend.
+- No se implementaron endpoints nuevos fuera de P0.3.
+- No se modificaron reglas de autorizacion, elegibilidad, privacidad o busqueda.
+- No se implemento selector multi-issuer, reads protegidos ni listado institucional.
+- No se creo UsersModule ni gestion de usuarios.
+- No se modificaron login, JWT, AuthGuard, create draft, emision, AI Service ni blockchain.
+- No se hizo commit.
+- No se hizo push.
+- Este bundle queda untracked y no debe agregarse a Git.

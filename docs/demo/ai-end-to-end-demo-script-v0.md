@@ -226,6 +226,28 @@ Si `$credentialId` queda vacio, usar la opcion B.
 
 ### Opcion B: crear draft y emitir
 
+Resolver el titular dentro del contexto institucional:
+
+```powershell
+$holderResolutionBody = @{
+  email = "holder.demo@example.com"
+} | ConvertTo-Json
+
+$resolvedHolder = Invoke-RestMethod `
+  -Uri "$apiBaseUrl/issuers/$issuerId/holders/resolve" `
+  -Method Post `
+  -Headers @{ Authorization = "Bearer $issuerToken" } `
+  -ContentType "application/json" `
+  -Body $holderResolutionBody
+
+$holderUserId = $resolvedHolder.id
+$resolvedHolder.displayLabel
+```
+
+La resolución usa igualdad exacta de email, requiere membership institucional
+autorizada y no muestra el UUID como input de interfaz. El ID se conserva solo
+como `subjectUserId` command-only.
+
 Crear draft:
 
 ```powershell

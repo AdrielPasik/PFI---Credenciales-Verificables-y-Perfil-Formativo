@@ -88,6 +88,7 @@ GET  /auth/me
 
 ```text
 POST /credentials/draft
+POST /issuers/:issuerId/holders/resolve
 POST /credentials/:id/issue
 GET  /credentials/:id
 GET  /credentials/:id/status
@@ -96,6 +97,11 @@ GET  /credentials/:id/semantic-analysis/latest
 
 `issue` y `draft` requieren JWT y permiso institucional. En `draft`, el
 `issuerId` del body se valida contra la membership activa del usuario.
+
+La resolución del titular también requiere ese contexto institucional. Busca
+por igualdad exacta de email, devuelve un resumen minimizado con DID nullable
+y entrega el `id` solo para construir `subjectUserId` command-only. No lista
+usuarios ni admite autocomplete.
 
 ### IA mediante backend
 
@@ -142,6 +148,10 @@ GET /verify/credentials/:id
 
 Gap actual: no existe listado issuer-facing. No resolverlo con datos fake;
 marcarlo como dependencia backend.
+
+P0.3 de resolución del titular está implementado. F0/F1 puede usar el flujo
+email exacto -> titular resuelto -> draft, sin mostrar UUID ni aceptar
+`userId` editable.
 
 ### Wallet del holder
 

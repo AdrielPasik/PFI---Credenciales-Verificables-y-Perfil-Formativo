@@ -29,7 +29,6 @@ Ya existen:
 Gaps que afectan al frontend:
 
 - no existe listado issuer-facing de credenciales institucionales;
-- no existe resolución autorizada del titular por dato humano;
 - no hay endpoint de analisis desde texto;
 - no hay upload a storage;
 - no hay jobs ni progreso asincronico;
@@ -83,11 +82,12 @@ fuera una credencial emitida.
 Antes de una implementacion completa hacen falta:
 
 - endpoint issuer-facing para listar credenciales del issuer;
-- resolución autorizada del titular;
 - definicion de paginacion y filtros basicos.
 
-Para una demo temprana, crear y abrir una credencial por ID es posible, pero
-no debe ocultarse esta deuda con una lista hardcodeada.
+P0.3 ya permite resolver al titular por email exacto y crear una credencial
+sin UUID visible. Para una demo temprana, crear y abrir la credencial recién
+creada por ID es posible; la deuda P1 del listado no debe ocultarse con una
+colección hardcodeada.
 
 ## 4. Experiencia B: Wallet y perfil del holder
 
@@ -304,14 +304,11 @@ Agregar despues del MVP:
 
 ## 11. Recomendacion final
 
-Empezar por un Portal del emisor minimo, pero primero cerrar los dos gaps
-backend que bloquean una UI honesta:
+P0.1, P0.2 y P0.3 están completados, por lo que puede comenzar F0/F1 con login,
+contexto institucional, resolución exacta del titular, creación de draft,
+detalle por ID recién creado y upload PDF contra datos reales.
 
-```text
-resolver titular mediante dato humano autorizado
-agregar listado issuer-facing
-```
-
-Mientras esos endpoints se preparan, se puede implementar login, sistema
-visual, detalle de credencial y upload PDF contra datos reales. La wallet del
-holder debe ser el segundo vertical frontend.
+El listado issuer-facing, la paginación y los reads institucionales protegidos
+permanecen como P1. No deben bloquear el primer flujo transaccional ni
+simularse con datos hardcodeados. La wallet del holder debe ser el segundo
+vertical frontend.

@@ -77,6 +77,22 @@
 - Errores esperados: `401`, `403`, `404`.
 - Estado: `v1_candidate`.
 
+### `POST /issuers/:issuerId/holders/resolve`
+
+- Proposito: resolver un titular elegible por igualdad exacta de email dentro
+  de un contexto institucional autorizado.
+- Actor: usuario autenticado con membership `active`, rol `admin` u
+  `operator` e issuer `authorized`.
+- Request: JSON `{ "email": "holder.demo@example.com" }`.
+- Response `200 OK`: `{ id, email, did, displayLabel }`; `did` puede ser
+  `null`.
+- Privacidad: no lista usuarios, no realiza busqueda parcial, no refleja el
+  email en errores y usa el mismo `404` para usuario inexistente o inactivo.
+- Efectos: operacion read-only; el `id` se usa luego como `subjectUserId`
+  command-only.
+- Errores esperados: `400`, `401`, `403`, `404`.
+- Estado: `implemented`.
+
 ### `PATCH /issuers/:id`
 
 - Proposito: actualizar metadata basica del emisor.

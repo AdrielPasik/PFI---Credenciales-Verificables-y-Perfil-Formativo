@@ -62,6 +62,7 @@ Actualizaciones posteriores al snapshot base:
 
 - P0.1 protegió `POST /credentials/draft`.
 - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+- P0.3 agregó resolución autorizada del titular por email exacto.
 
 Precedencia:
 
@@ -101,7 +102,7 @@ placeholder para esa ruta.
 |---|---|---|---|---|---|
 | `/login` | Usuario sin sesión válida | Autenticar y resolver contexto | A | `POST /auth/login`, `GET /auth/me` | Sin refresh token |
 | `/issuer` | `admin` u `operator` activo | Entrada institucional honesta | B | `GET /auth/me` | Issuer summary disponible; selector multi-issuer no implementado |
-| `/issuer/credentials/new` | `admin` u `operator` activo | Crear draft demo-grade | B | `POST /credentials/draft` | Backend protegido; sin resolución de titular |
+| `/issuer/credentials/new` | `admin` u `operator` activo | Resolver titular y crear draft demo-grade | B | `POST /issuers/:issuerId/holders/resolve`, `POST /credentials/draft` | Flujo disponible; selector multi-issuer pendiente |
 | `/issuer/credentials/[credentialId]` | `admin` u `operator` activo | Emitir, ver evidencia y analizar PDF | B | Reads por ID, issue y análisis PDF | Reads públicos y acceso por ID conocido |
 
 La disponibilidad B no permite datos fake ni seguridad simulada. Exige hacer
@@ -233,7 +234,7 @@ No existe una transición hacia `/issuer/credentials`.
 |---|---|---|---|---|
 | `/login` | Iniciar sesión | Ninguna funcional en v0 | Campos mínimos válidos y request idle | Resolver contexto y redirigir |
 | `/issuer` | Crear credencial | Cerrar sesión | Contexto emisor operativo | Abrir nueva credencial |
-| `/issuer/credentials/new` | Guardar borrador | Volver al inicio | Form válido, issuer contextual y titular demo preparado | Crear draft y redirigir al detalle |
+| `/issuer/credentials/new` | Guardar borrador | Volver al inicio | Form válido, issuer contextual y titular resuelto vigente | Crear draft y redirigir al detalle |
 | `/issuer/credentials/[credentialId]` draft | Emitir credencial | Copiar identificador técnico; volver al inicio | VM draft, allowed action y request idle | Actualizar lifecycle y evidencia |
 | `/issuer/credentials/[credentialId]` issued sin análisis | Analizar contenido | Seleccionar/reemplazar PDF; copiar detalle técnico | VM issued, PDF válido y request idle | Persistir y mostrar análisis |
 | `/issuer/credentials/[credentialId]` analyzed | Ninguna primaria nueva | Expandir detalle y copiar valores permitidos | Resultado seguro disponible | Mantener lectura del resultado |
@@ -471,11 +472,11 @@ bloqueado.
 | Actor | `admin` u `operator` autenticado |
 | Objetivo | Crear una credencial draft dentro del vertical demo-grade |
 | Disponibilidad | B |
-| Precondición | Contexto emisor operativo y titular demo preparado |
+| Precondición | Contexto emisor operativo |
 | Entrada | CTA desde `/issuer` |
 | Salida exitosa | `/issuer/credentials/[credentialId]` |
-| Modelos | `CreateCredentialDraftFormModel`, `CreateCredentialDraftCommand`, `IssuerCredentialDetailVM` parcial, `FeedbackErrorVM`, `AsyncActionStateVM` |
-| Componentes | `IssuerShell`, `CreateCredentialDraftForm`, `FormField`, `TextInput`, `Textarea`, `Select`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
+| Modelos | `HolderResolutionFormModel`, `HolderResolutionStateVM`, `HolderSummaryVM`, `HolderResolutionCommand` solo en orquestación, `CreateCredentialDraftFormModel`, `CreateCredentialDraftCommand`, `IssuerCredentialDetailVM` parcial, `FeedbackErrorVM`, `AsyncActionStateVM` |
+| Componentes | `IssuerShell`, `HolderResolutionField`, `HolderSummary`, `CreateCredentialDraftForm`, `FormField`, `TextInput`, `Textarea`, `Select`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
 
 `CredentialDraftSummary` puede alimentar feedback breve antes de la navegación,
 pero no crea una pantalla intermedia.
@@ -486,7 +487,10 @@ pero no crea una pantalla intermedia.
   `operator` e issuer autorizado;
 - `issuerId` permanece en el command y selecciona contexto, pero se valida
   contra la sesión;
-- no existe búsqueda o resolución autorizada del titular;
+- `POST /issuers/:issuerId/holders/resolve` resuelve por email exacto dentro
+  del mismo contexto autorizado;
+- la resolución no lista usuarios, no busca parcialmente y devuelve un DTO
+  minimizado;
 - `issuerId` y `subjectUserId` siguen siendo requeridos por el command;
 - la protección de la ruta frontend no reemplaza la autorización backend.
 
@@ -496,7 +500,7 @@ pero no crea una pantalla intermedia.
 |---:|---|---|---|
 | 1 | Encabezado | Título, subtítulo y contexto | Explicar creación de borrador |
 | 2 | Contexto emisor | Resumen genérico no editable | Indicar autoridad sin UUID |
-| 3 | Titular demo | Referencia humana segura o estado preconfigurado | Explicar asociación externa |
+| 3 | Resolución del titular | `HolderResolutionField` y `HolderSummary` | Resolver email exacto y conservar `holderReference` interno |
 | 4 | Datos principales | `CreateCredentialDraftForm` | Tipo, título, fuente y descripción |
 | 5 | Datos del logro | Campos allowlisted mínimos | Construir `credentialSubject` |
 | 6 | Datos opcionales | Horas y contexto formativo | Completar información útil |
@@ -508,7 +512,8 @@ pero no crea una pantalla intermedia.
 | Campo visible | Campo del modelo | Requerido | Fuente | Editable | Validación | Ayuda | Responsive | Clasificación |
 |---|---|---:|---|---:|---|---|---|---|
 | Institución emisora | Contexto de `UserContextVM`; `issuerId` command-only | Sí para command | Sesión/membership y preparación demo | No | Contexto operativo disponible | La institución en cuyo nombre se opera | Bloque compacto antes del form | Backend requerido; no input |
-| Titular de demostración | Referencia segura; `subjectUserId` command-only | Sí para command | Seed o configuración demo externa | No | Contexto demo válido | No se muestra UUID | Bloque compacto | Backend requerido; gap P0 |
+| Email del titular | `HolderResolutionFormModel.email` y `HolderResolutionStateVM` | Sí para resolver | Usuario institucional | Sí | Email válido; resolución exacta requerida | Buscar titular sin exponer UUID | Input, acción y resultado se apilan | Backend requerido |
+| Titular resuelto | `HolderSummaryVM.holderReference`; `subjectUserId` command-only | Sí para command | Response minimizada adaptada | No | Debe corresponder al email e issuer vigentes | DID puede no estar disponible | Bloque compacto | Backend requerido; no input |
 | Tipo de credencial | `CreateCredentialDraftFormModel.type` | Sí | Selección de opciones normalizadas | Sí | Valor soportado de `CredentialType` | Explica el tipo de logro | Full-width en mobile | Backend requerido |
 | Título | `CreateCredentialDraftFormModel.title` | Sí | Usuario institucional | Sí | String no vacío; límite de UI razonable | Nombre principal de la credencial | Full-width | Backend requerido |
 | Descripción | `CreateCredentialDraftFormModel.description` | No | Usuario institucional | Sí | Texto plano; opcional | Contexto breve del logro | Full-width | Opcional inicial |
@@ -561,32 +566,47 @@ Aunque ya existe issuer summary, todavía no hay una regla de dominio que lo
 iguale a `credentialSubject.institution_name`. La pantalla no debe
 precompletar una identidad del logro basándose solo en el contexto emisor.
 
-### Titular de la demo
+### Resolución del titular
 
-Modo objetivo productivo:
+Flujo v0:
 
 ```text
-resolución autorizada por email, DID u otro dato humano
--> selección segura
--> subjectUserId command-only
+HolderResolutionField
+-> emite intencion con email
+-> orquestacion agrega issuerReference
+-> construye HolderResolutionCommand
+-> API client construye path
+-> adapter transforma response.id en holderReference
+-> HolderSummaryVM
+-> subjectUserId interno al crear el draft
 ```
 
-Modo demo actual:
+Estados obligatorios:
 
-- `subjectUserId` se prepara fuera de la UI mediante seed o configuración;
-- la pantalla no expone el UUID;
-- la pantalla no permite modificarlo;
-- solo muestra una referencia humana si está disponible de forma segura;
-- puede indicar `Titular de demostración preconfigurado`;
-- si el contexto demo falta, bloquea submit y explica la dependencia;
-- no persiste el ID en storage de presentación;
-- no presenta este mecanismo como UX productiva.
+- `idle`;
+- email inválido;
+- `resolving`;
+- `resolved`;
+- titular no encontrado;
+- error de red o inesperado;
+- sesión expirada;
+- operación prohibida.
+
+Reglas:
+
+- cambiar el email invalida inmediatamente el holder resuelto;
+- cambiar el issuer invalida inmediatamente el holder resuelto;
+- el submit permanece bloqueado hasta una resolución vigente;
+- resolución y creación tienen estados de carga separados;
+- `id`, `issuerId` y `subjectUserId` nunca se muestran ni se editan;
+- el ID no se persiste en storage de presentación;
+- el `404` no revela si el usuario no existe o está inactivo.
 
 Está prohibido:
 
 - escribir o pegar `subjectUserId`;
 - mostrar un selector de UUID;
-- simular búsqueda;
+- convertir el control en búsqueda parcial, autocomplete o listado global;
 - usar una lista hardcodeada presentada como real.
 
 ### Submit
@@ -594,8 +614,10 @@ Está prohibido:
 ```text
 onCreateDraft
 -> validar form model
+-> exigir HolderResolutionStateVM resolved y vigente
 -> construir CreateCredentialDraftCommand en orquestación
--> agregar issuerId y subjectUserId command-only
+-> mapear issuerReference a issuerId command-only
+-> mapear holderReference a subjectUserId command-only
 -> POST /credentials/draft
 -> validar response
 -> adaptar resultado
@@ -1246,13 +1268,15 @@ Contratos transversales:
 | Título | Crear credencial | Default | Acción institucional |
 | Subtítulo | Cargá los datos del logro y guardá un borrador antes de emitir. | Default | Explica secuencia |
 | Emisor | Institución emisora | Contexto | No editable |
-| Titular | Titular de demostración preconfigurado | Demo actual | Solo si no hay referencia humana segura |
+| Titular | Email del titular | Resolución | Búsqueda exacta institucional |
+| Acción titular | Buscar titular | Idle válido | No crea el draft |
+| Titular resuelto | `displayLabel` y email | Resolved | No muestra UUID; DID puede ser null |
 | Logro | Nombre del logro | Campo | `achievement_name` |
 | Institución logro | Institución del logro | Campo | No confundir con issuer |
 | CTA | Guardar borrador | Idle | No dice emitir |
 | Loading | Guardando borrador… | Submitting | Indeterminado |
 | Success | Borrador creado. | Redirect | Se muestra en detalle |
-| Sin titular | Falta configurar el titular de demostración antes de crear la credencial. | Dependencia | No expone UUID |
+| Sin titular | Buscá y seleccioná un titular antes de guardar el borrador. | Dependencia | No expone UUID |
 
 ### Detalle, emisión y evidencia
 
@@ -1352,7 +1376,7 @@ contenido y microcopy.
 - AI Service activo;
 - seed ejecutado;
 - usuario emisor demo disponible;
-- titular demo preparado;
+- titular demo existente y resoluble por email;
 - issuer autorizado;
 - issuer con DID y wallet address;
 - holder con DID;
@@ -1366,7 +1390,7 @@ contenido y microcopy.
 3. Resolver `/auth/me`.
 4. Entrar a `/issuer`.
 5. Abrir `/issuer/credentials/new`.
-6. Crear el draft con titular preconfigurado.
+6. Resolver el titular por email exacto y crear el draft.
 7. Redirigir al detalle.
 8. Emitir la credencial.
 9. Mostrar evidencia.
@@ -1430,7 +1454,6 @@ No cerrar todavía:
 - sticky actions;
 - reanálisis;
 - autosave;
-- endpoint de resolución del holder;
 - storage;
 - revocación;
 - sharing;
@@ -1472,8 +1495,8 @@ El documento queda aprobado si:
 Resolver primero los gaps P0:
 
 1. Completado: proteger `POST /credentials/draft`.
-2. Enriquecer el contexto del issuer.
-3. Resolver titulares mediante un dato humano autorizado.
+2. Completado: enriquecer el contexto del issuer.
+3. Completado: resolver titulares por email exacto autorizado.
 
 Después, implementar F0/F1.
 

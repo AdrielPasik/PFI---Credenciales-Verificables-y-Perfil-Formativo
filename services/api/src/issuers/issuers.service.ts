@@ -18,6 +18,26 @@ export class IssuersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async assertUserCanCreateDraftForIssuer(userId: string, issuerId: string) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'crear borradores'
+    );
+  }
+
+  async assertUserCanResolveHolderForIssuer(userId: string, issuerId: string) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'resolver titulares'
+    );
+  }
+
+  private async assertUserCanOperateAuthorizedIssuer(
+    userId: string,
+    issuerId: string,
+    operation: string
+  ) {
     const membership = await this.prisma.issuerMembership.findUnique({
       where: {
         userId_issuerId: {
@@ -25,20 +45,29 @@ export class IssuersService {
           issuerId
         }
       },
-      include: {
-        issuer: true
+      select: {
+        id: true,
+        userId: true,
+        issuerId: true,
+        role: true,
+        status: true,
+        issuer: {
+          select: {
+            authorizationStatus: true
+          }
+        }
       }
     });
 
     if (!membership) {
       throw new ForbiddenException(
-        'El usuario no tiene permisos para crear borradores para el issuer solicitado.'
+        `El usuario no tiene permisos para ${operation} para el issuer solicitado.`
       );
     }
 
     if (membership.status !== IssuerMembershipStatus.active) {
       throw new ForbiddenException(
-        'La membresia para crear borradores no esta activa.'
+        `La membresia para ${operation} no esta activa.`
       );
     }
 
@@ -47,7 +76,7 @@ export class IssuersService {
       membership.role !== IssuerMembershipRole.operator
     ) {
       throw new ForbiddenException(
-        `El rol ${membership.role} no tiene permisos para crear borradores.`
+        `El rol ${membership.role} no tiene permisos para ${operation}.`
       );
     }
 
@@ -56,7 +85,7 @@ export class IssuersService {
       IssuerAuthorizationStatus.authorized
     ) {
       throw new ForbiddenException(
-        'El issuer solicitado no esta habilitado para crear borradores.'
+        `El issuer solicitado no esta habilitado para ${operation}.`
       );
     }
 

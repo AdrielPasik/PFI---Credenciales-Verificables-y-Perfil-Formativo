@@ -54,6 +54,7 @@ Actualizaciones posteriores al snapshot base:
 
 - P0.1 protegió `POST /credentials/draft`.
 - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+- P0.3 agregó resolución autorizada del titular por email exacto.
 
 Documentos normativos leídos:
 
@@ -653,6 +654,7 @@ la unidad funcional.
 | `IssuerNavigation` | Shell | Emisor | Destinos habilitados por la arquitectura vigente | Navegar | Mostrar solo áreas reales | Inicio; futuras rutas solo cuando existan | Compacta o mobile navigation confirmada | Estado activo y teclado | Baja | F1 | Rutas C/D o permisos efectivos |
 | `AuthenticatedUserMenu` | Shell | Emisor y titular | `CurrentUserVM` minimizado | `onLogout` | Identidad de sesión y cierre | Open, closed | Menú o patrón móvil equivalente | Control expandible y foco | Alta | F1 | JWT, AuthCredential, password |
 | `IssuerHomeIntro` | Feature | Emisor | `IssuerHomeVM` | Ir a crear draft | Explicar flujo y acción real | Context available, known non-operational, unavailable | Texto y CTA se apilan | Heading y acción clara | Baja | F1 | Métricas, lista reciente, issuer inventado |
+| `HolderResolutionField` | Feature | Emisor | `HolderResolutionFormModel`, `HolderResolutionStateVM`, `HolderSummaryVM` cuando está resolved | `onEmailChange`, `onResolveHolder`, `onChangeHolder` | Capturar email exacto y presentar el resultado seguro | Idle, invalid, resolving, resolved, not found, network/error, session expired, forbidden | Input, acción y summary se apilan | Label permanente, estado anunciado y foco en error | Baja | F1 | Commands, fetching, DTOs, autorización, UUID visible, búsqueda global o autocomplete |
 | `CreateCredentialDraftForm` | Feature | Emisor | `CreateCredentialDraftFormModel` | `onCreateDraft` | Capturar datos humanos permitidos | Idle, validating, submitting, error | Varias columnas solo en ancho suficiente | Labels, errores asociados, foco en primer error | Baja | F1 | `issuerId` editable, JSON, rawData |
 | `CredentialDraftSummary` | Feature | Emisor | `IssuerCredentialDetailVM` parcial | Abrir detalle o continuar | Confirmar draft creado | Draft, incomplete read | Apilado en mobile | Heading y estado explícito | Baja | F1 | Verificación válida o issuer inventado |
 | `IssueCredentialSection` | Feature | Emisor | `IssuerCredentialDetailVM`, `IssueCredentialActionVM` | `onIssueCredential` | Explicar y confirmar emisión | Available, submitting, success, conflict, forbidden | CTA y consecuencias apiladas | Confirmación en dialog; resultado persistente | Baja | F1 | Hashing, signer, endpoint directo |
@@ -747,7 +749,8 @@ Implementar únicamente lo consumido por F1:
 
 `Checkbox`, `ConfidenceDisplay`, `QualityFlagsList`, `IssuerSummary` y
 `HolderSummary` se implementan en F0/F1 solo si el flujo y los VMs del primer
-slice realmente los consumen.
+slice realmente los consumen. P0.3 confirma que `HolderSummary` es consumido
+por `HolderResolutionField`.
 
 ### F1: Portal del Emisor mínimo
 
@@ -756,6 +759,7 @@ slice realmente los consumen.
 - `IssuerNavigation`;
 - `AuthenticatedUserMenu`;
 - `IssuerHomeIntro`;
+- `HolderResolutionField`;
 - `CreateCredentialDraftForm`;
 - `CredentialDraftSummary`;
 - `IssueCredentialSection`;
@@ -774,6 +778,12 @@ Restricciones:
 - no crear dashboard analítico;
 - no persistir responses o artifacts en el browser;
 - no tratar la protección de rutas frontend como autorización.
+
+`HolderResolutionField` recibe modelos normalizados y emite intenciones. No
+recibe `HolderResolutionCommand`: la orquestación lo construye después de
+`onResolveHolder`. El componente no hace fetching, no interpreta DTOs, no
+autoriza y no funciona como buscador global o autocomplete. Cambiar email o
+issuer invalida el holder resuelto antes del submit.
 
 ## 18. Componentes F2 y F3
 

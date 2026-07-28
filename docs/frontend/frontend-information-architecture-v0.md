@@ -99,6 +99,7 @@ Actualizaciones posteriores al snapshot base:
 
 - P0.1 protegió `POST /credentials/draft`.
 - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+- P0.3 agregó resolución autorizada del titular por email exacto.
 
 > Cuando cambien controllers, DTOs, permisos o rutas del backend, debe
 > revisarse la clasificación A/B/C/D de este documento.
@@ -187,6 +188,7 @@ Reglas:
 
 ```text
 GET  /auth/me
+POST /issuers/:issuerId/holders/resolve
 POST /credentials/:id/issue
 POST /credentials/:id/semantic-analysis/from-pdf
 GET  /me/credentials
@@ -199,7 +201,8 @@ POST /me/profile/build-from-ai
 ### Límites relevantes
 
 - no existe listado de credenciales por institución emisora;
-- no existe búsqueda o resolución de titulares;
+- existe resolución exacta de un titular por email dentro de un issuer
+  autorizado; no existe listado, autocomplete ni búsqueda parcial;
 - `/auth/me` devuelve memberships activas con `issuerId`, nombre, DID nullable,
   estado de autorización institucional, rol y estado de membership;
 - `/auth/me` devuelve issuer summaries para memberships activas, pero todavía
@@ -436,8 +439,9 @@ implementarse como lista fake.
 
 ### `/issuer/credentials/new`
 
-Creación de draft. El endpoint existe, pero la experiencia completa está
-limitada por falta de protección y resolución del titular.
+Creación de draft. El endpoint y la resolución autorizada del titular existen;
+la experiencia institucional completa sigue limitada por la selección de
+contexto multi-issuer y los reads issuer-facing pendientes.
 
 ### `/issuer/credentials/[credentialId]`
 
@@ -491,7 +495,7 @@ seguro.
 | `/login` | Iniciar sesión | Institucional y titular | No | Usuario activo | Obtener JWT | `POST /auth/login` | A | Sin refresh token |
 | `/issuer` | Inicio | Admin/operator | Sí | Membership activa e issuer autorizado | Entrada institucional | `GET /auth/me` | B | Summary disponible; selector multi-issuer no implementado |
 | `/issuer/credentials` | Credenciales | Admin/operator | Sí | Membership activa | Listar credenciales institucionales | No existe | C | Endpoint issuer-facing, paginación y filtros. No implementar ni enlazar en MVP |
-| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Crear draft | `POST /credentials/draft` | B | Backend protegido; falta resolución de titular |
+| `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Resolver titular y crear draft | `POST /issuers/:issuerId/holders/resolve`, `POST /credentials/draft` | B | Flujo transaccional disponible; selector multi-issuer no implementado |
 | `/issuer/credentials/[credentialId]` | Detalle de credencial | Admin/operator | Sí en UI | Membership del issuer | Consultar y operar por ID | `GET /credentials/:id`, status, issue, AI PDF, latest analysis | B | Reads sin autorización, ID conocido y DTO semántico demasiado amplio |
 | `/wallet` | Entrada personal | Titular | Sí | Usuario activo | Entrar a experiencia personal | `/auth/me` | A | Redirect interno |
 | `/wallet/credentials` | Mis credenciales | Titular | Sí | Ownership por JWT | Listar credenciales propias | `GET /me/credentials` | A | Sin paginación |
@@ -719,15 +723,19 @@ Límites:
 - el endpoint exige JWT, membership activa `admin` u `operator` e issuer
   autorizado;
 - `issuerId` sigue siendo command-only en el body y se valida contra la sesión;
-- no existe búsqueda de titular por email, DID o criterio institucional;
+- el titular se resuelve por email exacto mediante
+  `POST /issuers/:issuerId/holders/resolve`;
+- la respuesta segura aporta un `subjectUserId` interno, DID nullable y label
+  humano; no ofrece listado ni búsqueda parcial;
 - no existe catálogo frontend de instituciones;
-- el `subjectUserId` debe estar preparado para la demo.
+- el `subjectUserId` nunca es un input editable ni visible.
 
 El frontend no debe hardcodear IDs ni presentarlos como UX definitiva.
 
-La ruta permanece B por la falta de resolución humana del titular y de issuer
-summary. La seguridad efectiva de creación ya reside en el backend; los route
-guards frontend siguen siendo únicamente UX.
+La ruta permanece B solo por la falta de selector/persistencia del contexto
+multi-issuer y por las limitaciones de continuidad de los reads
+institucionales. La resolución humana y la seguridad efectiva de creación ya
+residen en el backend; los route guards frontend siguen siendo únicamente UX.
 
 ### Emitir
 
@@ -1195,10 +1203,11 @@ Para una experiencia institucional defendible:
 
 1. Completado: proteger `POST /credentials/draft`.
 2. Completado: enriquecer contexto de issuer en `/auth/me`.
-3. Agregar resolución autorizada de titular.
+3. Completado: agregar resolución autorizada de titular por email exacto.
 
-El listado issuer-facing puede llegar después del primer flujo transaccional
-por ID.
+P0 queda cerrado para comenzar F0/F1. El listado issuer-facing y los reads
+protegidos permanecen como P1 y pueden llegar después del primer flujo
+transaccional por ID.
 
 ### Fase 0: fundamentos compartidos
 
@@ -1275,7 +1284,8 @@ Solo después de implementar:
 |---|---|---|---|---|---|
 | Login | Envío de credenciales | No aplica | Credenciales inválidas, config JWT | Sesión ya válida redirige | Backend caído |
 | Context resolver | `/auth/me` | Usuario sin contexto emisor | Sesión inválida | `401` | Membership incompleta |
-| Create draft | Envío | No aplica | `400`, `401`, `403`, `404` | JWT + membership | Sin resolver titular |
+| Holder resolution | Request exacto por email | Sin selección | Email inválido, `404`, network | JWT + membership + issuer autorizado | Sin listado ni autocomplete |
+| Create draft | Envío | No aplica | `400`, `401`, `403`, `404` | JWT + membership | Requiere holder resuelto vigente |
 | Detalle emisor | Carga por ID | No aplica | `404`, conflicto de estado | `403` al operar | Read genérico sin ownership |
 | Issue | Acción en curso | No aplica | `400`, `403`, `409` | JWT + membership | Blockchain local/config caída |
 | PDF analysis | Request indeterminado | Sin análisis | PDF inválido, `502/503/504` | `401/403` | `partial`, confidence unavailable |
@@ -1335,7 +1345,7 @@ Reglas:
 | Prioridad | Dependencia | Experiencia afectada | Resultado esperado |
 |---|---|---|---|
 | P0 completado | Proteger create draft | Emisor | Solo miembros autorizados crean para su issuer |
-| P0 | Resolver titular | Emisor | Selección por dato humano autorizado, no UUID |
+| P0 completado | Resolver titular | Emisor | Selección por email exacto autorizado, no UUID visible |
 | P0 completado | Enriquecer contexto issuer | Emisor | Nombre, DID, autorización y rol visibles |
 | P1 | Listado issuer-facing | Emisor | Lista real filtrada por membership |
 | P1 | Reads issuer protegidos | Emisor | Detalle, status y análisis con ownership |

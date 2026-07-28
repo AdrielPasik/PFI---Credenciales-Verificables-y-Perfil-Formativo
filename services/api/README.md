@@ -20,6 +20,7 @@ Protegidos por JWT:
 ```text
 POST /credentials/draft
 GET  /auth/me
+POST /issuers/:issuerId/holders/resolve
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -36,6 +37,13 @@ resumen seguro del issuer: `issuerId`, `issuerName`, `issuerDid` e
 `issuerAuthorizationStatus`. Una membership activa solo es un contexto emisor
 operativo si ademas tiene rol `admin` u `operator` y el issuer esta
 `authorized`.
+
+`POST /issuers/:issuerId/holders/resolve` permite a un `admin` u `operator`
+activo de un issuer autorizado resolver un titular por igualdad exacta de
+email normalizado. Devuelve solo `id`, `email`, `did` nullable y
+`displayLabel`; no lista usuarios, no busca parcialmente y no produce
+escrituras. El `id` resultante se usa como `subjectUserId` command-only al
+crear un draft.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
@@ -63,6 +71,7 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
 Tests de slices:
 
 - `npm run test:auth --workspace @credential-intelligence/api`
+- `npm run test:holder-resolution --workspace @credential-intelligence/api`
 - `npm run test:protected-issuance --workspace @credential-intelligence/api`
 - `npm run test:me-wallet --workspace @credential-intelligence/api`
 - `npm run test:profiles --workspace @credential-intelligence/api`

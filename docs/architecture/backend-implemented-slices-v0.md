@@ -39,6 +39,24 @@ GET  /auth/me
 
 No incluye refresh tokens, recuperacion de password, MFA ni proveedor de identidad externo.
 
+### Resolucion institucional de titulares
+
+Endpoint protegido:
+
+```text
+POST /issuers/:issuerId/holders/resolve
+```
+
+Un usuario autenticado puede resolver un titular por email exacto solo si
+tiene membership `active`, rol `admin` u `operator` y el issuer esta
+`authorized`. La busqueda ocurre despues de la autorizacion, acepta usuarios
+`active` con DID nullable y devuelve exclusivamente `id`, `email`, `did` y
+`displayLabel`.
+
+Es una lectura sin efectos secundarios: no crea ni modifica usuarios,
+memberships, drafts o credenciales. No es listado, autocomplete ni buscador
+global. El ID retornado queda destinado a `subjectUserId` command-only.
+
 ### Credential draft y protected issuance
 
 Endpoints:
@@ -149,7 +167,10 @@ No ejecuta una verificacion criptografica externa en tiempo real.
 
 ## 3. Que fue probado
 
-Se ejecutan tests separados para hashing, auth, protected issuance, holder wallet, perfiles, semantic artifact/service/CLI/read, blockchain read/write/evidence y verification read, ademas de `build` y `prisma:validate`.
+Se ejecutan tests separados para hashing, auth, resolucion de titulares,
+protected issuance, holder wallet, perfiles, semantic artifact/service/CLI/read,
+blockchain read/write/evidence y verification read, ademas de `build` y
+`prisma:validate`.
 
 Pruebas manuales realizadas:
 

@@ -106,6 +106,23 @@ contexto institucional, pero el backend valida que pertenezca al usuario. En
 esta etapa no se exigen DID, wallet ni configuracion blockchain para crear el
 draft; esos requisitos permanecen en emision.
 
+La resolucion institucional de titulares tambien esta protegida:
+
+```text
+POST /issuers/:issuerId/holders/resolve
+JWT currentUser activo
+-> membership active sobre issuerId
+-> rol admin u operator
+-> issuer authorized
+-> lookup exacto por email normalizado
+```
+
+El lookup ocurre despues de autorizar el contexto institucional. Devuelve solo
+`id`, email normalizado, DID nullable y `displayLabel`; usa un `404` uniforme
+para titulares inexistentes o inactivos y no tiene efectos secundarios. No
+exige DID porque resolver un titular y autorizar la emision son operaciones
+distintas.
+
 ## 3. Acciones por rol
 
 ### `holder`
@@ -121,6 +138,7 @@ draft; esos requisitos permanecen en emision.
 - siempre esta limitado a uno o mas `issuer_id`;
 - no existe un `issuer_admin` global salvo que tambien tenga rol `system_admin`;
 - crear borradores;
+- resolver titulares elegibles por email exacto dentro de su issuer autorizado;
 - emitir credenciales para su institucion;
 - consultar credenciales emitidas por su institucion;
 - solicitar analisis semantico sobre credenciales autorizadas;

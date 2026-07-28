@@ -70,8 +70,17 @@ test('IssuersService allows an active admin to create drafts without DID or wall
           issuerId: 'issuer-1'
         }
       },
-      include: {
-        issuer: true
+      select: {
+        id: true,
+        userId: true,
+        issuerId: true,
+        role: true,
+        status: true,
+        issuer: {
+          select: {
+            authorizationStatus: true
+          }
+        }
       }
     }
   ]);
@@ -166,4 +175,91 @@ test('IssuersService rejects revoked issuers for draft creation', async () => {
     service.assertUserCanCreateDraftForIssuer('issuer-user-1', 'issuer-1'),
     ForbiddenException
   );
+});
+
+test('IssuersService allows active admins and operators to resolve holders', async () => {
+  for (const role of [
+    IssuerMembershipRole.admin,
+    IssuerMembershipRole.operator
+  ]) {
+    const membership = createMembershipFixture({ role });
+    const { service } = createService(membership);
+
+    const result = await service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-1'
+    );
+
+    assert.equal(result, membership);
+  }
+});
+
+test('IssuersService rejects holder resolution without a membership', async () => {
+  const { service } = createService(null);
+
+  await assert.rejects(
+    service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-arbitrary'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked memberships for holder resolution', async () => {
+  for (const status of [
+    IssuerMembershipStatus.pending,
+    IssuerMembershipStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({
+        status
+      })
+    );
+
+    await assert.rejects(
+      service.assertUserCanResolveHolderForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
+});
+
+test('IssuersService rejects viewer memberships for holder resolution', async () => {
+  const { service } = createService(
+    createMembershipFixture({
+      role: IssuerMembershipRole.viewer
+    })
+  );
+
+  await assert.rejects(
+    service.assertUserCanResolveHolderForIssuer(
+      'issuer-user-1',
+      'issuer-1'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked issuers for holder resolution', async () => {
+  for (const authorizationStatus of [
+    IssuerAuthorizationStatus.pending,
+    IssuerAuthorizationStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({
+        authorizationStatus
+      })
+    );
+
+    await assert.rejects(
+      service.assertUserCanResolveHolderForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
 });

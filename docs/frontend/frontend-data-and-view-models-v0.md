@@ -129,6 +129,7 @@ Actualizaciones posteriores al snapshot base:
 
 - P0.1 protegió `POST /credentials/draft`.
 - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
+- P0.3 agregó resolución autorizada del titular por email exacto.
 
 > Cuando cambien controllers, DTOs, serializers, permisos o responses del
 > backend, deberán revisarse los adapters y view models definidos por este
@@ -770,6 +771,7 @@ información.
 |---|---|---|
 | `POST /auth/login` | Sin parámetros | JSON con `email`, `password` |
 | `GET /auth/me` | Sin parámetros | Sin body |
+| `POST /issuers/:issuerId/holders/resolve` | `issuerId` institucional | JSON con `email` |
 | `POST /credentials/draft` | Sin parámetros | `CreateCredentialDraftDto` |
 | `POST /credentials/:id/issue` | `id` de credencial | `IssueCredentialDto`: `issuerId`, `issuedAt?` |
 | `POST /credentials/:id/semantic-analysis/from-pdf` | `id` de credencial | Multipart `file`; `documentId?`, `fileName?`, `pipelineVersion?`, `taxonomyVersion?` |
@@ -877,6 +879,7 @@ versión pueden omitirse.
 
 | Endpoint | Actor | Disp. | Auth/permiso | Response real | Adapter | VM o command | Permitidos | Descartados | Estados derivados | Errores | Notas UX |
 |---|---|---|---|---|---|---|---|---|---|---|---|
+| `POST /issuers/:issuerId/holders/resolve` | Emisor | A dentro de ruta B | JWT; membership activa admin/operator; issuer autorizado | `HolderSummaryResponseDto` | `adaptHolderResolution` | `HolderResolutionFormModel`; `HolderResolutionCommand`; `HolderSummaryVM`; `HolderResolutionStateVM` | `id` se transforma en `holderReference` adapter-only; email, DID nullable, displayLabel | cualquier campo extra; referencias internas no se presentan | idle/invalid/resolving/resolved/not_found/error/session_expired/forbidden | 400, 401, 403, 404, network | `200 OK`; igualdad exacta; no listado ni autocomplete |
 | `POST /credentials/draft` | Emisor | B | JWT; membership activa admin/operator; issuer autorizado | `CredentialSummaryResponseDto` | `adaptIssuerCredentialSummary` | `CreateCredentialDraftCommand`; `IssuerCredentialDetailVM` parcial | id, title, type, status, fechas, hash/evidencia si existen | metadata desconocida; credentialSubject no allowlisted; campos extra | draft lifecycle | 400, 401, 403, 404, network | `issuerId` es command-only y se valida contra la sesión |
 | `POST /credentials/:id/issue` | Emisor | A dentro de ruta B | JWT; membership activa admin/operator; issuer autorizado | `CredentialSummaryResponseDto` | `adaptIssuedCredentialSummary` | `IssueCredentialCommand`; `IssueCredentialActionVM` | estado, issuedAt, hash, canon, latest record | metadata amplia; campos desconocidos | issued y evidence | 400, 401, 403, 404, 409, network | `issuerId` es command-only y no editable |
 | `POST /credentials/:id/semantic-analysis/from-pdf` | Emisor | A dentro de ruta B | JWT; membership admin/operator sobre issuer | `SemanticAnalysisFromPdfResponseDto` | `adaptPdfAnalysisResult` | `AnalyzePdfCommand`; `PdfAnalysisResultVM` | status, fecha, conteos, confidence, warnings, quality flags | campos extra; nunca artifact | completed/partial | 400, 401, 403, 404, 409, 422, 502, 503, 504 | Request síncrono; PDF máximo 20 MB |
@@ -1071,7 +1074,7 @@ Campos humanos:
 - descripción;
 - fuente;
 - horas opcionales;
-- titular seleccionado mediante un mecanismo autorizado futuro;
+- referencia a una resolución autorizada vigente del titular;
 - nombre del logro;
 - institución del logro;
 - campos formativos explícitamente aprobados.
@@ -1079,12 +1082,70 @@ Campos humanos:
 No incluye como inputs libres:
 
 - `issuerId`;
+- `subjectUserId`;
 - JSON arbitrario;
 - `rawData`;
 - private key;
 - hash;
 - status;
 - canonicalization version.
+
+La captura editable y los estados de resolución se mantienen en modelos
+separados.
+
+### `HolderResolutionFormModel`
+
+```text
+email: string
+```
+
+Representa exclusivamente el valor editable. Aplica validación local de
+formato, conserva el email ante errores y debe invalidar una resolución previa
+cuando cambia. No contiene IDs ni referencias internas.
+
+### `HolderResolutionCommand`
+
+```text
+issuerReference: adapter-only issuerId
+email: string normalizado
+```
+
+`issuerReference` proviene de `UserContextVM`: no es editable, no se muestra y
+no puede ser escrito por el operador. La orquestación construye el command y el
+API client usa `issuerReference` para formar el path. El backend vuelve a
+validarlo mediante membership; la identidad del actor sigue proviniendo de la
+sesión.
+
+### `HolderSummaryVM`
+
+```text
+holderReference: adapter-only user id
+email: string
+did: string | null
+displayLabel: string
+```
+
+El adapter transforma `response.id` en `holderReference`.
+`holderReference` no se renderiza, no es un input y no se persiste en
+`localStorage`. Se usa únicamente para construir
+`CreateCredentialDraftCommand.subjectUserId`.
+
+### `HolderResolutionStateVM`
+
+```text
+idle
+invalid_email
+resolving
+resolved(HolderSummaryVM)
+not_found
+network_error
+session_expired
+forbidden
+```
+
+Cambiar el email o el issuer invalida inmediatamente cualquier resultado
+`resolved`. La carga de resolución es independiente de la carga de creación
+del draft.
 
 ### Institución emisora e institución del logro
 
@@ -1145,7 +1206,8 @@ Reglas:
 - `hours`, si existe, es mayor a cero;
 - la validación frontend no reemplaza validación backend.
 
-La falta de resolución de titulares bloquea una experiencia productiva.
+La resolución autorizada ya existe. El frontend debe completarla antes de
+construir el command y nunca aceptar un UUID escrito por el operador.
 
 ### Allowlist frontend v0 de `credentialSubject`
 
@@ -2072,7 +2134,6 @@ Regla:
 |---|---|---|---|---|---|
 | Sin listado issuer-facing | `IssuerCredentialListItemVM` | Colección institucional | Navegar al detalle recién creado o ID preparado | Lista hardcodeada | Read protegido por issuer con paginación |
 | Issuer activo vs `institution_name` sin regla | Draft y detalle | Relación entre autoridad emisora e institución del logro | Labels diferenciados | Tratar texto libre como autorización | Regla de dominio y DTO que indiquen coincidencia o diferencia |
-| Sin resolución humana del titular | Draft form | Buscar usuario por email/DID | Preparación técnica de demo fuera de UI | Hardcodear holder en producto | Endpoint autorizado de búsqueda/resolución |
 | Reads institucionales públicos | `IssuerCredentialDetailVM` | Ownership issuer-facing | Direct ID demo con allowlist | Reutilizar para producto | Reads protegidos por membership |
 | Latest semantic público amplio | `SemanticAnalysisSummaryVM` | DTO seguro | Usar resumen inmediato del POST | Guardar artifact o pasar response | Read protegido y resumido |
 | Verify sin issuer | `VerificationResultVM` | Issuer name, DID y referencia | Omitir bloque o ausencia transparente | Encadenar GET genérico | Issuer summary dentro de verify DTO |
