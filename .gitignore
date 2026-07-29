@@ -33,6 +33,8 @@ __pycache__/
 venv/
 ENV/
 env/
+!apps/web/src/lib/env/
+!apps/web/src/lib/env/**
 
 # Prisma / local databases
 *.db
