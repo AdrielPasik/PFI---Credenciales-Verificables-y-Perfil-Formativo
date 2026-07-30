@@ -5,6 +5,7 @@ import {
   Route,
   ShieldCheck
 } from 'lucide-react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,8 +31,8 @@ export function IssuerHome({
           Operá con el contexto de {membership.issuerName}
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-text-muted">
-          Tu identidad y autorización institucional fueron validadas. Las
-          operaciones sobre credenciales se habilitarán en el próximo slice.
+          Tu identidad y autorización institucional fueron validadas. Ya podés
+          resolver titulares y guardar borradores desde este contexto.
         </p>
 
         <Card className="mt-8 overflow-hidden border-border-strong">
@@ -84,37 +85,28 @@ export function IssuerHome({
             </span>
             <div>
               <p className="text-xs font-semibold tracking-wider text-teal-100 uppercase">
-                Disponible próximamente
+                Flujo operativo
               </p>
               <h2
                 id="next-capability-title"
                 className="mt-2 text-xl font-semibold"
               >
-                Flujo de emisión institucional
+                Nueva credencial
               </h2>
             </div>
           </CardHeader>
           <Separator className="bg-white/10" />
           <CardContent className="pt-5">
             <p className="text-sm leading-6 text-brand-100/80">
-              El siguiente paso permitirá resolver al titular, guardar un
-              borrador y emitir una credencial con evidencia verificable.
+              Resolvé un titular existente y guardá el primer borrador
+              institucional de la credencial.
             </p>
-            <Button
-              disabled
-              variant="secondary"
-              className="mt-6 w-full"
-              aria-describedby="future-credential-note"
-            >
-              <FilePlus2 aria-hidden="true" />
-              Crear credencial
+            <Button asChild variant="secondary" className="mt-6 w-full">
+              <Link href="/issuer/credentials/new">
+                <FilePlus2 aria-hidden="true" />
+                Crear credencial
+              </Link>
             </Button>
-            <p
-              id="future-credential-note"
-              className="mt-3 text-center text-xs text-brand-100/65"
-            >
-              La acción todavía no está habilitada.
-            </p>
           </CardContent>
         </Card>
       </aside>

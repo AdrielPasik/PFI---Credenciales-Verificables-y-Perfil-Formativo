@@ -1,12 +1,22 @@
 import { readClientEnv } from '@/lib/env/client-env';
 import { ApiError } from '@/lib/errors/api-error';
 
-interface ApiRequestOptions {
+export interface ApiRequestOptions {
   method?: 'GET' | 'POST';
   body?: unknown;
   token?: string;
   signal?: AbortSignal;
 }
+
+export type AuthenticatedApiRequestOptions = Omit<
+  ApiRequestOptions,
+  'token'
+>;
+
+export type AuthenticatedApiRequest = (
+  path: `/${string}`,
+  options?: AuthenticatedApiRequestOptions
+) => Promise<unknown>;
 
 type FetchImplementation = typeof fetch;
 

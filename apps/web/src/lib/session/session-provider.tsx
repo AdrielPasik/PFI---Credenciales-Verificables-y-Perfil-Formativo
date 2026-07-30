@@ -14,9 +14,14 @@ import {
   type LoginCommand
 } from '@/lib/api/auth-api';
 import {
+  createApiClient,
+  type AuthenticatedApiRequest
+} from '@/lib/api/api-client';
+import {
   adaptCurrentUserResponse,
   adaptLoginResponse
 } from '@/lib/adapters/auth.adapter';
+import { ApiError } from '@/lib/errors/api-error';
 import { mapAuthError } from '@/lib/errors/auth-error-mapper';
 import {
   BrowserSessionStore,
@@ -31,6 +36,7 @@ import { deriveIssuerContext } from '@/models/issuer-context';
 interface SessionContextValue {
   state: AuthSessionState;
   login(command: LoginCommand): Promise<AuthFeedback | null>;
+  requestAuthenticated: AuthenticatedApiRequest;
   retry(): Promise<void>;
   logout(): void;
   selectIssuer(issuerReference: string): boolean;
@@ -38,6 +44,12 @@ interface SessionContextValue {
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
+
+const sessionExpiredFeedback: AuthFeedback = {
+  code: 'session_expired',
+  message: 'Tu sesión venció. Volvé a iniciar sesión.',
+  recoverable: false
+};
 
 interface SessionProviderProps {
   children: ReactNode;
@@ -137,6 +149,39 @@ export function SessionProvider({
     }
   }
 
+  async function requestAuthenticated(
+    path: `/${string}`,
+    options: Parameters<AuthenticatedApiRequest>[1] = {}
+  ) {
+    const accessToken = store.getAccessToken();
+
+    if (!accessToken) {
+      store.clear();
+      setState({
+        status: 'expired',
+        error: sessionExpiredFeedback
+      });
+      throw new ApiError('La sesión no está disponible.', 'http', 401);
+    }
+
+    try {
+      return await createApiClient().request(path, {
+        ...options,
+        token: accessToken
+      });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        store.clear();
+        setState({
+          status: 'expired',
+          error: sessionExpiredFeedback
+        });
+      }
+
+      throw error;
+    }
+  }
+
   async function retry() {
     const accessToken = store.getAccessToken();
 
@@ -198,6 +243,7 @@ export function SessionProvider({
       value={{
         state,
         login,
+        requestAuthenticated,
         retry,
         logout,
         selectIssuer,

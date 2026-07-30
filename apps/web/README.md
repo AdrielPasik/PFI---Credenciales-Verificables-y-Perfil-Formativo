@@ -5,7 +5,8 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F1a/F1b incorpora el primer flujo real del navegador sobre la base F0.1:
+F1a/F1b y F1c incorporan los primeros flujos reales del navegador sobre la
+base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
 - Tailwind CSS 4 con variables CSS de Traza como fuente de tokens;
@@ -18,7 +19,10 @@ F1a/F1b incorpora el primer flujo real del navegador sobre la base F0.1:
 - validación y rehidratación de sesión mediante `GET /auth/me`;
 - derivación de contexto institucional para cero, una o varias memberships
   operativas;
-- portal emisor mínimo y protegido en cliente.
+- portal emisor mínimo y protegido en cliente;
+- resolución exacta de un titular existente por email;
+- creación real de drafts dentro del issuer seleccionado;
+- detalle mínimo del draft recién creado.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -27,11 +31,19 @@ Las rutas implementadas son:
 
 - `/login`: autenticación;
 - `/`: resolución del contexto institucional;
-- `/issuer`: portal mínimo del emisor.
+- `/issuer`: portal mínimo del emisor;
+- `/issuer/credentials/new`: resolución de titular y creación de draft;
+- `/issuer/credentials/[credentialId]`: detalle mínimo del registro.
 
-Todavía no están implementadas la Wallet, la resolución de titulares, la
-creación de drafts, la emisión, la carga de PDF ni la integración IA desde la
-interfaz.
+F1c obtiene la institución exclusivamente del contexto autenticado, conserva
+el ID del titular como referencia interna y no permite crear usuarios ni
+buscar por coincidencias parciales. El read genérico de credencial todavía no
+incluye un resumen seguro del titular; por eso el detalle no expone UUIDs ni
+inventa nombre, email o DID al recargar.
+
+Todavía no están implementadas la Wallet, la emisión, la carga de PDF, la
+integración IA, la evidencia blockchain ni el listado o edición de
+credenciales desde la interfaz.
 
 Las reglas operativas para nuevas pantallas están en
 [`frontend-ui-implementation-guidelines-v1.md`](../../docs/frontend/frontend-ui-implementation-guidelines-v1.md).

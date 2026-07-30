@@ -18,7 +18,16 @@ const authApiMocks = vi.hoisted(() => ({
   loginRequest: vi.fn()
 }));
 
+const apiClientMocks = vi.hoisted(() => ({
+  request: vi.fn()
+}));
+
 vi.mock('@/lib/api/auth-api', () => authApiMocks);
+vi.mock('@/lib/api/api-client', () => ({
+  createApiClient: () => ({
+    request: apiClientMocks.request
+  })
+}));
 
 class MemorySessionStore implements SessionStore {
   constructor(
@@ -106,6 +115,16 @@ function SessionObserver() {
       >
         Select invalid
       </button>
+      <button
+        type="button"
+        onClick={() =>
+          void session
+            .requestAuthenticated('/credentials/protected')
+            .catch(() => undefined)
+        }
+      >
+        Protected request
+      </button>
     </>
   );
 }
@@ -122,6 +141,7 @@ describe('SessionProvider', () => {
   beforeEach(() => {
     authApiMocks.currentUserRequest.mockReset();
     authApiMocks.loginRequest.mockReset();
+    apiClientMocks.request.mockReset();
   });
 
   it('finishes unauthenticated when there is no initial token', async () => {
@@ -214,6 +234,58 @@ describe('SessionProvider', () => {
       );
     });
     expect(store.getAccessToken()).toBe('[REDACTED]');
+  });
+
+  it('executes protected requests with the stored token without exposing it in state', async () => {
+    const store = new MemorySessionStore('[REDACTED]');
+    authApiMocks.currentUserRequest.mockResolvedValue(currentUserResponse);
+    apiClientMocks.request.mockResolvedValue({ ok: true });
+
+    renderProvider(store);
+    await waitFor(() =>
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'authenticated'
+      )
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Protected request' })
+    );
+
+    await waitFor(() => {
+      expect(apiClientMocks.request).toHaveBeenCalledWith(
+        '/credentials/protected',
+        { token: '[REDACTED]' }
+      );
+    });
+    expect(document.body.textContent).not.toContain('[REDACTED]');
+  });
+
+  it('clears the session when a protected request returns 401', async () => {
+    const store = new MemorySessionStore('[REDACTED]', 'issuer-1');
+    authApiMocks.currentUserRequest.mockResolvedValue(currentUserResponse);
+    apiClientMocks.request.mockRejectedValue(
+      new ApiError('unauthorized', 'http', 401)
+    );
+
+    renderProvider(store);
+    await waitFor(() =>
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'authenticated'
+      )
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Protected request' })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'expired'
+      );
+    });
+    expect(store.getAccessToken()).toBeNull();
+    expect(store.getSelectedIssuerReference()).toBeNull();
   });
 
   it('logout clears token, issuer selection and in-memory state', async () => {
