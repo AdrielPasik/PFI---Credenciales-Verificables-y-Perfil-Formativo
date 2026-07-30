@@ -5,7 +5,7 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F0.1 consolida la base técnica y visual:
+F1a/F1b incorpora el primer flujo real del navegador sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
 - Tailwind CSS 4 con variables CSS de Traza como fuente de tokens;
@@ -14,14 +14,24 @@ F0.1 consolida la base técnica y visual:
 - variantes centralizadas con CVA y composición mediante `cn()`;
 - iconografía funcional Lucide;
 - Vitest, Testing Library y ESLint;
-- layout raíz neutral y shell específico para la página foundation.
+- login real contra `POST /auth/login`;
+- validación y rehidratación de sesión mediante `GET /auth/me`;
+- derivación de contexto institucional para cero, una o varias memberships
+  operativas;
+- portal emisor mínimo y protegido en cliente.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
 
-La página raíz sigue siendo una validación honesta del foundation. F0.1 no
-llama al backend y no implementa login, JWT, sesión, contexto institucional ni
-operaciones sobre credenciales. Esas responsabilidades comienzan en F1a.
+Las rutas implementadas son:
+
+- `/login`: autenticación;
+- `/`: resolución del contexto institucional;
+- `/issuer`: portal mínimo del emisor.
+
+Todavía no están implementadas la Wallet, la resolución de titulares, la
+creación de drafts, la emisión, la carga de PDF ni la integración IA desde la
+interfaz.
 
 Las reglas operativas para nuevas pantallas están en
 [`frontend-ui-implementation-guidelines-v1.md`](../../docs/frontend/frontend-ui-implementation-guidelines-v1.md).
@@ -51,8 +61,52 @@ Variable pública disponible:
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3001
 ```
 
-No deben guardarse secretos en variables `NEXT_PUBLIC_*`. Aunque F0 valida la
-configuración, todavía no realiza requests.
+No deben guardarse secretos en variables `NEXT_PUBLIC_*`.
+
+Para desarrollo local, la API debe ejecutarse con un secreto JWT local y CORS
+restringido al origen web:
+
+```powershell
+$env:PORT="3001"
+$env:WEB_ORIGIN="http://127.0.0.1:3000"
+npm run dev --workspace @credential-intelligence/api
+```
+
+## Sesión demo
+
+La sesión F1a es explícitamente demo-grade:
+
+- `sessionStorage` guarda únicamente el access token y, cuando corresponde, la
+  referencia interna del issuer elegido;
+- nombres, roles y estados institucionales no se persisten como fuente de
+  verdad;
+- cada carga o refresh revalida la sesión mediante `/auth/me`;
+- un `401` limpia la sesión y solicita un nuevo login;
+- un error temporal conserva el token y ofrece reintentar o cerrar sesión;
+- logout limpia token, selección y estado en memoria;
+- con una institución operativa se abre `/issuer`;
+- con varias se exige una elección explícita y se permite cambiarla sin cerrar
+  sesión;
+- sin instituciones operativas se muestra un estado autenticado honesto, sin
+  redirigir a una Wallet inexistente.
+
+`sessionStorage` sigue siendo accesible al JavaScript de la página y, por lo
+tanto, vulnerable ante XSS. Una evolución productiva debería evaluar cookies
+`HttpOnly` y un BFF, además de rotación o refresh de sesión.
+
+No existe un endpoint de logout: la operación es local.
+
+## Ejecución local
+
+Con PostgreSQL y la API disponibles, iniciar la web desde la raíz:
+
+```powershell
+npm run dev --workspace @credential-intelligence/web
+```
+
+La API debe responder en `http://127.0.0.1:3001` y la web en
+`http://127.0.0.1:3000`. No documentar ni guardar credenciales, tokens o
+secretos reales en este workspace.
 
 ## Comandos
 

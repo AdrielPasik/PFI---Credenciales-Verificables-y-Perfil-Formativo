@@ -93,7 +93,24 @@ Quedan prohibidos:
 integrará como una decisión separada. Ningún layout debe depender del asset
 provisional.
 
-## 8. Checklist para futuras pantallas
+## 8. Dirección artística de Traza
+
+- Ink es la base institucional para navegación, paneles de confianza y
+  jerarquía principal.
+- Teal identifica actividad, análisis y foco secundario; ámbar queda reservado
+  para evidencia, hitos o atención puntual.
+- Las superficies blancas funcionan como foreground. No deben convertirse en
+  el canvas dominante ni producir una sucesión de cards idénticas.
+- La profundidad se construye con fondos por capas, bordes sutiles, acentos
+  lineales y sombras controladas.
+- La composición debe ser editorial y contextual, no un dashboard genérico.
+- Lucide es la única familia de iconos y sus símbolos deben aclarar acciones o
+  estados reales.
+- El motion debe ser corto, funcional y respetar `prefers-reduced-motion`.
+- Quedan prohibidas la estética cripto, los neones, el glassmorphism dominante
+  y los datos decorativos o métricas falsas.
+
+## 9. Checklist para futuras pantallas
 
 - [ ] Se leyeron los documentos normativos aplicables.
 - [ ] Se reutilizaron primitives y componentes existentes.
