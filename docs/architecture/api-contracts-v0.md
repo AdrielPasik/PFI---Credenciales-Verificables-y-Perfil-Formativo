@@ -93,6 +93,61 @@
 - Errores esperados: `400`, `401`, `403`, `404`.
 - Estado: `implemented`.
 
+### `GET /issuers/:issuerId/credentials/:credentialId`
+
+- Proposito: leer una credencial dentro de un contexto institucional
+  autenticado y autorizado.
+- Actor: usuario autenticado con membership `active`, rol `admin` u
+  `operator` e issuer `authorized`.
+- Scoping: primero valida el contexto institucional y luego busca por
+  `credentialId + issuerId`. Una credencial inexistente y una credencial de
+  otro issuer producen el mismo `404`.
+- Response `200 OK`:
+
+```json
+{
+  "id": "credential-resource-reference",
+  "status": "draft",
+  "type": "course",
+  "title": "Arquitectura de Software",
+  "sourceType": "manual_issuer",
+  "credentialSubject": {
+    "achievement_name": "Arquitectura de Software",
+    "institution_name": "Nombre guardado en el draft"
+  },
+  "createdAt": "2026-07-30T12:00:00.000Z",
+  "updatedAt": "2026-07-30T12:05:00.000Z",
+  "issuer": {
+    "displayName": "Demo University",
+    "did": "did:example:issuer-demo"
+  },
+  "holder": {
+    "displayLabel": "Demo Holder",
+    "email": "holder.demo@example.com",
+    "did": null
+  }
+}
+```
+
+- Nullability: `credentialSubject.achievement_name`,
+  `credentialSubject.institution_name`, `issuer.did`, `holder.email` y
+  `holder.did` pueden ser `null`.
+- Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
+  `credentialSubject.institution_name` es solamente el dato guardado en la
+  credencial y puede diferir.
+- Holder historico: la lectura no exige que el usuario titular siga activo.
+- Allowlist: no devuelve `issuerId`, `subjectUserId`, datos de autenticacion,
+  wallet, metadata, rawData, hash canonico, registros blockchain, analisis,
+  eventos ni grants.
+- Errores esperados: `401` sin autenticacion valida, `403` sin contexto
+  institucional operativo y `404` para credencial inexistente o de otro
+  issuer.
+- Diferencia con `GET /credentials/:id`: este read model es issuer-facing,
+  protegido y minimizado. El endpoint generico anterior conserva por ahora su
+  comportamiento para compatibilidad tecnica y no es el endpoint publico
+  final del verificador.
+- Estado: `implemented`.
+
 ### `PATCH /issuers/:id`
 
 - Proposito: actualizar metadata basica del emisor.
@@ -152,12 +207,15 @@
 
 ### `GET /credentials/:id`
 
-- Proposito: obtener detalle de una credencial segun permisos.
-- Actor: `holder`, `issuer_admin`, `system_admin`.
+- Proposito actual: obtener el resumen tecnico existente de una credencial.
+- Actor actual: consumidor tecnico/demo; el runtime mantiene este endpoint sin
+  auth por compatibilidad transitoria.
 - Request conceptual: path `id`.
-- Response conceptual: `credential_v1` y metadatos operativos visibles.
-- Errores esperados: `401`, `403`, `404`.
-- Estado: `v1_candidate`.
+- Response actual: `CredentialSummaryResponseDto`.
+- Errores esperados: `400`, `404`.
+- Estado: implementado, transitorio. El Portal del Emisor debe migrar en P1b
+  al read institucional seguro y el verificador no debe reutilizar este DTO
+  como contrato publico final.
 
 ### `GET /credentials/:id/status`
 

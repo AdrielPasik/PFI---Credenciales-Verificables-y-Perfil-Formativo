@@ -9,6 +9,7 @@ import { UserStatus } from '@prisma/client';
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { HolderSummaryResponseDto } from './dto/holder-summary-response.dto';
+import { buildHolderDisplayLabel } from './holder-display-label';
 import { IssuersService } from './issuers.service';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,7 +74,7 @@ export class IssuerHolderResolutionService {
       id: holder.id,
       email: holderEmail,
       did: holder.did,
-      displayLabel: this.buildDisplayLabel(
+      displayLabel: buildHolderDisplayLabel(
         holder.displayName,
         holder.firstName,
         holder.lastName,
@@ -105,34 +106,4 @@ export class IssuerHolderResolutionService {
     return normalized && EMAIL_PATTERN.test(normalized) ? normalized : null;
   }
 
-  private buildDisplayLabel(
-    displayName: string | null,
-    firstName: string | null,
-    lastName: string | null,
-    email: string
-  ): string {
-    const normalizedDisplayName = this.normalizeLabelPart(displayName);
-
-    if (normalizedDisplayName) {
-      return normalizedDisplayName;
-    }
-
-    const normalizedFirstName = this.normalizeLabelPart(firstName);
-    const normalizedLastName = this.normalizeLabelPart(lastName);
-
-    if (normalizedFirstName && normalizedLastName) {
-      return `${normalizedFirstName} ${normalizedLastName}`;
-    }
-
-    return normalizedFirstName ?? normalizedLastName ?? email;
-  }
-
-  private normalizeLabelPart(value: string | null): string | null {
-    if (typeof value !== 'string') {
-      return null;
-    }
-
-    const normalized = value.trim().replace(/\s+/g, ' ');
-    return normalized || null;
-  }
 }

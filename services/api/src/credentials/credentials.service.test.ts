@@ -544,3 +544,19 @@ test('CredentialsService still rejects credentials that are not in draft', async
     ConflictException
   );
 });
+
+test('CredentialsService preserves the existing generic credential read response', async () => {
+  const { service } = createService();
+
+  const response = await service.getCredential('cred-123');
+
+  assert.equal(response.id, 'cred-123');
+  assert.equal(response.issuerId, 'issuer-1');
+  assert.equal(response.subjectUserId, 'holder-1');
+  assert.equal(response.status, CredentialStatus.draft);
+  assert.deepEqual(response.credentialSubject, {
+    achievement_name: 'Algoritmos y Estructuras de Datos',
+    institution_name: 'Demo University',
+    skills: ['algoritmos', 'programacion']
+  });
+});

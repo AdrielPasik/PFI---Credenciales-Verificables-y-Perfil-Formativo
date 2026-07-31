@@ -21,6 +21,7 @@ Protegidos por JWT:
 POST /credentials/draft
 GET  /auth/me
 POST /issuers/:issuerId/holders/resolve
+GET  /issuers/:issuerId/credentials/:credentialId
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -44,6 +45,13 @@ email normalizado. Devuelve solo `id`, `email`, `did` nullable y
 `displayLabel`; no lista usuarios, no busca parcialmente y no produce
 escrituras. El `id` resultante se usa como `subjectUserId` command-only al
 crear un draft.
+
+`GET /issuers/:issuerId/credentials/:credentialId` aplica el mismo contexto
+institucional operativo antes de buscar la credencial por `credentialId` e
+`issuerId`. Devuelve un read model allowlisted con resumen humano del issuer y
+holder; no expone IDs relacionales, auth, wallet, metadata, raw data, hashes,
+blockchain ni analisis. El read generico `GET /credentials/:id` sigue
+coexistiendo sin cambios hasta la migracion frontend de P1b.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 

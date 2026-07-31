@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GUARDS_METADATA } from '@nestjs/common/constants';
+import {
+  GUARDS_METADATA,
+  METHOD_METADATA,
+  PATH_METADATA
+} from '@nestjs/common/constants';
+import { RequestMethod } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 
 import { AuthGuard } from '../auth/auth.guard';
@@ -148,4 +153,53 @@ test('CredentialsController delegates issueCredential with current user to the s
     }
   ]);
   assert.deepEqual(response, expectedResponse);
+});
+
+test('existing GET /credentials/:id remains unguarded and delegates to the generic read', async () => {
+  const calls: string[] = [];
+  const controller = new CredentialsController({
+    async createDraft() {
+      throw new Error('should not be called');
+    },
+    async issueCredential() {
+      throw new Error('should not be called');
+    },
+    async getCredential(credentialId: string) {
+      calls.push(credentialId);
+      return {
+        id: credentialId,
+        issuerId: 'issuer-1',
+        subjectUserId: 'holder-1',
+        status: 'draft'
+      };
+    },
+    async getCredentialStatus() {
+      throw new Error('should not be called');
+    }
+  } as never);
+
+  const methodPath = Reflect.getMetadata(
+    PATH_METADATA,
+    CredentialsController.prototype.getCredential
+  );
+  const requestMethod = Reflect.getMetadata(
+    METHOD_METADATA,
+    CredentialsController.prototype.getCredential
+  );
+  const guards = Reflect.getMetadata(
+    GUARDS_METADATA,
+    CredentialsController.prototype.getCredential
+  );
+  const response = await controller.getCredential('credential-legacy');
+
+  assert.equal(methodPath, ':id');
+  assert.equal(requestMethod, RequestMethod.GET);
+  assert.equal(guards, undefined);
+  assert.deepEqual(calls, ['credential-legacy']);
+  assert.deepEqual(response, {
+    id: 'credential-legacy',
+    issuerId: 'issuer-1',
+    subjectUserId: 'holder-1',
+    status: 'draft'
+  });
 });
