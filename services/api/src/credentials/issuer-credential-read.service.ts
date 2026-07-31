@@ -4,7 +4,10 @@ import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { IssuerCredentialDetailResponseDto } from './dto/issuer-credential-detail-response.dto';
-import { mapIssuerCredentialReadModel } from './issuer-credential-read.mapper';
+import {
+  issuerCredentialReadSelect,
+  mapIssuerCredentialReadModel
+} from './issuer-credential-read.mapper';
 
 const CREDENTIAL_NOT_FOUND_MESSAGE = 'No se encontro la credencial solicitada.';
 
@@ -30,31 +33,7 @@ export class IssuerCredentialReadService {
         id: credentialId,
         issuerId
       },
-      select: {
-        id: true,
-        status: true,
-        type: true,
-        title: true,
-        sourceType: true,
-        credentialSubject: true,
-        createdAt: true,
-        updatedAt: true,
-        issuer: {
-          select: {
-            name: true,
-            did: true
-          }
-        },
-        subjectUser: {
-          select: {
-            email: true,
-            did: true,
-            displayName: true,
-            firstName: true,
-            lastName: true
-          }
-        }
-      }
+      select: issuerCredentialReadSelect
     });
 
     if (!credential) {

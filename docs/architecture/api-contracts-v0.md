@@ -110,10 +110,26 @@
   "status": "draft",
   "type": "course",
   "title": "Arquitectura de Software",
+  "description": "Descripcion opcional",
+  "hours": "24.50",
   "sourceType": "manual_issuer",
   "credentialSubject": {
     "achievement_name": "Arquitectura de Software",
-    "institution_name": "Nombre guardado en el draft"
+    "institution_name": "Nombre guardado en el draft",
+    "completion_date": "2026-07-30",
+    "academic_period": null,
+    "program_name": null,
+    "grade": null,
+    "provider_name": "Traza Academy",
+    "platform_name": "Campus",
+    "modality": "Hibrida",
+    "level": "Avanzado",
+    "certification_code": null,
+    "expiration_date": null,
+    "external_url": null,
+    "skills": ["TypeScript"],
+    "competencies": ["Diseno de sistemas"],
+    "learning_outcomes": ["Construir APIs"]
   },
   "createdAt": "2026-07-30T12:00:00.000Z",
   "updatedAt": "2026-07-30T12:05:00.000Z",
@@ -129,9 +145,10 @@
 }
 ```
 
-- Nullability: `credentialSubject.achievement_name`,
-  `credentialSubject.institution_name`, `issuer.did`, `holder.email` y
-  `holder.did` pueden ser `null`.
+- Nullability: `description`, `hours` y los campos string de
+  `credentialSubject` pueden ser `null`; sus tres arrays siempre se devuelven
+  como `string[]`. `issuer.did`, `holder.email` y `holder.did` tambien pueden
+  ser `null`. `hours` se serializa como decimal string cuando existe.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
@@ -146,6 +163,120 @@
   protegido y minimizado. El endpoint generico anterior conserva por ahora su
   comportamiento para compatibilidad tecnica y no es el endpoint publico
   final del verificador.
+- Estado: `implemented`.
+
+### `PATCH /issuers/:issuerId/credentials/:credentialId/draft`
+
+- Proposito: actualizar los campos comunes y especificos por
+  `CredentialType` de una credencial `draft`, incluido un cambio de tipo
+  controlado, dentro de un contexto institucional autenticado y autorizado.
+- Actor: usuario autenticado con membership `active`, rol `admin` u
+  `operator` e issuer `authorized`.
+- Scoping: primero valida el contexto institucional y luego busca por
+  `credentialId + issuerId`. Una credencial inexistente y una credencial de
+  otro issuer producen el mismo `404`.
+- Request exacto:
+
+```json
+{
+  "expectedUpdatedAt": "2026-07-30T12:05:00.000Z",
+  "achievementName": "Arquitectura de Software",
+  "description": "Descripcion opcional",
+  "hours": "24.5",
+  "type": "course",
+  "completionDate": "2026-07-30",
+  "providerName": "Traza Academy",
+  "platformName": "Campus",
+  "modality": "Hibrida",
+  "level": "Avanzado",
+  "skills": ["TypeScript"],
+  "competencies": ["Diseno de sistemas"],
+  "learningOutcomes": ["Construir APIs"]
+}
+```
+
+- Allowlist top-level: `expectedUpdatedAt`, `achievementName`, `description`,
+  `hours`, `type`, `completionDate`, `academicPeriod`, `programName`, `grade`,
+  `providerName`, `platformName`, `modality`, `level`, `certificationCode`,
+  `expirationDate`, `externalUrl`, `skills`, `competencies` y
+  `learningOutcomes`. Cualquier otra clave produce `400`; siguen prohibidos
+  `issuerId`, `subjectUserId`, `status`, `sourceType`, `credentialSubject`,
+  nombres snake_case directos, hashes, metadata, datos blockchain y secretos.
+- Semantica: `expectedUpdatedAt` es obligatorio y debe coincidir exactamente
+  con la version leida. Debe enviarse al menos un campo editable.
+  `achievementName` es opcional pero no admite `null`; `description` y
+  `hours` admiten `null` para limpiar. `type` es opcional, no admite `null` y
+  solo acepta `academic_subject`, `course`, `certification` o `degree`. Los
+  campos omitidos conservan su valor.
+- Normalizacion: el nombre se recorta y compacta, y actualiza tanto `title`
+  como `credentialSubject.achievement_name`. En toda actualizacion exitosa,
+  `credentialSubject.institution_name` se deriva de `Issuer.name`.
+- Strings controlados: `trim`, colapso de whitespace, vacio a `null` y maximo
+  255 caracteres. Fechas: fecha calendario real `YYYY-MM-DD` o `null`;
+  `expirationDate` no puede ser anterior a `completionDate`. `externalUrl`
+  acepta solo HTTP/HTTPS y hasta 2048 caracteres, sin requests externos.
+- Arrays: `string[] | null`; `null` limpia a `[]`, se eliminan vacios, se
+  deduplica case-insensitive conservando el primer casing, maximo 30 elementos
+  y 80 caracteres por elemento.
+- Horas: decimal string positiva con precision compatible con
+  `Decimal(10,2)` o `null`; la response la serializa como `string | null`.
+- Aplicabilidad por tipo:
+
+| Tipo final | Campos especificos permitidos |
+| --- | --- |
+| `academic_subject` | `completionDate`, `academicPeriod`, `programName`, `grade`, `skills`, `competencies` |
+| `course` | `completionDate`, `providerName`, `platformName`, `modality`, `level`, `skills`, `competencies`, `learningOutcomes` |
+| `certification` | `completionDate`, `certificationCode`, `expirationDate`, `externalUrl`, `providerName`, `level`, `skills`, `competencies` |
+| `degree` | `completionDate`, `programName`, `level`, `grade`, `competencies`, `learningOutcomes` |
+
+- Un campo enviado que no aplique al tipo final produce `400`, incluso si su
+  valor es `null`.
+- Cambio de tipo: solo sobre `draft` y dentro del mismo CAS. El backend elimina
+  todos los campos controlados que no aplican al tipo final, conserva los que
+  siguen aplicando, aplica valores nuevos y preserva claves legacy
+  desconocidas. Las claves legacy no se aceptan por request ni se devuelven en
+  el read model.
+- Concurrencia: usa compare-and-swap atomico dentro de una transaccion
+  `Serializable`, condicionado por `id`, `issuerId`, `status = draft` y el
+  `updatedAt` leido. Un timestamp desactualizado o una carrera produce `409`.
+- Response `200 OK`: el mismo read model issuer-facing seguro documentado en
+  `GET /issuers/:issuerId/credentials/:credentialId`, incluyendo
+  `description`, `hours`, la allowlist completa de `credentialSubject` y un
+  `updatedAt` nuevo.
+- Errores esperados: `400` payload invalido, `401` sin autenticacion valida,
+  `403` sin contexto institucional operativo, `404` para credencial
+  inexistente o de otro issuer y `409` para lifecycle no draft o conflicto de
+  concurrencia.
+- Limites: no calcula readiness, no emite, no llama a blockchain y no modifica
+  canonicalizacion.
+- Cobertura actual de `canon_v1`:
+
+| Campo controlado | Persistido en draft | Devuelto por read model | En `canon_v1` |
+| --- | --- | --- | --- |
+| `type` | Si | Si | Si |
+| `achievementName` / `title` / `achievement_name` | Si | Si | Si |
+| `description` | Si | Si | Si |
+| `hours` | Si | Si | Si |
+| `Issuer.name` / `institution_name` | Si | Si | Si |
+| `completionDate` / `completion_date` | Si | Si | Si |
+| `academicPeriod` / `academic_period` | Si | Si | Si |
+| `grade` | Si | Si | Si |
+| `skills` | Si | Si | Si |
+| `competencies` | Si | Si | Si |
+| `programName` / `program_name` | Si | Si | No |
+| `providerName` / `provider_name` | Si | Si | No |
+| `platformName` / `platform_name` | Si | Si | No |
+| `modality` | Si | Si | No |
+| `level` | Si | Si | No |
+| `certificationCode` / `certification_code` | Si | Si | No |
+| `expirationDate` / `expiration_date` | Si | Si | No |
+| `externalUrl` / `external_url` | Si | Si | No |
+| `learningOutcomes` / `learning_outcomes` | Si | Si | No |
+
+Antes de emision debe decidirse si los campos controlados no incluidos en
+`canon_v1` permanecen como metadata no canonica o requieren una nueva version
+de canonicalizacion. Esta decision es un gap previo a P7; P2b1 no cambia hash
+ni afirma que un draft este listo para emitir.
 - Estado: `implemented`.
 
 ### `PATCH /issuers/:id`

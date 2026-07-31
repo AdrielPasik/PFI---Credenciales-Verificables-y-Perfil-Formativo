@@ -1,4 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -33,6 +38,8 @@ const membership = {
 const draftResponse = {
   id: 'credential-internal-reference',
   title: 'Arquitectura de Software',
+  description: null,
+  hours: null,
   type: 'course',
   sourceType: 'manual_issuer',
   status: 'draft',
@@ -40,7 +47,21 @@ const draftResponse = {
   updatedAt: '2026-07-30T12:00:00.000Z',
   credentialSubject: {
     achievement_name: 'Arquitectura de Software',
-    institution_name: 'Universidad Seleccionada'
+    institution_name: 'Universidad Seleccionada',
+    completion_date: null,
+    academic_period: null,
+    program_name: null,
+    grade: null,
+    provider_name: null,
+    platform_name: null,
+    modality: null,
+    level: null,
+    certification_code: null,
+    expiration_date: null,
+    external_url: null,
+    skills: [],
+    competencies: [],
+    learning_outcomes: []
   },
   issuer: {
     displayName: 'Universidad Seleccionada',
@@ -54,12 +75,39 @@ const draftResponse = {
 };
 
 function detailFixture(
-  overrides: Partial<IssuerCredentialDetailVM> = {}
+  overrides: Partial<
+    Omit<IssuerCredentialDetailVM, 'credentialSubject'>
+  > & {
+    credentialSubject?: Partial<
+      IssuerCredentialDetailVM['credentialSubject']
+    >;
+  } = {}
 ): IssuerCredentialDetailVM {
+  const credentialSubject: IssuerCredentialDetailVM['credentialSubject'] = {
+    achievementName: 'Arquitectura de Software',
+    institutionName: 'Universidad Seleccionada',
+    completionDate: null,
+    academicPeriod: null,
+    programName: null,
+    grade: null,
+    providerName: null,
+    platformName: null,
+    modality: null,
+    level: null,
+    certificationCode: null,
+    expirationDate: null,
+    externalUrl: null,
+    skills: [],
+    competencies: [],
+    learningOutcomes: [],
+    ...overrides.credentialSubject
+  };
+
   return {
     credentialReference: 'credential-internal-reference',
     title: 'Arquitectura de Software',
-    draftAchievementName: 'Arquitectura de Software',
+    description: null,
+    hours: null,
     type: 'academic_subject',
     typeLabel: 'Asignatura académica',
     status: 'draft',
@@ -68,14 +116,15 @@ function detailFixture(
       displayName: 'Universidad Seleccionada',
       did: 'did:example:issuer'
     },
-    draftInstitutionName: 'Universidad Seleccionada',
     holder: {
       displayLabel: 'Demo Holder',
       email: 'holder@example.com',
       did: 'did:example:holder'
     },
     createdAt: '2026-07-30T12:00:00.000Z',
-    ...overrides
+    updatedAt: '2026-07-30T12:00:00.000Z',
+    ...overrides,
+    credentialSubject
   };
 }
 
@@ -119,7 +168,7 @@ describe('CredentialDetailController', () => {
       })
     ).toBeTruthy();
     expect(screen.getByText('Borrador')).toBeTruthy();
-    expect(screen.getByText('Curso')).toBeTruthy();
+    expect(screen.getAllByText('Curso').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
     expect(screen.getByText('did:example:issuer')).toBeTruthy();
     expect(screen.getByText('Demo Holder')).toBeTruthy();
@@ -141,6 +190,47 @@ describe('CredentialDetailController', () => {
     );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
     expect(sessionMocks.requestAuthenticated.mock.calls[0]).toHaveLength(1);
+  });
+
+  it('patches edits through the selected issuer context and accepts the response as truth', async () => {
+    sessionMocks.requestAuthenticated
+      .mockResolvedValueOnce(draftResponse)
+      .mockResolvedValueOnce({
+        ...draftResponse,
+        description: 'Descripción persistida',
+        updatedAt: '2026-07-30T13:00:00.000Z'
+      });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const description = await screen.findByLabelText('Descripción');
+    fireEvent.change(description, {
+      target: { value: 'Descripción persistida' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2)
+    );
+    expect(sessionMocks.requestAuthenticated).toHaveBeenLastCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/draft',
+      {
+        method: 'PATCH',
+        body: {
+          expectedUpdatedAt: '2026-07-30T12:00:00.000Z',
+          description: 'Descripción persistida'
+        }
+      }
+    );
+    expect(await screen.findByText('Cambios guardados')).toBeTruthy();
+    expect(
+      (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
+    ).toBe('Descripción persistida');
   });
 
   it('shows a controlled 404', async () => {
@@ -167,6 +257,7 @@ describe('CredentialDetailController', () => {
     sessionMocks.requestAuthenticated.mockResolvedValue({
       ...draftResponse,
       credentialSubject: {
+        ...draftResponse.credentialSubject,
         achievement_name: 'Arquitectura Aplicada',
         institution_name: 'Institución Histórica'
       }
@@ -197,7 +288,9 @@ describe('CredentialDetailView institutional consistency', () => {
     render(
       <CredentialDetailView
         detail={detailFixture({
-          draftInstitutionName: '  Universidad Seleccionada  '
+          credentialSubject: {
+            institutionName: '  Universidad Seleccionada  '
+          }
         })}
       />
     );
@@ -211,7 +304,9 @@ describe('CredentialDetailView institutional consistency', () => {
   it('uses issuer displayName without warning when draft institution is null', () => {
     render(
       <CredentialDetailView
-        detail={detailFixture({ draftInstitutionName: null })}
+        detail={detailFixture({
+          credentialSubject: { institutionName: null }
+        })}
       />
     );
 
@@ -241,7 +336,9 @@ describe('CredentialDetailView institutional consistency', () => {
     render(
       <CredentialDetailView
         detail={detailFixture({
-          draftInstitutionName: 'Institución Histórica'
+          credentialSubject: {
+            institutionName: 'Institución Histórica'
+          }
         })}
       />
     );
@@ -260,7 +357,9 @@ describe('CredentialDetailView institutional consistency', () => {
     render(
       <CredentialDetailView
         detail={detailFixture({
-          draftAchievementName: '  Arquitectura de Software  '
+          credentialSubject: {
+            achievementName: '  Arquitectura de Software  '
+          }
         })}
       />
     );
@@ -274,7 +373,9 @@ describe('CredentialDetailView institutional consistency', () => {
   it('keeps title usable without a draft achievement name', () => {
     render(
       <CredentialDetailView
-        detail={detailFixture({ draftAchievementName: null })}
+        detail={detailFixture({
+          credentialSubject: { achievementName: null }
+        })}
       />
     );
 
@@ -288,7 +389,9 @@ describe('CredentialDetailView institutional consistency', () => {
     render(
       <CredentialDetailView
         detail={detailFixture({
-          draftAchievementName: 'Arquitectura Aplicada'
+          credentialSubject: {
+            achievementName: 'Arquitectura Aplicada'
+          }
         })}
       />
     );
@@ -313,8 +416,10 @@ describe('CredentialDetailView read-only states', () => {
         detail={detailFixture({
           status: 'issued',
           statusLabel: 'Emitida',
-          draftAchievementName: null,
-          draftInstitutionName: null,
+          credentialSubject: {
+            achievementName: null,
+            institutionName: null
+          },
           holder: {
             displayLabel: 'Demo Holder',
             email: null,
@@ -336,5 +441,25 @@ describe('CredentialDetailView read-only states', () => {
     expect(document.body.textContent).not.toMatch(
       /F1c|F1d|contrato de detalle|readiness/i
     );
+  });
+
+  it.each([
+    ['issued', 'Emitida'],
+    ['revoked', 'Revocada']
+  ] as const)('does not render the draft editor for %s', (status, statusLabel) => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({ status, statusLabel })}
+        draftEditor={{
+          issuerReference: 'issuer-selected-reference',
+          onSave: vi.fn(),
+          onReloadLatest: vi.fn(),
+          onTerminalError: vi.fn()
+        }}
+      />
+    );
+
+    expect(screen.queryByLabelText('Nombre del logro')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Guardar cambios' })).toBeNull();
   });
 });

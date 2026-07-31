@@ -7,6 +7,20 @@ import {
 export class IssuerCredentialSubjectResponseDto {
   achievement_name!: string | null;
   institution_name!: string | null;
+  completion_date!: string | null;
+  academic_period!: string | null;
+  program_name!: string | null;
+  grade!: string | null;
+  provider_name!: string | null;
+  platform_name!: string | null;
+  modality!: string | null;
+  level!: string | null;
+  certification_code!: string | null;
+  expiration_date!: string | null;
+  external_url!: string | null;
+  skills!: string[];
+  competencies!: string[];
+  learning_outcomes!: string[];
 }
 
 export class IssuerCredentialIssuerResponseDto {
@@ -25,6 +39,8 @@ export class IssuerCredentialDetailResponseDto {
   status!: CredentialStatus;
   type!: CredentialType;
   title!: string;
+  description!: string | null;
+  hours!: string | null;
   sourceType!: CredentialSourceType;
   credentialSubject!: IssuerCredentialSubjectResponseDto;
   createdAt!: string;

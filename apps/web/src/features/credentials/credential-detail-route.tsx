@@ -24,14 +24,19 @@ import {
   CardHeader
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
 import { adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
-import { getIssuerCredentialRequest } from '@/lib/api/credentials-api';
+import {
+  getIssuerCredentialRequest,
+  patchIssuerCredentialDraftRequest
+} from '@/lib/api/credentials-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
 import type {
   CredentialFeedback,
-  IssuerCredentialDetailVM
+  IssuerCredentialDetailVM,
+  UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
 import type { IssuerMembershipSummaryVM } from '@/models/issuer-context';
 
@@ -145,23 +150,66 @@ export function CredentialDetailController({
     );
   }
 
-  return <CredentialDetailView detail={detail} />;
+  async function saveDraft(command: UpdateIssuerCredentialDraftCommand) {
+    const payload = await patchIssuerCredentialDraftRequest(
+      requestAuthenticated,
+      command
+    );
+    const adapted = adaptIssuerCredentialDetail(payload);
+    setDetail(adapted);
+    return adapted;
+  }
+
+  async function reloadLatestDraft() {
+    const payload = await getIssuerCredentialRequest(
+      requestAuthenticated,
+      membership.issuerReference,
+      credentialReference
+    );
+    const adapted = adaptIssuerCredentialDetail(payload);
+    setDetail(adapted);
+    return adapted;
+  }
+
+  return (
+    <CredentialDetailView
+      detail={detail}
+      draftEditor={{
+        issuerReference: membership.issuerReference,
+        onSave: saveDraft,
+        onReloadLatest: reloadLatestDraft,
+        onTerminalError: (feedback) => {
+          setDetail(null);
+          setError(feedback);
+        }
+      }}
+    />
+  );
 }
 
 export function CredentialDetailView({
-  detail
+  detail,
+  draftEditor
 }: {
   detail: IssuerCredentialDetailVM;
+  draftEditor?: {
+    issuerReference: string;
+    onSave(
+      command: UpdateIssuerCredentialDraftCommand
+    ): Promise<IssuerCredentialDetailVM>;
+    onReloadLatest(): Promise<IssuerCredentialDetailVM>;
+    onTerminalError(feedback: CredentialFeedback): void;
+  };
 }) {
   const isDraft = detail.status === 'draft';
   const createdAt = dateFormatter.format(new Date(detail.createdAt));
   const institutionMismatch = valuesDiffer(
     detail.issuer.displayName,
-    detail.draftInstitutionName
+    detail.credentialSubject.institutionName
   );
   const achievementMismatch = valuesDiffer(
     detail.title,
-    detail.draftAchievementName
+    detail.credentialSubject.achievementName
   );
 
   return (
@@ -223,7 +271,7 @@ export function CredentialDetailView({
                 <span className="font-semibold">
                   Institución registrada en el borrador:
                 </span>{' '}
-                {detail.draftInstitutionName}
+                {detail.credentialSubject.institutionName}
               </p>
             </FeedbackAlert>
           ) : null}
@@ -240,7 +288,7 @@ export function CredentialDetailView({
                 <span className="font-semibold">
                   Nombre registrado en el borrador:
                 </span>{' '}
-                {detail.draftAchievementName}
+                {detail.credentialSubject.achievementName}
               </p>
             </FeedbackAlert>
           ) : null}
@@ -317,6 +365,16 @@ export function CredentialDetailView({
           </Card>
         </aside>
       </div>
+
+      {isDraft && draftEditor ? (
+        <CredentialDraftEditorForm
+          detail={detail}
+          issuerReference={draftEditor.issuerReference}
+          onSave={draftEditor.onSave}
+          onReloadLatest={draftEditor.onReloadLatest}
+          onTerminalError={draftEditor.onTerminalError}
+        />
+      ) : null}
     </div>
   );
 }

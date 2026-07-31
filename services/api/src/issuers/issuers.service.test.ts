@@ -350,3 +350,81 @@ test('IssuersService rejects pending and revoked issuers for credential reads', 
     );
   }
 });
+
+test('IssuersService allows active admins and operators to update issuer drafts', async () => {
+  for (const role of [
+    IssuerMembershipRole.admin,
+    IssuerMembershipRole.operator
+  ]) {
+    const membership = createMembershipFixture({ role });
+    const { service } = createService(membership);
+
+    const result = await service.assertUserCanUpdateDraftForIssuer(
+      'issuer-user-1',
+      'issuer-1'
+    );
+
+    assert.equal(result, membership);
+  }
+});
+
+test('IssuersService rejects draft updates without membership or for an arbitrary issuer', async () => {
+  const { service } = createService(null);
+
+  await assert.rejects(
+    service.assertUserCanUpdateDraftForIssuer(
+      'issuer-user-1',
+      'issuer-arbitrary'
+    ),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked memberships for draft updates', async () => {
+  for (const status of [
+    IssuerMembershipStatus.pending,
+    IssuerMembershipStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({ status })
+    );
+
+    await assert.rejects(
+      service.assertUserCanUpdateDraftForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
+});
+
+test('IssuersService rejects viewers for draft updates', async () => {
+  const { service } = createService(
+    createMembershipFixture({ role: IssuerMembershipRole.viewer })
+  );
+
+  await assert.rejects(
+    service.assertUserCanUpdateDraftForIssuer('issuer-user-1', 'issuer-1'),
+    ForbiddenException
+  );
+});
+
+test('IssuersService rejects pending and revoked issuers for draft updates', async () => {
+  for (const authorizationStatus of [
+    IssuerAuthorizationStatus.pending,
+    IssuerAuthorizationStatus.revoked
+  ]) {
+    const { service } = createService(
+      createMembershipFixture({ authorizationStatus })
+    );
+
+    await assert.rejects(
+      service.assertUserCanUpdateDraftForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      ForbiddenException
+    );
+  }
+});

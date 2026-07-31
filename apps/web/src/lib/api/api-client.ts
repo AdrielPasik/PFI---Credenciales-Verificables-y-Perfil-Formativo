@@ -2,7 +2,7 @@ import { readClientEnv } from '@/lib/env/client-env';
 import { ApiError } from '@/lib/errors/api-error';
 
 export interface ApiRequestOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH';
   body?: unknown;
   token?: string;
   signal?: AbortSignal;

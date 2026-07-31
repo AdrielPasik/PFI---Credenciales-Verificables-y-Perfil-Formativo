@@ -10,6 +10,8 @@ import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/auth.service';
 import { IssuersModule } from '../issuers/issuers.module';
 import { CredentialsModule } from './credentials.module';
+import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft-update.controller';
+import { IssuerCredentialDraftUpdateService } from './issuer-credential-draft-update.service';
 import { IssuerCredentialReadController } from './issuer-credential-read.controller';
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
@@ -32,7 +34,12 @@ test('CredentialsModule wires issuer credential read without duplicate auth prov
   assert.equal(providers.includes(AuthService), false);
   assert.equal(providers.includes(AuthGuard), false);
   assert.equal(providers.includes(IssuerCredentialReadService), true);
+  assert.equal(providers.includes(IssuerCredentialDraftUpdateService), true);
   assert.equal(controllers.includes(IssuerCredentialReadController), true);
+  assert.equal(
+    controllers.includes(IssuerCredentialDraftUpdateController),
+    true
+  );
 
   const applicationContext = await NestFactory.createApplicationContext(
     AppModule,
@@ -45,6 +52,8 @@ test('CredentialsModule wires issuer credential read without duplicate auth prov
   try {
     assert.ok(applicationContext.get(IssuerCredentialReadController));
     assert.ok(applicationContext.get(IssuerCredentialReadService));
+    assert.ok(applicationContext.get(IssuerCredentialDraftUpdateController));
+    assert.ok(applicationContext.get(IssuerCredentialDraftUpdateService));
   } finally {
     await applicationContext.close();
   }

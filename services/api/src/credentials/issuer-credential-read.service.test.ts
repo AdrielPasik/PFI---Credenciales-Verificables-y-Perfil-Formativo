@@ -9,8 +9,10 @@ import {
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
+  Prisma,
   UserStatus
 } from '@prisma/client';
+import { issuerCredentialReadSelect } from './issuer-credential-read.mapper';
 
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
@@ -27,6 +29,8 @@ function createCredentialRecord() {
     status: CredentialStatus.draft,
     type: CredentialType.course,
     title: 'Arquitectura de Software',
+    description: 'Descripcion del curso',
+    hours: new Prisma.Decimal('24.50'),
     sourceType: CredentialSourceType.manual_issuer,
     credentialSubject: {
       achievement_name: 'Arquitectura de Software',
@@ -134,31 +138,7 @@ test('service authorizes before the issuer-scoped credential lookup', async () =
         id: 'credential-1',
         issuerId: 'issuer-1'
       },
-      select: {
-        id: true,
-        status: true,
-        type: true,
-        title: true,
-        sourceType: true,
-        credentialSubject: true,
-        createdAt: true,
-        updatedAt: true,
-        issuer: {
-          select: {
-            name: true,
-            did: true
-          }
-        },
-        subjectUser: {
-          select: {
-            email: true,
-            did: true,
-            displayName: true,
-            firstName: true,
-            lastName: true
-          }
-        }
-      }
+      select: issuerCredentialReadSelect
     }
   ]);
   assert.equal(response.id, 'credential-1');

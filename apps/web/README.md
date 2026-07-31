@@ -5,8 +5,8 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F1a/F1b y F1c incorporan los primeros flujos reales del navegador sobre la
-base F0.1:
+F1a/F1b, F1c, P1b y P3 incorporan los primeros flujos reales del navegador
+sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
 - Tailwind CSS 4 con variables CSS de Traza como fuente de tokens;
@@ -22,7 +22,9 @@ base F0.1:
 - portal emisor mínimo y protegido en cliente;
 - resolución exacta de un titular existente por email;
 - creación real de drafts dentro del issuer seleccionado;
-- detalle mínimo del draft recién creado.
+- detalle institucional seguro del draft;
+- edición manual de campos comunes y específicos por tipo con guardado
+  explícito y control de concurrencia.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -33,17 +35,18 @@ Las rutas implementadas son:
 - `/`: resolución del contexto institucional;
 - `/issuer`: portal mínimo del emisor;
 - `/issuer/credentials/new`: resolución de titular y creación de draft;
-- `/issuer/credentials/[credentialId]`: detalle mínimo del registro.
+- `/issuer/credentials/[credentialId]`: detalle y edición manual del draft.
 
 F1c obtiene la institución exclusivamente del contexto autenticado, conserva
 el ID del titular como referencia interna y no permite crear usuarios ni
-buscar por coincidencias parciales. El read genérico de credencial todavía no
-incluye un resumen seguro del titular; por eso el detalle no expone UUIDs ni
-inventa nombre, email o DID al recargar.
+buscar por coincidencias parciales. El detalle usa el read institucional
+seguro y P3 actualiza drafts mediante un PATCH sparse con el `updatedAt` de la
+última respuesta aceptada. Ninguna de estas pantallas expone UUIDs como datos
+de producto.
 
 Todavía no están implementadas la Wallet, la emisión, la carga de PDF, la
-integración IA, la evidencia blockchain ni el listado o edición de
-credenciales desde la interfaz.
+integración IA, la evidencia blockchain ni el listado de credenciales desde
+la interfaz. La edición P3 se limita a credenciales en estado `draft`.
 
 Las reglas operativas para nuevas pantallas están en
 [`frontend-ui-implementation-guidelines-v1.md`](../../docs/frontend/frontend-ui-implementation-guidelines-v1.md).

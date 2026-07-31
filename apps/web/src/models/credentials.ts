@@ -46,10 +46,30 @@ export interface CreatedCredentialDraftVM {
   status: CredentialStatus;
 }
 
+export interface IssuerCredentialSubjectVM {
+  achievementName: string | null;
+  institutionName: string | null;
+  completionDate: string | null;
+  academicPeriod: string | null;
+  programName: string | null;
+  grade: string | null;
+  providerName: string | null;
+  platformName: string | null;
+  modality: string | null;
+  level: string | null;
+  certificationCode: string | null;
+  expirationDate: string | null;
+  externalUrl: string | null;
+  skills: string[];
+  competencies: string[];
+  learningOutcomes: string[];
+}
+
 export interface IssuerCredentialDetailVM {
   credentialReference: string;
   title: string;
-  draftAchievementName: string | null;
+  description: string | null;
+  hours: string | null;
   type: CredentialType;
   typeLabel: string;
   status: CredentialStatus;
@@ -58,17 +78,46 @@ export interface IssuerCredentialDetailVM {
     displayName: string;
     did: string | null;
   };
-  draftInstitutionName: string | null;
+  credentialSubject: IssuerCredentialSubjectVM;
   holder: {
     displayLabel: string;
     email: string | null;
     did: string | null;
   };
   createdAt: string;
+  updatedAt: string;
 }
+
+export interface CredentialDraftPatchFields {
+  achievementName: string;
+  description: string | null;
+  hours: string | null;
+  type: CredentialType;
+  completionDate: string | null;
+  academicPeriod: string | null;
+  programName: string | null;
+  grade: string | null;
+  providerName: string | null;
+  platformName: string | null;
+  modality: string | null;
+  level: string | null;
+  certificationCode: string | null;
+  expirationDate: string | null;
+  externalUrl: string | null;
+  skills: string[];
+  competencies: string[];
+  learningOutcomes: string[];
+}
+
+export type UpdateIssuerCredentialDraftCommand = {
+  issuerReference: string;
+  credentialReference: string;
+  expectedUpdatedAt: string;
+} & Partial<CredentialDraftPatchFields>;
 
 export type CredentialFeedbackCode =
   | 'invalid_input'
+  | 'conflict'
   | 'not_found'
   | 'forbidden'
   | 'session_expired'

@@ -28,11 +28,29 @@ function requiredString(value: unknown): string {
 }
 
 function nullableString(value: unknown): string | null {
-  if (value === null || value === undefined) {
+  if (value === null) {
     return null;
   }
 
   return requiredString(value);
+}
+
+function stringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return value.map((entry) => requiredString(entry));
+}
+
+function isoDateTime(value: unknown): string {
+  const dateTime = requiredString(value);
+
+  if (Number.isNaN(Date.parse(dateTime))) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return dateTime;
 }
 
 function credentialStatus(value: unknown): CredentialStatus {
@@ -80,18 +98,14 @@ export function adaptIssuerCredentialDetail(
   const credentialSubject = asRecord(credential.credentialSubject);
   const issuer = asRecord(credential.issuer);
   const holder = asRecord(credential.holder);
-  const createdAt = requiredString(credential.createdAt);
-
-  if (Number.isNaN(Date.parse(createdAt))) {
-    throw new IncompatiblePayloadError();
-  }
+  const createdAt = isoDateTime(credential.createdAt);
+  const updatedAt = isoDateTime(credential.updatedAt);
 
   return {
     credentialReference: requiredString(credential.id),
     title: requiredString(credential.title),
-    draftAchievementName: nullableString(
-      credentialSubject.achievement_name
-    ),
+    description: nullableString(credential.description),
+    hours: nullableString(credential.hours),
     type,
     typeLabel: credentialTypeLabels[type],
     status,
@@ -100,15 +114,45 @@ export function adaptIssuerCredentialDetail(
       displayName: requiredString(issuer.displayName),
       did: nullableString(issuer.did)
     },
-    draftInstitutionName: nullableString(
-      credentialSubject.institution_name
-    ),
+    credentialSubject: {
+      achievementName: nullableString(
+        credentialSubject.achievement_name
+      ),
+      institutionName: nullableString(
+        credentialSubject.institution_name
+      ),
+      completionDate: nullableString(
+        credentialSubject.completion_date
+      ),
+      academicPeriod: nullableString(
+        credentialSubject.academic_period
+      ),
+      programName: nullableString(credentialSubject.program_name),
+      grade: nullableString(credentialSubject.grade),
+      providerName: nullableString(credentialSubject.provider_name),
+      platformName: nullableString(credentialSubject.platform_name),
+      modality: nullableString(credentialSubject.modality),
+      level: nullableString(credentialSubject.level),
+      certificationCode: nullableString(
+        credentialSubject.certification_code
+      ),
+      expirationDate: nullableString(
+        credentialSubject.expiration_date
+      ),
+      externalUrl: nullableString(credentialSubject.external_url),
+      skills: stringArray(credentialSubject.skills),
+      competencies: stringArray(credentialSubject.competencies),
+      learningOutcomes: stringArray(
+        credentialSubject.learning_outcomes
+      )
+    },
     holder: {
       displayLabel: requiredString(holder.displayLabel),
       email: nullableString(holder.email)?.toLowerCase() ?? null,
       did: nullableString(holder.did)
     },
-    createdAt
+    createdAt,
+    updatedAt
   };
 }
 

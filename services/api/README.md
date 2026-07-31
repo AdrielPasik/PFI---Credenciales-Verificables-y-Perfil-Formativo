@@ -22,6 +22,7 @@ POST /credentials/draft
 GET  /auth/me
 POST /issuers/:issuerId/holders/resolve
 GET  /issuers/:issuerId/credentials/:credentialId
+PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -49,9 +50,22 @@ crear un draft.
 `GET /issuers/:issuerId/credentials/:credentialId` aplica el mismo contexto
 institucional operativo antes de buscar la credencial por `credentialId` e
 `issuerId`. Devuelve un read model allowlisted con resumen humano del issuer y
-holder; no expone IDs relacionales, auth, wallet, metadata, raw data, hashes,
-blockchain ni analisis. El read generico `GET /credentials/:id` sigue
-coexistiendo sin cambios hasta la migracion frontend de P1b.
+holder, `description` nullable y `hours` como decimal string nullable; no
+expone IDs relacionales, auth, wallet, metadata, raw data, hashes, blockchain
+ni analisis. El read generico `GET /credentials/:id` sigue coexistiendo sin
+cambios.
+
+`PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
+comunes y campos controlados por `CredentialType` de una credencial `draft`.
+Requiere el `expectedUpdatedAt` exacto del read institucional, rechaza claves
+fuera de la allowlist y usa compare-and-swap atomico para evitar lost updates.
+Los campos omitidos permanecen sin cambios y los nullables se limpian segun su
+contrato. El nombre queda sincronizado entre `title` y
+`credentialSubject.achievement_name`, mientras la institucion se deriva de
+`Issuer.name`. Un cambio de tipo elimina campos controlados incompatibles,
+conserva los compatibles y preserva claves legacy sin exponerlas. La response
+issuer-facing devuelve solo la allowlist tipada. Este slice no calcula
+readiness, no emite, no llama a blockchain y no cambia `canon_v1`.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
@@ -103,6 +117,9 @@ Tests de slices:
 - `npm run test:web-cors --workspace @credential-intelligence/api`
 - `npm run test:auth --workspace @credential-intelligence/api`
 - `npm run test:holder-resolution --workspace @credential-intelligence/api`
+- `npm run test:issuer-credential-read --workspace @credential-intelligence/api`
+- `npm run test:issuer-credential-draft-update --workspace @credential-intelligence/api`
+- `npm run test:issuer-credential-type-fields --workspace @credential-intelligence/api`
 - `npm run test:protected-issuance --workspace @credential-intelligence/api`
 - `npm run test:me-wallet --workspace @credential-intelligence/api`
 - `npm run test:profiles --workspace @credential-intelligence/api`

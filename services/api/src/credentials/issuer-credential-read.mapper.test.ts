@@ -5,6 +5,7 @@ import {
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
+  Prisma,
   UserStatus
 } from '@prisma/client';
 
@@ -21,11 +22,26 @@ function createRecord(
     status: CredentialStatus.draft,
     type: CredentialType.course,
     title: 'Arquitectura de Software',
+    description: ' Descripcion del curso ',
+    hours: new Prisma.Decimal('24.50'),
     sourceType: CredentialSourceType.manual_issuer,
     credentialSubject: {
       achievement_name: 'Arquitectura de Software',
       institution_name: 'Nombre guardado en el draft',
-      skills: ['no debe exponerse'],
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      program_name: 'Ingenieria en Informatica',
+      grade: '9',
+      provider_name: 'Traza Academy',
+      platform_name: 'Campus',
+      modality: 'Hibrida',
+      level: 'Avanzado',
+      certification_code: 'CERT-001',
+      expiration_date: '2028-07-30',
+      external_url: 'https://example.com/certificate',
+      skills: [' TypeScript ', 'typescript', 42],
+      competencies: ['Diseno de sistemas'],
+      learning_outcomes: ['Construir APIs'],
       private_note: 'no debe exponerse'
     },
     createdAt: new Date('2026-07-30T12:00:00.000Z'),
@@ -82,10 +98,26 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
     status: CredentialStatus.draft,
     type: CredentialType.course,
     title: 'Arquitectura de Software',
+    description: 'Descripcion del curso',
+    hours: '24.50',
     sourceType: CredentialSourceType.manual_issuer,
     credentialSubject: {
       achievement_name: 'Arquitectura de Software',
-      institution_name: 'Nombre guardado en el draft'
+      institution_name: 'Nombre guardado en el draft',
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      program_name: 'Ingenieria en Informatica',
+      grade: '9',
+      provider_name: 'Traza Academy',
+      platform_name: 'Campus',
+      modality: 'Hibrida',
+      level: 'Avanzado',
+      certification_code: 'CERT-001',
+      expiration_date: '2028-07-30',
+      external_url: 'https://example.com/certificate',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de sistemas'],
+      learning_outcomes: ['Construir APIs']
     },
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:05:00.000Z',
@@ -195,6 +227,20 @@ test('mapper returns null for missing or non-string allowlisted subject fields',
 
   assert.deepEqual(response.credentialSubject, {
     achievement_name: null,
-    institution_name: null
+    institution_name: null,
+    completion_date: null,
+    academic_period: null,
+    program_name: null,
+    grade: null,
+    provider_name: null,
+    platform_name: null,
+    modality: null,
+    level: null,
+    certification_code: null,
+    expiration_date: null,
+    external_url: null,
+    skills: [],
+    competencies: [],
+    learning_outcomes: []
   });
 });

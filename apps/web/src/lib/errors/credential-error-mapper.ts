@@ -10,6 +10,7 @@ import type {
 type CredentialOperation =
   | 'holder-resolution'
   | 'draft-create'
+  | 'draft-update'
   | 'detail';
 
 function feedback(
@@ -76,6 +77,13 @@ export function mapCredentialError(
     return feedback(
       'not_found',
       'No encontramos la credencial solicitada.'
+    );
+  }
+
+  if (error.status === 409 && operation === 'draft-update') {
+    return feedback(
+      'conflict',
+      'Este borrador fue actualizado desde otra sesión.'
     );
   }
 

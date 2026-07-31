@@ -15,46 +15,50 @@ import {
 } from '@prisma/client';
 
 import { AuthGuard } from '../auth/auth.guard';
-import { IssuerCredentialReadController } from './issuer-credential-read.controller';
+import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft-update.controller';
 
-test('issuer credential read route is GET /issuers/:issuerId/credentials/:credentialId and requires AuthGuard', () => {
+test('draft update route is PATCH /issuers/:issuerId/credentials/:credentialId/draft and requires AuthGuard', () => {
   const controllerPath = Reflect.getMetadata(
     PATH_METADATA,
-    IssuerCredentialReadController
+    IssuerCredentialDraftUpdateController
   );
   const methodPath = Reflect.getMetadata(
     PATH_METADATA,
-    IssuerCredentialReadController.prototype.getCredential
+    IssuerCredentialDraftUpdateController.prototype.updateDraft
   );
   const requestMethod = Reflect.getMetadata(
     METHOD_METADATA,
-    IssuerCredentialReadController.prototype.getCredential
+    IssuerCredentialDraftUpdateController.prototype.updateDraft
   );
   const guards = Reflect.getMetadata(
     GUARDS_METADATA,
-    IssuerCredentialReadController.prototype.getCredential
+    IssuerCredentialDraftUpdateController.prototype.updateDraft
   ) as unknown[];
 
   assert.equal(controllerPath, 'issuers/:issuerId/credentials');
-  assert.equal(methodPath, ':credentialId');
-  assert.equal(requestMethod, RequestMethod.GET);
+  assert.equal(methodPath, ':credentialId/draft');
+  assert.equal(requestMethod, RequestMethod.PATCH);
   assert.deepEqual(guards, [AuthGuard]);
 });
 
-test('controller delegates path references and current user and preserves the safe DTO', async () => {
+test('controller delegates path params, body and current user and returns the safe read model', async () => {
   const calls: Array<Record<string, unknown>> = [];
   const currentUser = {
     id: 'issuer-user-1',
     email: 'issuer.admin@example.com',
-    did: 'did:example:issuer-admin-demo',
+    did: null,
     status: UserStatus.active
+  };
+  const body = {
+    expectedUpdatedAt: '2026-07-30T12:05:00.000Z',
+    achievementName: 'Arquitectura de Software'
   };
   const expectedResponse = {
     id: 'credential-1',
     status: CredentialStatus.draft,
     type: CredentialType.course,
     title: 'Arquitectura de Software',
-    description: 'Descripcion del curso',
+    description: null,
     hours: '24.50',
     sourceType: CredentialSourceType.manual_issuer,
     credentialSubject: {
@@ -76,31 +80,33 @@ test('controller delegates path references and current user and preserves the sa
       learning_outcomes: ['Construir APIs']
     },
     createdAt: '2026-07-30T12:00:00.000Z',
-    updatedAt: '2026-07-30T12:05:00.000Z',
+    updatedAt: '2026-07-30T12:06:00.000Z',
     issuer: {
       displayName: 'Demo University',
-      did: 'did:example:issuer-demo'
+      did: null
     },
     holder: {
       displayLabel: 'Demo Holder',
-      email: 'holder.demo@example.com',
+      email: null,
       did: null
     }
   };
-  const controller = new IssuerCredentialReadController({
-    async getCredentialForIssuer(
+  const controller = new IssuerCredentialDraftUpdateController({
+    async updateDraftForIssuer(
       issuerId: string,
       credentialId: string,
+      dto: Record<string, unknown>,
       authenticatedUser: Record<string, unknown>
     ) {
-      calls.push({ issuerId, credentialId, currentUser: authenticatedUser });
+      calls.push({ issuerId, credentialId, dto, currentUser: authenticatedUser });
       return expectedResponse;
     }
   } as never);
 
-  const response = await controller.getCredential(
+  const response = await controller.updateDraft(
     'issuer-1',
     'credential-1',
+    body,
     currentUser
   );
 
@@ -108,6 +114,7 @@ test('controller delegates path references and current user and preserves the sa
     {
       issuerId: 'issuer-1',
       credentialId: 'credential-1',
+      dto: body,
       currentUser
     }
   ]);

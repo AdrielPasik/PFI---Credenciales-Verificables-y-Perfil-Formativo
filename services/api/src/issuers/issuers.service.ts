@@ -41,6 +41,14 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanUpdateDraftForIssuer(userId: string, issuerId: string) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'actualizar borradores'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

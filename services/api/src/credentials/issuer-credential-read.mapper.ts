@@ -8,11 +8,44 @@ import {
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
 import { IssuerCredentialDetailResponseDto } from './dto/issuer-credential-detail-response.dto';
 
+export const issuerCredentialReadSelect = {
+  id: true,
+  status: true,
+  type: true,
+  title: true,
+  description: true,
+  hours: true,
+  sourceType: true,
+  credentialSubject: true,
+  createdAt: true,
+  updatedAt: true,
+  issuer: {
+    select: {
+      name: true,
+      did: true
+    }
+  },
+  subjectUser: {
+    select: {
+      email: true,
+      did: true,
+      displayName: true,
+      firstName: true,
+      lastName: true
+    }
+  }
+} as const;
+
 export interface IssuerCredentialReadRecord {
   id: string;
   status: CredentialStatus;
   type: CredentialType;
   title: string;
+  description: string | null;
+  hours: {
+    toFixed: (fractionDigits?: number) => string;
+    toString: () => string;
+  } | null;
   sourceType: CredentialSourceType;
   credentialSubject: Prisma.JsonValue;
   createdAt: Date;
@@ -43,6 +76,8 @@ export function mapIssuerCredentialReadModel(
     status: credential.status,
     type: credential.type,
     title: credential.title,
+    description: normalizeOptionalText(credential.description),
+    hours: credential.hours?.toFixed(2) ?? null,
     sourceType: credential.sourceType,
     credentialSubject: {
       achievement_name: readAllowedText(
@@ -52,6 +87,38 @@ export function mapIssuerCredentialReadModel(
       institution_name: readAllowedText(
         credentialSubject,
         'institution_name'
+      ),
+      completion_date: readAllowedText(
+        credentialSubject,
+        'completion_date'
+      ),
+      academic_period: readAllowedText(
+        credentialSubject,
+        'academic_period'
+      ),
+      program_name: readAllowedText(credentialSubject, 'program_name'),
+      grade: readAllowedText(credentialSubject, 'grade'),
+      provider_name: readAllowedText(credentialSubject, 'provider_name'),
+      platform_name: readAllowedText(credentialSubject, 'platform_name'),
+      modality: readAllowedText(credentialSubject, 'modality'),
+      level: readAllowedText(credentialSubject, 'level'),
+      certification_code: readAllowedText(
+        credentialSubject,
+        'certification_code'
+      ),
+      expiration_date: readAllowedText(
+        credentialSubject,
+        'expiration_date'
+      ),
+      external_url: readAllowedText(credentialSubject, 'external_url'),
+      skills: readAllowedStringArray(credentialSubject, 'skills'),
+      competencies: readAllowedStringArray(
+        credentialSubject,
+        'competencies'
+      ),
+      learning_outcomes: readAllowedStringArray(
+        credentialSubject,
+        'learning_outcomes'
       )
     },
     createdAt: credential.createdAt.toISOString(),
@@ -83,10 +150,53 @@ function toJsonObject(value: Prisma.JsonValue): Record<string, Prisma.JsonValue>
 
 function readAllowedText(
   source: Record<string, Prisma.JsonValue>,
-  key: 'achievement_name' | 'institution_name'
+  key:
+    | 'achievement_name'
+    | 'institution_name'
+    | 'completion_date'
+    | 'academic_period'
+    | 'program_name'
+    | 'grade'
+    | 'provider_name'
+    | 'platform_name'
+    | 'modality'
+    | 'level'
+    | 'certification_code'
+    | 'expiration_date'
+    | 'external_url'
 ): string | null {
   const value = source[key];
   return typeof value === 'string' ? normalizeOptionalText(value) : null;
+}
+
+function readAllowedStringArray(
+  source: Record<string, Prisma.JsonValue>,
+  key: 'skills' | 'competencies' | 'learning_outcomes'
+) {
+  const value = source[key];
+
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const result: string[] = [];
+  const seen = new Set<string>();
+
+  for (const entry of value) {
+    if (typeof entry !== 'string') {
+      continue;
+    }
+
+    const normalized = entry.trim().replace(/\s+/g, ' ');
+    const comparisonKey = normalized.toLocaleLowerCase('en-US');
+
+    if (normalized && !seen.has(comparisonKey)) {
+      seen.add(comparisonKey);
+      result.push(normalized);
+    }
+  }
+
+  return result;
 }
 
 function normalizeOptionalText(value: string | null): string | null {

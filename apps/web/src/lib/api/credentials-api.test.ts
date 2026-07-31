@@ -3,8 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createCredentialDraftRequest,
   getIssuerCredentialRequest,
+  patchIssuerCredentialDraftRequest,
   resolveHolderRequest
 } from '@/lib/api/credentials-api';
+import type { UpdateIssuerCredentialDraftCommand } from '@/models/credentials';
 
 describe('credentials API', () => {
   it('resolves a holder by exact email within the selected issuer path', async () => {
@@ -88,5 +90,41 @@ describe('credentials API', () => {
       '/issuers/issuer%20selected%20reference/credentials/credential%20internal%20reference'
     );
     expect(requestAuthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it('patches the encoded issuer draft with a top-level allowlisted body', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+    const command: UpdateIssuerCredentialDraftCommand & {
+      credentialSubject: { forbidden: boolean };
+    } = {
+      issuerReference: 'issuer selected reference',
+      credentialReference: 'credential internal reference',
+      expectedUpdatedAt: '2026-07-30T12:00:00.000Z',
+      achievementName: 'Arquitectura Aplicada',
+      providerName: 'Instituto Demo',
+      skills: [],
+      credentialSubject: { forbidden: true }
+    };
+
+    await patchIssuerCredentialDraftRequest(requestAuthenticated, command);
+
+    expect(requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer%20selected%20reference/credentials/credential%20internal%20reference/draft',
+      {
+        method: 'PATCH',
+        body: {
+          expectedUpdatedAt: '2026-07-30T12:00:00.000Z',
+          achievementName: 'Arquitectura Aplicada',
+          providerName: 'Instituto Demo',
+          skills: []
+        }
+      }
+    );
+    const body = requestAuthenticated.mock.calls[0]?.[1]?.body;
+    expect(body).not.toHaveProperty('issuerReference');
+    expect(body).not.toHaveProperty('credentialReference');
+    expect(body).not.toHaveProperty('issuerId');
+    expect(body).not.toHaveProperty('subjectUserId');
+    expect(body).not.toHaveProperty('credentialSubject');
   });
 });

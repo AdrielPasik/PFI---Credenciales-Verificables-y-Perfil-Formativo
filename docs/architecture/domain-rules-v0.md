@@ -171,11 +171,50 @@ Requiere:
 - puede motivar constraints adicionales en schema mas adelante si la logica queda estable;
 - evita APIs ambiguas entre borrador, emision y revocacion.
 
-## 11. Que no decidir todavia
+## 11. Campos controlados de Credential por tipo
+
+P2b1 define un contrato v0 de edicion de drafts para los tipos existentes:
+`academic_subject`, `course`, `certification` y `degree`. No agrega tipos ni
+modifica Prisma.
+
+Reglas transversales:
+
+- `title` y `credentialSubject.achievement_name` permanecen sincronizados;
+- `credentialSubject.institution_name` siempre se deriva de `Issuer.name`;
+- los campos especificos se aceptan solo cuando aplican al tipo final;
+- cambiar el tipo elimina campos controlados incompatibles y conserva los
+  compatibles;
+- claves legacy desconocidas se preservan en DB, pero no pueden entrar por el
+  PATCH ni salir por el read model issuer-facing;
+- strings controlados usan maximo 255 caracteres;
+- `external_url` usa HTTP/HTTPS y maximo 2048 caracteres;
+- arrays controlados usan hasta 30 strings de hasta 80 caracteres;
+- `completion_date` y `expiration_date` son fechas reales `YYYY-MM-DD`, y la
+  expiracion no puede ser anterior a la finalizacion;
+- toda actualizacion sigue siendo exclusiva de `draft` y participa del CAS
+  atomico por `updatedAt`.
+
+Aplicabilidad:
+
+| Tipo | Campos especificos |
+| --- | --- |
+| `academic_subject` | `completion_date`, `academic_period`, `program_name`, `grade`, `skills`, `competencies` |
+| `course` | `completion_date`, `provider_name`, `platform_name`, `modality`, `level`, `skills`, `competencies`, `learning_outcomes` |
+| `certification` | `completion_date`, `certification_code`, `expiration_date`, `external_url`, `provider_name`, `level`, `skills`, `competencies` |
+| `degree` | `completion_date`, `program_name`, `level`, `grade`, `competencies`, `learning_outcomes` |
+
+Estas reglas no representan readiness ni requisitos suficientes de emision.
+Los campos `program_name`, `provider_name`, `platform_name`, `modality`,
+`level`, `certification_code`, `expiration_date`, `external_url` y
+`learning_outcomes` no participan actualmente en `canon_v1`. Antes de P7 debe
+decidirse si permanecen como metadata no canonica o requieren una nueva
+version de canonicalizacion.
+
+## 12. Que no decidir todavia
 
 Por ahora no se decide:
 
-- normalizar `skills`, `areas` o `concepts`;
+- normalizar `areas` o `concepts` provenientes de IA fuera de sus artifacts;
 - agregar jobs de IA;
 - separar `SharingGrant` en multiples tablas;
 - agregar soft delete global;

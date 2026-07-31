@@ -7,21 +7,44 @@ import {
 } from '@/lib/adapters/credentials.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
+function credentialSubjectPayload(
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    achievement_name: 'Arquitectura de Software',
+    institution_name: 'Universidad Demo',
+    completion_date: '2026-07-25',
+    academic_period: '2026-1',
+    program_name: 'Ingeniería Informática',
+    grade: '9',
+    provider_name: null,
+    platform_name: null,
+    modality: null,
+    level: null,
+    certification_code: null,
+    expiration_date: null,
+    external_url: null,
+    skills: ['Diseño de software'],
+    competencies: ['Arquitectura'],
+    learning_outcomes: [],
+    ...overrides
+  };
+}
+
 function issuerCredentialPayload(
   overrides: Record<string, unknown> = {}
 ) {
   return {
     id: 'credential-internal-reference',
     title: 'Arquitectura de Software',
+    description: 'Diseño y evolución de sistemas.',
+    hours: '48.00',
     type: 'academic_subject',
     sourceType: 'manual_issuer',
     status: 'draft',
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:00:00.000Z',
-    credentialSubject: {
-      achievement_name: 'Arquitectura de Software',
-      institution_name: 'Universidad Demo'
-    },
+    credentialSubject: credentialSubjectPayload(),
     issuer: {
       displayName: 'Universidad Demo',
       did: 'did:example:issuer'
@@ -103,7 +126,8 @@ describe('credential adapters', () => {
     ).toEqual({
       credentialReference: 'credential-internal-reference',
       title: 'Arquitectura de Software',
-      draftAchievementName: 'Arquitectura de Software',
+      description: 'Diseño y evolución de sistemas.',
+      hours: '48.00',
       type: 'academic_subject',
       typeLabel: 'Asignatura académica',
       status: 'draft',
@@ -112,23 +136,43 @@ describe('credential adapters', () => {
         displayName: 'Universidad Demo',
         did: 'did:example:issuer'
       },
-      draftInstitutionName: 'Universidad Demo',
+      credentialSubject: {
+        achievementName: 'Arquitectura de Software',
+        institutionName: 'Universidad Demo',
+        completionDate: '2026-07-25',
+        academicPeriod: '2026-1',
+        programName: 'Ingeniería Informática',
+        grade: '9',
+        providerName: null,
+        platformName: null,
+        modality: null,
+        level: null,
+        certificationCode: null,
+        expirationDate: null,
+        externalUrl: null,
+        skills: ['Diseño de software'],
+        competencies: ['Arquitectura'],
+        learningOutcomes: []
+      },
       holder: {
         displayLabel: 'Demo Holder',
         email: 'holder@example.com',
         did: 'did:example:holder'
       },
-      createdAt: '2026-07-30T12:00:00.000Z'
+      createdAt: '2026-07-30T12:00:00.000Z',
+      updatedAt: '2026-07-30T12:00:00.000Z'
     });
   });
 
   it('preserves nullable draft, issuer and holder values', () => {
     const detail = adaptIssuerCredentialDetail(
       issuerCredentialPayload({
-        credentialSubject: {
+        description: null,
+        hours: null,
+        credentialSubject: credentialSubjectPayload({
           achievement_name: null,
           institution_name: null
-        },
+        }),
         issuer: {
           displayName: 'Universidad Demo',
           did: null
@@ -142,11 +186,77 @@ describe('credential adapters', () => {
     );
 
     expect(detail).toMatchObject({
-      draftAchievementName: null,
-      draftInstitutionName: null,
+      description: null,
+      hours: null,
+      credentialSubject: {
+        achievementName: null,
+        institutionName: null
+      },
       issuer: { did: null },
       holder: { email: null, did: null }
     });
+  });
+
+  it('adapts every controlled subject field and keeps arrays as strings', () => {
+    const detail = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        type: 'course',
+        credentialSubject: credentialSubjectPayload({
+          completion_date: '2026-07-25',
+          academic_period: null,
+          program_name: null,
+          grade: null,
+          provider_name: 'Instituto Demo',
+          platform_name: 'Campus Virtual',
+          modality: 'Híbrida',
+          level: 'Intermedio',
+          skills: ['Arquitectura', 'Testing'],
+          competencies: ['Diseño'],
+          learning_outcomes: ['Documentar decisiones']
+        })
+      })
+    );
+
+    expect(detail.credentialSubject).toEqual({
+      achievementName: 'Arquitectura de Software',
+      institutionName: 'Universidad Demo',
+      completionDate: '2026-07-25',
+      academicPeriod: null,
+      programName: null,
+      grade: null,
+      providerName: 'Instituto Demo',
+      platformName: 'Campus Virtual',
+      modality: 'Híbrida',
+      level: 'Intermedio',
+      certificationCode: null,
+      expirationDate: null,
+      externalUrl: null,
+      skills: ['Arquitectura', 'Testing'],
+      competencies: ['Diseño'],
+      learningOutcomes: ['Documentar decisiones']
+    });
+  });
+
+  it('rejects missing or non-string controlled arrays', () => {
+    expect(() =>
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({
+          credentialSubject: credentialSubjectPayload({
+            skills: undefined
+          })
+        })
+      )
+    ).toThrow(IncompatiblePayloadError);
+
+    expect(() =>
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({
+          credentialSubject: credentialSubjectPayload({
+            skills: ['Arquitectura', 7]
+          })
+        })
+      )
+    ).toThrow(IncompatiblePayloadError);
   });
 
   it('maps every supported credential type to its human label', () => {
@@ -203,6 +313,14 @@ describe('credential adapters', () => {
     expect(() =>
       adaptIssuerCredentialDetail(
         issuerCredentialPayload({ createdAt: 'not-a-date' })
+      )
+    ).toThrow(IncompatiblePayloadError);
+  });
+
+  it('rejects an invalid detail update date', () => {
+    expect(() =>
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ updatedAt: 'not-a-date' })
       )
     ).toThrow(IncompatiblePayloadError);
   });

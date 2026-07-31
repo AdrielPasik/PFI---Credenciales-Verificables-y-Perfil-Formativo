@@ -48,4 +48,17 @@ describe('mapCredentialError', () => {
       ).code
     ).toBe('incompatible_response');
   });
+
+  it('maps draft update conflicts without exposing the upstream detail', () => {
+    const result = mapCredentialError(
+      new ApiError('private concurrency detail', 'http', 409),
+      'draft-update'
+    );
+
+    expect(result).toEqual({
+      code: 'conflict',
+      message: 'Este borrador fue actualizado desde otra sesión.'
+    });
+    expect(result.message).not.toContain('private');
+  });
 });

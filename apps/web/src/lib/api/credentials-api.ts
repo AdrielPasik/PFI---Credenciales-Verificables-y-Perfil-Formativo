@@ -1,8 +1,31 @@
 import type { AuthenticatedApiRequest } from '@/lib/api/api-client';
 import type {
+  CredentialDraftPatchFields,
   CreateCredentialDraftCommand,
-  HolderResolutionCommand
+  HolderResolutionCommand,
+  UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
+
+const credentialDraftPatchFields = [
+  'achievementName',
+  'description',
+  'hours',
+  'type',
+  'completionDate',
+  'academicPeriod',
+  'programName',
+  'grade',
+  'providerName',
+  'platformName',
+  'modality',
+  'level',
+  'certificationCode',
+  'expirationDate',
+  'externalUrl',
+  'skills',
+  'competencies',
+  'learningOutcomes'
+] as const satisfies readonly (keyof CredentialDraftPatchFields)[];
 
 export function resolveHolderRequest(
   requestAuthenticated: AuthenticatedApiRequest,
@@ -46,5 +69,28 @@ export function getIssuerCredentialRequest(
 ) {
   return requestAuthenticated(
     `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}`
+  );
+}
+
+export function patchIssuerCredentialDraftRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: UpdateIssuerCredentialDraftCommand
+) {
+  const body: Record<string, unknown> = {
+    expectedUpdatedAt: command.expectedUpdatedAt
+  };
+
+  for (const field of credentialDraftPatchFields) {
+    if (Object.prototype.hasOwnProperty.call(command, field)) {
+      body[field] = command[field];
+    }
+  }
+
+  return requestAuthenticated(
+    `/issuers/${encodeURIComponent(command.issuerReference)}/credentials/${encodeURIComponent(command.credentialReference)}/draft`,
+    {
+      method: 'PATCH',
+      body
+    }
   );
 }
