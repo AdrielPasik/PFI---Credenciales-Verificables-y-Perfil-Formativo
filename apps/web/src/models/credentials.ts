@@ -40,15 +40,30 @@ export interface CreateCredentialDraftCommand {
 
 export type CredentialStatus = 'draft' | 'issued' | 'revoked';
 
-export interface IssuerCredentialDetailVM {
+export interface CreatedCredentialDraftVM {
   credentialReference: string;
   issuerReference: string;
+  status: CredentialStatus;
+}
+
+export interface IssuerCredentialDetailVM {
+  credentialReference: string;
   title: string;
+  draftAchievementName: string | null;
   type: CredentialType;
   typeLabel: string;
   status: CredentialStatus;
   statusLabel: string;
-  institutionName: string | null;
+  issuer: {
+    displayName: string;
+    did: string | null;
+  };
+  draftInstitutionName: string | null;
+  holder: {
+    displayLabel: string;
+    email: string | null;
+    did: string | null;
+  };
   createdAt: string;
 }
 

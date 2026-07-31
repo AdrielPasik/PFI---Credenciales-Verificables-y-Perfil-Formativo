@@ -39,11 +39,12 @@ export function createCredentialDraftRequest(
   });
 }
 
-export function getCredentialRequest(
+export function getIssuerCredentialRequest(
   requestAuthenticated: AuthenticatedApiRequest,
+  issuerReference: string,
   credentialReference: string
 ) {
   return requestAuthenticated(
-    `/credentials/${encodeURIComponent(credentialReference)}`
+    `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}`
   );
 }

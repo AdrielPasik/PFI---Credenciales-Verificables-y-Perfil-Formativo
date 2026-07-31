@@ -1,10 +1,39 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  adaptCreatedCredentialDraft,
   adaptHolderResolution,
   adaptIssuerCredentialDetail
 } from '@/lib/adapters/credentials.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
+
+function issuerCredentialPayload(
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    id: 'credential-internal-reference',
+    title: 'Arquitectura de Software',
+    type: 'academic_subject',
+    sourceType: 'manual_issuer',
+    status: 'draft',
+    createdAt: '2026-07-30T12:00:00.000Z',
+    updatedAt: '2026-07-30T12:00:00.000Z',
+    credentialSubject: {
+      achievement_name: 'Arquitectura de Software',
+      institution_name: 'Universidad Demo'
+    },
+    issuer: {
+      displayName: 'Universidad Demo',
+      did: 'did:example:issuer'
+    },
+    holder: {
+      displayLabel: 'Demo Holder',
+      email: 'HOLDER@EXAMPLE.COM',
+      did: 'did:example:holder'
+    },
+    ...overrides
+  };
+}
 
 describe('credential adapters', () => {
   it('adapts a holder response and discards extra fields', () => {
@@ -47,35 +76,76 @@ describe('credential adapters', () => {
     ).toThrow(IncompatiblePayloadError);
   });
 
-  it('adapts a draft/detail response through a strict allowlist', () => {
+  it('adapts a created draft response for redirect without exposing raw fields', () => {
     expect(
-      adaptIssuerCredentialDetail({
+      adaptCreatedCredentialDraft({
         id: 'credential-internal-reference',
         issuerId: 'issuer-internal-reference',
-        subjectUserId: 'holder-must-not-reach-view-model',
-        title: 'Arquitectura de Software',
-        type: 'academic_subject',
         status: 'draft',
-        createdAt: '2026-07-30T12:00:00.000Z',
-        credentialSubject: {
-          achievement_name: 'Arquitectura de Software',
-          institution_name: 'Universidad Demo',
-          unknown_private_field: 'must-not-leak'
-        },
+        subjectUserId: 'must-not-leak',
+        canonicalHash: 'must-not-leak'
+      })
+    ).toEqual({
+      credentialReference: 'credential-internal-reference',
+      issuerReference: 'issuer-internal-reference',
+      status: 'draft'
+    });
+  });
+
+  it('adapts the issuer-scoped detail through a strict allowlist', () => {
+    expect(
+      adaptIssuerCredentialDetail({
+        ...issuerCredentialPayload(),
         metadata: { internal: true },
         canonicalHash: 'must-not-leak',
         latestBlockchainRecord: { txHash: 'must-not-leak' }
       })
     ).toEqual({
       credentialReference: 'credential-internal-reference',
-      issuerReference: 'issuer-internal-reference',
       title: 'Arquitectura de Software',
+      draftAchievementName: 'Arquitectura de Software',
       type: 'academic_subject',
       typeLabel: 'Asignatura académica',
       status: 'draft',
       statusLabel: 'Borrador',
-      institutionName: 'Universidad Demo',
+      issuer: {
+        displayName: 'Universidad Demo',
+        did: 'did:example:issuer'
+      },
+      draftInstitutionName: 'Universidad Demo',
+      holder: {
+        displayLabel: 'Demo Holder',
+        email: 'holder@example.com',
+        did: 'did:example:holder'
+      },
       createdAt: '2026-07-30T12:00:00.000Z'
+    });
+  });
+
+  it('preserves nullable draft, issuer and holder values', () => {
+    const detail = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        credentialSubject: {
+          achievement_name: null,
+          institution_name: null
+        },
+        issuer: {
+          displayName: 'Universidad Demo',
+          did: null
+        },
+        holder: {
+          displayLabel: 'Demo Holder',
+          email: null,
+          did: null
+        }
+      })
+    );
+
+    expect(detail).toMatchObject({
+      draftAchievementName: null,
+      draftInstitutionName: null,
+      issuer: { did: null },
+      holder: { email: null, did: null }
     });
   });
 
@@ -87,30 +157,21 @@ describe('credential adapters', () => {
       ['degree', 'Título académico']
     ] as const) {
       expect(
-        adaptIssuerCredentialDetail({
-          id: `credential-${type}`,
-          issuerId: 'issuer-internal-reference',
-          title: 'Logro',
-          type,
-          status: 'draft',
-          createdAt: '2026-07-30T12:00:00.000Z',
-          credentialSubject: {}
-        })
+        adaptIssuerCredentialDetail(
+          issuerCredentialPayload({
+            id: `credential-${type}`,
+            type
+          })
+        )
       ).toMatchObject({ type, typeLabel });
     }
   });
 
   it('rejects an unknown credential type', () => {
     expect(() =>
-      adaptIssuerCredentialDetail({
-        id: 'credential-internal-reference',
-        issuerId: 'issuer-internal-reference',
-        title: 'Logro',
-        type: 'microcredential',
-        status: 'draft',
-        createdAt: '2026-07-30T12:00:00.000Z',
-        credentialSubject: {}
-      })
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ type: 'microcredential' })
+      )
     ).toThrow(IncompatiblePayloadError);
   });
 
@@ -120,46 +181,29 @@ describe('credential adapters', () => {
       ['revoked', 'Revocada']
     ] as const) {
       expect(
-        adaptIssuerCredentialDetail({
-          id: `credential-${status}`,
-          issuerId: 'issuer-internal-reference',
-          title: 'Logro',
-          type: 'course',
-          status,
-          createdAt: '2026-07-30T12:00:00.000Z',
-          credentialSubject: {
-            institution_name: 'Universidad Demo'
-          }
-        })
+        adaptIssuerCredentialDetail(
+          issuerCredentialPayload({
+            id: `credential-${status}`,
+            status
+          })
+        )
       ).toMatchObject({ status, statusLabel });
     }
   });
 
   it('rejects unknown credential statuses', () => {
     expect(() =>
-      adaptIssuerCredentialDetail({
-        id: 'credential-internal-reference',
-        issuerId: 'issuer-internal-reference',
-        title: 'Logro',
-        type: 'course',
-        status: 'processing',
-        createdAt: '2026-07-30T12:00:00.000Z',
-        credentialSubject: {}
-      })
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ status: 'processing' })
+      )
     ).toThrow(IncompatiblePayloadError);
   });
 
   it('rejects an invalid detail creation date', () => {
     expect(() =>
-      adaptIssuerCredentialDetail({
-        id: 'credential-internal-reference',
-        issuerId: 'issuer-internal-reference',
-        title: 'Logro',
-        type: 'course',
-        status: 'draft',
-        createdAt: 'not-a-date',
-        credentialSubject: {}
-      })
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ createdAt: 'not-a-date' })
+      )
     ).toThrow(IncompatiblePayloadError);
   });
 });

@@ -26,7 +26,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
 import { adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
-import { getCredentialRequest } from '@/lib/api/credentials-api';
+import { getIssuerCredentialRequest } from '@/lib/api/credentials-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
 import type {
@@ -79,23 +79,12 @@ export function CredentialDetailController({
       setError(null);
 
       try {
-        const payload = await getCredentialRequest(
+        const payload = await getIssuerCredentialRequest(
           requestAuthenticated,
+          membership.issuerReference,
           credentialReference
         );
         const adapted = adaptIssuerCredentialDetail(payload);
-
-        if (adapted.issuerReference !== membership.issuerReference) {
-          if (active) {
-            setDetail(null);
-            setError({
-              code: 'forbidden',
-              message:
-                'La credencial no pertenece al contexto institucional activo.'
-            });
-          }
-          return;
-        }
 
         if (active) {
           setDetail(adapted);
@@ -166,6 +155,14 @@ export function CredentialDetailView({
 }) {
   const isDraft = detail.status === 'draft';
   const createdAt = dateFormatter.format(new Date(detail.createdAt));
+  const institutionMismatch = valuesDiffer(
+    detail.issuer.displayName,
+    detail.draftInstitutionName
+  );
+  const achievementMismatch = valuesDiffer(
+    detail.title,
+    detail.draftAchievementName
+  );
 
   return (
     <div className="grid gap-8">
@@ -211,6 +208,45 @@ export function CredentialDetailView({
         </FeedbackAlert>
       ) : null}
 
+      {institutionMismatch || achievementMismatch ? (
+        <section aria-label="Advertencias de consistencia" className="grid gap-4">
+          {institutionMismatch ? (
+            <FeedbackAlert
+              variant="warning"
+              title="Revisá la institución del borrador"
+            >
+              <p>
+                La institución registrada en el borrador no coincide con el
+                contexto institucional actual.
+              </p>
+              <p className="mt-2">
+                <span className="font-semibold">
+                  Institución registrada en el borrador:
+                </span>{' '}
+                {detail.draftInstitutionName}
+              </p>
+            </FeedbackAlert>
+          ) : null}
+          {achievementMismatch ? (
+            <FeedbackAlert
+              variant="warning"
+              title="Revisá el nombre del logro"
+            >
+              <p>
+                El nombre registrado en el borrador no coincide con el título
+                principal de la credencial.
+              </p>
+              <p className="mt-2">
+                <span className="font-semibold">
+                  Nombre registrado en el borrador:
+                </span>{' '}
+                {detail.draftAchievementName}
+              </p>
+            </FeedbackAlert>
+          ) : null}
+        </section>
+      ) : null}
+
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
         <Card className="overflow-hidden border-border-strong">
           <div aria-hidden="true" className="h-1 bg-brand-700" />
@@ -224,12 +260,6 @@ export function CredentialDetailView({
           </CardHeader>
           <CardContent className="grid gap-5 sm:px-8 sm:pb-8">
             <DetailRow
-              icon={Landmark}
-              label="Nombre del logro"
-              value={detail.title}
-            />
-            <Separator />
-            <DetailRow
               icon={Tags}
               label="Tipo de credencial"
               value={detail.typeLabel}
@@ -237,17 +267,18 @@ export function CredentialDetailView({
             <Separator />
             <DetailRow
               icon={Building2}
-              label="Institución"
-              value={
-                detail.institutionName ?? 'Institución no disponible'
+              label="Institución emisora"
+              value={detail.issuer.displayName}
+              description={
+                detail.issuer.did ?? 'DID institucional no disponible'
               }
             />
             <Separator />
             <DetailRow
               icon={UserRound}
               label="Titular"
-              value="Titular asociado"
-              description="La información detallada del titular no está disponible en esta vista."
+              value={detail.holder.displayLabel}
+              description={holderDescription(detail.holder)}
             />
             <Separator />
             <DetailRow
@@ -288,6 +319,23 @@ export function CredentialDetailView({
       </div>
     </div>
   );
+}
+
+function valuesDiffer(
+  authoritativeValue: string,
+  draftValue: string | null
+) {
+  return (
+    draftValue !== null &&
+    authoritativeValue.trim() !== draftValue.trim()
+  );
+}
+
+function holderDescription(holder: IssuerCredentialDetailVM['holder']) {
+  const email = holder.email ?? 'Email no disponible';
+  const did = holder.did ?? 'DID no disponible';
+
+  return `${email} · ${did}`;
 }
 
 function DetailRow({

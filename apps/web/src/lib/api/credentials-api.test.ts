@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createCredentialDraftRequest,
-  getCredentialRequest,
+  getIssuerCredentialRequest,
   resolveHolderRequest
 } from '@/lib/api/credentials-api';
 
@@ -78,13 +78,15 @@ describe('credentials API', () => {
   it('loads detail by encoded resource reference using the authenticated boundary', async () => {
     const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
 
-    await getCredentialRequest(
+    await getIssuerCredentialRequest(
       requestAuthenticated,
+      'issuer selected reference',
       'credential internal reference'
     );
 
     expect(requestAuthenticated).toHaveBeenCalledWith(
-      '/credentials/credential%20internal%20reference'
+      '/issuers/issuer%20selected%20reference/credentials/credential%20internal%20reference'
     );
+    expect(requestAuthenticated).toHaveBeenCalledTimes(1);
   });
 });

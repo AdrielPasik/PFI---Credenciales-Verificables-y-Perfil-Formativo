@@ -1,8 +1,4 @@
-import {
-  render,
-  screen,
-  waitFor
-} from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -10,6 +6,7 @@ import {
   CredentialDetailView
 } from '@/features/credentials/credential-detail-route';
 import { ApiError } from '@/lib/errors/api-error';
+import type { IssuerCredentialDetailVM } from '@/models/credentials';
 
 const sessionMocks = vi.hoisted(() => ({
   requestAuthenticated: vi.fn()
@@ -35,25 +32,59 @@ const membership = {
 
 const draftResponse = {
   id: 'credential-internal-reference',
-  issuerId: 'issuer-selected-reference',
-  subjectUserId: 'holder-internal-reference',
   title: 'Arquitectura de Software',
   type: 'course',
   sourceType: 'manual_issuer',
   status: 'draft',
   createdAt: '2026-07-30T12:00:00.000Z',
+  updatedAt: '2026-07-30T12:00:00.000Z',
   credentialSubject: {
     achievement_name: 'Arquitectura de Software',
     institution_name: 'Universidad Seleccionada'
+  },
+  issuer: {
+    displayName: 'Universidad Seleccionada',
+    did: 'did:example:issuer'
+  },
+  holder: {
+    displayLabel: 'Demo Holder',
+    email: 'holder@example.com',
+    did: 'did:example:holder'
   }
 };
+
+function detailFixture(
+  overrides: Partial<IssuerCredentialDetailVM> = {}
+): IssuerCredentialDetailVM {
+  return {
+    credentialReference: 'credential-internal-reference',
+    title: 'Arquitectura de Software',
+    draftAchievementName: 'Arquitectura de Software',
+    type: 'academic_subject',
+    typeLabel: 'Asignatura académica',
+    status: 'draft',
+    statusLabel: 'Borrador',
+    issuer: {
+      displayName: 'Universidad Seleccionada',
+      did: 'did:example:issuer'
+    },
+    draftInstitutionName: 'Universidad Seleccionada',
+    holder: {
+      displayLabel: 'Demo Holder',
+      email: 'holder@example.com',
+      did: 'did:example:holder'
+    },
+    createdAt: '2026-07-30T12:00:00.000Z',
+    ...overrides
+  };
+}
 
 describe('CredentialDetailController', () => {
   beforeEach(() => {
     sessionMocks.requestAuthenticated.mockReset();
   });
 
-  it('announces loading while requesting a direct detail URL', () => {
+  it('loads the direct URL through the issuer-scoped read endpoint only', () => {
     sessionMocks.requestAuthenticated.mockReturnValue(
       new Promise(() => undefined)
     );
@@ -66,12 +97,13 @@ describe('CredentialDetailController', () => {
     );
 
     expect(screen.getByText('Cargando borrador')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
-      '/credentials/credential-internal-reference'
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
   });
 
-  it('renders a real draft and excludes technical IDs and future actions', async () => {
+  it('renders the safe institutional read model without technical IDs or future actions', async () => {
     sessionMocks.requestAuthenticated.mockResolvedValue(draftResponse);
 
     render(
@@ -87,21 +119,15 @@ describe('CredentialDetailController', () => {
       })
     ).toBeTruthy();
     expect(screen.getByText('Borrador')).toBeTruthy();
-    expect(screen.getByText('Tipo de credencial')).toBeTruthy();
     expect(screen.getByText('Curso')).toBeTruthy();
-    expect(document.body.textContent).not.toContain('course');
     expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
-    expect(screen.getByText('Titular asociado')).toBeTruthy();
+    expect(screen.getByText('did:example:issuer')).toBeTruthy();
+    expect(screen.getByText('Demo Holder')).toBeTruthy();
     expect(
-      screen.getByText(
-        'La información detallada del titular no está disponible en esta vista.'
-      )
+      screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
     expect(document.body.textContent).not.toContain(
       'credential-internal-reference'
-    );
-    expect(document.body.textContent).not.toContain(
-      'holder-internal-reference'
     );
     expect(document.body.textContent).not.toContain(
       'issuer-selected-reference'
@@ -111,8 +137,10 @@ describe('CredentialDetailController', () => {
     expect(document.body.textContent).not.toContain('Análisis IA');
     expect(document.body.textContent).not.toContain('Subir PDF');
     expect(document.body.textContent).not.toMatch(
-      /F1c|F1d|contrato de detalle/i
+      /F1c|F1d|contrato de detalle|readiness/i
     );
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated.mock.calls[0]).toHaveLength(1);
   });
 
   it('shows a controlled 404', async () => {
@@ -135,10 +163,13 @@ describe('CredentialDetailController', () => {
     );
   });
 
-  it('rejects a credential from another issuer context', async () => {
+  it('presents discrepancies without issuing a corrective request', async () => {
     sessionMocks.requestAuthenticated.mockResolvedValue({
       ...draftResponse,
-      issuerId: 'another-issuer-reference'
+      credentialSubject: {
+        achievement_name: 'Arquitectura Aplicada',
+        institution_name: 'Institución Histórica'
+      }
     });
 
     render(
@@ -150,37 +181,152 @@ describe('CredentialDetailController', () => {
 
     expect(
       await screen.findByText(
-        'La credencial no pertenece al contexto institucional activo.'
+        'La institución registrada en el borrador no coincide con el contexto institucional actual.'
       )
     ).toBeTruthy();
-    expect(
-      screen.queryByRole('heading', {
-        name: 'Arquitectura de Software'
-      })
-    ).toBeNull();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
+    );
+    expect(sessionMocks.requestAuthenticated.mock.calls[0]).toHaveLength(1);
   });
 });
 
-describe('CredentialDetailView', () => {
-  it('represents a non-draft state without inventing F1d controls', () => {
+describe('CredentialDetailView institutional consistency', () => {
+  it('shows one institution when issuer and draft values match after trim', () => {
     render(
       <CredentialDetailView
-        detail={{
-          credentialReference: 'credential-internal-reference',
-          issuerReference: 'issuer-selected-reference',
-          title: 'Arquitectura de Software',
-          type: 'academic_subject',
-          typeLabel: 'Asignatura académica',
+        detail={detailFixture({
+          draftInstitutionName: '  Universidad Seleccionada  '
+        })}
+      />
+    );
+
+    expect(screen.getAllByText('Universidad Seleccionada')).toHaveLength(1);
+    expect(
+      screen.queryByText(/institución registrada en el borrador no coincide/i)
+    ).toBeNull();
+  });
+
+  it('uses issuer displayName without warning when draft institution is null', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({ draftInstitutionName: null })}
+      />
+    );
+
+    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
+    expect(
+      screen.queryByText(/institución registrada en el borrador no coincide/i)
+    ).toBeNull();
+  });
+
+  it('shows an honest fallback when the issuer DID is unavailable', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({
+          issuer: {
+            displayName: 'Universidad Seleccionada',
+            did: null
+          }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
+    expect(screen.getByText('DID institucional no disponible')).toBeTruthy();
+  });
+
+  it('keeps issuer displayName authoritative and warns about a different draft institution', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({
+          draftInstitutionName: 'Institución Histórica'
+        })}
+      />
+    );
+
+    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'La institución registrada en el borrador no coincide con el contexto institucional actual.'
+      )
+    ).toBeTruthy();
+    expect(screen.getByText(/Institución registrada en el borrador:/)).toBeTruthy();
+    expect(screen.getByText('Institución Histórica')).toBeTruthy();
+  });
+
+  it('does not duplicate the title when the draft achievement matches', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({
+          draftAchievementName: '  Arquitectura de Software  '
+        })}
+      />
+    );
+
+    expect(screen.getAllByText('Arquitectura de Software')).toHaveLength(1);
+    expect(
+      screen.queryByText(/nombre registrado en el borrador no coincide/i)
+    ).toBeNull();
+  });
+
+  it('keeps title usable without a draft achievement name', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({ draftAchievementName: null })}
+      />
+    );
+
+    expect(screen.getByText('Arquitectura de Software')).toBeTruthy();
+    expect(
+      screen.queryByText(/nombre registrado en el borrador no coincide/i)
+    ).toBeNull();
+  });
+
+  it('keeps title authoritative and warns about a different draft achievement name', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({
+          draftAchievementName: 'Arquitectura Aplicada'
+        })}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Arquitectura de Software' })
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        'El nombre registrado en el borrador no coincide con el título principal de la credencial.'
+      )
+    ).toBeTruthy();
+    expect(screen.getByText(/Nombre registrado en el borrador:/)).toBeTruthy();
+    expect(screen.getByText('Arquitectura Aplicada')).toBeTruthy();
+  });
+});
+
+describe('CredentialDetailView read-only states', () => {
+  it('represents a non-draft state without inventing later controls', () => {
+    render(
+      <CredentialDetailView
+        detail={detailFixture({
           status: 'issued',
           statusLabel: 'Emitida',
-          institutionName: null,
-          createdAt: '2026-07-30T12:00:00.000Z'
-        }}
+          draftAchievementName: null,
+          draftInstitutionName: null,
+          holder: {
+            displayLabel: 'Demo Holder',
+            email: null,
+            did: null
+          }
+        })}
       />
     );
 
     expect(screen.getByText('Emitida')).toBeTruthy();
-    expect(screen.getByText('Institución no disponible')).toBeTruthy();
+    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
+    expect(screen.getByText('Email no disponible · DID no disponible')).toBeTruthy();
     expect(
       screen.getByText(
         'Esta credencial está disponible en modo lectura. Las acciones para este estado todavía no están disponibles.'
@@ -188,26 +334,7 @@ describe('CredentialDetailView', () => {
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Emitir' })).toBeNull();
     expect(document.body.textContent).not.toMatch(
-      /F1c|F1d|contrato de detalle/i
-    );
-  });
-
-  it('keeps the minimal record usable with holder details unavailable', async () => {
-    sessionMocks.requestAuthenticated.mockResolvedValue(draftResponse);
-
-    render(
-      <CredentialDetailController
-        credentialReference="credential-internal-reference"
-        membership={membership}
-      />
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Titular asociado')).toBeTruthy();
-    });
-    expect(document.body.textContent).not.toContain('DID inventado');
-    expect(document.body.textContent).not.toContain(
-      'holder-internal-reference'
+      /F1c|F1d|contrato de detalle|readiness/i
     );
   });
 });

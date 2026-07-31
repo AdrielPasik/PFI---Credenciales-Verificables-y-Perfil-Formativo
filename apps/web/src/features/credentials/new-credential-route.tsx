@@ -4,7 +4,10 @@ import { useRouter } from 'next/navigation';
 
 import { CredentialDraftForm } from '@/features/credentials/credential-draft-form';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
-import { adaptHolderResolution, adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
+import {
+  adaptCreatedCredentialDraft,
+  adaptHolderResolution
+} from '@/lib/adapters/credentials.adapter';
 import {
   createCredentialDraftRequest,
   resolveHolderRequest
@@ -59,7 +62,7 @@ export function NewCredentialController({
         credentialType: input.credentialType
       }
     );
-    const draft = adaptIssuerCredentialDetail(payload);
+    const draft = adaptCreatedCredentialDraft(payload);
 
     if (draft.issuerReference !== membership.issuerReference) {
       throw new ApiError(

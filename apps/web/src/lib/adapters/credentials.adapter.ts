@@ -4,6 +4,7 @@ import {
   credentialTypeOptions
 } from '@/models/credentials';
 import type {
+  CreatedCredentialDraftVM,
   CredentialStatus,
   CredentialType,
   HolderSummaryVM,
@@ -77,6 +78,8 @@ export function adaptIssuerCredentialDetail(
   const status = credentialStatus(credential.status);
   const type = credentialType(credential.type);
   const credentialSubject = asRecord(credential.credentialSubject);
+  const issuer = asRecord(credential.issuer);
+  const holder = asRecord(credential.holder);
   const createdAt = requiredString(credential.createdAt);
 
   if (Number.isNaN(Date.parse(createdAt))) {
@@ -85,15 +88,38 @@ export function adaptIssuerCredentialDetail(
 
   return {
     credentialReference: requiredString(credential.id),
-    issuerReference: requiredString(credential.issuerId),
     title: requiredString(credential.title),
+    draftAchievementName: nullableString(
+      credentialSubject.achievement_name
+    ),
     type,
     typeLabel: credentialTypeLabels[type],
     status,
     statusLabel: statusLabels[status],
-    institutionName: nullableString(
+    issuer: {
+      displayName: requiredString(issuer.displayName),
+      did: nullableString(issuer.did)
+    },
+    draftInstitutionName: nullableString(
       credentialSubject.institution_name
     ),
+    holder: {
+      displayLabel: requiredString(holder.displayLabel),
+      email: nullableString(holder.email)?.toLowerCase() ?? null,
+      did: nullableString(holder.did)
+    },
     createdAt
+  };
+}
+
+export function adaptCreatedCredentialDraft(
+  payload: unknown
+): CreatedCredentialDraftVM {
+  const credential = asRecord(payload);
+
+  return {
+    credentialReference: requiredString(credential.id),
+    issuerReference: requiredString(credential.issuerId),
+    status: credentialStatus(credential.status)
   };
 }
