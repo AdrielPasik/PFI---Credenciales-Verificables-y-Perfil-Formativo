@@ -9,6 +9,8 @@ import {
   CourseStatus,
   CredentialStatus,
   CredentialType,
+  CurriculumVersionStatus,
+  ProgramStatus,
   Prisma
 } from '@prisma/client';
 
@@ -31,6 +33,8 @@ const DRAFT_VERSION_CONFLICT_MESSAGE =
   'El borrador fue actualizado desde otra sesion. Volve a cargarlo antes de guardar.';
 const ACADEMIC_COURSE_NOT_FOUND_MESSAGE =
   'No se encontro una asignatura activa para el issuer solicitado.';
+const CURRICULUM_COURSE_NOT_FOUND_MESSAGE =
+  'No se encontro la asignatura dentro de la curricula activa solicitada.';
 
 @Injectable()
 export class IssuerCredentialDraftUpdateService {
@@ -85,6 +89,7 @@ export class IssuerCredentialDraftUpdateService {
               transaction,
               issuerId,
               update.academicCourseReference.value!,
+              update.curriculumReference.value,
               credential.type,
               finalType
             )
@@ -94,13 +99,19 @@ export class IssuerCredentialDraftUpdateService {
           : update.achievementName.provided
             ? update.achievementName.value!
             : credential.title;
-        const resultingSubject = buildUpdatedCredentialSubject({
+        const baseResultingSubject = buildUpdatedCredentialSubject({
           currentSubject,
           finalType,
           resultingTitle,
           issuerName: credential.issuer.name,
           update
         });
+        const resultingSubject = applyCatalogProgramSnapshot(
+          baseResultingSubject,
+          selectedAcademicCourse,
+          Boolean(credential.programCourse),
+          update.programName.provided
+        );
         const data: Prisma.CredentialUpdateManyMutationInput = {
           title: resultingTitle,
           credentialSubject: resultingSubject,
@@ -112,11 +123,12 @@ export class IssuerCredentialDraftUpdateService {
           ...(selectedAcademicCourse
             ? {
                 academicCourseId: selectedAcademicCourse.id,
+                programCourseId: selectedAcademicCourse.programCourseId,
                 description: selectedAcademicCourse.description,
                 hours: selectedAcademicCourse.hours
               }
             : update.type.provided && finalType !== CredentialType.academic_subject
-              ? { academicCourseId: null }
+              ? { academicCourseId: null, programCourseId: null }
               : {})
         };
 
@@ -160,6 +172,7 @@ export class IssuerCredentialDraftUpdateService {
     transaction: Prisma.TransactionClient,
     issuerId: string,
     academicCourseReference: string,
+    curriculumReference: string | undefined,
     currentType: CredentialType,
     finalType: CredentialType
   ) {
@@ -170,6 +183,54 @@ export class IssuerCredentialDraftUpdateService {
       throw new BadRequestException(
         'academicCourseReference solo puede seleccionarse para un draft academic_subject.'
       );
+    }
+
+    if (curriculumReference) {
+      const programCourse = await transaction.programCourse.findFirst({
+        where: {
+          academicCourseId: academicCourseReference,
+          curriculumVersionId: curriculumReference,
+          academicCourse: {
+            issuerId,
+            status: CourseStatus.active
+          },
+          curriculumVersion: {
+            status: CurriculumVersionStatus.active,
+            program: {
+              issuerId,
+              status: ProgramStatus.active
+            }
+          }
+        },
+        select: {
+          id: true,
+          academicCourse: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              hours: true
+            }
+          },
+          curriculumVersion: {
+            select: {
+              program: {
+                select: { name: true }
+              }
+            }
+          }
+        }
+      });
+
+      if (!programCourse) {
+        throw new NotFoundException(CURRICULUM_COURSE_NOT_FOUND_MESSAGE);
+      }
+
+      return {
+        ...programCourse.academicCourse,
+        programCourseId: programCourse.id,
+        programName: programCourse.curriculumVersion.program.name
+      };
     }
 
     const academicCourse = await transaction.academicCourse.findFirst({
@@ -190,8 +251,39 @@ export class IssuerCredentialDraftUpdateService {
       throw new NotFoundException(ACADEMIC_COURSE_NOT_FOUND_MESSAGE);
     }
 
-    return academicCourse;
+    return {
+      ...academicCourse,
+      programCourseId: null,
+      programName: null
+    };
   }
+}
+
+function applyCatalogProgramSnapshot(
+  subject: Prisma.InputJsonObject,
+  selection:
+    | {
+        programName: string | null;
+      }
+    | null,
+  hadCurriculumSelection: boolean,
+  programNameWasExplicitlyUpdated: boolean
+): Prisma.InputJsonObject {
+  if (selection?.programName) {
+    return { ...subject, program_name: selection.programName };
+  }
+
+  if (
+    selection &&
+    hadCurriculumSelection &&
+    !programNameWasExplicitlyUpdated
+  ) {
+    const result = { ...subject };
+    delete result.program_name;
+    return result;
+  }
+
+  return subject;
 }
 
 function toJsonObject(value: Prisma.JsonValue): Prisma.InputJsonObject {

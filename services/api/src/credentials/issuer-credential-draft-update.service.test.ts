@@ -58,6 +58,7 @@ function createCredentialRecord(
       lastName: null
     },
     academicCourse: null,
+    programCourse: null,
     ...overrides
   };
 }
@@ -91,6 +92,7 @@ function createService(options?: {
     description: string | null;
     hours: Prisma.Decimal | null;
   } | null;
+  programCourse?: Record<string, unknown> | null;
 }) {
   const operationOrder: string[] = [];
   const authorizationCalls: Array<Record<string, unknown>> = [];
@@ -98,6 +100,7 @@ function createService(options?: {
   const findFirstCalls: Array<Record<string, unknown>> = [];
   const updateManyCalls: Array<Record<string, unknown>> = [];
   const academicCourseCalls: Array<Record<string, unknown>> = [];
+  const programCourseCalls: Array<Record<string, unknown>> = [];
   const transaction = {
     academicCourse: {
       async findFirst(args: Record<string, unknown>) {
@@ -111,6 +114,26 @@ function createService(options?: {
               hours: null
             }
           : options.academicCourse;
+      }
+    },
+    programCourse: {
+      async findFirst(args: Record<string, unknown>) {
+        operationOrder.push('program_course_lookup');
+        programCourseCalls.push(args);
+        return options?.programCourse === undefined
+          ? {
+              id: 'program-course-1',
+              academicCourse: {
+                id: 'academic-course-1',
+                name: 'Ingenieria de Datos II',
+                description: null,
+                hours: null
+              },
+              curriculumVersion: {
+                program: { name: 'Ingenieria en Informatica' }
+              }
+            }
+          : options.programCourse;
       }
     },
     credential: {
@@ -178,7 +201,8 @@ function createService(options?: {
     transactionOptions,
     findFirstCalls,
     updateManyCalls,
-    academicCourseCalls
+    academicCourseCalls,
+    programCourseCalls
   };
 }
 
@@ -290,8 +314,200 @@ test('service selects an active issuer course and snapshots official data', asyn
     code: '3.4.213',
     name: academicCourse.name,
     description: academicCourse.description,
-    hours: '64.00'
+    hours: '64.00',
+    program: null
   });
+});
+
+test('service validates and snapshots a course inside the selected curriculum', async () => {
+  const credential = createCredentialRecord({
+    type: CredentialType.academic_subject,
+    credentialSubject: {
+      achievement_name: 'Nombre anterior',
+      institution_name: 'Nombre anterior',
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      grade: '9',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de datos'],
+      legacy_key: 'preservada'
+    }
+  });
+  const selectedProgramCourse = {
+    id: 'program-course-1',
+    academicCourse: {
+      id: 'academic-course-1',
+      name: 'Ingenieria de Datos II',
+      description: null,
+      hours: null
+    },
+    curriculumVersion: {
+      program: { name: 'Ingenieria en Informatica' }
+    }
+  };
+  const updatedCredential = createUpdatedCredentialRecord({
+    type: CredentialType.academic_subject,
+    title: selectedProgramCourse.academicCourse.name,
+    description: null,
+    hours: null,
+    credentialSubject: {
+      achievement_name: selectedProgramCourse.academicCourse.name,
+      institution_name: 'Demo University',
+      program_name: 'Ingenieria en Informatica',
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      grade: '9',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de datos'],
+      legacy_key: 'preservada'
+    },
+    academicCourse: {
+      id: 'academic-course-1',
+      code: '3.4.213',
+      name: selectedProgramCourse.academicCourse.name,
+      description: null,
+      hours: null
+    },
+    programCourse: {
+      academicCourseId: 'academic-course-1',
+      curriculumVersion: {
+        id: 'curriculum-1',
+        versionLabel: '1621',
+        program: {
+          id: 'program-1',
+          code: '1621',
+          name: 'Ingenieria en Informatica'
+        }
+      }
+    }
+  });
+  const {
+    service,
+    operationOrder,
+    academicCourseCalls,
+    programCourseCalls,
+    updateManyCalls
+  } = createService({
+    credential,
+    programCourse: selectedProgramCourse,
+    updatedCredential
+  });
+
+  const response = await service.updateDraftForIssuer(
+    'issuer-1',
+    'credential-1',
+    {
+      expectedUpdatedAt: EXPECTED_UPDATED_AT,
+      academicCourseReference: ' academic-course-1 ',
+      curriculumReference: ' curriculum-1 '
+    },
+    currentUser
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'transaction',
+    'credential_read',
+    'program_course_lookup',
+    'credential_cas',
+    'credential_reread'
+  ]);
+  assert.deepEqual(academicCourseCalls, []);
+  assert.deepEqual(programCourseCalls, [
+    {
+      where: {
+        academicCourseId: 'academic-course-1',
+        curriculumVersionId: 'curriculum-1',
+        academicCourse: {
+          issuerId: 'issuer-1',
+          status: 'active'
+        },
+        curriculumVersion: {
+          status: 'active',
+          program: {
+            issuerId: 'issuer-1',
+            status: 'active'
+          }
+        }
+      },
+      select: {
+        id: true,
+        academicCourse: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            hours: true
+          }
+        },
+        curriculumVersion: {
+          select: {
+            program: {
+              select: { name: true }
+            }
+          }
+        }
+      }
+    }
+  ]);
+  const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
+  assert.equal(data.academicCourseId, 'academic-course-1');
+  assert.equal(data.programCourseId, 'program-course-1');
+  assert.equal(data.title, 'Ingenieria de Datos II');
+  assert.equal(data.description, null);
+  assert.equal(data.hours, null);
+  assert.deepEqual(data.credentialSubject, {
+    achievement_name: 'Ingenieria de Datos II',
+    institution_name: 'Demo University',
+    program_name: 'Ingenieria en Informatica',
+    completion_date: '2026-07-30',
+    academic_period: '2026-1',
+    grade: '9',
+    skills: ['TypeScript'],
+    competencies: ['Diseno de datos'],
+    legacy_key: 'preservada'
+  });
+  assert.deepEqual(response.academicCourse?.program, {
+    programReference: 'program-1',
+    programCode: '1621',
+    programName: 'Ingenieria en Informatica',
+    curriculumReference: 'curriculum-1',
+    curriculumCode: '1621'
+  });
+});
+
+test('service safely rejects a missing, inactive, cross-issuer or unrelated curriculum course', async () => {
+  for (const reference of ['missing', 'inactive', 'cross-issuer', 'unrelated']) {
+    const { service, programCourseCalls, updateManyCalls } = createService({
+      credential: createCredentialRecord({
+        type: CredentialType.academic_subject
+      }),
+      programCourse: null
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: 'academic-course-1',
+          curriculumReference: reference
+        },
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof NotFoundException);
+        assert.equal(
+          error.message,
+          'No se encontro la asignatura dentro de la curricula activa solicitada.'
+        );
+        return true;
+      }
+    );
+    assert.equal(programCourseCalls.length, 1);
+    assert.deepEqual(updateManyCalls, []);
+  }
 });
 
 test('service rejects catalog selection unless the current draft is academic_subject', async () => {

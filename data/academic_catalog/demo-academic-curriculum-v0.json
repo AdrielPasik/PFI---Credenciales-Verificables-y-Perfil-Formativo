@@ -1,0 +1,4011 @@
+{
+  "schemaVersion": "academic_curriculum_catalog_v0",
+  "source": "local_source_provided_for_pfi",
+  "notes": [
+    "Derived from the complete local JSON supplied for P3.1b.",
+    "The source syntax corruption after Ingenieria Electromecanica was corrected before parsing.",
+    "Programs with distinct institutional codes are preserved even when their names match.",
+    "Course details remain in demo-academic-courses-v0.json and are linked here by institutional code.",
+    "Descriptions, hours, skills, competencies and learning outcomes are not present in the source and are not invented."
+  ],
+  "programs": [
+    {
+      "code": "3824",
+      "name": "Ingeniería Electromecánica"
+    },
+    {
+      "code": "3805",
+      "name": "Ingeniería Electromecánica"
+    },
+    {
+      "code": "9524",
+      "name": "Ingeniería Electrónica"
+    },
+    {
+      "code": "9513",
+      "name": "Ingeniería Electrónica"
+    },
+    {
+      "code": "5724",
+      "name": "Ingeniería en Alimentos"
+    },
+    {
+      "code": "5705",
+      "name": "Ingeniería en Alimentos"
+    },
+    {
+      "code": "1621",
+      "name": "Ingeniería en Informática"
+    },
+    {
+      "code": "1608",
+      "name": "Ingeniería en Informática"
+    },
+    {
+      "code": "3905",
+      "name": "Ingeniería en Telecomunicaciones"
+    },
+    {
+      "code": "4524",
+      "name": "Ingeniería Industrial"
+    },
+    {
+      "code": "4505",
+      "name": "Ingeniería Industrial"
+    },
+    {
+      "code": "59121",
+      "name": "Licenciatura en Bioinformática"
+    },
+    {
+      "code": "5910",
+      "name": "Licenciatura en Bioinformática"
+    },
+    {
+      "code": "5520",
+      "name": "Licenciatura en Biotecnología"
+    },
+    {
+      "code": "5509",
+      "name": "Licenciatura en Biotecnología"
+    },
+    {
+      "code": "59221",
+      "name": "Licenciatura en Desarrollo de Videojuegos"
+    },
+    {
+      "code": "10215",
+      "name": "Licenciatura en Gestión Ambiental"
+    },
+    {
+      "code": "107425",
+      "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+    },
+    {
+      "code": "6015",
+      "name": "Licenciatura en Producción y Gestión Agropecuaria"
+    },
+    {
+      "code": "5405",
+      "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+    },
+    {
+      "code": "13121",
+      "name": "Licenciatura en Gestión de Tecnología de la Información"
+    },
+    {
+      "code": "13116",
+      "name": "Licenciatura en Gestión de Tecnología de la Información"
+    }
+  ],
+  "programCourses": [
+    {
+      "programCode": "3824",
+      "courseCode": "2.3.060"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.020"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.014"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.068"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.062"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.065"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.093"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.162"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.163"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.065"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.067"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.070"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.064"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.175"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.056"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.005"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.068"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.066"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.123"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.177"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.100"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.101"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.104"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.021"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.018"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.088"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.073"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.076"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.007"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "2.1.176"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.4.057"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.2.188"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.180"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.176"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.164"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.095"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.103"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.112"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.3.015"
+    },
+    {
+      "programCode": "3824",
+      "courseCode": "3.1.067"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "2.3060"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1020"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3014"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3064"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3093"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3058"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3065"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3067"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3070"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3010"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "2.1082"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3005"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3002"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "1.4041"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3068"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3090"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3102"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3089"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3100"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "2.4001"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "2.4002"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3101"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3079"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.4056"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1021"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3104"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3021"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.1013"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3091"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3018"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3088"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3092"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3073"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3003"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3076"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3007"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3072"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.4057"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3075"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3115"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3095"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3103"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3112"
+    },
+    {
+      "programCode": "3805",
+      "courseCode": "3.3015"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "2.3.060"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.020"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.069"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.068"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.062"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.065"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.093"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.162"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.129"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.132"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.163"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.065"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.067"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.070"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.134"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.064"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.056"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.068"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.4.078"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.066"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.123"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.100"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.076"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.007"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "2.1.176"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.131"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.084"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.4.057"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.133"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "PPS04"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.2.188"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.082"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.180"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.060"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.061"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.127"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.164"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.3.112"
+    },
+    {
+      "programCode": "9524",
+      "courseCode": "3.1.067"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "2.3060"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1020"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3069"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3093"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1179"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3112"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3058"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3065"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3080"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3067"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3070"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3154"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "2.1082"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3130"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "2.4216"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3002"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3068"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3123"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3100"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3079"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.4056"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3126"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.1013"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3092"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3071"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3003"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3086"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3076"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3007"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3151"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3084"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.4057"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3135"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "PPS04"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3128"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3136"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3082"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3149"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3060"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3061"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3127"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3115"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3124"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3081"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.4045"
+    },
+    {
+      "programCode": "9513",
+      "courseCode": "3.3116"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.006"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.050"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.197"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "2.3.060"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.190"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.058"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.020"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.109"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.046"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.048"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.158"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.056"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.055"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.069"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.070"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.100"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.195"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.189"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.193"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.022"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "2.3.061"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.063"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.021"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.015"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.194"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.057"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "2.1.176"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.199"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.012"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.035"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.007"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.038"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.192"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.191"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.2.039"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.108"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.180"
+    },
+    {
+      "programCode": "5724",
+      "courseCode": "3.3.066"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2050"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "2.3060"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2010"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2011"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2079"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2058"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1022"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1020"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2064"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "1.2044"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3109"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3110"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3065"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "2.1082"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2056"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3002"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2055"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "1.4045"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3100"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "2.4001"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "2.4002"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.4056"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2022"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2061"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2063"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3003"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2021"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2015"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2059"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2057"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3007"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2065"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2035"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2051"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2008"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2038"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2052"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2039"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3108"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2060"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2062"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.3066"
+    },
+    {
+      "programCode": "5705",
+      "courseCode": "3.2080"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.082"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.094"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.072"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.098"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.217"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.053"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.054"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "2.3.056"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.216"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.218"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.089"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.050"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.056"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.086"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.069"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.2.178"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.078"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.052"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.055"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.209"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.213"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.214"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.096"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.024"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.025"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.221"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.208"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.210"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.071"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.074"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.077"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.100"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "PPS06"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.092"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.211"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.164"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.207"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.3.121"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.075"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.135"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.219"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.212"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.220"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.043"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.4.215"
+    },
+    {
+      "programCode": "1621",
+      "courseCode": "3.1.051"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4079"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4087"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4082"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4094"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4072"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4080"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4084"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4098"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "2.3056"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4089"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.3065"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "2.1006"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4086"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.3002"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4069"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.2081"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4078"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.3120"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4073"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4093"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "2.4121"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "2.4122"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4090"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4096"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4076"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1021"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1024"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4070"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.1025"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.3007"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4068"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4071"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4074"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4077"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4100"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4092"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4083"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4091"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4088"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.3121"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4075"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4097"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4081"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4085"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4043"
+    },
+    {
+      "programCode": "1608",
+      "courseCode": "3.4095"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.006"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.007"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.008"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.009"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.083"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.3.060"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.020"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.069"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.099"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.064"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.3.049"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "1.1.030"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.093"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.4.060"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.094"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.065"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.080"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.067"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.070"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.018"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.1.082"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.005"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.002"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "1.4.041"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.068"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.100"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.4.001"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.4.002"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.079"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.021"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.1.013"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.071"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.003"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.086"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.007"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.097"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.084"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.4.057"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.096"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.2.007"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.085"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.082"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.098"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.049"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.050"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.060"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.061"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.081"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.113"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.4.045"
+    },
+    {
+      "programCode": "3905",
+      "courseCode": "3.3.112"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.182"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.193"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "2.3.060"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.020"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.161"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.062"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.065"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.183"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.201"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.065"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.067"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.064"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.071"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.005"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.199"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "1.4.076"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.066"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.197"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.191"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.184"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.186"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.189"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.101"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.104"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.194"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.204"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.018"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.185"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.188"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.192"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.007"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "2.1.176"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.2.008"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.2.188"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.180"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.174"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.187"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.195"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.198"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.3.015"
+    },
+    {
+      "programCode": "4524",
+      "courseCode": "3.1.067"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "2.3060"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1020"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3014"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3064"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.1031"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3105"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3058"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3065"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3067"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3074"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3010"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3009"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "2.1082"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3106"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3005"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3002"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.4076"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3102"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.4044"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3100"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "2.4001"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "2.4002"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3101"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.2043"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.4056"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.1021"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3078"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3104"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3021"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3018"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3003"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3076"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3007"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3072"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "1.1082"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3111"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.4057"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3075"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3114"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3023"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "PPS01"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.2008"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.4058"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3095"
+    },
+    {
+      "programCode": "4505",
+      "courseCode": "3.3015"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.100"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.101"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.103"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.027"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.028"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.098"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.187"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.183"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "2.3.073"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.104"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.092"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.053"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.054"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.099"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.050"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.069"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.057"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.083"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.101"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.086"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.090"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "2.4.121"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.096"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.185"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.181"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.045"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.024"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.113"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.102"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.071"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.074"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.4.077"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.102"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.051"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.052"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.180"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.182"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.184"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.186"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.2.084"
+    },
+    {
+      "programCode": "59121",
+      "courseCode": "3.1.051"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1009"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2100"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4101"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4103"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1027"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1028"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2098"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2071"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2103"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "2.3073"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4104"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.3063"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4069"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2083"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2101"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2086"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2090"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "2.4121"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "2.4122"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2104"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2070"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.1024"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2082"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4102"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4071"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4074"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4077"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2102"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2051"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2008"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2052"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2039"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.2084"
+    },
+    {
+      "programCode": "5910",
+      "courseCode": "3.4095"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.166"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.050"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.027"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.098"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.088"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.071"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.103"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.091"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "2.3.073"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.087"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.3.064"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.092"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.046"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.048"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.099"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "1.1.030"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.3.158"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.093"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.085"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.042"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.047"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.083"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.095"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.096"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.086"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.090"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "2.4.121"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.089"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.070"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.045"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.167"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.168"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.082"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.097"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.094"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.051"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.007"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.008"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.038"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.052"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.039"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.2.084"
+    },
+    {
+      "programCode": "5520",
+      "courseCode": "3.1.044"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.1006"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.1007"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.1008"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2050"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.1027"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2098"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2088"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2071"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2091"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "2.3073"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2087"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.3064"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2092"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2099"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "1.1030"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2093"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2085"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2042"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "1.4041"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.3063"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2083"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2095"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2096"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2086"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2090"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "2.4121"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "2.4122"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2089"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2070"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2082"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2097"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2094"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2051"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2007"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2008"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2038"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2052"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2039"
+    },
+    {
+      "programCode": "5509",
+      "courseCode": "3.2084"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.197"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.175"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.174"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.187"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.183"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.177"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.191"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.201"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.178"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.180"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.185"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.192"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.190"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.179"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.202"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.189"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.181"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.182"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.193"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.173"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.176"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.198"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.206"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.199"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.194"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.184"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.186"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.188"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.196"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.204"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.195"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.205"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.200"
+    },
+    {
+      "programCode": "59221",
+      "courseCode": "3.4.203"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.033"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "2.3.113"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.040"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.2.076"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.050"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.031"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "2.3.112"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.041"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.3.110"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.037"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.032"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.039"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.036"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.035"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.048"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.2.112"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.052"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.051"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.056"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.3.100"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.044"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "2.4.227"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.1.005"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.2.111"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.3.152"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.054"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.045"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.038"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.043"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.055"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.030"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.042"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.053"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.3.153"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.047"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.049"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.034"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.046"
+    },
+    {
+      "programCode": "10215",
+      "courseCode": "3.5.057"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.282"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.262"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.265"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.280"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.278"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.273"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.266"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.261"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.276"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.274"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.1.072"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.268"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.1.018"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.272"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.271"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.259"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.256"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.257"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.263"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.267"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "1.2.001"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.102"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.275"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.260"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.255"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.281"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.264"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.270"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.279"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.258"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.283"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.277"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.4.269"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "3.1.067"
+    },
+    {
+      "programCode": "107425",
+      "courseCode": "2.5.036"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.3.150"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.014"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.028"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.012"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.026"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.2.076"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.004"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.011"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.058"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.006"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.3.151"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.022"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.017"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.025"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.001"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "2.4.227"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.010"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.2.066"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.1.005"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.002"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.023"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.021"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.3.152"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.008"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.019"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.016"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.009"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.003"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.027"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.020"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.018"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.013"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.007"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.005"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.024"
+    },
+    {
+      "programCode": "6015",
+      "courseCode": "3.5.029"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.1.006"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.1.007"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.1.008"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.050"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.010"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.011"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.079"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.058"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.064"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.1.019"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.1.018"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "2.1.082"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.056"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.3.002"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.055"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "2.4.001"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "2.4.002"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.4.056"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.022"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "2.3.061"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.063"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.021"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.015"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.059"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.057"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.3.007"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "2.1.002"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.065"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.051"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.007"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.008"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.038"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.052"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.039"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.060"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.061"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.062"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.3.066"
+    },
+    {
+      "programCode": "5405",
+      "courseCode": "3.2.080"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.227"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.229"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.082"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.072"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.217"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "2.3.056"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.216"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.218"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.142"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.231"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.226"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.1.056"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.139"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "2.4.216"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "1.4.076"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.131"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.209"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.213"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.214"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.225"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "1.1.093"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "1.2.001"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.1.024"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.221"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.208"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.1.049"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.210"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.230"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.141"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.092"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.233"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.164"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.207"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.075"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.135"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.220"
+    },
+    {
+      "programCode": "13121",
+      "courseCode": "3.4.228"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4079"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4087"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4082"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4072"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4080"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4084"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "2.3056"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4142"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.1040"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.1019"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.1018"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4139"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "1.4076"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4069"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4133"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4131"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "2.4227"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4090"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4076"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.1021"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "1.1093"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "1.2001"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4070"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4136"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "2.1002"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4068"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4071"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4074"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4077"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4132"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4141"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4092"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4138"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4143"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4075"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4140"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4097"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4135"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4130"
+    },
+    {
+      "programCode": "13116",
+      "courseCode": "3.4134"
+    }
+  ]
+}

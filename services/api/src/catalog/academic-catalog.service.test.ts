@@ -1,8 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { CourseStatus, Prisma, UserStatus } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException
+} from '@nestjs/common';
+import {
+  CourseStatus,
+  CurriculumVersionStatus,
+  Prisma,
+  ProgramStatus,
+  UserStatus
+} from '@prisma/client';
 
 import {
   AcademicCatalogService,
@@ -215,4 +225,273 @@ test('search does not query the catalog before institutional authorization', asy
   );
   assert.deepEqual(operationOrder, ['issuer_authorization']);
   assert.deepEqual(findManyCalls, []);
+});
+
+function createCurriculumService(options?: {
+  authorizationError?: Error;
+  programs?: Array<Record<string, unknown>>;
+  curriculum?: Record<string, unknown> | null;
+  programCourses?: Array<Record<string, unknown>>;
+}) {
+  const operationOrder: string[] = [];
+  const programCalls: Array<Record<string, unknown>> = [];
+  const curriculumCalls: Array<Record<string, unknown>> = [];
+  const programCourseCalls: Array<Record<string, unknown>> = [];
+  const prisma = {
+    program: {
+      async findMany(args: Record<string, unknown>) {
+        operationOrder.push('program_lookup');
+        programCalls.push(args);
+        return (
+          options?.programs ?? [
+            {
+              id: 'program-1',
+              code: '1621',
+              name: 'Ingenieria en Informatica',
+              curriculumVersions: [
+                { id: 'curriculum-1', versionLabel: '1621' }
+              ]
+            }
+          ]
+        );
+      }
+    },
+    curriculumVersion: {
+      async findFirst(args: Record<string, unknown>) {
+        operationOrder.push('curriculum_lookup');
+        curriculumCalls.push(args);
+        return options?.curriculum === undefined
+          ? {
+              id: 'curriculum-1',
+              versionLabel: '1621',
+              program: {
+                id: 'program-1',
+                code: '1621',
+                name: 'Ingenieria en Informatica'
+              }
+            }
+          : options.curriculum;
+      }
+    },
+    programCourse: {
+      async findMany(args: Record<string, unknown>) {
+        operationOrder.push('program_course_lookup');
+        programCourseCalls.push(args);
+        return (
+          options?.programCourses ?? [
+            {
+              academicCourse: {
+                id: 'course-1',
+                code: '3.4.213',
+                name: 'Ingenieria de Datos II',
+                description: null,
+                hours: null,
+                issuerId: 'must-not-leak',
+                metadata: { mustNotLeak: true }
+              }
+            }
+          ]
+        );
+      }
+    }
+  };
+  const issuersService = {
+    async assertUserCanSearchAcademicCatalogForIssuer() {
+      operationOrder.push('issuer_authorization');
+
+      if (options?.authorizationError) {
+        throw options.authorizationError;
+      }
+    }
+  };
+
+  return {
+    service: new AcademicCatalogService(prisma as never, issuersService as never),
+    operationOrder,
+    programCalls,
+    curriculumCalls,
+    programCourseCalls
+  };
+}
+
+test('program search is issuer-scoped, active, deterministic and allowlisted', async () => {
+  const { service, operationOrder, programCalls } = createCurriculumService();
+
+  const response = await service.searchAcademicProgramsForIssuer(
+    'issuer-1',
+    '  INFORMATICA ',
+    undefined,
+    currentUser
+  );
+
+  assert.deepEqual(operationOrder, ['issuer_authorization', 'program_lookup']);
+  assert.deepEqual(programCalls, [
+    {
+      where: {
+        issuerId: 'issuer-1',
+        status: ProgramStatus.active,
+        curriculumVersions: {
+          some: { status: CurriculumVersionStatus.active }
+        },
+        OR: [
+          { code: { contains: 'INFORMATICA', mode: 'insensitive' } },
+          { name: { contains: 'INFORMATICA', mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        curriculumVersions: {
+          where: { status: CurriculumVersionStatus.active },
+          select: { id: true, versionLabel: true },
+          orderBy: [{ versionLabel: 'asc' }, { id: 'asc' }],
+          take: 1
+        }
+      },
+      orderBy: [{ code: 'asc' }, { name: 'asc' }, { id: 'asc' }],
+      take: DEFAULT_ACADEMIC_CATALOG_LIMIT
+    }
+  ]);
+  assert.deepEqual(response, {
+    items: [
+      {
+        programReference: 'program-1',
+        programCode: '1621',
+        programName: 'Ingenieria en Informatica',
+        curriculumReference: 'curriculum-1',
+        curriculumCode: '1621'
+      }
+    ]
+  });
+  assert.equal(JSON.stringify(response).includes('issuerId'), false);
+  assert.equal(JSON.stringify(response).includes('metadata'), false);
+});
+
+test('curriculum subject search returns only active courses scoped to its issuer', async () => {
+  const { service, operationOrder, curriculumCalls, programCourseCalls } =
+    createCurriculumService();
+
+  const response = await service.searchAcademicSubjectsForCurriculum(
+    'issuer-1',
+    ' curriculum-1 ',
+    ' datos ',
+    '10',
+    currentUser
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'curriculum_lookup',
+    'program_course_lookup'
+  ]);
+  assert.deepEqual(curriculumCalls[0], {
+    where: {
+      id: 'curriculum-1',
+      status: CurriculumVersionStatus.active,
+      program: { issuerId: 'issuer-1', status: ProgramStatus.active }
+    },
+    select: {
+      id: true,
+      versionLabel: true,
+      program: { select: { id: true, code: true, name: true } }
+    }
+  });
+  assert.deepEqual(programCourseCalls[0], {
+    where: {
+      curriculumVersionId: 'curriculum-1',
+      academicCourse: {
+        issuerId: 'issuer-1',
+        status: CourseStatus.active,
+        OR: [
+          { code: { contains: 'datos', mode: 'insensitive' } },
+          { name: { contains: 'datos', mode: 'insensitive' } }
+        ]
+      }
+    },
+    select: {
+      academicCourse: {
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          description: true,
+          hours: true
+        }
+      }
+    },
+    orderBy: [
+      { academicCourse: { code: 'asc' } },
+      { academicCourse: { name: 'asc' } },
+      { id: 'asc' }
+    ],
+    take: 10
+  });
+  assert.deepEqual(response, {
+    items: [
+      {
+        academicCourseReference: 'course-1',
+        code: '3.4.213',
+        name: 'Ingenieria de Datos II',
+        description: null,
+        hours: null,
+        programReference: 'program-1',
+        programCode: '1621',
+        programName: 'Ingenieria en Informatica',
+        curriculumReference: 'curriculum-1',
+        curriculumCode: '1621'
+      }
+    ]
+  });
+  assert.equal(JSON.stringify(response).includes('issuerId'), false);
+  assert.equal(JSON.stringify(response).includes('metadata'), false);
+});
+
+test('curriculum search uses a safe not-found result and never queries relations', async () => {
+  const { service, operationOrder, programCourseCalls } = createCurriculumService({
+    curriculum: null
+  });
+
+  await assert.rejects(
+    service.searchAcademicSubjectsForCurriculum(
+      'issuer-1',
+      'other-issuer-curriculum',
+      undefined,
+      undefined,
+      currentUser
+    ),
+    NotFoundException
+  );
+  assert.deepEqual(operationOrder, ['issuer_authorization', 'curriculum_lookup']);
+  assert.deepEqual(programCourseCalls, []);
+});
+
+test('new catalog searches authorize before querying institutional data', async () => {
+  for (const method of ['programs', 'curriculum'] as const) {
+    const { service, operationOrder, programCalls, curriculumCalls } =
+      createCurriculumService({
+        authorizationError: new ForbiddenException('forbidden')
+      });
+
+    await assert.rejects(
+      method === 'programs'
+        ? service.searchAcademicProgramsForIssuer(
+            'issuer-arbitrary',
+            undefined,
+            undefined,
+            currentUser
+          )
+        : service.searchAcademicSubjectsForCurriculum(
+            'issuer-arbitrary',
+            'curriculum-1',
+            undefined,
+            undefined,
+            currentUser
+          ),
+      ForbiddenException
+    );
+    assert.deepEqual(operationOrder, ['issuer_authorization']);
+    assert.deepEqual(programCalls, []);
+    assert.deepEqual(curriculumCalls, []);
+  }
 });

@@ -3,6 +3,7 @@ import { CredentialType } from '@prisma/client';
 export class UpdateIssuerCredentialDraftDto {
   expectedUpdatedAt!: string;
   academicCourseReference?: string;
+  curriculumReference?: string;
   achievementName?: string;
   description?: string | null;
   hours?: string | null;

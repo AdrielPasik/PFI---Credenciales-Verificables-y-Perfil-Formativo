@@ -1,28 +1,22 @@
 import {
   CourseStatus,
+  CurriculumVersionStatus,
   IssuerAuthorizationStatus,
   IssuerMembershipRole,
   IssuerMembershipStatus,
   PrismaClient,
+  ProgramStatus,
   UserStatus
 } from '@prisma/client';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 
 import { hashPassword } from '../src/auth/password-hashing';
+import { loadDemoAcademicCatalog } from './demo-academic-catalog';
 
 const prisma = new PrismaClient();
 
 const FIXED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z');
 const DEMO_ISSUER_PASSWORD = 'DemoIssuer123!';
 const DEMO_HOLDER_PASSWORD = 'DemoHolder123!';
-const EXPECTED_DEMO_ACADEMIC_COURSES = 617;
-
-interface DemoAcademicCourse {
-  code: string;
-  name: string;
-}
-
 async function main() {
   const issuer = await prisma.issuer.upsert({
     where: {
@@ -46,10 +40,10 @@ async function main() {
     }
   });
 
-  const academicCourses = await loadDemoAcademicCourses();
+  const academicCatalog = await loadDemoAcademicCatalog();
 
-  await prisma.$transaction(
-    academicCourses.map((course) =>
+  const academicCourses = await prisma.$transaction(
+    academicCatalog.courses.map((course) =>
       prisma.academicCourse.upsert({
         where: {
           issuerId_code: {
@@ -74,6 +68,89 @@ async function main() {
       })
     )
   );
+  const academicCourseByCode = new Map(
+    academicCourses.map((course) => [course.code, course])
+  );
+  const programs = await prisma.$transaction(
+    academicCatalog.programs.map((program) =>
+      prisma.program.upsert({
+        where: {
+          issuerId_code: {
+            issuerId: issuer.id,
+            code: program.code
+          }
+        },
+        update: {
+          name: program.name,
+          status: ProgramStatus.active
+        },
+        create: {
+          issuerId: issuer.id,
+          code: program.code,
+          name: program.name,
+          status: ProgramStatus.active
+        }
+      })
+    )
+  );
+  const programByCode = new Map(programs.map((program) => [program.code, program]));
+  const curriculumVersions = await prisma.$transaction(
+    programs.map((program) =>
+      prisma.curriculumVersion.upsert({
+        where: {
+          programId_versionLabel: {
+            programId: program.id,
+            versionLabel: program.code
+          }
+        },
+        update: {
+          status: CurriculumVersionStatus.active
+        },
+        create: {
+          programId: program.id,
+          versionLabel: program.code,
+          status: CurriculumVersionStatus.active
+        }
+      })
+    )
+  );
+  const curriculumByProgramId = new Map(
+    curriculumVersions.map((curriculum) => [curriculum.programId, curriculum])
+  );
+  const programCourseOperations = academicCatalog.programCourses.map(
+    (relation) => {
+      const program = programByCode.get(relation.programCode);
+      const course = academicCourseByCode.get(relation.courseCode);
+      const curriculum = program
+        ? curriculumByProgramId.get(program.id)
+        : undefined;
+
+      if (!program || !course || !curriculum) {
+        throw new Error('El catalogo curricular validado contiene una referencia rota.');
+      }
+
+      return prisma.programCourse.upsert({
+        where: {
+          curriculumVersionId_academicCourseId: {
+            curriculumVersionId: curriculum.id,
+            academicCourseId: course.id
+          }
+        },
+        update: {
+          isRequired: true
+        },
+        create: {
+          curriculumVersionId: curriculum.id,
+          academicCourseId: course.id,
+          isRequired: true
+        }
+      });
+    }
+  );
+
+  for (let offset = 0; offset < programCourseOperations.length; offset += 200) {
+    await prisma.$transaction(programCourseOperations.slice(offset, offset + 200));
+  }
 
   const holder = await prisma.user.upsert({
     where: {
@@ -161,6 +238,9 @@ async function main() {
         holderUserId: holder.id,
         issuerAdminUserId: issuerAdmin.id,
         academicCoursesImported: academicCourses.length,
+        academicProgramsImported: programs.length,
+        curriculumVersionsImported: curriculumVersions.length,
+        programCoursesImported: academicCatalog.programCourses.length,
         demoAuth: {
           issuerAdminEmail: issuerAdmin.email,
           issuerAdminPassword: DEMO_ISSUER_PASSWORD,
@@ -172,71 +252,6 @@ async function main() {
       2
     )
   );
-}
-
-async function loadDemoAcademicCourses(): Promise<DemoAcademicCourse[]> {
-  const catalogPath = resolve(
-    __dirname,
-    '../../../data/academic_catalog/demo-academic-courses-v0.json'
-  );
-  const document = JSON.parse(await readFile(catalogPath, 'utf8')) as unknown;
-
-  if (!document || typeof document !== 'object' || Array.isArray(document)) {
-    throw new Error('El catalogo academico demo debe ser un objeto JSON.');
-  }
-
-  const record = document as Record<string, unknown>;
-
-  if (
-    record.schemaVersion !== 'academic_course_catalog_v0' ||
-    !Array.isArray(record.courses)
-  ) {
-    throw new Error('El contrato del catalogo academico demo es invalido.');
-  }
-
-  const courses = record.courses.map((entry, index) => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      throw new Error(`La materia ${index} del catalogo es invalida.`);
-    }
-
-    const course = entry as Record<string, unknown>;
-    const code = normalizeRequiredCatalogText(course.code, `courses[${index}].code`);
-    const name = normalizeRequiredCatalogText(course.name, `courses[${index}].name`);
-
-    if (Object.keys(course).some((key) => key !== 'code' && key !== 'name')) {
-      throw new Error(`La materia ${index} contiene campos no permitidos.`);
-    }
-
-    return { code, name };
-  });
-
-  if (courses.length !== EXPECTED_DEMO_ACADEMIC_COURSES) {
-    throw new Error(
-      `El catalogo demo debe contener ${EXPECTED_DEMO_ACADEMIC_COURSES} materias.`
-    );
-  }
-
-  const codes = new Set(courses.map((course) => course.code));
-
-  if (codes.size !== courses.length) {
-    throw new Error('El catalogo academico demo contiene codigos duplicados.');
-  }
-
-  return courses;
-}
-
-function normalizeRequiredCatalogText(value: unknown, field: string) {
-  if (typeof value !== 'string') {
-    throw new Error(`${field} debe ser string.`);
-  }
-
-  const normalized = value.trim().replace(/\s+/g, ' ');
-
-  if (!normalized) {
-    throw new Error(`${field} no puede estar vacio.`);
-  }
-
-  return normalized;
 }
 
 main()

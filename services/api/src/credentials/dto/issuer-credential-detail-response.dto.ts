@@ -40,6 +40,15 @@ export class IssuerCredentialAcademicCourseResponseDto {
   name!: string;
   description!: string | null;
   hours!: string | null;
+  program!: IssuerCredentialAcademicProgramResponseDto | null;
+}
+
+export class IssuerCredentialAcademicProgramResponseDto {
+  programReference!: string;
+  programCode!: string;
+  programName!: string;
+  curriculumReference!: string;
+  curriculumCode!: string;
 }
 
 export class IssuerCredentialDetailResponseDto {

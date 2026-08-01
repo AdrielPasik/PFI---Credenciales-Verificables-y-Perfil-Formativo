@@ -195,6 +195,7 @@ model Credential {
   issuerId                 String
   subjectUserId            String
   academicCourseId         String?
+  programCourseId          String?
   externalCourseId         String?
   title                    String
   description              String?              @db.Text
@@ -214,6 +215,7 @@ model Credential {
   issuer                   Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
   subjectUser              User                 @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
   academicCourse           AcademicCourse?      @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
+  programCourse            ProgramCourse?       @relation("ProgramCourseCredentials", fields: [programCourseId], references: [id], onDelete: SetNull)
   externalCourse           ExternalCourse?      @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
   semanticAnalyses         SemanticAnalysis[]
   blockchainRecords        BlockchainRecord[]
@@ -226,6 +228,7 @@ model Credential {
   @@index([canonicalHash])
   @@index([type])
   @@index([academicCourseId])
+  @@index([programCourseId])
   @@index([externalCourseId])
 }
 
@@ -370,6 +373,7 @@ model ExternalCourse {
 model Program {
   id                 String              @id @default(uuid())
   issuerId           String
+  code               String
   name               String
   programType        String?
   status             ProgramStatus       @default(active)
@@ -381,6 +385,7 @@ model Program {
 
   @@index([issuerId])
   @@index([status])
+  @@unique([issuerId, code])
 }
 
 model CurriculumVersion {
@@ -413,10 +418,11 @@ model ProgramCourse {
   hours               Decimal?          @db.Decimal(10, 2)
   curriculumVersion   CurriculumVersion @relation(fields: [curriculumVersionId], references: [id], onDelete: Cascade)
   academicCourse      AcademicCourse    @relation(fields: [academicCourseId], references: [id], onDelete: Restrict)
+  credentials         Credential[]      @relation("ProgramCourseCredentials")
 
   @@index([curriculumVersionId])
   @@index([academicCourseId])
-  @@index([curriculumVersionId, academicCourseId])
+  @@unique([curriculumVersionId, academicCourseId])
 }
 
 model AuditLog {

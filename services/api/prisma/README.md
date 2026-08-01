@@ -56,6 +56,10 @@ Esto mantiene compatibilidad con los JSON Schemas existentes y evita sobreingeni
 - `FormativeProfile.isCurrent` existe como ayuda operativa, pero la unicidad del perfil vigente por usuario se resolvera por logica de aplicacion futura y no por constraint adicional en esta etapa.
 - `SharingGrant` prepara sharing por link/QR/mobile sin implementar todavia tokens, permisos ni UX.
 - `Credential.canonicalHash` queda indexado pero no marcado `unique` en esta etapa para no imponer una restriccion prematura sin validacion de negocio adicional.
+- `Program.code` conserva el codigo institucional y es unico dentro del
+  issuer; `ProgramCourse` es unico por version curricular y materia.
+- `Credential.programCourseId` conserva opcionalmente la relacion curricular
+  exacta elegida para un draft, sin reemplazar el snapshot de contenido.
 
 ## Que no esta implementado todavia
 
@@ -83,6 +87,8 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 - el cliente Prisma puede generarse localmente con scripts del workspace;
 - el seed local importa de forma idempotente 617 `AcademicCourse` demo desde
   `data/academic_catalog/demo-academic-courses-v0.json`;
-- el catalogo actual es plano: no importa `Program`, `CurriculumVersion`,
-  `ProgramCourse` ni relaciones carrera-materia;
+- el seed tambien importa 22 `Program`, 22 `CurriculumVersion` y 977
+  `ProgramCourse` desde `demo-academic-curriculum-v0.json`;
+- las materias siguen disponibles como catalogo plano y, adicionalmente, por
+  su pertenencia formal a una version curricular;
 - este schema queda como base revisable del sistema final, preparada para implementacion incremental.

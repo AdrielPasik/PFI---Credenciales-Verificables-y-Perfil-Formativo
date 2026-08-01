@@ -22,6 +22,8 @@ POST /credentials/draft
 GET  /auth/me
 POST /issuers/:issuerId/holders/resolve
 GET  /issuers/:issuerId/catalog/academic-subjects
+GET  /issuers/:issuerId/catalog/academic-programs
+GET  /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academic-subjects
 GET  /issuers/:issuerId/credentials/:credentialId
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /credentials/:id/issue
@@ -62,6 +64,13 @@ orden deterministico y una response allowlisted. El seed demo importa las 617
 materias de `data/academic_catalog/demo-academic-courses-v0.json` sin inventar
 descripcion, horas ni enriquecimiento.
 
+`GET /issuers/:issuerId/catalog/academic-programs` busca programas activos por
+codigo o nombre y devuelve su version curricular activa. El endpoint
+`GET /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academic-subjects`
+devuelve exclusivamente las materias activas vinculadas a esa curricula del
+mismo issuer. Ambos reutilizan la autorizacion institucional, limites `20/50`,
+orden deterministico y DTOs allowlisted.
+
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.
 Requiere el `expectedUpdatedAt` exacto del read institucional, rechaza claves
@@ -76,7 +85,12 @@ readiness, no emite, no llama a blockchain y no cambia `canon_v1`.
 Para `academic_subject`, el PATCH acepta `academicCourseReference`, valida una
 asignatura activa del mismo issuer y copia un snapshot de nombre, descripcion
 y horas. No puede combinarse con valores manuales para esos mismos campos. El
-catalogo no prueba aprobacion; fecha, periodo y nota siguen describiendo el
+campo opcional `curriculumReference` exige la referencia de asignatura y
+valida la relacion carrera-materia dentro de la transaccion. En ese caso
+persiste la relacion curricular exacta y deriva `program_name` desde
+`Program.name`; no acepta un `programName` manual simultaneo. La seleccion
+plana de P3.1a sigue soportada. El catalogo no prueba aprobacion; fecha,
+periodo y nota siguen describiendo el
 logro concreto del holder.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
@@ -146,9 +160,11 @@ npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name <m
 npm run prisma:seed --workspace @credential-intelligence/api
 ```
 
-El seed idempotente crea `Demo University`, `Issuer Admin`, `Demo Holder` y
-617 `AcademicCourse` activos usando `issuerId + code`. No carga carreras,
-planes ni relaciones carrera-materia. Las credenciales demo local/dev son:
+El seed idempotente crea `Demo University`, `Issuer Admin`, `Demo Holder`, 617
+`AcademicCourse`, 22 `Program`, 22 `CurriculumVersion` y 977 `ProgramCourse`.
+Los codigos institucionales y las relaciones provienen de los artifacts
+locales versionados en `data/academic_catalog`. Las credenciales demo
+local/dev son:
 
 - `issuer.admin@example.com / DemoIssuer123!`
 - `holder.demo@example.com / DemoHolder123!`

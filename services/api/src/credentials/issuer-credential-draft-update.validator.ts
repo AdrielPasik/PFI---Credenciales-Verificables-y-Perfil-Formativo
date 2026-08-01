@@ -23,6 +23,7 @@ export type TypeSpecificUpdateField =
 
 const EDITABLE_FIELDS = [
   'academicCourseReference',
+  'curriculumReference',
   'achievementName',
   'description',
   'hours',
@@ -62,6 +63,7 @@ export interface NormalizedIssuerCredentialDraftUpdate {
   expectedUpdatedAt: Date;
   expectedUpdatedAtIso: string;
   academicCourseReference: FieldUpdate<string>;
+  curriculumReference: FieldUpdate<string>;
   achievementName: FieldUpdate<string>;
   description: FieldUpdate<string | null>;
   hours: FieldUpdate<Prisma.Decimal | null>;
@@ -114,6 +116,11 @@ export function validateIssuerCredentialDraftUpdate(
       body,
       'academicCourseReference',
       normalizeAcademicCourseReference
+    ),
+    curriculumReference: normalizeOptionalField(
+      body,
+      'curriculumReference',
+      (value) => normalizeReference(value, 'curriculumReference')
     ),
     achievementName: normalizeOptionalField(
       body,
@@ -172,13 +179,35 @@ export function validateIssuerCredentialDraftUpdate(
     );
   }
 
+  if (
+    result.curriculumReference?.provided &&
+    !result.academicCourseReference?.provided
+  ) {
+    throw new BadRequestException(
+      'curriculumReference requiere academicCourseReference.'
+    );
+  }
+
+  if (
+    result.curriculumReference?.provided &&
+    result.programName?.provided
+  ) {
+    throw new BadRequestException(
+      'curriculumReference no puede combinarse con programName.'
+    );
+  }
+
   return result as NormalizedIssuerCredentialDraftUpdate;
 }
 
 function normalizeAcademicCourseReference(value: unknown) {
+  return normalizeReference(value, 'academicCourseReference');
+}
+
+function normalizeReference(value: unknown, field: string) {
   if (typeof value !== 'string') {
     throw new BadRequestException(
-      'academicCourseReference debe ser string no vacio.'
+      `${field} debe ser string no vacio.`
     );
   }
 
@@ -186,7 +215,7 @@ function normalizeAcademicCourseReference(value: unknown) {
 
   if (!normalized) {
     throw new BadRequestException(
-      'academicCourseReference debe ser string no vacio.'
+      `${field} debe ser string no vacio.`
     );
   }
 

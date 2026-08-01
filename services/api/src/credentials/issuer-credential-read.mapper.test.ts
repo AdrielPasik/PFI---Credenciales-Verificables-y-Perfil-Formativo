@@ -58,6 +58,7 @@ function createRecord(
       lastName: 'Name'
     },
     academicCourse: null,
+    programCourse: null,
     ...overrides
   };
 }
@@ -172,11 +173,49 @@ test('mapper returns an allowlisted academic course summary', () => {
     code: '3.4.213',
     name: 'Ingenieria de Datos II',
     description: 'Descripcion oficial',
-    hours: '64.00'
+    hours: '64.00',
+    program: null
   });
   assert.equal('id' in response.academicCourse!, false);
   assert.equal('issuerId' in response.academicCourse!, false);
   assert.equal('metadata' in response.academicCourse!, false);
+});
+
+test('mapper nests an allowlisted curriculum summary for the selected course', () => {
+  const response = mapIssuerCredentialReadModel(
+    createRecord({
+      academicCourse: {
+        id: 'academic-course-1',
+        code: '3.4.213',
+        name: 'Ingenieria de Datos II',
+        description: null,
+        hours: null
+      },
+      programCourse: {
+        academicCourseId: 'academic-course-1',
+        curriculumVersion: {
+          id: 'curriculum-1',
+          versionLabel: '1621',
+          program: {
+            id: 'program-1',
+            code: '1621',
+            name: 'Ingenieria en Informatica'
+          }
+        }
+      }
+    })
+  );
+
+  assert.deepEqual(response.academicCourse?.program, {
+    programReference: 'program-1',
+    programCode: '1621',
+    programName: 'Ingenieria en Informatica',
+    curriculumReference: 'curriculum-1',
+    curriculumCode: '1621'
+  });
+  assert.equal(JSON.stringify(response).includes('programCourseId'), false);
+  assert.equal(JSON.stringify(response).includes('academicCourseId'), false);
+  assert.equal(JSON.stringify(response).includes('metadata'), false);
 });
 
 test('mapper keeps issuer identity separate from the institution name stored in the draft', () => {

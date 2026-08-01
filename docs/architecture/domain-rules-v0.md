@@ -210,10 +210,12 @@ Los campos `program_name`, `provider_name`, `platform_name`, `modality`,
 decidirse si permanecen como metadata no canonica o requieren una nueva
 version de canonicalizacion.
 
-## 12. Catalogo institucional minimo para academic_subject
+## 12. Catalogo y curricula institucional para academic_subject
 
 P3.1a vincula opcionalmente un draft `academic_subject` con un
-`AcademicCourse` activo del mismo issuer.
+`AcademicCourse` activo del mismo issuer. P3.1b agrega `Program.code`, una
+`CurriculumVersion` activa por codigo demo, relaciones `ProgramCourse` y la
+referencia curricular exacta opcional en `Credential.programCourseId`.
 
 - el catalogo aporta codigo y nombre oficial; descripcion y horas son
   nullables;
@@ -225,14 +227,19 @@ P3.1a vincula opcionalmente un draft `academic_subject` con un
   las inventa ni las completa;
 - `learning_outcomes` sigue fuera de la matriz de `academic_subject`;
 - la busqueda y seleccion estan siempre scoped por issuer autorizado;
+- una seleccion curricular valida que la materia pertenezca al programa y
+  version indicados, y deriva `program_name` desde `Program.name`;
+- los codigos de carrera distintos se preservan aunque sus nombres coincidan;
 - el draft conserva `academicCourseId` como referencia y copia un snapshot de
   nombre, descripcion y horas para no depender de mutaciones posteriores del
   catalogo;
-- `academicCourseId` no participa en `canon_v1`; los campos copiados a
+- `academicCourseId`, `programCourseId` y las referencias de programa o
+  curricula no participan en `canon_v1`; los campos copiados a
   `title`, `description`, `hours` y `achievement_name` si pueden afectar el
   hash futuro al emitir;
-- `Program`, `CurriculumVersion`, `ProgramCourse` y las relaciones
-  carrera-materia quedan fuera de P3.1a.
+- `program_name` tampoco participa actualmente en `canon_v1`;
+- la credencial emitida se verifica contra su snapshot y no contra futuros
+  cambios del catalogo o la curricula.
 
 ## 13. Que no decidir todavia
 

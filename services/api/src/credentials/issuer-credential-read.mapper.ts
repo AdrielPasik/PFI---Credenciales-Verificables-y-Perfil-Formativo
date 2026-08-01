@@ -42,6 +42,24 @@ export const issuerCredentialReadSelect = {
       description: true,
       hours: true
     }
+  },
+  programCourse: {
+    select: {
+      academicCourseId: true,
+      curriculumVersion: {
+        select: {
+          id: true,
+          versionLabel: true,
+          program: {
+            select: {
+              id: true,
+              code: true,
+              name: true
+            }
+          }
+        }
+      }
+    }
   }
 } as const;
 
@@ -78,6 +96,18 @@ export interface IssuerCredentialReadRecord {
     hours: {
       toFixed: (fractionDigits?: number) => string;
     } | null;
+  } | null;
+  programCourse: {
+    academicCourseId: string;
+    curriculumVersion: {
+      id: string;
+      versionLabel: string;
+      program: {
+        id: string;
+        code: string;
+        name: string;
+      };
+    };
   } | null;
 }
 
@@ -163,7 +193,23 @@ export function mapIssuerCredentialReadModel(
           description: normalizeOptionalText(
             credential.academicCourse.description
           ),
-          hours: credential.academicCourse.hours?.toFixed(2) ?? null
+          hours: credential.academicCourse.hours?.toFixed(2) ?? null,
+          program:
+            credential.programCourse?.academicCourseId ===
+            credential.academicCourse.id
+              ? {
+                  programReference:
+                    credential.programCourse.curriculumVersion.program.id,
+                  programCode:
+                    credential.programCourse.curriculumVersion.program.code,
+                  programName:
+                    credential.programCourse.curriculumVersion.program.name,
+                  curriculumReference:
+                    credential.programCourse.curriculumVersion.id,
+                  curriculumCode:
+                    credential.programCourse.curriculumVersion.versionLabel
+                }
+              : null
         }
       : null
   };

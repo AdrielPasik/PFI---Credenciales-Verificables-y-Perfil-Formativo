@@ -127,6 +127,65 @@
 - Errores esperados: `400`, `401`, `403`.
 - Estado: `implemented` en P3.1a.
 
+### `GET /issuers/:issuerId/catalog/academic-programs`
+
+- Proposito: buscar programas activos por codigo institucional o nombre.
+- Actor y scoping: mismo contexto institucional autorizado que el catalogo
+  plano; filtra `Program.issuerId`, `Program.status = active` y exige una
+  `CurriculumVersion` activa.
+- Query params: `query` opcional y `limit` default `20`, rango `1..50`.
+- Orden: `programCode asc`, `programName asc` y referencia como desempate.
+- Response `200 OK` allowlisted:
+
+```json
+{
+  "items": [
+    {
+      "programReference": "internal-command-reference",
+      "programCode": "1621",
+      "programName": "Ingenieria en Informatica",
+      "curriculumReference": "internal-command-reference",
+      "curriculumCode": "1621"
+    }
+  ]
+}
+```
+
+- No devuelve `issuerId`, metadata ni objetos Prisma.
+- Estado: `implemented` en P3.1b.
+
+### `GET /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academic-subjects`
+
+- Proposito: buscar asignaturas activas vinculadas a una version curricular
+  activa del issuer autorizado.
+- Scoping: autoriza antes de buscar; una curricula inexistente, inactiva o de
+  otro issuer produce el mismo `404`. Solo devuelve `ProgramCourse` de esa
+  curricula cuyo `AcademicCourse` pertenece al mismo issuer y esta activo.
+- Query params y limites: iguales al catalogo plano.
+- Orden: codigo y nombre de materia, con referencia interna como desempate.
+- Response `200 OK` allowlisted:
+
+```json
+{
+  "items": [
+    {
+      "academicCourseReference": "internal-command-reference",
+      "code": "3.4.213",
+      "name": "Ingenieria de Datos II",
+      "description": null,
+      "hours": null,
+      "programReference": "internal-command-reference",
+      "programCode": "1621",
+      "programName": "Ingenieria en Informatica",
+      "curriculumReference": "internal-command-reference",
+      "curriculumCode": "1621"
+    }
+  ]
+}
+```
+
+- Estado: `implemented` en P3.1b.
+
 ### `GET /issuers/:issuerId/credentials/:credentialId`
 
 - Proposito: leer una credencial dentro de un contexto institucional
@@ -181,7 +240,14 @@
     "code": "3.4.213",
     "name": "Ingenieria de Datos II",
     "description": null,
-    "hours": null
+    "hours": null,
+    "program": {
+      "programReference": "internal-command-reference",
+      "programCode": "1621",
+      "programName": "Ingenieria en Informatica",
+      "curriculumReference": "internal-command-reference",
+      "curriculumCode": "1621"
+    }
   }
 }
 ```
@@ -191,7 +257,9 @@
   como `string[]`. `issuer.did`, `holder.email` y `holder.did` tambien pueden
   ser `null`. `hours` se serializa como decimal string cuando existe.
   `academicCourse` es `null` cuando no hay vinculacion; su `description` y
-  `hours` tambien son nullables.
+  `hours` tambien son nullables. `academicCourse.program` es `null` para una
+  seleccion plana y contiene el contexto curricular allowlisted cuando fue
+  seleccionado explicitamente.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
@@ -224,6 +292,7 @@
 {
   "expectedUpdatedAt": "2026-07-30T12:05:00.000Z",
   "academicCourseReference": "internal-command-reference",
+  "curriculumReference": "internal-command-reference",
   "completionDate": "2026-07-30",
   "academicPeriod": "2026-1",
   "grade": "9",
@@ -233,6 +302,7 @@
 ```
 
 - Allowlist top-level: `expectedUpdatedAt`, `academicCourseReference`,
+  `curriculumReference`,
   `achievementName`, `description`, `hours`, `type`, `completionDate`,
   `academicPeriod`, `programName`, `grade`,
   `providerName`, `platformName`, `modality`, `level`, `certificationCode`,
@@ -251,15 +321,27 @@
   backend resuelve dentro de la transaccion una asignatura `active` del mismo
   issuer. Referencias inexistentes, inactivas o de otro issuer producen el
   mismo `404` seguro.
+- Contexto curricular: `curriculumReference` es opcional pero requiere
+  `academicCourseReference`. Dentro de la misma transaccion Serializable se
+  valida que `Program`, `CurriculumVersion`, `ProgramCourse` y
+  `AcademicCourse` esten activos, relacionados y pertenezcan al issuer. Una
+  combinacion inexistente, cruzada o inactiva devuelve el mismo `404` seguro.
+  La seleccion plana de P3.1a sigue admitida.
 - Snapshot: la seleccion asigna `Credential.academicCourseId`, copia el nombre
   oficial a `title` y `credentialSubject.achievement_name`, copia
   `description` y `hours` incluyendo sus valores `null`, y deriva
   `institution_name` de `Issuer.name`. Preserva `completion_date`,
   `academic_period`, `grade`, `skills` y `competencies`.
+- Snapshot curricular: cuando se envia `curriculumReference`, tambien asigna
+  `Credential.programCourseId` y deriva `credentialSubject.program_name`
+  desde `Program.name`. El nombre o codigo no se aceptan como sustitutos de
+  referencias. El catalogo sigue sin demostrar aprobacion del titular.
 - Ambiguedad: `academicCourseReference` no puede combinarse con
   `achievementName`, `description` ni `hours`; estas combinaciones producen
   `400`. No se acepta `academicCourseId`, un objeto de curso ni datos de
   catalogo enviados por el cliente.
+- Ambiguedad curricular: `curriculumReference` no puede combinarse con un
+  `programName` manual.
 - Normalizacion: el nombre se recorta y compacta, y actualiza tanto `title`
   como `credentialSubject.achievement_name`. En toda actualizacion exitosa,
   `credentialSubject.institution_name` se deriva de `Issuer.name`.
@@ -294,7 +376,8 @@
 - Response `200 OK`: el mismo read model issuer-facing seguro documentado en
   `GET /issuers/:issuerId/credentials/:credentialId`, incluyendo
   `description`, `hours`, la allowlist completa de `credentialSubject` y un
-  `updatedAt` nuevo. Incluye `academicCourse` allowlisted o `null`.
+  `updatedAt` nuevo. Incluye `academicCourse` allowlisted o `null`, y un
+  `academicCourse.program` allowlisted o `null`.
 - Errores esperados: `400` payload invalido, `401` sin autenticacion valida,
   `403` sin contexto institucional operativo, `404` para credencial
   inexistente o de otro issuer y `409` para lifecycle no draft o conflicto de
@@ -325,12 +408,13 @@
 | `externalUrl` / `external_url` | Si | Si | No |
 | `learningOutcomes` / `learning_outcomes` | Si | Si | No |
 | `academicCourseReference` / `academicCourseId` | Relacion | Resumen command-only | No |
+| `curriculumReference` / `programCourseId` | Relacion | Resumen command-only | No |
 
 Antes de emision debe decidirse si los campos controlados no incluidos en
 `canon_v1` permanecen como metadata no canonica o requieren una nueva version
 de canonicalizacion. Esta decision es un gap previo a P7; P2b1 no cambia hash
 ni afirma que un draft este listo para emitir.
-- Estado: `implemented`.
+- Estado: `implemented`, incluida la seleccion curricular P3.1b.
 
 ### `PATCH /issuers/:id`
 

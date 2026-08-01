@@ -82,6 +82,49 @@ test('validator accepts a trimmed academicCourseReference', () => {
   });
 });
 
+test('validator accepts curricular selection only with its academic course', () => {
+  const result = validateIssuerCredentialDraftUpdate({
+    expectedUpdatedAt: EXPECTED_UPDATED_AT,
+    academicCourseReference: ' academic-course-1 ',
+    curriculumReference: ' curriculum-1 '
+  });
+
+  assert.deepEqual(result.curriculumReference, {
+    provided: true,
+    value: 'curriculum-1'
+  });
+
+  for (const payload of [
+    { curriculumReference: 'curriculum-1' },
+    {
+      academicCourseReference: 'academic-course-1',
+      curriculumReference: 'curriculum-1',
+      programName: 'Manual program'
+    }
+  ]) {
+    assert.throws(
+      () =>
+        validateIssuerCredentialDraftUpdate({
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          ...payload
+        }),
+      BadRequestException
+    );
+  }
+
+  for (const value of [null, '', '   ', 42, [], {}]) {
+    assert.throws(
+      () =>
+        validateIssuerCredentialDraftUpdate({
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: 'academic-course-1',
+          curriculumReference: value
+        }),
+      BadRequestException
+    );
+  }
+});
+
 test('validator rejects invalid references and ambiguous catalog snapshots', () => {
   for (const value of [null, '', '   ', 42, [], {}]) {
     assert.throws(
