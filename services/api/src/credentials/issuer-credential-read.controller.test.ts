@@ -85,7 +85,8 @@ test('controller delegates path references and current user and preserves the sa
       displayLabel: 'Demo Holder',
       email: 'holder.demo@example.com',
       did: null
-    }
+    },
+    academicCourse: null
   };
   const controller = new IssuerCredentialReadController({
     async getCredentialForIssuer(

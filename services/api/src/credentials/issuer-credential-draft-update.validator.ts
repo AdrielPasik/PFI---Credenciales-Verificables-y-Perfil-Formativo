@@ -22,6 +22,7 @@ export type TypeSpecificUpdateField =
   (typeof TYPE_SPECIFIC_UPDATE_FIELDS)[number];
 
 const EDITABLE_FIELDS = [
+  'academicCourseReference',
   'achievementName',
   'description',
   'hours',
@@ -60,6 +61,7 @@ export interface FieldUpdate<T> {
 export interface NormalizedIssuerCredentialDraftUpdate {
   expectedUpdatedAt: Date;
   expectedUpdatedAtIso: string;
+  academicCourseReference: FieldUpdate<string>;
   achievementName: FieldUpdate<string>;
   description: FieldUpdate<string | null>;
   hours: FieldUpdate<Prisma.Decimal | null>;
@@ -108,6 +110,11 @@ export function validateIssuerCredentialDraftUpdate(
   const result = {
     expectedUpdatedAt: new Date(expectedUpdatedAtIso),
     expectedUpdatedAtIso,
+    academicCourseReference: normalizeOptionalField(
+      body,
+      'academicCourseReference',
+      normalizeAcademicCourseReference
+    ),
     achievementName: normalizeOptionalField(
       body,
       'achievementName',
@@ -154,7 +161,36 @@ export function validateIssuerCredentialDraftUpdate(
     );
   }
 
+  if (
+    result.academicCourseReference?.provided &&
+    (result.achievementName?.provided ||
+      result.description?.provided ||
+      result.hours?.provided)
+  ) {
+    throw new BadRequestException(
+      'academicCourseReference no puede combinarse con achievementName, description u hours.'
+    );
+  }
+
   return result as NormalizedIssuerCredentialDraftUpdate;
+}
+
+function normalizeAcademicCourseReference(value: unknown) {
+  if (typeof value !== 'string') {
+    throw new BadRequestException(
+      'academicCourseReference debe ser string no vacio.'
+    );
+  }
+
+  const normalized = value.trim();
+
+  if (!normalized) {
+    throw new BadRequestException(
+      'academicCourseReference debe ser string no vacio.'
+    );
+  }
+
+  return normalized;
 }
 
 function normalizeOptionalField<T>(

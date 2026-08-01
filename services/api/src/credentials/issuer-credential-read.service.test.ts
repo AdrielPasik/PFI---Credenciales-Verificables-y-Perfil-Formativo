@@ -48,7 +48,8 @@ function createCredentialRecord() {
       displayName: 'Demo Holder',
       firstName: null,
       lastName: null
-    }
+    },
+    academicCourse: null
   };
 }
 

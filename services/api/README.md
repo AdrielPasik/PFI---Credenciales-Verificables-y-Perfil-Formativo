@@ -21,6 +21,7 @@ Protegidos por JWT:
 POST /credentials/draft
 GET  /auth/me
 POST /issuers/:issuerId/holders/resolve
+GET  /issuers/:issuerId/catalog/academic-subjects
 GET  /issuers/:issuerId/credentials/:credentialId
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /credentials/:id/issue
@@ -55,6 +56,12 @@ expone IDs relacionales, auth, wallet, metadata, raw data, hashes, blockchain
 ni analisis. El read generico `GET /credentials/:id` sigue coexistiendo sin
 cambios.
 
+`GET /issuers/:issuerId/catalog/academic-subjects` busca `AcademicCourse`
+activos del issuer por codigo o nombre. Usa limite default `20`, maximo `50`,
+orden deterministico y una response allowlisted. El seed demo importa las 617
+materias de `data/academic_catalog/demo-academic-courses-v0.json` sin inventar
+descripcion, horas ni enriquecimiento.
+
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.
 Requiere el `expectedUpdatedAt` exacto del read institucional, rechaza claves
@@ -66,6 +73,11 @@ contrato. El nombre queda sincronizado entre `title` y
 conserva los compatibles y preserva claves legacy sin exponerlas. La response
 issuer-facing devuelve solo la allowlist tipada. Este slice no calcula
 readiness, no emite, no llama a blockchain y no cambia `canon_v1`.
+Para `academic_subject`, el PATCH acepta `academicCourseReference`, valida una
+asignatura activa del mismo issuer y copia un snapshot de nombre, descripcion
+y horas. No puede combinarse con valores manuales para esos mismos campos. El
+catalogo no prueba aprobacion; fecha, periodo y nota siguen describiendo el
+logro concreto del holder.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
@@ -117,6 +129,7 @@ Tests de slices:
 - `npm run test:web-cors --workspace @credential-intelligence/api`
 - `npm run test:auth --workspace @credential-intelligence/api`
 - `npm run test:holder-resolution --workspace @credential-intelligence/api`
+- `npm run test:academic-catalog --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-read --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-draft-update --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-type-fields --workspace @credential-intelligence/api`
@@ -133,7 +146,9 @@ npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name <m
 npm run prisma:seed --workspace @credential-intelligence/api
 ```
 
-El seed idempotente crea `Demo University`, `Issuer Admin` y `Demo Holder`. Las credenciales demo local/dev son:
+El seed idempotente crea `Demo University`, `Issuer Admin`, `Demo Holder` y
+617 `AcademicCourse` activos usando `issuerId + code`. No carga carreras,
+planes ni relaciones carrera-materia. Las credenciales demo local/dev son:
 
 - `issuer.admin@example.com / DemoIssuer123!`
 - `holder.demo@example.com / DemoHolder123!`

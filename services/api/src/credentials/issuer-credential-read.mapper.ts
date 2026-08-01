@@ -33,6 +33,15 @@ export const issuerCredentialReadSelect = {
       firstName: true,
       lastName: true
     }
+  },
+  academicCourse: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      description: true,
+      hours: true
+    }
   }
 } as const;
 
@@ -61,6 +70,15 @@ export interface IssuerCredentialReadRecord {
     firstName: string | null;
     lastName: string | null;
   };
+  academicCourse: {
+    id: string;
+    code: string;
+    name: string;
+    description: string | null;
+    hours: {
+      toFixed: (fractionDigits?: number) => string;
+    } | null;
+  } | null;
 }
 
 export function mapIssuerCredentialReadModel(
@@ -136,7 +154,18 @@ export function mapIssuerCredentialReadModel(
       ),
       email: holderEmail,
       did: normalizeOptionalText(credential.subjectUser.did)
-    }
+    },
+    academicCourse: credential.academicCourse
+      ? {
+          academicCourseReference: credential.academicCourse.id,
+          code: credential.academicCourse.code,
+          name: credential.academicCourse.name,
+          description: normalizeOptionalText(
+            credential.academicCourse.description
+          ),
+          hours: credential.academicCourse.hours?.toFixed(2) ?? null
+        }
+      : null
   };
 }
 

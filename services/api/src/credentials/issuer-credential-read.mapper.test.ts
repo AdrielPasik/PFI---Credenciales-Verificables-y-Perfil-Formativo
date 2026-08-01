@@ -57,6 +57,7 @@ function createRecord(
       firstName: 'Ignored',
       lastName: 'Name'
     },
+    academicCourse: null,
     ...overrides
   };
 }
@@ -129,7 +130,8 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
       displayLabel: 'Demo Holder',
       email: 'holder.demo@example.com',
       did: 'did:example:holder-demo'
-    }
+    },
+    academicCourse: null
   });
 
   for (const forbiddenField of [
@@ -150,6 +152,31 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
   ]) {
     assert.equal(forbiddenField in response, false);
   }
+});
+
+test('mapper returns an allowlisted academic course summary', () => {
+  const response = mapIssuerCredentialReadModel(
+    createRecord({
+      academicCourse: {
+        id: 'academic-course-1',
+        code: '3.4.213',
+        name: 'Ingenieria de Datos II',
+        description: ' Descripcion oficial ',
+        hours: new Prisma.Decimal('64.00')
+      }
+    })
+  );
+
+  assert.deepEqual(response.academicCourse, {
+    academicCourseReference: 'academic-course-1',
+    code: '3.4.213',
+    name: 'Ingenieria de Datos II',
+    description: 'Descripcion oficial',
+    hours: '64.00'
+  });
+  assert.equal('id' in response.academicCourse!, false);
+  assert.equal('issuerId' in response.academicCourse!, false);
+  assert.equal('metadata' in response.academicCourse!, false);
 });
 
 test('mapper keeps issuer identity separate from the institution name stored in the draft', () => {

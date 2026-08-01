@@ -93,6 +93,40 @@
 - Errores esperados: `400`, `401`, `403`, `404`.
 - Estado: `implemented`.
 
+### `GET /issuers/:issuerId/catalog/academic-subjects`
+
+- Proposito: buscar asignaturas activas del catalogo institucional por codigo
+  o nombre oficial.
+- Actor: usuario autenticado con membership `active`, rol `admin` u
+  `operator` e issuer `authorized`.
+- Query params: `query` opcional con trim y `limit` opcional, default `20`,
+  rango `1..50`.
+- Scoping: la autorizacion institucional ocurre antes de consultar
+  `AcademicCourse`; la busqueda filtra siempre por `issuerId` y
+  `status = active`.
+- Orden: `code asc`, luego `name asc`.
+- Response `200 OK`:
+
+```json
+{
+  "items": [
+    {
+      "academicCourseReference": "internal-command-reference",
+      "code": "3.4.213",
+      "name": "Ingenieria de Datos II",
+      "description": null,
+      "hours": null
+    }
+  ]
+}
+```
+
+- Allowlist: no devuelve `issuerId`, `metadata`, programas, versiones
+  curriculares ni relaciones internas. `academicCourseReference` es una
+  referencia command-only.
+- Errores esperados: `400`, `401`, `403`.
+- Estado: `implemented` en P3.1a.
+
 ### `GET /issuers/:issuerId/credentials/:credentialId`
 
 - Proposito: leer una credencial dentro de un contexto institucional
@@ -141,6 +175,13 @@
     "displayLabel": "Demo Holder",
     "email": "holder.demo@example.com",
     "did": null
+  },
+  "academicCourse": {
+    "academicCourseReference": "internal-command-reference",
+    "code": "3.4.213",
+    "name": "Ingenieria de Datos II",
+    "description": null,
+    "hours": null
   }
 }
 ```
@@ -149,6 +190,8 @@
   `credentialSubject` pueden ser `null`; sus tres arrays siempre se devuelven
   como `string[]`. `issuer.did`, `holder.email` y `holder.did` tambien pueden
   ser `null`. `hours` se serializa como decimal string cuando existe.
+  `academicCourse` es `null` cuando no hay vinculacion; su `description` y
+  `hours` tambien son nullables.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
@@ -180,23 +223,18 @@
 ```json
 {
   "expectedUpdatedAt": "2026-07-30T12:05:00.000Z",
-  "achievementName": "Arquitectura de Software",
-  "description": "Descripcion opcional",
-  "hours": "24.5",
-  "type": "course",
+  "academicCourseReference": "internal-command-reference",
   "completionDate": "2026-07-30",
-  "providerName": "Traza Academy",
-  "platformName": "Campus",
-  "modality": "Hibrida",
-  "level": "Avanzado",
+  "academicPeriod": "2026-1",
+  "grade": "9",
   "skills": ["TypeScript"],
-  "competencies": ["Diseno de sistemas"],
-  "learningOutcomes": ["Construir APIs"]
+  "competencies": ["Diseno de sistemas"]
 }
 ```
 
-- Allowlist top-level: `expectedUpdatedAt`, `achievementName`, `description`,
-  `hours`, `type`, `completionDate`, `academicPeriod`, `programName`, `grade`,
+- Allowlist top-level: `expectedUpdatedAt`, `academicCourseReference`,
+  `achievementName`, `description`, `hours`, `type`, `completionDate`,
+  `academicPeriod`, `programName`, `grade`,
   `providerName`, `platformName`, `modality`, `level`, `certificationCode`,
   `expirationDate`, `externalUrl`, `skills`, `competencies` y
   `learningOutcomes`. Cualquier otra clave produce `400`; siguen prohibidos
@@ -208,6 +246,20 @@
   `hours` admiten `null` para limpiar. `type` es opcional, no admite `null` y
   solo acepta `academic_subject`, `course`, `certification` o `degree`. Los
   campos omitidos conservan su valor.
+- Seleccion de catalogo: `academicCourseReference` es un string no vacio y
+  solo aplica cuando la credencial actual y final son `academic_subject`. El
+  backend resuelve dentro de la transaccion una asignatura `active` del mismo
+  issuer. Referencias inexistentes, inactivas o de otro issuer producen el
+  mismo `404` seguro.
+- Snapshot: la seleccion asigna `Credential.academicCourseId`, copia el nombre
+  oficial a `title` y `credentialSubject.achievement_name`, copia
+  `description` y `hours` incluyendo sus valores `null`, y deriva
+  `institution_name` de `Issuer.name`. Preserva `completion_date`,
+  `academic_period`, `grade`, `skills` y `competencies`.
+- Ambiguedad: `academicCourseReference` no puede combinarse con
+  `achievementName`, `description` ni `hours`; estas combinaciones producen
+  `400`. No se acepta `academicCourseId`, un objeto de curso ni datos de
+  catalogo enviados por el cliente.
 - Normalizacion: el nombre se recorta y compacta, y actualiza tanto `title`
   como `credentialSubject.achievement_name`. En toda actualizacion exitosa,
   `credentialSubject.institution_name` se deriva de `Issuer.name`.
@@ -242,13 +294,13 @@
 - Response `200 OK`: el mismo read model issuer-facing seguro documentado en
   `GET /issuers/:issuerId/credentials/:credentialId`, incluyendo
   `description`, `hours`, la allowlist completa de `credentialSubject` y un
-  `updatedAt` nuevo.
+  `updatedAt` nuevo. Incluye `academicCourse` allowlisted o `null`.
 - Errores esperados: `400` payload invalido, `401` sin autenticacion valida,
   `403` sin contexto institucional operativo, `404` para credencial
   inexistente o de otro issuer y `409` para lifecycle no draft o conflicto de
   concurrencia.
 - Limites: no calcula readiness, no emite, no llama a blockchain y no modifica
-  canonicalizacion.
+  canonicalizacion. El catalogo no demuestra cursada ni aprobacion del holder.
 - Cobertura actual de `canon_v1`:
 
 | Campo controlado | Persistido en draft | Devuelto por read model | En `canon_v1` |
@@ -272,6 +324,7 @@
 | `expirationDate` / `expiration_date` | Si | Si | No |
 | `externalUrl` / `external_url` | Si | Si | No |
 | `learningOutcomes` / `learning_outcomes` | Si | Si | No |
+| `academicCourseReference` / `academicCourseId` | Relacion | Resumen command-only | No |
 
 Antes de emision debe decidirse si los campos controlados no incluidos en
 `canon_v1` permanecen como metadata no canonica o requieren una nueva version

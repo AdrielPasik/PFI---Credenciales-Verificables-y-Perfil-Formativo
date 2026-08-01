@@ -34,6 +34,14 @@ export class IssuerCredentialHolderResponseDto {
   did!: string | null;
 }
 
+export class IssuerCredentialAcademicCourseResponseDto {
+  academicCourseReference!: string;
+  code!: string;
+  name!: string;
+  description!: string | null;
+  hours!: string | null;
+}
+
 export class IssuerCredentialDetailResponseDto {
   id!: string;
   status!: CredentialStatus;
@@ -47,4 +55,5 @@ export class IssuerCredentialDetailResponseDto {
   updatedAt!: string;
   issuer!: IssuerCredentialIssuerResponseDto;
   holder!: IssuerCredentialHolderResponseDto;
+  academicCourse!: IssuerCredentialAcademicCourseResponseDto | null;
 }

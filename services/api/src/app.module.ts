@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AiModule } from './ai/ai.module';
 import { AuthModule } from './auth/auth.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
+import { CatalogModule } from './catalog/catalog.module';
 import { CredentialsModule } from './credentials/credentials.module';
 import { HealthController } from './health/health.controller';
 import { IssuersModule } from './issuers/issuers.module';
@@ -21,6 +22,7 @@ import { VerificationModule } from './verification/verification.module';
     ProfilesModule,
     IssuersModule,
     BlockchainModule,
+    CatalogModule,
     SemanticModule,
     CredentialsModule,
     VerificationModule

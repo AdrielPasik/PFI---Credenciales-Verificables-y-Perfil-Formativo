@@ -79,8 +79,10 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 
 ## Estado operativo
 
-- el backend NestJS ya existe como scaffold minimo;
+- el backend NestJS implementa auth, credenciales, perfil y catalogo incremental;
 - el cliente Prisma puede generarse localmente con scripts del workspace;
-- las migraciones y el seed local se preparan desde `services/api/package.json`;
-- sigue sin haber implementacion de negocio para credenciales, auth, IA o blockchain real;
+- el seed local importa de forma idempotente 617 `AcademicCourse` demo desde
+  `data/academic_catalog/demo-academic-courses-v0.json`;
+- el catalogo actual es plano: no importa `Program`, `CurriculumVersion`,
+  `ProgramCourse` ni relaciones carrera-materia;
 - este schema queda como base revisable del sistema final, preparada para implementacion incremental.

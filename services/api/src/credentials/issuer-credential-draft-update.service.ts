@@ -1,10 +1,16 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException
 } from '@nestjs/common';
-import { CredentialStatus, Prisma } from '@prisma/client';
+import {
+  CourseStatus,
+  CredentialStatus,
+  CredentialType,
+  Prisma
+} from '@prisma/client';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
@@ -23,6 +29,8 @@ const DRAFT_STATE_CONFLICT_MESSAGE =
   'La credencial ya no esta en estado draft y no puede modificarse.';
 const DRAFT_VERSION_CONFLICT_MESSAGE =
   'El borrador fue actualizado desde otra sesion. Volve a cargarlo antes de guardar.';
+const ACADEMIC_COURSE_NOT_FOUND_MESSAGE =
+  'No se encontro una asignatura activa para el issuer solicitado.';
 
 @Injectable()
 export class IssuerCredentialDraftUpdateService {
@@ -69,12 +77,23 @@ export class IssuerCredentialDraftUpdateService {
         }
 
         const currentSubject = toJsonObject(credential.credentialSubject);
-        const resultingTitle = update.achievementName.provided
-          ? update.achievementName.value!
-          : credential.title;
         const finalType = update.type.provided
           ? update.type.value!
           : credential.type;
+        const selectedAcademicCourse = update.academicCourseReference.provided
+          ? await this.getAcademicCourseForSelection(
+              transaction,
+              issuerId,
+              update.academicCourseReference.value!,
+              credential.type,
+              finalType
+            )
+          : null;
+        const resultingTitle = selectedAcademicCourse
+          ? selectedAcademicCourse.name
+          : update.achievementName.provided
+            ? update.achievementName.value!
+            : credential.title;
         const resultingSubject = buildUpdatedCredentialSubject({
           currentSubject,
           finalType,
@@ -89,7 +108,16 @@ export class IssuerCredentialDraftUpdateService {
           ...(update.description.provided
             ? { description: update.description.value }
             : {}),
-          ...(update.hours.provided ? { hours: update.hours.value } : {})
+          ...(update.hours.provided ? { hours: update.hours.value } : {}),
+          ...(selectedAcademicCourse
+            ? {
+                academicCourseId: selectedAcademicCourse.id,
+                description: selectedAcademicCourse.description,
+                hours: selectedAcademicCourse.hours
+              }
+            : update.type.provided && finalType !== CredentialType.academic_subject
+              ? { academicCourseId: null }
+              : {})
         };
 
         const result = await transaction.credential.updateMany({
@@ -126,6 +154,43 @@ export class IssuerCredentialDraftUpdateService {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable
       }
     );
+  }
+
+  private async getAcademicCourseForSelection(
+    transaction: Prisma.TransactionClient,
+    issuerId: string,
+    academicCourseReference: string,
+    currentType: CredentialType,
+    finalType: CredentialType
+  ) {
+    if (
+      currentType !== CredentialType.academic_subject ||
+      finalType !== CredentialType.academic_subject
+    ) {
+      throw new BadRequestException(
+        'academicCourseReference solo puede seleccionarse para un draft academic_subject.'
+      );
+    }
+
+    const academicCourse = await transaction.academicCourse.findFirst({
+      where: {
+        id: academicCourseReference,
+        issuerId,
+        status: CourseStatus.active
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        hours: true
+      }
+    });
+
+    if (!academicCourse) {
+      throw new NotFoundException(ACADEMIC_COURSE_NOT_FOUND_MESSAGE);
+    }
+
+    return academicCourse;
   }
 }
 

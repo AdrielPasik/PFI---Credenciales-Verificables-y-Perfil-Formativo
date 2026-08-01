@@ -57,6 +57,7 @@ function createCredentialRecord(
       firstName: null,
       lastName: null
     },
+    academicCourse: null,
     ...overrides
   };
 }
@@ -84,13 +85,34 @@ function createService(options?: {
   credential?: ReturnType<typeof createCredentialRecord> | null;
   updateCount?: number;
   updatedCredential?: ReturnType<typeof createCredentialRecord> | null;
+  academicCourse?: {
+    id: string;
+    name: string;
+    description: string | null;
+    hours: Prisma.Decimal | null;
+  } | null;
 }) {
   const operationOrder: string[] = [];
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const transactionOptions: Array<Record<string, unknown>> = [];
   const findFirstCalls: Array<Record<string, unknown>> = [];
   const updateManyCalls: Array<Record<string, unknown>> = [];
+  const academicCourseCalls: Array<Record<string, unknown>> = [];
   const transaction = {
+    academicCourse: {
+      async findFirst(args: Record<string, unknown>) {
+        operationOrder.push('academic_course_lookup');
+        academicCourseCalls.push(args);
+        return options?.academicCourse === undefined
+          ? {
+              id: 'academic-course-1',
+              name: 'Ingenieria de Datos II',
+              description: null,
+              hours: null
+            }
+          : options.academicCourse;
+      }
+    },
     credential: {
       async findFirst(args: Record<string, unknown>) {
         operationOrder.push(
@@ -155,9 +177,182 @@ function createService(options?: {
     authorizationCalls,
     transactionOptions,
     findFirstCalls,
-    updateManyCalls
+    updateManyCalls,
+    academicCourseCalls
   };
 }
+
+test('service selects an active issuer course and snapshots official data', async () => {
+  const credential = createCredentialRecord({
+    type: CredentialType.academic_subject,
+    credentialSubject: {
+      achievement_name: 'Nombre anterior',
+      institution_name: 'Nombre anterior',
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      grade: '9',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de datos'],
+      legacy_key: 'preservada'
+    }
+  });
+  const academicCourse = {
+    id: 'academic-course-1',
+    name: 'Ingenieria de Datos II',
+    description: 'Descripcion oficial',
+    hours: new Prisma.Decimal('64.00')
+  };
+  const updatedCredential = createUpdatedCredentialRecord({
+    type: CredentialType.academic_subject,
+    title: academicCourse.name,
+    description: academicCourse.description,
+    hours: academicCourse.hours,
+    credentialSubject: {
+      achievement_name: academicCourse.name,
+      institution_name: 'Demo University',
+      completion_date: '2026-07-30',
+      academic_period: '2026-1',
+      grade: '9',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de datos'],
+      legacy_key: 'preservada'
+    },
+    academicCourse: {
+      id: academicCourse.id,
+      code: '3.4.213',
+      name: academicCourse.name,
+      description: academicCourse.description,
+      hours: academicCourse.hours
+    }
+  });
+  const {
+    service,
+    operationOrder,
+    academicCourseCalls,
+    updateManyCalls
+  } = createService({ credential, academicCourse, updatedCredential });
+
+  const response = await service.updateDraftForIssuer(
+    'issuer-1',
+    'credential-1',
+    {
+      expectedUpdatedAt: EXPECTED_UPDATED_AT,
+      academicCourseReference: ' academic-course-1 ',
+      completionDate: '2026-07-30',
+      academicPeriod: '2026-1',
+      grade: '9',
+      skills: ['TypeScript'],
+      competencies: ['Diseno de datos']
+    },
+    currentUser
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'transaction',
+    'credential_read',
+    'academic_course_lookup',
+    'credential_cas',
+    'credential_reread'
+  ]);
+  assert.deepEqual(academicCourseCalls, [
+    {
+      where: {
+        id: 'academic-course-1',
+        issuerId: 'issuer-1',
+        status: 'active'
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        hours: true
+      }
+    }
+  ]);
+  const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
+  assert.equal(data.academicCourseId, 'academic-course-1');
+  assert.equal(data.title, academicCourse.name);
+  assert.equal(data.description, academicCourse.description);
+  assert.equal((data.hours as Prisma.Decimal).toFixed(2), '64.00');
+  assert.deepEqual(data.credentialSubject, {
+    achievement_name: academicCourse.name,
+    institution_name: 'Demo University',
+    completion_date: '2026-07-30',
+    academic_period: '2026-1',
+    grade: '9',
+    skills: ['TypeScript'],
+    competencies: ['Diseno de datos'],
+    legacy_key: 'preservada'
+  });
+  assert.deepEqual(response.academicCourse, {
+    academicCourseReference: 'academic-course-1',
+    code: '3.4.213',
+    name: academicCourse.name,
+    description: academicCourse.description,
+    hours: '64.00'
+  });
+});
+
+test('service rejects catalog selection unless the current draft is academic_subject', async () => {
+  for (const type of [
+    CredentialType.course,
+    CredentialType.certification,
+    CredentialType.degree
+  ]) {
+    const { service, academicCourseCalls, updateManyCalls } = createService({
+      credential: createCredentialRecord({ type })
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: 'academic-course-1'
+        },
+        currentUser
+      ),
+      BadRequestException
+    );
+    assert.deepEqual(academicCourseCalls, []);
+    assert.deepEqual(updateManyCalls, []);
+  }
+});
+
+test('service returns the same safe 404 for missing, inactive and cross-issuer course references', async () => {
+  for (const reference of ['missing', 'inactive', 'cross-issuer']) {
+    const { service, academicCourseCalls, updateManyCalls } = createService({
+      credential: createCredentialRecord({
+        type: CredentialType.academic_subject
+      }),
+      academicCourse: null
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: reference
+        },
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof NotFoundException);
+        assert.equal(
+          error.message,
+          'No se encontro una asignatura activa para el issuer solicitado.'
+        );
+        return true;
+      }
+    );
+    assert.equal(academicCourseCalls.length, 1);
+    assert.deepEqual(updateManyCalls, []);
+  }
+});
 
 test('service authorizes, runs a Serializable transaction and applies an atomic scoped CAS', async () => {
   const {

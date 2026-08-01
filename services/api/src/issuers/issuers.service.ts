@@ -49,6 +49,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanSearchAcademicCatalogForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'consultar el catalogo academico'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

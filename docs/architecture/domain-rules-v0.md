@@ -210,7 +210,31 @@ Los campos `program_name`, `provider_name`, `platform_name`, `modality`,
 decidirse si permanecen como metadata no canonica o requieren una nueva
 version de canonicalizacion.
 
-## 12. Que no decidir todavia
+## 12. Catalogo institucional minimo para academic_subject
+
+P3.1a vincula opcionalmente un draft `academic_subject` con un
+`AcademicCourse` activo del mismo issuer.
+
+- el catalogo aporta codigo y nombre oficial; descripcion y horas son
+  nullables;
+- seleccionar una asignatura no demuestra cursada, finalizacion ni aprobacion
+  del titular;
+- `completion_date`, `academic_period` y `grade` describen el logro concreto
+  del holder y no se derivan del catalogo;
+- `skills` y `competencies` existentes se preservan, pero el catalogo demo no
+  las inventa ni las completa;
+- `learning_outcomes` sigue fuera de la matriz de `academic_subject`;
+- la busqueda y seleccion estan siempre scoped por issuer autorizado;
+- el draft conserva `academicCourseId` como referencia y copia un snapshot de
+  nombre, descripcion y horas para no depender de mutaciones posteriores del
+  catalogo;
+- `academicCourseId` no participa en `canon_v1`; los campos copiados a
+  `title`, `description`, `hours` y `achievement_name` si pueden afectar el
+  hash futuro al emitir;
+- `Program`, `CurriculumVersion`, `ProgramCourse` y las relaciones
+  carrera-materia quedan fuera de P3.1a.
+
+## 13. Que no decidir todavia
 
 Por ahora no se decide:
 

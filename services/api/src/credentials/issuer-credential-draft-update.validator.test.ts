@@ -36,6 +36,8 @@ test('validator rejects unknown and prohibited top-level fields instead of ignor
     'issuerId',
     'subjectUserId',
     'holderReference',
+    'academicCourseId',
+    'academicCourse',
     'status',
     'sourceType',
     'credentialSubject',
@@ -64,6 +66,43 @@ test('validator rejects unknown and prohibited top-level fields instead of ignor
         }),
       BadRequestException,
       field
+    );
+  }
+});
+
+test('validator accepts a trimmed academicCourseReference', () => {
+  const result = validateIssuerCredentialDraftUpdate({
+    expectedUpdatedAt: EXPECTED_UPDATED_AT,
+    academicCourseReference: ' academic-course-1 '
+  });
+
+  assert.deepEqual(result.academicCourseReference, {
+    provided: true,
+    value: 'academic-course-1'
+  });
+});
+
+test('validator rejects invalid references and ambiguous catalog snapshots', () => {
+  for (const value of [null, '', '   ', 42, [], {}]) {
+    assert.throws(
+      () =>
+        validateIssuerCredentialDraftUpdate({
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: value
+        }),
+      BadRequestException
+    );
+  }
+
+  for (const field of ['achievementName', 'description', 'hours']) {
+    assert.throws(
+      () =>
+        validateIssuerCredentialDraftUpdate({
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          academicCourseReference: 'academic-course-1',
+          [field]: field === 'hours' ? '12' : 'ambiguous'
+        }),
+      BadRequestException
     );
   }
 });

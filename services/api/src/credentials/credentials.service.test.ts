@@ -123,13 +123,24 @@ function createDraftService(options?: {
     issuerId: string
   ) => Promise<unknown>;
   subjectUser?: { id: string } | null;
+  academicCourse?: { id: string } | null;
 }) {
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const subjectLookupCalls: Array<Record<string, unknown>> = [];
   const createCalls: Array<Record<string, unknown>> = [];
+  const academicCourseLookupCalls: Array<Record<string, unknown>> = [];
   const operationOrder: string[] = [];
 
   const prisma = {
+    academicCourse: {
+      async findFirst(args: Record<string, unknown>) {
+        operationOrder.push('academic_course_lookup');
+        academicCourseLookupCalls.push(args);
+        return options?.academicCourse === undefined
+          ? { id: 'academic-course-1' }
+          : options.academicCourse;
+      }
+    },
     user: {
       async findUnique(args: Record<string, unknown>) {
         operationOrder.push('subject_lookup');
@@ -178,9 +189,77 @@ function createDraftService(options?: {
     authorizationCalls,
     subjectLookupCalls,
     createCalls,
+    academicCourseLookupCalls,
     operationOrder
   };
 }
+
+test('createDraft validates a compatible active issuer course before linking it', async () => {
+  const { service, academicCourseLookupCalls, createCalls, operationOrder } =
+    createDraftService();
+
+  await service.createDraft(
+    {
+      ...validDraftDto,
+      academicCourseId: 'academic-course-1'
+    },
+    currentUser
+  );
+
+  assert.deepEqual(academicCourseLookupCalls, [
+    {
+      where: {
+        id: 'academic-course-1',
+        issuerId: 'issuer-1',
+        status: 'active'
+      },
+      select: { id: true }
+    }
+  ]);
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'academic_course_lookup',
+    'subject_lookup',
+    'credential_create'
+  ]);
+  assert.equal(
+    (createCalls[0] as { data: { academicCourseId: string } }).data
+      .academicCourseId,
+    'academic-course-1'
+  );
+});
+
+test('createDraft rejects cross-issuer, inactive or missing academic courses and non-academic types', async () => {
+  const missing = createDraftService({ academicCourse: null });
+
+  await assert.rejects(
+    missing.service.createDraft(
+      {
+        ...validDraftDto,
+        academicCourseId: 'unavailable-course'
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.deepEqual(missing.createCalls, []);
+
+  const wrongType = createDraftService();
+
+  await assert.rejects(
+    wrongType.service.createDraft(
+      {
+        ...validDraftDto,
+        type: CredentialType.course,
+        academicCourseId: 'academic-course-1'
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.deepEqual(wrongType.academicCourseLookupCalls, []);
+  assert.deepEqual(wrongType.createCalls, []);
+});
 
 function createService(options?: {
   credential?: CredentialFixture | null;

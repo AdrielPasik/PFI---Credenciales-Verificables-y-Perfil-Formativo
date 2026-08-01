@@ -6,6 +6,7 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import {
+  CourseStatus,
   CredentialSourceType,
   CredentialType,
   CredentialStatus,
@@ -59,6 +60,8 @@ export class CredentialsService {
       );
     }
 
+    await this.assertAcademicCourseCanBeLinked(dto);
+
     await this.getSubjectUserOrThrow(dto.subjectUserId);
 
     const credential = await this.prisma.credential.create({
@@ -88,6 +91,35 @@ export class CredentialsService {
     });
 
     return this.toCredentialSummaryResponse(credential);
+  }
+
+  private async assertAcademicCourseCanBeLinked(dto: CreateCredentialDraftDto) {
+    if (!dto.academicCourseId) {
+      return;
+    }
+
+    if (dto.type !== CredentialType.academic_subject) {
+      throw new BadRequestException(
+        'academicCourseId solo puede usarse con type academic_subject.'
+      );
+    }
+
+    const academicCourse = await this.prisma.academicCourse.findFirst({
+      where: {
+        id: dto.academicCourseId,
+        issuerId: dto.issuerId,
+        status: CourseStatus.active
+      },
+      select: {
+        id: true
+      }
+    });
+
+    if (!academicCourse) {
+      throw new BadRequestException(
+        'academicCourseId no corresponde a una asignatura activa del issuer.'
+      );
+    }
   }
 
   async issueCredential(

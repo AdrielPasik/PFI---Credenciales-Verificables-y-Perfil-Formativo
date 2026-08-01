@@ -1,0 +1,2480 @@
+{
+    "schemaVersion":  "academic_course_catalog_v0",
+    "source":  "local_source_provided_for_pfi",
+    "notes":  [
+                  "Derived from the local JSON supplied for P3.1a.",
+                  "The source syntax corruption after Ingenieria Electromecanica was corrected before parsing.",
+                  "Only materias are included; carreras and carrera_materias remain out of scope.",
+                  "Descriptions, hours, skills, competencies and learning outcomes are not present in the source and are not invented."
+              ],
+    "courses":  [
+                    {
+                        "code":  "1.1.030",
+                        "name":  "Dirección de Empresas"
+                    },
+                    {
+                        "code":  "1.1.093",
+                        "name":  "Liderazgo y Negociación"
+                    },
+                    {
+                        "code":  "1.1030",
+                        "name":  "Dirección de Empresas"
+                    },
+                    {
+                        "code":  "1.1031",
+                        "name":  "Desarrollo Gerencial"
+                    },
+                    {
+                        "code":  "1.1082",
+                        "name":  "Planeamiento y Control de Gestión"
+                    },
+                    {
+                        "code":  "1.1093",
+                        "name":  "Liderazgo y Negociación"
+                    },
+                    {
+                        "code":  "1.2.001",
+                        "name":  "Marketing"
+                    },
+                    {
+                        "code":  "1.2001",
+                        "name":  "Marketing"
+                    },
+                    {
+                        "code":  "1.2043",
+                        "name":  "Introducción al Marketing e Investigación de Mercado"
+                    },
+                    {
+                        "code":  "1.2044",
+                        "name":  "Comercialización Alimentaria"
+                    },
+                    {
+                        "code":  "1.4.041",
+                        "name":  "Fundamentos de Economía"
+                    },
+                    {
+                        "code":  "1.4.076",
+                        "name":  "Fundamentos de Economía"
+                    },
+                    {
+                        "code":  "1.4041",
+                        "name":  "Fundamentos de Economía"
+                    },
+                    {
+                        "code":  "1.4044",
+                        "name":  "Gestión Financiera"
+                    },
+                    {
+                        "code":  "1.4045",
+                        "name":  "Fundamentos de Economía"
+                    },
+                    {
+                        "code":  "1.4076",
+                        "name":  "Fundamentos de Economía"
+                    },
+                    {
+                        "code":  "2.1.002",
+                        "name":  "Pensamiento Crítico y Comunicación"
+                    },
+                    {
+                        "code":  "2.1.082",
+                        "name":  "Ética y Filosofía"
+                    },
+                    {
+                        "code":  "2.1.176",
+                        "name":  "Pensamiento Científico"
+                    },
+                    {
+                        "code":  "2.1002",
+                        "name":  "Pensamiento Crítico y Comunicación"
+                    },
+                    {
+                        "code":  "2.1006",
+                        "name":  "Ética"
+                    },
+                    {
+                        "code":  "2.1082",
+                        "name":  "Ética y Filosofía"
+                    },
+                    {
+                        "code":  "2.3.049",
+                        "name":  "Derecho de las Telecomunicaciones"
+                    },
+                    {
+                        "code":  "2.3.056",
+                        "name":  "Derecho Informático"
+                    },
+                    {
+                        "code":  "2.3.060",
+                        "name":  "Aspectos Éticos y Legales de la Ingeniería"
+                    },
+                    {
+                        "code":  "2.3.061",
+                        "name":  "Legislación Alimentaria"
+                    },
+                    {
+                        "code":  "2.3.073",
+                        "name":  "Biotecnología y Derecho"
+                    },
+                    {
+                        "code":  "2.3.112",
+                        "name":  "Derecho y Legislación Ambiental"
+                    },
+                    {
+                        "code":  "2.3.113",
+                        "name":  "Aspectos Éticos y Legales de la Práctica Profesional"
+                    },
+                    {
+                        "code":  "2.3056",
+                        "name":  "Derecho Informático"
+                    },
+                    {
+                        "code":  "2.3060",
+                        "name":  "Aspectos Éticos y Legales de la Ingeniería"
+                    },
+                    {
+                        "code":  "2.3073",
+                        "name":  "Biotecnología y Derecho"
+                    },
+                    {
+                        "code":  "2.4.001",
+                        "name":  "Inglés I (Lecto-Comprensión)"
+                    },
+                    {
+                        "code":  "2.4.002",
+                        "name":  "Inglés II (Lecto-Comprensión)"
+                    },
+                    {
+                        "code":  "2.4.121",
+                        "name":  "Inglés I"
+                    },
+                    {
+                        "code":  "2.4.216",
+                        "name":  "Examen de Inglés"
+                    },
+                    {
+                        "code":  "2.4.227",
+                        "name":  "Inglés"
+                    },
+                    {
+                        "code":  "2.4001",
+                        "name":  "Inglés I (Lecto-Comprensión)"
+                    },
+                    {
+                        "code":  "2.4002",
+                        "name":  "Inglés II (Lecto-Comprensión)"
+                    },
+                    {
+                        "code":  "2.4121",
+                        "name":  "Inglés I"
+                    },
+                    {
+                        "code":  "2.4122",
+                        "name":  "Inglés II"
+                    },
+                    {
+                        "code":  "2.4216",
+                        "name":  "Examen de Inglés"
+                    },
+                    {
+                        "code":  "2.4227",
+                        "name":  "Inglés"
+                    },
+                    {
+                        "code":  "2.5.036",
+                        "name":  "Ética en la Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.1.005",
+                        "name":  "Introducción a la Estadística"
+                    },
+                    {
+                        "code":  "3.1.006",
+                        "name":  "Álgebra y Geometría Analítica"
+                    },
+                    {
+                        "code":  "3.1.007",
+                        "name":  "Análisis Matemático I"
+                    },
+                    {
+                        "code":  "3.1.008",
+                        "name":  "Análisis Matemático II"
+                    },
+                    {
+                        "code":  "3.1.009",
+                        "name":  "Análisis Matemático III"
+                    },
+                    {
+                        "code":  "3.1.013",
+                        "name":  "Matemática Avanzada"
+                    },
+                    {
+                        "code":  "3.1.018",
+                        "name":  "Estadística General"
+                    },
+                    {
+                        "code":  "3.1.019",
+                        "name":  "Estadística Aplicada"
+                    },
+                    {
+                        "code":  "3.1.020",
+                        "name":  "Cálculo Numérico"
+                    },
+                    {
+                        "code":  "3.1.021",
+                        "name":  "Investigación Operativa"
+                    },
+                    {
+                        "code":  "3.1.024",
+                        "name":  "Matemática Discreta"
+                    },
+                    {
+                        "code":  "3.1.025",
+                        "name":  "Modelado y Simulación"
+                    },
+                    {
+                        "code":  "3.1.027",
+                        "name":  "Bioestadística"
+                    },
+                    {
+                        "code":  "3.1.028",
+                        "name":  "Bioestadística Avanzada"
+                    },
+                    {
+                        "code":  "3.1.044",
+                        "name":  "Tópicos de Álgebra y Geometría"
+                    },
+                    {
+                        "code":  "3.1.045",
+                        "name":  "Introducción a la Física"
+                    },
+                    {
+                        "code":  "3.1.046",
+                        "name":  "Cálculo I"
+                    },
+                    {
+                        "code":  "3.1.047",
+                        "name":  "Física Aplicada a las Biociencias"
+                    },
+                    {
+                        "code":  "3.1.048",
+                        "name":  "Cálculo II"
+                    },
+                    {
+                        "code":  "3.1.049",
+                        "name":  "Probabilidad y Estadística"
+                    },
+                    {
+                        "code":  "3.1.050",
+                        "name":  "Elementos de Álgebra y Geometría"
+                    },
+                    {
+                        "code":  "3.1.051",
+                        "name":  "Álgebra"
+                    },
+                    {
+                        "code":  "3.1.052",
+                        "name":  "Física I"
+                    },
+                    {
+                        "code":  "3.1.053",
+                        "name":  "Cálculo I"
+                    },
+                    {
+                        "code":  "3.1.054",
+                        "name":  "Cálculo II"
+                    },
+                    {
+                        "code":  "3.1.055",
+                        "name":  "Física II"
+                    },
+                    {
+                        "code":  "3.1.056",
+                        "name":  "Estadística Avanzada"
+                    },
+                    {
+                        "code":  "3.1.057",
+                        "name":  "Física Aplicada a las Biociencias"
+                    },
+                    {
+                        "code":  "3.1.062",
+                        "name":  "Cálculo I"
+                    },
+                    {
+                        "code":  "3.1.064",
+                        "name":  "Elementos de Álgebra y Geometría"
+                    },
+                    {
+                        "code":  "3.1.065",
+                        "name":  "Cálculo II"
+                    },
+                    {
+                        "code":  "3.1.066",
+                        "name":  "Física General"
+                    },
+                    {
+                        "code":  "3.1.067",
+                        "name":  "Álgebra"
+                    },
+                    {
+                        "code":  "3.1.068",
+                        "name":  "Cálculo de Variable Compleja"
+                    },
+                    {
+                        "code":  "3.1.069",
+                        "name":  "Física I"
+                    },
+                    {
+                        "code":  "3.1.070",
+                        "name":  "Física II"
+                    },
+                    {
+                        "code":  "3.1.071",
+                        "name":  "Estadística y Ciencia de Datos para Toma de Decisiones"
+                    },
+                    {
+                        "code":  "3.1.072",
+                        "name":  "Cálculo"
+                    },
+                    {
+                        "code":  "3.1006",
+                        "name":  "Álgebra y Geometría Analítica"
+                    },
+                    {
+                        "code":  "3.1007",
+                        "name":  "Análisis Matemático I"
+                    },
+                    {
+                        "code":  "3.1008",
+                        "name":  "Análisis Matemático II"
+                    },
+                    {
+                        "code":  "3.1009",
+                        "name":  "Análisis Matemático III"
+                    },
+                    {
+                        "code":  "3.1013",
+                        "name":  "Matemática Avanzada"
+                    },
+                    {
+                        "code":  "3.1018",
+                        "name":  "Estadística General"
+                    },
+                    {
+                        "code":  "3.1019",
+                        "name":  "Estadística Aplicada"
+                    },
+                    {
+                        "code":  "3.1020",
+                        "name":  "Cálculo Numérico"
+                    },
+                    {
+                        "code":  "3.1021",
+                        "name":  "Investigación Operativa"
+                    },
+                    {
+                        "code":  "3.1022",
+                        "name":  "Cálculo Avanzado"
+                    },
+                    {
+                        "code":  "3.1024",
+                        "name":  "Matemática Discreta"
+                    },
+                    {
+                        "code":  "3.1025",
+                        "name":  "Modelado y Simulación"
+                    },
+                    {
+                        "code":  "3.1027",
+                        "name":  "Bioestadística"
+                    },
+                    {
+                        "code":  "3.1028",
+                        "name":  "Bioestadística Avanzada"
+                    },
+                    {
+                        "code":  "3.1040",
+                        "name":  "Elementos de Matemática"
+                    },
+                    {
+                        "code":  "3.1179",
+                        "name":  "Diseño de Circuitos y Aplicaciones I"
+                    },
+                    {
+                        "code":  "3.2.007",
+                        "name":  "Química General"
+                    },
+                    {
+                        "code":  "3.2.008",
+                        "name":  "Química General e Inorgánica"
+                    },
+                    {
+                        "code":  "3.2.010",
+                        "name":  "Biología I"
+                    },
+                    {
+                        "code":  "3.2.011",
+                        "name":  "Biología II"
+                    },
+                    {
+                        "code":  "3.2.015",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2.021",
+                        "name":  "Microbiología de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2.022",
+                        "name":  "Laboratorio de Microbiología de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2.035",
+                        "name":  "Proyecto Final de Ingeniería en Alimentos"
+                    },
+                    {
+                        "code":  "3.2.038",
+                        "name":  "Química Analítica"
+                    },
+                    {
+                        "code":  "3.2.039",
+                        "name":  "Química Orgánica"
+                    },
+                    {
+                        "code":  "3.2.042",
+                        "name":  "Fisicoquímica"
+                    },
+                    {
+                        "code":  "3.2.050",
+                        "name":  "Análisis Instrumental"
+                    },
+                    {
+                        "code":  "3.2.051",
+                        "name":  "Química Biológica I"
+                    },
+                    {
+                        "code":  "3.2.052",
+                        "name":  "Química Biológica II"
+                    },
+                    {
+                        "code":  "3.2.055",
+                        "name":  "Fisicoquímica"
+                    },
+                    {
+                        "code":  "3.2.056",
+                        "name":  "Fenómenos de Transporte"
+                    },
+                    {
+                        "code":  "3.2.057",
+                        "name":  "Operaciones Unitarias"
+                    },
+                    {
+                        "code":  "3.2.058",
+                        "name":  "Bromatología"
+                    },
+                    {
+                        "code":  "3.2.059",
+                        "name":  "Nutrición y Evaluación Sensorial"
+                    },
+                    {
+                        "code":  "3.2.060",
+                        "name":  "Tecnología de Alimentos I"
+                    },
+                    {
+                        "code":  "3.2.061",
+                        "name":  "Tecnología de Alimentos II"
+                    },
+                    {
+                        "code":  "3.2.062",
+                        "name":  "Tecnología de Alimentos III"
+                    },
+                    {
+                        "code":  "3.2.063",
+                        "name":  "Materiales y Técnicas de Envasado"
+                    },
+                    {
+                        "code":  "3.2.064",
+                        "name":  "Calidad Alimentaria"
+                    },
+                    {
+                        "code":  "3.2.065",
+                        "name":  "Procesamiento de Alimentos"
+                    },
+                    {
+                        "code":  "3.2.066",
+                        "name":  "Introducción a la Actividad Agropecuaria"
+                    },
+                    {
+                        "code":  "3.2.070",
+                        "name":  "Introducción a la Biología Molecular y Celular"
+                    },
+                    {
+                        "code":  "3.2.071",
+                        "name":  "Biología y Fisiología Molecular"
+                    },
+                    {
+                        "code":  "3.2.076",
+                        "name":  "Biología"
+                    },
+                    {
+                        "code":  "3.2.079",
+                        "name":  "Bioquímica de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2.080",
+                        "name":  "Toxicología Alimentaria"
+                    },
+                    {
+                        "code":  "3.2.082",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2.083",
+                        "name":  "Genética Molecular"
+                    },
+                    {
+                        "code":  "3.2.084",
+                        "name":  "Técnicas Biotecnológicas"
+                    },
+                    {
+                        "code":  "3.2.085",
+                        "name":  "Fenómenos de Transporte"
+                    },
+                    {
+                        "code":  "3.2.086",
+                        "name":  "Ingeniería Genética I"
+                    },
+                    {
+                        "code":  "3.2.087",
+                        "name":  "Comercialización de Productos Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2.088",
+                        "name":  "Bioinformática"
+                    },
+                    {
+                        "code":  "3.2.089",
+                        "name":  "Inmunología"
+                    },
+                    {
+                        "code":  "3.2.090",
+                        "name":  "Ingeniería Genética II"
+                    },
+                    {
+                        "code":  "3.2.091",
+                        "name":  "Biorreactores"
+                    },
+                    {
+                        "code":  "3.2.092",
+                        "name":  "Cultivos Celulares"
+                    },
+                    {
+                        "code":  "3.2.093",
+                        "name":  "Estrategias Industriales"
+                    },
+                    {
+                        "code":  "3.2.094",
+                        "name":  "Proyecto Final de Licenciatura en Biotecnología"
+                    },
+                    {
+                        "code":  "3.2.095",
+                        "name":  "Genómica y Proteómica"
+                    },
+                    {
+                        "code":  "3.2.096",
+                        "name":  "Industrias y Procesos Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2.097",
+                        "name":  "Nanobiotecnología"
+                    },
+                    {
+                        "code":  "3.2.098",
+                        "name":  "Bioética"
+                    },
+                    {
+                        "code":  "3.2.099",
+                        "name":  "Desarrollo de Negocios Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2.100",
+                        "name":  "Análisis Computacional de Secuencias"
+                    },
+                    {
+                        "code":  "3.2.101",
+                        "name":  "Genómica Funcional"
+                    },
+                    {
+                        "code":  "3.2.102",
+                        "name":  "Proyecto Final de Bioinformática"
+                    },
+                    {
+                        "code":  "3.2.103",
+                        "name":  "Biología de Sistemas"
+                    },
+                    {
+                        "code":  "3.2.111",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2.112",
+                        "name":  "Fundamentos de Química"
+                    },
+                    {
+                        "code":  "3.2.113",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2.166",
+                        "name":  "Agrobiotecnología"
+                    },
+                    {
+                        "code":  "3.2.167",
+                        "name":  "Laboratorio de Bioprocesos"
+                    },
+                    {
+                        "code":  "3.2.168",
+                        "name":  "Laboratorio de Diagnóstico y Ciencias Forenses"
+                    },
+                    {
+                        "code":  "3.2.178",
+                        "name":  "Fundamentos de Química"
+                    },
+                    {
+                        "code":  "3.2.180",
+                        "name":  "Química General"
+                    },
+                    {
+                        "code":  "3.2.181",
+                        "name":  "Introducción a la Biología Molecular y Celular"
+                    },
+                    {
+                        "code":  "3.2.182",
+                        "name":  "Química General e Inorgánica"
+                    },
+                    {
+                        "code":  "3.2.183",
+                        "name":  "Biología y Fisiología Molecular"
+                    },
+                    {
+                        "code":  "3.2.184",
+                        "name":  "Química Orgánica"
+                    },
+                    {
+                        "code":  "3.2.185",
+                        "name":  "Introducción a la Bioinformática"
+                    },
+                    {
+                        "code":  "3.2.186",
+                        "name":  "Seminarios de Bioinformática"
+                    },
+                    {
+                        "code":  "3.2.187",
+                        "name":  "Biología de Sistemas e Ingeniería Metabólica"
+                    },
+                    {
+                        "code":  "3.2.188",
+                        "name":  "Química General"
+                    },
+                    {
+                        "code":  "3.2.189",
+                        "name":  "Introducción a la Ciencia y Tecnología de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2.190",
+                        "name":  "Biología General"
+                    },
+                    {
+                        "code":  "3.2.191",
+                        "name":  "Química Inorgánica"
+                    },
+                    {
+                        "code":  "3.2.192",
+                        "name":  "Química Biológica"
+                    },
+                    {
+                        "code":  "3.2.193",
+                        "name":  "Laboratorio de Bromatología"
+                    },
+                    {
+                        "code":  "3.2.194",
+                        "name":  "Nutrición y Toxicología Alimentaria"
+                    },
+                    {
+                        "code":  "3.2.195",
+                        "name":  "Innovación y Diseño de Alimentos"
+                    },
+                    {
+                        "code":  "3.2.197",
+                        "name":  "Análisis Sensorial"
+                    },
+                    {
+                        "code":  "3.2.199",
+                        "name":  "Procesos de Conservación de Alimentos"
+                    },
+                    {
+                        "code":  "3.2007",
+                        "name":  "Química General"
+                    },
+                    {
+                        "code":  "3.2008",
+                        "name":  "Química General e Inorgánica"
+                    },
+                    {
+                        "code":  "3.2010",
+                        "name":  "Biología I"
+                    },
+                    {
+                        "code":  "3.2011",
+                        "name":  "Biología II"
+                    },
+                    {
+                        "code":  "3.2015",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2021",
+                        "name":  "Microbiología de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2022",
+                        "name":  "Laboratorio de Microbiología de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2035",
+                        "name":  "Proyecto Final de Ingeniería en Alimentos"
+                    },
+                    {
+                        "code":  "3.2038",
+                        "name":  "Química Analítica"
+                    },
+                    {
+                        "code":  "3.2039",
+                        "name":  "Química Orgánica"
+                    },
+                    {
+                        "code":  "3.2042",
+                        "name":  "Fisicoquímica"
+                    },
+                    {
+                        "code":  "3.2050",
+                        "name":  "Análisis Instrumental"
+                    },
+                    {
+                        "code":  "3.2051",
+                        "name":  "Química Biológica I"
+                    },
+                    {
+                        "code":  "3.2052",
+                        "name":  "Química Biológica II"
+                    },
+                    {
+                        "code":  "3.2055",
+                        "name":  "Fisicoquímica"
+                    },
+                    {
+                        "code":  "3.2056",
+                        "name":  "Fenómenos de Transporte"
+                    },
+                    {
+                        "code":  "3.2057",
+                        "name":  "Operaciones Unitarias"
+                    },
+                    {
+                        "code":  "3.2058",
+                        "name":  "Bromatología"
+                    },
+                    {
+                        "code":  "3.2059",
+                        "name":  "Nutrición y Evaluación Sensorial"
+                    },
+                    {
+                        "code":  "3.2060",
+                        "name":  "Tecnología de Alimentos I"
+                    },
+                    {
+                        "code":  "3.2061",
+                        "name":  "Legislación Alimentaria"
+                    },
+                    {
+                        "code":  "3.2062",
+                        "name":  "Tecnología de Alimentos III"
+                    },
+                    {
+                        "code":  "3.2063",
+                        "name":  "Materiales y Técnicas de Envasado"
+                    },
+                    {
+                        "code":  "3.2064",
+                        "name":  "Calidad Alimentaria"
+                    },
+                    {
+                        "code":  "3.2065",
+                        "name":  "Procesamiento de Alimentos"
+                    },
+                    {
+                        "code":  "3.2070",
+                        "name":  "Introducción a la Biología Molecular y Celular"
+                    },
+                    {
+                        "code":  "3.2071",
+                        "name":  "Biología y Fisiología Molecular"
+                    },
+                    {
+                        "code":  "3.2079",
+                        "name":  "Bioquímica de los Alimentos"
+                    },
+                    {
+                        "code":  "3.2080",
+                        "name":  "Toxicología Alimentaria"
+                    },
+                    {
+                        "code":  "3.2081",
+                        "name":  "Fundamentos de Química"
+                    },
+                    {
+                        "code":  "3.2082",
+                        "name":  "Microbiología General"
+                    },
+                    {
+                        "code":  "3.2083",
+                        "name":  "Genética Molecular"
+                    },
+                    {
+                        "code":  "3.2084",
+                        "name":  "Técnicas Biotecnológicas"
+                    },
+                    {
+                        "code":  "3.2085",
+                        "name":  "Fenómenos de Transporte"
+                    },
+                    {
+                        "code":  "3.2086",
+                        "name":  "Ingeniería Genética I"
+                    },
+                    {
+                        "code":  "3.2087",
+                        "name":  "Comercialización de Productos Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2088",
+                        "name":  "Bioinformática"
+                    },
+                    {
+                        "code":  "3.2089",
+                        "name":  "Inmunología"
+                    },
+                    {
+                        "code":  "3.2090",
+                        "name":  "Ingeniería Genética II"
+                    },
+                    {
+                        "code":  "3.2091",
+                        "name":  "Biorreactores"
+                    },
+                    {
+                        "code":  "3.2092",
+                        "name":  "Cultivos Celulares"
+                    },
+                    {
+                        "code":  "3.2093",
+                        "name":  "Estrategias Industriales"
+                    },
+                    {
+                        "code":  "3.2094",
+                        "name":  "Proyecto Final de Licenciatura en Biotecnología"
+                    },
+                    {
+                        "code":  "3.2095",
+                        "name":  "Genómica y Proteómica"
+                    },
+                    {
+                        "code":  "3.2096",
+                        "name":  "Industrias y Procesos Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2097",
+                        "name":  "Nanobiotecnología"
+                    },
+                    {
+                        "code":  "3.2098",
+                        "name":  "Bioética"
+                    },
+                    {
+                        "code":  "3.2099",
+                        "name":  "Desarrollo de Negocios Biotecnológicos"
+                    },
+                    {
+                        "code":  "3.2100",
+                        "name":  "Análisis Computacional de Secuencias"
+                    },
+                    {
+                        "code":  "3.2101",
+                        "name":  "Genómica Funcional"
+                    },
+                    {
+                        "code":  "3.2102",
+                        "name":  "Proyecto Final de Bioinformática"
+                    },
+                    {
+                        "code":  "3.2103",
+                        "name":  "Biología de Sistemas"
+                    },
+                    {
+                        "code":  "3.2104",
+                        "name":  "Innovación Tecnológica"
+                    },
+                    {
+                        "code":  "3.3.002",
+                        "name":  "Física General"
+                    },
+                    {
+                        "code":  "3.3.003",
+                        "name":  "Medios de Representación"
+                    },
+                    {
+                        "code":  "3.3.005",
+                        "name":  "Física del Continuo"
+                    },
+                    {
+                        "code":  "3.3.007",
+                        "name":  "Óptica y Calor"
+                    },
+                    {
+                        "code":  "3.3.012",
+                        "name":  "Programación y Control de la Producción"
+                    },
+                    {
+                        "code":  "3.3.014",
+                        "name":  "Ciencia de Materiales"
+                    },
+                    {
+                        "code":  "3.3.015",
+                        "name":  "Termodinámica"
+                    },
+                    {
+                        "code":  "3.3.018",
+                        "name":  "Mecánica de los Fluidos"
+                    },
+                    {
+                        "code":  "3.3.021",
+                        "name":  "Máquinas Térmicas"
+                    },
+                    {
+                        "code":  "3.3.049",
+                        "name":  "Sistemas de Comunicación I"
+                    },
+                    {
+                        "code":  "3.3.050",
+                        "name":  "Sistemas de Comunicación II"
+                    },
+                    {
+                        "code":  "3.3.060",
+                        "name":  "Sistemas Digitales I"
+                    },
+                    {
+                        "code":  "3.3.061",
+                        "name":  "Sistemas Digitales II"
+                    },
+                    {
+                        "code":  "3.3.064",
+                        "name":  "Costos Industriales"
+                    },
+                    {
+                        "code":  "3.3.065",
+                        "name":  "Electricidad y Magnetismo"
+                    },
+                    {
+                        "code":  "3.3.066",
+                        "name":  "Termodinámica"
+                    },
+                    {
+                        "code":  "3.3.067",
+                        "name":  "Electrotecnia"
+                    },
+                    {
+                        "code":  "3.3.068",
+                        "name":  "Fundamentos de Electrónica"
+                    },
+                    {
+                        "code":  "3.3.069",
+                        "name":  "Campos y Ondas Electromagnéticas"
+                    },
+                    {
+                        "code":  "3.3.070",
+                        "name":  "Electrónica"
+                    },
+                    {
+                        "code":  "3.3.071",
+                        "name":  "Medios de Comunicación"
+                    },
+                    {
+                        "code":  "3.3.073",
+                        "name":  "Mecánica Avanzada"
+                    },
+                    {
+                        "code":  "3.3.076",
+                        "name":  "Máquinas Eléctricas"
+                    },
+                    {
+                        "code":  "3.3.079",
+                        "name":  "Instrumentación y Control"
+                    },
+                    {
+                        "code":  "3.3.080",
+                        "name":  "Electrónica de Sistemas de Comunicación"
+                    },
+                    {
+                        "code":  "3.3.081",
+                        "name":  "Telecomunicaciones I"
+                    },
+                    {
+                        "code":  "3.3.082",
+                        "name":  "Señales y Sistemas"
+                    },
+                    {
+                        "code":  "3.3.083",
+                        "name":  "Antenas y Propagación"
+                    },
+                    {
+                        "code":  "3.3.084",
+                        "name":  "Procesamiento de Señales"
+                    },
+                    {
+                        "code":  "3.3.085",
+                        "name":  "Seguridad en las Comunicaciones"
+                    },
+                    {
+                        "code":  "3.3.086",
+                        "name":  "Microondas"
+                    },
+                    {
+                        "code":  "3.3.088",
+                        "name":  "Mecánica del Sólido"
+                    },
+                    {
+                        "code":  "3.3.093",
+                        "name":  "Dirección de Proyectos"
+                    },
+                    {
+                        "code":  "3.3.094",
+                        "name":  "Diseño y Simulación de Sistemas de Comunicación"
+                    },
+                    {
+                        "code":  "3.3.095",
+                        "name":  "Tecnología Mecánica y Mecanismos I"
+                    },
+                    {
+                        "code":  "3.3.096",
+                        "name":  "Proyecto Final de Ingeniería en Telecomunicaciones"
+                    },
+                    {
+                        "code":  "3.3.097",
+                        "name":  "Planificación de las Telecomunicaciones"
+                    },
+                    {
+                        "code":  "3.3.098",
+                        "name":  "Sistema de Enlace"
+                    },
+                    {
+                        "code":  "3.3.099",
+                        "name":  "Comunicación Satelital"
+                    },
+                    {
+                        "code":  "3.3.100",
+                        "name":  "Higiene, Seguridad y Medio Ambiente"
+                    },
+                    {
+                        "code":  "3.3.101",
+                        "name":  "Instalaciones Electromecánicas"
+                    },
+                    {
+                        "code":  "3.3.103",
+                        "name":  "Tecnología Mecánica y Mecanismos II"
+                    },
+                    {
+                        "code":  "3.3.104",
+                        "name":  "Máquinas Hidráulicas y Circuitos Termohidráulicos"
+                    },
+                    {
+                        "code":  "3.3.108",
+                        "name":  "Servicios Generales de Planta"
+                    },
+                    {
+                        "code":  "3.3.109",
+                        "name":  "Costos Industriales"
+                    },
+                    {
+                        "code":  "3.3.110",
+                        "name":  "Dirección de Proyectos"
+                    },
+                    {
+                        "code":  "3.3.112",
+                        "name":  "Teoría de Redes"
+                    },
+                    {
+                        "code":  "3.3.113",
+                        "name":  "Telecomunicaciones II"
+                    },
+                    {
+                        "code":  "3.3.121",
+                        "name":  "Sistemas de Representación"
+                    },
+                    {
+                        "code":  "3.3.123",
+                        "name":  "Física Moderna"
+                    },
+                    {
+                        "code":  "3.3.127",
+                        "name":  "Sistemas Embebidos"
+                    },
+                    {
+                        "code":  "3.3.129",
+                        "name":  "Diseño de Circuitos y Aplicaciones I"
+                    },
+                    {
+                        "code":  "3.3.131",
+                        "name":  "Procesamiento de Imágenes y Video"
+                    },
+                    {
+                        "code":  "3.3.132",
+                        "name":  "Diseño de Circuitos y Aplicaciones II"
+                    },
+                    {
+                        "code":  "3.3.133",
+                        "name":  "Proyecto Final de Ingeniería Electrónica"
+                    },
+                    {
+                        "code":  "3.3.134",
+                        "name":  "Electrónica de Potencia"
+                    },
+                    {
+                        "code":  "3.3.150",
+                        "name":  "Administración Empresarial"
+                    },
+                    {
+                        "code":  "3.3.151",
+                        "name":  "Elementos de Economía y Finanzas"
+                    },
+                    {
+                        "code":  "3.3.152",
+                        "name":  "Negociación y Liderazgo"
+                    },
+                    {
+                        "code":  "3.3.153",
+                        "name":  "Responsabilidad Social Empresaria"
+                    },
+                    {
+                        "code":  "3.3.158",
+                        "name":  "Economía General y Finanzas"
+                    },
+                    {
+                        "code":  "3.3.161",
+                        "name":  "Costos y Sistemas Contables"
+                    },
+                    {
+                        "code":  "3.3.162",
+                        "name":  "Diseño Asistido y Manufactura Aditiva"
+                    },
+                    {
+                        "code":  "3.3.163",
+                        "name":  "Economía General y Finanzas"
+                    },
+                    {
+                        "code":  "3.3.164",
+                        "name":  "Sistemas Mecatrónicos y Robóticos"
+                    },
+                    {
+                        "code":  "3.3.174",
+                        "name":  "Sistemas Empresariales Integrados"
+                    },
+                    {
+                        "code":  "3.3.175",
+                        "name":  "Estabilidad Estructural"
+                    },
+                    {
+                        "code":  "3.3.176",
+                        "name":  "Sistemas Hidráulicos y Neumáticos Avanzados"
+                    },
+                    {
+                        "code":  "3.3.177",
+                        "name":  "Generación y Distribución Eléctrica"
+                    },
+                    {
+                        "code":  "3.3.180",
+                        "name":  "Sistemas de Representación Gráfica"
+                    },
+                    {
+                        "code":  "3.3.182",
+                        "name":  "Administración y Gestión de Organizaciones"
+                    },
+                    {
+                        "code":  "3.3.183",
+                        "name":  "Diseño Asistido y Prototipado Industrial"
+                    },
+                    {
+                        "code":  "3.3.184",
+                        "name":  "Gestión de Operaciones I: Organización de la Producción"
+                    },
+                    {
+                        "code":  "3.3.185",
+                        "name":  "Modelado y Simulación de Procesos I"
+                    },
+                    {
+                        "code":  "3.3.186",
+                        "name":  "Gestión de Operaciones II: Análisis de Productividad"
+                    },
+                    {
+                        "code":  "3.3.187",
+                        "name":  "Sustentabilidad, Higiene y Seguridad"
+                    },
+                    {
+                        "code":  "3.3.188",
+                        "name":  "Modelado y Simulación de Procesos II"
+                    },
+                    {
+                        "code":  "3.3.189",
+                        "name":  "Gestión de Operaciones III: Programación y Control"
+                    },
+                    {
+                        "code":  "3.3.191",
+                        "name":  "Gestión de Calidad y Tecnologías de Control"
+                    },
+                    {
+                        "code":  "3.3.192",
+                        "name":  "Operaciones Logísticas: Cadena de Abastecimiento"
+                    },
+                    {
+                        "code":  "3.3.193",
+                        "name":  "Análisis Financiero"
+                    },
+                    {
+                        "code":  "3.3.194",
+                        "name":  "Máquinas Eléctricas"
+                    },
+                    {
+                        "code":  "3.3.195",
+                        "name":  "Tecnología de los Materiales"
+                    },
+                    {
+                        "code":  "3.3.197",
+                        "name":  "Gestión Comercial de las Organizaciones"
+                    },
+                    {
+                        "code":  "3.3.198",
+                        "name":  "Tecnologías de Procesos Industriales"
+                    },
+                    {
+                        "code":  "3.3.199",
+                        "name":  "Formulación y Evaluación de Proyectos Públicos y Privados"
+                    },
+                    {
+                        "code":  "3.3.201",
+                        "name":  "Diseño de Instalaciones Productivas"
+                    },
+                    {
+                        "code":  "3.3.204",
+                        "name":  "Máquinas Térmicas"
+                    },
+                    {
+                        "code":  "3.3002",
+                        "name":  "Física General"
+                    },
+                    {
+                        "code":  "3.3003",
+                        "name":  "Medios de Representación"
+                    },
+                    {
+                        "code":  "3.3005",
+                        "name":  "Física del Continuo"
+                    },
+                    {
+                        "code":  "3.3007",
+                        "name":  "Óptica y Calor"
+                    },
+                    {
+                        "code":  "3.3009",
+                        "name":  "Estudio del Trabajo"
+                    },
+                    {
+                        "code":  "3.3010",
+                        "name":  "Estabilidad"
+                    },
+                    {
+                        "code":  "3.3014",
+                        "name":  "Ciencia de Materiales"
+                    },
+                    {
+                        "code":  "3.3015",
+                        "name":  "Termodinámica"
+                    },
+                    {
+                        "code":  "3.3018",
+                        "name":  "Mecánica de los Fluidos"
+                    },
+                    {
+                        "code":  "3.3021",
+                        "name":  "Máquinas Térmicas"
+                    },
+                    {
+                        "code":  "3.3023",
+                        "name":  "Proyectos Industriales"
+                    },
+                    {
+                        "code":  "3.3058",
+                        "name":  "Diseño Asistido por Computadora"
+                    },
+                    {
+                        "code":  "3.3060",
+                        "name":  "Sistemas Digitales I"
+                    },
+                    {
+                        "code":  "3.3061",
+                        "name":  "Sistemas Digitales II"
+                    },
+                    {
+                        "code":  "3.3063",
+                        "name":  "Fundamentos de Física"
+                    },
+                    {
+                        "code":  "3.3064",
+                        "name":  "Costos Industriales"
+                    },
+                    {
+                        "code":  "3.3065",
+                        "name":  "Electricidad y Magnetismo"
+                    },
+                    {
+                        "code":  "3.3066",
+                        "name":  "Termodinámica"
+                    },
+                    {
+                        "code":  "3.3067",
+                        "name":  "Electrotecnia"
+                    },
+                    {
+                        "code":  "3.3068",
+                        "name":  "Fundamentos de Electrónica"
+                    },
+                    {
+                        "code":  "3.3069",
+                        "name":  "Campos y Ondas Electromagnéticas"
+                    },
+                    {
+                        "code":  "3.3070",
+                        "name":  "Electrónica"
+                    },
+                    {
+                        "code":  "3.3071",
+                        "name":  "Medios de Comunicación"
+                    },
+                    {
+                        "code":  "3.3072",
+                        "name":  "Organización de la Producción"
+                    },
+                    {
+                        "code":  "3.3073",
+                        "name":  "Mecánica Avanzada"
+                    },
+                    {
+                        "code":  "3.3074",
+                        "name":  "Electrónica Básica"
+                    },
+                    {
+                        "code":  "3.3075",
+                        "name":  "Programación y Control de la Producción"
+                    },
+                    {
+                        "code":  "3.3076",
+                        "name":  "Máquinas Eléctricas"
+                    },
+                    {
+                        "code":  "3.3078",
+                        "name":  "Logística Industrial"
+                    },
+                    {
+                        "code":  "3.3079",
+                        "name":  "Instrumentación y Control"
+                    },
+                    {
+                        "code":  "3.3080",
+                        "name":  "Electrónica de Sistemas de Comunicación"
+                    },
+                    {
+                        "code":  "3.3081",
+                        "name":  "Telecomunicaciones I"
+                    },
+                    {
+                        "code":  "3.3082",
+                        "name":  "Señales y Sistemas"
+                    },
+                    {
+                        "code":  "3.3084",
+                        "name":  "Procesamiento de Señales"
+                    },
+                    {
+                        "code":  "3.3086",
+                        "name":  "Microondas"
+                    },
+                    {
+                        "code":  "3.3088",
+                        "name":  "Mecánica del Sólido"
+                    },
+                    {
+                        "code":  "3.3089",
+                        "name":  "Hidráulica y Neumática Industrial"
+                    },
+                    {
+                        "code":  "3.3090",
+                        "name":  "Generación Eléctrica"
+                    },
+                    {
+                        "code":  "3.3091",
+                        "name":  "Mecánica Computacional"
+                    },
+                    {
+                        "code":  "3.3092",
+                        "name":  "Mecatrónica"
+                    },
+                    {
+                        "code":  "3.3093",
+                        "name":  "Dirección de Proyectos"
+                    },
+                    {
+                        "code":  "3.3095",
+                        "name":  "Tecnología Mecánica y Mecanismos I"
+                    },
+                    {
+                        "code":  "3.3100",
+                        "name":  "Higiene, Seguridad y Medio Ambiente"
+                    },
+                    {
+                        "code":  "3.3101",
+                        "name":  "Instalaciones Electromecánicas"
+                    },
+                    {
+                        "code":  "3.3102",
+                        "name":  "Gestión de la Calidad"
+                    },
+                    {
+                        "code":  "3.3103",
+                        "name":  "Tecnología Mecánica y Mecanismos II"
+                    },
+                    {
+                        "code":  "3.3104",
+                        "name":  "Máquinas Hidráulicas y Circuitos Termohidráulicos"
+                    },
+                    {
+                        "code":  "3.3105",
+                        "name":  "Dinámica Industrial"
+                    },
+                    {
+                        "code":  "3.3106",
+                        "name":  "Evaluación y Gestión de Proyectos"
+                    },
+                    {
+                        "code":  "3.3108",
+                        "name":  "Servicios Generales de Planta"
+                    },
+                    {
+                        "code":  "3.3109",
+                        "name":  "Costos Industriales"
+                    },
+                    {
+                        "code":  "3.3110",
+                        "name":  "Dirección de Proyectos"
+                    },
+                    {
+                        "code":  "3.3111",
+                        "name":  "Procesos Industriales"
+                    },
+                    {
+                        "code":  "3.3112",
+                        "name":  "Teoría de Redes"
+                    },
+                    {
+                        "code":  "3.3114",
+                        "name":  "Proyecto Final de Ingeniería Industrial"
+                    },
+                    {
+                        "code":  "3.3115",
+                        "name":  "Proyecto Final de Ingeniería Electromecánica"
+                    },
+                    {
+                        "code":  "3.3116",
+                        "name":  "Teoría de los Circuitos"
+                    },
+                    {
+                        "code":  "3.3120",
+                        "name":  "Gestión Ambiental"
+                    },
+                    {
+                        "code":  "3.3121",
+                        "name":  "Sistemas de Representación"
+                    },
+                    {
+                        "code":  "3.3123",
+                        "name":  "Física Moderna"
+                    },
+                    {
+                        "code":  "3.3124",
+                        "name":  "Tecnología de los Materiales Electrónicos"
+                    },
+                    {
+                        "code":  "3.3126",
+                        "name":  "Laboratorio de Mediciones Electrónicas"
+                    },
+                    {
+                        "code":  "3.3127",
+                        "name":  "Sistemas Embebidos"
+                    },
+                    {
+                        "code":  "3.3128",
+                        "name":  "Seminario I"
+                    },
+                    {
+                        "code":  "3.3130",
+                        "name":  "Evaluación de Proyectos"
+                    },
+                    {
+                        "code":  "3.3135",
+                        "name":  "Proyecto Final de Ingeniería Electrónica"
+                    },
+                    {
+                        "code":  "3.3136",
+                        "name":  "Seminario II"
+                    },
+                    {
+                        "code":  "3.3149",
+                        "name":  "Sistemas de Comunicaciones I"
+                    },
+                    {
+                        "code":  "3.3151",
+                        "name":  "Procesamiento de Imágenes y Video"
+                    },
+                    {
+                        "code":  "3.3154",
+                        "name":  "Electrónica de Potencia"
+                    },
+                    {
+                        "code":  "3.4.043",
+                        "name":  "Teoría de Sistemas"
+                    },
+                    {
+                        "code":  "3.4.045",
+                        "name":  "Teoría de la Información y la Codificación"
+                    },
+                    {
+                        "code":  "3.4.056",
+                        "name":  "Introducción a la Programación"
+                    },
+                    {
+                        "code":  "3.4.057",
+                        "name":  "Programación Avanzada"
+                    },
+                    {
+                        "code":  "3.4.060",
+                        "name":  "Diseño y Programación Orientada a Objetos"
+                    },
+                    {
+                        "code":  "3.4.069",
+                        "name":  "Fundamentos de Informática"
+                    },
+                    {
+                        "code":  "3.4.071",
+                        "name":  "Programación I"
+                    },
+                    {
+                        "code":  "3.4.072",
+                        "name":  "Arquitectura de Computadores"
+                    },
+                    {
+                        "code":  "3.4.074",
+                        "name":  "Programación II"
+                    },
+                    {
+                        "code":  "3.4.075",
+                        "name":  "Sistemas Operativos"
+                    },
+                    {
+                        "code":  "3.4.077",
+                        "name":  "Programación III"
+                    },
+                    {
+                        "code":  "3.4.078",
+                        "name":  "Fundamentos de Telecomunicaciones"
+                    },
+                    {
+                        "code":  "3.4.082",
+                        "name":  "Aplicaciones Interactivas"
+                    },
+                    {
+                        "code":  "3.4.086",
+                        "name":  "Evaluación de Proyectos Informáticos"
+                    },
+                    {
+                        "code":  "3.4.089",
+                        "name":  "Dirección de Proyectos Informáticos"
+                    },
+                    {
+                        "code":  "3.4.092",
+                        "name":  "Seguridad e Integridad de la Información"
+                    },
+                    {
+                        "code":  "3.4.094",
+                        "name":  "Arquitectura de Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4.096",
+                        "name":  "Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4.098",
+                        "name":  "Calidad de Software"
+                    },
+                    {
+                        "code":  "3.4.100",
+                        "name":  "Proyecto Final de Ingeniería en Informática"
+                    },
+                    {
+                        "code":  "3.4.101",
+                        "name":  "Arquitectura y Sistemas Operativos"
+                    },
+                    {
+                        "code":  "3.4.102",
+                        "name":  "Minería de Datos"
+                    },
+                    {
+                        "code":  "3.4.103",
+                        "name":  "Bases de Datos"
+                    },
+                    {
+                        "code":  "3.4.104",
+                        "name":  "Computación de Alto Rendimiento"
+                    },
+                    {
+                        "code":  "3.4.131",
+                        "name":  "Gestión de Personas en Organizaciones de Tecnología"
+                    },
+                    {
+                        "code":  "3.4.135",
+                        "name":  "Tecnología e Innovación"
+                    },
+                    {
+                        "code":  "3.4.139",
+                        "name":  "Evaluación de Proyectos de Tecnología"
+                    },
+                    {
+                        "code":  "3.4.141",
+                        "name":  "Seguridad de Procesos y Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4.142",
+                        "name":  "Dirección de Proyectos de Tecnología"
+                    },
+                    {
+                        "code":  "3.4.164",
+                        "name":  "Sistemas de Información I"
+                    },
+                    {
+                        "code":  "3.4.173",
+                        "name":  "Introducción a la Programación"
+                    },
+                    {
+                        "code":  "3.4.174",
+                        "name":  "Arte Digital 2D"
+                    },
+                    {
+                        "code":  "3.4.175",
+                        "name":  "Arquitectura de Computadores y Sistemas Operativos"
+                    },
+                    {
+                        "code":  "3.4.176",
+                        "name":  "Introducción al Diseño de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.177",
+                        "name":  "Culturas Lúdicas"
+                    },
+                    {
+                        "code":  "3.4.178",
+                        "name":  "Desarrollo de Juegos en Tiempo Real"
+                    },
+                    {
+                        "code":  "3.4.179",
+                        "name":  "Diseño de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.180",
+                        "name":  "Diseño de Interfaces y UX"
+                    },
+                    {
+                        "code":  "3.4.181",
+                        "name":  "Física de Objetos y Personajes"
+                    },
+                    {
+                        "code":  "3.4.182",
+                        "name":  "Guión y Narrativa"
+                    },
+                    {
+                        "code":  "3.4.183",
+                        "name":  "Control de Calidad en Juegos"
+                    },
+                    {
+                        "code":  "3.4.184",
+                        "name":  "Paradigmas de Programación"
+                    },
+                    {
+                        "code":  "3.4.185",
+                        "name":  "Diseño de Niveles I"
+                    },
+                    {
+                        "code":  "3.4.186",
+                        "name":  "Producción de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.187",
+                        "name":  "Arte Digital 3D"
+                    },
+                    {
+                        "code":  "3.4.188",
+                        "name":  "Programación de Sistemas de Juego"
+                    },
+                    {
+                        "code":  "3.4.189",
+                        "name":  "Estructura de Datos"
+                    },
+                    {
+                        "code":  "3.4.190",
+                        "name":  "Diseño de Sistemas de Juego"
+                    },
+                    {
+                        "code":  "3.4.191",
+                        "name":  "Desarrollo Avanzado de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.192",
+                        "name":  "Diseño de Niveles II"
+                    },
+                    {
+                        "code":  "3.4.193",
+                        "name":  "Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4.194",
+                        "name":  "Optimización de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.195",
+                        "name":  "Seminario de Integración"
+                    },
+                    {
+                        "code":  "3.4.196",
+                        "name":  "Programación Gráfica I"
+                    },
+                    {
+                        "code":  "3.4.197",
+                        "name":  "Animación 2D y 3D"
+                    },
+                    {
+                        "code":  "3.4.198",
+                        "name":  "Juegos en Red"
+                    },
+                    {
+                        "code":  "3.4.199",
+                        "name":  "Métricas de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.200",
+                        "name":  "Tecnologías Disruptivas"
+                    },
+                    {
+                        "code":  "3.4.201",
+                        "name":  "Desarrollo de Juegos Aplicados"
+                    },
+                    {
+                        "code":  "3.4.202",
+                        "name":  "Emprendimientos de Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.203",
+                        "name":  "Trabajo Final"
+                    },
+                    {
+                        "code":  "3.4.204",
+                        "name":  "Programación Gráfica II"
+                    },
+                    {
+                        "code":  "3.4.205",
+                        "name":  "Sonido y Música para Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.206",
+                        "name":  "Marketing para Videojuegos"
+                    },
+                    {
+                        "code":  "3.4.207",
+                        "name":  "Sistemas de Información II"
+                    },
+                    {
+                        "code":  "3.4.208",
+                        "name":  "Paradigma Orientado a Objetos"
+                    },
+                    {
+                        "code":  "3.4.209",
+                        "name":  "Ingeniería de Datos I"
+                    },
+                    {
+                        "code":  "3.4.210",
+                        "name":  "Proceso de Desarrollo de Software"
+                    },
+                    {
+                        "code":  "3.4.211",
+                        "name":  "Seminario de Integración Profesional"
+                    },
+                    {
+                        "code":  "3.4.212",
+                        "name":  "Teleinformática y Redes"
+                    },
+                    {
+                        "code":  "3.4.213",
+                        "name":  "Ingeniería de Datos II"
+                    },
+                    {
+                        "code":  "3.4.214",
+                        "name":  "Ingeniería de Software"
+                    },
+                    {
+                        "code":  "3.4.215",
+                        "name":  "Teoría de la Computación"
+                    },
+                    {
+                        "code":  "3.4.216",
+                        "name":  "Desarrollo de Aplicaciones I"
+                    },
+                    {
+                        "code":  "3.4.217",
+                        "name":  "Ciencia de Datos"
+                    },
+                    {
+                        "code":  "3.4.218",
+                        "name":  "Desarrollo de Aplicaciones II"
+                    },
+                    {
+                        "code":  "3.4.219",
+                        "name":  "Tecnología y Medio Ambiente"
+                    },
+                    {
+                        "code":  "3.4.220",
+                        "name":  "Tendencias Tecnológicas"
+                    },
+                    {
+                        "code":  "3.4.221",
+                        "name":  "Negocios Tecnológicos"
+                    },
+                    {
+                        "code":  "3.4.225",
+                        "name":  "Introducción a la Algoritmia"
+                    },
+                    {
+                        "code":  "3.4.226",
+                        "name":  "Diseño y Desarrollo Web"
+                    },
+                    {
+                        "code":  "3.4.227",
+                        "name":  "Algoritmos y Estructuras de Datos I"
+                    },
+                    {
+                        "code":  "3.4.228",
+                        "name":  "Testing de Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4.229",
+                        "name":  "Algoritmos y Estructuras de Datos II"
+                    },
+                    {
+                        "code":  "3.4.230",
+                        "name":  "Redes de Datos"
+                    },
+                    {
+                        "code":  "3.4.231",
+                        "name":  "Diseño y Análisis de Algoritmos"
+                    },
+                    {
+                        "code":  "3.4.233",
+                        "name":  "Seminario de Gestión de Tecnología"
+                    },
+                    {
+                        "code":  "3.4.255",
+                        "name":  "Pensamiento Computacional, Algoritmia y Programación"
+                    },
+                    {
+                        "code":  "3.4.256",
+                        "name":  "Introducción a la Ciencia de Datos"
+                    },
+                    {
+                        "code":  "3.4.257",
+                        "name":  "Introducción a la Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4.258",
+                        "name":  "Python para Ciencia de Datos"
+                    },
+                    {
+                        "code":  "3.4.259",
+                        "name":  "Inferencia y Estimación"
+                    },
+                    {
+                        "code":  "3.4.260",
+                        "name":  "Orientación a Objetos con Python"
+                    },
+                    {
+                        "code":  "3.4.261",
+                        "name":  "Bases de Datos Relacionales"
+                    },
+                    {
+                        "code":  "3.4.262",
+                        "name":  "Analíticas de Marketing Digital"
+                    },
+                    {
+                        "code":  "3.4.263",
+                        "name":  "Machine Learning I"
+                    },
+                    {
+                        "code":  "3.4.264",
+                        "name":  "Presentación y Comunicación de Resultados"
+                    },
+                    {
+                        "code":  "3.4.265",
+                        "name":  "Analíticas para Sistemas de Información Geográficos"
+                    },
+                    {
+                        "code":  "3.4.266",
+                        "name":  "Bases de Datos Avanzadas"
+                    },
+                    {
+                        "code":  "3.4.267",
+                        "name":  "Machine Learning II"
+                    },
+                    {
+                        "code":  "3.4.268",
+                        "name":  "Deep Learning: Redes Neuronales Avanzadas"
+                    },
+                    {
+                        "code":  "3.4.269",
+                        "name":  "Seminario Integrador de Ciencia de Datos"
+                    },
+                    {
+                        "code":  "3.4.270",
+                        "name":  "Procesamiento del Lenguaje Natural"
+                    },
+                    {
+                        "code":  "3.4.271",
+                        "name":  "Gestión y Evaluación de Proyectos de AI y Datos"
+                    },
+                    {
+                        "code":  "3.4.272",
+                        "name":  "Fundamentos de Visión Artificial"
+                    },
+                    {
+                        "code":  "3.4.273",
+                        "name":  "Automatización de Procesos Empresariales con AI"
+                    },
+                    {
+                        "code":  "3.4.274",
+                        "name":  "Consultoría en Proyectos de Datos e Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4.275",
+                        "name":  "Modelos de Lenguaje Amplio, Audio y Voz"
+                    },
+                    {
+                        "code":  "3.4.276",
+                        "name":  "Canalización e Integración de Servicios de Nube"
+                    },
+                    {
+                        "code":  "3.4.277",
+                        "name":  "Seminario de Tendencias en AI"
+                    },
+                    {
+                        "code":  "3.4.278",
+                        "name":  "Aprendizaje por Refuerzo"
+                    },
+                    {
+                        "code":  "3.4.279",
+                        "name":  "Proyecto Final de Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4.280",
+                        "name":  "Aplicaciones Industriales de Ciencia de Datos"
+                    },
+                    {
+                        "code":  "3.4.281",
+                        "name":  "Plataformas de Visión Artificial"
+                    },
+                    {
+                        "code":  "3.4.282",
+                        "name":  "AI Generativa Visual"
+                    },
+                    {
+                        "code":  "3.4.283",
+                        "name":  "Robótica y Sistemas Autónomos"
+                    },
+                    {
+                        "code":  "3.4043",
+                        "name":  "Teoría de Sistemas"
+                    },
+                    {
+                        "code":  "3.4045",
+                        "name":  "Teoría de la Información y la Codificación"
+                    },
+                    {
+                        "code":  "3.4056",
+                        "name":  "Introducción a la Programación"
+                    },
+                    {
+                        "code":  "3.4057",
+                        "name":  "Programación Avanzada"
+                    },
+                    {
+                        "code":  "3.4058",
+                        "name":  "Sistemas Informáticos"
+                    },
+                    {
+                        "code":  "3.4068",
+                        "name":  "Procesos y Sistemas Administrativos"
+                    },
+                    {
+                        "code":  "3.4069",
+                        "name":  "Fundamentos de Informática"
+                    },
+                    {
+                        "code":  "3.4070",
+                        "name":  "Metodologías de Desarrollo"
+                    },
+                    {
+                        "code":  "3.4071",
+                        "name":  "Programación I"
+                    },
+                    {
+                        "code":  "3.4072",
+                        "name":  "Arquitectura de Computadores"
+                    },
+                    {
+                        "code":  "3.4073",
+                        "name":  "Ingeniería de Requerimientos"
+                    },
+                    {
+                        "code":  "3.4074",
+                        "name":  "Programación II"
+                    },
+                    {
+                        "code":  "3.4075",
+                        "name":  "Sistemas Operativos"
+                    },
+                    {
+                        "code":  "3.4076",
+                        "name":  "Introducción a la Orientación a Objetos"
+                    },
+                    {
+                        "code":  "3.4077",
+                        "name":  "Programación III"
+                    },
+                    {
+                        "code":  "3.4078",
+                        "name":  "Fundamentos de Telecomunicaciones"
+                    },
+                    {
+                        "code":  "3.4079",
+                        "name":  "Análisis y Diseño Orientado a Objetos"
+                    },
+                    {
+                        "code":  "3.4080",
+                        "name":  "Base de Datos I"
+                    },
+                    {
+                        "code":  "3.4081",
+                        "name":  "Teleinformática y Redes I"
+                    },
+                    {
+                        "code":  "3.4082",
+                        "name":  "Aplicaciones Interactivas"
+                    },
+                    {
+                        "code":  "3.4083",
+                        "name":  "Seminario de Integración Profesional I"
+                    },
+                    {
+                        "code":  "3.4084",
+                        "name":  "Base de Datos II"
+                    },
+                    {
+                        "code":  "3.4085",
+                        "name":  "Teleinformática y Redes II"
+                    },
+                    {
+                        "code":  "3.4086",
+                        "name":  "Evaluación de Proyectos Informáticos"
+                    },
+                    {
+                        "code":  "3.4087",
+                        "name":  "Aplicaciones Distribuidas"
+                    },
+                    {
+                        "code":  "3.4088",
+                        "name":  "Sistemas de Soporte de Decisiones"
+                    },
+                    {
+                        "code":  "3.4089",
+                        "name":  "Dirección de Proyectos Informáticos"
+                    },
+                    {
+                        "code":  "3.4090",
+                        "name":  "Integración de Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4091",
+                        "name":  "Seminario de Integración Profesional II"
+                    },
+                    {
+                        "code":  "3.4092",
+                        "name":  "Seguridad e Integridad de la Información"
+                    },
+                    {
+                        "code":  "3.4093",
+                        "name":  "Ingeniería en Software"
+                    },
+                    {
+                        "code":  "3.4094",
+                        "name":  "Arquitectura de Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4095",
+                        "name":  "Teoría de la Computación"
+                    },
+                    {
+                        "code":  "3.4096",
+                        "name":  "Inteligencia Artificial"
+                    },
+                    {
+                        "code":  "3.4097",
+                        "name":  "Tecnología y Negocios"
+                    },
+                    {
+                        "code":  "3.4098",
+                        "name":  "Calidad de Software"
+                    },
+                    {
+                        "code":  "3.4100",
+                        "name":  "Proyecto Final de Ingeniería en Informática"
+                    },
+                    {
+                        "code":  "3.4101",
+                        "name":  "Arquitectura y Sistemas Operativos"
+                    },
+                    {
+                        "code":  "3.4102",
+                        "name":  "Minería de Datos"
+                    },
+                    {
+                        "code":  "3.4103",
+                        "name":  "Bases de Datos"
+                    },
+                    {
+                        "code":  "3.4104",
+                        "name":  "Computación de Alto Rendimiento"
+                    },
+                    {
+                        "code":  "3.4130",
+                        "name":  "Tecnología y Medioambiente"
+                    },
+                    {
+                        "code":  "3.4131",
+                        "name":  "Gestión de Personas en Organizaciones de Tecnología"
+                    },
+                    {
+                        "code":  "3.4132",
+                        "name":  "Requerimientos y Negocios"
+                    },
+                    {
+                        "code":  "3.4133",
+                        "name":  "Fundamentos de Telecomunicaciones"
+                    },
+                    {
+                        "code":  "3.4134",
+                        "name":  "Teleinformática y Redes de Datos"
+                    },
+                    {
+                        "code":  "3.4135",
+                        "name":  "Tecnología e Innovación"
+                    },
+                    {
+                        "code":  "3.4136",
+                        "name":  "Nuevas Tecnologías de la Información"
+                    },
+                    {
+                        "code":  "3.4138",
+                        "name":  "Seminario de Gestión de Tecnología I"
+                    },
+                    {
+                        "code":  "3.4139",
+                        "name":  "Evaluación de Proyectos de Tecnología"
+                    },
+                    {
+                        "code":  "3.4140",
+                        "name":  "Soporte a Decisiones de Negocios"
+                    },
+                    {
+                        "code":  "3.4141",
+                        "name":  "Seguridad de Procesos y Aplicaciones"
+                    },
+                    {
+                        "code":  "3.4142",
+                        "name":  "Dirección de Proyectos de Tecnología"
+                    },
+                    {
+                        "code":  "3.4143",
+                        "name":  "Seminario de Gestión de Tecnología II"
+                    },
+                    {
+                        "code":  "3.5.001",
+                        "name":  "Impacto Ambiental en Agroecosistemas"
+                    },
+                    {
+                        "code":  "3.5.002",
+                        "name":  "Introducción a las Innovaciones Tecnológicas"
+                    },
+                    {
+                        "code":  "3.5.003",
+                        "name":  "Suelos y Agroclimatología"
+                    },
+                    {
+                        "code":  "3.5.004",
+                        "name":  "Cadenas de Valor I"
+                    },
+                    {
+                        "code":  "3.5.005",
+                        "name":  "Tecnologías para la Frontera Agropecuaria"
+                    },
+                    {
+                        "code":  "3.5.006",
+                        "name":  "Ecología y Ecofisiología Vegetal"
+                    },
+                    {
+                        "code":  "3.5.007",
+                        "name":  "Tecnología para el Agro"
+                    },
+                    {
+                        "code":  "3.5.008",
+                        "name":  "Planificación Territorial"
+                    },
+                    {
+                        "code":  "3.5.009",
+                        "name":  "Sistemas de Información Geográfica"
+                    },
+                    {
+                        "code":  "3.5.010",
+                        "name":  "Innovaciones Tecnológicas"
+                    },
+                    {
+                        "code":  "3.5.011",
+                        "name":  "Cadenas de Valor II"
+                    },
+                    {
+                        "code":  "3.5.012",
+                        "name":  "Alimentación y Nutrición Animal"
+                    },
+                    {
+                        "code":  "3.5.013",
+                        "name":  "Tecnología de Riego"
+                    },
+                    {
+                        "code":  "3.5.014",
+                        "name":  "Agricultura de Precisión"
+                    },
+                    {
+                        "code":  "3.5.016",
+                        "name":  "Seminario de Campo en Ganadería Extensiva"
+                    },
+                    {
+                        "code":  "3.5.017",
+                        "name":  "Gestión de la Empresa Agropecuaria I"
+                    },
+                    {
+                        "code":  "3.5.018",
+                        "name":  "Tecnología de Cereales, Oleaginosas y Forestales"
+                    },
+                    {
+                        "code":  "3.5.019",
+                        "name":  "Producciones Frutihortícolas"
+                    },
+                    {
+                        "code":  "3.5.020",
+                        "name":  "Taller de Campo en Ganadería Intensiva"
+                    },
+                    {
+                        "code":  "3.5.021",
+                        "name":  "Mercados Granarios"
+                    },
+                    {
+                        "code":  "3.5.022",
+                        "name":  "Emprendedorismo"
+                    },
+                    {
+                        "code":  "3.5.023",
+                        "name":  "Mercados Ganaderos"
+                    },
+                    {
+                        "code":  "3.5.024",
+                        "name":  "Terapéutica Vegetal"
+                    },
+                    {
+                        "code":  "3.5.025",
+                        "name":  "Gestión de la Empresa Agropecuaria II"
+                    },
+                    {
+                        "code":  "3.5.026",
+                        "name":  "Bienestar Animal"
+                    },
+                    {
+                        "code":  "3.5.027",
+                        "name":  "Taller de Campo en Producciones No Tradicionales"
+                    },
+                    {
+                        "code":  "3.5.028",
+                        "name":  "Agroindustrias"
+                    },
+                    {
+                        "code":  "3.5.029",
+                        "name":  "Trabajo de Integración Final"
+                    },
+                    {
+                        "code":  "3.5.030",
+                        "name":  "Recursos Naturales y Ecosistemas"
+                    },
+                    {
+                        "code":  "3.5.031",
+                        "name":  "Conservación Ambiental y Reciclaje"
+                    },
+                    {
+                        "code":  "3.5.032",
+                        "name":  "Ecología"
+                    },
+                    {
+                        "code":  "3.5.033",
+                        "name":  "Alteraciones Ambientales"
+                    },
+                    {
+                        "code":  "3.5.034",
+                        "name":  "Sociedad y Ambiente"
+                    },
+                    {
+                        "code":  "3.5.035",
+                        "name":  "Estudio de la Biosfera"
+                    },
+                    {
+                        "code":  "3.5.036",
+                        "name":  "Energías Renovables"
+                    },
+                    {
+                        "code":  "3.5.037",
+                        "name":  "Ecofisiología y Comunidades Vegetales"
+                    },
+                    {
+                        "code":  "3.5.038",
+                        "name":  "Recursos Edáficos y Geología"
+                    },
+                    {
+                        "code":  "3.5.039",
+                        "name":  "Ecosistemas Acuáticos"
+                    },
+                    {
+                        "code":  "3.5.040",
+                        "name":  "Biodiversidad y Ambiente"
+                    },
+                    {
+                        "code":  "3.5.041",
+                        "name":  "Desarrollo Sustentable"
+                    },
+                    {
+                        "code":  "3.5.042",
+                        "name":  "Recursos Pesqueros"
+                    },
+                    {
+                        "code":  "3.5.043",
+                        "name":  "Recursos Forestales"
+                    },
+                    {
+                        "code":  "3.5.044",
+                        "name":  "Indicadores e Índices Ambientales"
+                    },
+                    {
+                        "code":  "3.5.045",
+                        "name":  "Problemática Ambiental Agropecuaria"
+                    },
+                    {
+                        "code":  "3.5.046",
+                        "name":  "Toxicología"
+                    },
+                    {
+                        "code":  "3.5.047",
+                        "name":  "Sistemas de Información Geográfica"
+                    },
+                    {
+                        "code":  "3.5.048",
+                        "name":  "Evaluación de Impacto Ambiental"
+                    },
+                    {
+                        "code":  "3.5.049",
+                        "name":  "Sistemas de Remediación, Manejo y Conservación de Suelos"
+                    },
+                    {
+                        "code":  "3.5.050",
+                        "name":  "Comunicación Social y Ambiente"
+                    },
+                    {
+                        "code":  "3.5.051",
+                        "name":  "Gestión Ambiental Urbana y Periurbana"
+                    },
+                    {
+                        "code":  "3.5.052",
+                        "name":  "Gestión Ambiental en Agroindustrias"
+                    },
+                    {
+                        "code":  "3.5.053",
+                        "name":  "Residuos Urbanos e Industriales"
+                    },
+                    {
+                        "code":  "3.5.054",
+                        "name":  "Políticas Ambientales"
+                    },
+                    {
+                        "code":  "3.5.055",
+                        "name":  "Recursos Hídricos"
+                    },
+                    {
+                        "code":  "3.5.056",
+                        "name":  "Gestión de Emergencias Ambientales"
+                    },
+                    {
+                        "code":  "3.5.057",
+                        "name":  "Trabajo de Integración Final en Gestión Ambiental"
+                    },
+                    {
+                        "code":  "3.5.058",
+                        "name":  "Contabilidad de Empresas Agropecuarias"
+                    },
+                    {
+                        "code":  "PPS01",
+                        "name":  "Práctica Profesional Supervisada"
+                    },
+                    {
+                        "code":  "PPS04",
+                        "name":  "Práctica Profesional Supervisada"
+                    },
+                    {
+                        "code":  "PPS06",
+                        "name":  "Práctica Profesional Supervisada"
+                    }
+                ]
+}
