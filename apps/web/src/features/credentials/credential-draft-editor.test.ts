@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import {
   applyCredentialTypeChange,
+  buildAcademicPeriodInput,
   buildDraftUpdateCommand,
   credentialDraftFieldsByType,
   detailToDraftEditorState,
   getIncompatiblePopulatedFields,
   linesToStringArray,
+  parseAcademicPeriodInput,
+  sanitizeAcademicGradeInput,
+  sanitizeAcademicYearInput,
   validateDraftEditorState
 } from '@/features/credentials/credential-draft-editor';
 import type { IssuerCredentialDetailVM } from '@/models/credentials';
@@ -50,6 +54,7 @@ function detailFixture(
       email: 'holder@example.com',
       did: null
     },
+    academicCourse: null,
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T13:00:00.000Z',
     ...overrides
@@ -62,7 +67,6 @@ describe('credential draft editor helpers', () => {
       academic_subject: [
         'completionDate',
         'academicPeriod',
-        'programName',
         'grade',
         'skills',
         'competencies'
@@ -108,6 +112,26 @@ describe('credential draft editor helpers', () => {
     ]);
   });
 
+  it('parses, builds and clears the structured academic period', () => {
+    expect(parseAcademicPeriodInput('2026-2')).toEqual({
+      year: '2026',
+      term: '2'
+    });
+    expect(buildAcademicPeriodInput('2026', '1')).toBe('2026-1');
+    expect(buildAcademicPeriodInput('2026', '')).toBe('2026-');
+    expect(buildAcademicPeriodInput('', '2')).toBe('-2');
+    expect(buildAcademicPeriodInput('', '')).toBe('');
+    expect(sanitizeAcademicYearInput('20a26')).toBe('2026');
+  });
+
+  it('keeps only a reasonable decimal grade input state', () => {
+    expect(sanitizeAcademicGradeInput('8a.567')).toBe('8.56');
+    expect(sanitizeAcademicGradeInput('8,5')).toBe('8.5');
+    expect(sanitizeAcademicGradeInput('10.')).toBe('10.');
+    expect(sanitizeAcademicGradeInput('-1')).toBe('-1');
+    expect(sanitizeAcademicGradeInput('texto')).toBe('');
+  });
+
   it('returns no command when the form has no semantic changes', () => {
     const detail = detailFixture();
 
@@ -147,6 +171,58 @@ describe('credential draft editor helpers', () => {
     });
   });
 
+  it('builds a curricular academic subject command without ambiguous manual fields', () => {
+    const detail = detailFixture({
+      type: 'academic_subject',
+      typeLabel: 'Asignatura académica',
+      academicCourse: null
+    });
+    const state = {
+      ...detailToDraftEditorState(detail),
+      achievementName: 'Nombre manual que no debe salir',
+      description: 'Descripción manual que no debe salir',
+      hours: '80',
+      programName: 'Carrera manual que no debe salir',
+      completionDate: '2026-07-30',
+      academicPeriod: '2026-2',
+      grade: '9'
+    };
+
+    const command = buildDraftUpdateCommand({
+      detail,
+      state,
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference',
+      pendingAcademicSelection: {
+        academicCourseReference: 'course-reference',
+        code: '3.4.213',
+        name: 'Ingeniería de Datos II',
+        description: null,
+        hours: null,
+        programReference: 'program-reference',
+        programCode: '1621',
+        programName: 'Ingeniería en Informática',
+        curriculumReference: 'curriculum-reference',
+        curriculumCode: '2026'
+      }
+    });
+
+    expect(command).toEqual({
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference',
+      expectedUpdatedAt: '2026-07-30T13:00:00.000Z',
+      academicCourseReference: 'course-reference',
+      curriculumReference: 'curriculum-reference',
+      completionDate: '2026-07-30',
+      academicPeriod: '2026-2',
+      grade: '9'
+    });
+    expect(command).not.toHaveProperty('achievementName');
+    expect(command).not.toHaveProperty('description');
+    expect(command).not.toHaveProperty('hours');
+    expect(command).not.toHaveProperty('programName');
+  });
+
   it('uses null for cleared nullable strings and [] for cleared arrays', () => {
     const detail = detailFixture();
     const state = {
@@ -166,6 +242,29 @@ describe('credential draft editor helpers', () => {
       providerName: null,
       competencies: []
     });
+  });
+
+  it('sends null when an optional academic grade is cleared', () => {
+    const detail = detailFixture({
+      type: 'academic_subject',
+      credentialSubject: {
+        ...detailFixture().credentialSubject,
+        grade: '8.5'
+      }
+    });
+    const state = {
+      ...detailToDraftEditorState(detail),
+      grade: ''
+    };
+
+    expect(
+      buildDraftUpdateCommand({
+        detail,
+        state,
+        issuerReference: 'issuer-reference',
+        credentialReference: 'credential-reference'
+      })
+    ).toMatchObject({ grade: null });
   });
 
   it('includes changed certification dates in the sparse command', () => {
@@ -250,6 +349,46 @@ describe('credential draft editor helpers', () => {
     expect(command).not.toHaveProperty('learningOutcomes');
   });
 
+  it('does not preserve curricular references when changing to a manual type', () => {
+    const detail = detailFixture({
+      type: 'academic_subject',
+      typeLabel: 'Asignatura académica',
+      academicCourse: {
+        academicCourseReference: 'course-reference',
+        code: '3.4.213',
+        name: 'Ingeniería de Datos II',
+        description: null,
+        hours: null,
+        program: {
+          programReference: 'program-reference',
+          programCode: '1621',
+          programName: 'Ingeniería en Informática',
+          curriculumReference: 'curriculum-reference',
+          curriculumCode: '2026'
+        }
+      }
+    });
+    const state = applyCredentialTypeChange(
+      detailToDraftEditorState(detail),
+      'course'
+    );
+    const command = buildDraftUpdateCommand({
+      detail,
+      state,
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference'
+    });
+
+    expect(command).toEqual({
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference',
+      expectedUpdatedAt: '2026-07-30T13:00:00.000Z',
+      type: 'course'
+    });
+    expect(command).not.toHaveProperty('academicCourseReference');
+    expect(command).not.toHaveProperty('curriculumReference');
+  });
+
   it('never sends a populated field that does not apply to the final type', () => {
     const detail = detailFixture();
     const state = {
@@ -280,5 +419,28 @@ describe('credential draft editor helpers', () => {
       hours: 'Ingresá un valor positivo con hasta dos decimales.',
       externalUrl: 'Ingresá una URL HTTP o HTTPS válida.'
     });
+  });
+
+  it('validates academic grade range and requires both academic period parts', () => {
+    const detail = detailFixture({ type: 'academic_subject' });
+    const state = {
+      ...detailToDraftEditorState(detail),
+      grade: '10.01',
+      academicPeriod: '2026-'
+    };
+
+    expect(validateDraftEditorState(state)).toEqual({
+      grade: 'Ingresá una calificación entre 0 y 10 con hasta dos decimales.',
+      academicPeriod:
+        'Completá el año de cuatro dígitos y el período académico.'
+    });
+
+    expect(
+      validateDraftEditorState({
+        ...state,
+        grade: '8.5',
+        academicPeriod: '2026-1'
+      })
+    ).toEqual({});
   });
 });

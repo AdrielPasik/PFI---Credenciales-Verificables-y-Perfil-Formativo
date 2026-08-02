@@ -123,26 +123,27 @@ function createDraftService(options?: {
     issuerId: string
   ) => Promise<unknown>;
   subjectUser?: { id: string } | null;
-  academicCourse?: { id: string } | null;
+  programCourse?: ProgramCourseFixture | null;
 }) {
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const subjectLookupCalls: Array<Record<string, unknown>> = [];
   const createCalls: Array<Record<string, unknown>> = [];
-  const academicCourseLookupCalls: Array<Record<string, unknown>> = [];
+  const programCourseLookupCalls: Array<Record<string, unknown>> = [];
+  const transactionOptions: Array<Record<string, unknown>> = [];
   const operationOrder: string[] = [];
 
-  const prisma = {
-    academicCourse: {
+  const transaction = {
+    programCourse: {
       async findFirst(args: Record<string, unknown>) {
-        operationOrder.push('academic_course_lookup');
-        academicCourseLookupCalls.push(args);
-        return options?.academicCourse === undefined
-          ? { id: 'academic-course-1' }
-          : options.academicCourse;
+        operationOrder.push('program_course_lookup');
+        programCourseLookupCalls.push(args);
+        return options?.programCourse === undefined
+          ? createProgramCourseFixture()
+          : options.programCourse;
       }
     },
     user: {
-      async findUnique(args: Record<string, unknown>) {
+      async findFirst(args: Record<string, unknown>) {
         operationOrder.push('subject_lookup');
         subjectLookupCalls.push(args);
         return options?.subjectUser === undefined
@@ -161,6 +162,16 @@ function createDraftService(options?: {
           blockchainRecords: []
         };
       }
+    }
+  };
+  const prisma = {
+    async $transaction(
+      callback: (client: typeof transaction) => Promise<unknown>,
+      transactionOption: Record<string, unknown>
+    ) {
+      operationOrder.push('transaction_start');
+      transactionOptions.push(transactionOption);
+      return callback(transaction);
     }
   };
 
@@ -189,76 +200,204 @@ function createDraftService(options?: {
     authorizationCalls,
     subjectLookupCalls,
     createCalls,
-    academicCourseLookupCalls,
+    programCourseLookupCalls,
+    transactionOptions,
     operationOrder
   };
 }
 
-test('createDraft validates a compatible active issuer course before linking it', async () => {
-  const { service, academicCourseLookupCalls, createCalls, operationOrder } =
-    createDraftService();
+type ProgramCourseFixture = {
+  id: string;
+  academicCourse: {
+    id: string;
+    name: string;
+    description: string | null;
+    hours: { toFixed: () => string; toString: () => string } | null;
+    issuer: { name: string };
+  };
+  curriculumVersion: {
+    program: { name: string };
+  };
+};
 
-  await service.createDraft(
-    {
-      ...validDraftDto,
-      academicCourseId: 'academic-course-1'
+function createProgramCourseFixture(): ProgramCourseFixture {
+  return {
+    id: 'program-course-1',
+    academicCourse: {
+      id: 'academic-course-1',
+      name: 'Ingenieria de Datos I',
+      description: 'Descripcion oficial de la asignatura',
+      hours: {
+        toFixed: () => '64.00',
+        toString: () => '64'
+      },
+      issuer: {
+        name: 'Demo University'
+      }
     },
+    curriculumVersion: {
+      program: {
+        name: 'Ingenieria en Informatica'
+      }
+    }
+  };
+}
+
+const validCurricularDraftDto = {
+  issuerId: 'issuer-1',
+  subjectUserId: 'holder-1',
+  type: CredentialType.academic_subject,
+  sourceType: CredentialSourceType.manual_issuer,
+  academicCourseReference: ' academic-course-1 ',
+  curriculumReference: ' curriculum-1 '
+} satisfies CreateCredentialDraftDto;
+
+test('createDraft creates a curricular academic subject and derives its official snapshot', async () => {
+  const {
+    service,
+    programCourseLookupCalls,
+    createCalls,
+    operationOrder,
+    transactionOptions
+  } = createDraftService();
+
+  const response = await service.createDraft(
+    validCurricularDraftDto,
     currentUser
   );
 
-  assert.deepEqual(academicCourseLookupCalls, [
+  assert.deepEqual(programCourseLookupCalls, [
     {
       where: {
-        id: 'academic-course-1',
-        issuerId: 'issuer-1',
-        status: 'active'
+        academicCourseId: 'academic-course-1',
+        curriculumVersionId: 'curriculum-1',
+        academicCourse: {
+          issuerId: 'issuer-1',
+          status: 'active'
+        },
+        curriculumVersion: {
+          status: 'active',
+          program: {
+            issuerId: 'issuer-1',
+            status: 'active'
+          }
+        }
       },
-      select: { id: true }
+      select: {
+        id: true,
+        academicCourse: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            hours: true,
+            issuer: { select: { name: true } }
+          }
+        },
+        curriculumVersion: {
+          select: {
+            program: { select: { name: true } }
+          }
+        }
+      }
     }
   ]);
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
-    'academic_course_lookup',
+    'transaction_start',
     'subject_lookup',
+    'program_course_lookup',
     'credential_create'
   ]);
+  assert.deepEqual(transactionOptions, [{ isolationLevel: 'Serializable' }]);
+  const createdData = createCalls[0].data as Record<string, unknown>;
+  assert.equal(createdData.issuerId, 'issuer-1');
+  assert.equal(createdData.subjectUserId, 'holder-1');
+  assert.equal(createdData.type, CredentialType.academic_subject);
+  assert.equal(createdData.title, 'Ingenieria de Datos I');
+  assert.equal(createdData.description, 'Descripcion oficial de la asignatura');
+  assert.equal(createdData.sourceType, CredentialSourceType.manual_issuer);
   assert.equal(
-    (createCalls[0] as { data: { academicCourseId: string } }).data
-      .academicCourseId,
-    'academic-course-1'
+    (createdData.hours as { toFixed: () => string }).toFixed(),
+    '64.00'
   );
+  assert.equal(createdData.academicCourseId, 'academic-course-1');
+  assert.equal(createdData.programCourseId, 'program-course-1');
+  assert.equal(createdData.externalCourseId, undefined);
+  assert.deepEqual(createdData.credentialSubject, {
+    achievement_name: 'Ingenieria de Datos I',
+    institution_name: 'Demo University',
+    program_name: 'Ingenieria en Informatica'
+  });
+  assert.equal(createdData.metadata, undefined);
+  assert.equal(createdData.rawData, undefined);
+  assert.equal(createdData.status, CredentialStatus.draft);
+  assert.equal(response.status, CredentialStatus.draft);
+  assert.equal(response.canonicalHash, undefined);
+  assert.equal(response.latestBlockchainRecord, undefined);
 });
 
-test('createDraft rejects cross-issuer, inactive or missing academic courses and non-academic types', async () => {
-  const missing = createDraftService({ academicCourse: null });
+test('createDraft rejects missing, cross-issuer, inactive or unrelated curriculum selections safely', async () => {
+  for (const scenario of [
+    'missing course',
+    'cross issuer course',
+    'inactive course',
+    'inactive curriculum',
+    'inactive program',
+    'course outside curriculum'
+  ]) {
+    const unavailable = createDraftService({ programCourse: null });
 
-  await assert.rejects(
-    missing.service.createDraft(
-      {
-        ...validDraftDto,
-        academicCourseId: 'unavailable-course'
-      },
-      currentUser
-    ),
-    BadRequestException
-  );
-  assert.deepEqual(missing.createCalls, []);
+    await assert.rejects(
+      unavailable.service.createDraft(validCurricularDraftDto, currentUser),
+      (error: unknown) => {
+        assert.equal(error instanceof NotFoundException, true, scenario);
+        assert.equal(
+          (error as Error).message,
+          'No se encontro una asignatura activa dentro de la curricula solicitada.'
+        );
+        return true;
+      }
+    );
+    assert.deepEqual(unavailable.createCalls, [], scenario);
+  }
+});
 
+test('createDraft rejects curriculum selection for a non-academic type before database access', async () => {
   const wrongType = createDraftService();
 
   await assert.rejects(
     wrongType.service.createDraft(
       {
-        ...validDraftDto,
+        ...validCurricularDraftDto,
         type: CredentialType.course,
-        academicCourseId: 'academic-course-1'
       },
       currentUser
     ),
     BadRequestException
   );
-  assert.deepEqual(wrongType.academicCourseLookupCalls, []);
+  assert.deepEqual(wrongType.programCourseLookupCalls, []);
   assert.deepEqual(wrongType.createCalls, []);
+});
+
+test('createDraft rejects a closed-contract violation before transaction or lookup', async () => {
+  const { service, operationOrder, subjectLookupCalls, programCourseLookupCalls } =
+    createDraftService();
+
+  await assert.rejects(
+    service.createDraft(
+      {
+        ...validCurricularDraftDto,
+        credentialSubject: {}
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+
+  assert.deepEqual(operationOrder, ['issuer_authorization']);
+  assert.equal(subjectLookupCalls.length, 0);
+  assert.equal(programCourseLookupCalls.length, 0);
 });
 
 function createService(options?: {
@@ -388,12 +527,17 @@ test('CredentialsService creates a draft only after issuer authorization and hol
   assert.deepEqual(subjectLookupCalls, [
     {
       where: {
-        id: validDraftDto.subjectUserId
+        id: validDraftDto.subjectUserId,
+        status: UserStatus.active
+      },
+      select: {
+        id: true
       }
     }
   ]);
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'transaction_start',
     'subject_lookup',
     'credential_create'
   ]);
@@ -406,6 +550,39 @@ test('CredentialsService creates a draft only after issuer authorization and hol
   assert.equal(response.status, CredentialStatus.draft);
   assert.equal(response.canonicalHash, undefined);
   assert.equal(response.latestBlockchainRecord, undefined);
+});
+
+test('CredentialsService preserves manual draft creation for every credential type', async () => {
+  for (const type of [
+    CredentialType.academic_subject,
+    CredentialType.course,
+    CredentialType.certification,
+    CredentialType.degree
+  ]) {
+    const { service, createCalls, programCourseLookupCalls } =
+      createDraftService();
+
+    await service.createDraft(
+      {
+        ...validDraftDto,
+        type,
+        title: `Draft manual ${type}`,
+        credentialSubject: {
+          achievement_name: `Draft manual ${type}`,
+          institution_name: 'Demo University'
+        }
+      },
+      currentUser
+    );
+
+    assert.equal(createCalls.length, 1, type);
+    assert.equal(
+      (createCalls[0].data as Record<string, unknown>).title,
+      `Draft manual ${type}`,
+      type
+    );
+    assert.equal(programCourseLookupCalls.length, 0, type);
+  }
 });
 
 test('CredentialsService rejects arbitrary issuerIds before holder lookup or credential creation', async () => {
@@ -446,8 +623,27 @@ test('CredentialsService preserves not found behavior for a missing holder after
 
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'transaction_start',
     'subject_lookup'
   ]);
+  assert.equal(createCalls.length, 0);
+});
+
+test('CredentialsService treats an inactive holder as not eligible before catalog lookup', async () => {
+  const { service, createCalls, programCourseLookupCalls, operationOrder } =
+    createDraftService({ subjectUser: null });
+
+  await assert.rejects(
+    service.createDraft(validCurricularDraftDto, currentUser),
+    NotFoundException
+  );
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'transaction_start',
+    'subject_lookup'
+  ]);
+  assert.equal(programCourseLookupCalls.length, 0);
   assert.equal(createCalls.length, 0);
 });
 
@@ -467,6 +663,7 @@ test('CredentialsService does not create a draft when current domain validation 
 
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'transaction_start',
     'subject_lookup'
   ]);
   assert.equal(createCalls.length, 0);

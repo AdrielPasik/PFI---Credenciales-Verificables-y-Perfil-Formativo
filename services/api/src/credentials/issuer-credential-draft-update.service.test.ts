@@ -825,6 +825,134 @@ test('service accepts every controlled field applicable to each CredentialType',
   }
 });
 
+test('service normalizes an academic grade and accepts the structured academic period', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({
+      type: CredentialType.academic_subject
+    }),
+    updatedCredential: createUpdatedCredentialRecord({
+      type: CredentialType.academic_subject
+    })
+  });
+
+  await service.updateDraftForIssuer(
+    'issuer-1',
+    'credential-1',
+    {
+      expectedUpdatedAt: EXPECTED_UPDATED_AT,
+      grade: '08.50',
+      academicPeriod: '2026-2'
+    },
+    currentUser
+  );
+
+  const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
+  assert.deepEqual(data.credentialSubject, {
+    achievement_name: 'Nombre anterior',
+    institution_name: 'Demo University',
+    skills: ['preservada'],
+    legacy_key: 'preservada',
+    grade: '8.5',
+    academic_period: '2026-2'
+  });
+});
+
+test('service rejects invalid academic grades before updating the draft', async () => {
+  for (const grade of ['texto', '-1', '10.01', '8.555', '8.']) {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({
+        type: CredentialType.academic_subject
+      })
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        { expectedUpdatedAt: EXPECTED_UPDATED_AT, grade },
+        currentUser
+      ),
+      BadRequestException
+    );
+    assert.deepEqual(updateManyCalls, []);
+  }
+});
+
+test('service rejects unstructured academic periods before updating the draft', async () => {
+  for (const academicPeriod of [
+    '2026',
+    '2026-3',
+    '26-1',
+    '2026 primer cuatrimestre'
+  ]) {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({
+        type: CredentialType.academic_subject
+      })
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        { expectedUpdatedAt: EXPECTED_UPDATED_AT, academicPeriod },
+        currentUser
+      ),
+      BadRequestException
+    );
+    assert.deepEqual(updateManyCalls, []);
+  }
+});
+
+test('service preserves the existing degree grade contract', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({ type: CredentialType.degree }),
+    updatedCredential: createUpdatedCredentialRecord({
+      type: CredentialType.degree
+    })
+  });
+
+  await service.updateDraftForIssuer(
+    'issuer-1',
+    'credential-1',
+    { expectedUpdatedAt: EXPECTED_UPDATED_AT, grade: 'Distinguido' },
+    currentUser
+  );
+
+  const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
+  assert.equal(
+    (data.credentialSubject as Record<string, unknown>).grade,
+    'Distinguido'
+  );
+});
+
+test('service rejects carrying a non-numeric degree grade into academic_subject', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({
+      type: CredentialType.degree,
+      credentialSubject: {
+        achievement_name: 'Nombre anterior',
+        institution_name: 'Demo University',
+        grade: 'Distinguido'
+      }
+    })
+  });
+
+  await assert.rejects(
+    service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      {
+        expectedUpdatedAt: EXPECTED_UPDATED_AT,
+        type: CredentialType.academic_subject
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.deepEqual(updateManyCalls, []);
+});
+
 test('service rejects every field that is not applicable to the final type, including null', async () => {
   const cases: Array<{
     type: CredentialType;

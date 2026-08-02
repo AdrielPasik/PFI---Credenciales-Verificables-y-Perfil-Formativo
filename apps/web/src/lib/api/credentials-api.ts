@@ -1,7 +1,10 @@
 import type { AuthenticatedApiRequest } from '@/lib/api/api-client';
+import { ApiError } from '@/lib/errors/api-error';
 import type {
+  AcademicProgramSearchCommand,
   CredentialDraftPatchFields,
   CreateCredentialDraftCommand,
+  CurriculumAcademicSubjectSearchCommand,
   HolderResolutionCommand,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
@@ -26,6 +29,84 @@ const credentialDraftPatchFields = [
   'competencies',
   'learningOutcomes'
 ] as const satisfies readonly (keyof CredentialDraftPatchFields)[];
+
+const curriculumDerivedDraftFields = new Set<
+  keyof CredentialDraftPatchFields
+>(['achievementName', 'description', 'hours', 'programName']);
+
+function resolveCurriculumReferences(
+  command: UpdateIssuerCredentialDraftCommand
+) {
+  const academicCourseReference = command.academicCourseReference;
+  const curriculumReference = command.curriculumReference;
+  const hasAcademicCourseReference =
+    academicCourseReference !== undefined;
+  const hasCurriculumReference = curriculumReference !== undefined;
+
+  if (hasAcademicCourseReference !== hasCurriculumReference) {
+    throw new ApiError(
+      'La selección curricular requiere una carrera y una asignatura válidas.',
+      'http',
+      400
+    );
+  }
+
+  if (!hasAcademicCourseReference || !hasCurriculumReference) {
+    return null;
+  }
+
+  if (
+    typeof academicCourseReference !== 'string' ||
+    typeof curriculumReference !== 'string' ||
+    academicCourseReference.trim().length === 0 ||
+    curriculumReference.trim().length === 0
+  ) {
+    throw new ApiError(
+      'La selección curricular requiere una carrera y una asignatura válidas.',
+      'http',
+      400
+    );
+  }
+
+  return {
+    academicCourseReference: academicCourseReference.trim(),
+    curriculumReference: curriculumReference.trim()
+  };
+}
+
+function catalogSearchParams(query: string, limit?: number) {
+  const params = new URLSearchParams({ query: query.trim() });
+
+  if (limit !== undefined) {
+    params.set('limit', String(limit));
+  }
+
+  return params.toString();
+}
+
+export function searchAcademicProgramsRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: AcademicProgramSearchCommand
+) {
+  const query = catalogSearchParams(command.query, command.limit);
+
+  return requestAuthenticated(
+    `/issuers/${encodeURIComponent(command.issuerReference)}/catalog/academic-programs?${query}`,
+    { signal: command.signal }
+  );
+}
+
+export function searchCurriculumAcademicSubjectsRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: CurriculumAcademicSubjectSearchCommand
+) {
+  const query = catalogSearchParams(command.query, command.limit);
+
+  return requestAuthenticated(
+    `/issuers/${encodeURIComponent(command.issuerReference)}/catalog/curriculum-versions/${encodeURIComponent(command.curriculumReference)}/academic-subjects?${query}`,
+    { signal: command.signal }
+  );
+}
 
 export function resolveHolderRequest(
   requestAuthenticated: AuthenticatedApiRequest,
@@ -76,11 +157,23 @@ export function patchIssuerCredentialDraftRequest(
   requestAuthenticated: AuthenticatedApiRequest,
   command: UpdateIssuerCredentialDraftCommand
 ) {
+  const curriculumReferences = resolveCurriculumReferences(command);
   const body: Record<string, unknown> = {
     expectedUpdatedAt: command.expectedUpdatedAt
   };
 
+  if (curriculumReferences) {
+    Object.assign(body, curriculumReferences);
+  }
+
   for (const field of credentialDraftPatchFields) {
+    if (
+      curriculumReferences &&
+      curriculumDerivedDraftFields.has(field)
+    ) {
+      continue;
+    }
+
     if (Object.prototype.hasOwnProperty.call(command, field)) {
       body[field] = command[field];
     }

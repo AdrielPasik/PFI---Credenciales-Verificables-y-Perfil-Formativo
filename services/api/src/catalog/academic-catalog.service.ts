@@ -45,25 +45,7 @@ export class AcademicCatalogService {
     const normalizedLimit = normalizeLimit(limit);
     const where: Prisma.AcademicCourseWhereInput = {
       issuerId,
-      status: CourseStatus.active,
-      ...(normalizedQuery
-        ? {
-            OR: [
-              {
-                code: {
-                  contains: normalizedQuery,
-                  mode: 'insensitive'
-                }
-              },
-              {
-                name: {
-                  contains: normalizedQuery,
-                  mode: 'insensitive'
-                }
-              }
-            ]
-          }
-        : {})
+      status: CourseStatus.active
     };
 
     const courses = await this.prisma.academicCourse.findMany({
@@ -76,11 +58,17 @@ export class AcademicCatalogService {
         hours: true
       },
       orderBy: [{ code: 'asc' }, { name: 'asc' }],
-      take: normalizedLimit
+      ...(normalizedQuery ? {} : { take: normalizedLimit })
     });
 
+    const matchingCourses = filterCatalogEntries(
+      courses,
+      normalizedQuery,
+      normalizedLimit
+    );
+
     return {
-      items: courses.map((course) => ({
+      items: matchingCourses.map((course) => ({
         academicCourseReference: course.id,
         code: course.code,
         name: course.name,
@@ -109,25 +97,7 @@ export class AcademicCatalogService {
         status: ProgramStatus.active,
         curriculumVersions: {
           some: { status: CurriculumVersionStatus.active }
-        },
-        ...(normalizedQuery
-          ? {
-              OR: [
-                {
-                  code: {
-                    contains: normalizedQuery,
-                    mode: 'insensitive'
-                  }
-                },
-                {
-                  name: {
-                    contains: normalizedQuery,
-                    mode: 'insensitive'
-                  }
-                }
-              ]
-            }
-          : {})
+        }
       },
       select: {
         id: true,
@@ -141,11 +111,17 @@ export class AcademicCatalogService {
         }
       },
       orderBy: [{ code: 'asc' }, { name: 'asc' }, { id: 'asc' }],
-      take: normalizedLimit
+      ...(normalizedQuery ? {} : { take: normalizedLimit })
     });
 
+    const matchingPrograms = filterCatalogEntries(
+      programs,
+      normalizedQuery,
+      normalizedLimit
+    );
+
     return {
-      items: programs.map((program) => {
+      items: matchingPrograms.map((program) => {
         const curriculum = program.curriculumVersions[0];
 
         if (!curriculum) {
@@ -208,25 +184,7 @@ export class AcademicCatalogService {
         curriculumVersionId: curriculum.id,
         academicCourse: {
           issuerId,
-          status: CourseStatus.active,
-          ...(normalizedQuery
-            ? {
-                OR: [
-                  {
-                    code: {
-                      contains: normalizedQuery,
-                      mode: 'insensitive'
-                    }
-                  },
-                  {
-                    name: {
-                      contains: normalizedQuery,
-                      mode: 'insensitive'
-                    }
-                  }
-                ]
-              }
-            : {})
+          status: CourseStatus.active
         }
       },
       select: {
@@ -245,11 +203,17 @@ export class AcademicCatalogService {
         { academicCourse: { name: 'asc' } },
         { id: 'asc' }
       ],
-      take: normalizedLimit
+      ...(normalizedQuery ? {} : { take: normalizedLimit })
     });
 
+    const matchingProgramCourses = programCourses
+      .filter(({ academicCourse }) =>
+        matchesCatalogQuery(academicCourse, normalizedQuery)
+      )
+      .slice(0, normalizedLimit);
+
     return {
-      items: programCourses.map(({ academicCourse }) => ({
+      items: matchingProgramCourses.map(({ academicCourse }) => ({
         academicCourseReference: academicCourse.id,
         code: academicCourse.code,
         name: academicCourse.name,
@@ -282,7 +246,7 @@ function normalizeQuery(value: unknown) {
     throw new BadRequestException('query debe ser string.');
   }
 
-  const normalized = value.trim();
+  const normalized = normalizeSearchText(value);
 
   if (normalized.length > MAX_QUERY_LENGTH) {
     throw new BadRequestException(
@@ -291,6 +255,39 @@ function normalizeQuery(value: unknown) {
   }
 
   return normalized || null;
+}
+
+function filterCatalogEntries<T extends { code: string; name: string }>(
+  entries: T[],
+  query: string | null,
+  limit: number
+) {
+  return entries
+    .filter((entry) => matchesCatalogQuery(entry, query))
+    .slice(0, limit);
+}
+
+function matchesCatalogQuery(
+  entry: { code: string; name: string },
+  query: string | null
+) {
+  if (!query) {
+    return true;
+  }
+
+  return (
+    normalizeSearchText(entry.code).includes(query) ||
+    normalizeSearchText(entry.name).includes(query)
+  );
+}
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLocaleLowerCase('es-AR')
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 function normalizeLimit(value: unknown) {

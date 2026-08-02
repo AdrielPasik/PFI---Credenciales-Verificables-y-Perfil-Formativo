@@ -5,7 +5,7 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F1a/F1b, F1c, P1b y P3 incorporan los primeros flujos reales del navegador
+F1a/F1b, F1c, P1b, P3 y P3.1c incorporan los primeros flujos reales del navegador
 sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
@@ -24,7 +24,9 @@ sobre la base F0.1:
 - creación real de drafts dentro del issuer seleccionado;
 - detalle institucional seguro del draft;
 - edición manual de campos comunes y específicos por tipo con guardado
-  explícito y control de concurrencia.
+  explícito y control de concurrencia;
+- selección de carrera y asignatura oficial para drafts `academic_subject`,
+  con búsqueda curricular scoped y snapshot oficial aceptado desde el backend.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -43,6 +45,13 @@ buscar por coincidencias parciales. El detalle usa el read institucional
 seguro y P3 actualiza drafts mediante un PATCH sparse con el `updatedAt` de la
 última respuesta aceptada. Ninguna de estas pantallas expone UUIDs como datos
 de producto.
+
+P3.1c reemplaza la edición manual de nombre, descripción, horas y carrera para
+`academic_subject` por un flujo de catálogo: primero se selecciona una carrera
+o plan y luego una materia perteneciente a su currícula. La selección local se
+muestra como pendiente hasta que el PATCH devuelve el nuevo snapshot oficial.
+Los datos de aprobación, skills y competencias continúan editables; el catálogo
+no constituye por sí mismo evidencia de aprobación.
 
 Todavía no están implementadas la Wallet, la emisión, la carga de PDF, la
 integración IA, la evidencia blockchain ni el listado de credenciales desde

@@ -10,6 +10,42 @@ export interface HolderResolutionCommand {
   email: string;
 }
 
+export interface AcademicProgramSearchItemVM {
+  programReference: string;
+  programCode: string;
+  programName: string;
+  curriculumReference: string;
+  curriculumCode: string;
+}
+
+export interface CurriculumAcademicSubjectSearchItemVM {
+  academicCourseReference: string;
+  code: string;
+  name: string;
+  description: string | null;
+  hours: string | null;
+  programReference: string;
+  programCode: string;
+  programName: string;
+  curriculumReference: string;
+  curriculumCode: string;
+}
+
+export interface AcademicProgramSearchCommand {
+  issuerReference: string;
+  query: string;
+  limit?: number;
+  signal?: AbortSignal;
+}
+
+export interface CurriculumAcademicSubjectSearchCommand {
+  issuerReference: string;
+  curriculumReference: string;
+  query: string;
+  limit?: number;
+  signal?: AbortSignal;
+}
+
 export type CredentialType =
   | 'academic_subject'
   | 'course'
@@ -84,6 +120,14 @@ export interface IssuerCredentialDetailVM {
     email: string | null;
     did: string | null;
   };
+  academicCourse: {
+    academicCourseReference: string;
+    code: string;
+    name: string;
+    description: string | null;
+    hours: string | null;
+    program: AcademicProgramSearchItemVM | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -113,6 +157,8 @@ export type UpdateIssuerCredentialDraftCommand = {
   issuerReference: string;
   credentialReference: string;
   expectedUpdatedAt: string;
+  academicCourseReference?: string;
+  curriculumReference?: string;
 } & Partial<CredentialDraftPatchFields>;
 
 export type CredentialFeedbackCode =

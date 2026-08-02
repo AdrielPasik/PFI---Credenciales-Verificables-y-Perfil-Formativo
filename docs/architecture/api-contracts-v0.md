@@ -458,11 +458,50 @@ ni afirma que un draft este listo para emitir.
 
 - Proposito: crear o persistir un borrador de credencial.
 - Actor: `issuer_admin`.
-- Request conceptual: datos base de `credential_v1` sin `issued_at`.
+- Request manual: datos base de `credential_v1` sin `issued_at`. Este camino se
+  mantiene para `academic_subject`, `course`, `certification` y `degree`.
+- Request curricular recomendado para `academic_subject`:
+
+```json
+{
+  "issuerId": "issuer-reference",
+  "subjectUserId": "holder-reference",
+  "type": "academic_subject",
+  "sourceType": "manual_issuer",
+  "academicCourseReference": "academic-course-reference",
+  "curriculumReference": "curriculum-reference"
+}
+```
+
+- `academicCourseReference` y `curriculumReference` son strings no vacios y se
+  envian siempre como par. No se aceptan `academicCourseId`,
+  `programCourseId`, objetos relacionales ni una sola referencia aislada.
+- El body curricular es cerrado: solo acepta exactamente `issuerId`,
+  `subjectUserId`, `type`, `sourceType`, `academicCourseReference` y
+  `curriculumReference`. `type` debe ser `academic_subject` y `sourceType`
+  debe ser `manual_issuer`.
+- Por presencia de propiedad se rechazan `credentialSubject`, `metadata`,
+  `rawData`, `externalCourseId`, datos oficiales manuales y cualquier otra
+  clave fuera de esa allowlist, incluso si su valor es `null`, vacio o un
+  objeto sin propiedades.
+- La seleccion se resuelve en una transaccion Serializable. Valida que
+  `AcademicCourse`, `Program`, `CurriculumVersion` y su relacion
+  `ProgramCourse` esten activos, pertenezcan al mismo issuer autorizado y
+  coincidan con las referencias recibidas.
+- El snapshot deriva `title`, `description`, `hours`,
+  `credentialSubject.achievement_name`, `credentialSubject.institution_name`
+  y `credentialSubject.program_name`. Estos valores oficiales no pueden
+  enviarse manualmente junto con las referencias curriculares.
+- La seleccion curricular no prueba cursada, finalizacion ni aprobacion. El
+  snapshot inicial no contiene fecha, periodo, nota, skills, competencias ni
+  learning outcomes; esos datos se completan posteriormente mediante el PATCH
+  issuer-facing del draft.
 - Response conceptual: credencial en estado `draft`.
 - Autorizacion: JWT, membership activa `admin` u `operator` sobre el `issuerId` solicitado e issuer `authorized`.
 - Errores esperados: `400`, `401`, `403`, `404`.
-- Estado: `v1_candidate`.
+- Limites: no calcula readiness, no emite, no crea evidencia blockchain y no
+  ejecuta PDF ni IA.
+- Estado: implementado para creacion manual y curricular.
 
 ### `POST /credentials/:id/issue`
 

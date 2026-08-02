@@ -26,15 +26,23 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
-import { adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
+import {
+  adaptAcademicProgramSearch,
+  adaptCurriculumAcademicSubjectSearch,
+  adaptIssuerCredentialDetail
+} from '@/lib/adapters/credentials.adapter';
 import {
   getIssuerCredentialRequest,
-  patchIssuerCredentialDraftRequest
+  patchIssuerCredentialDraftRequest,
+  searchAcademicProgramsRequest,
+  searchCurriculumAcademicSubjectsRequest
 } from '@/lib/api/credentials-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
 import type {
   CredentialFeedback,
+  AcademicProgramSearchItemVM,
+  CurriculumAcademicSubjectSearchItemVM,
   IssuerCredentialDetailVM,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
@@ -171,6 +179,42 @@ export function CredentialDetailController({
     return adapted;
   }
 
+  async function searchPrograms(
+    query: string,
+    signal: AbortSignal
+  ): Promise<AcademicProgramSearchItemVM[]> {
+    const payload = await searchAcademicProgramsRequest(
+      requestAuthenticated,
+      {
+        issuerReference: membership.issuerReference,
+        query,
+        limit: 20,
+        signal
+      }
+    );
+
+    return adaptAcademicProgramSearch(payload);
+  }
+
+  async function searchSubjects(
+    curriculumReference: string,
+    query: string,
+    signal: AbortSignal
+  ): Promise<CurriculumAcademicSubjectSearchItemVM[]> {
+    const payload = await searchCurriculumAcademicSubjectsRequest(
+      requestAuthenticated,
+      {
+        issuerReference: membership.issuerReference,
+        curriculumReference,
+        query,
+        limit: 20,
+        signal
+      }
+    );
+
+    return adaptCurriculumAcademicSubjectSearch(payload);
+  }
+
   return (
     <CredentialDetailView
       detail={detail}
@@ -178,6 +222,8 @@ export function CredentialDetailController({
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
         onReloadLatest: reloadLatestDraft,
+        searchPrograms,
+        searchSubjects,
         onTerminalError: (feedback) => {
           setDetail(null);
           setError(feedback);
@@ -198,6 +244,15 @@ export function CredentialDetailView({
       command: UpdateIssuerCredentialDraftCommand
     ): Promise<IssuerCredentialDetailVM>;
     onReloadLatest(): Promise<IssuerCredentialDetailVM>;
+    searchPrograms(
+      query: string,
+      signal: AbortSignal
+    ): Promise<AcademicProgramSearchItemVM[]>;
+    searchSubjects(
+      curriculumReference: string,
+      query: string,
+      signal: AbortSignal
+    ): Promise<CurriculumAcademicSubjectSearchItemVM[]>;
     onTerminalError(feedback: CredentialFeedback): void;
   };
 }) {
@@ -372,6 +427,8 @@ export function CredentialDetailView({
           issuerReference={draftEditor.issuerReference}
           onSave={draftEditor.onSave}
           onReloadLatest={draftEditor.onReloadLatest}
+          searchPrograms={draftEditor.searchPrograms}
+          searchSubjects={draftEditor.searchSubjects}
           onTerminalError={draftEditor.onTerminalError}
         />
       ) : null}

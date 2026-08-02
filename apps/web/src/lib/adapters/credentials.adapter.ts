@@ -4,9 +4,11 @@ import {
   credentialTypeOptions
 } from '@/models/credentials';
 import type {
+  AcademicProgramSearchItemVM,
   CreatedCredentialDraftVM,
   CredentialStatus,
   CredentialType,
+  CurriculumAcademicSubjectSearchItemVM,
   HolderSummaryVM,
   IssuerCredentialDetailVM
 } from '@/models/credentials';
@@ -70,6 +72,65 @@ function credentialType(value: unknown): CredentialType {
   }
 
   throw new IncompatiblePayloadError();
+}
+
+function academicProgram(
+  value: unknown
+): AcademicProgramSearchItemVM {
+  const program = asRecord(value);
+
+  return {
+    programReference: requiredString(program.programReference),
+    programCode: requiredString(program.programCode),
+    programName: requiredString(program.programName),
+    curriculumReference: requiredString(program.curriculumReference),
+    curriculumCode: requiredString(program.curriculumCode)
+  };
+}
+
+function curriculumAcademicSubject(
+  value: unknown
+): CurriculumAcademicSubjectSearchItemVM {
+  const subject = asRecord(value);
+
+  return {
+    academicCourseReference: requiredString(
+      subject.academicCourseReference
+    ),
+    code: requiredString(subject.code),
+    name: requiredString(subject.name),
+    description: nullableString(subject.description),
+    hours: nullableString(subject.hours),
+    programReference: requiredString(subject.programReference),
+    programCode: requiredString(subject.programCode),
+    programName: requiredString(subject.programName),
+    curriculumReference: requiredString(subject.curriculumReference),
+    curriculumCode: requiredString(subject.curriculumCode)
+  };
+}
+
+export function adaptAcademicProgramSearch(
+  payload: unknown
+): AcademicProgramSearchItemVM[] {
+  const response = asRecord(payload);
+
+  if (!Array.isArray(response.items)) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return response.items.map(academicProgram);
+}
+
+export function adaptCurriculumAcademicSubjectSearch(
+  payload: unknown
+): CurriculumAcademicSubjectSearchItemVM[] {
+  const response = asRecord(payload);
+
+  if (!Array.isArray(response.items)) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return response.items.map(curriculumAcademicSubject);
 }
 
 const statusLabels: Record<CredentialStatus, string> = {
@@ -151,8 +212,30 @@ export function adaptIssuerCredentialDetail(
       email: nullableString(holder.email)?.toLowerCase() ?? null,
       did: nullableString(holder.did)
     },
+    academicCourse:
+      credential.academicCourse === null
+        ? null
+        : adaptDetailAcademicCourse(credential.academicCourse),
     createdAt,
     updatedAt
+  };
+}
+
+function adaptDetailAcademicCourse(
+  value: unknown
+): NonNullable<IssuerCredentialDetailVM['academicCourse']> {
+  const course = asRecord(value);
+
+  return {
+    academicCourseReference: requiredString(
+      course.academicCourseReference
+    ),
+    code: requiredString(course.code),
+    name: requiredString(course.name),
+    description: nullableString(course.description),
+    hours: nullableString(course.hours),
+    program:
+      course.program === null ? null : academicProgram(course.program)
   };
 }
 

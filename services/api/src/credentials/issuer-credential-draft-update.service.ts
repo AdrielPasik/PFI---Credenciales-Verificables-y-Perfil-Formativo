@@ -35,6 +35,8 @@ const ACADEMIC_COURSE_NOT_FOUND_MESSAGE =
   'No se encontro una asignatura activa para el issuer solicitado.';
 const CURRICULUM_COURSE_NOT_FOUND_MESSAGE =
   'No se encontro la asignatura dentro de la curricula activa solicitada.';
+const ACADEMIC_PERIOD_PATTERN = /^\d{4}-[12]$/;
+const ACADEMIC_GRADE_PATTERN = /^\d+(?:\.\d{1,2})?$/;
 
 @Injectable()
 export class IssuerCredentialDraftUpdateService {
@@ -106,8 +108,13 @@ export class IssuerCredentialDraftUpdateService {
           issuerName: credential.issuer.name,
           update
         });
+        const normalizedResultingSubject =
+          validateAndNormalizeAcademicSubjectFields(
+            baseResultingSubject,
+            finalType
+          );
         const resultingSubject = applyCatalogProgramSnapshot(
-          baseResultingSubject,
+          normalizedResultingSubject,
           selectedAcademicCourse,
           Boolean(credential.programCourse),
           update.programName.provided
@@ -257,6 +264,50 @@ export class IssuerCredentialDraftUpdateService {
       programName: null
     };
   }
+}
+
+function validateAndNormalizeAcademicSubjectFields(
+  subject: Prisma.InputJsonObject,
+  finalType: CredentialType
+) {
+  if (finalType !== CredentialType.academic_subject) {
+    return subject;
+  }
+
+  const result = { ...subject };
+  const academicPeriod = result.academic_period;
+
+  if (academicPeriod !== undefined && academicPeriod !== null && (
+    typeof academicPeriod !== 'string' ||
+    !ACADEMIC_PERIOD_PATTERN.test(academicPeriod)
+  )) {
+    throw new BadRequestException(
+      'academicPeriod debe ser YYYY-1, YYYY-2 o null para academic_subject.'
+    );
+  }
+
+  const grade = result.grade;
+
+  if (grade === undefined || grade === null) {
+    return result;
+  }
+
+  if (typeof grade !== 'string' || !ACADEMIC_GRADE_PATTERN.test(grade)) {
+    throw new BadRequestException(
+      'grade debe ser un decimal entre 0 y 10 con hasta dos decimales para academic_subject.'
+    );
+  }
+
+  const decimal = new Prisma.Decimal(grade);
+
+  if (decimal.lt(0) || decimal.gt(10)) {
+    throw new BadRequestException(
+      'grade debe ser un decimal entre 0 y 10 con hasta dos decimales para academic_subject.'
+    );
+  }
+
+  result.grade = decimal.toString();
+  return result;
 }
 
 function applyCatalogProgramSnapshot(

@@ -1,6 +1,7 @@
 import type {
   CredentialDraftPatchFields,
   CredentialType,
+  CurriculumAcademicSubjectSearchItemVM,
   IssuerCredentialDetailVM,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
@@ -53,8 +54,20 @@ export interface CredentialDraftEditorState {
 }
 
 export type CredentialDraftEditorErrors = Partial<
-  Record<'achievementName' | 'hours' | 'externalUrl', string>
+  Record<
+    | 'achievementName'
+    | 'hours'
+    | 'externalUrl'
+    | 'academicPeriod'
+    | 'grade',
+    string
+  >
 >;
+
+export interface AcademicPeriodParts {
+  year: string;
+  term: '' | '1' | '2';
+}
 
 export const credentialDraftFieldsByType: Record<
   CredentialType,
@@ -63,7 +76,6 @@ export const credentialDraftFieldsByType: Record<
   academic_subject: [
     'completionDate',
     'academicPeriod',
-    'programName',
     'grade',
     'skills',
     'competencies'
@@ -165,6 +177,41 @@ export function linesToStringArray(value: string): string[] {
     .filter(Boolean);
 }
 
+export function parseAcademicPeriodInput(
+  value: string
+): AcademicPeriodParts {
+  const [year = '', rawTerm = ''] = value.split('-', 2);
+
+  return {
+    year,
+    term: rawTerm === '1' || rawTerm === '2' ? rawTerm : ''
+  };
+}
+
+export function buildAcademicPeriodInput(
+  year: string,
+  term: AcademicPeriodParts['term']
+) {
+  return year || term ? `${year}-${term}` : '';
+}
+
+export function sanitizeAcademicYearInput(value: string) {
+  return value.replace(/\D/g, '').slice(0, 4);
+}
+
+export function sanitizeAcademicGradeInput(value: string) {
+  const normalizedSeparator = value.replace(',', '.');
+  const sign = normalizedSeparator.trimStart().startsWith('-') ? '-' : '';
+  const [integer = '', ...decimalParts] = normalizedSeparator.split('.');
+  const normalizedInteger = integer.replace(/\D/g, '');
+  const normalizedDecimals = decimalParts.join('').replace(/\D/g, '').slice(0, 2);
+  const hasDecimalSeparator = normalizedSeparator.includes('.');
+
+  return hasDecimalSeparator
+    ? `${sign}${normalizedInteger}.${normalizedDecimals}`
+    : `${sign}${normalizedInteger}`;
+}
+
 export function getIncompatiblePopulatedFields(
   state: CredentialDraftEditorState,
   targetType: CredentialType
@@ -202,10 +249,15 @@ export function validateDraftEditorState(
   const achievementName = normalizeWhitespace(state.achievementName);
   const hours = state.hours.trim();
   const externalUrl = state.externalUrl.trim();
+  const grade = state.grade.trim();
+  const academicPeriod = parseAcademicPeriodInput(state.academicPeriod);
 
-  if (!achievementName) {
+  if (state.type !== 'academic_subject' && !achievementName) {
     errors.achievementName = 'Ingresá el nombre del logro.';
-  } else if (achievementName.length > 255) {
+  } else if (
+    state.type !== 'academic_subject' &&
+    achievementName.length > 255
+  ) {
     errors.achievementName = 'Usá hasta 255 caracteres.';
   }
 
@@ -228,6 +280,23 @@ export function validateDraftEditorState(
     }
   }
 
+  if (
+    state.type === 'academic_subject' &&
+    grade &&
+    (!/^\d+(?:\.\d{1,2})?$/.test(grade) || Number(grade) > 10)
+  ) {
+    errors.grade = 'Ingresá una calificación entre 0 y 10 con hasta dos decimales.';
+  }
+
+  if (
+    state.type === 'academic_subject' &&
+    (academicPeriod.year || academicPeriod.term) &&
+    (academicPeriod.year.length !== 4 || !academicPeriod.term)
+  ) {
+    errors.academicPeriod =
+      'Completá el año de cuatro dígitos y el período académico.';
+  }
+
   return errors;
 }
 
@@ -236,28 +305,48 @@ export function buildDraftUpdateCommand(input: {
   credentialReference: string;
   detail: IssuerCredentialDetailVM;
   state: CredentialDraftEditorState;
+  pendingAcademicSelection?: CurriculumAcademicSubjectSearchItemVM | null;
 }): UpdateIssuerCredentialDraftCommand | null {
   const baseline = detailToDraftEditorState(input.detail);
-  const changes: Partial<CredentialDraftPatchFields> = {};
+  const changes: Partial<CredentialDraftPatchFields> & {
+    academicCourseReference?: string;
+    curriculumReference?: string;
+  } = {};
   const mutableChanges = changes as Record<string, unknown>;
 
-  const achievementName = normalizeWhitespace(input.state.achievementName);
-  if (achievementName !== normalizeWhitespace(baseline.achievementName)) {
-    changes.achievementName = achievementName;
-  }
+  if (input.state.type !== 'academic_subject') {
+    const achievementName = normalizeWhitespace(
+      input.state.achievementName
+    );
+    if (
+      achievementName !== normalizeWhitespace(baseline.achievementName)
+    ) {
+      changes.achievementName = achievementName;
+    }
 
-  const description = nullableText(input.state.description);
-  if (description !== nullableText(baseline.description)) {
-    changes.description = description;
-  }
+    const description = nullableText(input.state.description);
+    if (description !== nullableText(baseline.description)) {
+      changes.description = description;
+    }
 
-  const hours = nullableText(input.state.hours);
-  if (hours !== nullableText(baseline.hours)) {
-    changes.hours = hours;
+    const hours = nullableText(input.state.hours);
+    if (hours !== nullableText(baseline.hours)) {
+      changes.hours = hours;
+    }
   }
 
   if (input.state.type !== baseline.type) {
     changes.type = input.state.type;
+  }
+
+  if (
+    input.state.type === 'academic_subject' &&
+    input.pendingAcademicSelection
+  ) {
+    changes.academicCourseReference =
+      input.pendingAcademicSelection.academicCourseReference;
+    changes.curriculumReference =
+      input.pendingAcademicSelection.curriculumReference;
   }
 
   for (const field of credentialDraftFieldsByType[input.state.type]) {

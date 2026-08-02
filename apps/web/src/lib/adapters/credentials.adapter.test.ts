@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  adaptAcademicProgramSearch,
   adaptCreatedCredentialDraft,
+  adaptCurriculumAcademicSubjectSearch,
   adaptHolderResolution,
   adaptIssuerCredentialDetail
 } from '@/lib/adapters/credentials.adapter';
@@ -54,11 +56,83 @@ function issuerCredentialPayload(
       email: 'HOLDER@EXAMPLE.COM',
       did: 'did:example:holder'
     },
+    academicCourse: null,
     ...overrides
   };
 }
 
 describe('credential adapters', () => {
+  it('adapts program search items through a strict allowlist', () => {
+    expect(
+      adaptAcademicProgramSearch({
+        items: [
+          {
+            programReference: 'program-reference',
+            programCode: '1621',
+            programName: 'Ingeniería en Informática',
+            curriculumReference: 'curriculum-reference',
+            curriculumCode: '2026',
+            internalMetadata: 'must-not-leak'
+          }
+        ]
+      })
+    ).toEqual([
+      {
+        programReference: 'program-reference',
+        programCode: '1621',
+        programName: 'Ingeniería en Informática',
+        curriculumReference: 'curriculum-reference',
+        curriculumCode: '2026'
+      }
+    ]);
+  });
+
+  it('adapts curriculum-scoped subjects and preserves nullable catalog fields', () => {
+    expect(
+      adaptCurriculumAcademicSubjectSearch({
+        items: [
+          {
+            academicCourseReference: 'course-reference',
+            code: '3.4.213',
+            name: 'Ingeniería de Datos II',
+            description: null,
+            hours: null,
+            programReference: 'program-reference',
+            programCode: '1621',
+            programName: 'Ingeniería en Informática',
+            curriculumReference: 'curriculum-reference',
+            curriculumCode: '2026',
+            issuerId: 'must-not-leak'
+          }
+        ]
+      })
+    ).toEqual([
+      {
+        academicCourseReference: 'course-reference',
+        code: '3.4.213',
+        name: 'Ingeniería de Datos II',
+        description: null,
+        hours: null,
+        programReference: 'program-reference',
+        programCode: '1621',
+        programName: 'Ingeniería en Informática',
+        curriculumReference: 'curriculum-reference',
+        curriculumCode: '2026'
+      }
+    ]);
+  });
+
+  it('rejects incompatible catalog search payloads', () => {
+    expect(() => adaptAcademicProgramSearch({ items: {} })).toThrow(
+      IncompatiblePayloadError
+    );
+    expect(() =>
+      adaptCurriculumAcademicSubjectSearch({
+        items: [{ academicCourseReference: 'incomplete' }]
+      })
+    ).toThrow(IncompatiblePayloadError);
+  });
+
   it('adapts a holder response and discards extra fields', () => {
     expect(
       adaptHolderResolution({
@@ -159,6 +233,7 @@ describe('credential adapters', () => {
         email: 'holder@example.com',
         did: 'did:example:holder'
       },
+      academicCourse: null,
       createdAt: '2026-07-30T12:00:00.000Z',
       updatedAt: '2026-07-30T12:00:00.000Z'
     });
@@ -195,6 +270,57 @@ describe('credential adapters', () => {
       issuer: { did: null },
       holder: { email: null, did: null }
     });
+  });
+
+  it('adapts the persisted academic course with nullable program context', () => {
+    const withProgram = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        academicCourse: {
+          academicCourseReference: 'course-reference',
+          code: '3.4.213',
+          name: 'Ingeniería de Datos II',
+          description: null,
+          hours: null,
+          program: {
+            programReference: 'program-reference',
+            programCode: '1621',
+            programName: 'Ingeniería en Informática',
+            curriculumReference: 'curriculum-reference',
+            curriculumCode: '2026',
+            metadata: 'must-not-leak'
+          },
+          issuerId: 'must-not-leak'
+        }
+      })
+    );
+    const withoutProgram = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        academicCourse: {
+          academicCourseReference: 'flat-course-reference',
+          code: '1.1.1',
+          name: 'Asignatura histórica',
+          description: null,
+          hours: null,
+          program: null
+        }
+      })
+    );
+
+    expect(withProgram.academicCourse).toEqual({
+      academicCourseReference: 'course-reference',
+      code: '3.4.213',
+      name: 'Ingeniería de Datos II',
+      description: null,
+      hours: null,
+      program: {
+        programReference: 'program-reference',
+        programCode: '1621',
+        programName: 'Ingeniería en Informática',
+        curriculumReference: 'curriculum-reference',
+        curriculumCode: '2026'
+      }
+    });
+    expect(withoutProgram.academicCourse?.program).toBeNull();
   });
 
   it('adapts every controlled subject field and keeps arrays as strings', () => {

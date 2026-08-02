@@ -97,7 +97,7 @@ test('search authorizes first and queries active courses by code or name', async
         {
           id: 'course-1',
           code: '3.4.213',
-          name: 'Ingenieria de Datos II',
+          name: 'Ingeniería de Datos II',
           description: ' Materia oficial ',
           hours: new Prisma.Decimal('64.00')
         }
@@ -119,11 +119,7 @@ test('search authorizes first and queries active courses by code or name', async
     {
       where: {
         issuerId: 'issuer-1',
-        status: CourseStatus.active,
-        OR: [
-          { code: { contains: 'DATOS', mode: 'insensitive' } },
-          { name: { contains: 'DATOS', mode: 'insensitive' } }
-        ]
+        status: CourseStatus.active
       },
       select: {
         id: true,
@@ -132,8 +128,7 @@ test('search authorizes first and queries active courses by code or name', async
         description: true,
         hours: true
       },
-      orderBy: [{ code: 'asc' }, { name: 'asc' }],
-      take: 10
+      orderBy: [{ code: 'asc' }, { name: 'asc' }]
     }
   ]);
   assert.deepEqual(response, {
@@ -141,7 +136,7 @@ test('search authorizes first and queries active courses by code or name', async
       {
         academicCourseReference: 'course-1',
         code: '3.4.213',
-        name: 'Ingenieria de Datos II',
+        name: 'Ingeniería de Datos II',
         description: 'Materia oficial',
         hours: '64.00'
       }
@@ -209,6 +204,40 @@ test('search response is allowlisted and excludes issuerId and metadata', async 
   assert.equal(JSON.stringify(response).includes('metadata'), false);
 });
 
+test('course search ignores accents and case while preserving exact code matches', async () => {
+  const courses = [
+    {
+      id: 'course-1',
+      code: '3.4.213',
+      name: 'Ingeniería de Datos II',
+      description: null,
+      hours: null
+    },
+    {
+      id: 'course-2',
+      code: '4.2.100',
+      name: 'Análisis Matemático',
+      description: null,
+      hours: null
+    }
+  ];
+
+  for (const query of ['datos', 'DATOS', '3.4.213']) {
+    const { service } = createService({ courses });
+    const response = await service.searchAcademicSubjectsForIssuer(
+      'issuer-1',
+      query,
+      '20',
+      currentUser
+    );
+
+    assert.deepEqual(
+      response.items.map((item) => item.academicCourseReference),
+      ['course-1']
+    );
+  }
+});
+
 test('search does not query the catalog before institutional authorization', async () => {
   const { service, operationOrder, findManyCalls } = createService({
     authorizationError: new ForbiddenException('forbidden')
@@ -247,7 +276,7 @@ function createCurriculumService(options?: {
             {
               id: 'program-1',
               code: '1621',
-              name: 'Ingenieria en Informatica',
+              name: 'Ingeniería en Informática',
               curriculumVersions: [
                 { id: 'curriculum-1', versionLabel: '1621' }
               ]
@@ -267,7 +296,7 @@ function createCurriculumService(options?: {
               program: {
                 id: 'program-1',
                 code: '1621',
-                name: 'Ingenieria en Informatica'
+                name: 'Ingeniería en Informática'
               }
             }
           : options.curriculum;
@@ -283,7 +312,7 @@ function createCurriculumService(options?: {
               academicCourse: {
                 id: 'course-1',
                 code: '3.4.213',
-                name: 'Ingenieria de Datos II',
+                name: 'Ingeniería de Datos II',
                 description: null,
                 hours: null,
                 issuerId: 'must-not-leak',
@@ -332,11 +361,7 @@ test('program search is issuer-scoped, active, deterministic and allowlisted', a
         status: ProgramStatus.active,
         curriculumVersions: {
           some: { status: CurriculumVersionStatus.active }
-        },
-        OR: [
-          { code: { contains: 'INFORMATICA', mode: 'insensitive' } },
-          { name: { contains: 'INFORMATICA', mode: 'insensitive' } }
-        ]
+        }
       },
       select: {
         id: true,
@@ -349,8 +374,7 @@ test('program search is issuer-scoped, active, deterministic and allowlisted', a
           take: 1
         }
       },
-      orderBy: [{ code: 'asc' }, { name: 'asc' }, { id: 'asc' }],
-      take: DEFAULT_ACADEMIC_CATALOG_LIMIT
+      orderBy: [{ code: 'asc' }, { name: 'asc' }, { id: 'asc' }]
     }
   ]);
   assert.deepEqual(response, {
@@ -358,7 +382,7 @@ test('program search is issuer-scoped, active, deterministic and allowlisted', a
       {
         programReference: 'program-1',
         programCode: '1621',
-        programName: 'Ingenieria en Informatica',
+        programName: 'Ingeniería en Informática',
         curriculumReference: 'curriculum-1',
         curriculumCode: '1621'
       }
@@ -366,6 +390,28 @@ test('program search is issuer-scoped, active, deterministic and allowlisted', a
   });
   assert.equal(JSON.stringify(response).includes('issuerId'), false);
   assert.equal(JSON.stringify(response).includes('metadata'), false);
+});
+
+test('program search treats accentless and case variants as equivalent', async () => {
+  for (const query of [
+    'ingenieria',
+    'INGENIERIA',
+    'informática',
+    'INFORMATICA'
+  ]) {
+    const { service } = createCurriculumService();
+    const response = await service.searchAcademicProgramsForIssuer(
+      'issuer-1',
+      query,
+      '20',
+      currentUser
+    );
+
+    assert.deepEqual(
+      response.items.map((item) => item.programReference),
+      ['program-1']
+    );
+  }
 });
 
 test('curriculum subject search returns only active courses scoped to its issuer', async () => {
@@ -402,11 +448,7 @@ test('curriculum subject search returns only active courses scoped to its issuer
       curriculumVersionId: 'curriculum-1',
       academicCourse: {
         issuerId: 'issuer-1',
-        status: CourseStatus.active,
-        OR: [
-          { code: { contains: 'datos', mode: 'insensitive' } },
-          { name: { contains: 'datos', mode: 'insensitive' } }
-        ]
+        status: CourseStatus.active
       }
     },
     select: {
@@ -424,20 +466,19 @@ test('curriculum subject search returns only active courses scoped to its issuer
       { academicCourse: { code: 'asc' } },
       { academicCourse: { name: 'asc' } },
       { id: 'asc' }
-    ],
-    take: 10
+    ]
   });
   assert.deepEqual(response, {
     items: [
       {
         academicCourseReference: 'course-1',
         code: '3.4.213',
-        name: 'Ingenieria de Datos II',
+        name: 'Ingeniería de Datos II',
         description: null,
         hours: null,
         programReference: 'program-1',
         programCode: '1621',
-        programName: 'Ingenieria en Informatica',
+        programName: 'Ingeniería en Informática',
         curriculumReference: 'curriculum-1',
         curriculumCode: '1621'
       }
@@ -445,6 +486,24 @@ test('curriculum subject search returns only active courses scoped to its issuer
   });
   assert.equal(JSON.stringify(response).includes('issuerId'), false);
   assert.equal(JSON.stringify(response).includes('metadata'), false);
+});
+
+test('curriculum subject search treats case, accents and exact codes consistently', async () => {
+  for (const query of ['datos', 'DATOS', 'ingenieria', '3.4.213']) {
+    const { service } = createCurriculumService();
+    const response = await service.searchAcademicSubjectsForCurriculum(
+      'issuer-1',
+      'curriculum-1',
+      query,
+      '20',
+      currentUser
+    );
+
+    assert.deepEqual(
+      response.items.map((item) => item.academicCourseReference),
+      ['course-1']
+    );
+  }
 });
 
 test('curriculum search uses a safe not-found result and never queries relations', async () => {

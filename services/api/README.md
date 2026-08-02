@@ -35,6 +35,27 @@ POST /me/profile/rebuild
 
 `POST /credentials/draft` requiere un usuario autenticado con `IssuerMembership` activa, rol `admin` u `operator` y un issuer autorizado. El `issuerId` del body selecciona el contexto institucional, pero no es autoridad por si solo.
 
+Para crear directamente un `academic_subject` curricular, el body puede omitir
+`title` y `credentialSubject` manuales y enviar el par
+`academicCourseReference` + `curriculumReference`. El backend valida dentro de
+una transaccion Serializable que la materia, carrera, version y relacion
+curricular esten activas y pertenezcan al mismo issuer. Luego persiste
+`academicCourseId` y `programCourseId` internamente y deriva el snapshot de
+nombre, descripcion, horas, institucion y programa. No acepta IDs internos,
+referencias incompletas ni textos oficiales ambiguos desde el cliente.
+
+El body curricular es una allowlist cerrada de `issuerId`, `subjectUserId`,
+`type`, `sourceType`, `academicCourseReference` y `curriculumReference`.
+Requiere `type=academic_subject` y `sourceType=manual_issuer`. Rechaza por
+presencia cualquier otra propiedad, incluidos `credentialSubject`, `metadata`,
+`rawData` y `externalCourseId`, aun cuando sean vacios o `null`.
+
+La seleccion curricular no prueba aprobacion del holder. Los datos del logro
+o enriquecimiento no forman parte del snapshot inicial y se completan despues
+mediante el PATCH issuer-facing del draft. Este flujo no calcula readiness, no
+emite, no llama a blockchain y no ejecuta PDF ni IA. La creacion manual
+existente se mantiene por compatibilidad para todos los tipos.
+
 `POST /credentials/:id/issue` aplica las mismas reglas institucionales sobre el issuer persistido de la credencial. El `issuerId` del body no puede cambiar el issuer efectivo.
 
 `GET /auth/me` devuelve solo memberships activas y agrega para cada una un
@@ -109,6 +130,12 @@ logro concreto del holder.
 No se ingiere todavia `formative_profile_result_v0` externo ni existe integracion HTTP con el modulo IA.
 
 ## Desarrollo
+
+Suite focalizada de create-draft:
+
+```powershell
+npm run test:create-draft --workspace @credential-intelligence/api
+```
 
 Instalar dependencias desde la raiz del monorepo y ejecutar:
 

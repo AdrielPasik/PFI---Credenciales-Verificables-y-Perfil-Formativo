@@ -23,13 +23,21 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  AcademicSubjectCatalogSection,
+  type AcademicSubjectCatalogSearchHandlers
+} from '@/features/credentials/academic-subject-catalog-section';
+import {
   applyCredentialTypeChange,
+  buildAcademicPeriodInput,
   buildDraftUpdateCommand,
   completionDateLabels,
   credentialDraftFieldLabels,
   credentialDraftFieldsByType,
   detailToDraftEditorState,
   getIncompatiblePopulatedFields,
+  parseAcademicPeriodInput,
+  sanitizeAcademicGradeInput,
+  sanitizeAcademicYearInput,
   validateDraftEditorState,
   type CredentialDraftEditorErrors,
   type CredentialDraftEditorState,
@@ -41,11 +49,13 @@ import {
   credentialTypeOptions,
   type CredentialFeedback,
   type CredentialType,
+  type CurriculumAcademicSubjectSearchItemVM,
   type IssuerCredentialDetailVM,
   type UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
 
-interface CredentialDraftEditorFormProps {
+interface CredentialDraftEditorFormProps
+  extends AcademicSubjectCatalogSearchHandlers {
   detail: IssuerCredentialDetailVM;
   issuerReference: string;
   onSave(
@@ -65,7 +75,9 @@ export function CredentialDraftEditorForm({
   issuerReference,
   onReloadLatest,
   onSave,
-  onTerminalError
+  onTerminalError,
+  searchPrograms,
+  searchSubjects
 }: CredentialDraftEditorFormProps) {
   const [state, setState] = useState(() =>
     detailToDraftEditorState(detail)
@@ -81,17 +93,34 @@ export function CredentialDraftEditorForm({
   >([]);
   const [saving, setSaving] = useState(false);
   const [reloading, setReloading] = useState(false);
+  const [pendingAcademicSelection, setPendingAcademicSelection] =
+    useState<CurriculumAcademicSubjectSearchItemVM | null>(null);
+  const [catalogSelectionInvalidated, setCatalogSelectionInvalidated] =
+    useState(false);
+  const [catalogResetKey, setCatalogResetKey] = useState(0);
+  const [catalogLinkWillBeRemoved, setCatalogLinkWillBeRemoved] =
+    useState(false);
   const achievementNameRef = useRef<HTMLInputElement>(null);
   const hoursRef = useRef<HTMLInputElement>(null);
   const externalUrlRef = useRef<HTMLInputElement>(null);
+  const academicYearRef = useRef<HTMLInputElement>(null);
+  const gradeRef = useRef<HTMLInputElement>(null);
 
   const command = buildDraftUpdateCommand({
     issuerReference,
     credentialReference: baselineDetail.credentialReference,
     detail: baselineDetail,
-    state
+    state,
+    pendingAcademicSelection
   });
   const visibleFields = credentialDraftFieldsByType[state.type];
+  const persistedAcademicSelection = catalogSelectionInvalidated
+    ? null
+    : baselineDetail.academicCourse;
+  const academicSelectionRequired =
+    state.type === 'academic_subject' &&
+    persistedAcademicSelection === null &&
+    pendingAcademicSelection === null;
 
   function updateField<Key extends keyof CredentialDraftEditorState>(
     field: Key,
@@ -114,8 +143,13 @@ export function CredentialDraftEditorForm({
     }
 
     const incompatible = getIncompatiblePopulatedFields(state, targetType);
+    const removesCatalogLink =
+      state.type === 'academic_subject' &&
+      targetType !== 'academic_subject' &&
+      (persistedAcademicSelection !== null ||
+        pendingAcademicSelection !== null);
 
-    if (incompatible.length === 0) {
+    if (incompatible.length === 0 && !removesCatalogLink) {
       setState((current) =>
         applyCredentialTypeChange(current, targetType)
       );
@@ -125,6 +159,7 @@ export function CredentialDraftEditorForm({
 
     setPendingType(targetType);
     setIncompatibleFields(incompatible);
+    setCatalogLinkWillBeRemoved(removesCatalogLink);
   }
 
   function confirmTypeChange() {
@@ -135,15 +170,21 @@ export function CredentialDraftEditorForm({
     setState((current) =>
       applyCredentialTypeChange(current, pendingType)
     );
+    if (catalogLinkWillBeRemoved) {
+      setPendingAcademicSelection(null);
+      setCatalogSelectionInvalidated(true);
+      setCatalogResetKey((current) => current + 1);
+    }
     setPendingType(null);
     setIncompatibleFields([]);
+    setCatalogLinkWillBeRemoved(false);
     setFeedback(null);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (saving || pendingType) {
+    if (saving || pendingType || academicSelectionRequired) {
       return;
     }
 
@@ -154,7 +195,9 @@ export function CredentialDraftEditorForm({
       focusFirstInvalidField(nextErrors, {
         achievementName: achievementNameRef.current,
         hours: hoursRef.current,
-        externalUrl: externalUrlRef.current
+        externalUrl: externalUrlRef.current,
+        academicPeriod: academicYearRef.current,
+        grade: gradeRef.current
       });
       return;
     }
@@ -163,7 +206,8 @@ export function CredentialDraftEditorForm({
       issuerReference,
       credentialReference: baselineDetail.credentialReference,
       detail: baselineDetail,
-      state
+      state,
+      pendingAcademicSelection
     });
 
     if (!nextCommand) {
@@ -177,6 +221,9 @@ export function CredentialDraftEditorForm({
       const saved = await onSave(nextCommand);
       setBaselineDetail(saved);
       setState(detailToDraftEditorState(saved));
+      setPendingAcademicSelection(null);
+      setCatalogSelectionInvalidated(false);
+      setCatalogResetKey((current) => current + 1);
       setErrors({});
       setFeedback({
         kind: 'success',
@@ -211,6 +258,9 @@ export function CredentialDraftEditorForm({
       const latest = await onReloadLatest();
       setBaselineDetail(latest);
       setState(detailToDraftEditorState(latest));
+      setPendingAcademicSelection(null);
+      setCatalogSelectionInvalidated(false);
+      setCatalogResetKey((current) => current + 1);
       setFeedback(null);
     } catch (caught) {
       const mapped = mapCredentialError(caught, 'detail');
@@ -266,54 +316,68 @@ export function CredentialDraftEditorForm({
               disabled={saving}
               onChange={(value) => requestTypeChange(value)}
             />
-            <TextField
-              ref={achievementNameRef}
-              id="achievement-name"
-              label="Nombre del logro"
-              value={state.achievementName}
-              required
-              maxLength={255}
-              disabled={saving}
-              error={errors.achievementName}
-              onChange={(event) =>
-                updateField('achievementName', event.target.value)
-              }
-            />
-            <TextareaField
-              id="credential-description"
-              label="Descripción"
-              value={state.description}
-              disabled={saving}
-              className="sm:col-span-2"
-              onChange={(value) => updateField('description', value)}
-            />
-            <TextField
-              ref={hoursRef}
-              id="credential-hours"
-              label="Horas"
-              value={state.hours}
-              inputMode="decimal"
-              placeholder="Ejemplo: 24.5"
-              disabled={saving}
-              error={errors.hours}
-              description="Usá un valor positivo con hasta dos decimales."
-              onChange={(event) => updateField('hours', event.target.value)}
-            />
+            {state.type !== 'academic_subject' ? (
+              <>
+                <TextField
+                  ref={achievementNameRef}
+                  id="achievement-name"
+                  label="Nombre del logro"
+                  value={state.achievementName}
+                  required
+                  maxLength={255}
+                  disabled={saving}
+                  error={errors.achievementName}
+                  onChange={(event) =>
+                    updateField('achievementName', event.target.value)
+                  }
+                />
+                <TextareaField
+                  id="credential-description"
+                  label="Descripción"
+                  value={state.description}
+                  disabled={saving}
+                  className="sm:col-span-2"
+                  onChange={(value) => updateField('description', value)}
+                />
+                <TextField
+                  ref={hoursRef}
+                  id="credential-hours"
+                  label="Horas"
+                  value={state.hours}
+                  inputMode="decimal"
+                  placeholder="Ejemplo: 24.5"
+                  disabled={saving}
+                  error={errors.hours}
+                  description="Usá un valor positivo con hasta dos decimales."
+                  onChange={(event) =>
+                    updateField('hours', event.target.value)
+                  }
+                />
+              </>
+            ) : (
+              <p className="self-end text-sm leading-6 text-text-muted">
+                El nombre, la descripción y las horas se toman de la
+                asignatura oficial seleccionada.
+              </p>
+            )}
           </CardContent>
         </Card>
 
         {pendingType ? (
           <FeedbackAlert variant="warning" title="Revisá el cambio de tipo">
             <p>
-              Cambiar el tipo eliminará los datos que no correspondan a la
-              nueva credencial cuando guardes los cambios.
+              {catalogLinkWillBeRemoved
+                ? 'Cambiar el tipo quitará la vinculación con la asignatura oficial y su carrera cuando guardes los cambios.'
+                : 'Cambiar el tipo eliminará los datos que no correspondan a la nueva credencial cuando guardes los cambios.'}
             </p>
-            <p className="mt-2 text-sm">
-              Se limpiarán:{' '}
-              {incompatibleFields
-                .map((field) => credentialDraftFieldLabels[field])
-                .join(', ')}.
-            </p>
+            {incompatibleFields.length > 0 ? (
+              <p className="mt-2 text-sm">
+                Se limpiarán:{' '}
+                {incompatibleFields
+                  .map((field) => credentialDraftFieldLabels[field])
+                  .join(', ')}.
+              </p>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-3">
               <Button
                 type="button"
@@ -321,6 +385,7 @@ export function CredentialDraftEditorForm({
                 onClick={() => {
                   setPendingType(null);
                   setIncompatibleFields([]);
+                  setCatalogLinkWillBeRemoved(false);
                 }}
               >
                 Cancelar
@@ -332,6 +397,21 @@ export function CredentialDraftEditorForm({
           </FeedbackAlert>
         ) : null}
 
+        {state.type === 'academic_subject' ? (
+          <AcademicSubjectCatalogSection
+            key={catalogResetKey}
+            disabled={saving}
+            persistedSelection={persistedAcademicSelection}
+            pendingSelection={pendingAcademicSelection}
+            searchPrograms={searchPrograms}
+            searchSubjects={searchSubjects}
+            onPendingSelectionChange={(selection) => {
+              setPendingAcademicSelection(selection);
+              setFeedback(null);
+            }}
+          />
+        ) : null}
+
         <Card className="overflow-hidden border-border-strong shadow-none">
           <div aria-hidden="true" className="h-1 bg-teal-700" />
           <CardHeader className="border-b border-border-default">
@@ -339,10 +419,14 @@ export function CredentialDraftEditorForm({
               {credentialTypeLabels[state.type]}
             </p>
             <h3 className="text-lg font-semibold text-text-strong">
-              Información específica
+              {state.type === 'academic_subject'
+                ? 'Datos de aprobación y enriquecimiento'
+                : 'Información específica'}
             </h3>
             <p className="text-sm leading-6 text-text-muted">
-              Los campos visibles corresponden al tipo seleccionado.
+              {state.type === 'academic_subject'
+                ? 'Estos campos son opcionales y pueden completarse manualmente.'
+                : 'Los campos visibles corresponden al tipo seleccionado.'}
             </p>
           </CardHeader>
           <CardContent className="grid gap-5 pt-5 sm:grid-cols-2 sm:pt-6">
@@ -352,8 +436,12 @@ export function CredentialDraftEditorForm({
                 field={field}
                 state={state}
                 disabled={saving}
+                academicPeriodError={errors.academicPeriod}
+                academicYearRef={academicYearRef}
                 externalUrlError={errors.externalUrl}
                 externalUrlRef={externalUrlRef}
+                gradeError={errors.grade}
+                gradeRef={gradeRef}
                 onChange={updateField}
               />
             ))}
@@ -398,6 +486,8 @@ export function CredentialDraftEditorForm({
           <p aria-live="polite" className="text-sm text-text-muted">
             {saving
               ? 'Guardando cambios…'
+              : academicSelectionRequired
+                ? 'Seleccioná una carrera y una materia oficial para guardar.'
               : command
                 ? 'Tenés cambios sin guardar.'
                 : 'No hay cambios pendientes.'}
@@ -405,7 +495,12 @@ export function CredentialDraftEditorForm({
           <Button
             type="submit"
             size="lg"
-            disabled={!command || saving || pendingType !== null}
+            disabled={
+              !command ||
+              saving ||
+              pendingType !== null ||
+              academicSelectionRequired
+            }
           >
             {saving ? (
               <RefreshCw aria-hidden="true" className="animate-spin" />
@@ -423,17 +518,25 @@ export function CredentialDraftEditorForm({
 }
 
 function SpecificField({
+  academicPeriodError,
+  academicYearRef,
   disabled,
   externalUrlError,
   externalUrlRef,
   field,
+  gradeError,
+  gradeRef,
   onChange,
   state
 }: {
+  academicPeriodError?: string;
+  academicYearRef: RefObject<HTMLInputElement | null>;
   disabled: boolean;
   externalUrlError?: string;
   externalUrlRef: RefObject<HTMLInputElement | null>;
   field: CredentialDraftSpecificField;
+  gradeError?: string;
+  gradeRef: RefObject<HTMLInputElement | null>;
   onChange<Key extends keyof CredentialDraftEditorState>(
     field: Key,
     value: CredentialDraftEditorState[Key]
@@ -441,6 +544,32 @@ function SpecificField({
   state: CredentialDraftEditorState;
 }) {
   const label = fieldLabel(field, state.type);
+
+  if (field === 'academicPeriod' && state.type === 'academic_subject') {
+    const period = parseAcademicPeriodInput(state.academicPeriod);
+
+    return (
+      <AcademicPeriodField
+        yearRef={academicYearRef}
+        disabled={disabled}
+        error={academicPeriodError}
+        year={period.year}
+        term={period.term}
+        onYearChange={(year) =>
+          onChange(
+            'academicPeriod',
+            buildAcademicPeriodInput(year, period.term)
+          )
+        }
+        onTermChange={(term) =>
+          onChange(
+            'academicPeriod',
+            buildAcademicPeriodInput(period.year, term)
+          )
+        }
+      />
+    );
+  }
 
   if (
     field === 'skills' ||
@@ -453,7 +582,7 @@ function SpecificField({
         label={label}
         value={state[field]}
         disabled={disabled}
-        description="Una entrada por línea."
+        description={arrayFieldDescription(field, state.type)}
         className="sm:col-span-2"
         onChange={(value) => onChange(field, value)}
       />
@@ -490,6 +619,25 @@ function SpecificField({
     );
   }
 
+  if (field === 'grade' && state.type === 'academic_subject') {
+    return (
+      <TextField
+        ref={gradeRef}
+        id="credential-grade"
+        label="Calificación (opcional)"
+        value={state.grade}
+        inputMode="decimal"
+        placeholder="Ejemplo: 8.5"
+        disabled={disabled}
+        error={gradeError}
+        description="Ingresá un valor entre 0 y 10, con hasta dos decimales."
+        onChange={(event) =>
+          onChange('grade', sanitizeAcademicGradeInput(event.target.value))
+        }
+      />
+    );
+  }
+
   return (
     <TextField
       id={`credential-${field}`}
@@ -507,7 +655,9 @@ function fieldLabel(
   type: CredentialType
 ) {
   if (field === 'completionDate') {
-    return completionDateLabels[type];
+    return type === 'academic_subject'
+      ? `${completionDateLabels[type]} (opcional)`
+      : completionDateLabels[type];
   }
 
   if (field === 'providerName') {
@@ -518,7 +668,101 @@ function fieldLabel(
     return 'Nivel académico';
   }
 
+  if (field === 'skills' && type === 'academic_subject') {
+    return 'Habilidades técnicas (opcional)';
+  }
+
+  if (field === 'competencies' && type === 'academic_subject') {
+    return 'Competencias formativas (opcional)';
+  }
+
   return credentialDraftFieldLabels[field];
+}
+
+function arrayFieldDescription(
+  field: 'skills' | 'competencies' | 'learningOutcomes',
+  type: CredentialType
+) {
+  if (type === 'academic_subject' && field === 'skills') {
+    return 'Una entrada por línea. Ejemplos: SQL, Python, modelado de datos.';
+  }
+
+  if (type === 'academic_subject' && field === 'competencies') {
+    return 'Una entrada por línea. Ejemplos: diseñar soluciones, resolver problemas, comunicar decisiones.';
+  }
+
+  return 'Una entrada por línea.';
+}
+
+function AcademicPeriodField({
+  disabled,
+  error,
+  onTermChange,
+  onYearChange,
+  term,
+  year,
+  yearRef
+}: {
+  disabled: boolean;
+  error?: string;
+  onTermChange(term: '' | '1' | '2'): void;
+  onYearChange(year: string): void;
+  term: '' | '1' | '2';
+  year: string;
+  yearRef: RefObject<HTMLInputElement | null>;
+}) {
+  const errorId = error ? 'credential-academic-period-error' : undefined;
+
+  return (
+    <fieldset
+      className="grid gap-4 sm:col-span-2 sm:grid-cols-2"
+      aria-describedby={errorId}
+    >
+      <legend className="sr-only">Período académico</legend>
+      <TextField
+        ref={yearRef}
+        id="credential-academic-year"
+        label="Año académico (opcional)"
+        value={year}
+        inputMode="numeric"
+        maxLength={4}
+        placeholder="Ejemplo: 2026"
+        disabled={disabled}
+        aria-invalid={error ? true : undefined}
+        onChange={(event) =>
+          onYearChange(sanitizeAcademicYearInput(event.target.value))
+        }
+      />
+      <div className="grid gap-2">
+        <Label htmlFor="credential-academic-term">
+          Período (opcional)
+        </Label>
+        <select
+          id="credential-academic-term"
+          value={term}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
+          onChange={(event) =>
+            onTermChange(event.target.value as '' | '1' | '2')
+          }
+        >
+          <option value="">Seleccionar período</option>
+          <option value="1">Primer cuatrimestre</option>
+          <option value="2">Segundo cuatrimestre</option>
+        </select>
+      </div>
+      {error ? (
+        <p
+          id={errorId}
+          role="alert"
+          className="text-sm leading-5 font-medium text-status-error sm:col-span-2"
+        >
+          {error}
+        </p>
+      ) : null}
+    </fieldset>
+  );
 }
 
 function SelectField({
@@ -601,7 +845,9 @@ function focusFirstInvalidField(
   for (const field of [
     'achievementName',
     'hours',
-    'externalUrl'
+    'externalUrl',
+    'academicPeriod',
+    'grade'
   ] as const) {
     if (errors[field]) {
       fields[field]?.focus();

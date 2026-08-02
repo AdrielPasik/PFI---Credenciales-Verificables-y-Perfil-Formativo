@@ -71,7 +71,8 @@ const draftResponse = {
     displayLabel: 'Demo Holder',
     email: 'holder@example.com',
     did: 'did:example:holder'
-  }
+  },
+  academicCourse: null
 };
 
 function detailFixture(
@@ -121,6 +122,7 @@ function detailFixture(
       email: 'holder@example.com',
       did: 'did:example:holder'
     },
+    academicCourse: null,
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:00:00.000Z',
     ...overrides,
@@ -231,6 +233,78 @@ describe('CredentialDetailController', () => {
     expect(
       (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
     ).toBe('Descripción persistida');
+  });
+
+  it('loads the curriculum-scoped catalog through the authenticated controller boundary', async () => {
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.endsWith('/catalog/academic-programs?query=1621&limit=20')) {
+        return Promise.resolve({
+          items: [
+            {
+              programReference: 'program-reference',
+              programCode: '1621',
+              programName: 'Ingeniería en Informática',
+              curriculumReference: 'curriculum-reference',
+              curriculumCode: '2026'
+            }
+          ]
+        });
+      }
+
+      if (path.includes('/curriculum-versions/curriculum-reference/')) {
+        return Promise.resolve({
+          items: [
+            {
+              academicCourseReference: 'course-reference',
+              code: '3.4.213',
+              name: 'Ingeniería de Datos II',
+              description: null,
+              hours: null,
+              programReference: 'program-reference',
+              programCode: '1621',
+              programName: 'Ingeniería en Informática',
+              curriculumReference: 'curriculum-reference',
+              curriculumCode: '2026'
+            }
+          ]
+        });
+      }
+
+      return Promise.resolve({
+        ...draftResponse,
+        type: 'academic_subject',
+        academicCourse: null
+      });
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    fireEvent.change(
+      await screen.findByLabelText('Buscar carrera o plan académico'),
+      { target: { value: '1621' } }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar carrera' }));
+    fireEvent.click(await screen.findByText('Ingeniería en Informática'));
+    fireEvent.change(screen.getByLabelText('Buscar materia de la carrera'), {
+      target: { value: 'Datos' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar materia' }));
+    fireEvent.click(await screen.findByText('Ingeniería de Datos II'));
+
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/catalog/academic-programs?query=1621&limit=20',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/catalog/curriculum-versions/curriculum-reference/academic-subjects?query=Datos&limit=20',
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+    expect(await screen.findByText('Selección pendiente')).toBeTruthy();
   });
 
   it('shows a controlled 404', async () => {
@@ -454,6 +528,8 @@ describe('CredentialDetailView read-only states', () => {
           issuerReference: 'issuer-selected-reference',
           onSave: vi.fn(),
           onReloadLatest: vi.fn(),
+          searchPrograms: vi.fn().mockResolvedValue([]),
+          searchSubjects: vi.fn().mockResolvedValue([]),
           onTerminalError: vi.fn()
         }}
       />

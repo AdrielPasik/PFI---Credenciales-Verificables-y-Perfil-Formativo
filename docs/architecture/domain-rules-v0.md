@@ -216,6 +216,9 @@ P3.1a vincula opcionalmente un draft `academic_subject` con un
 `AcademicCourse` activo del mismo issuer. P3.1b agrega `Program.code`, una
 `CurriculumVersion` activa por codigo demo, relaciones `ProgramCourse` y la
 referencia curricular exacta opcional en `Credential.programCourseId`.
+P3.1d-a permite que `POST /credentials/draft` cree directamente el snapshot
+curricular a partir del par publico `academicCourseReference` y
+`curriculumReference`, sin requerir un nombre provisional manual.
 
 - el catalogo aporta codigo y nombre oficial; descripcion y horas son
   nullables;
@@ -229,6 +232,18 @@ referencia curricular exacta opcional en `Credential.programCourseId`.
 - la busqueda y seleccion estan siempre scoped por issuer autorizado;
 - una seleccion curricular valida que la materia pertenezca al programa y
   version indicados, y deriva `program_name` desde `Program.name`;
+- en create-draft curricular, el cliente no envia IDs internos ni reemplaza
+  `title`, `description`, `hours`, `achievement_name`, `institution_name` o
+  `program_name`; el backend deriva esos valores dentro de la misma transaccion
+  que crea la credencial;
+- el body curricular usa una allowlist exacta y no acepta `credentialSubject`,
+  `metadata`, `rawData`, `externalCourseId` ni datos de aprobacion o
+  enriquecimiento. El `credentialSubject` inicial se construye exclusivamente
+  con `achievement_name`, `institution_name` y `program_name` derivados;
+- `completion_date`, `academic_period`, `grade`, `skills` y `competencies` se
+  agregan despues mediante el PATCH issuer-facing del draft;
+- el camino manual de create-draft se mantiene por compatibilidad, aunque la
+  seleccion curricular es el flujo recomendado para `academic_subject`;
 - los codigos de carrera distintos se preservan aunque sus nombres coincidan;
 - el draft conserva `academicCourseId` como referencia y copia un snapshot de
   nombre, descripcion y horas para no depender de mutaciones posteriores del
@@ -240,6 +255,9 @@ referencia curricular exacta opcional en `Credential.programCourseId`.
 - `program_name` tampoco participa actualmente en `canon_v1`;
 - la credencial emitida se verifica contra su snapshot y no contra futuros
   cambios del catalogo o la curricula.
+
+Estas relaciones no constituyen readiness ni evidencia de aprobacion. Tampoco
+disparan emision, hashing, blockchain, PDF o IA.
 
 ## 13. Que no decidir todavia
 

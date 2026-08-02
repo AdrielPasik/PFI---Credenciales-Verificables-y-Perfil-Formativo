@@ -10,7 +10,10 @@ import {
   CredentialSourceType,
   CredentialType,
   CredentialStatus,
-  Prisma
+  CurriculumVersionStatus,
+  ProgramStatus,
+  Prisma,
+  UserStatus
 } from '@prisma/client';
 
 import { BlockchainEvidenceService } from '../blockchain/blockchain-evidence.service';
@@ -18,6 +21,10 @@ import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { CredentialHashingService } from './credential-hashing.service';
+import {
+  type AcademicCurriculumSelection,
+  validateCreateCredentialDraftCurricularSelection
+} from './create-credential-draft.validator';
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialStatusResponseDto } from './dto/credential-status-response.dto';
 import { CredentialSummaryResponseDto } from './dto/credential-summary-response.dto';
@@ -44,82 +51,150 @@ export class CredentialsService {
       dto.issuerId
     );
 
+    const curricularSelection =
+      validateCreateCredentialDraftCurricularSelection(dto);
     this.assertNonEmptyString(dto.subjectUserId, 'subjectUserId');
     this.assertNonEmptyString(dto.type, 'type');
-    this.assertNonEmptyString(dto.title, 'title');
     this.assertNonEmptyString(dto.sourceType, 'sourceType');
-    this.assertJsonObject(dto.credentialSubject, 'credentialSubject');
     this.assertEnumValue(CredentialType, dto.type, 'type');
     this.assertEnumValue(CredentialSourceType, dto.sourceType, 'sourceType');
     this.assertOptionalJsonObject(dto.metadata, 'metadata');
     this.assertOptionalJsonObject(dto.rawData, 'rawData');
 
-    if (dto.academicCourseId && dto.externalCourseId) {
-      throw new BadRequestException(
-        'No se puede enviar academicCourseId y externalCourseId al mismo tiempo.'
-      );
-    }
+    const manualTitle = curricularSelection
+      ? null
+      : this.requireNonEmptyString(dto.title, 'title');
+    const inputCredentialSubject = curricularSelection
+      ? null
+      : this.assertJsonObject(dto.credentialSubject, 'credentialSubject');
 
-    await this.assertAcademicCourseCanBeLinked(dto);
+    const credential = await this.prisma.$transaction(
+      async (transaction) => {
+        await this.getSubjectUserOrThrow(transaction, dto.subjectUserId);
 
-    await this.getSubjectUserOrThrow(dto.subjectUserId);
+        const selectedCourse = curricularSelection
+          ? await this.getCurricularAcademicCourseOrThrow(
+              transaction,
+              dto.issuerId,
+              curricularSelection
+            )
+          : null;
+        const credentialSubject = selectedCourse
+          ? {
+              achievement_name: selectedCourse.name,
+              institution_name: selectedCourse.issuerName,
+              program_name: selectedCourse.programName
+            }
+          : inputCredentialSubject!;
 
-    const credential = await this.prisma.credential.create({
-      data: {
-        issuerId: dto.issuerId,
-        subjectUserId: dto.subjectUserId,
-        type: dto.type,
-        title: dto.title.trim(),
-        description: this.normalizeNullableString(dto.description),
-        sourceType: dto.sourceType,
-        hours: this.toPrismaDecimal(dto.hours, 'hours'),
-        academicCourseId: dto.academicCourseId,
-        externalCourseId: dto.externalCourseId,
-        credentialSubject: dto.credentialSubject as Prisma.InputJsonValue,
-        metadata: this.toOptionalJson(dto.metadata),
-        rawData: this.toOptionalJson(dto.rawData),
-        status: CredentialStatus.draft
-      },
-      include: {
-        blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
+        return transaction.credential.create({
+          data: {
+            issuerId: dto.issuerId,
+            subjectUserId: dto.subjectUserId,
+            type: dto.type,
+            title: selectedCourse?.name ?? manualTitle!,
+            description: selectedCourse
+              ? selectedCourse.description
+              : this.normalizeNullableString(dto.description),
+            sourceType: dto.sourceType,
+            hours: selectedCourse
+              ? selectedCourse.hours
+              : this.toPrismaDecimal(dto.hours, 'hours'),
+            academicCourseId: selectedCourse?.academicCourseId,
+            programCourseId: selectedCourse?.programCourseId,
+            externalCourseId: selectedCourse
+              ? undefined
+              : dto.externalCourseId,
+            credentialSubject: credentialSubject as Prisma.InputJsonValue,
+            metadata: selectedCourse
+              ? undefined
+              : this.toOptionalJson(dto.metadata),
+            rawData: selectedCourse
+              ? undefined
+              : this.toOptionalJson(dto.rawData),
+            status: CredentialStatus.draft
           },
-          take: 1
-        }
+          include: {
+            blockchainRecords: {
+              orderBy: {
+                registeredAt: 'desc'
+              },
+              take: 1
+            }
+          }
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable
       }
-    });
+    );
 
     return this.toCredentialSummaryResponse(credential);
   }
 
-  private async assertAcademicCourseCanBeLinked(dto: CreateCredentialDraftDto) {
-    if (!dto.academicCourseId) {
-      return;
-    }
-
-    if (dto.type !== CredentialType.academic_subject) {
-      throw new BadRequestException(
-        'academicCourseId solo puede usarse con type academic_subject.'
-      );
-    }
-
-    const academicCourse = await this.prisma.academicCourse.findFirst({
+  private async getCurricularAcademicCourseOrThrow(
+    transaction: Prisma.TransactionClient,
+    issuerId: string,
+    selection: AcademicCurriculumSelection
+  ) {
+    const programCourse = await transaction.programCourse.findFirst({
       where: {
-        id: dto.academicCourseId,
-        issuerId: dto.issuerId,
-        status: CourseStatus.active
+        academicCourseId: selection.academicCourseReference,
+        curriculumVersionId: selection.curriculumReference,
+        academicCourse: {
+          issuerId,
+          status: CourseStatus.active
+        },
+        curriculumVersion: {
+          status: CurriculumVersionStatus.active,
+          program: {
+            issuerId,
+            status: ProgramStatus.active
+          }
+        }
       },
       select: {
-        id: true
+        id: true,
+        academicCourse: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            hours: true,
+            issuer: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        curriculumVersion: {
+          select: {
+            program: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
       }
     });
 
-    if (!academicCourse) {
-      throw new BadRequestException(
-        'academicCourseId no corresponde a una asignatura activa del issuer.'
+    if (!programCourse) {
+      throw new NotFoundException(
+        'No se encontro una asignatura activa dentro de la curricula solicitada.'
       );
     }
+
+    return {
+      academicCourseId: programCourse.academicCourse.id,
+      programCourseId: programCourse.id,
+      name: programCourse.academicCourse.name,
+      description: programCourse.academicCourse.description,
+      hours: programCourse.academicCourse.hours,
+      issuerName: programCourse.academicCourse.issuer.name,
+      programName: programCourse.curriculumVersion.program.name
+    };
   }
 
   async issueCredential(
@@ -301,15 +376,22 @@ export class CredentialsService {
     };
   }
 
-  private async getSubjectUserOrThrow(subjectUserId: string) {
-    const user = await this.prisma.user.findUnique({
+  private async getSubjectUserOrThrow(
+    transaction: Prisma.TransactionClient,
+    subjectUserId: string
+  ) {
+    const user = await transaction.user.findFirst({
       where: {
-        id: subjectUserId
+        id: subjectUserId,
+        status: UserStatus.active
+      },
+      select: {
+        id: true
       }
     });
 
     if (!user) {
-      throw new NotFoundException(`User ${subjectUserId} no existe.`);
+      throw new NotFoundException('No se encontro un titular activo elegible.');
     }
 
     return user;
@@ -400,6 +482,11 @@ export class CredentialsService {
     if (typeof value !== 'string' || value.trim().length === 0) {
       throw new BadRequestException(`${fieldName} es requerido.`);
     }
+  }
+
+  private requireNonEmptyString(value: unknown, fieldName: string) {
+    this.assertNonEmptyString(value, fieldName);
+    return value.trim();
   }
 
   private assertAuthenticatedUser(
