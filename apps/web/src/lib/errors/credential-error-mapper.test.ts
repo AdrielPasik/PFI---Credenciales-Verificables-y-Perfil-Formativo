@@ -91,4 +91,33 @@ describe('mapCredentialError', () => {
         'No pudimos conectarnos con el servicio. Conservamos el archivo seleccionado para que puedas reintentar.'
     });
   });
+
+  it.each([
+    [400, 'Revisá el texto ingresado e intentá nuevamente.'],
+    [403, 'No tenés permisos para registrar evidencia textual en esta institución.'],
+    [404, 'No encontramos la credencial dentro del contexto institucional activo.'],
+    [409, 'La evidencia textual solo puede modificarse mientras la credencial está en borrador.'],
+    [503, 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps text evidence HTTP %i safely', (status, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'text-evidence-submit'
+    );
+
+    expect(result.message).toBe(message);
+    expect(result.message).not.toContain('private');
+  });
+
+  it('preserves text recovery instructions after a network failure', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'text-evidence-submit'
+      )
+    ).toEqual({
+      code: 'network',
+      message:
+        'No pudimos conectarnos con el servicio. Conservamos el texto para que puedas reintentar.'
+    });
+  });
 });

@@ -353,3 +353,20 @@ Estas reglas impactaran directamente:
 - si en el futuro conviene constraint de unicidad operativa para `FormativeProfile.isCurrent`;
 - si se necesitara modelar historial de membresias institucionales en tabla propia;
 - si `SharingGrant` debera endurecerse con mas reglas estructurales en base de datos.
+
+## 16. Fronteras de deployment e IA aprobadas en P4d
+
+- el navegador consume NestJS y nunca llama FastAPI, S3 o blockchain;
+- NestJS autentica, autoriza, resuelve fuentes y valida artifacts;
+- FastAPI procesa temporalmente y no persiste dominio;
+- `DocumentEvidence` se guarda mediante `DocumentStoragePort`; S3 es un adapter,
+  no una nueva fuente de autoridad;
+- P5 inicial entrega documentos a FastAPI como bytes leidos por NestJS;
+- `semantic_analysis_v1` es resultado oficial validado, no claim humano;
+- propuestas IA se persisten separadas y requieren revision del emisor;
+- `DocumentEvidence` y `TextEvidence` no entran automaticamente en `canon_v1`;
+- `AnalysisRun`, joins de fuentes y propuestas son futuros y no cambian el
+  lifecycle `draft|issued|revoked`.
+
+`canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
+definan que claims oficiales forman parte de la emision.

@@ -26,18 +26,21 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
+import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
 import {
   adaptAcademicProgramSearch,
   adaptCurriculumAcademicSubjectSearch,
   adaptDocumentEvidenceResponse,
-  adaptIssuerCredentialDetail
+  adaptIssuerCredentialDetail,
+  adaptTextEvidenceResponse
 } from '@/lib/adapters/credentials.adapter';
 import {
   getIssuerCredentialRequest,
   patchIssuerCredentialDraftRequest,
   searchAcademicProgramsRequest,
   searchCurriculumAcademicSubjectsRequest,
+  submitCredentialTextEvidenceRequest,
   uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
@@ -48,6 +51,7 @@ import type {
   CurriculumAcademicSubjectSearchItemVM,
   DocumentEvidenceVM,
   IssuerCredentialDetailVM,
+  TextEvidenceVM,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
 import type { IssuerMembershipSummaryVM } from '@/models/issuer-context';
@@ -242,10 +246,38 @@ export function CredentialDetailController({
     return uploaded;
   }
 
+  async function submitTextEvidence(command: {
+    label: string | null;
+    content: string;
+  }) {
+    const payload = await submitCredentialTextEvidenceRequest(
+      requestAuthenticated,
+      {
+        issuerReference: membership.issuerReference,
+        credentialReference,
+        label: command.label,
+        content: command.content
+      }
+    );
+    const submitted = adaptTextEvidenceResponse(payload);
+
+    setDetail((current) =>
+      current
+        ? {
+            ...current,
+            textEvidence: { currentText: submitted }
+          }
+        : current
+    );
+
+    return submitted;
+  }
+
   return (
     <CredentialDetailView
       detail={detail}
       onUploadDocumentEvidence={uploadDocumentEvidence}
+      onSubmitTextEvidence={submitTextEvidence}
       draftEditor={{
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
@@ -264,10 +296,15 @@ export function CredentialDetailController({
 export function CredentialDetailView({
   detail,
   draftEditor,
+  onSubmitTextEvidence = unavailableTextEvidenceSubmission,
   onUploadDocumentEvidence
 }: {
   detail: IssuerCredentialDetailVM;
   onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
+  onSubmitTextEvidence?(command: {
+    label: string | null;
+    content: string;
+  }): Promise<TextEvidenceVM>;
   draftEditor?: {
     issuerReference: string;
     onSave(
@@ -468,8 +505,18 @@ export function CredentialDetailView({
         currentDocument={detail.documentEvidence.currentDocument}
         onUpload={onUploadDocumentEvidence}
       />
+
+      <TextEvidenceSection
+        credentialStatus={detail.status}
+        currentText={detail.textEvidence.currentText}
+        onSubmit={onSubmitTextEvidence}
+      />
     </div>
   );
+}
+
+async function unavailableTextEvidenceSubmission(): Promise<TextEvidenceVM> {
+  throw new Error('Text evidence submission is not available in this view.');
 }
 
 function valuesDiffer(

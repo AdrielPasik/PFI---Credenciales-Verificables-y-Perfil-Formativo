@@ -1,0 +1,138 @@
+# Integracion con AI Service v1
+
+## Proposito
+
+Extender la arquitectura HTTP existente para analizar evidencia documental,
+textual o combinada, preservando a NestJS como autoridad.
+
+## Estado actual
+
+Ya existen `AiServiceClient`, `AiIntegrationService`, validadores de
+`semantic_analysis_v1` y `formative_profile_result_v0`, persistencia backend y
+endpoints NestJS protegidos para PDF/perfil. FastAPI no persiste dominio ni
+recibe identidad de usuario como autoridad.
+
+P5 agregara resolucion de `DocumentEvidence` y `TextEvidence` actuales. Los
+contratos P5 descritos aqui son planificados, no endpoints implementados.
+
+## Decision
+
+- NestJS resuelve permisos y fuentes exactas;
+- NestJS lee bytes del storage y los envia a FastAPI;
+- texto viaja como JSON y documento como multipart binario;
+- no se envia base64 en JSON;
+- FastAPI devuelve artifacts versionados;
+- NestJS vuelve a validar antes de persistir;
+- el frontend nunca llama FastAPI.
+
+## Analisis documental
+
+```mermaid
+sequenceDiagram
+    actor Emisor
+    participant Web as Next.js
+    participant API as NestJS
+    participant DB as PostgreSQL
+    participant Storage as Storage privado
+    participant AI as FastAPI
+
+    Emisor->>Web: Solicita analisis documental
+    Web->>API: Trigger protegido
+    API->>DB: Resuelve DocumentEvidence exacta
+    API->>Storage: Lee bytes
+    Storage-->>API: Stream o buffer
+    API->>AI: Multipart + JWT interno + correlation ID
+    AI-->>API: semantic_analysis_v1
+    API->>API: Valida artifact
+    API->>DB: Persiste analisis y fuente
+    API-->>Web: Resumen seguro
+```
+
+## Analisis textual
+
+```mermaid
+sequenceDiagram
+    actor Emisor
+    participant Web as Next.js
+    participant API as NestJS
+    participant DB as PostgreSQL
+    participant AI as FastAPI
+
+    Emisor->>Web: Solicita analisis textual
+    Web->>API: Trigger protegido
+    API->>DB: Resuelve TextEvidence exacta
+    API->>AI: JSON + JWT interno + correlation ID
+    AI-->>API: semantic_analysis_v1
+    API->>API: Valida artifact
+    API->>DB: Persiste analisis y fuente
+    API-->>Web: Resumen seguro
+```
+
+## Analisis combinado
+
+```mermaid
+sequenceDiagram
+    actor Emisor
+    participant Web as Next.js
+    participant API as NestJS
+    participant Storage as Storage privado
+    participant AI as FastAPI
+    participant DB as PostgreSQL
+
+    Emisor->>Web: Solicita analisis combinado
+    Web->>API: Trigger protegido
+    API->>DB: Resuelve documento y texto exactos
+    API->>Storage: Lee documento
+    API->>AI: Multipart + manifest JSON autenticado
+    AI-->>API: Artifact con evidencia por fuente
+    API->>API: Valida artifact
+    API->>DB: Persiste resultado y ambas fuentes
+    API-->>Web: Resumen, warnings y confianza
+```
+
+La forma definitiva de los endpoints internos se congelara en P5c-P5e. No se
+deben confundir con los endpoints actuales `/v1/semantic-analysis/pdf` y
+`/v1/formative-profile/build`.
+
+## Autenticacion y transporte
+
+P4i agrega JWT interno de servicio, distinto del JWT de usuarios, con `iss`,
+`aud`, `sub`, `iat`, `exp` y `jti`, expiracion corta y rotacion current/previous.
+NestJS propagara correlation IDs. Los detalles viven en
+`security-and-secrets-deployment-v0.md`.
+
+## Alcance
+
+- documento, texto y combinado como modos separados;
+- artifacts oficiales versionados;
+- validacion doble y persistencia backend;
+- entrega inicial de bytes por NestJS.
+
+## Fuera de alcance
+
+- llamada directa frontend-FastAPI;
+- credenciales S3 en FastAPI;
+- presigned URLs para P5 inicial;
+- base64 en JSON;
+- OCR obligatorio para PNG/JPEG;
+- worker/cola y reanalisis automatico.
+
+## Impacto en modulos actuales
+
+Evoluciona `AiServiceClient`, `AiIntegrationService`, `document-evidence`,
+`text-evidence` y `semantic`; no modifica `Credential` ni canonizacion de forma
+automatica.
+
+## Riesgos
+
+- timeouts, memoria y payloads de hasta 20 MB;
+- analizar una fuente reemplazada distinta;
+- doble conteo en modo combinado;
+- artifact incompatible o respuesta no JSON;
+- registrar contenido, tokens o prompts en logs.
+
+## Proximos slices relacionados
+
+P4i auth interna, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
+trazabilidad.
+

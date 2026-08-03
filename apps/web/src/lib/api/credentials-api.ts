@@ -1,5 +1,6 @@
 import type { AuthenticatedApiRequest } from '@/lib/api/api-client';
 import { ApiError } from '@/lib/errors/api-error';
+import { validateTextEvidenceDraft } from '@/features/credentials/text-evidence';
 import type {
   AcademicProgramSearchCommand,
   CredentialDraftPatchFields,
@@ -8,6 +9,7 @@ import type {
   CreateManualCredentialDraftCommand,
   CurriculumAcademicSubjectSearchCommand,
   HolderResolutionCommand,
+  SubmitCredentialTextEvidenceCommand,
   UploadCredentialDocumentEvidenceCommand,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
@@ -243,6 +245,57 @@ export function uploadCredentialDocumentEvidenceRequest(
     {
       method: 'POST',
       body
+    }
+  );
+}
+
+export function submitCredentialTextEvidenceRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: SubmitCredentialTextEvidenceCommand
+) {
+  const issuerReference = command.issuerReference.trim();
+  const credentialReference = command.credentialReference.trim();
+
+  if (issuerReference.length === 0 || credentialReference.length === 0) {
+    throw new ApiError(
+      'La referencia institucional de la evidencia textual no es válida.',
+      'http',
+      400
+    );
+  }
+
+  if (
+    typeof command.content !== 'string' ||
+    (command.label !== null && typeof command.label !== 'string')
+  ) {
+    throw new ApiError(
+      'La evidencia textual ingresada no es válida.',
+      'http',
+      400
+    );
+  }
+
+  const validation = validateTextEvidenceDraft(
+    command.content,
+    command.label
+  );
+
+  if (!validation.valid) {
+    throw new ApiError(
+      'La evidencia textual ingresada no es válida.',
+      'http',
+      400
+    );
+  }
+
+  return requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}/evidence/texts`,
+    {
+      method: 'POST',
+      body: {
+        content: validation.normalizedSubmission.content,
+        label: validation.normalizedSubmission.label
+      }
     }
   );
 }

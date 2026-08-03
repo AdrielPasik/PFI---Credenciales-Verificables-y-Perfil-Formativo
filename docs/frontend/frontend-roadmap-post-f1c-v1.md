@@ -10,6 +10,12 @@
 
 Este documento complementa la arquitectura de información, los modelos de vista, el inventario de componentes, las especificaciones de pantallas y las guías visuales vigentes. Ante una diferencia factual, el código y los contratos backend actuales describen el runtime; este documento define la prioridad y los límites de los próximos slices.
 
+> Actualizacion posterior a P4c-b: el despliegue y la integracion IA se ordenan
+> normativamente en
+> `docs/architecture/deployment-and-ai-roadmap-v0.md`. Este documento conserva
+> el snapshot post-F1c para contexto frontend; P4d-P6b prevalece para la
+> secuencia de storage, deployment, analisis, trazabilidad y revision humana.
+
 ## 1. Estado actual post-F1c
 
 Traza ya dispone de un recorrido operativo real, sin datos de producto simulados:

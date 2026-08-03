@@ -9,6 +9,7 @@ import {
   resolveHolderRequest,
   searchAcademicProgramsRequest,
   searchCurriculumAcademicSubjectsRequest,
+  submitCredentialTextEvidenceRequest,
   uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
 import { ApiError } from '@/lib/errors/api-error';
@@ -191,6 +192,75 @@ describe('credentials API', () => {
             ...references
           } as CreateAcademicSubjectCurricularDraftCommand
         )
+      ).toThrow(ApiError);
+      expect(requestAuthenticated).not.toHaveBeenCalled();
+    }
+  );
+
+  it('submits normalized text evidence through an encoded JSON endpoint', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+
+    await submitCredentialTextEvidenceRequest(requestAuthenticated, {
+      issuerReference: ' issuer/reference ',
+      credentialReference: ' credential/reference ',
+      label: '  Temario\u00A0 institucional  ',
+      content: '  Línea uno\r\nLínea dos  '
+    });
+
+    expect(requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer%2Freference/credentials/credential%2Freference/evidence/texts',
+      {
+        method: 'POST',
+        body: {
+          content: 'Línea uno\nLínea dos',
+          label: 'Temario institucional'
+        }
+      }
+    );
+  });
+
+  it('maps an empty label to null and drops accidental properties', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+
+    await submitCredentialTextEvidenceRequest(requestAuthenticated, {
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference',
+      label: '   ',
+      content: 'Texto válido',
+      description: 'must-not-leak',
+      skills: ['must-not-leak'],
+      sha256: 'must-not-leak',
+      documentEvidence: { mustNotLeak: true }
+    } as never);
+
+    expect(requestAuthenticated.mock.calls[0][1].body).toEqual({
+      content: 'Texto válido',
+      label: null
+    });
+    expect(Object.keys(requestAuthenticated.mock.calls[0][1].body)).toEqual([
+      'content',
+      'label'
+    ]);
+  });
+
+  it.each([
+    ['', 'credential-reference', 'Texto'],
+    ['issuer-reference', '   ', 'Texto'],
+    ['issuer-reference', 'credential-reference', '   '],
+    ['issuer-reference', 'credential-reference', `Texto\u0000`],
+    ['issuer-reference', 'credential-reference', 'a'.repeat(50_001)]
+  ])(
+    'rejects invalid text evidence without executing a request',
+    (issuerReference, credentialReference, content) => {
+      const requestAuthenticated = vi.fn();
+
+      expect(() =>
+        submitCredentialTextEvidenceRequest(requestAuthenticated, {
+          issuerReference,
+          credentialReference,
+          label: null,
+          content
+        })
       ).toThrow(ApiError);
       expect(requestAuthenticated).not.toHaveBeenCalled();
     }

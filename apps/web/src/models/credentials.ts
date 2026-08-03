@@ -133,6 +133,26 @@ export interface UploadCredentialDocumentEvidenceCommand {
   file: File;
 }
 
+export interface TextEvidenceVM {
+  textEvidenceReference: string;
+  status: 'current';
+  label: string | null;
+  content: string;
+  characterCount: number;
+  characterCountLabel: string;
+  sha256: string;
+  sha256Short: string;
+  submittedAt: string;
+  submittedAtLabel: string;
+}
+
+export interface SubmitCredentialTextEvidenceCommand {
+  issuerReference: string;
+  credentialReference: string;
+  label: string | null;
+  content: string;
+}
+
 export interface CreatedCredentialDraftVM {
   credentialReference: string;
   issuerReference: string;
@@ -187,6 +207,9 @@ export interface IssuerCredentialDetailVM {
   } | null;
   documentEvidence: {
     currentDocument: DocumentEvidenceVM | null;
+  };
+  textEvidence: {
+    currentText: TextEvidenceVM | null;
   };
   createdAt: string;
   updatedAt: string;

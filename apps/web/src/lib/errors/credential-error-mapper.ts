@@ -12,6 +12,7 @@ type CredentialOperation =
   | 'draft-create'
   | 'draft-update'
   | 'document-evidence-upload'
+  | 'text-evidence-submit'
   | 'detail';
 
 function feedback(
@@ -40,6 +41,13 @@ export function mapCredentialError(
   }
 
   if (error.kind === 'network') {
+    if (operation === 'text-evidence-submit') {
+      return feedback(
+        'network',
+        'No pudimos conectarnos con el servicio. Conservamos el texto para que puedas reintentar.'
+      );
+    }
+
     return feedback(
       'network',
       operation === 'document-evidence-upload'
@@ -63,6 +71,13 @@ export function mapCredentialError(
   }
 
   if (error.status === 403) {
+    if (operation === 'text-evidence-submit') {
+      return feedback(
+        'forbidden',
+        'No tenés permisos para registrar evidencia textual en esta institución.'
+      );
+    }
+
     return feedback(
       'forbidden',
       operation === 'document-evidence-upload'
@@ -76,6 +91,13 @@ export function mapCredentialError(
       return feedback(
         'not_found',
         'No encontramos un titular disponible con ese correo. Verificá el email o consultá con la institución.'
+      );
+    }
+
+    if (operation === 'text-evidence-submit') {
+      return feedback(
+        'not_found',
+        'No encontramos la credencial dentro del contexto institucional activo.'
       );
     }
 
@@ -113,6 +135,22 @@ export function mapCredentialError(
       return feedback(
         'invalid_input',
         'No pudimos procesar el archivo. Revisalo e intentá nuevamente.'
+      );
+    }
+  }
+
+  if (operation === 'text-evidence-submit') {
+    if (error.status === 409) {
+      return feedback(
+        'conflict',
+        'La evidencia textual solo puede modificarse mientras la credencial está en borrador.'
+      );
+    }
+
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'Revisá el texto ingresado e intentá nuevamente.'
       );
     }
   }

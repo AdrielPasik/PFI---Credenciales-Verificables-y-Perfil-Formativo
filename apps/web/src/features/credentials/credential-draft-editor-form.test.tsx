@@ -98,6 +98,7 @@ function detailFixture(
     },
     academicCourse: null,
     documentEvidence: { currentDocument: null },
+    textEvidence: { currentText: null },
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T13:00:00.000Z'
   };

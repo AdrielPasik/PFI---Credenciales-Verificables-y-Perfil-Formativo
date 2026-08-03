@@ -769,3 +769,28 @@ ni afirma que un draft este listo para emitir.
 - Response conceptual: estado del emisor, wallet y referencias de red.
 - Errores esperados: `401`, `403`, `404`.
 - Estado: `future`.
+
+## 7. Contratos IA issuer-facing planificados para P5
+
+Estos contratos son candidatos aprobados por P4d, no endpoints implementados:
+
+```text
+POST /issuers/:issuerId/credentials/:credentialId/analysis/document
+POST /issuers/:issuerId/credentials/:credentialId/analysis/text
+POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
+GET  /issuers/:issuerId/credentials/:credentialId/analysis/latest
+GET  /issuers/:issuerId/credentials/:credentialId/analysis-runs/:runId
+```
+
+- Actor: membership `active`, rol `admin|operator`, issuer `authorized`.
+- Identidad: issuer y credential vienen del path; el backend valida scoping.
+- Fuentes: referencias backend exactas de `DocumentEvidence`/`TextEvidence`;
+  el frontend no envia `storageKey`, path, provider ni contenido arbitrario.
+- Resultado: resumen allowlisted de `AnalysisRun` y `semantic_analysis_v1`.
+- Persistencia: NestJS valida artifacts antes de persistirlos.
+- Efectos prohibidos: no PATCH automatico de `Credential`, no readiness, no
+  emision, no hash y no blockchain.
+- Estado: `future_p5`; la forma final se congela en P5c-P5g.
+
+Las propuestas y revision humana tendran contratos separados en P5h/P6a. No se
+debe reutilizar el artifact crudo como command de actualizacion.

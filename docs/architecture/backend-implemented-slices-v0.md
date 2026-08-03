@@ -2,7 +2,7 @@
 
 ## 1. Resumen ejecutivo
 
-El backend NestJS ya implementa un flujo local/dev funcional de credenciales verificables, autenticacion demo-grade, wallet interna de holder y perfil formativo agregado.
+El backend NestJS ya implementa un flujo local/dev funcional de credenciales verificables, autenticacion demo-grade, operaciones issuer-facing, evidencias documental/textual, integracion HTTP con IA, wallet interna de holder y perfil formativo agregado.
 
 ```text
 User login
@@ -11,12 +11,13 @@ User login
 -> BlockchainRecord mock o credential_registry_anvil
 -> semantic_analysis_v1 ingestion
 -> SemanticAnalysis persistido
+-> formative_profile_result_v0 validado/persistido
 -> holder wallet read
 -> FormativeProfile current rebuild/read
 -> verifier read compuesto
 ```
 
-El flujo usa PostgreSQL real, Prisma y Anvil local cuando se habilita el modo de contrato. No hay frontend, mobile, IA HTTP ni red blockchain publica integrados.
+El flujo usa PostgreSQL real, Prisma y Anvil local cuando se habilita el modo de contrato. El frontend consume endpoints NestJS protegidos; no hay mobile nativo, storage cloud, servicio IA desplegado privado ni red blockchain publica integrados.
 
 ## 2. Slices implementados
 
@@ -114,9 +115,28 @@ validator/mapper backend
 SemanticService.persistForCredential()
 semantic:ingest:file
 GET /credentials/:id/semantic-analysis/latest
+AiServiceClient / AiIntegrationService
+POST /credentials/:id/semantic-analysis/from-pdf
 ```
 
-El backend recibe solo artifacts JSON versionados y validados. No ejecuta Python, no consume formatos internos crudos del extractor, no modifica `Credential`, no recalcula hash y no toca `canon_v1`.
+El backend recibe solo artifacts JSON versionados y validados. NestJS no ejecuta
+Python: consume FastAPI por HTTP. No modifica `Credential`, no recalcula hash y
+no toca `canon_v1` al persistir analisis.
+
+### Operaciones issuer-facing y evidencias
+
+Estan implementados el read model institucional, PATCH controlado del draft,
+resolucion de holder, catalogo/curricula y creacion guiada. Las evidencias usan:
+
+```text
+POST /issuers/:issuerId/credentials/:credentialId/evidence/documents
+POST /issuers/:issuerId/credentials/:credentialId/evidence/texts
+```
+
+`DocumentEvidence` conserva metadata/hash e historial, mientras los bytes se
+guardan con `DocumentStoragePort` y `LocalDocumentStorageAdapter`. `TextEvidence`
+conserva texto normalizado/hash e historial. Ambas fuentes son independientes,
+draft-only para escritura y no modifican claims, canon, IA o blockchain.
 
 ### Holder wallet read
 
@@ -146,7 +166,11 @@ El rebuild local/dev toma credenciales `issued` del holder y el ultimo `Semantic
 - el backend no genera NLP, skills o areas nuevas;
 - una transaccion Prisma desmarca perfiles anteriores y crea un unico snapshot `isCurrent = true`.
 
-El modelo reutilizado es `FormativeProfile`; no se ingiere todavia `formative_profile_result_v0` externo ni existe integracion HTTP con IA.
+El modelo reutilizado es `FormativeProfile`. El backend puede ingerir
+`formative_profile_result_v0` real desde archivo o FastAPI, validarlo y
+persistirlo con `generationMethod = ai_artifact_ingest_v0`. El rebuild
+deterministico conserva el contrato distinto
+`backend_formative_profile_snapshot_v0`.
 
 ### Verification endpoint
 
@@ -175,10 +199,10 @@ blockchain read/write/evidence y verification read, ademas de `build` y
 Pruebas manuales realizadas:
 
 ```text
-semantic_analysis_v1 JSON real
--> semantic:ingest:file
+semantic_analysis_v1 JSON o FastAPI
+-> validator backend
 -> SemanticAnalysis en PostgreSQL
--> POST /me/profile/rebuild
+-> formative_profile_result_v0 file/HTTP o rebuild fallback
 -> FormativeProfile current en PostgreSQL
 -> GET /me/profile/current
 ```
@@ -189,25 +213,28 @@ Tambien se probaron deploy, register y revoke de `CredentialRegistry.sol` en Anv
 
 No esta implementado todavia:
 
-- frontend, PWA o app mobile;
+- app mobile nativa o holder wallet frontend completa;
 - Base Sepolia, MetaMask o wallet externa del holder;
 - signer institucional productivo, custodia segura o multiples signers por issuer;
 - revocacion backend completa;
 - sharing/link/QR;
-- endpoint issuer-facing para listar credenciales institucionales;
-- IA HTTP, jobs/colas o ejecucion Python desde Nest;
+- listado/paginacion institucional completa de credenciales;
+- `AnalysisRun`, jobs/colas o worker;
+- auth interna de servicio desplegada entre NestJS y FastAPI;
+- trazabilidad relacional de analisis a `DocumentEvidence`/`TextEvidence`;
+- propuestas IA revisables y revision humana;
+- S3/Neon/Render/Vercel desplegados;
 - ingestion de `credential_candidate_v1`;
-- ingestion externa de `formative_profile_result_v0`;
 - hardening productivo de transacciones blockchain;
 - constraint de base de datos parcial para garantizar `FormativeProfile.isCurrent`.
 
 ## 5. Proximos pasos recomendados
 
 ```text
-1. Revocation flow protegido y sincronizado con BlockchainRecord/contrato.
-2. Reconciliacion e idempotencia de evidencia blockchain.
-3. Endpoint issuer-facing de lectura institucional.
-4. Verifier frontend minimo sobre los endpoints existentes.
-5. Definir si formative_profile_result_v0 externo reemplaza, complementa o compara el agregado backend actual.
-6. Base Sepolia y signer institucional seguro solo despues de estabilizar el flujo local/dev.
+1. Implementar `S3DocumentStorageAdapter` sin cambiar el endpoint publico.
+2. Desplegar Neon, NestJS, Next.js y FastAPI privado con auth interna.
+3. Resolver fuentes exactas y crear `AnalysisRun` sincrono.
+4. Trazar `SemanticAnalysis` a documento/texto concretos.
+5. Agregar propuestas IA y revision humana antes de readiness.
+6. Decidir `canon_v2`, emision/testnet y verificador despues de ese cierre.
 ```

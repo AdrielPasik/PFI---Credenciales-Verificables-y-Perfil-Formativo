@@ -50,6 +50,16 @@ const uploadResponse = {
   sha256: evidenceHash,
   uploadedAt: '2026-08-03T12:00:00.000Z'
 };
+const textEvidenceContent = 'Línea uno\nLínea dos';
+const textEvidenceResponse = {
+  textEvidenceReference: 'text-evidence-internal-reference',
+  status: 'current',
+  label: 'Temario institucional',
+  content: textEvidenceContent,
+  characterCount: Array.from(textEvidenceContent).length,
+  sha256: 'c'.repeat(64),
+  submittedAt: '2026-08-03T12:00:00.000Z'
+};
 
 const draftResponse = {
   id: 'credential-internal-reference',
@@ -89,7 +99,8 @@ const draftResponse = {
     did: 'did:example:holder'
   },
   academicCourse: null,
-  documentEvidence: { currentDocument: null }
+  documentEvidence: { currentDocument: null },
+  textEvidence: { currentText: null }
 };
 
 function detailFixture(
@@ -141,6 +152,7 @@ function detailFixture(
     },
     academicCourse: null,
     documentEvidence: { currentDocument: null },
+    textEvidence: { currentText: null },
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:00:00.000Z',
     ...overrides,
@@ -315,6 +327,86 @@ describe('CredentialDetailController', () => {
     expect(await screen.findByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(screen.getByText('Documento PDF')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
+    );
+  });
+
+  it('submits one textual source and updates only its current snapshot', async () => {
+    sessionMocks.requestAuthenticated
+      .mockResolvedValueOnce({
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse }
+      })
+      .mockResolvedValueOnce(textEvidenceResponse);
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    fireEvent.change(
+      await screen.findByLabelText('Nombre de la fuente (opcional)'),
+      { target: { value: '  Temario institucional  ' } }
+    );
+    fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
+      target: { value: '  Línea uno\r\nLínea dos  ' }
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+    );
+
+    expect(await screen.findByText('Fuente textual actual')).toBeTruthy();
+    expect(
+      screen.getByLabelText('Contenido de la fuente textual').textContent
+    ).toBe(textEvidenceContent);
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    expect(sessionMocks.requestAuthenticated).toHaveBeenLastCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/texts',
+      {
+        method: 'POST',
+        body: {
+          content: textEvidenceContent,
+          label: 'Temario institucional'
+        }
+      }
+    );
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.some(
+        ([, requestOptions]) => requestOptions?.method === 'PATCH'
+      )
+    ).toBe(false);
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.some(([pathValue]) =>
+        String(pathValue).match(/\/ai(?:\/|$)|\/issue(?:\/|$)|blockchain/i)
+      )
+    ).toBe(false);
+  });
+
+  it('reconstructs current text and document evidence together from GET', async () => {
+    sessionMocks.requestAuthenticated.mockResolvedValue({
+      ...draftResponse,
+      documentEvidence: { currentDocument: uploadResponse },
+      textEvidence: { currentText: textEvidenceResponse }
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    expect(await screen.findByText('Fuente textual actual')).toBeTruthy();
+    expect(
+      screen.getByLabelText('Contenido de la fuente textual').textContent
+    ).toBe(textEvidenceContent);
+    expect(screen.getByText('Evidencia actual')).toBeTruthy();
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'

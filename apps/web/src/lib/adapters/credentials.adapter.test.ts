@@ -6,11 +6,13 @@ import {
   adaptCurriculumAcademicSubjectSearch,
   adaptDocumentEvidenceResponse,
   adaptHolderResolution,
-  adaptIssuerCredentialDetail
+  adaptIssuerCredentialDetail,
+  adaptTextEvidenceResponse
 } from '@/lib/adapters/credentials.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
 const documentHash = 'a1b2c3d4e5f6'.padEnd(56, '0') + '9a8b7c6d';
+const textHash = 'b1c2d3e4f5a6'.padEnd(56, '0') + '8a7b6c5d';
 
 function documentEvidencePayload(
   overrides: Record<string, unknown> = {}
@@ -24,6 +26,21 @@ function documentEvidencePayload(
     sizeBytes: 1536,
     sha256: documentHash,
     uploadedAt: '2026-08-03T12:00:00.000Z',
+    ...overrides
+  };
+}
+
+function textEvidencePayload(overrides: Record<string, unknown> = {}) {
+  const content = 'Línea uno\nLínea dos';
+
+  return {
+    textEvidenceReference: 'text-evidence-internal-reference',
+    status: 'current',
+    label: 'Temario institucional',
+    content,
+    characterCount: Array.from(content).length,
+    sha256: textHash,
+    submittedAt: '2026-08-03T12:00:00.000Z',
     ...overrides
   };
 }
@@ -77,6 +94,7 @@ function issuerCredentialPayload(
     },
     academicCourse: null,
     documentEvidence: { currentDocument: null },
+    textEvidence: { currentText: null },
     ...overrides
   };
 }
@@ -255,6 +273,7 @@ describe('credential adapters', () => {
       },
       academicCourse: null,
       documentEvidence: { currentDocument: null },
+      textEvidence: { currentText: null },
       createdAt: '2026-07-30T12:00:00.000Z',
       updatedAt: '2026-07-30T12:00:00.000Z'
     });
@@ -284,6 +303,76 @@ describe('credential adapters', () => {
       uploadedAt: '2026-08-03T12:00:00.000Z',
       uploadedAtLabel: expect.stringContaining('3 ago 2026')
     });
+  });
+
+  it('adapts a text evidence response through a strict allowlist', () => {
+    expect(
+      adaptTextEvidenceResponse(
+        textEvidencePayload({
+          submittedByUserId: 'must-not-leak',
+          credentialId: 'must-not-leak',
+          replacedAt: 'must-not-leak',
+          history: ['must-not-leak']
+        })
+      )
+    ).toEqual({
+      textEvidenceReference: 'text-evidence-internal-reference',
+      status: 'current',
+      label: 'Temario institucional',
+      content: 'Línea uno\nLínea dos',
+      characterCount: 19,
+      characterCountLabel: '19 caracteres',
+      sha256: textHash,
+      sha256Short: 'b1c2d3e4f5a6…8a7b6c5d',
+      submittedAt: '2026-08-03T12:00:00.000Z',
+      submittedAtLabel: expect.stringContaining('3 ago 2026')
+    });
+  });
+
+  it('adapts currentText from detail and preserves null alongside documents', () => {
+    const withText = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        documentEvidence: {
+          currentDocument: documentEvidencePayload()
+        },
+        textEvidence: {
+          currentText: textEvidencePayload(),
+          history: ['must-not-leak']
+        }
+      })
+    );
+    const withoutText = adaptIssuerCredentialDetail(
+      issuerCredentialPayload()
+    );
+
+    expect(withText.textEvidence.currentText).toMatchObject({
+      status: 'current',
+      label: 'Temario institucional'
+    });
+    expect(withText.documentEvidence.currentDocument).not.toBeNull();
+    expect(withoutText.textEvidence).toEqual({ currentText: null });
+    expect(withText.textEvidence).not.toHaveProperty('history');
+  });
+
+  it.each([
+    { status: 'replaced' },
+    { sha256: 'ABC' },
+    { submittedAt: 'not-a-date' },
+    { characterCount: 0 },
+    { characterCount: 18 },
+    { content: '' }
+  ])('rejects incompatible text evidence %#', (overrides) => {
+    expect(() =>
+      adaptTextEvidenceResponse(textEvidencePayload(overrides))
+    ).toThrow(IncompatiblePayloadError);
+  });
+
+  it('requires the textEvidence envelope in issuer detail', () => {
+    expect(() =>
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ textEvidence: undefined })
+      )
+    ).toThrow(IncompatiblePayloadError);
   });
 
   it('adapts currentDocument from detail and preserves null explicitly', () => {

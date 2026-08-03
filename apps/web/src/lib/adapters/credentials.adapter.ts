@@ -5,6 +5,11 @@ import {
   formatDocumentUploadedAt
 } from '@/lib/formatters/document-evidence';
 import {
+  abbreviateTextEvidenceHash,
+  formatTextEvidenceCharacterCount,
+  formatTextEvidenceSubmittedAt
+} from '@/lib/formatters/text-evidence';
+import {
   credentialTypeLabels,
   credentialTypeOptions
 } from '@/models/credentials';
@@ -18,7 +23,8 @@ import type {
   DocumentEvidenceMimeType,
   DocumentEvidenceVM,
   HolderSummaryVM,
-  IssuerCredentialDetailVM
+  IssuerCredentialDetailVM,
+  TextEvidenceVM
 } from '@/models/credentials';
 
 const documentEvidenceMimeTypes = new Set<DocumentEvidenceMimeType>([
@@ -27,6 +33,7 @@ const documentEvidenceMimeTypes = new Set<DocumentEvidenceMimeType>([
   'image/jpeg'
 ]);
 const documentHashPattern = /^[a-f0-9]{64}$/;
+const textEvidenceHashPattern = /^[a-f0-9]{64}$/;
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -156,6 +163,42 @@ export function adaptDocumentEvidenceResponse(
   return adaptDocumentEvidence(payload);
 }
 
+function adaptTextEvidence(value: unknown): TextEvidenceVM {
+  const evidence = asRecord(value);
+  const content = requiredString(evidence.content);
+  const characterCount = positiveInteger(evidence.characterCount);
+  const sha256 = requiredString(evidence.sha256);
+  const submittedAt = isoDateTime(evidence.submittedAt);
+
+  if (
+    evidence.status !== 'current' ||
+    characterCount !== Array.from(content).length ||
+    !textEvidenceHashPattern.test(sha256)
+  ) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return {
+    textEvidenceReference: requiredString(
+      evidence.textEvidenceReference
+    ),
+    status: 'current',
+    label: nullableString(evidence.label),
+    content,
+    characterCount,
+    characterCountLabel:
+      formatTextEvidenceCharacterCount(characterCount),
+    sha256,
+    sha256Short: abbreviateTextEvidenceHash(sha256),
+    submittedAt,
+    submittedAtLabel: formatTextEvidenceSubmittedAt(submittedAt)
+  };
+}
+
+export function adaptTextEvidenceResponse(payload: unknown): TextEvidenceVM {
+  return adaptTextEvidence(payload);
+}
+
 function academicProgram(
   value: unknown
 ): AcademicProgramSearchItemVM {
@@ -242,6 +285,7 @@ export function adaptIssuerCredentialDetail(
   const issuer = asRecord(credential.issuer);
   const holder = asRecord(credential.holder);
   const documentEvidence = asRecord(credential.documentEvidence);
+  const textEvidence = asRecord(credential.textEvidence);
   const createdAt = isoDateTime(credential.createdAt);
   const updatedAt = isoDateTime(credential.updatedAt);
 
@@ -304,6 +348,12 @@ export function adaptIssuerCredentialDetail(
         documentEvidence.currentDocument === null
           ? null
           : adaptDocumentEvidence(documentEvidence.currentDocument)
+    },
+    textEvidence: {
+      currentText:
+        textEvidence.currentText === null
+          ? null
+          : adaptTextEvidence(textEvidence.currentText)
     },
     createdAt,
     updatedAt

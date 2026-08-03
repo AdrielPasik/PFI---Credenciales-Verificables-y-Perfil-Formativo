@@ -181,5 +181,22 @@
 ## Limites de modelado para la siguiente iteracion
 
 - No usar JSON Schema como reemplazo del modelo relacional.
-- No modelar todavia colas, jobs o storage externo.
+- No modificar Prisma en P4d. Storage externo permanece detras de
+  `DocumentStoragePort` y sus referencias ya viven en `DocumentEvidence`.
 - No cerrar aun estrategia final de multi-tenant institucional.
+
+## Modelos futuros aprobados por P4d
+
+Estos nombres describen direccion de arquitectura; no existen todavia en
+`schema.prisma` y requieren slices/migraciones propias:
+
+- `AnalysisRun`: lifecycle operacional, idempotencia, correlation y errores;
+- `SemanticAnalysisSource`: relacion de un analisis con documento/texto exactos
+  y sus hashes;
+- `CredentialEnrichmentProposal`: propuesta IA separada de claims oficiales;
+- decision de revision humana por campo, posiblemente en tabla propia;
+- `FormativeProfileSource`: evolucion para trazar perfiles a analisis concretos.
+
+`semantic_analysis_v1` y `formative_profile_result_v0` siguen siendo artifacts
+JSON oficiales validados. Los joins relacionales prueban asociacion/ownership;
+no se delega esa autoridad a `sourceRefs` del artifact.

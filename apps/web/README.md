@@ -88,6 +88,23 @@ La edición P3 y el reemplazo documental P4b se limitan a credenciales en estado
 Las reglas operativas para nuevas pantallas están en
 [`frontend-ui-implementation-guidelines-v1.md`](../../docs/frontend/frontend-ui-implementation-guidelines-v1.md).
 
+## Evidencia textual P4c-b
+
+P4c-b agrega `Evidencia textual` al detalle institucional como una fuente
+original separada de la descripcion, skills, competencias y resultados de
+aprendizaje oficiales. El textarea conserva el valor raw mientras se escribe
+y normaliza NFC, saltos de linea y bordes solamente al enviar. El contador y
+el limite de 50.000 se calculan por code points Unicode.
+
+La etiqueta es opcional y el body siempre la envia como string normalizado o
+`null`. La fuente vigente puede reemplazarse solamente en drafts; el historial
+se conserva en backend pero no es visible en este slice. Credenciales `issued`
+o `revoked` muestran la fuente en modo read-only.
+
+La evidencia textual convive con `Evidencia documental` y no modifica
+automaticamente campos oficiales. P4c-b no incorpora IA automatica, readiness,
+emision, blockchain, eliminacion ni historial visible.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;
