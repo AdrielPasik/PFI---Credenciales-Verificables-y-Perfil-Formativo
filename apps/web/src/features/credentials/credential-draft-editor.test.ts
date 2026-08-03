@@ -124,12 +124,46 @@ describe('credential draft editor helpers', () => {
     expect(sanitizeAcademicYearInput('20a26')).toBe('2026');
   });
 
-  it('keeps only a reasonable decimal grade input state', () => {
-    expect(sanitizeAcademicGradeInput('8a.567')).toBe('8.56');
+  it('keeps only unsigned decimal grade characters with at most two decimals', () => {
+    expect(sanitizeAcademicGradeInput('')).toBe('');
+    expect(sanitizeAcademicGradeInput('0')).toBe('0');
+    expect(sanitizeAcademicGradeInput('8')).toBe('8');
+    expect(sanitizeAcademicGradeInput('8.5')).toBe('8.5');
     expect(sanitizeAcademicGradeInput('8,5')).toBe('8.5');
+    expect(sanitizeAcademicGradeInput('10')).toBe('10');
     expect(sanitizeAcademicGradeInput('10.')).toBe('10.');
-    expect(sanitizeAcademicGradeInput('-1')).toBe('-1');
+    expect(sanitizeAcademicGradeInput('-8')).toBe('8');
+    expect(sanitizeAcademicGradeInput('--8')).toBe('8');
+    expect(sanitizeAcademicGradeInput('+8')).toBe('8');
+    expect(sanitizeAcademicGradeInput('abc8.5xyz')).toBe('8.5');
+    expect(sanitizeAcademicGradeInput('8e2')).toBe('82');
+    expect(sanitizeAcademicGradeInput('8E2')).toBe('82');
+    expect(sanitizeAcademicGradeInput('8a.567')).toBe('8.56');
     expect(sanitizeAcademicGradeInput('texto')).toBe('');
+  });
+
+  it('sanitizes an academic grade again when building the PATCH command', () => {
+    const detail = detailFixture({
+      type: 'academic_subject',
+      credentialSubject: {
+        ...detailFixture().credentialSubject,
+        grade: null
+      }
+    });
+    const state = {
+      ...detailToDraftEditorState(detail),
+      grade: '-8'
+    };
+
+    const command = buildDraftUpdateCommand({
+      detail,
+      state,
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference'
+    });
+
+    expect(command).toMatchObject({ grade: '8' });
+    expect(command?.grade).not.toMatch(/^-/);
   });
 
   it('returns no command when the form has no semantic changes', () => {
@@ -440,6 +474,14 @@ describe('credential draft editor helpers', () => {
         ...state,
         grade: '8.5',
         academicPeriod: '2026-1'
+      })
+    ).toEqual({});
+
+    expect(
+      validateDraftEditorState({
+        ...state,
+        grade: '',
+        academicPeriod: ''
       })
     ).toEqual({});
   });

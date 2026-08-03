@@ -1,7 +1,6 @@
 import {
   CourseStatus,
   CurriculumVersionStatus,
-  IssuerAuthorizationStatus,
   IssuerMembershipRole,
   IssuerMembershipStatus,
   PrismaClient,
@@ -11,34 +10,14 @@ import {
 
 import { hashPassword } from '../src/auth/password-hashing';
 import { loadDemoAcademicCatalog } from './demo-academic-catalog';
+import { buildDemoIssuerUpsertArgs } from './demo-issuer-seed';
 
 const prisma = new PrismaClient();
 
-const FIXED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z');
 const DEMO_ISSUER_PASSWORD = 'DemoIssuer123!';
 const DEMO_HOLDER_PASSWORD = 'DemoHolder123!';
 async function main() {
-  const issuer = await prisma.issuer.upsert({
-    where: {
-      did: 'did:example:issuer-demo'
-    },
-    update: {
-      name: 'Demo University',
-      legalName: 'Demo University',
-      walletAddress: '0x00000000000000000000000000000000000000aa',
-      authorizationStatus: IssuerAuthorizationStatus.authorized,
-      authorizedAt: FIXED_TIMESTAMP,
-      revokedAt: null
-    },
-    create: {
-      name: 'Demo University',
-      legalName: 'Demo University',
-      did: 'did:example:issuer-demo',
-      walletAddress: '0x00000000000000000000000000000000000000aa',
-      authorizationStatus: IssuerAuthorizationStatus.authorized,
-      authorizedAt: FIXED_TIMESTAMP
-    }
-  });
+  const issuer = await prisma.issuer.upsert(buildDemoIssuerUpsertArgs());
 
   const academicCatalog = await loadDemoAcademicCatalog();
 

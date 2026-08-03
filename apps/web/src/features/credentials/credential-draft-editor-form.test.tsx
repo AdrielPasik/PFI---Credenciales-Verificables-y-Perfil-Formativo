@@ -373,10 +373,19 @@ describe('CredentialDraftEditorForm', () => {
     renderEditor({ detail: academicDetailWithCatalog(), onSave });
 
     const grade = screen.getByLabelText('Calificación (opcional)');
-    fireEvent.change(grade, { target: { value: '8a.567' } });
-    expect((grade as HTMLInputElement).value).toBe('8.56');
+    fireEvent.change(grade, { target: { value: '-8' } });
+    expect((grade as HTMLInputElement).value).toBe('8');
 
-    fireEvent.change(grade, { target: { value: '10.01' } });
+    fireEvent.change(grade, { target: { value: '+8' } });
+    expect((grade as HTMLInputElement).value).toBe('8');
+
+    fireEvent.change(grade, { target: { value: 'abc8.5xyz' } });
+    expect((grade as HTMLInputElement).value).toBe('8.5');
+
+    fireEvent.change(grade, { target: { value: '8e2' } });
+    expect((grade as HTMLInputElement).value).toBe('82');
+
+    fireEvent.change(grade, { target: { value: '11' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     expect(

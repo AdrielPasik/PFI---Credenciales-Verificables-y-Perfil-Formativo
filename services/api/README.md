@@ -81,9 +81,11 @@ cambios.
 
 `GET /issuers/:issuerId/catalog/academic-subjects` busca `AcademicCourse`
 activos del issuer por codigo o nombre. Usa limite default `20`, maximo `50`,
-orden deterministico y una response allowlisted. El seed demo importa las 617
-materias de `data/academic_catalog/demo-academic-courses-v0.json` sin inventar
-descripcion, horas ni enriquecimiento.
+orden deterministico y una response allowlisted. El seed demo importa para
+`Universidad Argentina de la Empresa (UADE)` las 617 materias de
+`data/academic_catalog/demo-academic-courses-v0.json` sin inventar descripcion,
+horas ni enriquecimiento. UADE es la institucion academica de demostracion;
+el modelo sigue siendo multi-issuer.
 
 `GET /issuers/:issuerId/catalog/academic-programs` busca programas activos por
 codigo o nombre y devuelve su version curricular activa. El endpoint
@@ -187,16 +189,25 @@ npm run prisma:migrate:dev --workspace @credential-intelligence/api -- --name <m
 npm run prisma:seed --workspace @credential-intelligence/api
 ```
 
-El seed idempotente crea `Demo University`, `Issuer Admin`, `Demo Holder`, 617
-`AcademicCourse`, 22 `Program`, 22 `CurriculumVersion` y 977 `ProgramCourse`.
-Los codigos institucionales y las relaciones provienen de los artifacts
-locales versionados en `data/academic_catalog`. Las credenciales demo
+El seed idempotente crea o actualiza el mismo issuer estable como
+`Universidad Argentina de la Empresa (UADE)`, ademas de `Issuer Admin`,
+`Demo Holder`, 617 `AcademicCourse`, 22 `Program`, 22 `CurriculumVersion` y
+977 `ProgramCourse`. Los codigos institucionales y las relaciones pertenecen
+al catalogo demo UADE y provienen de los artifacts locales versionados en
+`data/academic_catalog`. Las credenciales demo
 local/dev son:
 
 - `issuer.admin@example.com / DemoIssuer123!`
 - `holder.demo@example.com / DemoHolder123!`
 
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
+
+Renombrar el issuer no modifica snapshots historicos de credenciales. Un draft
+antiguo puede conservar `Demo University` en `credentialSubject`, mientras un
+draft nuevo deriva `Universidad Argentina de la Empresa (UADE)` desde el
+issuer persistido. Para una demo sin datos historicos, usar una base local
+nueva, aplicar las migraciones existentes y ejecutar el seed; el seed no
+resetea ni limpia la base automaticamente.
 
 ## Limites
 

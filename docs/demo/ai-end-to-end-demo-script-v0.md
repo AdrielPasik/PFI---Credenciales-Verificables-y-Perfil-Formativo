@@ -92,7 +92,7 @@ El seed crea:
 ```text
 Issuer Admin: issuer.admin@example.com / DemoIssuer123!
 Demo Holder:  holder.demo@example.com / DemoHolder123!
-Issuer:       Demo University
+Issuer:       Universidad Argentina de la Empresa (UADE)
 ```
 
 ## 4. Levantar AI Service
@@ -261,7 +261,7 @@ $draftBody = @{
   hours = 64
   credentialSubject = @{
     achievement_name = "Introduccion a la Bioinformatica"
-    institution_name = "Demo University"
+    institution_name = "Universidad Argentina de la Empresa (UADE)"
   }
 } | ConvertTo-Json -Depth 20
 

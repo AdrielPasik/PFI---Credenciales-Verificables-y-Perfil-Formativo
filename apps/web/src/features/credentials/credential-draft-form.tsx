@@ -27,33 +27,37 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { AcademicSubjectCreationCatalogSection } from '@/features/credentials/academic-subject-creation-catalog-section';
+import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credentials/academic-subject-catalog-section';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import {
   credentialTypeLabels,
   credentialTypeOptions
 } from '@/models/credentials';
 import type {
+  AcademicProgramSearchItemVM,
   CredentialFeedback,
+  CredentialDraftFormSubmission,
   CredentialType,
+  CurriculumAcademicSubjectSearchItemVM,
   HolderSummaryVM
 } from '@/models/credentials';
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-interface CredentialDraftFormProps {
+interface CredentialDraftFormProps
+  extends AcademicSubjectCatalogSearchHandlers {
   issuerName: string;
   onResolveHolder(email: string): Promise<HolderSummaryVM>;
-  onCreateDraft(input: {
-    achievementName: string;
-    credentialType: CredentialType;
-    holder: HolderSummaryVM;
-  }): Promise<void>;
+  onCreateDraft(input: CredentialDraftFormSubmission): Promise<void>;
 }
 
 export function CredentialDraftForm({
   issuerName,
   onCreateDraft,
-  onResolveHolder
+  onResolveHolder,
+  searchPrograms,
+  searchSubjects
 }: CredentialDraftFormProps) {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState<string>();
@@ -67,6 +71,10 @@ export function CredentialDraftForm({
   >('');
   const [credentialTypeError, setCredentialTypeError] =
     useState<string>();
+  const [selectedProgram, setSelectedProgram] =
+    useState<AcademicProgramSearchItemVM | null>(null);
+  const [selectedSubject, setSelectedSubject] =
+    useState<CurriculumAcademicSubjectSearchItemVM | null>(null);
   const [draftFeedback, setDraftFeedback] =
     useState<CredentialFeedback | null>(null);
   const [resolving, setResolving] = useState(false);
@@ -75,6 +83,28 @@ export function CredentialDraftForm({
   const emailRef = useRef<HTMLInputElement>(null);
   const credentialTypeRef = useRef<HTMLSelectElement>(null);
   const achievementRef = useRef<HTMLInputElement>(null);
+
+  const curricularSelectionReady =
+    credentialType === 'academic_subject' &&
+    selectedProgram !== null &&
+    selectedSubject !== null;
+
+  function changeCredentialType(value: string) {
+    const nextType = credentialTypeOptions.includes(
+      value as CredentialType
+    )
+      ? (value as CredentialType)
+      : '';
+
+    if (nextType !== credentialType) {
+      setSelectedProgram(null);
+      setSelectedSubject(null);
+    }
+
+    setCredentialType(nextType);
+    setCredentialTypeError(undefined);
+    setDraftFeedback(null);
+  }
 
   async function handleResolve(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -129,34 +159,69 @@ export function CredentialDraftForm({
       return;
     }
 
-    const normalizedAchievementName = achievementName
-      .trim()
-      .replace(/\s+/g, ' ');
-
     if (!credentialType) {
       setCredentialTypeError('Seleccioná un tipo de credencial.');
       credentialTypeRef.current?.focus();
       return;
     }
 
-    if (!normalizedAchievementName) {
-      setAchievementError('Ingresá el nombre del logro.');
-      achievementRef.current?.focus();
-      return;
+    let submission: CredentialDraftFormSubmission;
+
+    if (credentialType === 'academic_subject') {
+      if (!selectedProgram || !selectedSubject) {
+        setDraftFeedback({
+          code: 'invalid_input',
+          message:
+            'Seleccioná una carrera y una materia oficial antes de crear el borrador.'
+        });
+        return;
+      }
+
+      if (
+        selectedSubject.curriculumReference !==
+          selectedProgram.curriculumReference ||
+        selectedSubject.programReference !== selectedProgram.programReference
+      ) {
+        setDraftFeedback({
+          code: 'invalid_input',
+          message:
+            'La materia seleccionada no corresponde a la carrera actual. Volvé a seleccionarla.'
+        });
+        return;
+      }
+
+      submission = {
+        credentialType,
+        holder,
+        program: selectedProgram,
+        subject: selectedSubject
+      };
+    } else {
+      const normalizedAchievementName = achievementName
+        .trim()
+        .replace(/\s+/g, ' ');
+
+      if (!normalizedAchievementName) {
+        setAchievementError('Ingresá el nombre del logro.');
+        achievementRef.current?.focus();
+        return;
+      }
+
+      setAchievementName(normalizedAchievementName);
+      submission = {
+        achievementName: normalizedAchievementName,
+        credentialType,
+        holder
+      };
     }
 
-    setAchievementName(normalizedAchievementName);
     setAchievementError(undefined);
     setDraftFeedback(null);
     setSubmitting(true);
     submittingRef.current = true;
 
     try {
-      await onCreateDraft({
-        achievementName: normalizedAchievementName,
-        credentialType,
-        holder
-      });
+      await onCreateDraft(submission);
     } catch (error) {
       setDraftFeedback(mapCredentialError(error, 'draft-create'));
       setSubmitting(false);
@@ -180,8 +245,8 @@ export function CredentialDraftForm({
           Creá un borrador institucional
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-text-muted">
-          Primero confirmá al titular y después registrá el nombre del logro.
-          La emisión no forma parte de este paso.
+          Confirmá al titular y elegí el tipo de credencial. Las asignaturas
+          académicas se crean directamente desde la currícula institucional.
         </p>
       </header>
 
@@ -342,19 +407,9 @@ export function CredentialDraftForm({
                         ref={credentialTypeRef}
                         id="credential-type"
                         value={credentialType}
-                        onChange={(event) => {
-                          const selectedValue = event.target.value;
-
-                          setCredentialType(
-                            credentialTypeOptions.includes(
-                              selectedValue as CredentialType
-                            )
-                              ? (selectedValue as CredentialType)
-                              : ''
-                          );
-                          setCredentialTypeError(undefined);
-                          setDraftFeedback(null);
-                        }}
+                        onChange={(event) =>
+                          changeCredentialType(event.target.value)
+                        }
                         aria-describedby={[
                           'credential-type-description',
                           credentialTypeError
@@ -397,21 +452,121 @@ export function CredentialDraftForm({
                     ) : null}
                   </div>
 
-                  <TextField
-                    ref={achievementRef}
-                    id="achievement-name"
-                    label="Nombre del logro"
-                    value={achievementName}
-                    onChange={(event) => {
-                      setAchievementName(event.target.value);
-                      setAchievementError(undefined);
-                      setDraftFeedback(null);
-                    }}
-                    description="Usá el nombre institucional del curso, materia o logro."
-                    error={achievementError}
-                  />
+                  {credentialType === 'academic_subject' ? (
+                    <AcademicSubjectCreationCatalogSection
+                      disabled={submitting}
+                      searchPrograms={searchPrograms}
+                      searchSubjects={searchSubjects}
+                      selectedProgram={selectedProgram}
+                      selectedSubject={selectedSubject}
+                      onProgramChange={(program) => {
+                        setSelectedProgram(program);
+                        setSelectedSubject(null);
+                        setDraftFeedback(null);
+                      }}
+                      onSubjectChange={(subject) => {
+                        setSelectedSubject(subject);
+                        setDraftFeedback(null);
+                      }}
+                    />
+                  ) : credentialType ? (
+                    <TextField
+                      ref={achievementRef}
+                      id="achievement-name"
+                      label="Nombre del logro"
+                      value={achievementName}
+                      onChange={(event) => {
+                        setAchievementName(event.target.value);
+                        setAchievementError(undefined);
+                        setDraftFeedback(null);
+                      }}
+                      description="Usá el nombre institucional del curso o logro."
+                      error={achievementError}
+                    />
+                  ) : null}
 
-                  <Button type="submit" size="lg" disabled={!holder || submitting}>
+                  {credentialType === 'academic_subject' &&
+                  holder &&
+                  selectedProgram &&
+                  selectedSubject ? (
+                    <section
+                      aria-labelledby="creation-summary-title"
+                      className="grid gap-4 rounded-card border border-border-strong bg-surface p-5 shadow-xs"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-teal-700">
+                          Paso 4
+                        </p>
+                        <h3
+                          id="creation-summary-title"
+                          className="mt-1 text-lg font-semibold text-text-strong"
+                        >
+                          Resumen antes de crear
+                        </h3>
+                      </div>
+                      <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                        <div>
+                          <dt className="font-semibold text-text-muted">
+                            Titular
+                          </dt>
+                          <dd className="mt-1 text-text-strong">
+                            {holder.displayLabel}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-text-muted">
+                            Carrera / plan
+                          </dt>
+                          <dd className="mt-1 text-text-strong">
+                            {selectedProgram.programName}
+                            <span className="mt-1 block text-xs font-semibold text-text-muted">
+                              Código {selectedProgram.programCode}
+                            </span>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-text-muted">
+                            Materia oficial
+                          </dt>
+                          <dd className="mt-1 text-text-strong">
+                            {selectedSubject.name}
+                            <span className="mt-1 block text-xs font-semibold text-text-muted">
+                              Código {selectedSubject.code}
+                            </span>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-semibold text-text-muted">
+                            Horas oficiales
+                          </dt>
+                          <dd className="mt-1 text-text-strong">
+                            {selectedSubject.hours ??
+                              'No disponible en el catálogo'}
+                          </dd>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <dt className="font-semibold text-text-muted">
+                            Descripción oficial
+                          </dt>
+                          <dd className="mt-1 leading-6 text-text-strong">
+                            {selectedSubject.description ??
+                              'No disponible en el catálogo'}
+                          </dd>
+                        </div>
+                      </dl>
+                    </section>
+                  ) : null}
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={
+                      !holder ||
+                      submitting ||
+                      (credentialType === 'academic_subject' &&
+                        !curricularSelectionReady)
+                    }
+                  >
                     {submitting ? (
                       <LoaderCircle
                         aria-hidden="true"
@@ -420,7 +575,7 @@ export function CredentialDraftForm({
                     ) : (
                       <CheckCircle2 aria-hidden="true" />
                     )}
-                    {submitting ? 'Guardando borrador' : 'Guardar borrador'}
+                    {submitting ? 'Creando borrador' : 'Crear borrador'}
                   </Button>
                 </fieldset>
                 <p aria-live="polite" className="text-sm text-text-muted">

@@ -66,13 +66,43 @@ export const credentialTypeOptions: readonly CredentialType[] = [
   'degree'
 ];
 
-export interface CreateCredentialDraftCommand {
+export type ManualCredentialType = Exclude<
+  CredentialType,
+  'academic_subject'
+>;
+
+export interface CreateManualCredentialDraftCommand {
   issuerReference: string;
   holderReference: string;
   achievementName: string;
   institutionName: string;
-  credentialType: CredentialType;
+  credentialType: ManualCredentialType;
 }
+
+export interface CreateAcademicSubjectCurricularDraftCommand {
+  issuerReference: string;
+  holderReference: string;
+  credentialType: 'academic_subject';
+  academicCourseReference: string;
+  curriculumReference: string;
+}
+
+export type CreateCredentialDraftCommand =
+  | CreateManualCredentialDraftCommand
+  | CreateAcademicSubjectCurricularDraftCommand;
+
+export type CredentialDraftFormSubmission =
+  | {
+      credentialType: ManualCredentialType;
+      achievementName: string;
+      holder: HolderSummaryVM;
+    }
+  | {
+      credentialType: 'academic_subject';
+      holder: HolderSummaryVM;
+      program: AcademicProgramSearchItemVM;
+      subject: CurriculumAcademicSubjectSearchItemVM;
+    };
 
 export type CredentialStatus = 'draft' | 'issued' | 'revoked';
 

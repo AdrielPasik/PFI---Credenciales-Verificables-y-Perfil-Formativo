@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  createAcademicSubjectCurricularDraftRequest,
   createCredentialDraftRequest,
+  createManualCredentialDraftRequest,
   getIssuerCredentialRequest,
   patchIssuerCredentialDraftRequest,
   resolveHolderRequest,
@@ -9,7 +11,10 @@ import {
   searchCurriculumAcademicSubjectsRequest
 } from '@/lib/api/credentials-api';
 import { ApiError } from '@/lib/errors/api-error';
-import type { UpdateIssuerCredentialDraftCommand } from '@/models/credentials';
+import type {
+  CreateAcademicSubjectCurricularDraftCommand,
+  UpdateIssuerCredentialDraftCommand
+} from '@/models/credentials';
 
 describe('credentials API', () => {
   it('resolves a holder by exact email within the selected issuer path', async () => {
@@ -79,6 +84,167 @@ describe('credentials API', () => {
       })
     );
   });
+
+  it('creates a curricular academic subject with an exact closed body', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+
+    await createAcademicSubjectCurricularDraftRequest(
+      requestAuthenticated,
+      {
+        issuerReference: 'issuer-reference',
+        holderReference: 'holder-reference',
+        credentialType: 'academic_subject',
+        academicCourseReference: '  course-reference  ',
+        curriculumReference: '  curriculum-reference  '
+      }
+    );
+
+    expect(requestAuthenticated).toHaveBeenCalledWith(
+      '/credentials/draft',
+      {
+        method: 'POST',
+        body: {
+          issuerId: 'issuer-reference',
+          subjectUserId: 'holder-reference',
+          type: 'academic_subject',
+          sourceType: 'manual_issuer',
+          academicCourseReference: 'course-reference',
+          curriculumReference: 'curriculum-reference'
+        }
+      }
+    );
+    expect(Object.keys(requestAuthenticated.mock.calls[0][1].body)).toEqual(
+      [
+        'issuerId',
+        'subjectUserId',
+        'type',
+        'sourceType',
+        'academicCourseReference',
+        'curriculumReference'
+      ]
+    );
+  });
+
+  it('drops accidental manual and internal fields from curricular create', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+    const command = {
+      issuerReference: 'issuer-reference',
+      holderReference: 'holder-reference',
+      credentialType: 'academic_subject',
+      academicCourseReference: 'course-reference',
+      curriculumReference: 'curriculum-reference',
+      title: 'must-not-leak',
+      description: 'must-not-leak',
+      hours: '99',
+      achievementName: 'must-not-leak',
+      institutionName: 'must-not-leak',
+      programName: 'must-not-leak',
+      credentialSubject: { mustNotLeak: true },
+      metadata: {},
+      rawData: {},
+      externalCourseId: 'must-not-leak',
+      academicCourseId: 'must-not-leak',
+      programCourseId: 'must-not-leak',
+      curriculumVersionId: 'must-not-leak'
+    } as CreateAcademicSubjectCurricularDraftCommand &
+      Record<string, unknown>;
+
+    await createAcademicSubjectCurricularDraftRequest(
+      requestAuthenticated,
+      command
+    );
+
+    expect(requestAuthenticated.mock.calls[0][1].body).toEqual({
+      issuerId: 'issuer-reference',
+      subjectUserId: 'holder-reference',
+      type: 'academic_subject',
+      sourceType: 'manual_issuer',
+      academicCourseReference: 'course-reference',
+      curriculumReference: 'curriculum-reference'
+    });
+  });
+
+  it.each([
+    {
+      academicCourseReference: 'course-reference',
+      curriculumReference: undefined
+    },
+    {
+      academicCourseReference: undefined,
+      curriculumReference: 'curriculum-reference'
+    },
+    { academicCourseReference: '', curriculumReference: 'curriculum' },
+    { academicCourseReference: 'course', curriculumReference: '   ' }
+  ])(
+    'rejects incomplete or empty curricular create references',
+    (references) => {
+      const requestAuthenticated = vi.fn();
+
+      expect(() =>
+        createAcademicSubjectCurricularDraftRequest(
+          requestAuthenticated,
+          {
+            issuerReference: 'issuer-reference',
+            holderReference: 'holder-reference',
+            credentialType: 'academic_subject',
+            ...references
+          } as CreateAcademicSubjectCurricularDraftCommand
+        )
+      ).toThrow(ApiError);
+      expect(requestAuthenticated).not.toHaveBeenCalled();
+    }
+  );
+
+  it('rejects a non-academic type at the curricular API boundary', () => {
+    const requestAuthenticated = vi.fn();
+
+    expect(() =>
+      createAcademicSubjectCurricularDraftRequest(
+        requestAuthenticated,
+        {
+          issuerReference: 'issuer-reference',
+          holderReference: 'holder-reference',
+          credentialType: 'course',
+          academicCourseReference: 'course-reference',
+          curriculumReference: 'curriculum-reference'
+        } as unknown as CreateAcademicSubjectCurricularDraftCommand
+      )
+    ).toThrow(ApiError);
+    expect(requestAuthenticated).not.toHaveBeenCalled();
+  });
+
+  it.each(['course', 'certification', 'degree'] as const)(
+    'preserves the manual create body for %s',
+    async (credentialType) => {
+      const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+
+      await createManualCredentialDraftRequest(requestAuthenticated, {
+        issuerReference: 'issuer-reference',
+        holderReference: 'holder-reference',
+        credentialType,
+        achievementName: 'Logro institucional',
+        institutionName: 'Universidad Contextual'
+      });
+
+      expect(requestAuthenticated).toHaveBeenCalledWith(
+        '/credentials/draft',
+        {
+          method: 'POST',
+          body: {
+            issuerId: 'issuer-reference',
+            subjectUserId: 'holder-reference',
+            type: credentialType,
+            title: 'Logro institucional',
+            sourceType: 'manual_issuer',
+            credentialSubject: {
+              achievement_name: 'Logro institucional',
+              institution_name: 'Universidad Contextual'
+            }
+          }
+        }
+      );
+    }
+  );
 
   it('loads detail by encoded resource reference using the authenticated boundary', async () => {
     const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });

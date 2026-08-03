@@ -3,7 +3,9 @@ import { ApiError } from '@/lib/errors/api-error';
 import type {
   AcademicProgramSearchCommand,
   CredentialDraftPatchFields,
+  CreateAcademicSubjectCurricularDraftCommand,
   CreateCredentialDraftCommand,
+  CreateManualCredentialDraftCommand,
   CurriculumAcademicSubjectSearchCommand,
   HolderResolutionCommand,
   UpdateIssuerCredentialDraftCommand
@@ -123,10 +125,24 @@ export function resolveHolderRequest(
   );
 }
 
-export function createCredentialDraftRequest(
+const manualCredentialTypes = new Set(['course', 'certification', 'degree']);
+
+function invalidCreateCommand(): never {
+  throw new ApiError(
+    'La informaciÃ³n para crear el borrador es invÃ¡lida.',
+    'http',
+    400
+  );
+}
+
+export function createManualCredentialDraftRequest(
   requestAuthenticated: AuthenticatedApiRequest,
-  command: CreateCredentialDraftCommand
+  command: CreateManualCredentialDraftCommand
 ) {
+  if (!manualCredentialTypes.has(command.credentialType)) {
+    invalidCreateCommand();
+  }
+
   return requestAuthenticated('/credentials/draft', {
     method: 'POST',
     body: {
@@ -141,6 +157,51 @@ export function createCredentialDraftRequest(
       }
     }
   });
+}
+
+export function createAcademicSubjectCurricularDraftRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: CreateAcademicSubjectCurricularDraftCommand
+) {
+  if (command.credentialType !== 'academic_subject') {
+    invalidCreateCommand();
+  }
+
+  const academicCourseReference = command.academicCourseReference;
+  const curriculumReference = command.curriculumReference;
+
+  if (
+    typeof academicCourseReference !== 'string' ||
+    typeof curriculumReference !== 'string' ||
+    academicCourseReference.trim().length === 0 ||
+    curriculumReference.trim().length === 0
+  ) {
+    invalidCreateCommand();
+  }
+
+  return requestAuthenticated('/credentials/draft', {
+    method: 'POST',
+    body: {
+      issuerId: command.issuerReference,
+      subjectUserId: command.holderReference,
+      type: 'academic_subject',
+      sourceType: 'manual_issuer',
+      academicCourseReference: academicCourseReference.trim(),
+      curriculumReference: curriculumReference.trim()
+    }
+  });
+}
+
+export function createCredentialDraftRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: CreateCredentialDraftCommand
+) {
+  return command.credentialType === 'academic_subject'
+    ? createAcademicSubjectCurricularDraftRequest(
+        requestAuthenticated,
+        command
+      )
+    : createManualCredentialDraftRequest(requestAuthenticated, command);
 }
 
 export function getIssuerCredentialRequest(

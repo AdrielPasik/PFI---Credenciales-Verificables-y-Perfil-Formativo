@@ -156,7 +156,10 @@ export function detailToDraftEditorState(
     completionDate: subject.completionDate ?? '',
     academicPeriod: subject.academicPeriod ?? '',
     programName: subject.programName ?? '',
-    grade: subject.grade ?? '',
+    grade:
+      detail.type === 'academic_subject'
+        ? sanitizeAcademicGradeInput(subject.grade ?? '')
+        : subject.grade ?? '',
     providerName: subject.providerName ?? '',
     platformName: subject.platformName ?? '',
     modality: subject.modality ?? '',
@@ -200,16 +203,17 @@ export function sanitizeAcademicYearInput(value: string) {
 }
 
 export function sanitizeAcademicGradeInput(value: string) {
-  const normalizedSeparator = value.replace(',', '.');
-  const sign = normalizedSeparator.trimStart().startsWith('-') ? '-' : '';
-  const [integer = '', ...decimalParts] = normalizedSeparator.split('.');
+  const numericCharacters = value
+    .replace(/,/g, '.')
+    .replace(/[^\d.]/g, '');
+  const [integer = '', ...decimalParts] = numericCharacters.split('.');
   const normalizedInteger = integer.replace(/\D/g, '');
   const normalizedDecimals = decimalParts.join('').replace(/\D/g, '').slice(0, 2);
-  const hasDecimalSeparator = normalizedSeparator.includes('.');
+  const hasDecimalSeparator = numericCharacters.includes('.');
 
   return hasDecimalSeparator
-    ? `${sign}${normalizedInteger}.${normalizedDecimals}`
-    : `${sign}${normalizedInteger}`;
+    ? `${normalizedInteger}.${normalizedDecimals}`
+    : normalizedInteger;
 }
 
 export function getIncompatiblePopulatedFields(
@@ -363,8 +367,12 @@ export function buildDraftUpdateCommand(input: {
     }
 
     const stringField = field as CredentialDraftSpecificStringField;
-    const current = nullableText(input.state[stringField]);
-    const previous = nullableText(baseline[stringField]);
+    const sanitizeField =
+      input.state.type === 'academic_subject' && stringField === 'grade'
+        ? sanitizeAcademicGradeInput
+        : (value: string) => value;
+    const current = nullableText(sanitizeField(input.state[stringField]));
+    const previous = nullableText(sanitizeField(baseline[stringField]));
 
     if (current !== previous) {
       mutableChanges[stringField] = current;

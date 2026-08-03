@@ -85,10 +85,21 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 
 - el backend NestJS implementa auth, credenciales, perfil y catalogo incremental;
 - el cliente Prisma puede generarse localmente con scripts del workspace;
+- el mismo issuer demo, identificado de forma estable por
+  `did:example:issuer-demo`, se crea o actualiza idempotentemente con el nombre
+  visible `Universidad Argentina de la Empresa (UADE)`;
 - el seed local importa de forma idempotente 617 `AcademicCourse` demo desde
   `data/academic_catalog/demo-academic-courses-v0.json`;
 - el seed tambien importa 22 `Program`, 22 `CurriculumVersion` y 977
-  `ProgramCourse` desde `demo-academic-curriculum-v0.json`;
+  `ProgramCourse` desde `demo-academic-curriculum-v0.json`, asociados al issuer
+  demo UADE;
 - las materias siguen disponibles como catalogo plano y, adicionalmente, por
   su pertenencia formal a una version curricular;
 - este schema queda como base revisable del sistema final, preparada para implementacion incremental.
+
+El rename del issuer no reescribe snapshots historicos en
+`Credential.credentialSubject`. Por eso, credenciales locales anteriores
+pueden conservar `Demo University`, mientras los drafts nuevos derivan el
+nombre UADE vigente. Para una demo completamente limpia, se puede crear una
+base local nueva, aplicar las migraciones versionadas y ejecutar el seed; el
+seed no realiza ningun reset destructivo automatico.

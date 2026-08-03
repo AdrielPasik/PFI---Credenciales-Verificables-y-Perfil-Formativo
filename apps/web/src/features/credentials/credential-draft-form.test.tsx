@@ -9,7 +9,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { CredentialDraftForm } from '@/features/credentials/credential-draft-form';
 import { ApiError } from '@/lib/errors/api-error';
 import type {
-  CredentialType,
+  AcademicProgramSearchItemVM,
+  CredentialDraftFormSubmission,
+  CurriculumAcademicSubjectSearchItemVM,
   HolderSummaryVM
 } from '@/models/credentials';
 
@@ -20,13 +22,39 @@ const holder = {
   displayLabel: 'Titular Demo'
 };
 
+const program: AcademicProgramSearchItemVM = {
+  programReference: 'program-internal-reference',
+  programCode: '1621',
+  programName: 'Ingeniería en Informática',
+  curriculumReference: 'curriculum-internal-reference',
+  curriculumCode: '2026'
+};
+
+const subject: CurriculumAcademicSubjectSearchItemVM = {
+  academicCourseReference: 'course-internal-reference',
+  code: '3.4.213',
+  name: 'Ingeniería de Datos II',
+  description: null,
+  hours: null,
+  programReference: program.programReference,
+  programCode: program.programCode,
+  programName: program.programName,
+  curriculumReference: program.curriculumReference,
+  curriculumCode: program.curriculumCode
+};
+
 function renderForm(options?: {
   onResolveHolder?: (email: string) => Promise<HolderSummaryVM>;
-  onCreateDraft?: (input: {
-    achievementName: string;
-    credentialType: CredentialType;
-    holder: HolderSummaryVM;
-  }) => Promise<void>;
+  onCreateDraft?: (input: CredentialDraftFormSubmission) => Promise<void>;
+  searchPrograms?: (
+    query: string,
+    signal: AbortSignal
+  ) => Promise<AcademicProgramSearchItemVM[]>;
+  searchSubjects?: (
+    curriculumReference: string,
+    query: string,
+    signal: AbortSignal
+  ) => Promise<CurriculumAcademicSubjectSearchItemVM[]>;
 }) {
   const onResolveHolder =
     options?.onResolveHolder ?? vi.fn().mockResolvedValue(holder);
@@ -38,6 +66,12 @@ function renderForm(options?: {
       issuerName="Universidad Contextual"
       onResolveHolder={onResolveHolder}
       onCreateDraft={onCreateDraft}
+      searchPrograms={
+        options?.searchPrograms ?? vi.fn().mockResolvedValue([program])
+      }
+      searchSubjects={
+        options?.searchSubjects ?? vi.fn().mockResolvedValue([subject])
+      }
     />
   );
 
@@ -52,6 +86,29 @@ async function resolveVisibleHolder() {
     screen.getByRole('button', { name: 'Buscar titular' })
   );
   await screen.findByText('Titular Demo');
+}
+
+async function selectAcademicCurriculum() {
+  fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+    target: { value: 'academic_subject' }
+  });
+  fireEvent.change(
+    screen.getByLabelText('Buscar carrera o plan académico'),
+    { target: { value: 'informatica' } }
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar carrera' }));
+  fireEvent.click(
+    await screen.findByRole('button', {
+      name: /Ingeniería en Informática/
+    })
+  );
+  fireEvent.change(screen.getByLabelText('Buscar materia de la carrera'), {
+    target: { value: 'datos' }
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar materia' }));
+  fireEvent.click(
+    await screen.findByRole('button', { name: /Ingeniería de Datos II/ })
+  );
 }
 
 describe('CredentialDraftForm', () => {
@@ -154,7 +211,7 @@ describe('CredentialDraftForm', () => {
   it('requires type and achievement, focusing each invalid field', async () => {
     const { onCreateDraft } = renderForm();
     const submit = screen.getByRole('button', {
-      name: 'Guardar borrador'
+      name: 'Crear borrador'
     }) as HTMLButtonElement;
 
     expect(submit.disabled).toBe(true);
@@ -192,7 +249,7 @@ describe('CredentialDraftForm', () => {
       target: { value: '  Arquitectura   de Software  ' }
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Guardar borrador' })
+      screen.getByRole('button', { name: 'Crear borrador' })
     );
 
     await waitFor(() => {
@@ -221,15 +278,123 @@ describe('CredentialDraftForm', () => {
       target: { value: 'Arquitectura de Software' }
     });
     const submit = screen.getByRole('button', {
-      name: 'Guardar borrador'
+      name: 'Crear borrador'
     });
     fireEvent.click(submit);
     fireEvent.click(submit);
 
     expect(onCreateDraft).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByRole('button', { name: 'Guardando borrador' })
+      screen.getByRole('button', { name: 'Creando borrador' })
     ).toBeTruthy();
+  });
+
+  it('creates academic subjects from a complete local curriculum selection', async () => {
+    const { onCreateDraft } = renderForm();
+    await resolveVisibleHolder();
+
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'academic_subject' }
+    });
+    const submit = screen.getByRole('button', {
+      name: 'Crear borrador'
+    }) as HTMLButtonElement;
+
+    expect(screen.queryByLabelText('Nombre del logro')).toBeNull();
+    expect(submit.disabled).toBe(true);
+    await selectAcademicCurriculum();
+
+    expect(submit.disabled).toBe(false);
+    expect(screen.getByText('Resumen antes de crear')).toBeTruthy();
+    expect(screen.getAllByText(program.programName).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(subject.name).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('No disponible en el catálogo')).toHaveLength(
+      4
+    );
+    fireEvent.click(submit);
+
+    await waitFor(() => {
+      expect(onCreateDraft).toHaveBeenCalledWith({
+        credentialType: 'academic_subject',
+        holder,
+        program,
+        subject
+      });
+    });
+    expect(document.body.textContent).not.toContain(
+      subject.academicCourseReference
+    );
+    expect(document.body.textContent).not.toContain(
+      program.curriculumReference
+    );
+  });
+
+  it('clears curriculum state when changing type and preserves the holder', async () => {
+    renderForm();
+    await resolveVisibleHolder();
+    await selectAcademicCurriculum();
+
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'course' }
+    });
+
+    expect(screen.getAllByText('Titular Demo').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Nombre del logro')).toBeTruthy();
+    expect(screen.queryByText('Materia seleccionada')).toBeNull();
+
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'academic_subject' }
+    });
+
+    expect(
+      screen.getByLabelText('Buscar carrera o plan académico')
+    ).toBeTruthy();
+    expect(screen.queryByText(subject.name)).toBeNull();
+    expect(
+      (screen.getByRole('button', {
+        name: 'Crear borrador'
+      }) as HTMLButtonElement).disabled
+    ).toBe(true);
+  });
+
+  it('preserves holder and curriculum selection after a create error', async () => {
+    renderForm({
+      onCreateDraft: vi
+        .fn()
+        .mockRejectedValue(new ApiError('rejected', 'http', 400))
+    });
+    await resolveVisibleHolder();
+    await selectAcademicCurriculum();
+    fireEvent.click(screen.getByRole('button', { name: 'Crear borrador' }));
+
+    expect(
+      await screen.findByText(
+        'Revisá los datos del borrador e intentá nuevamente.'
+      )
+    ).toBeTruthy();
+    expect(screen.getAllByText('Titular Demo').length).toBeGreaterThan(0);
+    expect(screen.getAllByText(subject.name).length).toBeGreaterThan(0);
+    expect(screen.getByText('Materia seleccionada')).toBeTruthy();
+  });
+
+  it('keeps the resolved holder when a catalog search fails', async () => {
+    renderForm({
+      searchPrograms: vi.fn().mockRejectedValue(new Error('unavailable'))
+    });
+    await resolveVisibleHolder();
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'academic_subject' }
+    });
+    fireEvent.change(
+      screen.getByLabelText('Buscar carrera o plan académico'),
+      { target: { value: 'informatica' } }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar carrera' }));
+
+    expect(
+      await screen.findByText(/No pudimos consultar el catálogo/)
+    ).toBeTruthy();
+    expect(screen.getByText('Titular Demo')).toBeTruthy();
   });
 
   it('renders the uniform safe 404 without offering user creation', async () => {

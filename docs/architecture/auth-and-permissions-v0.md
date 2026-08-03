@@ -49,7 +49,7 @@ Ejemplo institucional:
 issuer.admin@example.com
 -> User real
 -> tiene AuthCredential
--> tiene IssuerMembership admin con Demo University
+-> tiene IssuerMembership admin con Universidad Argentina de la Empresa (UADE)
 -> puede operar en nombre de esa institucion
 ```
 

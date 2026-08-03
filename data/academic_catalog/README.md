@@ -12,8 +12,11 @@ La preparacion del archivo aplica estas reglas:
 - mantiene las materias separadas del contexto curricular;
 - no inventa descripcion, horas, skills, competencias ni resultados de aprendizaje.
 
-El seed asocia todas las entradas al issuer demo y usa la restriccion unica
-`issuerId + code` para mantener la importacion idempotente.
+El seed asocia todas las entradas al issuer academico de demostracion
+`Universidad Argentina de la Empresa (UADE)` y usa la restriccion unica
+`issuerId + code` para mantener la importacion idempotente. UADE es el issuer
+usado por esta demo; la arquitectura y el catalogo del producto siguen siendo
+multi-issuer.
 
 `demo-academic-curriculum-v0.json` completa P3.1b con las 22 carreras y las
 977 relaciones carrera-materia de la misma fuente. Cada carrera conserva su

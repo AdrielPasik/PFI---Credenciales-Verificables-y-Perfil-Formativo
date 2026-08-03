@@ -5,7 +5,7 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F1a/F1b, F1c, P1b, P3 y P3.1c incorporan los primeros flujos reales del navegador
+F1a/F1b, F1c, P1b, P3, P3.1c, P3.1d-b y P3.2 incorporan los primeros flujos reales del navegador
 sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
@@ -27,6 +27,8 @@ sobre la base F0.1:
   explícito y control de concurrencia;
 - selección de carrera y asignatura oficial para drafts `academic_subject`,
   con búsqueda curricular scoped y snapshot oficial aceptado desde el backend.
+- creación guiada de `academic_subject` desde carrera y materia oficial, sin
+  nombre provisional ni PATCH posterior al alta.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -52,6 +54,20 @@ o plan y luego una materia perteneciente a su currícula. La selección local se
 muestra como pendiente hasta que el PATCH devuelve el nuevo snapshot oficial.
 Los datos de aprobación, skills y competencias continúan editables; el catálogo
 no constituye por sí mismo evidencia de aprobación.
+
+P3.1d-b aplica el mismo orden curricular al alta de una asignatura académica.
+La pantalla resuelve al titular, selecciona carrera y materia, presenta un
+resumen local y envía un único `POST /credentials/draft` con las dos
+referencias. El backend deriva el título y el snapshot oficial. La creación
+manual permanece disponible exclusivamente para `course`, `certification` y
+`degree`.
+
+P3.2 presenta el issuer academico seed como
+`Universidad Argentina de la Empresa (UADE)` usando siempre el nombre recibido
+desde la sesion y los read models, sin hardcodearlo en componentes. El campo
+opcional de calificacion de `academic_subject` conserva un decimal entre 0 y
+10 con hasta dos decimales, elimina signos y caracteres incompatibles en el
+estado controlado y mantiene el backend como autoridad final.
 
 Todavía no están implementadas la Wallet, la emisión, la carga de PDF, la
 integración IA, la evidencia blockchain ni el listado de credenciales desde

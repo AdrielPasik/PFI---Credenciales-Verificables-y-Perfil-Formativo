@@ -232,7 +232,7 @@ function createProgramCourseFixture(): ProgramCourseFixture {
         toString: () => '64'
       },
       issuer: {
-        name: 'Demo University'
+        name: 'Universidad Argentina de la Empresa (UADE)'
       }
     },
     curriculumVersion: {
@@ -326,7 +326,7 @@ test('createDraft creates a curricular academic subject and derives its official
   assert.equal(createdData.externalCourseId, undefined);
   assert.deepEqual(createdData.credentialSubject, {
     achievement_name: 'Ingenieria de Datos I',
-    institution_name: 'Demo University',
+    institution_name: 'Universidad Argentina de la Empresa (UADE)',
     program_name: 'Ingenieria en Informatica'
   });
   assert.equal(createdData.metadata, undefined);

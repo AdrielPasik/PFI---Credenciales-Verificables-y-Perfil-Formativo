@@ -254,7 +254,7 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
                 role: IssuerMembershipRole.admin,
                 status: IssuerMembershipStatus.active,
                 issuer: {
-                  name: 'Demo University',
+                  name: 'Universidad Argentina de la Empresa (UADE)',
                   did: 'did:example:issuer-demo',
                   authorizationStatus: IssuerAuthorizationStatus.authorized
                 }
@@ -277,7 +277,7 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
     issuerMemberships: [
       {
         issuerId: 'issuer-1',
-        issuerName: 'Demo University',
+        issuerName: 'Universidad Argentina de la Empresa (UADE)',
         issuerDid: 'did:example:issuer-demo',
         issuerAuthorizationStatus: IssuerAuthorizationStatus.authorized,
         role: IssuerMembershipRole.admin,
