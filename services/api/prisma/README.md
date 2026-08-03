@@ -19,6 +19,8 @@ Este directorio contiene el `schema.prisma` base del backend API y los artefacto
 - `Credential`: artefacto central off-chain.
 - `DocumentEvidence`: metadata e historial de evidencia documental por
   credencial; los bytes viven fuera de PostgreSQL.
+- `TextEvidence`: fuente textual institucional normalizada e historial por
+  credencial; el contenido vive en PostgreSQL.
 - `SemanticAnalysis`: resultado semantico persistible por credencial.
 - `FormativeProfile`: perfil agregado versionable por usuario.
 - `BlockchainRecord`: evidencia blockchain historica por credencial.
@@ -67,6 +69,11 @@ Esto mantiene compatibilidad con los JSON Schemas existentes y evita sobreingeni
   SQL porque Prisma no expresa directamente ese predicado.
 - `DocumentEvidence.sha256` identifica los bytes documentales y no reemplaza
   `Credential.canonicalHash` ni participa en `canon_v1`.
+- `TextEvidence` conserva cero o una fila `current` y varias `replaced` por
+  credencial. Su indice unico parcial se declara en SQL y el reemplazo usa una
+  transaccion `Serializable`.
+- `TextEvidence.sha256` identifica los bytes UTF-8 del contenido normalizado;
+  no es `canonicalHash`, no participa en `canon_v1` y no se registra on-chain.
 
 ## Que no esta implementado todavia
 
@@ -95,6 +102,9 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 - la migracion P4a agrega `DocumentEvidence` de forma aditiva, con relaciones a
   `Credential` y `User`, indices de consulta y una sola evidencia `current` por
   credencial;
+- la migracion P4c-a agrega `TextEvidence` de forma aditiva, con contenido
+  textual en PostgreSQL, relaciones a `Credential` y `User`, indices de
+  consulta y una sola fuente textual `current` por credencial;
 - el mismo issuer demo, identificado de forma estable por
   `did:example:issuer-demo`, se crea o actualiza idempotentemente con el nombre
   visible `Universidad Argentina de la Empresa (UADE)`;

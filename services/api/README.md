@@ -27,6 +27,7 @@ GET  /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academi
 GET  /issuers/:issuerId/credentials/:credentialId
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /issuers/:issuerId/credentials/:credentialId/evidence/documents
+POST /issuers/:issuerId/credentials/:credentialId/evidence/texts
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -133,6 +134,21 @@ El detalle issuer-facing devuelve siempre
 respuesta allowlisted incluye referencia, tipo, estado, nombre, MIME, tamano,
 SHA-256 documental y fecha; no incluye provider, key, path ni uploader.
 
+`POST /issuers/:issuerId/credentials/:credentialId/evidence/texts` recibe JSON
+con `content` requerido y `label` opcional. Aplica una allowlist exacta,
+normaliza Unicode a NFC, saltos CRLF/CR a LF y whitespace exterior, conserva
+saltos internos y admite hasta 50.000 caracteres Unicode. El contenido
+normalizado se persiste en PostgreSQL y su SHA-256 se calcula sobre los bytes
+UTF-8 exactos.
+
+La evidencia textual es draft-only y complementaria de la documental. Cada
+credencial puede tener una `TextEvidence` `current`; reemplazarla marca la
+anterior como `replaced` dentro de una transaccion `Serializable`. El detalle
+issuer-facing devuelve `textEvidence.currentText`, separado de
+`documentEvidence.currentDocument`. Registrar texto no modifica description,
+skills, competencies, learning outcomes, `Credential.updatedAt`, canon,
+readiness, emision, IA ni blockchain, y no expone historial o submitter.
+
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
 ## Perfil formativo
@@ -191,6 +207,7 @@ Tests de slices:
 - `npm run test:holder-resolution --workspace @credential-intelligence/api`
 - `npm run test:academic-catalog --workspace @credential-intelligence/api`
 - `npm run test:document-evidence --workspace @credential-intelligence/api`
+- `npm run test:text-evidence --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-read --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-draft-update --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-type-fields --workspace @credential-intelligence/api`
@@ -241,7 +258,7 @@ resetea ni limpia la base automaticamente.
 
 ## Limites
 
-El backend no tiene frontend para evidencia documental, descarga/preview,
+El backend no tiene frontend para evidencia textual, descarga/preview,
 Firebase/cloud storage, mobile, MetaMask, Base Sepolia, sharing/link/QR,
 revocacion completa ni hardening productivo blockchain. El modo
 `credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo

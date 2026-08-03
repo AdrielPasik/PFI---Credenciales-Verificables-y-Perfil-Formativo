@@ -8,6 +8,7 @@ import {
   DocumentEvidenceKind,
   DocumentEvidenceStatus,
   Prisma,
+  TextEvidenceStatus,
   UserStatus
 } from '@prisma/client';
 
@@ -63,6 +64,7 @@ function createRecord(
     academicCourse: null,
     programCourse: null,
     documentEvidences: [],
+    textEvidences: [],
     ...overrides
   };
 }
@@ -139,6 +141,9 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
     academicCourse: null,
     documentEvidence: {
       currentDocument: null
+    },
+    textEvidence: {
+      currentText: null
     }
   });
 
@@ -306,6 +311,56 @@ test('issuer credential select requests only current document evidence with an a
       sizeBytes: true,
       sha256: true,
       uploadedAt: true
+    }
+  });
+});
+
+test('mapper exposes only current text evidence and keeps document evidence separate', () => {
+  const response = mapIssuerCredentialReadModel(
+    createRecord({
+      textEvidences: [
+        {
+          id: 'text-evidence-current',
+          status: TextEvidenceStatus.current,
+          label: 'Temario institucional',
+          content: 'Contenido\nformativo',
+          sha256: 'b'.repeat(64),
+          submittedAt: new Date('2026-08-03T13:00:00.000Z')
+        }
+      ]
+    })
+  );
+
+  assert.deepEqual(response.textEvidence, {
+    currentText: {
+      textEvidenceReference: 'text-evidence-current',
+      status: TextEvidenceStatus.current,
+      label: 'Temario institucional',
+      content: 'Contenido\nformativo',
+      characterCount: 19,
+      sha256: 'b'.repeat(64),
+      submittedAt: '2026-08-03T13:00:00.000Z'
+    }
+  });
+  assert.deepEqual(response.documentEvidence, { currentDocument: null });
+  const serialized = JSON.stringify(response.textEvidence);
+  assert.equal(serialized.includes('submittedByUserId'), false);
+  assert.equal(serialized.includes('credentialId'), false);
+  assert.equal(serialized.includes('replacedAt'), false);
+});
+
+test('issuer credential select requests only current text evidence with an allowlist', () => {
+  assert.deepEqual(issuerCredentialReadSelect.textEvidences, {
+    where: { status: 'current' },
+    orderBy: { submittedAt: 'desc' },
+    take: 1,
+    select: {
+      id: true,
+      status: true,
+      label: true,
+      content: true,
+      sha256: true,
+      submittedAt: true
     }
   });
 });

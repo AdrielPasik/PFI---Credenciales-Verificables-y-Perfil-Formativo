@@ -71,6 +71,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanSubmitTextEvidenceForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'registrar evidencia textual'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

@@ -133,6 +133,11 @@ enum DocumentEvidenceStatus {
   replaced
 }
 
+enum TextEvidenceStatus {
+  current
+  replaced
+}
+
 model User {
   id                  String              @id @default(uuid())
   did                 String?             @unique
@@ -151,6 +156,7 @@ model User {
   createdSharingGrants SharingGrant[]     @relation("SharingGrantCreator")
   authCredential      AuthCredential?
   uploadedDocumentEvidences DocumentEvidence[]  @relation("DocumentEvidenceUploader")
+  submittedTextEvidences TextEvidence[] @relation("TextEvidenceSubmitter")
 }
 
 model AuthCredential {
@@ -233,6 +239,7 @@ model Credential {
   verificationEvents       VerificationEvent[]
   sharingGrants            SharingGrant[]
   documentEvidences        DocumentEvidence[]
+  textEvidences            TextEvidence[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -286,6 +293,24 @@ model DocumentEvidence {
 
   @@index([credentialId])
   @@index([uploadedByUserId])
+  @@index([sha256])
+}
+
+model TextEvidence {
+  id                String             @id @default(uuid())
+  credentialId      String
+  submittedByUserId String
+  label             String?
+  content           String             @db.Text
+  sha256            String
+  status            TextEvidenceStatus @default(current)
+  submittedAt       DateTime           @default(now())
+  replacedAt        DateTime?
+  credential        Credential         @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  submittedBy       User               @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([credentialId])
+  @@index([submittedByUserId])
   @@index([sha256])
 }
 

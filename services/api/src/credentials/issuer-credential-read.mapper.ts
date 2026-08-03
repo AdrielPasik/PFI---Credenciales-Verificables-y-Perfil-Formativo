@@ -12,6 +12,11 @@ import {
   mapDocumentEvidenceResponse
 } from '../document-evidence/document-evidence.mapper';
 import { IssuerCredentialDetailResponseDto } from './dto/issuer-credential-detail-response.dto';
+import {
+  mapTextEvidenceResponse,
+  textEvidenceResponseSelect,
+  type TextEvidenceResponseRecord
+} from '../text-evidence/text-evidence.mapper';
 
 export const issuerCredentialReadSelect = {
   id: true,
@@ -75,6 +80,16 @@ export const issuerCredentialReadSelect = {
     },
     take: 1,
     select: documentEvidenceResponseSelect
+  },
+  textEvidences: {
+    where: {
+      status: 'current'
+    },
+    orderBy: {
+      submittedAt: 'desc'
+    },
+    take: 1,
+    select: textEvidenceResponseSelect
   }
 } as const;
 
@@ -125,6 +140,7 @@ export interface IssuerCredentialReadRecord {
     };
   } | null;
   documentEvidences: DocumentEvidenceResponseRecord[];
+  textEvidences: TextEvidenceResponseRecord[];
 }
 
 export function mapIssuerCredentialReadModel(
@@ -231,6 +247,11 @@ export function mapIssuerCredentialReadModel(
     documentEvidence: {
       currentDocument: credential.documentEvidences?.[0]
         ? mapDocumentEvidenceResponse(credential.documentEvidences[0])
+        : null
+    },
+    textEvidence: {
+      currentText: credential.textEvidences?.[0]
+        ? mapTextEvidenceResponse(credential.textEvidences[0])
         : null
     }
   };

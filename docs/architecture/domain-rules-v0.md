@@ -283,7 +283,35 @@ tiene como maximo una evidencia `current`; las anteriores se mantienen como
 La evidencia es documentacion institucional asociada. No demuestra por si sola
 aprobacion, finalizacion, readiness ni validez publica de una credencial.
 
-## 14. Que no decidir todavia
+## 14. Evidencia textual de un draft
+
+Una `Credential` puede conservar varias filas `TextEvidence`, con una sola
+`current`. La fuente textual convive con `DocumentEvidence` y no la reemplaza.
+
+- solo un `admin` u `operator` activo de un issuer autorizado puede registrar
+  texto para una credencial `draft` del mismo issuer;
+- `content` se normaliza a NFC, LF y trim, conserva saltos internos y admite
+  hasta 50.000 caracteres; controles C0 no permitidos se rechazan;
+- `label` es descriptivo de la fuente, nullable y no es el titulo de la
+  credencial;
+- SHA-256 se calcula sobre los bytes UTF-8 exactos del contenido persistido;
+- `characterCount` cuenta code points mediante `Array.from(content).length`;
+- reemplazar siempre crea una fila nueva, aun con el mismo hash, y conserva la
+  anterior como `replaced` con `replacedAt`;
+- la unicidad vigente se refuerza con indice unico parcial y transaccion
+  `Serializable`;
+- registrar texto no modifica `Credential`, `updatedAt`, `credentialSubject`,
+  metadata, raw data, `canonicalHash`, `DocumentEvidence`, `SemanticAnalysis`
+  ni `BlockchainRecord`;
+- la fuente no genera automaticamente description, skills, competencies o
+  learning outcomes. La IA futura podra proponer cambios que el emisor debera
+  confirmar;
+- no participa en `canon_v1`, readiness, emision, blockchain ni verificacion
+  publica;
+- el read issuer-facing expone solo `textEvidence.currentText`; el historial y
+  submitter permanecen internos.
+
+## 15. Que no decidir todavia
 
 Por ahora no se decide:
 

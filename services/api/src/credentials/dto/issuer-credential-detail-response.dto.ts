@@ -5,6 +5,7 @@ import {
 } from '@prisma/client';
 
 import { CredentialDocumentEvidenceResponseDto } from '../../document-evidence/dto/document-evidence-response.dto';
+import { CredentialTextEvidenceResponseDto } from '../../text-evidence/dto/text-evidence-response.dto';
 
 export class IssuerCredentialSubjectResponseDto {
   achievement_name!: string | null;
@@ -68,4 +69,5 @@ export class IssuerCredentialDetailResponseDto {
   holder!: IssuerCredentialHolderResponseDto;
   academicCourse!: IssuerCredentialAcademicCourseResponseDto | null;
   documentEvidence!: CredentialDocumentEvidenceResponseDto;
+  textEvidence!: CredentialTextEvidenceResponseDto;
 }

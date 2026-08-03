@@ -63,6 +63,22 @@
   parcial; filas anteriores pasan a `replaced` y se conservan.
 - No on-chain: archivo, storage key, metadata de upload y SHA-256 documental.
 
+## TextEvidence
+
+- Proposito: conservar una fuente textual institucional original asociada a
+  una credencial sin convertirla en contenido oficial confirmado.
+- Campos: `id`, `credential_id`, `submitted_by_user_id`, `label`, `content`,
+  `sha256`, `status`, `submitted_at`, `replaced_at`.
+- Relaciones: pertenece a `Credential` y al `User` institucional que registro
+  el texto.
+- Relacional: contenido normalizado, hash, estado e historial completos en
+  PostgreSQL; no usa storage de archivos.
+- Regla v0: una sola fila `current` por credencial mediante indice unico
+  parcial; las anteriores pasan a `replaced` y se conservan.
+- No on-chain: contenido, label, submitter, historial y SHA-256 textual.
+- Separacion: `content` es fuente aportada, no reemplaza
+  `Credential.description` ni genera skills, competencies o learning outcomes.
+
 ## FormativeProfile
 
 - Proposito: representar el resumen agregado del perfil formativo de un usuario.
@@ -153,6 +169,8 @@
 - `Credential` 1..N `SemanticAnalysis`
 - `Credential` 1..N `DocumentEvidence`
 - `User` 1..N `DocumentEvidence` como uploader
+- `Credential` 1..N `TextEvidence`
+- `User` 1..N `TextEvidence` como submitter
 - `User` 1..N `FormativeProfile`
 - `Credential` 0..1 `BlockchainRecord`
 - `Credential` 1..N `VerificationEvent`

@@ -12,6 +12,7 @@ import { MeModule } from './me/me.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { SemanticModule } from './semantic/semantic.module';
+import { TextEvidenceModule } from './text-evidence/text-evidence.module';
 import { VerificationModule } from './verification/verification.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { VerificationModule } from './verification/verification.module';
     CatalogModule,
     SemanticModule,
     DocumentEvidenceModule,
+    TextEvidenceModule,
     CredentialsModule,
     VerificationModule
   ],

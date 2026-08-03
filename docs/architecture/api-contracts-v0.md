@@ -251,6 +251,9 @@
   },
   "documentEvidence": {
     "currentDocument": null
+  },
+  "textEvidence": {
+    "currentText": null
   }
 }
 ```
@@ -267,6 +270,9 @@
   es `null` cuando no hay evidencia vigente. Cuando existe, contiene solo la
   referencia publica, tipo, estado, nombre visible, MIME canonico, tamano,
   SHA-256 documental y fecha de upload.
+  `textEvidence.currentText` tambien existe siempre y es `null` cuando no hay
+  fuente textual vigente. Cuando existe, contiene solo referencia, estado,
+  label nullable, contenido, conteo de caracteres, SHA-256 textual y fecha.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
@@ -323,6 +329,48 @@
 - Limites: no modifica la credencial, no calcula readiness, no ejecuta IA, no
   emite, no crea evidencia blockchain y no modifica `canon_v1`.
 - Estado: `implemented` en P4a.
+
+### `POST /issuers/:issuerId/credentials/:credentialId/evidence/texts`
+
+- Proposito: registrar o reemplazar la fuente textual institucional vigente de
+  una credencial `draft`.
+- Actor: usuario autenticado con membership `active`, rol `admin` u `operator`
+  e issuer `authorized`.
+- Content-Type: `application/json`.
+- Body cerrado:
+
+```json
+{
+  "label": "Descripcion oficial del curso",
+  "content": "Texto institucional..."
+}
+```
+
+- `label` es opcional y nullable; describe la fuente, no la credencial.
+- `content` es requerido, se normaliza a NFC, LF y trim, conserva saltos
+  internos y admite hasta 50.000 caracteres Unicode.
+- Response `201 Created` allowlisted:
+
+```json
+{
+  "textEvidenceReference": "internal-safe-reference",
+  "status": "current",
+  "label": "Descripcion oficial del curso",
+  "content": "Texto institucional...",
+  "characterCount": 24,
+  "sha256": "64-lowercase-hex-characters",
+  "submittedAt": "2026-08-03T12:00:00.000Z"
+}
+```
+
+- Reemplazo: la fila anterior pasa a `replaced` y se conserva; una transaccion
+  `Serializable` y un indice unico parcial sostienen una sola `current`.
+- Errores: `400` body/texto invalido, `401` sesion, `403` contexto, `404`
+  credencial ausente o cross-issuer, `409` estado no draft.
+- Separacion: no modifica description, skills, competencies, learning outcomes,
+  `Credential.updatedAt`, hash canonico, IA, readiness, emision o blockchain.
+- No se expone en verificacion publica ni wallet.
+- Estado: `implemented` en P4c-a.
 
 ### `PATCH /issuers/:issuerId/credentials/:credentialId/draft`
 

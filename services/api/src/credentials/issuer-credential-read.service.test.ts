@@ -50,7 +50,9 @@ function createCredentialRecord() {
       lastName: null
     },
     academicCourse: null,
-    documentEvidences: []
+    programCourse: null,
+    documentEvidences: [],
+    textEvidences: []
   };
 }
 
