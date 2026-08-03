@@ -125,6 +125,26 @@ function SessionObserver() {
       >
         Protected request
       </button>
+      <button
+        type="button"
+        onClick={() => {
+          const body = new FormData();
+          body.append(
+            'file',
+            new File(['document'], 'programa.pdf', {
+              type: 'application/pdf'
+            })
+          );
+          void session
+            .requestAuthenticated('/evidence/documents', {
+              method: 'POST',
+              body
+            })
+            .catch(() => undefined);
+        }}
+      >
+        Multipart request
+      </button>
     </>
   );
 }
@@ -286,6 +306,35 @@ describe('SessionProvider', () => {
     });
     expect(store.getAccessToken()).toBeNull();
     expect(store.getSelectedIssuerReference()).toBeNull();
+  });
+
+  it('passes FormData through the authenticated boundary with the stored token', async () => {
+    const store = new MemorySessionStore('[REDACTED]');
+    authApiMocks.currentUserRequest.mockResolvedValue(currentUserResponse);
+    apiClientMocks.request.mockResolvedValue({ ok: true });
+
+    renderProvider(store);
+    await waitFor(() =>
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'authenticated'
+      )
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Multipart request' })
+    );
+
+    await waitFor(() =>
+      expect(apiClientMocks.request).toHaveBeenCalledOnce()
+    );
+    const [path, options] = apiClientMocks.request.mock.calls[0];
+    expect(path).toBe('/evidence/documents');
+    expect(options).toMatchObject({
+      method: 'POST',
+      token: '[REDACTED]'
+    });
+    expect(options.body).toBeInstanceOf(FormData);
+    expect(Array.from((options.body as FormData).keys())).toEqual(['file']);
   });
 
   it('logout clears token, issuer selection and in-memory state', async () => {

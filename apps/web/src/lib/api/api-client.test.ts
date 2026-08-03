@@ -60,6 +60,35 @@ describe('ApiClient', () => {
     expect(init?.body).toBe(JSON.stringify(body));
   });
 
+  it('passes FormData unchanged without setting Content-Type and preserves Bearer auth', async () => {
+    const fetchMock = vi.fn(
+      async (...args: Parameters<typeof fetch>) => {
+        void args;
+        return new Response(JSON.stringify({ accepted: true }), {
+          status: 201
+        });
+      }
+    );
+    const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+    const body = new FormData();
+    const evidence = new File(['document'], 'programa.pdf', {
+      type: 'application/pdf'
+    });
+    body.append('file', evidence);
+
+    await client.request('/evidence/documents', {
+      method: 'POST',
+      body,
+      token: '[REDACTED]'
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = new Headers(init?.headers);
+    expect(init?.body).toBe(body);
+    expect(headers.has('Content-Type')).toBe(false);
+    expect(headers.get('Authorization')).toBe('Bearer [REDACTED]');
+  });
+
   it('returns null for a successful response without a body', async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     const client = new ApiClient(baseUrl, fetchMock as typeof fetch);

@@ -5,8 +5,8 @@ Aplicación web de Traza dentro del workspace
 
 ## Estado actual
 
-F1a/F1b, F1c, P1b, P3, P3.1c, P3.1d-b y P3.2 incorporan los primeros flujos reales del navegador
-sobre la base F0.1:
+F1a/F1b, F1c, P1b, P3, P3.1c, P3.1d-b, P3.2 y P4b incorporan los primeros
+flujos reales del navegador sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
 - Tailwind CSS 4 con variables CSS de Traza como fuente de tokens;
@@ -28,7 +28,10 @@ sobre la base F0.1:
 - selección de carrera y asignatura oficial para drafts `academic_subject`,
   con búsqueda curricular scoped y snapshot oficial aceptado desde el backend.
 - creación guiada de `academic_subject` desde carrera y materia oficial, sin
-  nombre provisional ni PATCH posterior al alta.
+  nombre provisional ni PATCH posterior al alta;
+- carga multipart de evidencia documental PDF, PNG o JPEG, con validación
+  preliminar, metadata segura y reemplazo explícito mientras la credencial
+  permanece en borrador.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -69,9 +72,18 @@ opcional de calificacion de `academic_subject` conserva un decimal entre 0 y
 10 con hasta dos decimales, elimina signos y caracteres incompatibles en el
 estado controlado y mantiene el backend como autoridad final.
 
-Todavía no están implementadas la Wallet, la emisión, la carga de PDF, la
-integración IA, la evidencia blockchain ni el listado de credenciales desde
-la interfaz. La edición P3 se limita a credenciales en estado `draft`.
+P4b agrega la sección `Evidencia documental` al detalle institucional. El
+frontend acepta archivos PDF, PNG o JPEG de hasta 20 MB y los envía como
+`FormData`, sin establecer manualmente el `Content-Type`. El backend continúa
+siendo la autoridad sobre la firma real, MIME, extensión y SHA-256. En drafts
+se puede cargar o reemplazar explícitamente la evidencia vigente; en
+credenciales issued o revoked se presenta únicamente en modo lectura.
+
+P4b no incorpora descarga, preview, historial visible, eliminación, evidencia
+textual, análisis IA automático, readiness, emisión ni blockchain. Todavía no
+están implementadas la Wallet ni el listado de credenciales desde la interfaz.
+La edición P3 y el reemplazo documental P4b se limitan a credenciales en estado
+`draft`.
 
 Las reglas operativas para nuevas pantallas están en
 [`frontend-ui-implementation-guidelines-v1.md`](../../docs/frontend/frontend-ui-implementation-guidelines-v1.md).

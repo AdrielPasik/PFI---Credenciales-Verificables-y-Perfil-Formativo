@@ -8,7 +8,8 @@ import {
   patchIssuerCredentialDraftRequest,
   resolveHolderRequest,
   searchAcademicProgramsRequest,
-  searchCurriculumAcademicSubjectsRequest
+  searchCurriculumAcademicSubjectsRequest,
+  uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
 import { ApiError } from '@/lib/errors/api-error';
 import type {
@@ -260,6 +261,54 @@ describe('credentials API', () => {
     );
     expect(requestAuthenticated).toHaveBeenCalledTimes(1);
   });
+
+  it('uploads exactly one file through an encoded multipart endpoint', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ ok: true });
+    const evidence = new File(['document'], 'programa.pdf', {
+      type: 'application/pdf'
+    });
+
+    await uploadCredentialDocumentEvidenceRequest(
+      requestAuthenticated,
+      {
+        issuerReference: ' issuer/reference ',
+        credentialReference: ' credential/reference ',
+        file: evidence
+      }
+    );
+
+    expect(requestAuthenticated).toHaveBeenCalledOnce();
+    const [path, options] = requestAuthenticated.mock.calls[0];
+    expect(path).toBe(
+      '/issuers/issuer%2Freference/credentials/credential%2Freference/evidence/documents'
+    );
+    expect(options.method).toBe('POST');
+    expect(options.headers).toBeUndefined();
+    expect(options.body).toBeInstanceOf(FormData);
+    expect(Array.from((options.body as FormData).entries())).toEqual([
+      ['file', evidence]
+    ]);
+  });
+
+  it.each([
+    ['', 'credential-reference', new File(['x'], 'ok.pdf')],
+    ['issuer-reference', '   ', new File(['x'], 'ok.pdf')],
+    ['issuer-reference', 'credential-reference', 'not-a-file']
+  ])(
+    'rejects invalid document upload inputs without a request',
+    (issuerReference, credentialReference, file) => {
+      const requestAuthenticated = vi.fn();
+
+      expect(() =>
+        uploadCredentialDocumentEvidenceRequest(requestAuthenticated, {
+          issuerReference,
+          credentialReference,
+          file: file as File
+        })
+      ).toThrow(ApiError);
+      expect(requestAuthenticated).not.toHaveBeenCalled();
+    }
+  );
 
   it('searches programs with encoded issuer, query and limit', async () => {
     const requestAuthenticated = vi.fn().mockResolvedValue({ items: [] });

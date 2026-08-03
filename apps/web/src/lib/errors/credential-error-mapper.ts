@@ -11,6 +11,7 @@ type CredentialOperation =
   | 'holder-resolution'
   | 'draft-create'
   | 'draft-update'
+  | 'document-evidence-upload'
   | 'detail';
 
 function feedback(
@@ -41,7 +42,9 @@ export function mapCredentialError(
   if (error.kind === 'network') {
     return feedback(
       'network',
-      'No pudimos conectar con el servicio. Revisá la conexión e intentá nuevamente.'
+      operation === 'document-evidence-upload'
+        ? 'No pudimos conectarnos con el servicio. Conservamos el archivo seleccionado para que puedas reintentar.'
+        : 'No pudimos conectar con el servicio. Revisá la conexión e intentá nuevamente.'
     );
   }
 
@@ -62,7 +65,9 @@ export function mapCredentialError(
   if (error.status === 403) {
     return feedback(
       'forbidden',
-      'No tenés permisos para operar con esta institución.'
+      operation === 'document-evidence-upload'
+        ? 'No tenés permisos para adjuntar evidencia en esta institución.'
+        : 'No tenés permisos para operar con esta institución.'
     );
   }
 
@@ -76,8 +81,40 @@ export function mapCredentialError(
 
     return feedback(
       'not_found',
-      'No encontramos la credencial solicitada.'
+      operation === 'document-evidence-upload'
+        ? 'No encontramos la credencial dentro del contexto institucional activo.'
+        : 'No encontramos la credencial solicitada.'
     );
+  }
+
+  if (operation === 'document-evidence-upload') {
+    if (error.status === 409) {
+      return feedback(
+        'conflict',
+        'La evidencia solo puede modificarse mientras la credencial está en borrador.'
+      );
+    }
+
+    if (error.status === 413) {
+      return feedback(
+        'invalid_input',
+        'El archivo supera el máximo permitido de 20 MB.'
+      );
+    }
+
+    if (error.status === 415) {
+      return feedback(
+        'invalid_input',
+        'El formato no es compatible. Usá PDF, PNG o JPEG.'
+      );
+    }
+
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'No pudimos procesar el archivo. Revisalo e intentá nuevamente.'
+      );
+    }
   }
 
   if (error.status === 409 && operation === 'draft-update') {

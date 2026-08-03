@@ -4,10 +4,29 @@ import {
   adaptAcademicProgramSearch,
   adaptCreatedCredentialDraft,
   adaptCurriculumAcademicSubjectSearch,
+  adaptDocumentEvidenceResponse,
   adaptHolderResolution,
   adaptIssuerCredentialDetail
 } from '@/lib/adapters/credentials.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
+
+const documentHash = 'a1b2c3d4e5f6'.padEnd(56, '0') + '9a8b7c6d';
+
+function documentEvidencePayload(
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    evidenceReference: 'evidence-internal-reference',
+    kind: 'pdf',
+    status: 'current',
+    originalFileName: 'programa.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 1536,
+    sha256: documentHash,
+    uploadedAt: '2026-08-03T12:00:00.000Z',
+    ...overrides
+  };
+}
 
 function credentialSubjectPayload(
   overrides: Record<string, unknown> = {}
@@ -57,6 +76,7 @@ function issuerCredentialPayload(
       did: 'did:example:holder'
     },
     academicCourse: null,
+    documentEvidence: { currentDocument: null },
     ...overrides
   };
 }
@@ -234,9 +254,89 @@ describe('credential adapters', () => {
         did: 'did:example:holder'
       },
       academicCourse: null,
+      documentEvidence: { currentDocument: null },
       createdAt: '2026-07-30T12:00:00.000Z',
       updatedAt: '2026-07-30T12:00:00.000Z'
     });
+  });
+
+  it('adapts an upload response and discards storage internals', () => {
+    expect(
+      adaptDocumentEvidenceResponse(
+        documentEvidencePayload({
+          storageKey: 'must-not-leak',
+          storageProvider: 'must-not-leak',
+          path: 'must-not-leak',
+          uploadedByUserId: 'must-not-leak',
+          credentialId: 'must-not-leak'
+        })
+      )
+    ).toEqual({
+      evidenceReference: 'evidence-internal-reference',
+      kind: 'pdf',
+      status: 'current',
+      originalFileName: 'programa.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 1536,
+      sizeLabel: '1,5 KB',
+      sha256: documentHash,
+      sha256Short: 'a1b2c3d4e5f6…9a8b7c6d',
+      uploadedAt: '2026-08-03T12:00:00.000Z',
+      uploadedAtLabel: expect.stringContaining('3 ago 2026')
+    });
+  });
+
+  it('adapts currentDocument from detail and preserves null explicitly', () => {
+    const withDocument = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        documentEvidence: {
+          currentDocument: documentEvidencePayload({
+            kind: 'image',
+            originalFileName: 'constancia.png',
+            mimeType: 'image/png'
+          }),
+          replaced: ['must-not-leak']
+        }
+      })
+    );
+    const withoutDocument = adaptIssuerCredentialDetail(
+      issuerCredentialPayload()
+    );
+
+    expect(withDocument.documentEvidence.currentDocument).toMatchObject({
+      kind: 'image',
+      mimeType: 'image/png',
+      originalFileName: 'constancia.png'
+    });
+    expect(withoutDocument.documentEvidence).toEqual({
+      currentDocument: null
+    });
+    expect(withDocument.documentEvidence).not.toHaveProperty('replaced');
+  });
+
+  it.each([
+    { kind: 'pdf', mimeType: 'image/png' },
+    { kind: 'image', mimeType: 'application/pdf' },
+    { kind: 'archive', mimeType: 'application/pdf' },
+    { status: 'replaced' },
+    { sha256: 'ABC' },
+    { sizeBytes: 0 },
+    { sizeBytes: 1.5 },
+    { uploadedAt: 'not-a-date' }
+  ])('rejects incompatible document evidence %#', (overrides) => {
+    expect(() =>
+      adaptDocumentEvidenceResponse(
+        documentEvidencePayload(overrides)
+      )
+    ).toThrow(IncompatiblePayloadError);
+  });
+
+  it('requires the documentEvidence envelope in issuer detail', () => {
+    expect(() =>
+      adaptIssuerCredentialDetail(
+        issuerCredentialPayload({ documentEvidence: undefined })
+      )
+    ).toThrow(IncompatiblePayloadError);
   });
 
   it('preserves nullable draft, issuer and holder values', () => {

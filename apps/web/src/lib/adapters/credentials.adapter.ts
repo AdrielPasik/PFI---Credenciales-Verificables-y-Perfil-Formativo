@@ -1,5 +1,10 @@
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 import {
+  abbreviateDocumentHash,
+  formatDocumentSize,
+  formatDocumentUploadedAt
+} from '@/lib/formatters/document-evidence';
+import {
   credentialTypeLabels,
   credentialTypeOptions
 } from '@/models/credentials';
@@ -9,9 +14,19 @@ import type {
   CredentialStatus,
   CredentialType,
   CurriculumAcademicSubjectSearchItemVM,
+  DocumentEvidenceKind,
+  DocumentEvidenceMimeType,
+  DocumentEvidenceVM,
   HolderSummaryVM,
   IssuerCredentialDetailVM
 } from '@/models/credentials';
+
+const documentEvidenceMimeTypes = new Set<DocumentEvidenceMimeType>([
+  'application/pdf',
+  'image/png',
+  'image/jpeg'
+]);
+const documentHashPattern = /^[a-f0-9]{64}$/;
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -72,6 +87,73 @@ function credentialType(value: unknown): CredentialType {
   }
 
   throw new IncompatiblePayloadError();
+}
+
+function documentEvidenceKind(value: unknown): DocumentEvidenceKind {
+  if (value === 'pdf' || value === 'image') {
+    return value;
+  }
+
+  throw new IncompatiblePayloadError();
+}
+
+function documentEvidenceMimeType(
+  value: unknown
+): DocumentEvidenceMimeType {
+  if (
+    typeof value === 'string' &&
+    documentEvidenceMimeTypes.has(value as DocumentEvidenceMimeType)
+  ) {
+    return value as DocumentEvidenceMimeType;
+  }
+
+  throw new IncompatiblePayloadError();
+}
+
+function positiveInteger(value: unknown) {
+  if (!Number.isInteger(value) || (value as number) <= 0) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return value as number;
+}
+
+function adaptDocumentEvidence(value: unknown): DocumentEvidenceVM {
+  const evidence = asRecord(value);
+  const kind = documentEvidenceKind(evidence.kind);
+  const mimeType = documentEvidenceMimeType(evidence.mimeType);
+  const sizeBytes = positiveInteger(evidence.sizeBytes);
+  const sha256 = requiredString(evidence.sha256);
+  const uploadedAt = isoDateTime(evidence.uploadedAt);
+
+  if (
+    evidence.status !== 'current' ||
+    !documentHashPattern.test(sha256) ||
+    (kind === 'pdf' && mimeType !== 'application/pdf') ||
+    (kind === 'image' && mimeType === 'application/pdf')
+  ) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return {
+    evidenceReference: requiredString(evidence.evidenceReference),
+    kind,
+    status: 'current',
+    originalFileName: requiredString(evidence.originalFileName),
+    mimeType,
+    sizeBytes,
+    sizeLabel: formatDocumentSize(sizeBytes),
+    sha256,
+    sha256Short: abbreviateDocumentHash(sha256),
+    uploadedAt,
+    uploadedAtLabel: formatDocumentUploadedAt(uploadedAt)
+  };
+}
+
+export function adaptDocumentEvidenceResponse(
+  payload: unknown
+): DocumentEvidenceVM {
+  return adaptDocumentEvidence(payload);
 }
 
 function academicProgram(
@@ -159,6 +241,7 @@ export function adaptIssuerCredentialDetail(
   const credentialSubject = asRecord(credential.credentialSubject);
   const issuer = asRecord(credential.issuer);
   const holder = asRecord(credential.holder);
+  const documentEvidence = asRecord(credential.documentEvidence);
   const createdAt = isoDateTime(credential.createdAt);
   const updatedAt = isoDateTime(credential.updatedAt);
 
@@ -216,6 +299,12 @@ export function adaptIssuerCredentialDetail(
       credential.academicCourse === null
         ? null
         : adaptDetailAcademicCourse(credential.academicCourse),
+    documentEvidence: {
+      currentDocument:
+        documentEvidence.currentDocument === null
+          ? null
+          : adaptDocumentEvidence(documentEvidence.currentDocument)
+    },
     createdAt,
     updatedAt
   };

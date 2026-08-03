@@ -8,6 +8,7 @@ import type {
   CreateManualCredentialDraftCommand,
   CurriculumAcademicSubjectSearchCommand,
   HolderResolutionCommand,
+  UploadCredentialDocumentEvidenceCommand,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
 
@@ -211,6 +212,38 @@ export function getIssuerCredentialRequest(
 ) {
   return requestAuthenticated(
     `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}`
+  );
+}
+
+export function uploadCredentialDocumentEvidenceRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: UploadCredentialDocumentEvidenceCommand
+) {
+  const issuerReference = command.issuerReference.trim();
+  const credentialReference = command.credentialReference.trim();
+
+  if (
+    issuerReference.length === 0 ||
+    credentialReference.length === 0 ||
+    typeof File === 'undefined' ||
+    !(command.file instanceof File)
+  ) {
+    throw new ApiError(
+      'La evidencia documental seleccionada no es válida.',
+      'http',
+      400
+    );
+  }
+
+  const body = new FormData();
+  body.append('file', command.file);
+
+  return requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}/evidence/documents`,
+    {
+      method: 'POST',
+      body
+    }
   );
 }
 

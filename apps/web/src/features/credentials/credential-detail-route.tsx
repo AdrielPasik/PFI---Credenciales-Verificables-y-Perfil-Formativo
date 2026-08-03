@@ -25,17 +25,20 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
+import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
 import {
   adaptAcademicProgramSearch,
   adaptCurriculumAcademicSubjectSearch,
+  adaptDocumentEvidenceResponse,
   adaptIssuerCredentialDetail
 } from '@/lib/adapters/credentials.adapter';
 import {
   getIssuerCredentialRequest,
   patchIssuerCredentialDraftRequest,
   searchAcademicProgramsRequest,
-  searchCurriculumAcademicSubjectsRequest
+  searchCurriculumAcademicSubjectsRequest,
+  uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
@@ -43,6 +46,7 @@ import type {
   CredentialFeedback,
   AcademicProgramSearchItemVM,
   CurriculumAcademicSubjectSearchItemVM,
+  DocumentEvidenceVM,
   IssuerCredentialDetailVM,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
@@ -215,9 +219,33 @@ export function CredentialDetailController({
     return adaptCurriculumAcademicSubjectSearch(payload);
   }
 
+  async function uploadDocumentEvidence(file: File) {
+    const payload = await uploadCredentialDocumentEvidenceRequest(
+      requestAuthenticated,
+      {
+        issuerReference: membership.issuerReference,
+        credentialReference,
+        file
+      }
+    );
+    const uploaded = adaptDocumentEvidenceResponse(payload);
+
+    setDetail((current) =>
+      current
+        ? {
+            ...current,
+            documentEvidence: { currentDocument: uploaded }
+          }
+        : current
+    );
+
+    return uploaded;
+  }
+
   return (
     <CredentialDetailView
       detail={detail}
+      onUploadDocumentEvidence={uploadDocumentEvidence}
       draftEditor={{
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
@@ -235,9 +263,11 @@ export function CredentialDetailController({
 
 export function CredentialDetailView({
   detail,
-  draftEditor
+  draftEditor,
+  onUploadDocumentEvidence
 }: {
   detail: IssuerCredentialDetailVM;
+  onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
   draftEditor?: {
     issuerReference: string;
     onSave(
@@ -432,6 +462,12 @@ export function CredentialDetailView({
           onTerminalError={draftEditor.onTerminalError}
         />
       ) : null}
+
+      <DocumentEvidenceSection
+        credentialStatus={detail.status}
+        currentDocument={detail.documentEvidence.currentDocument}
+        onUpload={onUploadDocumentEvidence}
+      />
     </div>
   );
 }

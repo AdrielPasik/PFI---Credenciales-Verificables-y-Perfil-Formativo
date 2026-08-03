@@ -61,4 +61,34 @@ describe('mapCredentialError', () => {
     });
     expect(result.message).not.toContain('private');
   });
+
+  it.each([
+    [400, 'No pudimos procesar el archivo. Revisalo e intentá nuevamente.'],
+    [403, 'No tenés permisos para adjuntar evidencia en esta institución.'],
+    [404, 'No encontramos la credencial dentro del contexto institucional activo.'],
+    [409, 'La evidencia solo puede modificarse mientras la credencial está en borrador.'],
+    [413, 'El archivo supera el máximo permitido de 20 MB.'],
+    [415, 'El formato no es compatible. Usá PDF, PNG o JPEG.']
+  ])('maps document upload HTTP %i safely', (status, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'document-evidence-upload'
+    );
+
+    expect(result.message).toBe(message);
+    expect(result.message).not.toContain('private');
+  });
+
+  it('preserves the selected-file recovery instruction on network failure', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private network detail', 'network'),
+        'document-evidence-upload'
+      )
+    ).toEqual({
+      code: 'network',
+      message:
+        'No pudimos conectarnos con el servicio. Conservamos el archivo seleccionado para que puedas reintentar.'
+    });
+  });
 });

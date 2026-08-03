@@ -17,6 +17,10 @@ const sessionMocks = vi.hoisted(() => ({
   requestAuthenticated: vi.fn()
 }));
 
+const unusedDocumentUpload = vi.fn(async () => {
+  throw new Error('Document upload is not used in this test.');
+});
+
 vi.mock('@/lib/session/session-provider', () => ({
   useSession: () => ({
     requestAuthenticated: sessionMocks.requestAuthenticated
@@ -33,6 +37,18 @@ const membership = {
   roleLabel: 'Administrador',
   status: 'active' as const,
   operational: true
+};
+
+const evidenceHash = 'b'.repeat(64);
+const uploadResponse = {
+  evidenceReference: 'evidence-internal-reference',
+  kind: 'pdf',
+  status: 'current',
+  originalFileName: 'programa.pdf',
+  mimeType: 'application/pdf',
+  sizeBytes: 8,
+  sha256: evidenceHash,
+  uploadedAt: '2026-08-03T12:00:00.000Z'
 };
 
 const draftResponse = {
@@ -72,7 +88,8 @@ const draftResponse = {
     email: 'holder@example.com',
     did: 'did:example:holder'
   },
-  academicCourse: null
+  academicCourse: null,
+  documentEvidence: { currentDocument: null }
 };
 
 function detailFixture(
@@ -123,6 +140,7 @@ function detailFixture(
       did: 'did:example:holder'
     },
     academicCourse: null,
+    documentEvidence: { currentDocument: null },
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:00:00.000Z',
     ...overrides,
@@ -233,6 +251,74 @@ describe('CredentialDetailController', () => {
     expect(
       (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
     ).toBe('Descripción persistida');
+  });
+
+  it('uploads one multipart document and updates only the current evidence snapshot', async () => {
+    sessionMocks.requestAuthenticated
+      .mockResolvedValueOnce(draftResponse)
+      .mockResolvedValueOnce(uploadResponse);
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const input = (await screen.findByLabelText(
+      'Seleccionar archivo de evidencia'
+    )) as HTMLInputElement;
+    const file = new File(['document'], 'programa.pdf', {
+      type: 'application/pdf'
+    });
+    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Subir evidencia' }));
+
+    expect(await screen.findByText('Evidencia actual')).toBeTruthy();
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    const [path, options] = sessionMocks.requestAuthenticated.mock.calls[1];
+    expect(path).toBe(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/documents'
+    );
+    expect(options.method).toBe('POST');
+    expect(options.body).toBeInstanceOf(FormData);
+    expect(Array.from((options.body as FormData).entries())).toEqual([
+      ['file', file]
+    ]);
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.some(
+        ([, requestOptions]) => requestOptions?.method === 'PATCH'
+      )
+    ).toBe(false);
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.some(([pathValue]) =>
+        String(pathValue).match(/\/ai(?:\/|$)|\/issue(?:\/|$)|blockchain/i)
+      )
+    ).toBe(false);
+    expect(screen.getByRole('heading', { name: draftResponse.title })).toBeTruthy();
+  });
+
+  it('reconstructs current evidence from the issuer read model on direct load', async () => {
+    sessionMocks.requestAuthenticated.mockResolvedValue({
+      ...draftResponse,
+      documentEvidence: { currentDocument: uploadResponse }
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    expect(await screen.findByText('Evidencia actual')).toBeTruthy();
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
+    expect(screen.getByText('Documento PDF')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
+    );
   });
 
   it('loads the curriculum-scoped catalog through the authenticated controller boundary', async () => {
@@ -361,6 +447,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('shows one institution when issuer and draft values match after trim', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: {
             institutionName: '  Universidad Seleccionada  '
@@ -378,6 +465,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('uses issuer displayName without warning when draft institution is null', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: { institutionName: null }
         })}
@@ -393,6 +481,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('shows an honest fallback when the issuer DID is unavailable', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           issuer: {
             displayName: 'Universidad Seleccionada',
@@ -409,6 +498,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('keeps issuer displayName authoritative and warns about a different draft institution', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: {
             institutionName: 'Institución Histórica'
@@ -430,6 +520,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('does not duplicate the title when the draft achievement matches', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: {
             achievementName: '  Arquitectura de Software  '
@@ -447,6 +538,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('keeps title usable without a draft achievement name', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: { achievementName: null }
         })}
@@ -462,6 +554,7 @@ describe('CredentialDetailView institutional consistency', () => {
   it('keeps title authoritative and warns about a different draft achievement name', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           credentialSubject: {
             achievementName: 'Arquitectura Aplicada'
@@ -487,6 +580,7 @@ describe('CredentialDetailView read-only states', () => {
   it('represents a non-draft state without inventing later controls', () => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({
           status: 'issued',
           statusLabel: 'Emitida',
@@ -523,6 +617,7 @@ describe('CredentialDetailView read-only states', () => {
   ] as const)('does not render the draft editor for %s', (status, statusLabel) => {
     render(
       <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({ status, statusLabel })}
         draftEditor={{
           issuerReference: 'issuer-selected-reference',

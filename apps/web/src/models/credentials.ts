@@ -106,6 +106,33 @@ export type CredentialDraftFormSubmission =
 
 export type CredentialStatus = 'draft' | 'issued' | 'revoked';
 
+export type DocumentEvidenceKind = 'pdf' | 'image';
+export type DocumentEvidenceStatus = 'current';
+export type DocumentEvidenceMimeType =
+  | 'application/pdf'
+  | 'image/png'
+  | 'image/jpeg';
+
+export interface DocumentEvidenceVM {
+  evidenceReference: string;
+  kind: DocumentEvidenceKind;
+  status: DocumentEvidenceStatus;
+  originalFileName: string;
+  mimeType: DocumentEvidenceMimeType;
+  sizeBytes: number;
+  sizeLabel: string;
+  sha256: string;
+  sha256Short: string;
+  uploadedAt: string;
+  uploadedAtLabel: string;
+}
+
+export interface UploadCredentialDocumentEvidenceCommand {
+  issuerReference: string;
+  credentialReference: string;
+  file: File;
+}
+
 export interface CreatedCredentialDraftVM {
   credentialReference: string;
   issuerReference: string;
@@ -158,6 +185,9 @@ export interface IssuerCredentialDetailVM {
     hours: string | null;
     program: AcademicProgramSearchItemVM | null;
   } | null;
+  documentEvidence: {
+    currentDocument: DocumentEvidenceVM | null;
+  };
   createdAt: string;
   updatedAt: string;
 }

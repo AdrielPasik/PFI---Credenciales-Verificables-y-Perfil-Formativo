@@ -30,11 +30,13 @@ export class ApiClient {
     path: `/${string}`,
     options: ApiRequestOptions = {}
   ): Promise<unknown> {
+    const formDataBody = isFormData(options.body);
+    const requestBody = serializeRequestBody(options.body);
     const headers = new Headers({
       Accept: 'application/json'
     });
 
-    if (options.body !== undefined) {
+    if (options.body !== undefined && !formDataBody) {
       headers.set('Content-Type', 'application/json');
     }
 
@@ -51,10 +53,7 @@ export class ApiClient {
         {
           method: options.method ?? 'GET',
           headers,
-          body:
-            options.body === undefined
-              ? undefined
-              : JSON.stringify(options.body),
+          body: requestBody,
           signal: options.signal
         }
       );
@@ -92,6 +91,18 @@ export class ApiClient {
 
     return payload;
   }
+}
+
+function isFormData(body: unknown): body is FormData {
+  return typeof FormData !== 'undefined' && body instanceof FormData;
+}
+
+function serializeRequestBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) {
+    return undefined;
+  }
+
+  return isFormData(body) ? body : JSON.stringify(body);
 }
 
 export function createApiClient() {
