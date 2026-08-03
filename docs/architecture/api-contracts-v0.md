@@ -248,6 +248,9 @@
       "curriculumReference": "internal-command-reference",
       "curriculumCode": "1621"
     }
+  },
+  "documentEvidence": {
+    "currentDocument": null
   }
 }
 ```
@@ -260,6 +263,10 @@
   `hours` tambien son nullables. `academicCourse.program` es `null` para una
   seleccion plana y contiene el contexto curricular allowlisted cuando fue
   seleccionado explicitamente.
+  `documentEvidence.currentDocument` siempre existe en la forma de respuesta y
+  es `null` cuando no hay evidencia vigente. Cuando existe, contiene solo la
+  referencia publica, tipo, estado, nombre visible, MIME canonico, tamano,
+  SHA-256 documental y fecha de upload.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
@@ -275,6 +282,47 @@
   comportamiento para compatibilidad tecnica y no es el endpoint publico
   final del verificador.
 - Estado: `implemented`.
+
+### `POST /issuers/:issuerId/credentials/:credentialId/evidence/documents`
+
+- Proposito: adjuntar o reemplazar la evidencia documental vigente de una
+  credencial `draft` dentro del contexto institucional autorizado.
+- Actor: usuario autenticado con membership `active`, rol `admin` u `operator`
+  e issuer `authorized`.
+- Request: `multipart/form-data` con exactamente un campo archivo llamado
+  `file`; no acepta metadata adicional.
+- Formatos: PDF, PNG y JPEG, detectados por firma de bytes y normalizados a
+  `application/pdf`, `image/png` o `image/jpeg`.
+- Limite: 20 MB.
+- Response `201 Created`:
+
+```json
+{
+  "evidenceReference": "safe-reference",
+  "kind": "pdf",
+  "status": "current",
+  "originalFileName": "programa.pdf",
+  "mimeType": "application/pdf",
+  "sizeBytes": 123456,
+  "sha256": "64-lowercase-hex-characters",
+  "uploadedAt": "2026-08-03T12:00:00.000Z"
+}
+```
+
+- Reemplazo: una evidencia `current` anterior pasa a `replaced` dentro de una
+  transaccion `Serializable`; sus bytes no se eliminan. El nuevo documento pasa
+  a `current` y un indice unico parcial garantiza una sola evidencia vigente.
+- Scoping: primero valida auth y autorizacion institucional, luego busca por
+  `credentialId + issuerId`. Una credencial inexistente o de otro issuer usa el
+  mismo `404` seguro. `issued` y `revoked` responden `409`.
+- Errores: `400` para archivo ausente/body invalido, `413` sobre 20 MB, `415`
+  para firma, MIME o extension no admitidos, `401/403/404/409` segun auth y
+  dominio.
+- Seguridad: no devuelve provider, storage key, path, uploader, historial ni
+  objetos Prisma. No existe endpoint de descarga en P4a.
+- Limites: no modifica la credencial, no calcula readiness, no ejecuta IA, no
+  emite, no crea evidencia blockchain y no modifica `canon_v1`.
+- Estado: `implemented` en P4a.
 
 ### `PATCH /issuers/:issuerId/credentials/:credentialId/draft`
 

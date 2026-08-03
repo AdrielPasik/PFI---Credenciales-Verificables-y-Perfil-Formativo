@@ -48,6 +48,21 @@
 - No on-chain: resultados semanticos, embeddings, evidencia textual.
 - Nota: puede haber multiples analisis por evolucion de pipeline o taxonomia.
 
+## DocumentEvidence
+
+- Proposito: conservar metadata verificable e historial de documentos de
+  respaldo asociados a una credencial.
+- Campos: `id`, `credential_id`, `uploaded_by_user_id`, `kind`,
+  `original_file_name`, `mime_type`, `size_bytes`, `sha256`,
+  `storage_provider`, `storage_key`, `status`, `uploaded_at`, `replaced_at`.
+- Relaciones: pertenece a `Credential` y al `User` institucional que realizo el
+  upload.
+- Relacional: metadata, hash, provider/key interna, estado e historial.
+- Fuera de PostgreSQL: bytes del documento.
+- Regla v0: una sola fila `current` por credencial mediante indice unico
+  parcial; filas anteriores pasan a `replaced` y se conservan.
+- No on-chain: archivo, storage key, metadata de upload y SHA-256 documental.
+
 ## FormativeProfile
 
 - Proposito: representar el resumen agregado del perfil formativo de un usuario.
@@ -136,6 +151,8 @@
 - `User` 1..N `Credential`
 - `Issuer` 1..N `Credential`
 - `Credential` 1..N `SemanticAnalysis`
+- `Credential` 1..N `DocumentEvidence`
+- `User` 1..N `DocumentEvidence` como uploader
 - `User` 1..N `FormativeProfile`
 - `Credential` 0..1 `BlockchainRecord`
 - `Credential` 1..N `VerificationEvent`

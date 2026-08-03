@@ -60,6 +60,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanAttachDocumentEvidenceForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'adjuntar evidencia documental'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

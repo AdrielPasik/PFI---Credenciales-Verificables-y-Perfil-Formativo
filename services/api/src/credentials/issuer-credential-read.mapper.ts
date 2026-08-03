@@ -6,6 +6,11 @@ import {
 } from '@prisma/client';
 
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
+import {
+  documentEvidenceResponseSelect,
+  type DocumentEvidenceResponseRecord,
+  mapDocumentEvidenceResponse
+} from '../document-evidence/document-evidence.mapper';
 import { IssuerCredentialDetailResponseDto } from './dto/issuer-credential-detail-response.dto';
 
 export const issuerCredentialReadSelect = {
@@ -60,6 +65,16 @@ export const issuerCredentialReadSelect = {
         }
       }
     }
+  },
+  documentEvidences: {
+    where: {
+      status: 'current'
+    },
+    orderBy: {
+      uploadedAt: 'desc'
+    },
+    take: 1,
+    select: documentEvidenceResponseSelect
   }
 } as const;
 
@@ -109,6 +124,7 @@ export interface IssuerCredentialReadRecord {
       };
     };
   } | null;
+  documentEvidences: DocumentEvidenceResponseRecord[];
 }
 
 export function mapIssuerCredentialReadModel(
@@ -211,7 +227,12 @@ export function mapIssuerCredentialReadModel(
                 }
               : null
         }
-      : null
+      : null,
+    documentEvidence: {
+      currentDocument: credential.documentEvidences?.[0]
+        ? mapDocumentEvidenceResponse(credential.documentEvidences[0])
+        : null
+    }
   };
 }
 

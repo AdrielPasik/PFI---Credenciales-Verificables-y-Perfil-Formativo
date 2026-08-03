@@ -17,6 +17,8 @@ Este directorio contiene el `schema.prisma` base del backend API y los artefacto
 - `Issuer`: institucion o entidad emisora.
 - `IssuerMembership`: pertenencia institucional para evitar un `issuer_admin` global.
 - `Credential`: artefacto central off-chain.
+- `DocumentEvidence`: metadata e historial de evidencia documental por
+  credencial; los bytes viven fuera de PostgreSQL.
 - `SemanticAnalysis`: resultado semantico persistible por credencial.
 - `FormativeProfile`: perfil agregado versionable por usuario.
 - `BlockchainRecord`: evidencia blockchain historica por credencial.
@@ -60,6 +62,11 @@ Esto mantiene compatibilidad con los JSON Schemas existentes y evita sobreingeni
   issuer; `ProgramCourse` es unico por version curricular y materia.
 - `Credential.programCourseId` conserva opcionalmente la relacion curricular
   exacta elegida para un draft, sin reemplazar el snapshot de contenido.
+- `DocumentEvidence` conserva cero o una fila `current` y varias `replaced` por
+  credencial. La unicidad vigente se implementa con un indice unico parcial en
+  SQL porque Prisma no expresa directamente ese predicado.
+- `DocumentEvidence.sha256` identifica los bytes documentales y no reemplaza
+  `Credential.canonicalHash` ni participa en `canon_v1`.
 
 ## Que no esta implementado todavia
 
@@ -85,6 +92,9 @@ El schema Prisma no intenta reemplazar los contratos JSON versionados. Los artef
 
 - el backend NestJS implementa auth, credenciales, perfil y catalogo incremental;
 - el cliente Prisma puede generarse localmente con scripts del workspace;
+- la migracion P4a agrega `DocumentEvidence` de forma aditiva, con relaciones a
+  `Credential` y `User`, indices de consulta y una sola evidencia `current` por
+  credencial;
 - el mismo issuer demo, identificado de forma estable por
   `did:example:issuer-demo`, se crea o actualiza idempotentemente con el nombre
   visible `Universidad Argentina de la Empresa (UADE)`;

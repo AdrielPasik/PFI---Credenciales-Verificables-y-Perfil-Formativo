@@ -259,7 +259,31 @@ curricular a partir del par publico `academicCourseReference` y
 Estas relaciones no constituyen readiness ni evidencia de aprobacion. Tampoco
 disparan emision, hashing, blockchain, PDF o IA.
 
-## 13. Que no decidir todavia
+## 13. Evidencia documental de un draft
+
+Una `Credential` puede conservar varias filas `DocumentEvidence`, pero en P4a
+tiene como maximo una evidencia `current`; las anteriores se mantienen como
+`replaced` con `replacedAt` y sin borrado fisico automatico.
+
+- solo un usuario institucional `admin` u `operator` activo de un issuer
+  autorizado puede adjuntar evidencia;
+- la credencial debe pertenecer al issuer solicitado y estar en `draft`;
+- PDF, PNG y JPEG son los unicos formatos admitidos y se detectan por firma;
+- el nombre, extension y MIME declarados no son fuente suficiente de verdad;
+- los bytes se guardan fuera de PostgreSQL mediante `DocumentStoragePort`;
+- el adapter local genera una clave UUID y no usa el nombre original como path;
+- cada fila conserva SHA-256 lowercase de los bytes exactos, separado del hash
+  canonico de la credencial;
+- reemplazar evidencia no cambia `Credential.status`, `updatedAt`, contenido,
+  hash, analisis ni blockchain;
+- el indice unico parcial PostgreSQL y la transaccion `Serializable` sostienen
+  la invariante de una sola evidencia vigente por credencial;
+- P4a no expone descarga, preview ni historial por API.
+
+La evidencia es documentacion institucional asociada. No demuestra por si sola
+aprobacion, finalizacion, readiness ni validez publica de una credencial.
+
+## 14. Que no decidir todavia
 
 Por ahora no se decide:
 

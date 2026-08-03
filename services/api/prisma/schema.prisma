@@ -123,6 +123,16 @@ enum SharingGrantScope {
   credential_and_profile
 }
 
+enum DocumentEvidenceKind {
+  pdf
+  image
+}
+
+enum DocumentEvidenceStatus {
+  current
+  replaced
+}
+
 model User {
   id                  String              @id @default(uuid())
   did                 String?             @unique
@@ -140,6 +150,7 @@ model User {
   sharingGrants       SharingGrant[]      @relation("SharingGrantOwner")
   createdSharingGrants SharingGrant[]     @relation("SharingGrantCreator")
   authCredential      AuthCredential?
+  uploadedDocumentEvidences DocumentEvidence[]  @relation("DocumentEvidenceUploader")
 }
 
 model AuthCredential {
@@ -221,6 +232,7 @@ model Credential {
   blockchainRecords        BlockchainRecord[]
   verificationEvents       VerificationEvent[]
   sharingGrants            SharingGrant[]
+  documentEvidences        DocumentEvidence[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -253,6 +265,28 @@ model SemanticAnalysis {
   @@index([credentialId])
   @@index([pipelineVersion])
   @@index([credentialId, pipelineVersion, taxonomyVersion])
+}
+
+model DocumentEvidence {
+  id               String                 @id @default(uuid())
+  credentialId     String
+  uploadedByUserId String
+  kind             DocumentEvidenceKind
+  originalFileName String
+  mimeType         String
+  sizeBytes        Int
+  sha256           String
+  storageProvider  String
+  storageKey       String                 @unique
+  status           DocumentEvidenceStatus @default(current)
+  uploadedAt       DateTime               @default(now())
+  replacedAt       DateTime?
+  credential       Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  uploadedBy       User                   @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([credentialId])
+  @@index([uploadedByUserId])
+  @@index([sha256])
 }
 
 model FormativeProfile {

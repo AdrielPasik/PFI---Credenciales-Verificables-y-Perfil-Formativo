@@ -26,6 +26,7 @@ GET  /issuers/:issuerId/catalog/academic-programs
 GET  /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academic-subjects
 GET  /issuers/:issuerId/credentials/:credentialId
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
+POST /issuers/:issuerId/credentials/:credentialId/evidence/documents
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -116,6 +117,22 @@ plana de P3.1a sigue soportada. El catalogo no prueba aprobacion; fecha,
 periodo y nota siguen describiendo el
 logro concreto del holder.
 
+`POST /issuers/:issuerId/credentials/:credentialId/evidence/documents` recibe
+`multipart/form-data` con exactamente un archivo `file` y un maximo de 20 MB.
+Solo admite PDF, PNG y JPEG detectados por firma; valida MIME y extension,
+normaliza el formato, calcula SHA-256 sobre los bytes exactos y persiste metadata
+en `DocumentEvidence`. Los bytes se guardan mediante `DocumentStoragePort` y el
+adapter local de desarrollo. Una evidencia vigente anterior pasa a `replaced`
+sin borrado fisico, mientras un indice unico parcial y una transaccion
+`Serializable` garantizan una sola `current` por credencial. El endpoint es
+draft-only, no modifica `Credential`, no expone storage keys ni historial y no
+ejecuta IA, readiness, emision, hashing canonico o blockchain.
+
+El detalle issuer-facing devuelve siempre
+`documentEvidence.currentDocument`, con `null` cuando no existe evidencia. La
+respuesta allowlisted incluye referencia, tipo, estado, nombre, MIME, tamano,
+SHA-256 documental y fecha; no incluye provider, key, path ni uploader.
+
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
 ## Perfil formativo
@@ -173,6 +190,7 @@ Tests de slices:
 - `npm run test:auth --workspace @credential-intelligence/api`
 - `npm run test:holder-resolution --workspace @credential-intelligence/api`
 - `npm run test:academic-catalog --workspace @credential-intelligence/api`
+- `npm run test:document-evidence --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-read --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-draft-update --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-type-fields --workspace @credential-intelligence/api`
@@ -202,6 +220,18 @@ local/dev son:
 
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
 
+El storage documental local usa por default
+`services/api/.local-storage/document-evidence`, fuera de rutas publicas y de
+Git. Puede configurarse con:
+
+```dotenv
+DOCUMENT_STORAGE_PROVIDER=local
+DOCUMENT_STORAGE_LOCAL_ROOT=
+```
+
+Firebase, S3 o Azure podran implementar el mismo `DocumentStoragePort` en otro
+slice. P4a no expone descarga ni usa cloud storage.
+
 Renombrar el issuer no modifica snapshots historicos de credenciales. Un draft
 antiguo puede conservar `Demo University` en `credentialSubject`, mientras un
 draft nuevo deriva `Universidad Argentina de la Empresa (UADE)` desde el
@@ -211,4 +241,8 @@ resetea ni limpia la base automaticamente.
 
 ## Limites
 
-El backend no tiene frontend, mobile, MetaMask, Base Sepolia, IA HTTP, ejecucion Python desde NestJS, sharing/link/QR, revocacion completa ni hardening productivo blockchain. El modo `credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo el comportamiento por default.
+El backend no tiene frontend para evidencia documental, descarga/preview,
+Firebase/cloud storage, mobile, MetaMask, Base Sepolia, sharing/link/QR,
+revocacion completa ni hardening productivo blockchain. El modo
+`credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo
+el comportamiento por default.

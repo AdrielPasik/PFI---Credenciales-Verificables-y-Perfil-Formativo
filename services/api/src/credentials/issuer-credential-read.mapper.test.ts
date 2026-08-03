@@ -5,11 +5,14 @@ import {
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
+  DocumentEvidenceKind,
+  DocumentEvidenceStatus,
   Prisma,
   UserStatus
 } from '@prisma/client';
 
 import {
+  issuerCredentialReadSelect,
   type IssuerCredentialReadRecord,
   mapIssuerCredentialReadModel
 } from './issuer-credential-read.mapper';
@@ -59,6 +62,7 @@ function createRecord(
     },
     academicCourse: null,
     programCourse: null,
+    documentEvidences: [],
     ...overrides
   };
 }
@@ -132,7 +136,10 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
       email: 'holder.demo@example.com',
       did: 'did:example:holder-demo'
     },
-    academicCourse: null
+    academicCourse: null,
+    documentEvidence: {
+      currentDocument: null
+    }
   });
 
   for (const forbiddenField of [
@@ -245,6 +252,61 @@ test('mapper supports nullable holder DID and derives displayLabel from email', 
     displayLabel: 'holder@example.com',
     email: 'holder@example.com',
     did: null
+  });
+});
+
+test('mapper exposes only the selected current document and never storage internals', () => {
+  const response = mapIssuerCredentialReadModel(
+    createRecord({
+      documentEvidences: [
+        {
+          id: 'evidence-current',
+          kind: DocumentEvidenceKind.image,
+          status: DocumentEvidenceStatus.current,
+          originalFileName: 'constancia.png',
+          mimeType: 'image/png',
+          sizeBytes: 123,
+          sha256: 'a'.repeat(64),
+          uploadedAt: new Date('2026-08-03T12:00:00.000Z')
+        }
+      ]
+    })
+  );
+
+  assert.deepEqual(response.documentEvidence, {
+    currentDocument: {
+      evidenceReference: 'evidence-current',
+      kind: DocumentEvidenceKind.image,
+      status: DocumentEvidenceStatus.current,
+      originalFileName: 'constancia.png',
+      mimeType: 'image/png',
+      sizeBytes: 123,
+      sha256: 'a'.repeat(64),
+      uploadedAt: '2026-08-03T12:00:00.000Z'
+    }
+  });
+  const serialized = JSON.stringify(response.documentEvidence);
+  assert.equal(serialized.includes('storageKey'), false);
+  assert.equal(serialized.includes('storageProvider'), false);
+  assert.equal(serialized.includes('uploadedByUserId'), false);
+  assert.equal(serialized.includes('replacedAt'), false);
+});
+
+test('issuer credential select requests only current document evidence with an allowlist', () => {
+  assert.deepEqual(issuerCredentialReadSelect.documentEvidences, {
+    where: { status: 'current' },
+    orderBy: { uploadedAt: 'desc' },
+    take: 1,
+    select: {
+      id: true,
+      kind: true,
+      status: true,
+      originalFileName: true,
+      mimeType: true,
+      sizeBytes: true,
+      sha256: true,
+      uploadedAt: true
+    }
   });
 });
 

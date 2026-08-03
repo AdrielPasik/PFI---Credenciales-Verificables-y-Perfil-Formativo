@@ -4,6 +4,8 @@ import {
   CredentialType
 } from '@prisma/client';
 
+import { CredentialDocumentEvidenceResponseDto } from '../../document-evidence/dto/document-evidence-response.dto';
+
 export class IssuerCredentialSubjectResponseDto {
   achievement_name!: string | null;
   institution_name!: string | null;
@@ -65,4 +67,5 @@ export class IssuerCredentialDetailResponseDto {
   issuer!: IssuerCredentialIssuerResponseDto;
   holder!: IssuerCredentialHolderResponseDto;
   academicCourse!: IssuerCredentialAcademicCourseResponseDto | null;
+  documentEvidence!: CredentialDocumentEvidenceResponseDto;
 }

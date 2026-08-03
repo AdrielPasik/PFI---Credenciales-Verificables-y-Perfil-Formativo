@@ -65,3 +65,6 @@ data/processed/*
 !data/processed/.gitkeep
 
 *-review-bundle.txt
+
+# Local document evidence bytes (development adapter)
+services/api/.local-storage/
