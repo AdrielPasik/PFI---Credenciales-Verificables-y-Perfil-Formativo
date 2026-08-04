@@ -43,6 +43,12 @@ workspace y migraciones manuales/one-off fuera del arranque. Render usa la URL
 pooled de Neon, S3 privado, `WEB_ORIGIN` exacto y blockchain `mock`. El detalle
 operativo esta en `render-api-deployment-runbook-v0.md`.
 
+El Web Service P4g ya esta operativo. P4h prepara Vercel con Root Directory
+`apps/web`, instalacion npm workspace detectada, build Next.js y una unica
+variable publica: `NEXT_PUBLIC_API_BASE_URL` apuntando a Render. Despues del
+primer deploy, Render debe recibir el origin HTTPS exacto de Vercel en
+`WEB_ORIGIN`. El detalle esta en `vercel-frontend-deployment-runbook-v0.md`.
+
 ## Variables por responsabilidad
 
 Frontend solo conoce URL publica de API. NestJS conoce DB, S3, FastAPI y signer
@@ -68,8 +74,8 @@ Los modulos actuales deben leer configuracion explicita. P4e ya permite
 `DOCUMENT_STORAGE_PROVIDER=local|s3`, valida las variables S3 obligatorias y no
 instancia AWS en local. P4f deja operativas migraciones deploy, seed y
 verificacion demo, ya validadas contra un Neon real administrado fuera del repo.
-P4g documenta Render para NestJS sin ejecutar el deploy; P4h-P4i completaran web
-e IA desplegadas.
+P4g ya opera en Render y P4h deja preparada la web sin ejecutar el deploy;
+P4i completara la IA privada desplegada.
 
 ## Riesgos
 

@@ -74,6 +74,13 @@ endpoints IA no forman parte del smoke, en lugar de publicar un FastAPI temporal
 La configuracion completa se encuentra en
 `render-api-deployment-runbook-v0.md`.
 
+Vercel recibe solamente `NEXT_PUBLIC_API_BASE_URL`, que es publica por diseno y
+apunta a NestJS. No recibe JWT secret, DB, AWS, IA o blockchain. El access token
+de usuario se obtiene en runtime y conserva el alcance demo-grade actual en
+`sessionStorage`; no es una variable de deployment. Render debe allowlistar el
+origin Vercel exacto. Los previews no quedan autorizados automaticamente ni
+justifican un wildcard CORS. Ver `vercel-frontend-deployment-runbook-v0.md`.
+
 ## Alcance
 
 - secretos por servicio;

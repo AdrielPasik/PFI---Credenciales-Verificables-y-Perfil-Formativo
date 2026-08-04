@@ -251,6 +251,17 @@ tener credenciales reales y evidencia consistente que mostrar.
 - semantica resumida;
 - preparacion futura para QR.
 
+### Readiness de deployment P4h
+
+- la API NestJS real ya opera en Render y fue consumida por el frontend local;
+- `apps/web` queda preparado para Vercel con build reproducible y
+  `NEXT_PUBLIC_API_BASE_URL` como unica configuracion publica;
+- el proyecto y deploy reales de Vercel siguen siendo operaciones manuales;
+- luego del deploy, Render debe allowlistar el origin Vercel exacto mediante
+  `WEB_ORIGIN`;
+- los previews no tienen acceso funcional a la API mientras no exista una
+  politica multi-origin explicita y segura.
+
 ## 8. Reglas UX
 
 - No presentar la app como producto cripto especulativo.

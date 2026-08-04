@@ -189,3 +189,25 @@ npm run test --workspace @credential-intelligence/web
 npm run build --workspace @credential-intelligence/web
 npm run start --workspace @credential-intelligence/web
 ```
+
+## Deployment en Vercel
+
+P4h deja preparado el workspace para un proyecto Vercel conectado al
+monorepo, sin ejecutar el deploy desde el repositorio:
+
+- Framework Preset: `Next.js`;
+- Root Directory: `apps/web`;
+- Install Command: deteccion automatica de npm workspaces y del lockfile raiz;
+- Build Command: `npm run build`;
+- Output Directory: valor predeterminado de Next.js;
+- Node.js: `24.x`, compatible con el rango declarado por el workspace;
+- variable publica: `NEXT_PUBLIC_API_BASE_URL=https://<render-api-domain>`.
+
+El frontend solo recibe la URL publica de NestJS. JWT secret, base de datos,
+AWS, S3, IA y blockchain permanecen fuera de Vercel. Despues del primer deploy
+de produccion, Render debe configurar `WEB_ORIGIN` con el origin HTTPS exacto
+de Vercel, sin trailing slash ni wildcard. Los previews dinamicos no quedan
+habilitados automaticamente por la politica CORS de un unico origin.
+
+El procedimiento completo y el smoke Vercel -> Render -> Neon/S3 estan en
+[`vercel-frontend-deployment-runbook-v0.md`](../../docs/architecture/vercel-frontend-deployment-runbook-v0.md).

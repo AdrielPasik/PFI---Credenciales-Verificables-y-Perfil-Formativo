@@ -65,9 +65,9 @@ privada y no se versionan.
 
 ## P4g - NestJS en Render
 
-Estado: readiness documental y comandos production-like implementados. La
-creacion del Web Service y el deploy real siguen siendo operaciones manuales
-pendientes fuera de este slice. Ver `render-api-deployment-runbook-v0.md`.
+Estado: readiness documental cerrada y Web Service real desplegado en Render.
+Health, Neon pooled, S3 y consumo desde frontend local fueron validados. Ver
+`render-api-deployment-runbook-v0.md`.
 
 | Campo | Definicion |
 | --- | --- |
@@ -83,9 +83,13 @@ pendientes fuera de este slice. Ver `render-api-deployment-runbook-v0.md`.
 
 ## P4h - Next.js en Vercel
 
+Estado: readiness documental y build local implementados. La creacion del
+proyecto Vercel, el deploy real y la actualizacion final de `WEB_ORIGIN` siguen
+pendientes fuera de este slice. Ver `vercel-frontend-deployment-runbook-v0.md`.
+
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Desplegar el Portal del Emisor contra Render. |
+| Objetivo | Preparar y luego desplegar el Portal del Emisor contra Render. |
 | Dependencias | P4g. |
 | Modulos | `apps/web`, env/deployment. |
 | Migracion | No. |
