@@ -55,6 +55,12 @@ El principal de NestJS recibe solo las acciones necesarias sobre el bucket y
 prefijo de Traza. No recibe administracion global, bucket publico ni permisos
 para cambiar Block Public Access.
 
+P4e carga region, bucket y credenciales exclusivamente desde variables privadas
+del API cuando `DOCUMENT_STORAGE_PROVIDER=s3`. El adapter requiere
+`PutObject`, `GetObject` y `DeleteObject` sobre el prefijo configurado, aplica
+cifrado server-side `AES256` y no usa ACL publica. Errores y logs no deben
+incluir secretos, bucket, key completa, endpoint ni contenido documental.
+
 ## Alcance
 
 - secretos por servicio;
@@ -71,8 +77,8 @@ para cambiar Block Public Access.
 
 ## Impacto en modulos actuales
 
-P4i evolucionara `AiServiceClient` y FastAPI auth middleware. P4e agregara
-credenciales AWS del lado API. Auth de usuarios y `AuthGuard` no se reutilizan
+P4i evolucionara `AiServiceClient` y FastAPI auth middleware. P4e agrego
+configuracion AWS del lado API. Auth de usuarios y `AuthGuard` no se reutilizan
 como auth de servicio.
 
 ## Riesgos
@@ -86,4 +92,3 @@ como auth de servicio.
 ## Proximos slices relacionados
 
 P4e IAM/storage, P4g deployment API y P4i FastAPI privado/auth.
-

@@ -8,6 +8,7 @@ export interface SaveDocumentInput {
   buffer: Buffer;
   detectedExtension: DetectedDocumentExtension;
   detectedMimeType: DetectedDocumentMimeType;
+  sha256: string;
 }
 
 export interface SavedDocument {
@@ -17,6 +18,7 @@ export interface SavedDocument {
 
 export interface DocumentStoragePort {
   saveDocument(input: SaveDocumentInput): Promise<SavedDocument>;
+  readDocument(storageKey: string): Promise<Buffer>;
   deleteDocument(storageKey: string): Promise<void>;
 }
 

@@ -8,12 +8,14 @@ infraestructura al navegador ni reemplazar el historial de dominio.
 ## Decision
 
 Mantener `DocumentStoragePort`, conservar `LocalDocumentStorageAdapter` para
-local y agregar `S3DocumentStorageAdapter` en P4e. El bucket sera privado, con
-Block Public Access y permisos IAM minimos.
+local y usar `S3DocumentStorageAdapter` cuando el ambiente selecciona `s3` de
+forma explicita. El bucket es privado, con Block Public Access y permisos IAM
+minimos.
 
-El port actual implementa `saveDocument()` y `deleteDocument()`. P5 necesitara
-una capacidad interna de lectura, preferentemente `openDocumentStream()` o una
-alternativa equivalente. Esa ampliacion no se implementa en P4d.
+Desde P4e el port implementa `saveDocument()`, `readDocument()` y
+`deleteDocument()`. `readDocument()` devuelve `Buffer` porque el limite actual
+es 20 MB y solo se usa internamente; `openDocumentStream()` queda como mejora
+productiva para evitar materializar el archivo completo en memoria.
 
 ## Upload documental
 
@@ -63,10 +65,10 @@ inicial. Deben tratarse como bearer tokens, con expiracion corta y sin logs.
 
 ## Alcance
 
-- adapter local y S3 intercambiables;
+- adapters local y S3 implementados e intercambiables por configuracion;
 - upload siempre Web -> NestJS -> port;
 - privacidad, naming, IAM y compensacion;
-- lectura interna futura para analisis.
+- lectura interna disponible para la futura orquestacion de analisis.
 
 ## Fuera de alcance
 
@@ -78,8 +80,8 @@ inicial. Deben tratarse como bearer tokens, con expiracion corta y sin logs.
 
 ## Impacto en modulos actuales
 
-`document-evidence` mantiene endpoints y DTOs. P4e agregara configuracion y el
-adapter S3 sin modificar el frontend. P5a ampliara el port para lectura interna.
+`document-evidence` mantiene endpoints y DTOs. P4e agrego configuracion, el
+adapter S3 y lectura interna sin modificar frontend, Prisma ni contrato HTTP.
 
 ## Riesgos
 
@@ -92,5 +94,5 @@ adapter S3 sin modificar el frontend. P5a ampliara el port para lectura interna.
 
 ## Proximos slices relacionados
 
-P4e adapter S3, P5a lectura interna y P5c analisis documental.
-
+P5a/P5c consumiran la lectura interna para analisis documental; streaming y
+reconciliacion quedan como hardening posterior.

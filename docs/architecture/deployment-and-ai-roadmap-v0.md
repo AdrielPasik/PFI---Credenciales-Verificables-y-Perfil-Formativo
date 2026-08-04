@@ -30,6 +30,8 @@ IA trazable, revisable y separado de emision/blockchain.
 
 ## P4e - S3DocumentStorageAdapter
 
+Estado: implementado en backend; deployment y bucket reales siguen pendientes.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Alternar storage local/S3 detras de `DocumentStoragePort`. |
@@ -288,4 +290,3 @@ login -> issuer -> draft -> documento/texto -> analisis manual
 - Base Sepolia estable;
 - QR/sharing y holder app completa;
 - KMS/HSM, mTLS o workload identity productiva.
-

@@ -122,8 +122,9 @@ logro concreto del holder.
 `multipart/form-data` con exactamente un archivo `file` y un maximo de 20 MB.
 Solo admite PDF, PNG y JPEG detectados por firma; valida MIME y extension,
 normaliza el formato, calcula SHA-256 sobre los bytes exactos y persiste metadata
-en `DocumentEvidence`. Los bytes se guardan mediante `DocumentStoragePort` y el
-adapter local de desarrollo. Una evidencia vigente anterior pasa a `replaced`
+en `DocumentEvidence`. Los bytes se guardan mediante `DocumentStoragePort` con
+el adapter local por default o el adapter S3 privado cuando se selecciona de
+forma explicita. Una evidencia vigente anterior pasa a `replaced`
 sin borrado fisico, mientras un indice unico parcial y una transaccion
 `Serializable` garantizan una sola `current` por credencial. El endpoint es
 draft-only, no modifica `Credential`, no expone storage keys ni historial y no
@@ -246,8 +247,35 @@ DOCUMENT_STORAGE_PROVIDER=local
 DOCUMENT_STORAGE_LOCAL_ROOT=
 ```
 
-Firebase, S3 o Azure podran implementar el mismo `DocumentStoragePort` en otro
-slice. P4a no expone descarga ni usa cloud storage.
+Para usar S3 privado, seleccionar el provider y configurar credenciales IAM de
+minimo privilegio del lado NestJS:
+
+```dotenv
+DOCUMENT_STORAGE_PROVIDER=s3
+AWS_REGION=
+AWS_S3_BUCKET=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_S3_PREFIX=document-evidence
+AWS_S3_ENDPOINT=
+AWS_S3_FORCE_PATH_STYLE=
+```
+
+`AWS_S3_ENDPOINT` y `AWS_S3_FORCE_PATH_STYLE` son opcionales para servicios
+S3-compatible controlados. En modo `s3`, region, bucket y credenciales son
+obligatorios y una configuracion incompleta impide iniciar el modulo. El modo
+local no instancia el SDK ni requiere variables AWS.
+
+Ambos adapters implementan guardado, borrado compensatorio y lectura interna
+por `storageKey`. La lectura devuelve un `Buffer` limitado a 20 MB y queda
+reservada para la orquestacion backend de P5; streaming sera preferible para
+hardening productivo. No existe endpoint de descarga, preview, URL presignada
+ni upload directo desde navegador. Si S3 guarda correctamente y luego falla la
+transaccion PostgreSQL, NestJS intenta borrar el objeto nuevo; esto es una
+compensacion best-effort, no una transaccion distribuida ni un reconciliador.
+
+La seleccion del provider no modifica `Credential`, canon, IA, emision o
+blockchain, y los DTOs publicos no exponen provider, bucket, key o path.
 
 Renombrar el issuer no modifica snapshots historicos de credenciales. Un draft
 antiguo puede conservar `Demo University` en `credentialSubject`, mientras un

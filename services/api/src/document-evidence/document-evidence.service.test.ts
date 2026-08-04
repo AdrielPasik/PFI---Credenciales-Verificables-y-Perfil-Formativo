@@ -45,6 +45,7 @@ function setup(options: SetupOptions = {}) {
     permissions: [] as unknown[],
     credentialReads: [] as unknown[],
     storageSaves: [] as unknown[],
+    storageReads: [] as unknown[],
     storageDeletes: [] as unknown[],
     transactions: [] as unknown[],
     updateMany: [] as unknown[],
@@ -106,6 +107,10 @@ function setup(options: SetupOptions = {}) {
         storageKey: '11111111-1111-4111-8111-111111111111.pdf'
       };
     },
+    async readDocument(storageKey: string) {
+      calls.storageReads.push(storageKey);
+      return PDF;
+    },
     async deleteDocument(storageKey: string) {
       calls.storageDeletes.push(storageKey);
       if (options.cleanupError) {
@@ -149,6 +154,12 @@ test('service scopes permission and credential before validating and storing a c
     }
   ]);
   assert.equal(calls.storageSaves.length, 1);
+  assert.deepEqual(calls.storageSaves[0], {
+    buffer: PDF,
+    detectedExtension: '.pdf',
+    detectedMimeType: 'application/pdf',
+    sha256: 'fc0c91a66993964ca4ced19d7f34a9927a061d9290d43d646acb8e01a1535312'
+  });
   assert.deepEqual(calls.transactions, [
     { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
   ]);

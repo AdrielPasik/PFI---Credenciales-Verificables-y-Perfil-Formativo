@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
 
 import {
@@ -8,6 +8,8 @@ import {
   type DocumentStoragePort,
   type SaveDocumentInput
 } from './document-storage.port';
+import { MAX_DOCUMENT_SIZE_BYTES } from './document-file.validator';
+import { DocumentStorageError } from './document-storage.error';
 
 const EXTENSION_MIME_TYPES: Record<
   DetectedDocumentExtension,
@@ -37,8 +39,12 @@ export class LocalDocumentStorageAdapter implements DocumentStoragePort {
     const storageKey = `${this.createId()}${input.detectedExtension}`;
     const targetPath = this.resolveStorageKey(storageKey);
 
-    await mkdir(this.root, { recursive: true });
-    await writeFile(targetPath, input.buffer, { flag: 'wx' });
+    try {
+      await mkdir(this.root, { recursive: true });
+      await writeFile(targetPath, input.buffer, { flag: 'wx' });
+    } catch {
+      throw localUpstreamError();
+    }
 
     return {
       storageProvider: 'local',
@@ -53,8 +59,36 @@ export class LocalDocumentStorageAdapter implements DocumentStoragePort {
       await unlink(targetPath);
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw localUpstreamError();
+      }
+    }
+  }
+
+  async readDocument(storageKey: string): Promise<Buffer> {
+    const targetPath = this.resolveStorageKey(storageKey);
+
+    try {
+      const document = await readFile(targetPath);
+      if (document.byteLength > MAX_DOCUMENT_SIZE_BYTES) {
+        throw new DocumentStorageError(
+          'too_large',
+          'El documento almacenado supera el limite permitido.'
+        );
+      }
+      return document;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new DocumentStorageError(
+          'not_found',
+          'No se encontro el documento almacenado.'
+        );
+      }
+
+      if (error instanceof DocumentStorageError) {
         throw error;
       }
+
+      throw localUpstreamError();
     }
   }
 
@@ -74,12 +108,18 @@ export class LocalDocumentStorageAdapter implements DocumentStoragePort {
       storageKey.includes('/') ||
       storageKey.includes('\\')
     ) {
-      throw new Error('La clave de almacenamiento local no es valida.');
+      throw new DocumentStorageError(
+        'invalid_key',
+        'La clave de almacenamiento local no es valida.'
+      );
     }
 
     const targetPath = resolve(this.root, storageKey);
     if (dirname(targetPath) !== this.root) {
-      throw new Error('La clave de almacenamiento escapa del directorio local.');
+      throw new DocumentStorageError(
+        'invalid_key',
+        'La clave de almacenamiento local no es valida.'
+      );
     }
 
     return targetPath;
@@ -94,4 +134,11 @@ export function resolveLocalDocumentStorageRoot(configuredRoot?: string) {
   }
 
   return resolve(__dirname, '..', '..', '.local-storage', 'document-evidence');
+}
+
+function localUpstreamError() {
+  return new DocumentStorageError(
+    'upstream',
+    'No se pudo completar la operacion de almacenamiento local.'
+  );
 }

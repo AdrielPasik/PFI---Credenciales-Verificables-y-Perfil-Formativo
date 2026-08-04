@@ -72,7 +72,8 @@ export class DocumentEvidenceService {
     const stored = await this.storage.saveDocument({
       buffer: document.buffer,
       detectedExtension: document.detectedExtension,
-      detectedMimeType: document.detectedMimeType
+      detectedMimeType: document.detectedMimeType,
+      sha256: document.sha256
     });
 
     try {

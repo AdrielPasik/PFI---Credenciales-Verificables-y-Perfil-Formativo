@@ -12,7 +12,7 @@ permitir fallbacks silenciosos entre servicios o secretos.
 | Frontend | Next.js `127.0.0.1:3000` | Vercel | Vercel Pro o equivalente |
 | API | NestJS `127.0.0.1:3001` | Render Web Service | servicio dimensionado y observable |
 | DB | PostgreSQL Docker | Neon demo | Neon plan productivo o equivalente |
-| Storage | `LocalDocumentStorageAdapter` | S3 privado | S3 privado con lifecycle/auditoria |
+| Storage | local default o S3 explicito | S3 privado | S3 privado con lifecycle/auditoria |
 | IA | FastAPI local | Render Private Service | servicio privado dimensionado/worker |
 | Blockchain | mock o Anvil | mock/Anvil garantizado | testnet/mainnet segun ADR futura |
 | Secrets | `.env` local no versionado | secret manager del proveedor | KMS/workload identity cuando aplique |
@@ -53,8 +53,9 @@ credenciales de usuarios, DB de dominio, S3 o blockchain en P5 inicial.
 
 ## Impacto en modulos actuales
 
-Los modulos actuales deben leer configuracion explicita. P4e-P4i agregaran las
-variables concretas y su validacion; este documento no las implementa.
+Los modulos actuales deben leer configuracion explicita. P4e ya permite
+`DOCUMENT_STORAGE_PROVIDER=local|s3`, valida las variables S3 obligatorias y no
+instancia AWS en local. P4f-P4i agregaran las variables concretas restantes.
 
 ## Riesgos
 
@@ -67,4 +68,3 @@ variables concretas y su validacion; este documento no las implementa.
 ## Proximos slices relacionados
 
 P4e-P4i y hardening de deployment posterior.
-
