@@ -46,6 +46,9 @@ Estado: implementado en backend; deployment y bucket reales siguen pendientes.
 
 ## P4f - Neon demo y migraciones
 
+Estado: preparacion operativa implementada; proyecto y credenciales Neon reales
+siguen pendientes y se crean fuera del repositorio.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Provisionar PostgreSQL Neon reproducible. |

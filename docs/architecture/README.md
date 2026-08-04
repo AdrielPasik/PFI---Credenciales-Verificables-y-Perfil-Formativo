@@ -12,6 +12,7 @@ Documentacion de arquitectura logica del sistema.
 - `auth-and-permissions-v0.md`: estrategia inicial de actores, roles y permisos.
 - `deployment-architecture-v0.md`: arquitectura logica, deployment demo y ambientes.
 - `document-storage-decision-v0.md`: port de storage, adapter S3 futuro y privacidad.
+- `neon-demo-database-runbook-v0.md`: migraciones, seed y verificacion sanitaria de la base demo Neon.
 - `ai-service-integration-v1.md`: evolucion IA para documento, texto y combinado.
 - `analysis-job-lifecycle-v0.md`: `AnalysisRun` sincrono inicial y worker posterior.
 - `semantic-analysis-source-traceability-v0.md`: fuentes exactas de artifacts IA.

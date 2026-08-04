@@ -179,6 +179,19 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
 - `npm run build --workspace @credential-intelligence/api`
 - `npm run prisma:validate --workspace @credential-intelligence/api`
 
+Operaciones demo/staging de base:
+
+- `npm run prisma:migrate:status --workspace @credential-intelligence/api`
+- `npm run prisma:migrate:deploy --workspace @credential-intelligence/api`
+- `npm run db:seed --workspace @credential-intelligence/api`
+- `npm run db:verify-demo --workspace @credential-intelligence/api`
+- `npm run test:db-verify-demo --workspace @credential-intelligence/api`
+
+`db:seed` usa la `DATABASE_URL` ya cargada por el ambiente; `prisma:seed`
+conserva el flujo local historico con `.env`. `db:verify-demo` es read-only,
+valida claves estables y conteos del seed, y nunca imprime la connection string
+ni datos personales.
+
 Para consumir el API desde la futura web local en
 `http://127.0.0.1:3000`, iniciar NestJS en otro puerto y habilitar CORS
 exclusivamente para ese origen:
@@ -237,6 +250,12 @@ local/dev son:
 - `holder.demo@example.com / DemoHolder123!`
 
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
+
+Para Neon demo/staging, configurar `DATABASE_URL` fuera del repositorio y usar
+`prisma:migrate:deploy`; nunca ejecutar `migrate dev` o `migrate reset`. Neon
+puede entregar una URL pooled de runtime y una URL directa para migraciones. El
+procedimiento completo esta en
+`docs/architecture/neon-demo-database-runbook-v0.md`.
 
 El storage documental local usa por default
 `services/api/.local-storage/document-evidence`, fuera de rutas publicas y de

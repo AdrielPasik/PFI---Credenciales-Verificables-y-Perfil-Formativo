@@ -32,6 +32,11 @@ emision, idempotencia y reconciliacion esten cerradas.
 - el seed demo nunca forma parte del boot productivo;
 - artifacts y catalogos importados conservan version/checksum.
 
+P4f agrega scripts separados para `migrate status`, `migrate deploy`, seed con
+`DATABASE_URL` ya cargada y verificacion sanitaria read-only. Neon puede proveer
+una URL pooled para runtime y otra directa para migraciones; ambas se configuran
+fuera del repo y nunca se intercambian mediante fallback silencioso.
+
 ## Variables por responsabilidad
 
 Frontend solo conoce URL publica de API. NestJS conoce DB, S3, FastAPI y signer
@@ -55,7 +60,8 @@ credenciales de usuarios, DB de dominio, S3 o blockchain en P5 inicial.
 
 Los modulos actuales deben leer configuracion explicita. P4e ya permite
 `DOCUMENT_STORAGE_PROVIDER=local|s3`, valida las variables S3 obligatorias y no
-instancia AWS en local. P4f-P4i agregaran las variables concretas restantes.
+instancia AWS en local. P4f deja operativas migraciones deploy, seed y
+verificacion demo sin crear Neon. P4g-P4i agregaran configuracion de deployment.
 
 ## Riesgos
 

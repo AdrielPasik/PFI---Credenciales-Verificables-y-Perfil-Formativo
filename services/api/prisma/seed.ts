@@ -11,6 +11,7 @@ import {
 import { hashPassword } from '../src/auth/password-hashing';
 import { loadDemoAcademicCatalog } from './demo-academic-catalog';
 import { buildDemoIssuerUpsertArgs } from './demo-issuer-seed';
+import { buildDemoSeedSummary } from './demo-seed-summary';
 
 const prisma = new PrismaClient();
 
@@ -212,21 +213,12 @@ async function main() {
 
   console.log(
     JSON.stringify(
-      {
-        issuerId: issuer.id,
-        holderUserId: holder.id,
-        issuerAdminUserId: issuerAdmin.id,
+      buildDemoSeedSummary({
         academicCoursesImported: academicCourses.length,
         academicProgramsImported: programs.length,
         curriculumVersionsImported: curriculumVersions.length,
-        programCoursesImported: academicCatalog.programCourses.length,
-        demoAuth: {
-          issuerAdminEmail: issuerAdmin.email,
-          issuerAdminPassword: DEMO_ISSUER_PASSWORD,
-          holderEmail: holder.email,
-          holderPassword: DEMO_HOLDER_PASSWORD
-        }
-      },
+        programCoursesImported: academicCatalog.programCourses.length
+      }),
       null,
       2
     )
@@ -234,8 +226,10 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
-    console.error(error);
+  .catch(() => {
+    console.error(
+      'El seed demo fallo. Revise migraciones, catalogos y configuracion del ambiente.'
+    );
     process.exitCode = 1;
   })
   .finally(async () => {

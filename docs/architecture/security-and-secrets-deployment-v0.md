@@ -30,6 +30,11 @@ de leer payloads. En produccion futura se prefiere workload identity o mTLS.
 | Neon | credencial PostgreSQL solo en NestJS/migraciones |
 | AWS | credenciales IAM minimas solo en NestJS |
 
+Para Neon, `DATABASE_URL` se configura en la sesion operativa o secret manager,
+nunca en Git. La URL administrativa directa puede diferir de la pooled de
+runtime; migraciones y seed usan la primera cuando Neon asi lo requiere, y el
+API usa la segunda. Scripts sanitarios no imprimen ninguna de ellas.
+
 El holder no firma blockchain. La clave de testnet futura pertenece al signer
 backend/issuer y nunca se guarda en PostgreSQL, Vercel o frontend.
 
