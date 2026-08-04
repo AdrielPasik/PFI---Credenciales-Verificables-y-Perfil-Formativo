@@ -179,6 +179,32 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
 - `npm run build --workspace @credential-intelligence/api`
 - `npm run prisma:validate --workspace @credential-intelligence/api`
 
+## Deployment Render
+
+P4g deja preparada la API para un Render Web Service, sin crear ni desplegar el
+servicio. La configuracion recomendada usa la raiz del monorepo para conservar
+`package-lock.json` y los workspaces.
+
+Build command:
+
+```text
+npm ci && npm run prisma:generate --workspace @credential-intelligence/api && npm run build --workspace @credential-intelligence/api
+```
+
+Start command:
+
+```text
+npm run start --workspace @credential-intelligence/api
+```
+
+Health check: `GET /health`. El runtime usa pooled `DATABASE_URL`, storage `s3`,
+`WEB_ORIGIN` exacto y blockchain `mock`. Migraciones y seed no se ejecutan en el
+start; `prisma:migrate:deploy` se corre manualmente/one-off con la conexion
+administrativa apropiada y `db:verify-demo` permanece como smoke read-only.
+
+Variables, orden operativo, rollback y troubleshooting estan documentados en
+`docs/architecture/render-api-deployment-runbook-v0.md`.
+
 Operaciones demo/staging de base:
 
 - `npm run prisma:migrate:status --workspace @credential-intelligence/api`

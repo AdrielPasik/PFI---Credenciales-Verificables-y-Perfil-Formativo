@@ -30,7 +30,8 @@ IA trazable, revisable y separado de emision/blockchain.
 
 ## P4e - S3DocumentStorageAdapter
 
-Estado: implementado en backend; deployment y bucket reales siguen pendientes.
+Estado: implementado en backend y validado mediante smoke con S3 privado real;
+la configuracion del Web Service Render sigue pendiente.
 
 | Campo | Definicion |
 | --- | --- |
@@ -46,8 +47,9 @@ Estado: implementado en backend; deployment y bucket reales siguen pendientes.
 
 ## P4f - Neon demo y migraciones
 
-Estado: preparacion operativa implementada; proyecto y credenciales Neon reales
-siguen pendientes y se crean fuera del repositorio.
+Estado: preparacion operativa implementada y Neon real migrado, seeded y
+verificado fuera del repositorio. Las credenciales permanecen en gestion
+privada y no se versionan.
 
 | Campo | Definicion |
 | --- | --- |
@@ -63,9 +65,13 @@ siguen pendientes y se crean fuera del repositorio.
 
 ## P4g - NestJS en Render
 
+Estado: readiness documental y comandos production-like implementados. La
+creacion del Web Service y el deploy real siguen siendo operaciones manuales
+pendientes fuera de este slice. Ver `render-api-deployment-runbook-v0.md`.
+
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Desplegar API publica conectada a Neon y S3. |
+| Objetivo | Preparar y luego desplegar la API publica conectada a Neon pooled y S3 privado. |
 | Dependencias | P4e, P4f. |
 | Modulos | config API, CORS, health, deployment. |
 | Migracion | No adicional. |

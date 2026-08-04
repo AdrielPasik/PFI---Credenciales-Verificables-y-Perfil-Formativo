@@ -37,6 +37,12 @@ P4f agrega scripts separados para `migrate status`, `migrate deploy`, seed con
 una URL pooled para runtime y otra directa para migraciones; ambas se configuran
 fuera del repo y nunca se intercambian mediante fallback silencioso.
 
+P4g concreta el Web Service NestJS desde la raiz del monorepo: build reproducible
+con `npm ci`, Prisma Client generado antes de compilar, start mediante el script
+workspace y migraciones manuales/one-off fuera del arranque. Render usa la URL
+pooled de Neon, S3 privado, `WEB_ORIGIN` exacto y blockchain `mock`. El detalle
+operativo esta en `render-api-deployment-runbook-v0.md`.
+
 ## Variables por responsabilidad
 
 Frontend solo conoce URL publica de API. NestJS conoce DB, S3, FastAPI y signer
@@ -61,7 +67,9 @@ credenciales de usuarios, DB de dominio, S3 o blockchain en P5 inicial.
 Los modulos actuales deben leer configuracion explicita. P4e ya permite
 `DOCUMENT_STORAGE_PROVIDER=local|s3`, valida las variables S3 obligatorias y no
 instancia AWS en local. P4f deja operativas migraciones deploy, seed y
-verificacion demo sin crear Neon. P4g-P4i agregaran configuracion de deployment.
+verificacion demo, ya validadas contra un Neon real administrado fuera del repo.
+P4g documenta Render para NestJS sin ejecutar el deploy; P4h-P4i completaran web
+e IA desplegadas.
 
 ## Riesgos
 

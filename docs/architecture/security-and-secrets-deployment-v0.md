@@ -66,6 +66,14 @@ del API cuando `DOCUMENT_STORAGE_PROVIDER=s3`. El adapter requiere
 cifrado server-side `AES256` y no usa ACL publica. Errores y logs no deben
 incluir secretos, bucket, key completa, endpoint ni contenido documental.
 
+En Render, esos valores y la pooled `DATABASE_URL` se cargan exclusivamente como
+variables privadas del Web Service. La Direct Connection de Neon se reserva para
+sesiones administrativas de migracion; no se copia al runtime. El start no
+ejecuta migraciones ni seed. Antes de P4i, `AI_SERVICE_BASE_URL` se omite y los
+endpoints IA no forman parte del smoke, en lugar de publicar un FastAPI temporal.
+La configuracion completa se encuentra en
+`render-api-deployment-runbook-v0.md`.
+
 ## Alcance
 
 - secretos por servicio;
