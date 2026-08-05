@@ -365,8 +365,12 @@ Estas reglas impactaran directamente:
 - `semantic_analysis_v1` es resultado oficial validado, no claim humano;
 - propuestas IA se persisten separadas y requieren revision del emisor;
 - `DocumentEvidence` y `TextEvidence` no entran automaticamente en `canon_v1`;
-- `AnalysisRun`, joins de fuentes y propuestas son futuros y no cambian el
-  lifecycle `draft|issued|revoked`.
+- P5a crea `AnalysisRun` `pending` solo para drafts y captura evidencias current
+  por referencia/hash; no cambia `draft|issued|revoked`;
+- document exige documento, text exige texto y combined exige ambos;
+- cada source referencia documento XOR texto y no guarda contenido, bytes,
+  storage key, paths ni payloads IA;
+- P5a no llama FastAPI ni crea `SemanticAnalysis`; propuestas siguen futuras.
 
 `canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
 definan que claims oficiales forman parte de la emision.

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AiModule } from './ai/ai.module';
+import { AnalysisRunModule } from './analysis-run/analysis-run.module';
 import { AuthModule } from './auth/auth.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { CatalogModule } from './catalog/catalog.module';
@@ -18,6 +19,7 @@ import { VerificationModule } from './verification/verification.module';
 @Module({
   imports: [
     PrismaModule,
+    AnalysisRunModule,
     AiModule,
     AuthModule,
     MeModule,

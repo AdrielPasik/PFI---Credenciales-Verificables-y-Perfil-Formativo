@@ -170,6 +170,9 @@
 - `Credential` 1..N `DocumentEvidence`
 - `User` 1..N `DocumentEvidence` como uploader
 - `Credential` 1..N `TextEvidence`
+- `Credential` 1..N `AnalysisRun`
+- `AnalysisRun` 1..N `AnalysisRunSource`
+- `AnalysisRun` 0..N `SemanticAnalysis`
 - `User` 1..N `TextEvidence` como submitter
 - `User` 1..N `FormativeProfile`
 - `Credential` 0..1 `BlockchainRecord`
@@ -185,12 +188,18 @@
   `DocumentStoragePort` y sus referencias ya viven en `DocumentEvidence`.
 - No cerrar aun estrategia final de multi-tenant institucional.
 
-## Modelos futuros aprobados por P4d
+## Modelos de evolucion aprobados por P4d
 
-Estos nombres describen direccion de arquitectura; no existen todavia en
-`schema.prisma` y requieren slices/migraciones propias:
+P5a implementa la primera parte de esta direccion:
 
-- `AnalysisRun`: lifecycle operacional, idempotencia, correlation y errores;
+- `AnalysisRun`: lifecycle, modo, trigger, versiones y errores;
+- `AnalysisRunSource`: documento XOR texto exacto, hash y estado snapshot, sin
+  bytes, contenido o storage internals;
+- `SemanticAnalysis.analysisRunId`: relacion opcional compatible con historicos.
+
+Permanecen futuros:
+
+- idempotencia, correlation, intentos y duracion operativa;
 - `SemanticAnalysisSource`: relacion de un analisis con documento/texto exactos
   y sus hashes;
 - `CredentialEnrichmentProposal`: propuesta IA separada de claims oficiales;

@@ -7,29 +7,31 @@ la credencial ni introducir infraestructura asincrona antes de medirla.
 
 ## Decision
 
-P5b incorporara un modelo futuro `AnalysisRun` y procesamiento sincrono
-controlado para Entrega 50%. El request crea el run, lo marca `running`, invoca
-FastAPI y termina en `completed`, `partial` o `failed`.
-
-`AnalysisRun` no existe hoy en Prisma. P4d solo documenta el contrato.
+P5a implementa `AnalysisRun` y `AnalysisRunSource` como foundation de
+persistencia, sin ejecutar IA. El servicio interno crea un run `pending` y
+captura referencias y hashes de las evidencias `current` exactas. P5b/P5c
+agregaran ejecucion y transiciones controladas. `partial` pertenece al artifact
+semantico, no al lifecycle operacional del run.
 
 ```text
-requested -> running -> completed
-                     -> partial
-                     -> failed
+pending -> running -> completed
+                   -> failed
+        -> canceled
 ```
 
 `queued` se reserva para la evolucion con worker. No se agregan Redis, Kafka ni
 colas en P5 inicial.
 
-## Datos futuros minimos
+## Datos implementados
 
-- `id`, `credentialId`, `requestedByUserId` y `analysisMode`;
+- `id`, `credentialId`, `requestedByUserId` e `inputMode`;
 - status, `startedAt`, `completedAt` y error seguro;
-- `correlationId` e `idempotencyKey`;
 - pipeline/taxonomy version;
-- cantidad de intentos y duracion;
-- relacion con artifacts persistidos y fuentes exactas.
+- fuentes exactas, hash persistido y estado al crear;
+- relacion opcional desde `SemanticAnalysis`.
+
+El actor es requerido para trigger `manual` y puede ser null para `system`.
+`combined` exige documento y texto current; no degrada a otro modo.
 
 La idempotency key debe derivarse de credencial, referencias/hashes de fuentes,
 modo y versiones del pipeline. Una reejecucion forzada debe ser explicita.
@@ -59,7 +61,8 @@ cambiar la identidad de fuente ni el schema del artifact.
 
 ## Fuera de alcance
 
-- implementar `AnalysisRun` o migracion;
+- ejecutar FastAPI o leer contenido/storage;
+- transiciones del run en P5a;
 - cola, scheduler, worker, Redis o Kafka;
 - progreso porcentual inventado;
 - cancelacion distribuida;
@@ -67,8 +70,8 @@ cambiar la identidad de fuente ni el schema del artifact.
 
 ## Impacto en modulos actuales
 
-P5b afectara Prisma y un modulo de orquestacion; `SemanticAnalysis` seguira
-representando el resultado oficial, no el job operacional.
+P5a agrega Prisma y un servicio interno sin controller. `SemanticAnalysis`
+sigue representando el resultado oficial, no el job operacional.
 
 ## Riesgos
 
@@ -81,4 +84,3 @@ representando el resultado oficial, no el job operacional.
 ## Proximos slices relacionados
 
 P5b ejecucion sincrona, P5g UI de estado y P9 worker asincrono posterior.
-

@@ -21,8 +21,9 @@ P4i-6a registra el deployment demo como Web Service Free con URL HTTPS publica
 y JWT interno. La red privada sigue siendo el objetivo; la excepcion no cambia
 la frontera browser -> NestJS ni implementa las fuentes/lifecycle de P5.
 
-P5 agregara resolucion de `DocumentEvidence` y `TextEvidence` actuales. Los
-contratos P5 descritos aqui son planificados, no endpoints implementados.
+P5a agrega resolucion persistente de `DocumentEvidence` y `TextEvidence`
+current dentro de `AnalysisRunSource`, sin leer contenido ni llamar FastAPI.
+Los endpoints y modos de ejecucion P5b-P5e siguen planificados.
 
 ## Decision
 
@@ -147,5 +148,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-Migracion a red privada, P5a resolucion, P5b lifecycle, P5c-P5e modos, P5f
+Migracion a red privada, P5b ejecucion/lifecycle, P5c-P5e modos, P5f
 trazabilidad y tuning semantico medido en un slice separado.

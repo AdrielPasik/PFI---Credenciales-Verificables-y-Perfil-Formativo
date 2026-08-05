@@ -138,25 +138,50 @@ enum TextEvidenceStatus {
   replaced
 }
 
+enum AnalysisRunStatus {
+  pending
+  running
+  completed
+  failed
+  canceled
+}
+
+enum AnalysisRunInputMode {
+  document
+  text
+  combined
+}
+
+enum AnalysisRunTrigger {
+  manual
+  system
+}
+
+enum AnalysisRunSourceType {
+  document_evidence
+  text_evidence
+}
+
 model User {
-  id                  String              @id @default(uuid())
-  did                 String?             @unique
-  email               String?             @unique
-  firstName           String?
-  lastName            String?
-  displayName         String?
-  status              UserStatus          @default(active)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  issuerMemberships   IssuerMembership[]
-  subjectCredentials  Credential[]        @relation("CredentialSubject")
-  verifierEvents      VerificationEvent[] @relation("VerifierUser")
-  profiles            FormativeProfile[]
-  sharingGrants       SharingGrant[]      @relation("SharingGrantOwner")
-  createdSharingGrants SharingGrant[]     @relation("SharingGrantCreator")
-  authCredential      AuthCredential?
+  id                        String              @id @default(uuid())
+  did                       String?             @unique
+  email                     String?             @unique
+  firstName                 String?
+  lastName                  String?
+  displayName               String?
+  status                    UserStatus          @default(active)
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  issuerMemberships         IssuerMembership[]
+  subjectCredentials        Credential[]        @relation("CredentialSubject")
+  verifierEvents            VerificationEvent[] @relation("VerifierUser")
+  profiles                  FormativeProfile[]
+  sharingGrants             SharingGrant[]      @relation("SharingGrantOwner")
+  createdSharingGrants      SharingGrant[]      @relation("SharingGrantCreator")
+  authCredential            AuthCredential?
   uploadedDocumentEvidences DocumentEvidence[]  @relation("DocumentEvidenceUploader")
-  submittedTextEvidences TextEvidence[] @relation("TextEvidenceSubmitter")
+  submittedTextEvidences    TextEvidence[]      @relation("TextEvidenceSubmitter")
+  requestedAnalysisRuns     AnalysisRun[]       @relation("AnalysisRunRequester")
 }
 
 model AuthCredential {
@@ -206,40 +231,41 @@ model IssuerMembership {
 }
 
 model Credential {
-  id                       String               @id @default(uuid())
-  schemaVersion            String               @default("credential_v1")
-  type                     CredentialType
-  issuerId                 String
-  subjectUserId            String
-  academicCourseId         String?
-  programCourseId          String?
-  externalCourseId         String?
-  title                    String
-  description              String?              @db.Text
-  sourceType               CredentialSourceType
-  status                   CredentialStatus     @default(draft)
-  hours                    Decimal?             @db.Decimal(10, 2)
-  createdAt                DateTime             @default(now())
-  updatedAt                DateTime             @updatedAt
-  issuedAt                 DateTime?
-  revokedAt                DateTime?
-  revocationReason         String?              @db.Text
-  canonicalHash            String?
-  canonicalizationVersion  String?
-  credentialSubject        Json
-  metadata                 Json?
-  rawData                  Json?
-  issuer                   Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
-  subjectUser              User                 @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
-  academicCourse           AcademicCourse?      @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
-  programCourse            ProgramCourse?       @relation("ProgramCourseCredentials", fields: [programCourseId], references: [id], onDelete: SetNull)
-  externalCourse           ExternalCourse?      @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
-  semanticAnalyses         SemanticAnalysis[]
-  blockchainRecords        BlockchainRecord[]
-  verificationEvents       VerificationEvent[]
-  sharingGrants            SharingGrant[]
-  documentEvidences        DocumentEvidence[]
-  textEvidences            TextEvidence[]
+  id                      String               @id @default(uuid())
+  schemaVersion           String               @default("credential_v1")
+  type                    CredentialType
+  issuerId                String
+  subjectUserId           String
+  academicCourseId        String?
+  programCourseId         String?
+  externalCourseId        String?
+  title                   String
+  description             String?              @db.Text
+  sourceType              CredentialSourceType
+  status                  CredentialStatus     @default(draft)
+  hours                   Decimal?             @db.Decimal(10, 2)
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  issuedAt                DateTime?
+  revokedAt               DateTime?
+  revocationReason        String?              @db.Text
+  canonicalHash           String?
+  canonicalizationVersion String?
+  credentialSubject       Json
+  metadata                Json?
+  rawData                 Json?
+  issuer                  Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  subjectUser             User                 @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
+  academicCourse          AcademicCourse?      @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
+  programCourse           ProgramCourse?       @relation("ProgramCourseCredentials", fields: [programCourseId], references: [id], onDelete: SetNull)
+  externalCourse          ExternalCourse?      @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
+  semanticAnalyses        SemanticAnalysis[]
+  blockchainRecords       BlockchainRecord[]
+  verificationEvents      VerificationEvent[]
+  sharingGrants           SharingGrant[]
+  documentEvidences       DocumentEvidence[]
+  textEvidences           TextEvidence[]
+  analysisRuns            AnalysisRun[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -254,6 +280,7 @@ model Credential {
 model SemanticAnalysis {
   id               String                 @id @default(uuid())
   credentialId     String
+  analysisRunId    String?
   schemaVersion    String                 @default("semantic_analysis_v1")
   status           SemanticAnalysisStatus
   pipelineVersion  String
@@ -268,28 +295,31 @@ model SemanticAnalysis {
   textForEmbedding String                 @db.Text
   analysisJson     Json?
   credential       Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  analysisRun      AnalysisRun?           @relation(fields: [analysisRunId], references: [id], onDelete: SetNull)
 
   @@index([credentialId])
+  @@index([analysisRunId])
   @@index([pipelineVersion])
   @@index([credentialId, pipelineVersion, taxonomyVersion])
 }
 
 model DocumentEvidence {
-  id               String                 @id @default(uuid())
-  credentialId     String
-  uploadedByUserId String
-  kind             DocumentEvidenceKind
-  originalFileName String
-  mimeType         String
-  sizeBytes        Int
-  sha256           String
-  storageProvider  String
-  storageKey       String                 @unique
-  status           DocumentEvidenceStatus @default(current)
-  uploadedAt       DateTime               @default(now())
-  replacedAt       DateTime?
-  credential       Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  uploadedBy       User                   @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  id                 String                 @id @default(uuid())
+  credentialId       String
+  uploadedByUserId   String
+  kind               DocumentEvidenceKind
+  originalFileName   String
+  mimeType           String
+  sizeBytes          Int
+  sha256             String
+  storageProvider    String
+  storageKey         String                 @unique
+  status             DocumentEvidenceStatus @default(current)
+  uploadedAt         DateTime               @default(now())
+  replacedAt         DateTime?
+  credential         Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  uploadedBy         User                   @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  analysisRunSources AnalysisRunSource[]
 
   @@index([credentialId])
   @@index([uploadedByUserId])
@@ -297,21 +327,71 @@ model DocumentEvidence {
 }
 
 model TextEvidence {
-  id                String             @id @default(uuid())
-  credentialId      String
-  submittedByUserId String
-  label             String?
-  content           String             @db.Text
-  sha256            String
-  status            TextEvidenceStatus @default(current)
-  submittedAt       DateTime           @default(now())
-  replacedAt        DateTime?
-  credential        Credential         @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  submittedBy       User               @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  id                 String              @id @default(uuid())
+  credentialId       String
+  submittedByUserId  String
+  label              String?
+  content            String              @db.Text
+  sha256             String
+  status             TextEvidenceStatus  @default(current)
+  submittedAt        DateTime            @default(now())
+  replacedAt         DateTime?
+  credential         Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  submittedBy        User                @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  analysisRunSources AnalysisRunSource[]
 
   @@index([credentialId])
   @@index([submittedByUserId])
   @@index([sha256])
+}
+
+model AnalysisRun {
+  id                       String               @id @default(uuid())
+  credentialId             String
+  requestedByUserId        String?
+  status                   AnalysisRunStatus    @default(pending)
+  inputMode                AnalysisRunInputMode
+  trigger                  AnalysisRunTrigger
+  requestedPipelineVersion String
+  requestedTaxonomyVersion String
+  startedAt                DateTime?
+  completedAt              DateTime?
+  failedAt                 DateTime?
+  errorCode                String?
+  errorMessage             String?              @db.Text
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+  credential               Credential           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  requestedBy              User?                @relation("AnalysisRunRequester", fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  sources                  AnalysisRunSource[]
+  semanticAnalyses         SemanticAnalysis[]
+
+  @@index([credentialId])
+  @@index([requestedByUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AnalysisRunSource {
+  id                 String                @id @default(uuid())
+  analysisRunId      String
+  sourceType         AnalysisRunSourceType
+  documentEvidenceId String?
+  textEvidenceId     String?
+  sourceSha256       String
+  sourceLabel        String?
+  sourceStatusAtRun  String?
+  createdAt          DateTime              @default(now())
+  analysisRun        AnalysisRun           @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
+  documentEvidence   DocumentEvidence?     @relation(fields: [documentEvidenceId], references: [id], onDelete: Restrict)
+  textEvidence       TextEvidence?         @relation(fields: [textEvidenceId], references: [id], onDelete: Restrict)
+
+  @@unique([analysisRunId, documentEvidenceId])
+  @@unique([analysisRunId, textEvidenceId])
+  @@index([analysisRunId])
+  @@index([documentEvidenceId])
+  @@index([textEvidenceId])
+  @@index([sourceSha256])
 }
 
 model FormativeProfile {
@@ -338,8 +418,8 @@ model FormativeProfile {
 }
 
 model BlockchainRecord {
-  id                      String                @id @default(uuid())
-  schemaVersion           String                @default("blockchain_record_v1")
+  id                      String                 @id @default(uuid())
+  schemaVersion           String                 @default("blockchain_record_v1")
   credentialId            String
   credentialHash          String
   hashAlgorithm           String
@@ -352,8 +432,8 @@ model BlockchainRecord {
   registeredAt            DateTime
   status                  BlockchainRecordStatus
   revokedAt               DateTime?
-  revocationReason        String?               @db.Text
-  credential              Credential            @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  revocationReason        String?                @db.Text
+  credential              Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   @@index([credentialId])
   @@index([credentialHash])
@@ -364,22 +444,22 @@ model BlockchainRecord {
 }
 
 model VerificationEvent {
-  id                String              @id @default(uuid())
-  credentialId      String
-  verifierUserId    String?
-  sharingGrantId    String?
-  actorType         ActorType
+  id                  String              @id @default(uuid())
+  credentialId        String
+  verifierUserId      String?
+  sharingGrantId      String?
+  actorType           ActorType
   verificationChannel VerificationChannel
-  result            VerificationResult
-  verifiedAt        DateTime            @default(now())
-  hashMatch         Boolean?
-  issuerValid       Boolean?
-  revocationStatus  RevocationStatus?
-  requestContext    Json?
-  responseSummary   Json?
-  credential        Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  verifierUser      User?               @relation("VerifierUser", fields: [verifierUserId], references: [id], onDelete: SetNull)
-  sharingGrant      SharingGrant?       @relation(fields: [sharingGrantId], references: [id], onDelete: SetNull)
+  result              VerificationResult
+  verifiedAt          DateTime            @default(now())
+  hashMatch           Boolean?
+  issuerValid         Boolean?
+  revocationStatus    RevocationStatus?
+  requestContext      Json?
+  responseSummary     Json?
+  credential          Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  verifierUser        User?               @relation("VerifierUser", fields: [verifierUserId], references: [id], onDelete: SetNull)
+  sharingGrant        SharingGrant?       @relation(fields: [sharingGrantId], references: [id], onDelete: SetNull)
 
   @@index([credentialId])
   @@index([verifierUserId])
@@ -388,19 +468,19 @@ model VerificationEvent {
 }
 
 model AcademicCourse {
-  id            String          @id @default(uuid())
-  issuerId      String
-  code          String
-  name          String
-  description   String?         @db.Text
-  hours         Decimal?        @db.Decimal(10, 2)
-  status        CourseStatus    @default(active)
-  metadata      Json?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  issuer        Issuer          @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  id             String          @id @default(uuid())
+  issuerId       String
+  code           String
+  name           String
+  description    String?         @db.Text
+  hours          Decimal?        @db.Decimal(10, 2)
+  status         CourseStatus    @default(active)
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  issuer         Issuer          @relation(fields: [issuerId], references: [id], onDelete: Restrict)
   programCourses ProgramCourse[]
-  credentials   Credential[]    @relation("AcademicCourseCredentials")
+  credentials    Credential[]    @relation("AcademicCourseCredentials")
 
   @@unique([issuerId, code])
   @@index([issuerId])
@@ -442,27 +522,27 @@ model Program {
   issuer             Issuer              @relation(fields: [issuerId], references: [id], onDelete: Restrict)
   curriculumVersions CurriculumVersion[]
 
+  @@unique([issuerId, code])
   @@index([issuerId])
   @@index([status])
-  @@unique([issuerId, code])
 }
 
 model CurriculumVersion {
-  id              String                   @id @default(uuid())
-  programId       String
-  versionLabel    String
-  effectiveFrom   DateTime?
-  effectiveTo     DateTime?
-  status          CurriculumVersionStatus  @default(active)
-  metadata        Json?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-  program         Program                  @relation(fields: [programId], references: [id], onDelete: Cascade)
-  programCourses  ProgramCourse[]
+  id             String                  @id @default(uuid())
+  programId      String
+  versionLabel   String
+  effectiveFrom  DateTime?
+  effectiveTo    DateTime?
+  status         CurriculumVersionStatus @default(active)
+  metadata       Json?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  program        Program                 @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programCourses ProgramCourse[]
 
+  @@unique([programId, versionLabel])
   @@index([programId])
   @@index([status])
-  @@unique([programId, versionLabel])
 }
 
 model ProgramCourse {
@@ -479,9 +559,9 @@ model ProgramCourse {
   academicCourse      AcademicCourse    @relation(fields: [academicCourseId], references: [id], onDelete: Restrict)
   credentials         Credential[]      @relation("ProgramCourseCredentials")
 
+  @@unique([curriculumVersionId, academicCourseId])
   @@index([curriculumVersionId])
   @@index([academicCourseId])
-  @@unique([curriculumVersionId, academicCourseId])
 }
 
 model AuditLog {
@@ -500,22 +580,22 @@ model AuditLog {
 }
 
 model SharingGrant {
-  id              String            @id @default(uuid())
-  userId          String
-  credentialId    String?
-  profileId       String?
-  createdByUserId String?
-  scope           SharingGrantScope
-  tokenHash       String            @unique
-  expiresAt       DateTime?
-  revokedAt       DateTime?
-  createdAt       DateTime          @default(now())
-  lastUsedAt      DateTime?
-  metadata        Json?
-  user            User              @relation("SharingGrantOwner", fields: [userId], references: [id], onDelete: Cascade)
-  credential      Credential?       @relation(fields: [credentialId], references: [id], onDelete: SetNull)
-  profile         FormativeProfile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
-  createdByUser   User?             @relation("SharingGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  id                 String              @id @default(uuid())
+  userId             String
+  credentialId       String?
+  profileId          String?
+  createdByUserId    String?
+  scope              SharingGrantScope
+  tokenHash          String              @unique
+  expiresAt          DateTime?
+  revokedAt          DateTime?
+  createdAt          DateTime            @default(now())
+  lastUsedAt         DateTime?
+  metadata           Json?
+  user               User                @relation("SharingGrantOwner", fields: [userId], references: [id], onDelete: Cascade)
+  credential         Credential?         @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  profile            FormativeProfile?   @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  createdByUser      User?               @relation("SharingGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   verificationEvents VerificationEvent[]
 
   @@index([userId])

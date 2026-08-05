@@ -126,14 +126,17 @@ pasaron; integracion de fuentes y hardening continuan en slices siguientes.
 
 ## P5a - Resolucion interna de fuentes
 
+Estado: foundation implementada. `AnalysisRun` `pending` captura fuentes current
+exactas mediante servicio interno; no ejecuta IA ni expone endpoint.
+
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Resolver versiones exactas de documento/texto para analisis. |
+| Objetivo | Persistir run pendiente y versiones exactas de documento/texto. |
 | Dependencias | P4e, P4i. |
 | Modulos | storage port, document/text evidence, AI integration. |
-| Migracion | No. |
+| Migracion | Si, runs, sources y relacion semantica opcional. |
 | Endpoint | Ninguno publico nuevo; servicio interno. |
-| Aceptacion | Documento, texto y combinado se obtienen sin exponer internals. |
+| Aceptacion | Fuentes current quedan referenciadas por hash; combined exige ambas. |
 | Pruebas | missing/replaced/cross-issuer, status y hash. |
 | Riesgos | Analizar una version distinta de la persistida. |
 | Entrega | 50%, obligatorio. |
@@ -142,10 +145,10 @@ pasaron; integracion de fuentes y hardening continuan en slices siguientes.
 
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Persistir lifecycle e idempotencia sin cola. |
+| Objetivo | Ejecutar y transicionar el lifecycle persistido sin cola. |
 | Dependencias | P5a. |
 | Modulos | Prisma, analysis orchestration. |
-| Migracion | Si, modelo `AnalysisRun`. |
+| Migracion | Evolutiva si agrega idempotencia/correlation/intentos. |
 | Endpoint | Base para triggers P5c-P5e y status seguro. |
 | Aceptacion | `running -> completed/partial/failed`, correlation y error seguro. |
 | Pruebas | timeout, retry, concurrencia, duplicado, crash stale. |
