@@ -107,20 +107,21 @@ Docker portable y tests de outputs Python contra los schemas compartidos. El
 import excluye datos, outputs, embeddings y secretos. P4i-3 implemento auth
 interna HS256 con modo local deshabilitado, fail-fast y `/health` publico.
 P4i-4 deja el deployment privado listo a nivel runbook, sin crear el servicio
-real. La ejecucion del deploy, integracion de fuentes y hardening posterior
-continuan en slices siguientes; la rotacion `current/previous` no forma parte
-de P4i-4.
+real. P4i-6a registra el deploy demo ya operativo como Web Service Free con URL
+HTTPS publica y JWT interno, una desviacion temporal por restricciones de
+costo/entorno actuales. Health, rechazo sin JWT y smoke NestJS -> FastAPI
+pasaron; integracion de fuentes y hardening continuan en slices siguientes.
 
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Desplegar FastAPI privado autenticado desde NestJS. |
+| Objetivo | Operar FastAPI autenticado desde NestJS y migrar la excepcion demo a red privada. |
 | Dependencias | P4g, ADR 0008. |
 | Modulos | `AiServiceClient`, middleware FastAPI, config. |
 | Migracion | No. |
 | Endpoint | `/health` y endpoints IA v1 existentes. |
-| Aceptacion | NestJS accede con JWT interno; navegador no accede. |
+| Aceptacion | NestJS accede con JWT interno; navegador no accede; desviacion publica queda registrada. |
 | Pruebas | token valido/ausente/vencido, issuer/audience, Docker y smoke privado documentado. |
-| Riesgos | Exponer FastAPI o reutilizar JWT de usuarios. |
+| Riesgos | URL publica demo, abuso de recursos o reutilizar JWT de usuarios. |
 | Entrega | 50%, obligatorio. |
 
 ## P5a - Resolucion interna de fuentes

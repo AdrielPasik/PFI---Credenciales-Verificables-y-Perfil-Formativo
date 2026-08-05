@@ -42,7 +42,9 @@ backend/issuer y nunca se guarda en PostgreSQL, Vercel o frontend.
 
 ## Red y CORS
 
-- FastAPI es privado y no acepta trafico del navegador;
+- FastAPI objetivo es privado; la demo actual usa temporalmente un Web Service
+  publico con JWT interno segun ADR 0014;
+- una URL publica no autoriza consumo del navegador;
 - NestJS es la unica API publica de dominio;
 - CORS de NestJS usa origins explicitos de Vercel/local;
 - S3 no necesita CORS para upload actual;
@@ -78,6 +80,8 @@ variables antes de activar JWT, en lugar de publicar un servicio temporal.
 La configuracion completa se encuentra en
 `render-api-deployment-runbook-v0.md`. La configuracion coordinada del servicio
 IA privado se encuentra en `render-ai-private-service-runbook-v0.md`.
+El deployment demo real, sus riesgos y controles compensatorios se registran en
+`render-ai-cloud-deployment-record-v0.md`.
 
 Vercel recibe solamente `NEXT_PUBLIC_API_BASE_URL`, que es publica por diseno y
 apunta a NestJS. No recibe JWT secret, DB, AWS, IA o blockchain. El access token
@@ -116,6 +120,7 @@ como auth de servicio.
 
 ## Proximos slices relacionados
 
-P4e IAM/storage, P4g deployment API, P4i-4 readiness de FastAPI privado y
+P4e IAM/storage, P4g deployment API, P4i-6a excepcion cloud documentada y
 rotacion futura. `none/disabled` queda solo para local y no es un rollback
-aceptable en demo/production.
+aceptable en demo/production. La URL publica demo conserva riesgos residuales
+de scanning, abuso y disponibilidad hasta migrar a red privada.

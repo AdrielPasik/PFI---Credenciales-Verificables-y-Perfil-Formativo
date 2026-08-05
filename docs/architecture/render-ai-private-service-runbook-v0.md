@@ -7,6 +7,15 @@ o interno de Render, conectado exclusivamente desde el Web Service NestJS.
 P4i-4 documenta configuracion y operacion: no crea servicios, no ejecuta deploy
 y no incorpora secretos reales.
 
+## Resultado posterior de deployment
+
+P4i-6a registra que la demo real se desplego temporalmente como Render Web
+Service Free con HTTPS publico y JWT interno, porque el servicio privado
+requeria un plan pago dentro del entorno/oferta verificados durante ese deploy.
+Este runbook conserva la arquitectura objetivo. La excepcion, riesgos y smoke
+sanitizado se documentan en `render-ai-cloud-deployment-record-v0.md` y ADR
+0014; no deben interpretarse como una limitacion permanente del proveedor.
+
 ## Estado previo verificado
 
 - `services/ai-service` contiene el runtime FastAPI real dentro del monorepo;

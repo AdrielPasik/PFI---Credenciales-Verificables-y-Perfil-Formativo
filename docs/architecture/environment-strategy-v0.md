@@ -13,7 +13,7 @@ permitir fallbacks silenciosos entre servicios o secretos.
 | API | NestJS `127.0.0.1:3001` | Render Web Service | servicio dimensionado y observable |
 | DB | PostgreSQL Docker | Neon demo | Neon plan productivo o equivalente |
 | Storage | local default o S3 explicito | S3 privado | S3 privado con lifecycle/auditoria |
-| IA | FastAPI local | Render Private Service | servicio privado dimensionado/worker |
+| IA | FastAPI local | Render Web Service Free temporal + JWT | servicio privado dimensionado/worker |
 | Blockchain | mock o Anvil | mock/Anvil garantizado | testnet/mainnet segun ADR futura |
 | Secrets | `.env` local no versionado | secret manager del proveedor | KMS/workload identity cuando aplique |
 | Migraciones | `migrate dev` solo desarrollo | `migrate deploy` | pipeline controlado + backup |
@@ -76,8 +76,9 @@ instancia AWS en local. P4f deja operativas migraciones deploy, seed y
 verificacion demo, ya validadas contra un Neon real administrado fuera del repo.
 P4g ya opera en Render y P4h deja preparada la web sin ejecutar el deploy;
 P4i-4 deja documentada la configuracion del servicio IA privado, su URL interna,
-JWT service-to-service, smoke y rollback. El servicio real y su direccion deben
-crearse y confirmarse manualmente durante el deploy.
+JWT service-to-service, smoke y rollback. P4i-6a registra que la demo real usa
+temporalmente HTTPS publico + JWT por una restriccion operativa/costo observada
+en el entorno actual. La red privada sigue siendo el objetivo.
 
 ## Riesgos
 
@@ -85,6 +86,7 @@ crearse y confirmarse manualmente durante el deploy.
 - seed demo en base equivocada;
 - CORS de previews;
 - private service inaccesible por region/red;
+- abuso o scanning sobre la URL publica temporal del AI Service;
 - confundir variables publicas con secretos.
 
 ## Proximos slices relacionados

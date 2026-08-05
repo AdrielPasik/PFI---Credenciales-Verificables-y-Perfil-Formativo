@@ -203,11 +203,12 @@ las llamadas `/v1` reciben solamente el token de servicio con
 En modo local `none`, omitir `AI_SERVICE_BASE_URL` no bloquea modulos ajenos;
 una llamada IA falla de forma controlada hasta que se configure la URL.
 
-En demo/production, `AI_SERVICE_BASE_URL` debe ser la direccion privada
-confirmada manualmente para FastAPI y `AI_SERVICE_AUTH_MODE` debe permanecer en
-`jwt`. `none` es solo local, no una estrategia de rollback. Configuracion,
-orden de redeploy, smoke y desactivacion segura se documentan en
-`../../docs/architecture/render-ai-private-service-runbook-v0.md`.
+En demo, P4i-6a registra temporalmente una URL HTTPS publica del Web Service
+FastAPI; `AI_SERVICE_AUTH_MODE` permanece en `jwt` y el browser nunca consume
+esa URL. La red privada sigue siendo el objetivo. `none` es solo local, no una
+estrategia de rollback. Ver
+`../../docs/architecture/render-ai-cloud-deployment-record-v0.md` y el runbook
+privado para configuracion, smoke y migracion futura.
 
 ## Desarrollo
 

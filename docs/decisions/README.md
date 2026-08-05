@@ -17,5 +17,6 @@ Registro inicial de Architecture Decision Records del proyecto.
 - `0011-ai-artifact-source-traceability.md`
 - `0012-human-reviewed-ai-proposals.md`
 - `0013-academic-catalog-offline-pipeline.md`
+- `0014-ai-service-demo-deployment-mode.md`
 
 Cada ADR documenta contexto, decision, justificacion, consecuencias y alternativas descartadas.

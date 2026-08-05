@@ -15,6 +15,7 @@ Documentacion de arquitectura logica del sistema.
 - `neon-demo-database-runbook-v0.md`: migraciones, seed y verificacion sanitaria de la base demo Neon.
 - `render-api-deployment-runbook-v0.md`: configuracion y operacion segura del Web Service NestJS en Render.
 - `render-ai-private-service-runbook-v0.md`: readiness y operacion segura del FastAPI privado en Render.
+- `render-ai-cloud-deployment-record-v0.md`: estado cloud real, desviacion demo y smoke sanitizado del AI Service.
 - `vercel-frontend-deployment-runbook-v0.md`: configuracion y smoke seguro del frontend Next.js en Vercel.
 - `ai-service-integration-v1.md`: evolucion IA para documento, texto y combinado.
 - `analysis-job-lifecycle-v0.md`: `AnalysisRun` sincrono inicial y worker posterior.

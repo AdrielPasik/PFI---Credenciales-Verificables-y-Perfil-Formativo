@@ -17,6 +17,10 @@ termina en NestJS y nunca se reenvia: el cliente genera por request una
 credencial de servicio nueva con `iss`, `aud`, `sub=traza-api`, `iat`, `exp` y
 `jti`, sin PII ni permisos humanos.
 
+P4i-6a registra el deployment demo como Web Service Free con URL HTTPS publica
+y JWT interno. La red privada sigue siendo el objetivo; la excepcion no cambia
+la frontera browser -> NestJS ni implementa las fuentes/lifecycle de P5.
+
 P5 agregara resolucion de `DocumentEvidence` y `TextEvidence` actuales. Los
 contratos P5 descritos aqui son planificados, no endpoints implementados.
 
@@ -143,5 +147,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-Deploy privado operativo, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
-trazabilidad.
+Migracion a red privada, P5a resolucion, P5b lifecycle, P5c-P5e modos, P5f
+trazabilidad y tuning semantico medido en un slice separado.

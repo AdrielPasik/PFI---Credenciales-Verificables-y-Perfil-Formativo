@@ -16,6 +16,8 @@ compartidos del monorepo.
 
 P4i-3 agrego autenticacion JWT interna opcional. P4i-4 deja documentada la
 configuracion recomendada para un servicio privado, pero no ejecuta el deploy.
+P4i-6a registra el deploy demo real como Web Service Free con HTTPS publico y
+JWT interno, una excepcion temporal; la red privada sigue siendo el objetivo.
 El servicio todavia no tiene conexion automatica de `DocumentEvidence` o
 `TextEvidence`.
 
@@ -135,6 +137,11 @@ Para demo se recomienda desplegar este Dockerfile desde el contexto
 incluidas variables, URL interna, smoke y rollback, esta en
 `../../docs/architecture/render-ai-private-service-runbook-v0.md`. P4i-4 no es
 confirmacion de que el servicio real haya sido creado o desplegado.
+
+El estado cloud real, smoke sanitizado, riesgos y controles compensatorios se
+documentan en
+`../../docs/architecture/render-ai-cloud-deployment-record-v0.md`. La URL
+publica demo no habilita llamadas directas desde frontend.
 
 ## Limites
 
