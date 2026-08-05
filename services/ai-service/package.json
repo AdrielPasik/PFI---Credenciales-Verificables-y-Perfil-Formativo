@@ -4,9 +4,13 @@
   "private": true,
   "description": "FastAPI semantic analysis service for Traza.",
   "scripts": {
-    "dev": "python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000",
-    "test": "python -m pytest tests/api tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py",
+    "dev": "python -m src.api.run",
+    "start": "python -m src.api.run",
+    "python:check": "python -c \"from src.api.main import app; print('app import ok')\"",
+    "test": "python -m pytest tests/api tests/contracts tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py",
     "test:api": "python -m pytest tests/api",
-    "test:contracts": "python -m pytest tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py"
+    "test:contracts": "python -m pytest tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py",
+    "test:schemas": "python -m pytest tests/contracts/test_shared_json_schemas.py",
+    "docker:build": "docker build -t traza-ai-service:local ."
   }
 }
