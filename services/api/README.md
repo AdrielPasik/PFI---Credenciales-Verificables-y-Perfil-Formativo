@@ -33,6 +33,8 @@ GET  /me/credentials
 GET  /me/credentials/:id
 GET  /me/profile/current
 POST /me/profile/rebuild
+POST /me/profile/build-from-ai
+POST /credentials/:id/semantic-analysis/from-pdf
 ```
 
 `POST /credentials/draft` requiere un usuario autenticado con `IssuerMembership` activa, rol `admin` u `operator` y un issuer autorizado. El `issuerId` del body selecciona el contexto institucional, pero no es autoridad por si solo.
@@ -163,7 +165,43 @@ readiness, emision, IA ni blockchain, y no expone historial o submitter.
 - si una credencial no tiene analisis, genera warning y continua;
 - mantiene un perfil actual mediante transaccion Prisma.
 
-No se ingiere todavia `formative_profile_result_v0` externo ni existe integracion HTTP con el modulo IA.
+El backend tambien puede validar y persistir artifacts IA reales mediante la
+integracion HTTP existente. `POST /credentials/:id/semantic-analysis/from-pdf`
+y `POST /me/profile/build-from-ai` permanecen protegidos por el JWT humano en
+NestJS; el navegador nunca llama FastAPI ni recibe la credencial interna entre
+servicios.
+
+## AI Service interno
+
+`AiServiceClient` valida auth y cualquier URL configurada al construirse. En
+modo `jwt`, la URL tambien es obligatoria y el proceso falla antes de aceptar
+trafico si falta. En local, ambos servicios pueden ejecutarse sin auth interna:
+
+```dotenv
+AI_SERVICE_BASE_URL=http://127.0.0.1:8000
+AI_SERVICE_TIMEOUT_MS=60000
+AI_SERVICE_AUTH_MODE=none
+```
+
+Para demo/production, NestJS genera por request un JWT interno HS256, diferente
+del JWT humano y con TTL maximo de 300 segundos:
+
+```dotenv
+AI_SERVICE_AUTH_MODE=jwt
+AI_SERVICE_JWT_SECRET=
+AI_SERVICE_JWT_ISSUER=traza-api
+AI_SERVICE_JWT_AUDIENCE=traza-ai-service
+AI_SERVICE_JWT_EXPIRES_IN_SECONDS=60
+```
+
+En modo `jwt`, secreto, issuer, audience y TTL son obligatorios, y el secreto
+no puede coincidir con `JWT_SECRET`. La base URL debe ser HTTP/HTTPS y no puede
+contener credenciales, query ni fragment. `GET /health` no recibe Authorization;
+las llamadas `/v1` reciben solamente el token de servicio con
+`iss/aud/sub/iat/exp/jti`, sin identidad ni permisos del usuario.
+
+En modo local `none`, omitir `AI_SERVICE_BASE_URL` no bloquea modulos ajenos;
+una llamada IA falla de forma controlada hasta que se configure la URL.
 
 ## Desarrollo
 
@@ -255,6 +293,7 @@ Tests de slices:
 - `npm run test:me-wallet --workspace @credential-intelligence/api`
 - `npm run test:profiles --workspace @credential-intelligence/api`
 - `npm run test:hashing --workspace @credential-intelligence/api`
+- `npm run test:ai-service-client --workspace @credential-intelligence/api`
 
 ## PostgreSQL local
 

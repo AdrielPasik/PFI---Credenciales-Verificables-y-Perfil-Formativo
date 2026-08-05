@@ -14,16 +14,18 @@ P4i-2 consolido los comandos del workspace, el puerto configurable y la
 validacion de artifacts generados por Python contra los JSON Schemas
 compartidos del monorepo.
 
-El servicio todavia no implementa autenticacion interna, deployment privado
-ni conexion automatica de `DocumentEvidence` o `TextEvidence`.
+P4i-3 agrego autenticacion JWT interna opcional. El servicio todavia no tiene
+deployment privado ni conexion automatica de `DocumentEvidence` o
+`TextEvidence`.
 
 ## Endpoints
 
 - `GET /health`: health liviano, sin ejecutar pipelines.
 - `POST /v1/semantic-analysis/pdf`: recibe un PDF por multipart y devuelve
-  `semantic_analysis_v1`.
+  `semantic_analysis_v1`; requiere JWT interno en modo `jwt`.
 - `POST /v1/formative-profile/build`: recibe artifacts
-  `semantic_analysis_v1` y devuelve `formative_profile_result_v0`.
+  `semantic_analysis_v1` y devuelve `formative_profile_result_v0`; requiere
+  JWT interno en modo `jwt`.
 
 Los JSON Schemas autoritativos no se duplican en este servicio. Permanecen en:
 
@@ -73,7 +75,23 @@ no esta definida. Rechaza valores vacios, no numericos o fuera de `1..65535`.
 ```dotenv
 PORT=8000
 AI_SERVICE_MAX_PDF_BYTES=26214400
+AI_INTERNAL_AUTH_MODE=disabled
+AI_INTERNAL_JWT_SECRET=
+AI_INTERNAL_JWT_ISSUER=traza-api
+AI_INTERNAL_JWT_AUDIENCE=traza-ai-service
+AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS=30
 ```
+
+`disabled` es el default local y no requiere secretos. En demo/production se
+usa `jwt`: secreto, issuer y audience son obligatorios al construir la app;
+clock skew debe estar entre 0 y 300 segundos. FastAPI acepta exclusivamente
+HS256, exige `iss`, `aud`, `sub`, `iat`, `exp` y `jti`, y espera
+`sub=traza-api`. `/health` permanece publico. Los errores de autenticacion son
+uniformes y no imprimen tokens, secretos ni payloads.
+
+El secreto debe ser de alta entropia, distinto de `JWT_SECRET` y coincidir con
+`AI_SERVICE_JWT_SECRET` del backend. La rotacion `current/previous` queda como
+hardening futuro; P4i-3 usa un unico secreto interno vigente.
 
 ## Tests
 
@@ -111,12 +129,12 @@ npm run docker:build --workspace @credential-intelligence/ai-service
 docker run --rm -p 8000:8000 -e PORT=8000 traza-ai-service:local
 ```
 
-Auth interna corresponde a P4i-3 y Render Private Service a P4i-4. No usar este
-README como confirmacion de deployment productivo.
+Render Private Service corresponde a P4i-4. No usar este README como
+confirmacion de deployment productivo.
 
 ## Limites
 
-- sin auth JWT service-to-service;
+- auth interna JWT HS256 disponible, deshabilitada por default local;
 - sin acceso del browser;
 - sin persistencia propia;
 - sin acceso a S3 o PostgreSQL;

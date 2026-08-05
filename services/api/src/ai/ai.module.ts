@@ -7,12 +7,13 @@ import { SemanticModule } from '../semantic/semantic.module';
 import { CredentialAiController } from './credential-ai.controller';
 import { AiIntegrationService } from './ai-integration.service';
 import { AiServiceClient } from './ai-service.client';
+import { AiServiceInternalAuth } from './ai-service-internal-auth';
 import { ProfileAiController } from './profile-ai.controller';
 
 @Module({
   imports: [AuthModule, IssuersModule, SemanticModule, ProfilesModule],
   controllers: [CredentialAiController, ProfileAiController],
-  providers: [AiServiceClient, AiIntegrationService],
+  providers: [AiServiceInternalAuth, AiServiceClient, AiIntegrationService],
   exports: [AiServiceClient, AiIntegrationService]
 })
 export class AiModule {}

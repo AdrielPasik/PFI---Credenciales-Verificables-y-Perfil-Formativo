@@ -12,6 +12,11 @@ Ya existen `AiServiceClient`, `AiIntegrationService`, validadores de
 endpoints NestJS protegidos para PDF/perfil. FastAPI no persiste dominio ni
 recibe identidad de usuario como autoridad.
 
+P4i-3 implementa JWT interno HS256 entre NestJS y FastAPI. El token humano
+termina en NestJS y nunca se reenvia: el cliente genera por request una
+credencial de servicio nueva con `iss`, `aud`, `sub=traza-api`, `iat`, `exp` y
+`jti`, sin PII ni permisos humanos.
+
 P5 agregara resolucion de `DocumentEvidence` y `TextEvidence` actuales. Los
 contratos P5 descritos aqui son planificados, no endpoints implementados.
 
@@ -96,9 +101,12 @@ deben confundir con los endpoints actuales `/v1/semantic-analysis/pdf` y
 
 ## Autenticacion y transporte
 
-P4i agrega JWT interno de servicio, distinto del JWT de usuarios, con `iss`,
-`aud`, `sub`, `iat`, `exp` y `jti`, expiracion corta y rotacion current/previous.
-NestJS propagara correlation IDs. Los detalles viven en
+P4i-3 agrega dos modos emparejados: `none/disabled` para local y `jwt/jwt` para
+demo o production. En modo JWT ambos procesos fallan al configurar si faltan
+secreto, issuer o audience; NestJS tambien exige TTL valido de hasta 300
+segundos y FastAPI valida clock skew entre 0 y 300 segundos. `/health` es
+publico y los endpoints `/v1` quedan protegidos. La rotacion
+`current/previous` y correlation IDs quedan pendientes. Los detalles viven en
 `security-and-secrets-deployment-v0.md`.
 
 ## Alcance
@@ -133,6 +141,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-P4i auth interna, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
+P4i-4 deployment privado, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
 trazabilidad.
-

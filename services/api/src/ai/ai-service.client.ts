@@ -10,11 +10,23 @@ import {
   type AnalyzePdfWithAiInput,
   type BuildFormativeProfileWithAiInput
 } from './ai-service.types';
+import { AiServiceInternalAuth } from './ai-service-internal-auth';
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 
 @Injectable()
 export class AiServiceClient {
+  private readonly baseUrl: string | null;
+  private readonly timeoutMs: number;
+
+  constructor(
+    private readonly internalAuth: AiServiceInternalAuth =
+      new AiServiceInternalAuth()
+  ) {
+    this.baseUrl = this.getBaseUrl(this.internalAuth.isJwtEnabled());
+    this.timeoutMs = this.getTimeoutMs();
+  }
+
   async getHealth(): Promise<AiServiceHealthResponse> {
     const response = await this.requestJson('/health', {
       method: 'GET'
@@ -60,10 +72,14 @@ export class AiServiceClient {
       input.taxonomyVersion
     );
 
-    return this.requestJson('/v1/semantic-analysis/pdf', {
-      method: 'POST',
-      body: formData
-    });
+    return this.requestJson(
+      '/v1/semantic-analysis/pdf',
+      {
+        method: 'POST',
+        body: formData
+      },
+      true
+    );
   }
 
   private async readPdfInput(input: AnalyzePdfWithAiInput): Promise<{
@@ -117,42 +133,63 @@ export class AiServiceClient {
       );
     }
 
-    return this.requestJson('/v1/formative-profile/build', {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json'
+    return this.requestJson(
+      '/v1/formative-profile/build',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          artifacts: input.artifacts
+        })
       },
-      body: JSON.stringify({
-        artifacts: input.artifacts
-      })
-    });
+      true
+    );
   }
 
   private async requestJson(
     path: string,
-    init: RequestInit
+    init: RequestInit,
+    requiresInternalAuth = false
   ): Promise<unknown> {
-    const baseUrl = this.getBaseUrl();
-    const timeoutMs = this.getTimeoutMs();
+    if (!this.baseUrl) {
+      throw new AiServiceClientError(
+        'AI_SERVICE_BASE_URL is required.',
+        'configuration'
+      );
+    }
+    const authorization = requiresInternalAuth
+      ? this.internalAuth.createAuthorizationHeader()
+      : null;
+    const requestInit = authorization
+      ? {
+          ...init,
+          headers: {
+            ...Object.fromEntries(new Headers(init.headers).entries()),
+            authorization
+          }
+        }
+      : init;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
     let response: Response;
 
     try {
-      response = await fetch(`${baseUrl}${path}`, {
-        ...init,
+      response = await fetch(`${this.baseUrl}${path}`, {
+        ...requestInit,
         signal: controller.signal
       });
     } catch (error: unknown) {
       if (this.isAbortError(error)) {
         throw new AiServiceClientError(
-          `AI Service request timed out after ${timeoutMs} ms.`,
+          `AI Service request timed out after ${this.timeoutMs} ms.`,
           'timeout'
         );
       }
 
       throw new AiServiceClientError(
-        `AI Service is unavailable at ${baseUrl}: ${this.errorMessage(error)}`,
+        'AI Service is unavailable.',
         'unavailable'
       );
     } finally {
@@ -163,12 +200,15 @@ export class AiServiceClient {
     const parsedBody = this.parseResponseJson(responseBody, response.status);
 
     if (!response.ok) {
-      const detail = this.readErrorDetail(parsedBody);
+      const detail =
+        response.status === 401 || response.status === 403
+          ? 'AI Service rejected the internal service credential.'
+          : this.readErrorDetail(parsedBody);
       throw new AiServiceClientError(
         `AI Service request failed with status ${response.status}: ${detail}`,
         'http',
         response.status,
-        parsedBody
+        detail
       );
     }
 
@@ -210,19 +250,18 @@ export class AiServiceClient {
 
   private formatDetail(value: unknown): string {
     if (typeof value === 'string') {
-      return value;
+      return value.slice(0, 500);
     }
 
-    try {
-      return JSON.stringify(value).slice(0, 2_000);
-    } catch {
-      return String(value);
-    }
+    return 'AI Service returned a structured error response.';
   }
 
-  private getBaseUrl(): string {
+  private getBaseUrl(required: boolean): string | null {
     const configured = process.env.AI_SERVICE_BASE_URL?.trim();
     if (!configured) {
+      if (!required) {
+        return null;
+      }
       throw new AiServiceClientError(
         'AI_SERVICE_BASE_URL is required.',
         'configuration'
@@ -246,7 +285,20 @@ export class AiServiceClient {
       );
     }
 
-    return configured.replace(/\/+$/, '');
+    if (parsed.username || parsed.password) {
+      throw new AiServiceClientError(
+        'AI_SERVICE_BASE_URL must not contain credentials.',
+        'configuration'
+      );
+    }
+    if (parsed.search || parsed.hash) {
+      throw new AiServiceClientError(
+        'AI_SERVICE_BASE_URL must not contain a query or fragment.',
+        'configuration'
+      );
+    }
+
+    return parsed.toString().replace(/\/+$/, '');
   }
 
   private getTimeoutMs(): number {
@@ -320,9 +372,5 @@ export class AiServiceClient {
       error instanceof Error &&
       (error.name === 'AbortError' || error.name === 'TimeoutError')
     );
-  }
-
-  private errorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : String(error);
   }
 }

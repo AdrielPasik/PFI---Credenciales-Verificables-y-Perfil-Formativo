@@ -28,6 +28,20 @@ test('getHealth returns normalized AI Service health', async (context) => {
   });
 });
 
+test('getHealth remains public when internal jwt mode is enabled', async (context) => {
+  configureJwtAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      assert.equal(new Headers(init?.headers).has('authorization'), false);
+      return jsonResponse({ status: 'ok', service: 'pfi-ai-service' });
+    }
+  );
+
+  assert.equal((await new AiServiceClient().getHealth()).status, 'ok');
+});
+
 test('getHealth reports an unavailable AI Service', async (context) => {
   configureAiEnv(context);
   context.mock.method(globalThis, 'fetch', async () => {
@@ -196,6 +210,99 @@ test('buildFormativeProfile sends the expected JSON body', async (context) => {
   );
 });
 
+test('jwt mode sends a new internal token and never forwards a human bearer', async (context) => {
+  configureJwtAiEnv(context);
+  const humanAuthorization = 'Bearer human-user-jwt-must-not-be-forwarded';
+  const captured: { authorization: string | null } = {
+    authorization: null
+  };
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      captured.authorization = new Headers(init?.headers).get('authorization');
+      return jsonResponse({
+        profileVersion: 'formative_profile_result_v0'
+      });
+    }
+  );
+
+  // A browser bearer can exist in the Nest request context, but the AI client
+  // has no API for receiving it and creates a separate service credential.
+  const simulatedNestRequest = { authorization: humanAuthorization };
+  assert.equal(simulatedNestRequest.authorization, humanAuthorization);
+  await new AiServiceClient().buildFormativeProfile({
+    artifacts: [{ schemaVersion: 'semantic_analysis_v1' }]
+  });
+
+  const upstreamAuthorization = captured.authorization;
+  assert.ok(upstreamAuthorization);
+  assert.ok(upstreamAuthorization.startsWith('Bearer '));
+  assert.notEqual(upstreamAuthorization, humanAuthorization);
+  assert.equal(upstreamAuthorization.includes('human-user-jwt'), false);
+  const payload = decodeJwtPayload(upstreamAuthorization);
+  assert.deepEqual(Object.keys(payload).sort(), [
+    'aud',
+    'exp',
+    'iat',
+    'iss',
+    'jti',
+    'sub'
+  ]);
+});
+
+for (const status of [401, 403]) {
+  test(`upstream ${status} is sanitized`, async (context) => {
+    configureJwtAiEnv(context);
+    context.mock.method(globalThis, 'fetch', async () =>
+      jsonResponse(
+        {
+          detail: 'sensitive upstream token or configuration detail'
+        },
+        status
+      )
+    );
+
+    await assert.rejects(
+      () =>
+        new AiServiceClient().buildFormativeProfile({
+          artifacts: [{ schemaVersion: 'semantic_analysis_v1' }]
+        }),
+      (error: unknown) =>
+        error instanceof AiServiceClientError &&
+        error.status === status &&
+        error.message.includes('rejected the internal service credential') &&
+        !error.message.includes('sensitive upstream')
+    );
+  });
+}
+
+for (const [label, baseUrl] of [
+  ['invalid syntax', 'not-a-url'],
+  ['unsupported protocol', 'ftp://ai.test'],
+  ['credentials', 'http://user:password@ai.test'],
+  ['query', 'http://ai.test?token=sensitive'],
+  ['fragment', 'http://ai.test#sensitive']
+]) {
+  test(`AI Service base URL rejects ${label}`, (context) => {
+    configureAiEnv(context, '60000', baseUrl);
+    let fetchCalled = false;
+    context.mock.method(globalThis, 'fetch', async () => {
+      fetchCalled = true;
+      return jsonResponse({ status: 'ok', service: 'pfi-ai-service' });
+    });
+
+    assert.throws(
+      () => new AiServiceClient(),
+      (error: unknown) =>
+        error instanceof AiServiceClientError &&
+        error.code === 'configuration' &&
+        !error.message.includes(baseUrl)
+    );
+    assert.equal(fetchCalled, false);
+  });
+}
+
 test('buildFormativeProfile rejects a non-JSON response', async (context) => {
   configureAiEnv(context);
   context.mock.method(
@@ -226,14 +333,44 @@ test('buildFormativeProfile rejects a non-JSON response', async (context) => {
   );
 });
 
-function configureAiEnv(context: TestContext, timeout = '60000') {
+function configureAiEnv(
+  context: TestContext,
+  timeout = '60000',
+  baseUrl = 'http://ai.test'
+) {
   const previousBaseUrl = process.env.AI_SERVICE_BASE_URL;
   const previousTimeout = process.env.AI_SERVICE_TIMEOUT_MS;
-  process.env.AI_SERVICE_BASE_URL = 'http://ai.test';
+  const previousAuthMode = process.env.AI_SERVICE_AUTH_MODE;
+  process.env.AI_SERVICE_BASE_URL = baseUrl;
   process.env.AI_SERVICE_TIMEOUT_MS = timeout;
+  process.env.AI_SERVICE_AUTH_MODE = 'none';
   context.after(() => {
     restoreEnv('AI_SERVICE_BASE_URL', previousBaseUrl);
     restoreEnv('AI_SERVICE_TIMEOUT_MS', previousTimeout);
+    restoreEnv('AI_SERVICE_AUTH_MODE', previousAuthMode);
+  });
+}
+
+function configureJwtAiEnv(context: TestContext) {
+  const values: Record<string, string> = {
+    AI_SERVICE_BASE_URL: 'http://ai.test',
+    AI_SERVICE_TIMEOUT_MS: '60000',
+    AI_SERVICE_AUTH_MODE: 'jwt',
+    AI_SERVICE_JWT_SECRET: 'internal-service-test-secret',
+    AI_SERVICE_JWT_ISSUER: 'traza-api',
+    AI_SERVICE_JWT_AUDIENCE: 'traza-ai-service',
+    AI_SERVICE_JWT_EXPIRES_IN_SECONDS: '60',
+    JWT_SECRET: 'different-human-user-secret'
+  };
+  const previous = new Map<string, string | undefined>();
+  for (const [name, value] of Object.entries(values)) {
+    previous.set(name, process.env[name]);
+    process.env[name] = value;
+  }
+  context.after(() => {
+    for (const [name, value] of previous) {
+      restoreEnv(name, value);
+    }
   });
 }
 
@@ -252,6 +389,13 @@ function jsonResponse(value: unknown, status = 200): Response {
       'content-type': 'application/json'
     }
   });
+}
+
+function decodeJwtPayload(authorization: string) {
+  const token = authorization.slice('Bearer '.length);
+  return JSON.parse(
+    Buffer.from(token.split('.')[1], 'base64url').toString('utf8')
+  ) as Record<string, unknown>;
 }
 
 async function withTemporaryPdf(

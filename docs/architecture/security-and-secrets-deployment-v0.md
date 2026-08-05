@@ -7,18 +7,20 @@ trasladar secretos o autoridad al navegador.
 
 ## Decision
 
-El JWT interno NestJS-FastAPI sera distinto del JWT de usuarios. Para demo se
-usara un secreto dedicado gestionado por Render, con validacion estricta de:
+El JWT interno NestJS-FastAPI es distinto del JWT de usuarios. Para demo se
+usa un secreto dedicado gestionado fuera del repo, con validacion estricta de:
 
 - `iss = traza-api`;
 - `aud = traza-ai-service`;
 - `sub` de servicio;
 - `iat`, `exp` corto y `jti` unico;
 - algoritmo allowlisted;
-- secreto `current` y `previous` durante una ventana de rotacion.
+- secreto interno distinto de `JWT_SECRET`.
 
-La duracion objetivo es de hasta cinco minutos. FastAPI valida el token antes
-de leer payloads. En produccion futura se prefiere workload identity o mTLS.
+P4i-3 fija HS256 y una duracion maxima de cinco minutos. FastAPI valida el
+token antes de leer payloads; `/health` permanece publico. La rotacion
+`current/previous` no esta implementada todavia y es el siguiente hardening.
+En produccion futura se prefiere workload identity o mTLS.
 
 ## Inventario de secretos
 
@@ -26,7 +28,7 @@ de leer payloads. En produccion futura se prefiere workload identity o mTLS.
 | --- | --- |
 | Vercel/Next.js | ninguno en `NEXT_PUBLIC_*`; URL API no es secreta |
 | Render/NestJS | DB, JWT usuarios, JWT servicio IA, AWS, signer si aplica |
-| Render/FastAPI | JWT servicio IA current/previous y configuracion del pipeline |
+| Render/FastAPI | JWT servicio IA vigente y configuracion del pipeline |
 | Neon | credencial PostgreSQL solo en NestJS/migraciones |
 | AWS | credenciales IAM minimas solo en NestJS |
 
@@ -69,8 +71,10 @@ incluir secretos, bucket, key completa, endpoint ni contenido documental.
 En Render, esos valores y la pooled `DATABASE_URL` se cargan exclusivamente como
 variables privadas del Web Service. La Direct Connection de Neon se reserva para
 sesiones administrativas de migracion; no se copia al runtime. El start no
-ejecuta migraciones ni seed. Antes de P4i, `AI_SERVICE_BASE_URL` se omite y los
-endpoints IA no forman parte del smoke, en lugar de publicar un FastAPI temporal.
+ejecuta migraciones ni seed. Con P4i-3, una `AI_SERVICE_BASE_URL` configurada y
+el modo de auth se validan al construir el cliente; en modo `jwt` la URL es
+obligatoria. Un deployment que aun no tenga FastAPI debe coordinar esas
+variables antes de activar JWT, en lugar de publicar un servicio temporal.
 La configuracion completa se encuentra en
 `render-api-deployment-runbook-v0.md`.
 
@@ -86,7 +90,7 @@ justifican un wildcard CORS. Ver `vercel-frontend-deployment-runbook-v0.md`.
 - secretos por servicio;
 - auth interna inicial;
 - red privada, CORS, IAM y logging seguro;
-- rotacion basica current/previous.
+- JWT interno inicial; rotacion current/previous queda pendiente.
 
 ## Fuera de alcance
 
@@ -97,7 +101,7 @@ justifican un wildcard CORS. Ver `vercel-frontend-deployment-runbook-v0.md`.
 
 ## Impacto en modulos actuales
 
-P4i evolucionara `AiServiceClient` y FastAPI auth middleware. P4e agrego
+P4i-3 evoluciono `AiServiceClient` y FastAPI auth middleware. P4e agrego
 configuracion AWS del lado API. Auth de usuarios y `AuthGuard` no se reutilizan
 como auth de servicio.
 
@@ -111,4 +115,4 @@ como auth de servicio.
 
 ## Proximos slices relacionados
 
-P4e IAM/storage, P4g deployment API y P4i FastAPI privado/auth.
+P4e IAM/storage, P4g deployment API, P4i-4 FastAPI privado y rotacion futura.

@@ -4,40 +4,30 @@ import test from 'node:test';
 import {
   BadRequestException,
   ForbiddenException,
-  HttpException,
   HttpStatus,
   NotFoundException
 } from '@nestjs/common';
 
-import { AiIntegrationService } from './ai-integration.service';
 import { AiServiceClient } from './ai-service.client';
 import { mapAiServiceClientError } from './ai-service-http-error.mapper';
 import { AiServiceClientError } from './ai-service.types';
 
-test('missing AI_SERVICE_BASE_URL maps to Service Unavailable', async (context) => {
+test('missing AI_SERVICE_BASE_URL remains a mapped request error in local none mode', async (context) => {
   const previousBaseUrl = process.env.AI_SERVICE_BASE_URL;
+  const previousAuthMode = process.env.AI_SERVICE_AUTH_MODE;
   delete process.env.AI_SERVICE_BASE_URL;
+  process.env.AI_SERVICE_AUTH_MODE = 'none';
   context.after(() => restoreEnv('AI_SERVICE_BASE_URL', previousBaseUrl));
+  context.after(() => restoreEnv('AI_SERVICE_AUTH_MODE', previousAuthMode));
 
-  const service = new AiIntegrationService(
-    {} as never,
-    new AiServiceClient(),
-    {} as never,
-    {} as never,
-    {} as never
-  );
+  const client = new AiServiceClient();
 
   await assert.rejects(
-    () =>
-      service.analyzePdf({
-        fileBytes: Buffer.from('%PDF-1.4\nconfiguration test')
-      }),
+    () => client.getHealth(),
     (error: unknown) =>
-      isMappedAiError(
-        error,
-        HttpStatus.SERVICE_UNAVAILABLE,
-        'configuration'
-      )
+      error instanceof AiServiceClientError &&
+      error.code === 'configuration' &&
+      /AI_SERVICE_BASE_URL is required/.test(error.message)
   );
 });
 
@@ -117,25 +107,6 @@ function assertMappedStatus(
   assert.equal(response.upstreamStatus, upstreamStatus);
   assert.equal('detail' in response, false);
   assert.equal(JSON.stringify(response).includes('must not be exposed'), false);
-}
-
-function isMappedAiError(
-  error: unknown,
-  expectedStatus: HttpStatus,
-  expectedCode: string
-) {
-  if (!(error instanceof HttpException)) {
-    return false;
-  }
-
-  const response = error.getResponse();
-  return (
-    error.getStatus() === expectedStatus &&
-    typeof response === 'object' &&
-    response !== null &&
-    'aiServiceCode' in response &&
-    response.aiServiceCode === expectedCode
-  );
 }
 
 function restoreEnv(name: string, value: string | undefined) {

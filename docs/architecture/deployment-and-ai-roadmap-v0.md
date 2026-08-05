@@ -104,8 +104,9 @@ pendientes fuera de este slice. Ver `vercel-frontend-deployment-runbook-v0.md`.
 Estado: P4i-1 reemplazo el placeholder por un snapshot curado y testeable del
 servicio FastAPI real. P4i-2 agrego tooling reproducible, `PORT` configurable,
 Docker portable y tests de outputs Python contra los schemas compartidos. El
-import excluye datos, outputs, embeddings y secretos. Auth interna y deployment
-privado continuan en P4i-3 a P4i-6.
+import excluye datos, outputs, embeddings y secretos. P4i-3 implemento auth
+interna HS256 con modo local deshabilitado, fail-fast y `/health` publico. El
+deployment privado y la rotacion continuan en P4i-4 a P4i-6.
 
 | Campo | Definicion |
 | --- | --- |

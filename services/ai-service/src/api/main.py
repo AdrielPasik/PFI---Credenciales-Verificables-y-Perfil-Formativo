@@ -4,8 +4,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Annotated, Any
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
 
+from src.api.internal_auth import (
+    InternalAuthSettings,
+    load_internal_auth_settings,
+    require_internal_service,
+)
 from src.api.models import FormativeProfileBuildRequest
 from src.api.service import (
     InvalidPdfUploadError,
@@ -17,19 +22,10 @@ from src.api.service import (
 from src.profile_builder.artifact_loader import InvalidArtifactError
 
 
-app = FastAPI(
-    title="PFI AI Service",
-    version="0.1.0",
-    description="HTTP adapter over the existing semantic and formative-profile pipelines.",
-)
-
-
-@app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "pfi-ai-service"}
 
 
-@app.post("/v1/formative-profile/build")
 def formative_profile_build(payload: FormativeProfileBuildRequest) -> dict[str, Any]:
     try:
         return build_formative_profile(payload.artifacts)
@@ -47,7 +43,6 @@ def formative_profile_build(payload: FormativeProfileBuildRequest) -> dict[str, 
         ) from exc
 
 
-@app.post("/v1/semantic-analysis/pdf")
 def semantic_analysis_pdf(
     file: Annotated[UploadFile, File(description="Academic program in PDF format")],
     document_id: Annotated[str | None, Form(alias="documentId")] = None,
@@ -86,3 +81,34 @@ def semantic_analysis_pdf(
         ) from exc
     finally:
         file.file.close()
+
+
+def create_app(
+    internal_auth_settings: InternalAuthSettings | None = None,
+) -> FastAPI:
+    settings = internal_auth_settings or load_internal_auth_settings()
+    application = FastAPI(
+        title="PFI AI Service",
+        version="0.1.0",
+        description="HTTP adapter over the existing semantic and formative-profile pipelines.",
+    )
+    application.state.internal_auth_settings = settings
+    auth_dependency = Depends(require_internal_service)
+
+    application.add_api_route("/health", health, methods=["GET"])
+    application.add_api_route(
+        "/v1/formative-profile/build",
+        formative_profile_build,
+        methods=["POST"],
+        dependencies=[auth_dependency],
+    )
+    application.add_api_route(
+        "/v1/semantic-analysis/pdf",
+        semantic_analysis_pdf,
+        methods=["POST"],
+        dependencies=[auth_dependency],
+    )
+    return application
+
+
+app = create_app()
