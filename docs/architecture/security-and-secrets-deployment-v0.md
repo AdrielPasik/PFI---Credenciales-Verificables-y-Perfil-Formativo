@@ -76,7 +76,8 @@ el modo de auth se validan al construir el cliente; en modo `jwt` la URL es
 obligatoria. Un deployment que aun no tenga FastAPI debe coordinar esas
 variables antes de activar JWT, en lugar de publicar un servicio temporal.
 La configuracion completa se encuentra en
-`render-api-deployment-runbook-v0.md`.
+`render-api-deployment-runbook-v0.md`. La configuracion coordinada del servicio
+IA privado se encuentra en `render-ai-private-service-runbook-v0.md`.
 
 Vercel recibe solamente `NEXT_PUBLIC_API_BASE_URL`, que es publica por diseno y
 apunta a NestJS. No recibe JWT secret, DB, AWS, IA o blockchain. El access token
@@ -115,4 +116,6 @@ como auth de servicio.
 
 ## Proximos slices relacionados
 
-P4e IAM/storage, P4g deployment API, P4i-4 FastAPI privado y rotacion futura.
+P4e IAM/storage, P4g deployment API, P4i-4 readiness de FastAPI privado y
+rotacion futura. `none/disabled` queda solo para local y no es un rollback
+aceptable en demo/production.

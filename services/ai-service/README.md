@@ -14,8 +14,9 @@ P4i-2 consolido los comandos del workspace, el puerto configurable y la
 validacion de artifacts generados por Python contra los JSON Schemas
 compartidos del monorepo.
 
-P4i-3 agrego autenticacion JWT interna opcional. El servicio todavia no tiene
-deployment privado ni conexion automatica de `DocumentEvidence` o
+P4i-3 agrego autenticacion JWT interna opcional. P4i-4 deja documentada la
+configuracion recomendada para un servicio privado, pero no ejecuta el deploy.
+El servicio todavia no tiene conexion automatica de `DocumentEvidence` o
 `TextEvidence`.
 
 ## Endpoints
@@ -129,8 +130,11 @@ npm run docker:build --workspace @credential-intelligence/ai-service
 docker run --rm -p 8000:8000 -e PORT=8000 traza-ai-service:local
 ```
 
-Render Private Service corresponde a P4i-4. No usar este README como
-confirmacion de deployment productivo.
+Para demo se recomienda desplegar este Dockerfile desde el contexto
+`services/ai-service`, conservar su CMD y usar `/health`. El runbook completo,
+incluidas variables, URL interna, smoke y rollback, esta en
+`../../docs/architecture/render-ai-private-service-runbook-v0.md`. P4i-4 no es
+confirmacion de que el servicio real haya sido creado o desplegado.
 
 ## Limites
 

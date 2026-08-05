@@ -107,7 +107,9 @@ secreto, issuer o audience; NestJS tambien exige TTL valido de hasta 300
 segundos y FastAPI valida clock skew entre 0 y 300 segundos. `/health` es
 publico y los endpoints `/v1` quedan protegidos. La rotacion
 `current/previous` y correlation IDs quedan pendientes. Los detalles viven en
-`security-and-secrets-deployment-v0.md`.
+`security-and-secrets-deployment-v0.md`. P4i-4 documenta Docker, direccion
+interna, variables coordinadas, smoke y rollback en
+`render-ai-private-service-runbook-v0.md`; no ejecuta el deploy ni cambia auth.
 
 ## Alcance
 
@@ -141,5 +143,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-P4i-4 deployment privado, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
+Deploy privado operativo, P5a resolucion, P5b lifecycle, P5c-P5e modos y P5f
 trazabilidad.

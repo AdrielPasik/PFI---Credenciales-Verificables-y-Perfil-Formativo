@@ -105,8 +105,11 @@ Estado: P4i-1 reemplazo el placeholder por un snapshot curado y testeable del
 servicio FastAPI real. P4i-2 agrego tooling reproducible, `PORT` configurable,
 Docker portable y tests de outputs Python contra los schemas compartidos. El
 import excluye datos, outputs, embeddings y secretos. P4i-3 implemento auth
-interna HS256 con modo local deshabilitado, fail-fast y `/health` publico. El
-deployment privado y la rotacion continuan en P4i-4 a P4i-6.
+interna HS256 con modo local deshabilitado, fail-fast y `/health` publico.
+P4i-4 deja el deployment privado listo a nivel runbook, sin crear el servicio
+real. La ejecucion del deploy, integracion de fuentes y hardening posterior
+continuan en slices siguientes; la rotacion `current/previous` no forma parte
+de P4i-4.
 
 | Campo | Definicion |
 | --- | --- |
@@ -116,7 +119,7 @@ deployment privado y la rotacion continuan en P4i-4 a P4i-6.
 | Migracion | No. |
 | Endpoint | `/health` y endpoints IA v1 existentes. |
 | Aceptacion | NestJS accede con JWT interno; navegador no accede. |
-| Pruebas | token valido/ausente/vencido, issuer/audience, rotacion. |
+| Pruebas | token valido/ausente/vencido, issuer/audience, Docker y smoke privado documentado. |
 | Riesgos | Exponer FastAPI o reutilizar JWT de usuarios. |
 | Entrega | 50%, obligatorio. |
 

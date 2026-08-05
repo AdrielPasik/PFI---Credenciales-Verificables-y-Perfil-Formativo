@@ -75,7 +75,9 @@ Los modulos actuales deben leer configuracion explicita. P4e ya permite
 instancia AWS en local. P4f deja operativas migraciones deploy, seed y
 verificacion demo, ya validadas contra un Neon real administrado fuera del repo.
 P4g ya opera en Render y P4h deja preparada la web sin ejecutar el deploy;
-P4i completara la IA privada desplegada.
+P4i-4 deja documentada la configuracion del servicio IA privado, su URL interna,
+JWT service-to-service, smoke y rollback. El servicio real y su direccion deben
+crearse y confirmarse manualmente durante el deploy.
 
 ## Riesgos
 
@@ -87,4 +89,4 @@ P4i completara la IA privada desplegada.
 
 ## Proximos slices relacionados
 
-P4e-P4i y hardening de deployment posterior.
+P4e-P4i, ejecucion del deploy IA y hardening posterior.
