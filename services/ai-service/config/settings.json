@@ -1,0 +1,58 @@
+{
+  "relevant_section_patterns": {
+    "objectives_raw": [
+      "objetivos",
+      "objetivos de aprendizaje",
+      "propositos",
+      "propósitos",
+      "expectativas de logro"
+    ],
+    "minimum_contents_raw": [
+      "contenidos minimos",
+      "contenidos mínimos",
+      "contenidos basicos",
+      "contenidos básicos"
+    ],
+    "conceptual_contents_raw": [
+      "contenidos conceptuales"
+    ],
+    "procedural_contents_raw": [
+      "contenidos procedimentales"
+    ],
+    "attitudinal_contents_raw": [
+      "contenidos actitudinales"
+    ],
+    "contents_raw": [
+      "contenidos",
+      "programa analitico",
+      "programa analítico",
+      "unidades",
+      "temario"
+    ]
+  },
+  "irrelevant_section_patterns": [
+    "bibliografia",
+    "bibliografía",
+    "evaluacion",
+    "evaluación",
+    "cronograma",
+    "estrategias de ensenanza",
+    "estrategias de enseñanza",
+    "recursos",
+    "modalidad",
+    "fechas de aprobacion",
+    "fechas de aprobación",
+    "numero de acta",
+    "número de acta",
+    "requisitos administrativos",
+    "regimen de aprobacion",
+    "régimen de aprobación",
+    "observaciones institucionales",
+    "correlatividades",
+    "metodologia",
+    "metodología"
+  ],
+  "max_objectives": 5,
+  "max_contents": 12,
+  "min_content_characters_for_ok": 180
+}

@@ -101,6 +101,11 @@ pendientes fuera de este slice. Ver `vercel-frontend-deployment-runbook-v0.md`.
 
 ## P4i - FastAPI privado y auth interna
 
+Estado: P4i-1 reemplazo el placeholder por un snapshot curado y testeable del
+servicio FastAPI real en `services/ai-service`. El import excluye datos,
+outputs, embeddings y secretos. Tooling/contratos compartidos, auth interna y
+deployment privado continuan en P4i-2 a P4i-6.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Desplegar FastAPI privado autenticado desde NestJS. |

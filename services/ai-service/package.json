@@ -2,9 +2,11 @@
   "name": "@credential-intelligence/ai-service",
   "version": "0.1.0",
   "private": true,
-  "description": "Workspace metadata placeholder for the FastAPI semantic service.",
+  "description": "FastAPI semantic analysis service for Traza.",
   "scripts": {
-    "dev": "node -e \"console.log('Bootstrap only: scaffold FastAPI in services/ai-service before starting the semantic service.')\"",
-    "test": "node -e \"console.log('Bootstrap only: add AI service tests after the first endpoints exist.')\""
+    "dev": "python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000",
+    "test": "python -m pytest tests/api tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py",
+    "test:api": "python -m pytest tests/api",
+    "test:contracts": "python -m pytest tests/exporters/test_semantic_analysis_exporter.py tests/profile_builder/test_artifact_loader.py tests/profile_builder/test_artifact_profile_adapter.py tests/profile_builder/test_artifact_confidence_interpreter.py tests/profile_builder/test_formative_profile_result.py tests/profile_builder/test_stability_validation.py"
   }
 }

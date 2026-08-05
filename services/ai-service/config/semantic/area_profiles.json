@@ -1,0 +1,182 @@
+{
+	"Termodinámica y Transferencia de Calor": {
+		"strong": ["termodinamica", "termodinámica", "transferencia de calor", "ciclos térmicos", "ciclos termicos"],
+		"medium": ["entalpia", "entalpía", "entropia", "entropía", "conduccion", "conveccion", "radiacion", "calorimetria"],
+		"light": ["intercambiadores", "balance de energia", "balance de energía", "difusion termica", "difusión térmica"]
+	},
+	"Resistencia de Materiales y Mecánica del Sólido": {
+		"strong": ["resistencia de materiales", "mecanica del solido", "mecánica del sólido", "esfuerzos", "deformaciones"],
+		"medium": ["fatiga", "fractura", "elasticidad", "plasticidad", "estabilidad estructural", "diagramas de fase"],
+		"light": ["torsion", "torsión", "flexion", "flexión", "pandeo"]
+	},
+	"Automatización y Control Industrial": {
+		"strong": ["automatizacion industrial", "automatización industrial", "control industrial", "control automatico", "control automático"],
+		"medium": ["pid", "realimentacion", "realimentación", "instrumentacion", "instrumentación", "plc", "scada"],
+		"light": ["sensores", "actuadores", "lazo cerrado", "sintonizacion", "sintonización"]
+	},
+	"Robótica y Sistemas Autónomos": {
+		"strong": ["robotica", "robótica", "sistemas autonomos", "sistemas autónomos"],
+		"medium": ["cinematica", "cinemática", "planificacion de trayectorias", "planificación de trayectorias", "control de robots"],
+		"light": ["vision artificial", "visión artificial", "slam", "navegacion autonoma", "navegación autónoma"]
+	},
+	"Manufactura y CAD/CAM": {
+		"strong": ["manufactura", "cad", "cam", "prototipado", "manufactura aditiva"],
+		"medium": ["mecanizado", "impresion 3d", "impresión 3d", "tolerancias", "metrologia"],
+		"light": ["diseño para manufactura", "diseño para ensamble", "proceso de fabricacion", "proceso de fabricación"]
+	},
+	"Logística y Cadena de Abastecimiento": {
+		"strong": ["logistica", "logística", "cadena de abastecimiento", "supply chain"],
+		"medium": ["inventarios", "mrp", "layout", "distribucion", "distribución", "transporte"],
+		"light": ["pronostico de demanda", "pronóstico de demanda", "almacenamiento", "ultima milla", "última milla"]
+	},
+	"Gestión de Operaciones y Calidad Industrial": {
+		"strong": ["gestion de operaciones", "gestión de operaciones", "control de produccion", "control de producción", "calidad industrial"],
+		"medium": ["productividad", "balance de linea", "balance de línea", "tiempos y movimientos", "costos de no calidad"],
+		"light": ["mejora continua", "lean", "seis sigma", "capacidad de proceso"]
+	},
+	"Química Orgánica y Biológica": {
+		"strong": ["quimica organica", "química orgánica", "quimica biologica", "química biológica"],
+		"medium": ["enlace covalente", "orbitales", "grupos funcionales", "biomoleculas", "biomoléculas"],
+		"light": ["reacciones organicas", "reacciones orgánicas", "isomeria", "isomería"]
+	},
+	"Fisicoquímica y Química Analítica": {
+		"strong": ["fisicoquimica", "fisicoquímica", "quimica analitica", "química analítica"],
+		"medium": ["equilibrio acido base", "equilibrio ácido-base", "buffers", "calorimetria", "cromatografia", "espectrofotometria"],
+		"light": ["electroquimica", "electroquímica", "titulacion", "titulación", "analisis instrumental", "análisis instrumental"]
+	},
+	"Bromatología y Nutrición": {
+		"strong": ["bromatologia", "bromatología", "nutricion", "nutrición", "toxicologia alimentaria", "toxicología alimentaria"],
+		"medium": ["composicion de alimentos", "composición de alimentos", "etiquetado nutricional", "inocuidad alimentaria"],
+		"light": ["perfil sensorial", "evaluacion sensorial", "evaluación sensorial", "fortificacion", "fortificación"]
+	},
+	"Instrumentación y Mediciones": {
+		"strong": ["instrumentacion", "instrumentación", "mediciones", "metrologia", "metrología"],
+		"medium": ["incertidumbre", "calibracion", "calibración", "sensores", "adquisicion de datos", "adquisición de datos"],
+		"light": ["error sistematico", "error sistemático", "trazabilidad", "resolucion", "resolución"]
+	},
+	"Antenas, Propagación y Microondas": {
+		"strong": ["antenas", "microondas", "rf", "propagacion electromagnetica", "propagación electromagnética"],
+		"medium": ["lineas de transmision", "líneas de transmisión", "fibras opticas", "fibras ópticas", "guia de ondas", "guía de ondas", "enlaces de microondas", "comunicacion satelital", "comunicación satelital"],
+		"light": ["patron de radiacion", "patrón de radiación", "impedancia de antena", "perdidas de propagacion", "pérdidas de propagación"]
+	},
+	"Recursos Hídricos y Gestión Ambiental": {
+		"strong": ["recursos hidricos", "recursos hídricos", "gestion ambiental", "gestión ambiental", "impacto ambiental"],
+		"medium": ["evaluacion de impacto", "evaluación de impacto", "remediacion", "remediación", "residuos", "calidad de agua"],
+		"light": ["biodiversidad", "ecosistemas acuaticos", "ecosistemas acuáticos", "huella hidrica", "huella hídrica"]
+	},
+	"Agro y Producción Agropecuaria": {
+		"strong": ["produccion agropecuaria", "producción agropecuaria", "agroindustrias", "agricultura"],
+		"medium": ["suelos", "riego", "agricultura de precision", "agricultura de precisión", "sig"],
+		"light": ["fertilidad", "erosion", "erosión", "manejo de cultivos", "ecosistemas"]
+	},
+	"Diseño y Desarrollo de Videojuegos": {
+		"strong": ["videojuegos", "game design", "diseño de videojuegos", "diseno de videojuegos", "programacion grafica", "programación gráfica"],
+		"medium": ["level design", "narrativa interactiva", "motores graficos", "motores gráficos", "renderizado", "animacion 2d", "animación 2d", "animacion 3d", "animación 3d"],
+		"light": ["ux", "ui", "arte digital", "sonido interactivo", "fisicas", "físicas"]
+	},
+	"Sistemas de Representación y Dibujo Técnico": {
+		"strong": ["sistemas de representacion", "sistemas de representación", "dibujo tecnico", "dibujo técnico", "geometria descriptiva", "geometría descriptiva"],
+		"medium": ["proyecciones", "acotacion", "acotación", "normalizacion grafica", "normalización gráfica", "perspectiva"],
+		"light": ["croquis", "representacion grafica", "representación gráfica", "escalas"]
+	},
+	"Modelado, Simulación y Sistemas Dinámicos": {
+		"strong": ["modelado y simulacion", "modelado y simulación", "sistemas dinamicos", "sistemas dinámicos", "simulacion", "simulación"],
+		"medium": ["ecuaciones diferenciales", "estabilidad", "diagramas de fase", "monte carlo", "variables de estado"],
+		"light": ["validacion de modelos", "validación de modelos", "parametrizacion", "parametrización", "dinamica de sistemas", "dinámica de sistemas"]
+	},
+	"Investigación Operativa y Optimización": {
+		"strong": ["investigacion operativa", "investigación operativa", "optimizacion", "optimización"],
+		"medium": ["programacion lineal", "programación lineal", "simplex", "investigación de operaciones", "teoria de colas", "teoría de colas"],
+		"light": ["asignacion", "asignación", "transporte", "ruteo", "heuristicas", "heurísticas"]
+	},
+	"Métodos Numéricos y Cálculo Científico": {
+		"strong": ["metodos numericos", "métodos numéricos", "calculo numerico", "cálculo numérico"],
+		"medium": ["integracion numerica", "integración numérica", "interpolacion", "interpolación", "newton raphson", "gauss seidel"],
+		"light": ["error numerico", "error numérico", "convergencia", "aproximacion", "aproximación"]
+	},
+	"Seguridad Industrial e Higiene": {
+		"strong": ["seguridad industrial", "higiene y seguridad", "higiene industrial"],
+		"medium": ["riesgo laboral", "riesgos laborales", "prevencion", "prevención", "epp", "normas de seguridad"],
+		"light": ["ergonomia", "ergonomía", "accidentes", "salud ocupacional"]
+	},
+	"Tecnología Industrial de los Alimentos": {
+		"strong": ["tecnologia industrial de los alimentos", "tecnología industrial de los alimentos", "procesamiento de alimentos"],
+		"medium": ["conservacion", "conservación", "envasado", "calidad alimentaria", "legislacion alimentaria", "legislación alimentaria"],
+		"light": ["shelf life", "analisis sensorial", "análisis sensorial", "inocuidad", "bromatologia", "bromatología"]
+	},
+	"Ingeniería de Software": {
+		"strong": ["paradigma orientado a objetos", "poo", "programacion orientada a objetos", "programación orientada a objetos"],
+		"medium": ["clases", "objetos", "encapsulamiento", "herencia", "polimorfismo", "uml", "interfaces", "composicion", "composición", "integracion de aplicaciones", "integración de aplicaciones", "frameworks", "componentes"],
+		"light": ["api", "arquitectura", "testing", "refactorizacion", "refactorización", "backend", "persistencia", "despliegue", "capas", "servicios"]
+	},
+	"Arquitectura de Aplicaciones": {
+		"strong": ["arquitectura orientada a servicios", "arquitecturas orientadas a servicios", "integracion de aplicaciones", "integración de aplicaciones", "servidor de aplicaciones"],
+		"medium": ["api", "api rest", "servicios", "componentes", "microservicios", "comunicacion entre servicios", "comunicación entre servicios"],
+		"light": ["backend", "capas", "despliegue", "persistencia", "orquestacion", "orquestación", "seguridad de aplicaciones"]
+	},
+	"Bases de Datos": {
+		"strong": ["modelo relacional", "normalizacion", "normalización", "sql", "sgbd"],
+		"medium": ["claves primarias", "claves foraneas", "claves foráneas", "indices", "hashing", "bcnf", "triggers", "vistas"],
+		"light": ["dba", "integridad referencial", "transacciones", "stored procedures"]
+	},
+	"Ingeniería de Datos": {
+		"strong": ["ingenieria de datos", "ingeniería de datos", "pipeline", "etl"],
+		"medium": ["data warehouse", "orquestacion", "orquestación", "calidad de datos", "ingesta"],
+		"light": ["lineage", "catalogo de datos", "catálogo de datos", "gobierno de datos"]
+	},
+	"Telecomunicaciones": {
+		"strong": ["teoria de la informacion", "teoría de la información", "codificacion", "codificación", "modulacion", "modulación", "sistemas lti", "fourier", "laplace", "transformada z"],
+		"medium": ["canales", "ruido", "entropia", "entropía", "tasa de información", "tasa de informacion", "rf", "fft", "enlaces", "propagacion electromagnetica", "propagación electromagnética"],
+		"light": ["microondas", "satelital", "antenas", "protocolos de telecomunicaciones", "comunicacion satelital", "comunicación satelital"]
+	},
+	"Redes y Comunicaciones": {
+		"strong": ["routing", "switching", "ruteo", "dns", "dhcp", "vpn", "enrutamiento", "conmutacion", "conmutación"],
+		"medium": ["tcp ip", "http", "smtp", "snmp", "wireshark", "voip", "protocolos", "enlaces"],
+		"light": ["segmentacion", "segmentación", "lan", "wan", "qos", "redes de telecomunicaciones"]
+	},
+	"Mecánica de Fluidos y Termofluidos": {
+		"strong": ["turbomaquinas", "turbomáquinas", "flujo compresible", "transferencia de calor"],
+		"medium": ["perdidas", "pérdidas", "eficiencia termica", "eficiencia térmica", "intercambiadores"],
+		"light": ["maquinas termicas", "máquinas térmicas", "termohidraulico", "termohidráulico"]
+	},
+	"Costos y Contabilidad": {
+		"strong": ["costos directos", "costos indirectos", "costeo abc", "costeo abm"],
+		"medium": ["valuacion", "valuación", "plan de cuentas", "indicadores de costos", "flujo de fondos"],
+		"light": ["van", "tir", "mantenimiento", "confiabilidad"]
+	},
+	"Comunicación y Humanidades": {
+		"strong": ["pensamiento critico", "pensamiento crítico", "comprension lectora", "comprensión lectora", "comunicacion efectiva", "comunicación efectiva"],
+		"medium": ["argumentacion", "argumentación", "liderazgo situacional", "ética aplicada", "filosofía moral", "dialéctica"],
+		"light": ["retorica", "retórica", "debate", "expresion oral", "expresión oral"]
+	},
+	"Física": {
+		"strong": ["optica fisica", "óptica física", "interferencia", "difraccion", "difracción", "campo electrico", "campo eléctrico"],
+		"medium": ["campo magnetico", "campo magnético", "teoria de errores", "teoría de errores", "magnitudes y mediciones"],
+		"light": ["sistema internacional de unidades", "homogeneidad dimensional", "errores sistematicos", "errores sistemáticos"]
+	},
+	"Instrumentación y Mediciones": {
+		"strong": ["instrumentacion", "instrumentación", "mediciones", "metrologia", "metrología", "calibracion", "calibración"],
+		"medium": ["incertidumbre", "teoria de errores", "teoría de errores", "adquisicion de datos", "adquisición de datos"],
+		"light": ["sistema internacional de unidades", "magnitudes escalares y vectoriales", "trazabilidad metrologica", "trazabilidad metrológica"]
+	},
+	"Gestión de Proyectos Tecnológicos": {
+		"strong": ["gestion de proyectos", "gestión de proyectos", "project charter", "planificacion de proyectos", "planificación de proyectos"],
+		"medium": ["gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "stakeholders", "proyecto integrador final"],
+		"light": ["normativa e instructivo de pfi", "defensa oral", "entregables", "plan de proyecto"]
+	},
+	"Ambiente y Sostenibilidad": {
+		"strong": ["desarrollo sustentable", "desarrollo sostenible", "sustentabilidad", "sostenibilidad", "impacto ambiental"],
+		"medium": ["agenda 2030", "triple impacto", "economía ecológica", "economia ecologica", "servicios ambientales", "conflictos socioambientales"],
+		"light": ["gobernanza ambiental", "indicadores de sustentabilidad", "educación ambiental", "educacion ambiental"]
+	},
+	"Electrónica y Dispositivos": {
+		"strong": ["electrónica", "electronica", "semiconductores", "circuitos electrónicos", "circuitos electronicos"],
+		"medium": ["diodos", "transistores", "amplificadores", "filtros", "electrónica de potencia", "electronica de potencia"],
+		"light": ["instrumentación electrónica", "instrumentacion electronica", "sistemas embebidos", "dispositivos"]
+	},
+	"Ciberseguridad": {
+		"strong": ["ciberseguridad", "seguridad informática", "seguridad informatica", "seguridad de la información", "seguridad de la informacion"],
+		"medium": ["integridad", "confidencialidad", "autenticación", "autenticacion", "análisis de vulnerabilidades", "analisis de vulnerabilidades"],
+		"light": ["hardening", "cifrado", "controles de acceso", "pentesting"]
+	}
+}

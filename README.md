@@ -70,6 +70,6 @@ infra/       Preparacion para dockerizacion y despliegues
 
 1. Scaffold real de `apps/web` con Next.js y Tailwind.
 2. Scaffold real de `services/api` con NestJS y Prisma.
-3. Scaffold real de `services/ai-service` con FastAPI.
+3. Evolucion de `services/ai-service` con auth interna y deployment privado.
 4. Evolucion de los schemas y definicion del modelo Prisma.
 5. Implementacion incremental de los flujos documentados en `docs/`.

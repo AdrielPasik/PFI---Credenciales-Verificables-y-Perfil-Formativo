@@ -1,0 +1,26 @@
+{
+	"Termodinámica y Transferencia de Calor": ["termodinamica", "transferencia de calor", "entalpia", "entropia"],
+	"Resistencia de Materiales y Mecánica del Sólido": ["resistencia de materiales", "esfuerzos", "deformaciones"],
+	"Automatización y Control Industrial": ["control industrial", "pid", "plc", "scada"],
+	"Robótica y Sistemas Autónomos": ["robotica", "cinematica", "vision artificial", "slam"],
+	"Manufactura y CAD/CAM": ["cad", "cam", "manufactura", "prototipado"],
+	"Logística y Cadena de Abastecimiento": ["logistica", "cadena de abastecimiento", "supply chain", "inventarios"],
+	"Fisicoquímica y Química Analítica": ["fisicoquimica", "quimica analitica", "cromatografia", "espectrofotometria"],
+	"Bromatología y Nutrición": ["bromatologia", "nutricion", "toxicologia alimentaria", "composicion de alimentos", "evaluacion sensorial", "inocuidad"],
+	"Antenas, Propagación y Microondas": ["antenas", "microondas", "rf", "propagacion electromagnetica", "propagación electromagnética", "satelital"],
+	"Recursos Hídricos y Gestión Ambiental": ["recursos hidricos", "impacto ambiental", "remediacion"],
+	"Agro y Producción Agropecuaria": ["suelos", "riego", "agricultura de precision", "sig"],
+	"Diseño y Desarrollo de Videojuegos": ["game design", "motores graficos", "renderizado", "ux", "ui"]
+	,
+	"Sistemas de Representación y Dibujo Técnico": ["sistemas de representacion", "dibujo tecnico", "geometria descriptiva", "proyecciones"],
+	"Modelado, Simulación y Sistemas Dinámicos": ["modelado", "simulacion", "sistemas dinamicos", "ecuaciones diferenciales"],
+	"Investigación Operativa y Optimización": ["investigacion operativa", "optimizacion", "programacion lineal", "simplex"],
+	"Métodos Numéricos y Cálculo Científico": ["metodos numericos", "calculo numerico", "interpolacion", "newton raphson"],
+	"Seguridad Industrial e Higiene": ["seguridad industrial", "higiene industrial", "riesgo laboral"],
+	"Tecnología Industrial de los Alimentos": ["tecnologia industrial de los alimentos", "procesamiento de alimentos", "envasado", "inocuidad"],
+	"Comunicación y Humanidades": ["pensamiento critico", "comprension lectora", "argumentacion", "comunicacion efectiva", "etica", "filosofia", "epistemologia", "logica proposicional"],
+	"Instrumentación y Mediciones": ["instrumentacion", "mediciones", "metrologia", "calibracion", "teoria de errores"],
+	"Gestión de Proyectos Tecnológicos": ["gestion de proyectos", "gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "project charter"],
+	"Matemática": ["calculo", "ecuaciones diferenciales", "algebra lineal", "metodos numericos", "algebra", "geometria", "espacios vectoriales"],
+	"Física": ["optica fisica", "interferencia", "difraccion", "campo electrico", "teoria de errores"]
+}

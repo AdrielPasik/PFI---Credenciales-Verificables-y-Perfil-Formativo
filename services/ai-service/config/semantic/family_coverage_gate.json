@@ -1,0 +1,50 @@
+{
+	"software_family": {
+		"min_hits": 2,
+		"min_ratio": 0.25
+	},
+	"telecom_family": {
+		"min_hits": 2,
+		"min_ratio": 0.25
+	},
+	"industrial_family": {
+		"min_hits": 2,
+		"min_ratio": 0.30
+	},
+	"mechanical_family": {
+		"min_hits": 3,
+		"min_ratio": 0.35
+	},
+	"mathematical_family": {
+		"min_hits": 3,
+		"min_ratio": 0.35
+	},
+	"life_sciences_family": {
+		"min_hits": 3,
+		"min_ratio": 0.35
+	},
+	"chemical_family": {
+		"min_hits": 3,
+		"min_ratio": 0.35
+	},
+	"electrical_family": {
+		"min_hits": 3,
+		"min_ratio": 0.35
+	},
+	"environmental_family": {
+		"min_hits": 2,
+		"min_ratio": 0.3
+	},
+	"agro_family": {
+		"min_hits": 2,
+		"min_ratio": 0.3
+	},
+	"interactive_media_family": {
+		"min_hits": 2,
+		"min_ratio": 0.3
+	},
+	"legal_management_family": {
+		"min_hits": 2,
+		"min_ratio": 0.3
+	}
+}
