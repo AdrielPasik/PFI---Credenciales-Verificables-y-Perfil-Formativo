@@ -107,6 +107,10 @@ const draftResponse = {
   type: 'course',
   sourceType: 'manual_issuer',
   status: 'draft',
+  issuedAt: null,
+  canonicalHash: null,
+  canonicalizationVersion: null,
+  blockchainEvidence: null,
   createdAt: '2026-07-30T12:00:00.000Z',
   updatedAt: '2026-07-30T12:00:00.000Z',
   credentialSubject: {
@@ -179,6 +183,12 @@ function detailFixture(
     typeLabel: 'Asignatura académica',
     status: 'draft',
     statusLabel: 'Borrador',
+    issuedAt: null,
+    issuedAtLabel: null,
+    canonicalHash: null,
+    canonicalHashShort: null,
+    canonicalizationVersion: null,
+    blockchainEvidence: null,
     issuer: {
       displayName: 'Universidad Seleccionada',
       did: 'did:example:issuer'
@@ -201,12 +211,14 @@ function detailFixture(
 function mockCredentialDetailApi({
   detail = draftResponse,
   documentUpload,
+  issue,
   latest = null,
   patch,
   textEvidence
 }: {
   detail?: unknown;
   documentUpload?: unknown;
+  issue?: unknown;
   latest?: unknown;
   patch?: unknown;
   textEvidence?: unknown;
@@ -223,6 +235,9 @@ function mockCredentialDetailApi({
     }
     if (path.endsWith('/draft') && patch !== undefined) {
       return Promise.resolve(patch);
+    }
+    if (path.endsWith('/issue') && issue !== undefined) {
+      return Promise.resolve(issue);
     }
     return Promise.resolve(detail);
   });
@@ -347,6 +362,57 @@ describe('CredentialDetailController', () => {
     expect(
       (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
     ).toBe('Descripción persistida');
+  });
+
+  it('issues once through the issuer-scoped endpoint and keeps analysis visible', async () => {
+    const canonicalHash = `0x${'a'.repeat(64)}`;
+    mockCredentialDetailApi({
+      issue: {
+        ...draftResponse,
+        status: 'issued',
+        issuedAt: '2026-08-06T12:00:00.000Z',
+        canonicalHash,
+        canonicalizationVersion: 'canon_v1',
+        blockchainEvidence: null
+      }
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    await screen.findByRole('heading', { name: 'Arquitectura de Software' });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+
+    expect(await screen.findByText('Credencial emitida')).toBeTruthy();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/issue',
+      { method: 'POST' }
+    );
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
+        String(path).endsWith('/issue')
+      )
+    ).toHaveLength(1);
+    expect(
+      screen.getByRole('heading', {
+        name: 'Análisis inteligente del documento'
+      })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Evidencia documental' })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeTruthy();
   });
 
   it('uploads one multipart document and updates only the current evidence snapshot', async () => {

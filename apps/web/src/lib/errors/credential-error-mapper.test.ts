@@ -120,4 +120,36 @@ describe('mapCredentialError', () => {
         'No pudimos conectarnos con el servicio. Conservamos el texto para que puedas reintentar.'
     });
   });
+
+  it.each([
+    [400, 'invalid_input'],
+    [401, 'session_expired'],
+    [403, 'forbidden'],
+    [404, 'not_found'],
+    [409, 'conflict'],
+    [502, 'service_unavailable'],
+    [503, 'service_unavailable'],
+    [504, 'service_unavailable']
+  ])('maps issuance HTTP %i safely to %s', (status, code) => {
+    const result = mapCredentialError(
+      new ApiError('private signer and RPC detail', 'http', status),
+      'issue'
+    );
+
+    expect(result.code).toBe(code);
+    expect(result.message).not.toMatch(/private|signer|RPC/i);
+  });
+
+  it('maps uncertain issuance network errors to a refresh instruction', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'issue'
+      )
+    ).toEqual({
+      code: 'network',
+      message:
+        'No pudimos confirmar el resultado de la emisión. Actualizá el detalle antes de volver a intentarlo.'
+    });
+  });
 });

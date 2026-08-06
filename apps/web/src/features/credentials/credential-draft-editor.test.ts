@@ -27,6 +27,12 @@ function detailFixture(
     typeLabel: 'Curso',
     status: 'draft',
     statusLabel: 'Borrador',
+    issuedAt: null,
+    issuedAtLabel: null,
+    canonicalHash: null,
+    canonicalHashShort: null,
+    canonicalizationVersion: null,
+    blockchainEvidence: null,
     issuer: {
       displayName: 'Universidad Demo',
       did: null

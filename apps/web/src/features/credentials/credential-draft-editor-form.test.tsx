@@ -68,6 +68,12 @@ function detailFixture(
     typeLabel: 'Tipo de prueba',
     status: 'draft',
     statusLabel: 'Borrador',
+    issuedAt: null,
+    issuedAtLabel: null,
+    canonicalHash: null,
+    canonicalHashShort: null,
+    canonicalizationVersion: null,
+    blockchainEvidence: null,
     issuer: {
       displayName: 'Universidad Seleccionada',
       did: null

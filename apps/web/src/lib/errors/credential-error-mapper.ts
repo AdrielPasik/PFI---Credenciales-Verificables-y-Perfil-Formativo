@@ -13,6 +13,7 @@ type CredentialOperation =
   | 'draft-update'
   | 'document-evidence-upload'
   | 'text-evidence-submit'
+  | 'issue'
   | 'detail';
 
 function feedback(
@@ -41,6 +42,13 @@ export function mapCredentialError(
   }
 
   if (error.kind === 'network') {
+    if (operation === 'issue') {
+      return feedback(
+        'network',
+        'No pudimos confirmar el resultado de la emisión. Actualizá el detalle antes de volver a intentarlo.'
+      );
+    }
+
     if (operation === 'text-evidence-submit') {
       return feedback(
         'network',
@@ -71,6 +79,13 @@ export function mapCredentialError(
   }
 
   if (error.status === 403) {
+    if (operation === 'issue') {
+      return feedback(
+        'forbidden',
+        'No tenés permisos para emitir credenciales en esta institución.'
+      );
+    }
+
     if (operation === 'text-evidence-submit') {
       return feedback(
         'forbidden',
@@ -95,6 +110,13 @@ export function mapCredentialError(
     }
 
     if (operation === 'text-evidence-submit') {
+      return feedback(
+        'not_found',
+        'No encontramos la credencial dentro del contexto institucional activo.'
+      );
+    }
+
+    if (operation === 'issue') {
       return feedback(
         'not_found',
         'No encontramos la credencial dentro del contexto institucional activo.'
@@ -162,6 +184,20 @@ export function mapCredentialError(
     );
   }
 
+  if (error.status === 409 && operation === 'issue') {
+    return feedback(
+      'conflict',
+      'La credencial ya no está en borrador o no puede emitirse.'
+    );
+  }
+
+  if (error.status === 400 && operation === 'issue') {
+    return feedback(
+      'invalid_input',
+      'La credencial no reúne los datos o la configuración necesarios para emitirse.'
+    );
+  }
+
   if (error.status === 400) {
     return feedback(
       'invalid_input',
@@ -172,6 +208,13 @@ export function mapCredentialError(
   }
 
   if (error.status !== null && error.status >= 500) {
+    if (operation === 'issue') {
+      return feedback(
+        'service_unavailable',
+        'No pudimos completar el registro técnico de la emisión. Intentá nuevamente más tarde.'
+      );
+    }
+
     return feedback(
       'service_unavailable',
       'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.'

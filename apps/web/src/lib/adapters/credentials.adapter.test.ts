@@ -80,6 +80,10 @@ function issuerCredentialPayload(
     type: 'academic_subject',
     sourceType: 'manual_issuer',
     status: 'draft',
+    issuedAt: null,
+    canonicalHash: null,
+    canonicalizationVersion: null,
+    blockchainEvidence: null,
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:00:00.000Z',
     credentialSubject: credentialSubjectPayload(),
@@ -232,7 +236,6 @@ describe('credential adapters', () => {
       adaptIssuerCredentialDetail({
         ...issuerCredentialPayload(),
         metadata: { internal: true },
-        canonicalHash: 'must-not-leak',
         latestBlockchainRecord: { txHash: 'must-not-leak' }
       })
     ).toEqual({
@@ -244,6 +247,12 @@ describe('credential adapters', () => {
       typeLabel: 'Asignatura académica',
       status: 'draft',
       statusLabel: 'Borrador',
+      issuedAt: null,
+      issuedAtLabel: null,
+      canonicalHash: null,
+      canonicalHashShort: null,
+      canonicalizationVersion: null,
+      blockchainEvidence: null,
       issuer: {
         displayName: 'Universidad Demo',
         did: 'did:example:issuer'
@@ -614,6 +623,111 @@ describe('credential adapters', () => {
         )
       ).toMatchObject({ status, statusLabel });
     }
+  });
+
+  it('adapts issued integrity evidence and discards dangerous extras', () => {
+    const canonicalHash = `0x${'a'.repeat(64)}`;
+    const txHash = `0x${'b'.repeat(64)}`;
+    const result = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        status: 'issued',
+        issuedAt: '2026-08-06T12:00:00.000Z',
+        canonicalHash,
+        canonicalizationVersion: 'canon_v1',
+        blockchainEvidence: {
+          network: 'anvil',
+          chainId: 31337,
+          txHash,
+          status: 'registered',
+          registeredAt: '2026-08-06T12:00:02.000Z',
+          privateKey: 'must-not-leak',
+          signer: 'must-not-leak',
+          rpcUrl: 'must-not-leak',
+          contractAddress: 'must-not-leak',
+          issuerAddress: 'must-not-leak',
+          storageKey: 'must-not-leak'
+        },
+        rawData: 'must-not-leak',
+        analysisJson: 'must-not-leak',
+        textForEmbedding: 'must-not-leak',
+        evidenceMap: 'must-not-leak'
+      })
+    );
+
+    expect(result).toMatchObject({
+      status: 'issued',
+      issuedAt: '2026-08-06T12:00:00.000Z',
+      issuedAtLabel: expect.any(String),
+      canonicalHash,
+      canonicalHashShort: `${canonicalHash.slice(0, 12)}…${canonicalHash.slice(-8)}`,
+      canonicalizationVersion: 'canon_v1',
+      blockchainEvidence: {
+        network: 'anvil',
+        networkLabel: 'Entorno técnico/demo',
+        chainId: 31337,
+        txHash,
+        txHashShort: `${txHash.slice(0, 12)}…${txHash.slice(-8)}`,
+        status: 'registered',
+        statusLabel: 'Registrada',
+        registeredAt: '2026-08-06T12:00:02.000Z',
+        registeredAtLabel: expect.any(String)
+      }
+    });
+    expect(JSON.stringify(result)).not.toMatch(
+      /privateKey|signer|rpcUrl|contractAddress|issuerAddress|rawData|analysisJson|textForEmbedding|evidenceMap|storageKey/
+    );
+  });
+
+  it.each([
+    ['mock', 'Entorno técnico/demo'],
+    ['anvil', 'Entorno técnico/demo'],
+    ['base_sepolia', 'Testnet'],
+    ['future_network', 'Red técnica']
+  ])('maps network %s to a restrained label', (network, networkLabel) => {
+    const result = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        status: 'issued',
+        blockchainEvidence: {
+          network,
+          chainId: 1,
+          txHash: `0x${'b'.repeat(64)}`,
+          status: 'registered',
+          registeredAt: '2026-08-06T12:00:02.000Z'
+        }
+      })
+    );
+
+    expect(result.blockchainEvidence?.networkLabel).toBe(networkLabel);
+  });
+
+  it('preserves issued without evidence and revoked historical evidence', () => {
+    const issued = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({ status: 'issued' })
+    );
+    const revoked = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        status: 'revoked',
+        blockchainEvidence: {
+          network: 'anvil',
+          chainId: 31337,
+          txHash: `0x${'b'.repeat(64)}`,
+          status: 'revoked',
+          registeredAt: '2026-08-06T12:00:02.000Z'
+        }
+      })
+    );
+
+    expect(issued.blockchainEvidence).toBeNull();
+    expect(revoked.blockchainEvidence?.statusLabel).toBe('Revocada');
+  });
+
+  it('rejects an issuer detail missing the P6a integrity contract', () => {
+    const payload: Record<string, unknown> = issuerCredentialPayload();
+    delete payload.issuedAt;
+
+    expect(() => adaptIssuerCredentialDetail(payload)).toThrow(
+      IncompatiblePayloadError
+    );
   });
 
   it('rejects unknown credential statuses', () => {

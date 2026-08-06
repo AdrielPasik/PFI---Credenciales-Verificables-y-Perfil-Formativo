@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
+import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
@@ -42,6 +43,7 @@ import {
 } from '@/lib/adapters/credentials.adapter';
 import {
   getIssuerCredentialRequest,
+  issueIssuerCredentialRequest,
   patchIssuerCredentialDraftRequest,
   searchAcademicProgramsRequest,
   searchCurriculumAcademicSubjectsRequest,
@@ -283,6 +285,19 @@ export function CredentialDetailController({
     return submitted;
   }
 
+  async function issueCredential() {
+    const issued = await issueIssuerCredentialRequest(
+      requestAuthenticated,
+      {
+        issuerReference: membership.issuerReference,
+        credentialReference
+      }
+    );
+
+    setDetail(issued);
+    return issued;
+  }
+
   return (
     <CredentialDetailView
       detail={detail}
@@ -293,6 +308,7 @@ export function CredentialDetailController({
       }}
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
+      onIssue={issueCredential}
       draftEditor={{
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
@@ -312,6 +328,7 @@ export function CredentialDetailView({
   detail,
   documentAnalysis,
   draftEditor,
+  onIssue = unavailableCredentialIssuance,
   onSubmitTextEvidence = unavailableTextEvidenceSubmission,
   onUploadDocumentEvidence
 }: {
@@ -322,6 +339,7 @@ export function CredentialDetailView({
     onRefresh(): Promise<void>;
   };
   onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
+  onIssue?(): Promise<IssuerCredentialDetailVM>;
   onSubmitTextEvidence?(command: {
     label: string | null;
     content: string;
@@ -521,6 +539,8 @@ export function CredentialDetailView({
         />
       ) : null}
 
+      <CredentialIssuanceSection detail={detail} onIssue={onIssue} />
+
       <section aria-labelledby="supporting-evidence-title" className="grid gap-8">
         <div className="max-w-3xl border-t border-border-default pt-8">
           <p className="text-sm font-semibold text-teal-700">Fuentes institucionales</p>
@@ -563,6 +583,10 @@ export function CredentialDetailView({
 
 async function unavailableTextEvidenceSubmission(): Promise<TextEvidenceVM> {
   throw new Error('Text evidence submission is not available in this view.');
+}
+
+async function unavailableCredentialIssuance(): Promise<IssuerCredentialDetailVM> {
+  throw new Error('Credential issuance is not available in this view.');
 }
 
 function valuesDiffer(

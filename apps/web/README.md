@@ -143,6 +143,26 @@ análisis inteligente se agrupan como evidencia de respaldo sin cambiar sus
 contratos, permisos ni comportamiento. Este polish no agrega creación libre de
 materias, enriquecimiento reutilizable del catálogo ni endpoints nuevos.
 
+## Emisión institucional P6a-2
+
+El detalle institucional permite confirmar y emitir una credencial en borrador
+mediante `POST /issuers/:issuerId/credentials/:credentialId/issue`. El request
+es issuer-scoped, no envía body autoritativo y acepta como nueva fuente de
+verdad el read model completo devuelto por NestJS.
+
+El navegador llama exclusivamente al backend: no firma transacciones, no usa
+MetaMask, ethers, claves privadas ni RPC, y no accede a FastAPI. Tras una
+emisión exitosa, la credencial queda en modo lectura y puede mostrar fecha de
+emisión, huella canónica, versión de canonicalización y evidencia técnica de
+integridad cuando el backend la provee. Los entornos `anvil` o `mock` se
+identifican expresamente como entornos técnicos/demo, no como blockchain
+pública productiva.
+
+Las credenciales `issued` y `revoked` conservan evidencia documental, textual
+y análisis inteligente en modo lectura. P6a-2 no incorpora revocación, Wallet
+del holder, verificador público, QR, sharing ni operaciones blockchain desde el
+frontend.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;

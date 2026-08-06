@@ -1,5 +1,9 @@
 import type { AuthenticatedApiRequest } from '@/lib/api/api-client';
-import { ApiError } from '@/lib/errors/api-error';
+import { adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
+import {
+  ApiError,
+  IncompatiblePayloadError
+} from '@/lib/errors/api-error';
 import { validateTextEvidenceDraft } from '@/features/credentials/text-evidence';
 import type {
   AcademicProgramSearchCommand,
@@ -9,10 +13,39 @@ import type {
   CreateManualCredentialDraftCommand,
   CurriculumAcademicSubjectSearchCommand,
   HolderResolutionCommand,
+  IssueIssuerCredentialCommand,
   SubmitCredentialTextEvidenceCommand,
   UploadCredentialDocumentEvidenceCommand,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
+
+export async function issueIssuerCredentialRequest(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: IssueIssuerCredentialCommand
+) {
+  const issuerReference = command.issuerReference.trim();
+  const credentialReference = command.credentialReference.trim();
+
+  if (issuerReference.length === 0 || credentialReference.length === 0) {
+    throw new ApiError(
+      'La referencia institucional de la credencial no es válida.',
+      'http',
+      400
+    );
+  }
+
+  const payload = await requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/credentials/${encodeURIComponent(credentialReference)}/issue`,
+    { method: 'POST' }
+  );
+  const detail = adaptIssuerCredentialDetail(payload);
+
+  if (detail.credentialReference !== credentialReference) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return detail;
+}
 
 const credentialDraftPatchFields = [
   'achievementName',

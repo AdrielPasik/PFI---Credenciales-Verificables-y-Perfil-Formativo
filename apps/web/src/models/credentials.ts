@@ -178,6 +178,18 @@ export interface IssuerCredentialSubjectVM {
   learningOutcomes: string[];
 }
 
+export interface CredentialBlockchainEvidenceVM {
+  network: string;
+  networkLabel: string;
+  chainId: number;
+  txHash: string;
+  txHashShort: string;
+  status: string;
+  statusLabel: string;
+  registeredAt: string;
+  registeredAtLabel: string;
+}
+
 export interface IssuerCredentialDetailVM {
   credentialReference: string;
   title: string;
@@ -211,8 +223,19 @@ export interface IssuerCredentialDetailVM {
   textEvidence: {
     currentText: TextEvidenceVM | null;
   };
+  issuedAt: string | null;
+  issuedAtLabel: string | null;
+  canonicalHash: string | null;
+  canonicalHashShort: string | null;
+  canonicalizationVersion: string | null;
+  blockchainEvidence: CredentialBlockchainEvidenceVM | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface IssueIssuerCredentialCommand {
+  issuerReference: string;
+  credentialReference: string;
 }
 
 export interface CredentialDraftPatchFields {

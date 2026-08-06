@@ -5,6 +5,7 @@ import {
   createCredentialDraftRequest,
   createManualCredentialDraftRequest,
   getIssuerCredentialRequest,
+  issueIssuerCredentialRequest,
   patchIssuerCredentialDraftRequest,
   resolveHolderRequest,
   searchAcademicProgramsRequest,
@@ -17,6 +18,52 @@ import type {
   CreateAcademicSubjectCurricularDraftCommand,
   UpdateIssuerCredentialDraftCommand
 } from '@/models/credentials';
+
+function issuerCredentialResponse(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'credential-reference',
+    title: 'Logro institucional',
+    description: null,
+    hours: null,
+    type: 'course',
+    sourceType: 'manual_issuer',
+    status: 'issued',
+    issuedAt: '2026-08-06T12:00:00.000Z',
+    canonicalHash: `0x${'a'.repeat(64)}`,
+    canonicalizationVersion: 'canon_v1',
+    blockchainEvidence: null,
+    createdAt: '2026-08-05T12:00:00.000Z',
+    updatedAt: '2026-08-06T12:00:00.000Z',
+    credentialSubject: {
+      achievement_name: 'Logro institucional',
+      institution_name: 'Universidad Contextual',
+      completion_date: null,
+      academic_period: null,
+      program_name: null,
+      grade: null,
+      provider_name: null,
+      platform_name: null,
+      modality: null,
+      level: null,
+      certification_code: null,
+      expiration_date: null,
+      external_url: null,
+      skills: [],
+      competencies: [],
+      learning_outcomes: []
+    },
+    issuer: { displayName: 'Universidad Contextual', did: null },
+    holder: {
+      displayLabel: 'Titular Demo',
+      email: null,
+      did: null
+    },
+    academicCourse: null,
+    documentEvidence: { currentDocument: null },
+    textEvidence: { currentText: null },
+    ...overrides
+  };
+}
 
 describe('credentials API', () => {
   it('resolves a holder by exact email within the selected issuer path', async () => {
@@ -330,6 +377,62 @@ describe('credentials API', () => {
       '/issuers/issuer%20selected%20reference/credentials/credential%20internal%20reference'
     );
     expect(requestAuthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it('issues through the issuer-scoped endpoint with POST and no body', async () => {
+    const requestAuthenticated = vi
+      .fn()
+      .mockResolvedValue(issuerCredentialResponse());
+
+    const result = await issueIssuerCredentialRequest(
+      requestAuthenticated,
+      {
+        issuerReference: ' issuer/selected ',
+        credentialReference: ' credential-reference ',
+        requestedByUserId: 'must-not-be-sent',
+        canonicalHash: 'must-not-be-sent',
+        network: 'must-not-be-sent',
+        signer: 'must-not-be-sent',
+        privateKey: 'must-not-be-sent'
+      } as Parameters<typeof issueIssuerCredentialRequest>[1] &
+        Record<string, unknown>
+    );
+
+    expect(requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer%2Fselected/credentials/credential-reference/issue',
+      { method: 'POST' }
+    );
+    expect(requestAuthenticated).toHaveBeenCalledOnce();
+    expect(requestAuthenticated.mock.calls[0][1]).not.toHaveProperty('body');
+    expect(result).toMatchObject({
+      credentialReference: 'credential-reference',
+      status: 'issued'
+    });
+    expect(requestAuthenticated.mock.calls[0][0]).not.toBe(
+      '/credentials/credential-reference/issue'
+    );
+  });
+
+  it('rejects a mismatched or incompatible issuance response', async () => {
+    const mismatched = vi
+      .fn()
+      .mockResolvedValue(
+        issuerCredentialResponse({ id: 'different-credential' })
+      );
+    const incompatible = vi.fn().mockResolvedValue({ status: 'issued' });
+
+    await expect(
+      issueIssuerCredentialRequest(mismatched, {
+        issuerReference: 'issuer-reference',
+        credentialReference: 'credential-reference'
+      })
+    ).rejects.toThrow('La respuesta del servicio no es compatible.');
+    await expect(
+      issueIssuerCredentialRequest(incompatible, {
+        issuerReference: 'issuer-reference',
+        credentialReference: 'credential-reference'
+      })
+    ).rejects.toThrow('La respuesta del servicio no es compatible.');
   });
 
   it('uploads exactly one file through an encoded multipart endpoint', async () => {

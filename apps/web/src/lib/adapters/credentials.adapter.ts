@@ -10,6 +10,12 @@ import {
   formatTextEvidenceSubmittedAt
 } from '@/lib/formatters/text-evidence';
 import {
+  abbreviateIntegrityReference,
+  formatBlockchainEvidenceStatus,
+  formatBlockchainNetwork,
+  formatIntegrityDate
+} from '@/lib/formatters/credential-integrity';
+import {
   credentialTypeLabels,
   credentialTypeOptions
 } from '@/models/credentials';
@@ -34,6 +40,7 @@ const documentEvidenceMimeTypes = new Set<DocumentEvidenceMimeType>([
 ]);
 const documentHashPattern = /^[a-f0-9]{64}$/;
 const textEvidenceHashPattern = /^[a-f0-9]{64}$/;
+const blockchainHashPattern = /^0x[a-f0-9]{64}$/i;
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -123,6 +130,37 @@ function positiveInteger(value: unknown) {
   }
 
   return value as number;
+}
+
+function nullableIsoDateTime(value: unknown): string | null {
+  return value === null ? null : isoDateTime(value);
+}
+
+function adaptBlockchainEvidence(
+  value: unknown
+): NonNullable<IssuerCredentialDetailVM['blockchainEvidence']> {
+  const evidence = asRecord(value);
+  const network = requiredString(evidence.network);
+  const chainId = positiveInteger(evidence.chainId);
+  const txHash = requiredString(evidence.txHash);
+  const status = requiredString(evidence.status);
+  const registeredAt = isoDateTime(evidence.registeredAt);
+
+  if (!blockchainHashPattern.test(txHash)) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return {
+    network,
+    networkLabel: formatBlockchainNetwork(network),
+    chainId,
+    txHash,
+    txHashShort: abbreviateIntegrityReference(txHash),
+    status,
+    statusLabel: formatBlockchainEvidenceStatus(status),
+    registeredAt,
+    registeredAtLabel: formatIntegrityDate(registeredAt)
+  };
 }
 
 function adaptDocumentEvidence(value: unknown): DocumentEvidenceVM {
@@ -288,6 +326,12 @@ export function adaptIssuerCredentialDetail(
   const textEvidence = asRecord(credential.textEvidence);
   const createdAt = isoDateTime(credential.createdAt);
   const updatedAt = isoDateTime(credential.updatedAt);
+  const issuedAt = nullableIsoDateTime(credential.issuedAt);
+  const canonicalHash = nullableString(credential.canonicalHash);
+
+  if (canonicalHash !== null && !blockchainHashPattern.test(canonicalHash)) {
+    throw new IncompatiblePayloadError();
+  }
 
   return {
     credentialReference: requiredString(credential.id),
@@ -355,6 +399,19 @@ export function adaptIssuerCredentialDetail(
           ? null
           : adaptTextEvidence(textEvidence.currentText)
     },
+    issuedAt,
+    issuedAtLabel: issuedAt ? formatIntegrityDate(issuedAt) : null,
+    canonicalHash,
+    canonicalHashShort: canonicalHash
+      ? abbreviateIntegrityReference(canonicalHash)
+      : null,
+    canonicalizationVersion: nullableString(
+      credential.canonicalizationVersion
+    ),
+    blockchainEvidence:
+      credential.blockchainEvidence === null
+        ? null
+        : adaptBlockchainEvidence(credential.blockchainEvidence),
     createdAt,
     updatedAt
   };
