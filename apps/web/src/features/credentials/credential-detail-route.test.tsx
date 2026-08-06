@@ -278,6 +278,17 @@ describe('CredentialDetailController', () => {
     expect(
       screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Análisis inteligente del documento'
+      })
+    ).toBeTruthy();
     expect(document.body.textContent).not.toContain(
       'credential-internal-reference'
     );
@@ -288,6 +299,9 @@ describe('CredentialDetailController', () => {
     expect(document.body.textContent).not.toContain('Blockchain');
     expect(document.body.textContent).not.toContain('Análisis IA');
     expect(document.body.textContent).not.toContain('Subir PDF');
+    expect(document.body.textContent).not.toMatch(
+      /guardar en base|crear curso reutilizable|agregar al catálogo|IA certificó|IA verificó/i
+    );
     expect(document.body.textContent).not.toMatch(
       /F1c|F1d|contrato de detalle|readiness/i
     );

@@ -48,7 +48,7 @@ export function SelectedAcademicSubjectCard({
           <div>
             <dt className="flex items-center gap-2 font-semibold text-text-muted">
               <GraduationCap aria-hidden="true" className="size-4" />
-              Carrera / plan
+              Carrera seleccionada
             </dt>
             <dd className="mt-1 text-text-strong">
               {programName ?? 'No disponible'}

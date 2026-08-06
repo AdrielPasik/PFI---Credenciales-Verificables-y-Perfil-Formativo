@@ -142,7 +142,7 @@ export function TextEvidenceSection({
           id="text-evidence-title"
           className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
         >
-          Evidencia textual
+          Contenido textual de respaldo
         </h2>
         <p className="mt-2 leading-7 text-text-muted">
           La evidencia textual se conserva como fuente institucional. No

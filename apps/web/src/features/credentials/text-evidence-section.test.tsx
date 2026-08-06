@@ -43,7 +43,9 @@ describe('TextEvidenceSection', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Evidencia textual' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeTruthy();
     expect(
       screen.getByText(
         'La evidencia textual se conserva como fuente institucional. No modifica automáticamente los campos oficiales de la credencial.'

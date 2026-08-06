@@ -114,6 +114,12 @@ export function CredentialDraftEditorForm({
     pendingAcademicSelection
   });
   const visibleFields = credentialDraftFieldsByType[state.type];
+  const academicApprovalFields = visibleFields.filter(
+    (field) => field !== 'skills' && field !== 'competencies'
+  );
+  const academicCapabilityFields = visibleFields.filter(
+    (field) => field === 'skills' || field === 'competencies'
+  );
   const persistedAcademicSelection = catalogSelectionInvalidated
     ? null
     : baselineDetail.academicCourse;
@@ -412,41 +418,50 @@ export function CredentialDraftEditorForm({
           />
         ) : null}
 
-        <Card className="overflow-hidden border-border-strong shadow-none">
-          <div aria-hidden="true" className="h-1 bg-teal-700" />
-          <CardHeader className="border-b border-border-default">
-            <p className="text-sm font-semibold text-teal-700">
-              {credentialTypeLabels[state.type]}
-            </p>
-            <h3 className="text-lg font-semibold text-text-strong">
-              {state.type === 'academic_subject'
-                ? 'Datos de aprobación y enriquecimiento'
-                : 'Información específica'}
-            </h3>
-            <p className="text-sm leading-6 text-text-muted">
-              {state.type === 'academic_subject'
-                ? 'Estos campos son opcionales y pueden completarse manualmente.'
-                : 'Los campos visibles corresponden al tipo seleccionado.'}
-            </p>
-          </CardHeader>
-          <CardContent className="grid gap-5 pt-5 sm:grid-cols-2 sm:pt-6">
-            {visibleFields.map((field) => (
-              <SpecificField
-                key={field}
-                field={field}
-                state={state}
-                disabled={saving}
-                academicPeriodError={errors.academicPeriod}
-                academicYearRef={academicYearRef}
-                externalUrlError={errors.externalUrl}
-                externalUrlRef={externalUrlRef}
-                gradeError={errors.grade}
-                gradeRef={gradeRef}
-                onChange={updateField}
-              />
-            ))}
-          </CardContent>
-        </Card>
+        {state.type === 'academic_subject' ? (
+          <>
+            <DraftFieldsCard
+              eyebrow={credentialTypeLabels[state.type]}
+              title="Datos de aprobación"
+              description="Completá únicamente los datos que correspondan a la aprobación del titular."
+              fields={academicApprovalFields}
+              state={state}
+              disabled={saving}
+              errors={errors}
+              academicYearRef={academicYearRef}
+              externalUrlRef={externalUrlRef}
+              gradeRef={gradeRef}
+              onChange={updateField}
+            />
+            <DraftFieldsCard
+              eyebrow="Perfil formativo"
+              title="Competencias y habilidades"
+              description="Registrá solo capacidades respaldadas por la institución."
+              fields={academicCapabilityFields}
+              state={state}
+              disabled={saving}
+              errors={errors}
+              academicYearRef={academicYearRef}
+              externalUrlRef={externalUrlRef}
+              gradeRef={gradeRef}
+              onChange={updateField}
+            />
+          </>
+        ) : (
+          <DraftFieldsCard
+            eyebrow={credentialTypeLabels[state.type]}
+            title="Información específica"
+            description="Los campos visibles corresponden al tipo seleccionado."
+            fields={visibleFields}
+            state={state}
+            disabled={saving}
+            errors={errors}
+            academicYearRef={academicYearRef}
+            externalUrlRef={externalUrlRef}
+            gradeRef={gradeRef}
+            onChange={updateField}
+          />
+        )}
 
         {feedback?.kind === 'success' ? (
           <FeedbackAlert variant="success" title="Cambios guardados">
@@ -514,6 +529,63 @@ export function CredentialDraftEditorForm({
         </div>
       </form>
     </section>
+  );
+}
+
+function DraftFieldsCard({
+  academicYearRef,
+  description,
+  disabled,
+  errors,
+  externalUrlRef,
+  fields,
+  gradeRef,
+  eyebrow,
+  onChange,
+  state,
+  title
+}: {
+  academicYearRef: RefObject<HTMLInputElement | null>;
+  description: string;
+  disabled: boolean;
+  errors: CredentialDraftEditorErrors;
+  externalUrlRef: RefObject<HTMLInputElement | null>;
+  fields: readonly CredentialDraftSpecificField[];
+  gradeRef: RefObject<HTMLInputElement | null>;
+  eyebrow: string;
+  onChange<Key extends keyof CredentialDraftEditorState>(
+    field: Key,
+    value: CredentialDraftEditorState[Key]
+  ): void;
+  state: CredentialDraftEditorState;
+  title: string;
+}) {
+  return (
+    <Card className="overflow-hidden border-border-strong shadow-none">
+      <div aria-hidden="true" className="h-1 bg-teal-700" />
+      <CardHeader className="border-b border-border-default">
+        <p className="text-sm font-semibold text-teal-700">{eyebrow}</p>
+        <h3 className="text-lg font-semibold text-text-strong">{title}</h3>
+        <p className="text-sm leading-6 text-text-muted">{description}</p>
+      </CardHeader>
+      <CardContent className="grid gap-5 pt-5 sm:grid-cols-2 sm:pt-6">
+        {fields.map((field) => (
+          <SpecificField
+            key={field}
+            field={field}
+            state={state}
+            disabled={disabled}
+            academicPeriodError={errors.academicPeriod}
+            academicYearRef={academicYearRef}
+            externalUrlError={errors.externalUrl}
+            externalUrlRef={externalUrlRef}
+            gradeError={errors.grade}
+            gradeRef={gradeRef}
+            onChange={onChange}
+          />
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 

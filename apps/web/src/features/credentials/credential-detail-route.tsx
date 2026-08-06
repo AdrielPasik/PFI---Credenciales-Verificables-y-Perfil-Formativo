@@ -521,27 +521,42 @@ export function CredentialDetailView({
         />
       ) : null}
 
-      <DocumentEvidenceSection
-        credentialStatus={detail.status}
-        currentDocument={detail.documentEvidence.currentDocument}
-        onUpload={onUploadDocumentEvidence}
-      />
+      <section aria-labelledby="supporting-evidence-title" className="grid gap-8">
+        <div className="max-w-3xl border-t border-border-default pt-8">
+          <p className="text-sm font-semibold text-teal-700">Fuentes institucionales</p>
+          <h2
+            id="supporting-evidence-title"
+            className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
+          >
+            Evidencia de respaldo
+          </h2>
+          <p className="mt-2 leading-7 text-text-muted">
+            Reuní las fuentes que respaldan el contenido de la credencial y consultá su análisis asistido.
+          </p>
+        </div>
 
-      <TextEvidenceSection
-        credentialStatus={detail.status}
-        currentText={detail.textEvidence.currentText}
-        onSubmit={onSubmitTextEvidence}
-      />
-
-      {documentAnalysis ? (
-        <DocumentAnalysisSection
+        <DocumentEvidenceSection
           credentialStatus={detail.status}
           currentDocument={detail.documentEvidence.currentDocument}
-          state={documentAnalysis.state}
-          onTrigger={documentAnalysis.onTrigger}
-          onRefresh={documentAnalysis.onRefresh}
+          onUpload={onUploadDocumentEvidence}
         />
-      ) : null}
+
+        <TextEvidenceSection
+          credentialStatus={detail.status}
+          currentText={detail.textEvidence.currentText}
+          onSubmit={onSubmitTextEvidence}
+        />
+
+        {documentAnalysis ? (
+          <DocumentAnalysisSection
+            credentialStatus={detail.status}
+            currentDocument={detail.documentEvidence.currentDocument}
+            state={documentAnalysis.state}
+            onTrigger={documentAnalysis.onTrigger}
+            onRefresh={documentAnalysis.onRefresh}
+          />
+        ) : null}
+      </section>
     </div>
   );
 }

@@ -114,7 +114,36 @@ describe('AcademicSubjectCatalogSection', () => {
       )
     ).toBeTruthy();
     expect(screen.getByText('Asignatura histórica')).toBeTruthy();
+    expect(screen.queryByLabelText('Buscar carrera o plan académico')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Cambiar carrera' })).toBeTruthy();
     expect(document.body.textContent).not.toContain('flat-reference');
+  });
+
+  it('presents the persisted reference before revealing either catalog search', () => {
+    renderCatalog({
+      persistedSelection: {
+        academicCourseReference: subject.academicCourseReference,
+        code: subject.code,
+        name: subject.name,
+        description: subject.description,
+        hours: subject.hours,
+        program: programA
+      }
+    });
+
+    expect(screen.getByText('Referencia académica oficial')).toBeTruthy();
+    expect(screen.getByText('Asignatura seleccionada')).toBeTruthy();
+    expect(screen.getByText('Carrera seleccionada')).toBeTruthy();
+    expect(screen.queryByLabelText('Buscar carrera o plan académico')).toBeNull();
+    expect(screen.queryByLabelText('Buscar materia de la carrera')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar asignatura' }));
+
+    expect(screen.getByLabelText('Buscar materia de la carrera')).toBeTruthy();
+    expect(screen.queryByLabelText('Buscar carrera o plan académico')).toBeNull();
+    expect(document.body.textContent).not.toMatch(
+      /guardar en base|crear curso reutilizable|agregar al catálogo/i
+    );
   });
 
   it('ignores an older program response when a newer search finishes first', async () => {
@@ -156,7 +185,12 @@ describe('AcademicSubjectCatalogSection', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Buscar materia' }));
 
-    fireEvent.click(screen.getByText(programB.programName));
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar carrera' }));
+    fireEvent.change(screen.getByLabelText('Buscar carrera o plan académico'), {
+      target: { value: 'Ingeniería' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar carrera' }));
+    fireEvent.click(await screen.findByText(programB.programName));
     await act(async () => oldSubjects.resolve([subject]));
 
     expect(screen.queryByText(subject.name)).toBeNull();
@@ -249,7 +283,7 @@ describe('AcademicSubjectCatalogSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar carrera' }));
 
     expect(screen.queryByText('Selección pendiente')).toBeNull();
-    expect(screen.getByText('Selección actualmente persistida')).toBeTruthy();
+    expect(screen.getByText('Asignatura seleccionada')).toBeTruthy();
     expect(screen.getByText(subject.name)).toBeTruthy();
     expect(screen.queryByLabelText('Buscar materia de la carrera')).toBeNull();
 

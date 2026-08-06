@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { BookOpenCheck, GraduationCap, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
@@ -28,6 +28,7 @@ interface AcademicSubjectCatalogSectionProps extends AcademicSubjectCatalogSearc
 }
 
 const catalogError = 'No pudimos consultar el catálogo. Intentá nuevamente.';
+type CatalogChangeMode = 'program' | 'subject' | null;
 
 export function AcademicSubjectCatalogSection({
   disabled,
@@ -50,6 +51,9 @@ export function AcademicSubjectCatalogSection({
   const [subjectError, setSubjectError] = useState<string | null>(null);
   const [subjectLoading, setSubjectLoading] = useState(false);
   const [subjectSearched, setSubjectSearched] = useState(false);
+  const [changeMode, setChangeMode] = useState<CatalogChangeMode>(
+    pendingSelection ? 'subject' : persistedSelection ? null : 'program'
+  );
   const programRequest = useRef(0);
   const subjectRequest = useRef(0);
   const programAbort = useRef<AbortController | null>(null);
@@ -96,6 +100,7 @@ export function AcademicSubjectCatalogSection({
     setSubjectError(null);
     setSubjectLoading(false);
     setSubjectSearched(false);
+    setChangeMode('subject');
     onPendingSelectionChange(null);
   }
 
@@ -113,6 +118,49 @@ export function AcademicSubjectCatalogSection({
     setSubjectError(null);
     setSubjectLoading(false);
     setSubjectSearched(false);
+    setChangeMode('program');
+    onPendingSelectionChange(null);
+  }
+
+  function startProgramChange() {
+    clearSelectedProgram();
+  }
+
+  function startSubjectChange() {
+    if (!persistedSelection?.program) {
+      startProgramChange();
+      return;
+    }
+
+    subjectAbort.current?.abort();
+    subjectRequest.current += 1;
+    setSelectedProgram(persistedSelection.program);
+    setSubjectQuery('');
+    setSubjectResults([]);
+    setSubjectError(null);
+    setSubjectLoading(false);
+    setSubjectSearched(false);
+    setChangeMode('subject');
+    onPendingSelectionChange(null);
+  }
+
+  function cancelChange() {
+    programAbort.current?.abort();
+    subjectAbort.current?.abort();
+    programRequest.current += 1;
+    subjectRequest.current += 1;
+    setProgramQuery('');
+    setProgramResults([]);
+    setProgramError(null);
+    setProgramLoading(false);
+    setProgramSearched(false);
+    setSelectedProgram(persistedSelection?.program ?? null);
+    setSubjectQuery('');
+    setSubjectResults([]);
+    setSubjectError(null);
+    setSubjectLoading(false);
+    setSubjectSearched(false);
+    setChangeMode(persistedSelection ? null : 'program');
     onPendingSelectionChange(null);
   }
 
@@ -146,15 +194,18 @@ export function AcademicSubjectCatalogSection({
       <div aria-hidden="true" className="h-1 bg-teal-700" />
       <CardHeader className="border-b border-border-default">
         <p className="text-sm font-semibold text-teal-700">Catálogo institucional</p>
-        <h3 className="text-lg font-semibold text-text-strong">Asignatura oficial</h3>
+        <h3 className="text-lg font-semibold text-text-strong">Referencia académica oficial</h3>
         <p className="max-w-3xl text-sm leading-6 text-text-muted">
-          La selección de catálogo identifica la asignatura oficial. La aprobación se completa con los datos del logro del titular.
+          La carrera y la asignatura provienen del catálogo académico institucional.
         </p>
       </CardHeader>
       <CardContent className="grid gap-6 pt-5 sm:pt-6">
         {persistedSelection ? (
           <div className="grid gap-3">
-            <p className="text-sm font-semibold text-text-strong">Selección actualmente persistida</p>
+            <div className="flex items-center gap-2 text-sm font-semibold text-text-strong">
+              <BookOpenCheck aria-hidden="true" className="size-4 text-teal-700" />
+              Asignatura seleccionada
+            </div>
             {persistedSelection.program === null ? (
               <FeedbackAlert variant="warning" title="Contexto curricular no disponible">
                 La asignatura está seleccionada sin contexto curricular.
@@ -165,9 +216,34 @@ export function AcademicSubjectCatalogSection({
               description={persistedSelection.description}
               hours={persistedSelection.hours}
               name={persistedSelection.name}
+              programCode={persistedSelection.program?.programCode ?? null}
               programName={persistedSelection.program?.programName ?? null}
               state="persisted"
             />
+            {changeMode === null ? (
+              <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={disabled}
+                onClick={startProgramChange}
+              >
+                <GraduationCap aria-hidden="true" />
+                Cambiar carrera
+              </Button>
+              {persistedSelection.program ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={disabled}
+                  onClick={startSubjectChange}
+                >
+                  <BookOpenCheck aria-hidden="true" />
+                  Cambiar asignatura
+                </Button>
+              ) : null}
+              </div>
+            ) : null}
           </div>
         ) : (
           <FeedbackAlert variant="information" title="Seleccioná una asignatura oficial">
@@ -183,14 +259,34 @@ export function AcademicSubjectCatalogSection({
               description={pendingSelection.description}
               hours={pendingSelection.hours}
               name={pendingSelection.name}
+              programCode={pendingSelection.programCode}
               programName={pendingSelection.programName}
               state="pending"
             />
           </div>
         ) : null}
 
-        <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted p-4 sm:p-5">
-          <div>
+        {changeMode ? (
+          <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold tracking-wide text-brand-700 uppercase">
+                  {changeMode === 'program' ? 'Seleccionar carrera' : 'Seleccionar asignatura'}
+                </p>
+                <p className="mt-1 text-sm text-text-muted">
+                  La selección se aplicará únicamente cuando guardes los cambios.
+                </p>
+              </div>
+              {persistedSelection ? (
+                <Button type="button" size="sm" variant="ghost" disabled={disabled} onClick={cancelChange}>
+                  <X aria-hidden="true" />
+                  Cancelar cambio
+                </Button>
+              ) : null}
+            </div>
+
+          {changeMode === 'program' ? (
+            <div>
             <p className="text-xs font-bold tracking-wide text-brand-700 uppercase">Paso 1</p>
             <AcademicProgramSearchField
               disabled={disabled}
@@ -212,8 +308,9 @@ export function AcademicSubjectCatalogSection({
               onSelect={selectProgram}
             />
           </div>
+          ) : null}
 
-          {selectedProgram ? (
+          {changeMode === 'subject' && selectedProgram ? (
             <div className="grid gap-4 border-t border-border-default pt-5">
               <div className="flex flex-col gap-3 rounded-control border border-teal-600/25 bg-teal-100 p-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -259,7 +356,8 @@ export function AcademicSubjectCatalogSection({
               ) : null}
             </div>
           ) : null}
-        </div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

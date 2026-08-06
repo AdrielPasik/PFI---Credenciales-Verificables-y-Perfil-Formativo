@@ -229,18 +229,15 @@ describe('CredentialDraftEditorForm', () => {
   it('uses the curricular selector and only approved achievement fields for academic subjects', () => {
     renderEditor({ detail: detailFixture('academic_subject') });
 
-    expect(screen.getByText('Asignatura oficial')).toBeTruthy();
+    expect(screen.getByText('Referencia académica oficial')).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Datos de aprobación' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Competencias y habilidades' })).toBeTruthy();
     expect(screen.getByLabelText('Fecha de aprobación (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Año académico (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Período (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Calificación (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Habilidades técnicas (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Competencias formativas (opcional)')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Estos campos son opcionales y pueden completarse manualmente.'
-      )
-    ).toBeTruthy();
     expect(
       screen.getByText(
         'Una entrada por línea. Ejemplos: SQL, Python, modelado de datos.'
@@ -273,6 +270,9 @@ describe('CredentialDraftEditorForm', () => {
 
     expect(screen.getByText('Selección guardada')).toBeTruthy();
     expect(screen.getAllByText(program.programName).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText('Buscar materia de la carrera')).toBeNull();
+    expect(screen.queryByLabelText('Buscar carrera o plan académico')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar asignatura' }));
     expect(screen.getByLabelText('Buscar materia de la carrera')).toBeTruthy();
     expect(document.body.textContent).not.toContain(
       catalogSubject.academicCourseReference

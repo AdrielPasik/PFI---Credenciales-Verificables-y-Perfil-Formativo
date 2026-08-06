@@ -129,6 +129,20 @@ El reanálisis y la actualización de estado son manuales. P5e-web no incorpora
 polling, análisis textual o combinado, proposals, readiness, emisión ni
 blockchain.
 
+## Polish del detalle emisor
+
+Para credenciales `academic_subject`, el detalle presenta primero la referencia
+académica oficial ya guardada. La carrera, la asignatura y sus códigos visibles
+provienen del read model institucional; los buscadores de catálogo aparecen
+únicamente después de elegir `Cambiar carrera` o `Cambiar asignatura`. Una
+selección nueva continúa siendo local y pendiente hasta guardar el PATCH.
+
+Los datos de aprobación y las competencias/habilidades permanecen editables en
+secciones diferenciadas. La evidencia documental, el contenido textual y el
+análisis inteligente se agrupan como evidencia de respaldo sin cambiar sus
+contratos, permisos ni comportamiento. Este polish no agrega creación libre de
+materias, enriquecimiento reutilizable del catálogo ni endpoints nuevos.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;
