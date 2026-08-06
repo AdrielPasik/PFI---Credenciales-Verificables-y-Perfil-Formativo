@@ -8,9 +8,9 @@ la credencial ni introducir infraestructura asincrona antes de medirla.
 ## Decision
 
 P5a implementa `AnalysisRun` y `AnalysisRunSource` como foundation de
-persistencia, sin ejecutar IA. El servicio interno crea un run `pending` y
-captura referencias y hashes de las evidencias `current` exactas. P5b/P5c
-agregaran ejecucion y transiciones controladas. `partial` pertenece al artifact
+persistencia. P5b agrega la ejecucion interna sincronica para runs `document`:
+reclama el run `pending`, lee la evidencia exacta capturada y persiste el
+resultado semantico antes de completar el run. `partial` pertenece al artifact
 semantico, no al lifecycle operacional del run.
 
 ```text
@@ -59,19 +59,26 @@ cambiar la identidad de fuente ni el schema del artifact.
 - idempotencia y fallos seguros;
 - camino compatible con worker posterior.
 
+La ejecucion P5b separa tres tramos cortos: claim transaccional, lectura de
+storage y llamada HTTP fuera de transaccion, y completion transaccional. Ante
+un fallo posterior al claim, registra `failed` con codigo y mensaje
+sanitizados. Un artifact semantico `partial` persistido correctamente deja el
+run en `completed`.
+
 ## Fuera de alcance
 
-- ejecutar FastAPI o leer contenido/storage;
-- transiciones del run en P5a;
+- ejecucion de modos `text` o `combined`;
 - cola, scheduler, worker, Redis o Kafka;
+- endpoint publico o frontend de ejecucion;
 - progreso porcentual inventado;
 - cancelacion distribuida;
 - readiness o emision automatica.
 
 ## Impacto en modulos actuales
 
-P5a agrega Prisma y un servicio interno sin controller. `SemanticAnalysis`
-sigue representando el resultado oficial, no el job operacional.
+P5a agrega Prisma y P5b un servicio interno sin controller.
+`SemanticAnalysis` sigue representando el resultado oficial, queda asociado
+mediante `analysisRunId` y no reemplaza el lifecycle operacional.
 
 ## Riesgos
 
@@ -83,4 +90,5 @@ sigue representando el resultado oficial, no el job operacional.
 
 ## Proximos slices relacionados
 
-P5b ejecucion sincrona, P5g UI de estado y P9 worker asincrono posterior.
+P5c/P5d agregaran triggers y modos restantes, P5g la UI de estado y P9 un
+worker asincrono posterior.

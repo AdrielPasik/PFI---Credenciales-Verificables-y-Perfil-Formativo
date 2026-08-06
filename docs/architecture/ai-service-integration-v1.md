@@ -22,8 +22,11 @@ y JWT interno. La red privada sigue siendo el objetivo; la excepcion no cambia
 la frontera browser -> NestJS ni implementa las fuentes/lifecycle de P5.
 
 P5a agrega resolucion persistente de `DocumentEvidence` y `TextEvidence`
-current dentro de `AnalysisRunSource`, sin leer contenido ni llamar FastAPI.
-Los endpoints y modos de ejecucion P5b-P5e siguen planificados.
+current dentro de `AnalysisRunSource`. P5b ejecuta internamente solo runs
+`document`: lee los bytes de la referencia exacta, llama FastAPI fuera de una
+transaccion abierta, valida el artifact y persiste `SemanticAnalysis` con
+`analysisRunId`. Los triggers HTTP y los modos `text`/`combined` siguen
+planificados.
 
 ## Decision
 
@@ -100,7 +103,8 @@ sequenceDiagram
     API-->>Web: Resumen, warnings y confianza
 ```
 
-La forma definitiva de los endpoints internos se congelara en P5c-P5e. No se
+La forma definitiva de los endpoints se congelara en P5c-P5e. P5b no agrega
+controller ni endpoint publico. No se
 deben confundir con los endpoints actuales `/v1/semantic-analysis/pdf` y
 `/v1/formative-profile/build`.
 
@@ -148,5 +152,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-Migracion a red privada, P5b ejecucion/lifecycle, P5c-P5e modos, P5f
+Migracion a red privada, P5c-P5e triggers y modos restantes, P5f
 trazabilidad y tuning semantico medido en un slice separado.

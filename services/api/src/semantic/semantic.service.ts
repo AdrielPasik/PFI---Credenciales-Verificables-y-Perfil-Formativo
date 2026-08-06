@@ -55,7 +55,11 @@ export class SemanticService {
 
   async persistForCredential(
     credentialId: string,
-    artifact: unknown
+    artifact: unknown,
+    options: {
+      analysisRunId?: string;
+      transaction?: Prisma.TransactionClient;
+    } = {}
   ): Promise<SemanticAnalysis> {
     this.assertNonEmptyString(credentialId, 'credentialId');
 
@@ -63,7 +67,8 @@ export class SemanticService {
     const mappedArtifact =
       createSemanticAnalysisArtifactMapping(validatedArtifact);
 
-    const credential = await this.prisma.credential.findUnique({
+    const client = options.transaction ?? this.prisma;
+    const credential = await client.credential.findUnique({
       where: {
         id: credentialId
       },
@@ -76,11 +81,12 @@ export class SemanticService {
       throw new NotFoundException(`Credential ${credentialId} no existe.`);
     }
 
-    return this.prisma.semanticAnalysis.create({
+    return client.semanticAnalysis.create({
       data: this.buildCreateData(
         credential.id,
         validatedArtifact,
-        mappedArtifact
+        mappedArtifact,
+        options.analysisRunId
       )
     });
   }
@@ -88,10 +94,12 @@ export class SemanticService {
   private buildCreateData(
     credentialId: string,
     validatedArtifact: SemanticAnalysisArtifact,
-    mappedArtifact: SemanticAnalysisArtifactMappingResult
+    mappedArtifact: SemanticAnalysisArtifactMappingResult,
+    analysisRunId?: string
   ): Prisma.SemanticAnalysisUncheckedCreateInput {
     return {
       credentialId,
+      ...(analysisRunId ? { analysisRunId } : {}),
       schemaVersion: mappedArtifact.schemaVersion,
       status: mappedArtifact.status,
       pipelineVersion: mappedArtifact.pipelineVersion,

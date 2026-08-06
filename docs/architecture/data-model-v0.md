@@ -197,6 +197,10 @@ P5a implementa la primera parte de esta direccion:
   bytes, contenido o storage internals;
 - `SemanticAnalysis.analysisRunId`: relacion opcional compatible con historicos.
 
+P5b usa esa relacion al persistir un resultado documental. No agrega tablas ni
+migraciones: el run conserva el lifecycle operativo y `SemanticAnalysis` el
+artifact validado, incluso cuando su status semantico es `partial`.
+
 Permanecen futuros:
 
 - idempotencia, correlation, intentos y duracion operativa;

@@ -241,6 +241,31 @@ test('persistForCredential does not generate canonical hash fields', async () =>
   assert.equal(hasOwn(createArgs.data, 'canonicalizationVersion'), false);
 });
 
+test('persistForCredential optionally associates an analysis run without breaking legacy ingest', async () => {
+  const legacy = createSemanticServiceTestContext();
+  await legacy.service.persistForCredential(
+    'cred-123',
+    createAcademicPdfCompletedArtifact()
+  );
+  assert.equal(
+    'analysisRunId' in
+      (legacy.calls.semanticAnalysisCreate[0].data as Record<string, unknown>),
+    false
+  );
+
+  const linked = createSemanticServiceTestContext();
+  await linked.service.persistForCredential(
+    'cred-123',
+    createAcademicPdfCompletedArtifact(),
+    { analysisRunId: 'run-123' }
+  );
+  assert.equal(
+    (linked.calls.semanticAnalysisCreate[0].data as Record<string, unknown>)
+      .analysisRunId,
+    'run-123'
+  );
+});
+
 test('persistForCredential stores warnings, partialReasons, sourceRefs, hoursDistribution and full confidence in analysisJson', async () => {
   const { service, calls } = createSemanticServiceTestContext();
 

@@ -143,15 +143,18 @@ exactas mediante servicio interno; no ejecuta IA ni expone endpoint.
 
 ## P5b - AnalysisRun sincrono
 
+Estado: ejecucion interna documental implementada. No expone endpoint, worker
+ni soporte para `text`/`combined`.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Ejecutar y transicionar el lifecycle persistido sin cola. |
 | Dependencias | P5a. |
 | Modulos | Prisma, analysis orchestration. |
-| Migracion | Evolutiva si agrega idempotencia/correlation/intentos. |
-| Endpoint | Base para triggers P5c-P5e y status seguro. |
-| Aceptacion | `running -> completed/partial/failed`, correlation y error seguro. |
-| Pruebas | timeout, retry, concurrencia, duplicado, crash stale. |
+| Migracion | Ninguna en P5b; reutiliza el schema de P5a. |
+| Endpoint | Ninguno nuevo; base interna para triggers P5c-P5e. |
+| Aceptacion | Claim atomico, `running -> completed/failed`, resultado asociado y error seguro. `partial` es status del artifact, no del run. |
+| Pruebas | fuente exacta, timeout/auth, artifact invalido, concurrencia y persistencia semantica. |
 | Riesgos | Runs en `running` y requests largos. |
 | Entrega | 50%, obligatorio. |
 

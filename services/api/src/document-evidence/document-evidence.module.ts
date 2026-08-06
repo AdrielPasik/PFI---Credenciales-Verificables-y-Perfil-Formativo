@@ -18,6 +18,7 @@ import { DocumentUploadInterceptor } from './document-upload.interceptor';
       provide: DOCUMENT_STORAGE_PORT,
       useFactory: () => createDocumentStorageAdapterFromEnv(process.env)
     }
-  ]
+  ],
+  exports: [DOCUMENT_STORAGE_PORT]
 })
 export class DocumentEvidenceModule {}

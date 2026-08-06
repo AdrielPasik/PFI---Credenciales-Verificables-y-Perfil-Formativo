@@ -26,3 +26,13 @@ export interface AnalysisRunSummary {
   sourceCount: number;
   createdAt: string;
 }
+
+export interface AnalysisRunExecutionSummary {
+  runReference: string;
+  credentialReference: string;
+  status: AnalysisRunStatus;
+  semanticAnalysisReference: string;
+  artifactStatus: string;
+  sourceCount: number;
+  completedAt: string;
+}

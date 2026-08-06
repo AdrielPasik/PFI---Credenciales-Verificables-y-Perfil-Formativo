@@ -370,7 +370,14 @@ Estas reglas impactaran directamente:
 - document exige documento, text exige texto y combined exige ambos;
 - cada source referencia documento XOR texto y no guarda contenido, bytes,
   storage key, paths ni payloads IA;
-- P5a no llama FastAPI ni crea `SemanticAnalysis`; propuestas siguen futuras.
+- P5b ejecuta solo runs `document`, siempre contra la referencia exacta
+  capturada; no reselecciona evidencia `current`;
+- el claim y completion son transacciones cortas, mientras storage y FastAPI se
+  ejecutan fuera de una transaccion de base de datos;
+- un artifact `partial` persistido implica run `completed`; los fallos
+  operativos se guardan sanitizados y no alteran `Credential`, `canon_v1`,
+  emision ni blockchain;
+- `text`, `combined`, propuestas, endpoint publico y worker siguen futuros.
 
 `canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
 definan que claims oficiales forman parte de la emision.
