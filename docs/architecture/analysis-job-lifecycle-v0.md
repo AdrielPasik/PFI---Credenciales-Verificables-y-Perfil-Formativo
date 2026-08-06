@@ -69,14 +69,17 @@ run en `completed`.
 
 - ejecucion de modos `text` o `combined`;
 - cola, scheduler, worker, Redis o Kafka;
-- endpoint publico o frontend de ejecucion;
+- endpoint generico/publico o frontend de ejecucion;
 - progreso porcentual inventado;
 - cancelacion distribuida;
 - readiness o emision automatica.
 
 ## Impacto en modulos actuales
 
-P5a agrega Prisma y P5b un servicio interno sin controller.
+P5a agrega Prisma, P5b el ejecutor interno y P5c un trigger HTTP protegido y
+scoped por issuer para admin/operator. El trigger crea un run manual document
+con actor y versiones controlados por NestJS; ignora el body como fuente de
+identidad o configuracion.
 `SemanticAnalysis` sigue representando el resultado oficial, queda asociado
 mediante `analysisRunId` y no reemplaza el lifecycle operacional.
 
@@ -90,5 +93,5 @@ mediante `analysisRunId` y no reemplaza el lifecycle operacional.
 
 ## Proximos slices relacionados
 
-P5c/P5d agregaran triggers y modos restantes, P5g la UI de estado y P9 un
-worker asincrono posterior.
+P5d/P5e agregaran modos restantes, P5g la UI de estado y P9 un worker
+asincrono posterior.

@@ -2,7 +2,8 @@ import {
   AnalysisRunInputMode,
   AnalysisRunSourceType,
   AnalysisRunStatus,
-  AnalysisRunTrigger
+  AnalysisRunTrigger,
+  SemanticAnalysisStatus
 } from '@prisma/client';
 
 export interface CreateAnalysisRunInput {
@@ -32,7 +33,7 @@ export interface AnalysisRunExecutionSummary {
   credentialReference: string;
   status: AnalysisRunStatus;
   semanticAnalysisReference: string;
-  artifactStatus: string;
+  artifactStatus: SemanticAnalysisStatus;
   sourceCount: number;
   completedAt: string;
 }

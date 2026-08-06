@@ -770,12 +770,28 @@ ni afirma que un draft este listo para emitir.
 - Errores esperados: `401`, `403`, `404`.
 - Estado: `future`.
 
-## 7. Contratos IA issuer-facing planificados para P5
+## 7. Contratos IA issuer-facing de P5
 
-Estos contratos son candidatos aprobados por P4d, no endpoints implementados:
+P5c implementa:
 
 ```text
-POST /issuers/:issuerId/credentials/:credentialId/analysis/document
+POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/document
+```
+
+- Actor: membership `active`, rol `admin|operator`, issuer `authorized`.
+- Scope: credential `draft` perteneciente al issuer del path.
+- Body: no autoritativo; IDs, actor, source, modo, trigger y versiones se
+  derivan de params, JWT y defaults backend-controlled.
+- Response: `analysisRunId`, `credentialId`, `status`, `semanticAnalysisId`,
+  `artifactStatus`, `sourceCount` y `completedAt`.
+- Errores: `401`, `403`, `404`, `409`, fuente faltante `400` y fallos de
+  ejecucion sanitizados.
+- Efectos: crea/ejecuta un run document y persiste `SemanticAnalysis`; no
+  modifica Credential, canon, emision ni blockchain.
+
+Permanecen candidatos futuros:
+
+```text
 POST /issuers/:issuerId/credentials/:credentialId/analysis/text
 POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
 GET  /issuers/:issuerId/credentials/:credentialId/analysis/latest
@@ -790,7 +806,8 @@ GET  /issuers/:issuerId/credentials/:credentialId/analysis-runs/:runId
 - Persistencia: NestJS valida artifacts antes de persistirlos.
 - Efectos prohibidos: no PATCH automatico de `Credential`, no readiness, no
   emision, no hash y no blockchain.
-- Estado: `future_p5`; la forma final se congela en P5c-P5g.
+- Estado: trigger document implementado; text, combined y reads siguen
+  `future_p5`.
 
 Las propuestas y revision humana tendran contratos separados en P5h/P6a. No se
 debe reutilizar el artifact crudo como command de actualizacion.

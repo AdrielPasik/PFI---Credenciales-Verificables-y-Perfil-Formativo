@@ -25,8 +25,8 @@ P5a agrega resolucion persistente de `DocumentEvidence` y `TextEvidence`
 current dentro de `AnalysisRunSource`. P5b ejecuta internamente solo runs
 `document`: lee los bytes de la referencia exacta, llama FastAPI fuera de una
 transaccion abierta, valida el artifact y persiste `SemanticAnalysis` con
-`analysisRunId`. Los triggers HTTP y los modos `text`/`combined` siguen
-planificados.
+`analysisRunId`. P5c expone el trigger institucional protegido para ese modo;
+los modos `text`/`combined` y su frontend siguen planificados.
 
 ## Decision
 
@@ -103,9 +103,11 @@ sequenceDiagram
     API-->>Web: Resumen, warnings y confianza
 ```
 
-La forma definitiva de los endpoints se congelara en P5c-P5e. P5b no agrega
-controller ni endpoint publico. No se
-deben confundir con los endpoints actuales `/v1/semantic-analysis/pdf` y
+P5c agrega
+`POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/document`.
+Issuer, credential, actor, modo, trigger y versiones no provienen del body.
+El browser aun no consume este endpoint y nunca llama FastAPI directamente.
+No se debe confundir con `/v1/semantic-analysis/pdf` ni
 `/v1/formative-profile/build`.
 
 ## Autenticacion y transporte
@@ -152,5 +154,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-Migracion a red privada, P5c-P5e triggers y modos restantes, P5f
+Migracion a red privada, P5d-P5e modos restantes, P5f
 trazabilidad y tuning semantico medido en un slice separado.

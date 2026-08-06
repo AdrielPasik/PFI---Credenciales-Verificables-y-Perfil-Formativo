@@ -160,15 +160,18 @@ ni soporte para `text`/`combined`.
 
 ## P5c - Analisis documental
 
+Estado: trigger issuer-scoped protegido implementado sobre P5a/P5b. Solo
+admin/operator de un issuer autorizado y credenciales draft; no hay frontend.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Analizar `DocumentEvidence` exacta, inicialmente PDF. |
 | Dependencias | P5b, ADR 0009. |
 | Modulos | AI client, storage, semantic, issuer AI controller. |
-| Migracion | Usa P5b/P5f; no necesariamente adicional. |
-| Endpoint | `POST /issuers/:issuerId/credentials/:id/analysis/document`. |
+| Migracion | Ninguna; reutiliza P5a/P5b. |
+| Endpoint | `POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/document`. |
 | Aceptacion | `semantic_analysis_v1` validado/persistido sin cambiar Credential. |
-| Pruebas | PDF, fuente reemplazada, 422, timeout, payload invalido. |
+| Pruebas | auth/scoping, body no confiable, fuente faltante, error sanitizado y regresiones P5b. |
 | Riesgos | OCR/imagen no soportados, memoria y latencia. |
 | Entrega | 50%, obligatorio al menos para PDF. |
 

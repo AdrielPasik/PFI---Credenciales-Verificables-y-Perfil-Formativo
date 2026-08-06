@@ -82,6 +82,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanRunDocumentAnalysisForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'ejecutar analisis documentales'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

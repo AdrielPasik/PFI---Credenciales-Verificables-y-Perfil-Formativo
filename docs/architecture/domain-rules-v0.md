@@ -377,7 +377,12 @@ Estas reglas impactaran directamente:
 - un artifact `partial` persistido implica run `completed`; los fallos
   operativos se guardan sanitizados y no alteran `Credential`, `canon_v1`,
   emision ni blockchain;
-- `text`, `combined`, propuestas, endpoint publico y worker siguen futuros.
+- P5c permite el trigger documental solo a membership activa admin/operator de
+  un issuer autorizado y exige una credencial draft scoped al mismo issuer;
+- params, usuario autenticado y defaults backend-controlled son las unicas
+  fuentes de identidad, modo, trigger y versiones; el body no es autoritativo;
+- `text`, `combined`, propuestas, endpoint generico, frontend y worker siguen
+  futuros.
 
 `canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
 definan que claims oficiales forman parte de la emision.
