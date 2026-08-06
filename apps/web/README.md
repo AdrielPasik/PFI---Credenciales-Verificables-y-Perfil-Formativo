@@ -105,6 +105,30 @@ La evidencia textual convive con `Evidencia documental` y no modifica
 automaticamente campos oficiales. P4c-b no incorpora IA automatica, readiness,
 emision, blockchain, eliminacion ni historial visible.
 
+## Análisis documental P5e-web
+
+P5e-web agrega `Análisis inteligente del documento` al detalle institucional.
+El navegador llama exclusivamente a NestJS: al cargar consulta el último
+`AnalysisRun` registrado y, al iniciar una ejecución, usa el trigger documental
+protegido seguido por la lectura exacta del run creado. El frontend nunca llama
+FastAPI ni conoce su URL o credenciales internas.
+
+El trigger está disponible solo para credenciales `draft` con evidencia
+documental vigente en PDF. PNG y JPEG continúan siendo evidencia válida, pero
+no son analizables en este slice. Las credenciales `issued` o `revoked` pueden
+mostrar su último análisis únicamente en modo lectura.
+
+La sección representa estados `pending`, `running`, `completed`, `failed` y
+`canceled`, y distingue un resultado semántico `completed` de uno `partial`.
+Áreas, habilidades y conceptos se muestran como conteos derivados, incluso
+cuando valen cero. La confianza describe la fiabilidad del análisis, no el
+nivel del titular; `null` se presenta como `No informada`. Los `qualityFlags`
+se transforman en observaciones legibles y nunca se expone el artifact raw.
+
+El reanálisis y la actualización de estado son manuales. P5e-web no incorpora
+polling, análisis textual o combinado, proposals, readiness, emisión ni
+blockchain.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;

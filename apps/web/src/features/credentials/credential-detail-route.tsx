@@ -25,8 +25,13 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
+import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
+import {
+  useIssuerDocumentAnalysis,
+  type DocumentAnalysisState
+} from '@/features/credentials/use-issuer-document-analysis';
 import { IssuerRouteBoundary } from '@/features/issuer-context/issuer-route-boundary';
 import {
   adaptAcademicProgramSearch,
@@ -86,6 +91,11 @@ export function CredentialDetailController({
   membership: IssuerMembershipSummaryVM;
 }) {
   const { requestAuthenticated } = useSession();
+  const documentAnalysis = useIssuerDocumentAnalysis({
+    requestAuthenticated,
+    issuerReference: membership.issuerReference,
+    credentialReference
+  });
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] =
     useState<IssuerCredentialDetailVM | null>(null);
@@ -276,6 +286,11 @@ export function CredentialDetailController({
   return (
     <CredentialDetailView
       detail={detail}
+      documentAnalysis={{
+        state: documentAnalysis.state,
+        onRefresh: documentAnalysis.refresh,
+        onTrigger: documentAnalysis.trigger
+      }}
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
       draftEditor={{
@@ -295,11 +310,17 @@ export function CredentialDetailController({
 
 export function CredentialDetailView({
   detail,
+  documentAnalysis,
   draftEditor,
   onSubmitTextEvidence = unavailableTextEvidenceSubmission,
   onUploadDocumentEvidence
 }: {
   detail: IssuerCredentialDetailVM;
+  documentAnalysis?: {
+    state: DocumentAnalysisState;
+    onTrigger(): Promise<void>;
+    onRefresh(): Promise<void>;
+  };
   onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
   onSubmitTextEvidence?(command: {
     label: string | null;
@@ -511,6 +532,16 @@ export function CredentialDetailView({
         currentText={detail.textEvidence.currentText}
         onSubmit={onSubmitTextEvidence}
       />
+
+      {documentAnalysis ? (
+        <DocumentAnalysisSection
+          credentialStatus={detail.status}
+          currentDocument={detail.documentEvidence.currentDocument}
+          state={documentAnalysis.state}
+          onTrigger={documentAnalysis.onTrigger}
+          onRefresh={documentAnalysis.onRefresh}
+        />
+      ) : null}
     </div>
   );
 }

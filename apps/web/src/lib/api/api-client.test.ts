@@ -89,6 +89,26 @@ describe('ApiClient', () => {
     expect(headers.get('Authorization')).toBe('Bearer [REDACTED]');
   });
 
+  it('sends an authenticated POST without serializing an absent body', async () => {
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(JSON.stringify({ accepted: true }), { status: 200 });
+    }
+    );
+    const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+
+    await client.request('/analysis-runs/document', {
+      method: 'POST',
+      token: '[REDACTED]'
+    });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = new Headers(init?.headers);
+    expect(init?.body).toBeUndefined();
+    expect(headers.has('Content-Type')).toBe(false);
+    expect(headers.get('Authorization')).toBe('Bearer [REDACTED]');
+  });
+
   it('returns null for a successful response without a body', async () => {
     const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
     const client = new ApiClient(baseUrl, fetchMock as typeof fetch);

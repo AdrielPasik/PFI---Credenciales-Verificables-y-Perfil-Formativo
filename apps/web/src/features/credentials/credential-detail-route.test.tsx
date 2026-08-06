@@ -60,6 +60,44 @@ const textEvidenceResponse = {
   sha256: 'c'.repeat(64),
   submittedAt: '2026-08-03T12:00:00.000Z'
 };
+const analysisTriggerResponse = {
+  analysisRunId: 'analysis-run-private-reference',
+  credentialId: 'credential-internal-reference',
+  status: 'completed',
+  semanticAnalysisId: 'semantic-private-reference',
+  artifactStatus: 'partial',
+  sourceCount: 1,
+  completedAt: '2026-08-05T12:00:08.000Z'
+};
+const analysisRunResponse = {
+  analysisRunId: 'analysis-run-private-reference',
+  credentialId: 'credential-internal-reference',
+  status: 'completed',
+  inputMode: 'document',
+  trigger: 'manual',
+  requestedPipelineVersion: 'pipeline-v1',
+  requestedTaxonomyVersion: 'taxonomy-v1',
+  sourceCount: 1,
+  sourceTypes: ['document_evidence'],
+  createdAt: '2026-08-05T12:00:00.000Z',
+  startedAt: '2026-08-05T12:00:01.000Z',
+  completedAt: '2026-08-05T12:00:08.000Z',
+  failedAt: null,
+  errorCode: null,
+  errorMessage: null,
+  semanticAnalysis: {
+    semanticAnalysisId: 'semantic-private-reference',
+    status: 'partial',
+    pipelineVersion: 'pipeline-v1',
+    taxonomyVersion: 'taxonomy-v1',
+    confidence: null,
+    areasCount: 0,
+    skillsCount: 0,
+    conceptsCount: 0,
+    qualityFlags: [],
+    analyzedAt: '2026-08-05T12:00:08.000Z'
+  }
+};
 
 const draftResponse = {
   id: 'credential-internal-reference',
@@ -160,12 +198,42 @@ function detailFixture(
   };
 }
 
+function mockCredentialDetailApi({
+  detail = draftResponse,
+  documentUpload,
+  latest = null,
+  patch,
+  textEvidence
+}: {
+  detail?: unknown;
+  documentUpload?: unknown;
+  latest?: unknown;
+  patch?: unknown;
+  textEvidence?: unknown;
+} = {}) {
+  sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+    if (path.endsWith('/analysis-runs/latest')) {
+      return Promise.resolve(latest);
+    }
+    if (path.endsWith('/evidence/documents') && documentUpload !== undefined) {
+      return Promise.resolve(documentUpload);
+    }
+    if (path.endsWith('/evidence/texts') && textEvidence !== undefined) {
+      return Promise.resolve(textEvidence);
+    }
+    if (path.endsWith('/draft') && patch !== undefined) {
+      return Promise.resolve(patch);
+    }
+    return Promise.resolve(detail);
+  });
+}
+
 describe('CredentialDetailController', () => {
   beforeEach(() => {
     sessionMocks.requestAuthenticated.mockReset();
   });
 
-  it('loads the direct URL through the issuer-scoped read endpoint only', () => {
+  it('loads the direct URL and latest analysis through issuer-scoped reads', () => {
     sessionMocks.requestAuthenticated.mockReturnValue(
       new Promise(() => undefined)
     );
@@ -178,14 +246,17 @@ describe('CredentialDetailController', () => {
     );
 
     expect(screen.getByText('Cargando borrador')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
+    );
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/analysis-runs/latest'
     );
   });
 
   it('renders the safe institutional read model without technical IDs or future actions', async () => {
-    sessionMocks.requestAuthenticated.mockResolvedValue(draftResponse);
+    mockCredentialDetailApi();
 
     render(
       <CredentialDetailController
@@ -220,18 +291,17 @@ describe('CredentialDetailController', () => {
     expect(document.body.textContent).not.toMatch(
       /F1c|F1d|contrato de detalle|readiness/i
     );
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
-    expect(sessionMocks.requestAuthenticated.mock.calls[0]).toHaveLength(1);
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
   });
 
   it('patches edits through the selected issuer context and accepts the response as truth', async () => {
-    sessionMocks.requestAuthenticated
-      .mockResolvedValueOnce(draftResponse)
-      .mockResolvedValueOnce({
+    mockCredentialDetailApi({
+      patch: {
         ...draftResponse,
         description: 'Descripción persistida',
         updatedAt: '2026-07-30T13:00:00.000Z'
-      });
+      }
+    });
 
     render(
       <CredentialDetailController
@@ -247,9 +317,9 @@ describe('CredentialDetailController', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
     await waitFor(() =>
-      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2)
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
     );
-    expect(sessionMocks.requestAuthenticated).toHaveBeenLastCalledWith(
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/draft',
       {
         method: 'PATCH',
@@ -266,9 +336,7 @@ describe('CredentialDetailController', () => {
   });
 
   it('uploads one multipart document and updates only the current evidence snapshot', async () => {
-    sessionMocks.requestAuthenticated
-      .mockResolvedValueOnce(draftResponse)
-      .mockResolvedValueOnce(uploadResponse);
+    mockCredentialDetailApi({ documentUpload: uploadResponse });
 
     render(
       <CredentialDetailController
@@ -288,8 +356,10 @@ describe('CredentialDetailController', () => {
 
     expect(await screen.findByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
-    const [path, options] = sessionMocks.requestAuthenticated.mock.calls[1];
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3);
+    const [path, options] = sessionMocks.requestAuthenticated.mock.calls.find(
+      ([pathValue]) => String(pathValue).endsWith('/evidence/documents')
+    )!;
     expect(path).toBe(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/documents'
     );
@@ -312,9 +382,11 @@ describe('CredentialDetailController', () => {
   });
 
   it('reconstructs current evidence from the issuer read model on direct load', async () => {
-    sessionMocks.requestAuthenticated.mockResolvedValue({
-      ...draftResponse,
-      documentEvidence: { currentDocument: uploadResponse }
+    mockCredentialDetailApi({
+      detail: {
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse }
+      }
     });
 
     render(
@@ -327,19 +399,20 @@ describe('CredentialDetailController', () => {
     expect(await screen.findByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(screen.getByText('Documento PDF')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
   });
 
   it('submits one textual source and updates only its current snapshot', async () => {
-    sessionMocks.requestAuthenticated
-      .mockResolvedValueOnce({
+    mockCredentialDetailApi({
+      detail: {
         ...draftResponse,
         documentEvidence: { currentDocument: uploadResponse }
-      })
-      .mockResolvedValueOnce(textEvidenceResponse);
+      },
+      textEvidence: textEvidenceResponse
+    });
 
     render(
       <CredentialDetailController
@@ -364,8 +437,8 @@ describe('CredentialDetailController', () => {
       screen.getByLabelText('Contenido de la fuente textual').textContent
     ).toBe(textEvidenceContent);
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
-    expect(sessionMocks.requestAuthenticated).toHaveBeenLastCalledWith(
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3);
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/texts',
       {
         method: 'POST',
@@ -388,10 +461,12 @@ describe('CredentialDetailController', () => {
   });
 
   it('reconstructs current text and document evidence together from GET', async () => {
-    sessionMocks.requestAuthenticated.mockResolvedValue({
-      ...draftResponse,
-      documentEvidence: { currentDocument: uploadResponse },
-      textEvidence: { currentText: textEvidenceResponse }
+    mockCredentialDetailApi({
+      detail: {
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse },
+        textEvidence: { currentText: textEvidenceResponse }
+      }
     });
 
     render(
@@ -407,7 +482,7 @@ describe('CredentialDetailController', () => {
     ).toBe(textEvidenceContent);
     expect(screen.getByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
@@ -415,6 +490,9 @@ describe('CredentialDetailController', () => {
 
   it('loads the curriculum-scoped catalog through the authenticated controller boundary', async () => {
     sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.endsWith('/analysis-runs/latest')) {
+        return Promise.resolve(null);
+      }
       if (path.endsWith('/catalog/academic-programs?query=1621&limit=20')) {
         return Promise.resolve({
           items: [
@@ -486,8 +564,10 @@ describe('CredentialDetailController', () => {
   });
 
   it('shows a controlled 404', async () => {
-    sessionMocks.requestAuthenticated.mockRejectedValue(
-      new ApiError('private upstream detail', 'http', 404)
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) =>
+      path.endsWith('/analysis-runs/latest')
+        ? Promise.resolve(null)
+        : Promise.reject(new ApiError('private upstream detail', 'http', 404))
     );
 
     render(
@@ -506,12 +586,14 @@ describe('CredentialDetailController', () => {
   });
 
   it('presents discrepancies without issuing a corrective request', async () => {
-    sessionMocks.requestAuthenticated.mockResolvedValue({
-      ...draftResponse,
-      credentialSubject: {
-        ...draftResponse.credentialSubject,
-        achievement_name: 'Arquitectura Aplicada',
-        institution_name: 'Institución Histórica'
+    mockCredentialDetailApi({
+      detail: {
+        ...draftResponse,
+        credentialSubject: {
+          ...draftResponse.credentialSubject,
+          achievement_name: 'Arquitectura Aplicada',
+          institution_name: 'Institución Histórica'
+        }
       }
     });
 
@@ -527,11 +609,88 @@ describe('CredentialDetailController', () => {
         'La institución registrada en el borrador no coincide con el contexto institucional actual.'
       )
     ).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledOnce();
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
-    expect(sessionMocks.requestAuthenticated.mock.calls[0]).toHaveLength(1);
+  });
+
+  it('keeps credential and evidence visible when latest analysis fails', async () => {
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.endsWith('/analysis-runs/latest')) {
+        return Promise.reject(new ApiError('private upstream', 'http', 503));
+      }
+      return Promise.resolve({
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse },
+        textEvidence: { currentText: textEvidenceResponse }
+      });
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    expect(await screen.findByText('programa.pdf')).toBeTruthy();
+    expect(screen.getByText('Fuente textual actual')).toBeTruthy();
+    expect(
+      await screen.findByText(
+        'No pudimos consultar el estado del análisis. El resto de la credencial sigue disponible.'
+      )
+    ).toBeTruthy();
+  });
+
+  it('triggers once and reads the exact created run instead of latest', async () => {
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.endsWith('/analysis-runs/latest')) return Promise.resolve(null);
+      if (path.endsWith('/analysis-runs/document')) {
+        return Promise.resolve(analysisTriggerResponse);
+      }
+      if (path.endsWith('/analysis-runs/analysis-run-private-reference')) {
+        return Promise.resolve(analysisRunResponse);
+      }
+      return Promise.resolve({
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse }
+      });
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const trigger = await screen.findByRole('button', {
+      name: 'Analizar documento'
+    });
+    fireEvent.click(trigger);
+    fireEvent.click(trigger);
+
+    expect(await screen.findByText('Habilidades detectadas')).toBeTruthy();
+    expect(screen.getByText('No informada')).toBeTruthy();
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
+        String(path).endsWith('/analysis-runs/document')
+      )
+    ).toHaveLength(1);
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/analysis-runs/analysis-run-private-reference'
+    );
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
+        String(path).endsWith('/analysis-runs/latest')
+      )
+    ).toHaveLength(1);
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.some(
+        ([path]) => /fastapi|blockchain|\/issue(?:\/|$)/i.test(String(path))
+      )
+    ).toBe(false);
   });
 });
 
