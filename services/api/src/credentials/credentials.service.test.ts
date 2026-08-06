@@ -801,6 +801,25 @@ test('CredentialsService allows an active issuer admin and preserves hashing/blo
   assert.equal(response.latestBlockchainRecord?.status, 'registered');
 });
 
+test('CredentialsService preserves issuer authorization and configuration requirements', async () => {
+  const { service, hashCalls, blockchainCalls } = createService({
+    assertIssuerCanIssue() {
+      throw new BadRequestException('El issuer no esta autorizado para emitir.');
+    }
+  });
+
+  await assert.rejects(
+    service.issueCredential(
+      'cred-123',
+      { issuerId: 'issuer-1' },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.equal(hashCalls.length, 0);
+  assert.equal(blockchainCalls.length, 0);
+});
+
 test('CredentialsService still rejects credentials that are not in draft', async () => {
   const { service } = createService({
     credential: createCredentialFixture({

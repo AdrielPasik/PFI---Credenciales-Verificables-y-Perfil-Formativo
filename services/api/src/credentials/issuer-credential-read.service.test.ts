@@ -38,6 +38,9 @@ function createCredentialRecord() {
     },
     createdAt: new Date('2026-07-30T12:00:00.000Z'),
     updatedAt: new Date('2026-07-30T12:05:00.000Z'),
+    issuedAt: null,
+    canonicalHash: null,
+    canonicalizationVersion: null,
     issuer: {
       name: 'Demo University',
       did: 'did:example:issuer-demo'
@@ -52,7 +55,8 @@ function createCredentialRecord() {
     academicCourse: null,
     programCourse: null,
     documentEvidences: [],
-    textEvidences: []
+    textEvidences: [],
+    blockchainRecords: []
   };
 }
 

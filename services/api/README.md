@@ -25,6 +25,7 @@ GET  /issuers/:issuerId/catalog/academic-subjects
 GET  /issuers/:issuerId/catalog/academic-programs
 GET  /issuers/:issuerId/catalog/curriculum-versions/:curriculumReference/academic-subjects
 GET  /issuers/:issuerId/credentials/:credentialId
+POST /issuers/:issuerId/credentials/:credentialId/issue
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /issuers/:issuerId/credentials/:credentialId/evidence/documents
 POST /issuers/:issuerId/credentials/:credentialId/evidence/texts
@@ -60,7 +61,11 @@ mediante el PATCH issuer-facing del draft. Este flujo no calcula readiness, no
 emite, no llama a blockchain y no ejecuta PDF ni IA. La creacion manual
 existente se mantiene por compatibilidad para todos los tipos.
 
-`POST /credentials/:id/issue` aplica las mismas reglas institucionales sobre el issuer persistido de la credencial. El `issuerId` del body no puede cambiar el issuer efectivo.
+`POST /issuers/:issuerId/credentials/:credentialId/issue` es el contrato
+issuer-facing recomendado. No recibe body autoritativo: deriva scoping del path
+y actor desde JWT, valida el contexto institucional antes del lookup y
+reutiliza la emision existente. Devuelve el read model institucional actualizado.
+`POST /credentials/:id/issue` permanece disponible como endpoint legacy.
 
 `GET /auth/me` devuelve solo memberships activas y agrega para cada una un
 resumen seguro del issuer: `issuerId`, `issuerName`, `issuerDid` e
@@ -78,10 +83,16 @@ crear un draft.
 `GET /issuers/:issuerId/credentials/:credentialId` aplica el mismo contexto
 institucional operativo antes de buscar la credencial por `credentialId` e
 `issuerId`. Devuelve un read model allowlisted con resumen humano del issuer y
-holder, `description` nullable y `hours` como decimal string nullable; no
-expone IDs relacionales, auth, wallet, metadata, raw data, hashes, blockchain
-ni analisis. El read generico `GET /credentials/:id` sigue coexistiendo sin
-cambios.
+holder, `description` nullable y `hours` como decimal string nullable. Tambien
+incluye `issuedAt`, `canonicalHash`, `canonicalizationVersion` y un resumen
+nullable del ultimo `BlockchainRecord` con `network`, `chainId`, `txHash`,
+`status` y `registeredAt`. No expone IDs relacionales, auth, wallet, metadata,
+raw data, payload canonico, direcciones internas, RPC, storage ni artifacts IA.
+El read generico `GET /credentials/:id` sigue coexistiendo sin cambios.
+
+El hash se calcula off-chain en NestJS y el registro blockchain conserva
+evidencia tecnica de integridad; no reemplaza la validez academica del emisor.
+`SemanticAnalysis` no participa en `canon_v1` y no es requisito para emitir.
 
 `GET /issuers/:issuerId/catalog/academic-subjects` busca `AcademicCourse`
 activos del issuer por codigo o nombre. Usa limite default `20`, maximo `50`,

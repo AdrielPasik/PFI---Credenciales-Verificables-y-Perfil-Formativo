@@ -93,6 +93,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanIssueCredentialForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'emitir credenciales'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

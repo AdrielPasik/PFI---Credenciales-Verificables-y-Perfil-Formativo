@@ -1,4 +1,6 @@
 import {
+  BlockchainNetwork,
+  BlockchainRecordStatus,
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
@@ -29,6 +31,9 @@ export const issuerCredentialReadSelect = {
   credentialSubject: true,
   createdAt: true,
   updatedAt: true,
+  issuedAt: true,
+  canonicalHash: true,
+  canonicalizationVersion: true,
   issuer: {
     select: {
       name: true,
@@ -90,6 +95,20 @@ export const issuerCredentialReadSelect = {
     },
     take: 1,
     select: textEvidenceResponseSelect
+  },
+  blockchainRecords: {
+    orderBy: [
+      { registeredAt: 'desc' },
+      { id: 'desc' }
+    ] as Prisma.BlockchainRecordOrderByWithRelationInput[],
+    take: 1,
+    select: {
+      network: true,
+      chainId: true,
+      txHash: true,
+      status: true,
+      registeredAt: true
+    }
   }
 } as const;
 
@@ -107,6 +126,9 @@ export interface IssuerCredentialReadRecord {
   credentialSubject: Prisma.JsonValue;
   createdAt: Date;
   updatedAt: Date;
+  issuedAt: Date | null;
+  canonicalHash: string | null;
+  canonicalizationVersion: string | null;
   issuer: {
     name: string;
     did: string | null;
@@ -141,6 +163,13 @@ export interface IssuerCredentialReadRecord {
   } | null;
   documentEvidences: DocumentEvidenceResponseRecord[];
   textEvidences: TextEvidenceResponseRecord[];
+  blockchainRecords: Array<{
+    network: BlockchainNetwork;
+    chainId: number;
+    txHash: string;
+    status: BlockchainRecordStatus;
+    registeredAt: Date;
+  }>;
 }
 
 export function mapIssuerCredentialReadModel(
@@ -203,6 +232,21 @@ export function mapIssuerCredentialReadModel(
     },
     createdAt: credential.createdAt.toISOString(),
     updatedAt: credential.updatedAt.toISOString(),
+    issuedAt: credential.issuedAt?.toISOString() ?? null,
+    canonicalHash: normalizeOptionalText(credential.canonicalHash),
+    canonicalizationVersion: normalizeOptionalText(
+      credential.canonicalizationVersion
+    ),
+    blockchainEvidence: credential.blockchainRecords[0]
+      ? {
+          network: credential.blockchainRecords[0].network,
+          chainId: credential.blockchainRecords[0].chainId,
+          txHash: credential.blockchainRecords[0].txHash,
+          status: credential.blockchainRecords[0].status,
+          registeredAt:
+            credential.blockchainRecords[0].registeredAt.toISOString()
+        }
+      : null,
     issuer: {
       displayName: credential.issuer.name,
       did: normalizeOptionalText(credential.issuer.did)

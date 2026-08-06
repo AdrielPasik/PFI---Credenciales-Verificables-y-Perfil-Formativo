@@ -8,6 +8,8 @@ import { CredentialsController } from './credentials.controller';
 import { CredentialsService } from './credentials.service';
 import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft-update.controller';
 import { IssuerCredentialDraftUpdateService } from './issuer-credential-draft-update.service';
+import { IssuerCredentialIssueController } from './issuer-credential-issue.controller';
+import { IssuerCredentialIssueService } from './issuer-credential-issue.service';
 import { IssuerCredentialReadController } from './issuer-credential-read.controller';
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
@@ -15,12 +17,14 @@ import { IssuerCredentialReadService } from './issuer-credential-read.service';
   imports: [AuthModule, IssuersModule, BlockchainModule],
   controllers: [
     CredentialsController,
+    IssuerCredentialIssueController,
     IssuerCredentialReadController,
     IssuerCredentialDraftUpdateController
   ],
   providers: [
     CredentialsService,
     CredentialHashingService,
+    IssuerCredentialIssueService,
     IssuerCredentialReadService,
     IssuerCredentialDraftUpdateService
   ],

@@ -278,6 +278,11 @@ historica y no exige que la credencial permanezca draft.
 
 ## P7 - Canon v2, emision y blockchain
 
+Base disponible desde P6a-1: endpoint issuer-scoped de emision que reutiliza
+`canon_v1` y read model institucional con evidencia tecnica allowlisted. Esto
+no adelanta readiness, `canon_v2`, reconciliacion productiva ni verificador
+publico.
+
 | Campo | Definicion |
 | --- | --- |
 | Objetivo | Congelar claims oficiales y emitir con evidencia reconciliable. |

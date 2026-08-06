@@ -1,4 +1,6 @@
 import {
+  BlockchainNetwork,
+  BlockchainRecordStatus,
   CredentialSourceType,
   CredentialStatus,
   CredentialType
@@ -54,6 +56,14 @@ export class IssuerCredentialAcademicProgramResponseDto {
   curriculumCode!: string;
 }
 
+export class IssuerCredentialBlockchainEvidenceResponseDto {
+  network!: BlockchainNetwork;
+  chainId!: number;
+  txHash!: string;
+  status!: BlockchainRecordStatus;
+  registeredAt!: string;
+}
+
 export class IssuerCredentialDetailResponseDto {
   id!: string;
   status!: CredentialStatus;
@@ -65,6 +75,10 @@ export class IssuerCredentialDetailResponseDto {
   credentialSubject!: IssuerCredentialSubjectResponseDto;
   createdAt!: string;
   updatedAt!: string;
+  issuedAt!: string | null;
+  canonicalHash!: string | null;
+  canonicalizationVersion!: string | null;
+  blockchainEvidence!: IssuerCredentialBlockchainEvidenceResponseDto | null;
   issuer!: IssuerCredentialIssuerResponseDto;
   holder!: IssuerCredentialHolderResponseDto;
   academicCourse!: IssuerCredentialAcademicCourseResponseDto | null;

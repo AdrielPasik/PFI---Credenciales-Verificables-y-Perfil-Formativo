@@ -67,6 +67,13 @@ email String? @unique
 - `Credential.canonicalHash` se mantiene indexado, no `unique`, por ahora.
 - No se impone unicidad todavia para no bloquear reemisiones, pruebas, ambientes locales o ajustes futuros de negocio.
 - Una credencial `issued` debe tener `canonicalHash` y `canonicalizationVersion`.
+- La emision issuer-scoped no acepta hash, version, red, signer ni actor desde
+  el body: NestJS deriva el contexto y reutiliza el flujo de emision existente.
+- `BlockchainRecord` representa evidencia tecnica de integridad del hash. No
+  reemplaza la autoridad academica del issuer ni prueba por si solo cursada o
+  aprobacion.
+- `SemanticAnalysis` es apoyo formativo y no es requisito de emision ni parte
+  de `canon_v1`.
 
 ### Implicancias
 

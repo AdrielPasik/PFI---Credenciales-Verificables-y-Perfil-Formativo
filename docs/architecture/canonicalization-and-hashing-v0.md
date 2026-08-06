@@ -173,3 +173,11 @@ La primera version de canonizacion toma como base:
 - el backend NestJS debe centralizar este proceso;
 - el frontend no debe calcular el hash definitivo;
 - el AI service y blockchain consumen el resultado, pero no definen la proyeccion canonica.
+- `POST /issuers/:issuerId/credentials/:credentialId/issue` reutiliza este
+  proceso centralizado; el cliente no envia ni calcula hash, version, signer o
+  network;
+- el read model issuer-facing expone el hash resultante y un resumen allowlisted
+  del ultimo registro, sin payload canonico, contrato, issuer address, RPC ni
+  secretos;
+- en ambientes mock/Anvil la evidencia sigue siendo tecnica y de demo, no una
+  afirmacion de registro en blockchain publica.

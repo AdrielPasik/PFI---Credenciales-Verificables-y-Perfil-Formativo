@@ -226,6 +226,10 @@
   },
   "createdAt": "2026-07-30T12:00:00.000Z",
   "updatedAt": "2026-07-30T12:05:00.000Z",
+  "issuedAt": null,
+  "canonicalHash": null,
+  "canonicalizationVersion": null,
+  "blockchainEvidence": null,
   "issuer": {
     "displayName": "Demo University",
     "did": "did:example:issuer-demo"
@@ -273,13 +277,18 @@
   `textEvidence.currentText` tambien existe siempre y es `null` cuando no hay
   fuente textual vigente. Cuando existe, contiene solo referencia, estado,
   label nullable, contenido, conteo de caracteres, SHA-256 textual y fecha.
+  `issuedAt`, `canonicalHash`, `canonicalizationVersion` y
+  `blockchainEvidence` son `null` antes de emitir. El ultimo registro se elige
+  por `registeredAt desc` e `id desc` y expone solo `network`, `chainId`,
+  `txHash`, `status` y `registeredAt`.
 - Identidad institucional: `issuer.displayName` proviene de `Issuer.name`;
   `credentialSubject.institution_name` es solamente el dato guardado en la
   credencial y puede diferir.
 - Holder historico: la lectura no exige que el usuario titular siga activo.
 - Allowlist: no devuelve `issuerId`, `subjectUserId`, datos de autenticacion,
-  wallet, metadata, rawData, hash canonico, registros blockchain, analisis,
-  eventos ni grants.
+  wallet, metadata, rawData, payload canonico, direcciones de contrato o
+  signer, RPC/provider, registros blockchain completos, analisis, eventos ni
+  grants.
 - Errores esperados: `401` sin autenticacion valida, `403` sin contexto
   institucional operativo y `404` para credencial inexistente o de otro
   issuer.
@@ -288,6 +297,29 @@
   comportamiento para compatibilidad tecnica y no es el endpoint publico
   final del verificador.
 - Estado: `implemented`.
+
+### `POST /issuers/:issuerId/credentials/:credentialId/issue`
+
+- Proposito: emitir una credencial dentro del contexto institucional seguro y
+  devolver el read model issuer-facing actualizado.
+- Autorizacion: JWT, usuario activo, membership `active`, rol `admin` u
+  `operator` e issuer `authorized` antes del lookup scoped.
+- Request: sin body autoritativo. `issuerId` y `credentialId` provienen solo
+  del path; identidad del actor proviene de `CurrentUser`.
+- Scoping: valida `credentialId + issuerId`; credencial inexistente o de otro
+  issuer devuelve el mismo `404`.
+- Dominio: reutiliza `CredentialsService.issueCredential`; conserva los
+  requisitos de estado `draft`, DID del holder, DID/wallet del issuer,
+  canonizacion y registro de evidencia configurado.
+- Response `200 OK`: el mismo read model issuer-facing de GET, ya con estado,
+  fecha, hash canonico, version y evidencia tecnica cuando la transaccion se
+  completa.
+- Errores: conserva `400`, `401`, `403`, `404` y `409` de dominio. Un fallo
+  inesperado de hashing/transporte/blockchain se devuelve como `502`
+  sanitizado.
+- No expone body malicioso, payload canonico, secretos, RPC, signer, storage
+  ni artifacts IA.
+- Estado: `implemented` en P6a-1.
 
 ### `POST /issuers/:issuerId/credentials/:credentialId/evidence/documents`
 
@@ -606,7 +638,8 @@ ni afirma que un draft este listo para emitir.
 - Request conceptual: path `id`, confirmacion de emision, datos finales.
 - Response conceptual: credencial emitida con estado, hash y referencia blockchain si aplica.
 - Errores esperados: `400`, `403`, `404`, `409`.
-- Estado: `v1_candidate`.
+- Estado: implementado y preservado como endpoint legacy. El Portal del Emisor
+  debe usar el wrapper issuer-scoped.
 
 ### `GET /credentials/:id`
 

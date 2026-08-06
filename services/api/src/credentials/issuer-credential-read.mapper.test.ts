@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  BlockchainNetwork,
+  BlockchainRecordStatus,
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
@@ -50,6 +52,9 @@ function createRecord(
     },
     createdAt: new Date('2026-07-30T12:00:00.000Z'),
     updatedAt: new Date('2026-07-30T12:05:00.000Z'),
+    issuedAt: null,
+    canonicalHash: null,
+    canonicalizationVersion: null,
     issuer: {
       name: 'Demo University',
       did: 'did:example:issuer-demo'
@@ -65,6 +70,7 @@ function createRecord(
     programCourse: null,
     documentEvidences: [],
     textEvidences: [],
+    blockchainRecords: [],
     ...overrides
   };
 }
@@ -75,8 +81,6 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
     subjectUserId?: string;
     rawData?: unknown;
     metadata?: unknown;
-    canonicalHash?: string;
-    blockchainRecords?: unknown[];
     semanticAnalyses?: unknown[];
     verificationEvents?: unknown[];
     sharingGrants?: unknown[];
@@ -89,8 +93,6 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
   record.subjectUserId = 'holder-1';
   record.rawData = { secret: true };
   record.metadata = { internal: true };
-  record.canonicalHash = '0xsecret';
-  record.blockchainRecords = [{ txHash: '0xsecret' }];
   record.semanticAnalyses = [{ analysisJson: 'secret' }];
   record.verificationEvents = [{ internal: true }];
   record.sharingGrants = [{ token: 'secret' }];
@@ -129,6 +131,10 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
     },
     createdAt: '2026-07-30T12:00:00.000Z',
     updatedAt: '2026-07-30T12:05:00.000Z',
+    issuedAt: null,
+    canonicalHash: null,
+    canonicalizationVersion: null,
+    blockchainEvidence: null,
     issuer: {
       displayName: 'Demo University',
       did: 'did:example:issuer-demo'
@@ -156,8 +162,6 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
     'memberships',
     'rawData',
     'metadata',
-    'canonicalHash',
-    'blockchainRecords',
     'semanticAnalyses',
     'verificationEvents',
     'sharingGrants',
@@ -165,6 +169,98 @@ test('mapper returns the explicit credential, issuer and holder allowlist', () =
   ]) {
     assert.equal(forbiddenField in response, false);
   }
+});
+
+test('mapper exposes only allowlisted issuance and latest blockchain evidence fields', () => {
+  const response = mapIssuerCredentialReadModel(
+    createRecord({
+      status: CredentialStatus.issued,
+      issuedAt: new Date('2026-08-06T12:00:00.000Z'),
+      canonicalHash: `0x${'a'.repeat(64)}`,
+      canonicalizationVersion: 'canon_v1',
+      blockchainRecords: [
+        {
+          network: BlockchainNetwork.anvil,
+          chainId: 31337,
+          txHash: `0x${'b'.repeat(64)}`,
+          status: BlockchainRecordStatus.registered,
+          registeredAt: new Date('2026-08-06T12:00:01.000Z')
+        }
+      ]
+    })
+  );
+
+  assert.deepEqual(response.blockchainEvidence, {
+    network: BlockchainNetwork.anvil,
+    chainId: 31337,
+    txHash: `0x${'b'.repeat(64)}`,
+    status: BlockchainRecordStatus.registered,
+    registeredAt: '2026-08-06T12:00:01.000Z'
+  });
+  assert.equal(response.issuedAt, '2026-08-06T12:00:00.000Z');
+  assert.equal(response.canonicalHash, `0x${'a'.repeat(64)}`);
+  assert.equal(response.canonicalizationVersion, 'canon_v1');
+  const serialized = JSON.stringify(response);
+  for (const forbidden of [
+    'contractAddress',
+    'issuerAddress',
+    'credentialHash',
+    'hashAlgorithm',
+    'privateKey',
+    'rpcUrl',
+    'rawData',
+    'analysisJson',
+    'textForEmbedding',
+    'evidenceMap',
+    'storageKey'
+  ]) {
+    assert.equal(serialized.includes(forbidden), false, forbidden);
+  }
+});
+
+test('issuer credential select orders and allowlists the latest blockchain record', () => {
+  assert.deepEqual(issuerCredentialReadSelect.blockchainRecords, {
+    orderBy: [{ registeredAt: 'desc' }, { id: 'desc' }],
+    take: 1,
+    select: {
+      network: true,
+      chainId: true,
+      txHash: true,
+      status: true,
+      registeredAt: true
+    }
+  });
+});
+
+test('mapper keeps historical evidence for revoked credentials and does not invent missing evidence', () => {
+  const revoked = mapIssuerCredentialReadModel(
+    createRecord({
+      status: CredentialStatus.revoked,
+      issuedAt: new Date('2026-08-06T12:00:00.000Z'),
+      canonicalHash: `0x${'a'.repeat(64)}`,
+      canonicalizationVersion: 'canon_v1',
+      blockchainRecords: [
+        {
+          network: BlockchainNetwork.anvil,
+          chainId: 31337,
+          txHash: `0x${'b'.repeat(64)}`,
+          status: BlockchainRecordStatus.revoked,
+          registeredAt: new Date('2026-08-06T12:00:01.000Z')
+        }
+      ]
+    })
+  );
+  const issuedWithoutRecord = mapIssuerCredentialReadModel(
+    createRecord({
+      status: CredentialStatus.issued,
+      issuedAt: new Date('2026-08-06T12:00:00.000Z'),
+      canonicalHash: `0x${'a'.repeat(64)}`,
+      canonicalizationVersion: 'canon_v1'
+    })
+  );
+
+  assert.equal(revoked.blockchainEvidence?.status, BlockchainRecordStatus.revoked);
+  assert.equal(issuedWithoutRecord.blockchainEvidence, null);
 });
 
 test('mapper returns an allowlisted academic course summary', () => {
