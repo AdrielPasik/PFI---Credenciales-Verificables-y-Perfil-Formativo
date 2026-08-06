@@ -83,6 +83,11 @@ identidad o configuracion.
 `SemanticAnalysis` sigue representando el resultado oficial, queda asociado
 mediante `analysisRunId` y no reemplaza el lifecycle operacional.
 
+P5d agrega lectura protegida `latest` y por run ID. La lectura exige scope y
+permisos institucionales, pero no exige `Credential.status=draft`: el historico
+permanece visible cuando la credencial pasa a `issued` o `revoked`. No ejecuta
+IA, no lee storage y no expone artifacts crudos.
+
 ## Riesgos
 
 - runs detenidos en `running` tras crash;
@@ -93,5 +98,5 @@ mediante `analysisRunId` y no reemplaza el lifecycle operacional.
 
 ## Proximos slices relacionados
 
-P5d/P5e agregaran modos restantes, P5g la UI de estado y P9 un worker
+P5e agregara modos restantes, P5g la UI de estado y P9 un worker
 asincrono posterior.

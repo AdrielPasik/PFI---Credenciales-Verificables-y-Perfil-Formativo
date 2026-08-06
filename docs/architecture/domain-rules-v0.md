@@ -381,6 +381,10 @@ Estas reglas impactaran directamente:
   un issuer autorizado y exige una credencial draft scoped al mismo issuer;
 - params, usuario autenticado y defaults backend-controlled son las unicas
   fuentes de identidad, modo, trigger y versiones; el body no es autoritativo;
+- P5d permite leer runs historicos de credenciales `draft`, `issued` o
+  `revoked`; `draft` es requisito de trigger, no de lectura;
+- latest sin runs devuelve null y un run ausente/cross-credential devuelve 404
+  uniforme; el read model no llama IA/storage ni expone artifact o JSON crudo;
 - `text`, `combined`, propuestas, endpoint generico, frontend y worker siguen
   futuros.
 

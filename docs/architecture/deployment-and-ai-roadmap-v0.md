@@ -175,29 +175,32 @@ admin/operator de un issuer autorizado y credenciales draft; no hay frontend.
 | Riesgos | OCR/imagen no soportados, memoria y latencia. |
 | Entrega | 50%, obligatorio al menos para PDF. |
 
-## P5d - Analisis textual
+## P5d - Lectura y status de AnalysisRun
+
+Estado: implementado con reads issuer-scoped `latest` y por ID. La lectura es
+historica y no exige que la credencial permanezca draft.
 
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Analizar `TextEvidence` exacta sin documento. |
-| Dependencias | P5b. |
-| Modulos | AI client, text evidence, semantic. |
-| Migracion | No adicional a P5b/P5f. |
-| Endpoint | `POST /issuers/:issuerId/credentials/:id/analysis/text`. |
-| Aceptacion | Artifact trazado al texto/hash exactos. |
-| Pruebas | Unicode, limite, replaced, warnings y timeout. |
-| Riesgos | Drift de normalizacion entre API e IA. |
+| Objetivo | Consultar lifecycle y resumen semantico seguro sin ejecutar IA. |
+| Dependencias | P5a-P5c. |
+| Modulos | AnalysisRun read service, mapper y controller issuer-facing. |
+| Migracion | Ninguna. |
+| Endpoint | `GET .../analysis-runs/latest` y `GET .../analysis-runs/:analysisRunId`. |
+| Aceptacion | Scope seguro, latest nullable, 404 uniforme y allowlist sin artifact/storage. |
+| Pruebas | routing, permisos, draft/issued/revoked, estados, JSON invalido y minimizacion. |
+| Riesgos | Exponer errores historicos o payloads semanticos internos. |
 | Entrega | 50%, obligatorio. |
 
-## P5e - Analisis combinado
+## P5e - Analisis textual y combinado
 
 | Campo | Definicion |
 | --- | --- |
-| Objetivo | Analizar documento y texto como fuentes complementarias. |
-| Dependencias | P5c, P5d. |
+| Objetivo | Agregar triggers `text` y `combined` con fuentes exactas. |
+| Dependencias | P5c y contrato FastAPI para texto/combinado. |
 | Modulos | AI contract, orchestration, semantic. |
 | Migracion | No adicional a P5b/P5f. |
-| Endpoint | `POST /issuers/:issuerId/credentials/:id/analysis/combined`. |
+| Endpoint | Futuros POST issuer-scoped para `text` y `combined`. |
 | Aceptacion | Artifact identifica ambas fuentes, evidencia y conflictos. |
 | Pruebas | fuente faltante, contradiccion, doble conteo, partial. |
 | Riesgos | Fusion no explicable y evidencia duplicada. |

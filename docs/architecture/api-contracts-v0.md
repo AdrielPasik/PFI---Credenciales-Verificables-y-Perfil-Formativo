@@ -789,13 +789,31 @@ POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/document
 - Efectos: crea/ejecuta un run document y persiste `SemanticAnalysis`; no
   modifica Credential, canon, emision ni blockchain.
 
+P5d implementa:
+
+```text
+GET /issuers/:issuerId/credentials/:credentialId/analysis-runs/latest
+GET /issuers/:issuerId/credentials/:credentialId/analysis-runs/:analysisRunId
+```
+
+- Actor: membership `active`, rol `admin|operator`, issuer `authorized`.
+- Scope: credential perteneciente al issuer; puede estar `draft`, `issued` o
+  `revoked`.
+- Latest: devuelve el run mas reciente por `createdAt desc, id desc`, o `null`.
+- By ID: busca por `analysisRunId + credentialId`; missing/cross-scope devuelve
+  404 uniforme.
+- Response: lifecycle, modo, trigger, versiones, tipos/conteo de fuentes,
+  timestamps, error sanitizado y resumen semantico nullable.
+- Excluye: `analysisJson`, `textForEmbedding`, `evidenceMap`, contenido,
+  storage internals, artifacts crudos y errores persistidos no allowlisted.
+- Efectos: lectura pura; no IA, storage, Credential, canon, emision o
+  blockchain.
+
 Permanecen candidatos futuros:
 
 ```text
 POST /issuers/:issuerId/credentials/:credentialId/analysis/text
 POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
-GET  /issuers/:issuerId/credentials/:credentialId/analysis/latest
-GET  /issuers/:issuerId/credentials/:credentialId/analysis-runs/:runId
 ```
 
 - Actor: membership `active`, rol `admin|operator`, issuer `authorized`.
@@ -806,7 +824,7 @@ GET  /issuers/:issuerId/credentials/:credentialId/analysis-runs/:runId
 - Persistencia: NestJS valida artifacts antes de persistirlos.
 - Efectos prohibidos: no PATCH automatico de `Credential`, no readiness, no
   emision, no hash y no blockchain.
-- Estado: trigger document implementado; text, combined y reads siguen
+- Estado: trigger document y reads implementados; text y combined siguen
   `future_p5`.
 
 Las propuestas y revision humana tendran contratos separados en P5h/P6a. No se

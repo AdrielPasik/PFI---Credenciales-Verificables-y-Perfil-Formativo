@@ -60,7 +60,7 @@ test('controller uses params and current user and ignores an untrusted body', as
       calls.push(args);
       return expected;
     }
-  } as never);
+  } as never, {} as never);
   const currentUser = {
     id: 'authenticated-user',
     email: 'operator@example.com',

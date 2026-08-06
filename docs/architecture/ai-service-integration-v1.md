@@ -110,6 +110,10 @@ El browser aun no consume este endpoint y nunca llama FastAPI directamente.
 No se debe confundir con `/v1/semantic-analysis/pdf` ni
 `/v1/formative-profile/build`.
 
+P5d agrega dos GET issuer-scoped para `latest` y run ID. Estos reads aceptan
+credenciales `draft`, `issued` o `revoked`, consultan solo metadata allowlisted
+y un resumen semantico derivado; no llaman FastAPI ni storage.
+
 ## Autenticacion y transporte
 
 P4i-3 agrega dos modos emparejados: `none/disabled` para local y `jwt/jwt` para
@@ -154,5 +158,5 @@ automatica.
 
 ## Proximos slices relacionados
 
-Migracion a red privada, P5d-P5e modos restantes, P5f
+Migracion a red privada, P5e modos restantes, P5f
 trazabilidad y tuning semantico medido en un slice separado.
