@@ -113,9 +113,10 @@ El navegador llama exclusivamente a NestJS: al cargar consulta el último
 protegido seguido por la lectura exacta del run creado. El frontend nunca llama
 FastAPI ni conoce su URL o credenciales internas.
 
-El trigger está disponible solo para credenciales `draft` con evidencia
-documental vigente en PDF. PNG y JPEG continúan siendo evidencia válida, pero
-no son analizables en este slice. Las credenciales `issued` o `revoked` pueden
+El endpoint manual backend permanece `draft`-only, pero el Portal Emisor ya no
+lo ofrece como acción visible. Un PDF vigente habilita el intento documental
+automático al emitir; PNG y JPEG continúan siendo evidencia válida, aunque no
+son analizables en este slice. Las credenciales `issued` o `revoked` pueden
 mostrar su último análisis únicamente en modo lectura.
 
 La sección representa estados `pending`, `running`, `completed`, `failed` y
@@ -125,10 +126,9 @@ cuando valen cero. La confianza describe la fiabilidad del análisis, no el
 nivel del titular; `null` se presenta como `No informada`. Los `qualityFlags`
 se transforman en observaciones legibles y nunca se expone el artifact raw.
 
-El trigger manual y la actualización de estado se mantienen para drafts. No hay
-polling: después de emitir, el frontend vuelve a consultar `latest` y deja el
-análisis en modo lectura. P5e-web no incorpora análisis textual o combinado,
-proposals ni readiness.
+No hay polling: después de emitir, el frontend vuelve a consultar `latest` y
+deja el análisis en modo lectura. P5e-web no incorpora análisis textual o
+combinado, proposals ni readiness.
 
 ## Polish del detalle emisor
 
@@ -170,6 +170,14 @@ bloquea ni invalida la emisión y no participa en `canon_v1`. El navegador solo
 refresca el último `AnalysisRun`; no llama FastAPI, no hace polling y no ofrece
 trigger manual sobre credenciales `issued` o `revoked`. Documento y texto
 permanecen visibles sin controles de carga o reemplazo en modo lectura.
+
+P6c agrega una preparación de emisión visible. PDF vigente habilita el análisis
+documental automático; evidencia textual o documental no-PDF permite emitir sin
+prometer ese análisis; sin ninguna fuente, el emisor debe confirmar de forma
+adicional que emitirá sin respaldo cargado en Traza. Skills, competencias y
+campos de aprobación pueden generar advertencias, pero no reemplazan evidencia
+ni bloquean por sí solos. El análisis textual, `combined`, worker, queue y retry
+automático siguen pendientes.
 
 ## Prerrequisitos
 

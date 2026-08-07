@@ -85,14 +85,12 @@ function renderSection({
   credentialStatus = 'draft',
   currentDocument = pdf as DocumentEvidenceVM | null,
   currentState = state(),
-  onRefresh = vi.fn(async () => undefined),
-  onTrigger = vi.fn(async () => undefined)
+  onRefresh = vi.fn(async () => undefined)
 }: {
   credentialStatus?: CredentialStatus;
   currentDocument?: DocumentEvidenceVM | null;
   currentState?: DocumentAnalysisState;
   onRefresh?: () => Promise<void>;
-  onTrigger?: () => Promise<void>;
 } = {}) {
   render(
     <DocumentAnalysisSection
@@ -100,10 +98,9 @@ function renderSection({
       currentDocument={currentDocument}
       state={currentState}
       onRefresh={onRefresh}
-      onTrigger={onTrigger}
     />
   );
-  return { onRefresh, onTrigger };
+  return { onRefresh };
 }
 
 describe('DocumentAnalysisSection', () => {
@@ -114,7 +111,6 @@ describe('DocumentAnalysisSection', () => {
         currentDocument={pdf}
         state={state({ latestStatus: 'loading' })}
         onRefresh={vi.fn()}
-        onTrigger={vi.fn()}
       />
     );
     expect(screen.getByText('Consultando último análisis…')).toBeTruthy();
@@ -124,10 +120,10 @@ describe('DocumentAnalysisSection', () => {
     expect(screen.getByText('Todavía no hay análisis registrados.')).toBeTruthy();
     expect(
       screen.getByText(
-        'También se generará automáticamente al emitir si hay un PDF vigente.'
+        'Traza generará el análisis automáticamente al emitir la credencial.'
       )
     ).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Analizar documento' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /analizar documento/i })).toBeNull();
   });
 
   it('shows zero metrics, null confidence and empty flags as valid output', () => {
@@ -193,7 +189,7 @@ describe('DocumentAnalysisSection', () => {
     }
   });
 
-  it('renders failed safe detail and enables manual retry for a draft PDF', () => {
+  it('renders failed safe detail without a manual retry action for a draft PDF', () => {
     renderSection({
       currentState: state({
         currentRun: runFixture({
@@ -210,7 +206,7 @@ describe('DocumentAnalysisSection', () => {
       })
     });
     expect(screen.getByText('No se pudo completar el análisis.')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Reintentar análisis' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /reintentar|volver a analizar/i })).toBeNull();
   });
 
   it('handles completed without semantic summary', () => {
@@ -222,24 +218,28 @@ describe('DocumentAnalysisSection', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('blocks trigger without a PDF and explains image and read-only cases', () => {
+  it('explains automatic-analysis eligibility without exposing a trigger', () => {
     const { unmount } = render(
       <DocumentAnalysisSection
         credentialStatus="draft"
         currentDocument={null}
         state={state()}
         onRefresh={vi.fn()}
-        onTrigger={vi.fn()}
       />
     );
-    expect(screen.getByText(/Primero adjuntá una evidencia documental/)).toBeTruthy();
+    expect(
+      screen.getByText(
+        /Sin un PDF vigente, la credencial puede emitirse, pero no se generará análisis documental automático\./
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText(/habilitar la emisión/)).toBeNull();
     expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
     unmount();
 
     renderSection({
       currentDocument: { ...pdf, kind: 'image', mimeType: 'image/png' }
     });
-    expect(screen.getByText(/admite únicamente evidencia documental en formato PDF/)).toBeTruthy();
+    expect(screen.getByText(/está disponible como respaldo/)).toBeTruthy();
   });
 
   it.each(['issued', 'revoked'] as const)(
@@ -269,6 +269,37 @@ describe('DocumentAnalysisSection', () => {
       screen.getByRole('button', { name: 'Consultar último análisis' })
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
+  });
+
+  it('presents a failed system run as secondary warning without a retry control', () => {
+    renderSection({
+      credentialStatus: 'issued',
+      currentState: state({
+        currentRun: runFixture({
+          status: 'failed',
+          statusLabel: 'No se pudo completar el análisis',
+          trigger: 'system',
+          completedAt: null,
+          completedAtLabel: null,
+          failedAt: '2026-08-05T12:00:08.000Z',
+          failedAtLabel: '5 ago 2026, 09:00',
+          errorCode: 'ai_unavailable',
+          errorMessage: 'Mensaje interno seguro',
+          semanticAnalysis: null
+        })
+      })
+    });
+
+    expect(
+      screen.getByText('El análisis automático no pudo completarse')
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        'La credencial sigue emitida y puede consultarse nuevamente más adelante.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Mensaje interno seguro')).toBeNull();
+    expect(screen.queryByRole('button', { name: /analizar|reintentar/i })).toBeNull();
   });
 
   it('supports manual refresh and keeps visible output with an error', () => {

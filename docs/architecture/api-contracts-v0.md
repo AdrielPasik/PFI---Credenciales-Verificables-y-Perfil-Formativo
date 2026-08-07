@@ -837,6 +837,13 @@ P6b agrega una via interna, no publica, posterior a la emision issuer-scoped:
 El endpoint manual anterior permanece `draft`-only. No existe trigger manual
 post-emision, ni analisis automatico de texto o modo `combined`.
 
+P6c mantiene este contrato de emision flexible: el endpoint issuer-scoped no
+requiere un PDF universalmente. Una evidencia textual o documental no-PDF puede
+respaldar la emision; solo un PDF vigente habilita el intento documental
+automatico. La ausencia de fuentes no bloquea el contrato backend actual: el
+Portal Emisor exige una confirmacion adicional y no infiere evidencia desde
+skills, competencias o catalogo.
+
 P5d implementa:
 
 ```text

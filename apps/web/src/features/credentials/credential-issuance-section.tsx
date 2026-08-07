@@ -11,6 +11,7 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import type {
@@ -29,6 +30,8 @@ export function CredentialIssuanceSection({
 }: CredentialIssuanceSectionProps) {
   const [confirming, setConfirming] = useState(false);
   const [issuing, setIssuing] = useState(false);
+  const [withoutEvidenceConfirmed, setWithoutEvidenceConfirmed] =
+    useState(false);
   const [feedback, setFeedback] = useState<CredentialFeedback | null>(null);
   const requestInFlight = useRef(false);
 
@@ -71,17 +74,22 @@ export function CredentialIssuanceSection({
           {detail.status === 'draft' ? (
             <DraftIssuanceContent
               confirming={confirming}
+              detail={detail}
               issuing={issuing}
               feedback={feedback}
               onCancel={() => {
                 setConfirming(false);
                 setFeedback(null);
+                setWithoutEvidenceConfirmed(false);
               }}
               onConfirm={() => void confirmIssue()}
               onRequestConfirmation={() => {
                 setConfirming(true);
                 setFeedback(null);
+                setWithoutEvidenceConfirmed(false);
               }}
+              onWithoutEvidenceConfirmed={setWithoutEvidenceConfirmed}
+              withoutEvidenceConfirmed={withoutEvidenceConfirmed}
             />
           ) : (
             <IssuedCredentialContent detail={detail} />
@@ -94,19 +102,27 @@ export function CredentialIssuanceSection({
 
 function DraftIssuanceContent({
   confirming,
+  detail,
   issuing,
   feedback,
   onCancel,
   onConfirm,
-  onRequestConfirmation
+  onRequestConfirmation,
+  onWithoutEvidenceConfirmed,
+  withoutEvidenceConfirmed
 }: {
   confirming: boolean;
+  detail: IssuerCredentialDetailVM;
   issuing: boolean;
   feedback: CredentialFeedback | null;
   onCancel(): void;
   onConfirm(): void;
   onRequestConfirmation(): void;
+  onWithoutEvidenceConfirmed(value: boolean): void;
+  withoutEvidenceConfirmed: boolean;
 }) {
+  const preparation = buildIssuancePreparation(detail);
+
   return (
     <>
       <div className="grid gap-2 leading-7 text-text-muted">
@@ -117,6 +133,8 @@ function DraftIssuanceContent({
         </p>
         <p>Después de emitir, la credencial queda en modo lectura.</p>
       </div>
+
+      <IssuancePreparation preparation={preparation} detail={detail} />
 
       {feedback ? (
         <FeedbackAlert variant="error" title="No pudimos emitir la credencial">
@@ -142,7 +160,52 @@ function DraftIssuanceContent({
               Después de emitir, la credencial quedará en modo lectura y se
               registrará una huella de integridad.
             </p>
+            {preparation.hasPdf ? (
+              <p className="mt-2 text-sm leading-6 text-text-default">
+                Traza intentará generar automáticamente un análisis documental
+                a partir del PDF vigente. La IA no bloquea la emisión.
+              </p>
+            ) : (
+              <p className="mt-2 text-sm leading-6 text-text-default">
+                No se generará análisis automático porque no hay una evidencia
+                documental PDF vigente.
+              </p>
+            )}
           </div>
+          {preparation.recommendations.length > 0 ? (
+            <FeedbackAlert variant="warning" title="Datos recomendados pendientes">
+              La credencial se emitirá con campos opcionales incompletos:
+              {' '}
+              {preparation.recommendations.join(', ')}.
+            </FeedbackAlert>
+          ) : null}
+          {!preparation.hasSupportEvidence ? (
+            <div className="grid gap-3 rounded-control border border-status-warning/30 bg-surface p-4">
+              <p className="text-sm leading-6 text-text-default">
+                No se generará análisis automático porque no hay evidencia de
+                respaldo cargada.
+              </p>
+              <div className="flex items-start gap-3">
+                <input
+                  id="confirm-issuance-without-evidence"
+                  type="checkbox"
+                  checked={withoutEvidenceConfirmed}
+                  disabled={issuing}
+                  onChange={(event) =>
+                    onWithoutEvidenceConfirmed(event.target.checked)
+                  }
+                  className="mt-0.5 size-4 rounded border-border-strong text-brand-900 focus-visible:ring-3 focus-visible:ring-focus-ring/25"
+                />
+                <Label
+                  htmlFor="confirm-issuance-without-evidence"
+                  className="leading-6"
+                >
+                  Confirmo emitir esta credencial sin una fuente de respaldo
+                  cargada en Traza.
+                </Label>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"
@@ -152,7 +215,11 @@ function DraftIssuanceContent({
             >
               Cancelar
             </Button>
-            <Button type="button" disabled={issuing} onClick={onConfirm}>
+            <Button
+              type="button"
+              disabled={issuing || (!preparation.hasSupportEvidence && !withoutEvidenceConfirmed)}
+              onClick={onConfirm}
+            >
               {issuing ? 'Emitiendo credencial…' : 'Emitir credencial'}
             </Button>
           </div>
@@ -164,6 +231,125 @@ function DraftIssuanceContent({
       )}
     </>
   );
+}
+
+function IssuancePreparation({
+  detail,
+  preparation
+}: {
+  detail: IssuerCredentialDetailVM;
+  preparation: ReturnType<typeof buildIssuancePreparation>;
+}) {
+  const credentialReference = detail.academicCourse
+    ? `${detail.academicCourse.code} · ${detail.academicCourse.name}`
+    : detail.title;
+
+  return (
+    <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted p-5">
+      <div>
+        <p className="text-sm font-semibold text-brand-700">Preparación para emitir</p>
+        <p className="mt-1 text-sm leading-6 text-text-muted">
+          Revisá el estado actual antes de confirmar la emisión.
+        </p>
+      </div>
+      <dl className="grid gap-3 text-sm sm:grid-cols-2">
+        <PreparationItem label="Estado" value="Borrador listo para revisar" />
+        <PreparationItem label="Tipo" value={detail.typeLabel} />
+        <PreparationItem label="Titular" value={detail.holder.displayLabel} />
+        <PreparationItem label="Logro o referencia académica" value={credentialReference} />
+        <PreparationItem
+          label="Evidencia de respaldo"
+          value={preparation.evidenceLabel}
+          tone={preparation.hasSupportEvidence ? 'complete' : 'warning'}
+        />
+        <PreparationItem
+          label="Análisis automático"
+          value={preparation.analysisLabel}
+          tone={preparation.hasPdf ? 'complete' : 'warning'}
+        />
+      </dl>
+      {preparation.hasSupportEvidence && !preparation.hasPdf ? (
+        <FeedbackAlert variant="information" title="Análisis documental pendiente">
+          La credencial tiene una fuente de respaldo, pero el análisis
+          automático actual requiere una evidencia documental PDF. El análisis
+          textual queda pendiente para una iteración posterior.
+        </FeedbackAlert>
+      ) : null}
+      {!preparation.hasSupportEvidence ? (
+        <FeedbackAlert variant="warning" title="Sin fuente de respaldo">
+          Podés emitir solo después de confirmar explícitamente que la
+          credencial quedará sin fuente de respaldo cargada en Traza.
+        </FeedbackAlert>
+      ) : null}
+    </div>
+  );
+}
+
+function PreparationItem({
+  label,
+  tone = 'default',
+  value
+}: {
+  label: string;
+  tone?: 'complete' | 'default' | 'warning';
+  value: string;
+}) {
+  const toneClassName =
+    tone === 'complete'
+      ? 'text-status-analysis'
+      : tone === 'warning'
+        ? 'text-status-warning'
+        : 'text-text-strong';
+
+  return (
+    <div>
+      <dt className="text-xs font-semibold tracking-wide text-text-muted uppercase">
+        {label}
+      </dt>
+      <dd className={`mt-1 font-semibold ${toneClassName}`}>{value}</dd>
+    </div>
+  );
+}
+
+function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
+  const document = detail.documentEvidence.currentDocument;
+  const hasPdf =
+    document?.kind === 'pdf' && document.mimeType === 'application/pdf';
+  const hasText = detail.textEvidence.currentText !== null;
+  const hasSupportEvidence = document !== null || hasText;
+  const recommendations: string[] = [];
+
+  if (!detail.credentialSubject.completionDate) {
+    recommendations.push('fecha de finalización');
+  }
+  if (!detail.credentialSubject.academicPeriod) {
+    recommendations.push('período académico');
+  }
+  if (!detail.credentialSubject.grade) {
+    recommendations.push('calificación');
+  }
+  if (
+    detail.credentialSubject.skills.length === 0 &&
+    detail.credentialSubject.competencies.length === 0
+  ) {
+    recommendations.push('habilidades o competencias');
+  }
+
+  return {
+    hasPdf,
+    hasSupportEvidence,
+    recommendations,
+    evidenceLabel: hasPdf
+      ? 'PDF vigente'
+      : document
+        ? 'Evidencia documental vigente'
+        : hasText
+          ? 'Evidencia textual vigente'
+          : 'Pendiente de confirmación',
+    analysisLabel: hasPdf
+      ? 'Se intentará al emitir'
+      : 'No disponible automáticamente'
+  };
 }
 
 function IssuedCredentialContent({

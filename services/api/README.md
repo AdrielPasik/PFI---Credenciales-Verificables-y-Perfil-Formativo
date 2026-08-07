@@ -156,6 +156,13 @@ ausencia de PDF o un fallo de storage/AI/persistencia semántica no bloquean ni
 revierten la emisión. El endpoint manual de análisis permanece limitado a
 drafts; texto y `combined` no se ejecutan automáticamente.
 
+La emisión issuer-scoped no convierte el PDF en requisito universal: una
+`TextEvidence` vigente también puede respaldarla y una evidencia documental no
+PDF sigue siendo evidencia institucional aunque no active el análisis actual.
+Sin fuentes, el contrato backend se conserva para modos futuros; el Portal
+Emisor solicita una confirmación adicional y no considera skills ni
+competencias como evidencia por sí mismas.
+
 `POST /issuers/:issuerId/credentials/:credentialId/evidence/texts` recibe JSON
 con `content` requerido y `label` opcional. Aplica una allowlist exacta,
 normaliza Unicode a NFC, saltos CRLF/CR a LF y whitespace exterior, conserva

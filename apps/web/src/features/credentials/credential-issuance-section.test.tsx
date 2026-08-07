@@ -4,7 +4,42 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { ApiError } from '@/lib/errors/api-error';
-import type { IssuerCredentialDetailVM } from '@/models/credentials';
+import type {
+  DocumentEvidenceVM,
+  IssuerCredentialDetailVM,
+  TextEvidenceVM
+} from '@/models/credentials';
+
+function pdfEvidenceFixture(): DocumentEvidenceVM {
+  return {
+    evidenceReference: 'document-private-reference',
+    kind: 'pdf',
+    status: 'current',
+    originalFileName: 'respaldo.pdf',
+    mimeType: 'application/pdf',
+    sizeBytes: 10,
+    sizeLabel: '10 bytes',
+    sha256: 'a'.repeat(64),
+    sha256Short: 'aaaaaaaaaaaa…aaaaaaaa',
+    uploadedAt: '2026-08-05T12:00:00.000Z',
+    uploadedAtLabel: '5 ago 2026, 09:00'
+  };
+}
+
+function textEvidenceFixture(): TextEvidenceVM {
+  return {
+    textEvidenceReference: 'text-private-reference',
+    status: 'current',
+    label: 'Temario',
+    content: 'Contenido institucional',
+    characterCount: 23,
+    characterCountLabel: '23 caracteres',
+    sha256: 'b'.repeat(64),
+    sha256Short: 'bbbbbbbbbbbb…bbbbbbbb',
+    submittedAt: '2026-08-05T12:00:00.000Z',
+    submittedAtLabel: '5 ago 2026, 09:00'
+  };
+}
 
 function detailFixture(
   overrides: Partial<IssuerCredentialDetailVM> = {}
@@ -57,6 +92,12 @@ function detailFixture(
   };
 }
 
+function draftWithPdf() {
+  return detailFixture({
+    documentEvidence: { currentDocument: pdfEvidenceFixture() }
+  });
+}
+
 function issuedFixture(
   overrides: Partial<IssuerCredentialDetailVM> = {}
 ) {
@@ -90,7 +131,7 @@ describe('CredentialIssuanceSection', () => {
   it('asks for confirmation and cancel does not issue', () => {
     const onIssue = vi.fn();
     render(
-      <CredentialIssuanceSection detail={detailFixture()} onIssue={onIssue} />
+      <CredentialIssuanceSection detail={draftWithPdf()} onIssue={onIssue} />
     );
 
     expect(screen.getByText('Emisión de credencial')).toBeTruthy();
@@ -112,7 +153,11 @@ describe('CredentialIssuanceSection', () => {
     );
 
     function Harness() {
-      const [detail, setDetail] = useState(detailFixture());
+      const [detail, setDetail] = useState(
+        detailFixture({
+          documentEvidence: { currentDocument: pdfEvidenceFixture() }
+        })
+      );
 
       return (
         <CredentialIssuanceSection
@@ -154,6 +199,77 @@ describe('CredentialIssuanceSection', () => {
       screen.getByText(/no a una red pública productiva/i)
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Emitir credencial' })).toBeNull();
+  });
+
+  it('requires an additional explicit acknowledgement before issuing without evidence', () => {
+    render(
+      <CredentialIssuanceSection detail={detailFixture()} onIssue={vi.fn()} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(screen.getByText('Sin fuente de respaldo')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'No se generará análisis automático porque no hay evidencia de respaldo cargada.'
+      )
+    ).toBeTruthy();
+    const confirm = screen.getByRole('button', {
+      name: 'Emitir credencial'
+    }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+
+    fireEvent.click(
+      screen.getByLabelText(
+        'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Traza.'
+      )
+    );
+    expect(confirm.disabled).toBe(false);
+  });
+
+  it('allows textual evidence without promising document analysis', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({
+          textEvidence: { currentText: textEvidenceFixture() }
+        })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(screen.getByText('Evidencia textual vigente')).toBeTruthy();
+    expect(screen.getByText('Análisis documental pendiente')).toBeTruthy();
+    expect(
+      screen.getByText(/análisis textual queda pendiente para una iteración posterior/i)
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+      .getAttribute('disabled')
+    ).toBeNull();
+  });
+
+  it('includes automatic analysis and optional-data warnings in a PDF confirmation', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({
+          documentEvidence: { currentDocument: pdfEvidenceFixture() }
+        })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(
+      screen.getByText(/intentará generar automáticamente un análisis documental/i)
+    ).toBeTruthy();
+    expect(screen.getByText('Datos recomendados pendientes')).toBeTruthy();
+    expect(
+      screen.getByText(/fecha de finalización, período académico, calificación/i)
+    ).toBeTruthy();
+    expect(screen.getByText(/habilidades o competencias/i)).toBeTruthy();
   });
 
   it('shows an honest issued state without blockchain evidence', () => {
@@ -206,7 +322,7 @@ describe('CredentialIssuanceSection', () => {
       .fn()
       .mockRejectedValue(new ApiError('private upstream detail', 'http', status));
     render(
-      <CredentialIssuanceSection detail={detailFixture()} onIssue={onIssue} />
+      <CredentialIssuanceSection detail={draftWithPdf()} onIssue={onIssue} />
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
@@ -221,7 +337,7 @@ describe('CredentialIssuanceSection', () => {
       .fn()
       .mockRejectedValue(new ApiError('private RPC URL', 'network'));
     render(
-      <CredentialIssuanceSection detail={detailFixture()} onIssue={onIssue} />
+      <CredentialIssuanceSection detail={draftWithPdf()} onIssue={onIssue} />
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));

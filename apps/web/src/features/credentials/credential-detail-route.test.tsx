@@ -60,45 +60,6 @@ const textEvidenceResponse = {
   sha256: 'c'.repeat(64),
   submittedAt: '2026-08-03T12:00:00.000Z'
 };
-const analysisTriggerResponse = {
-  analysisRunId: 'analysis-run-private-reference',
-  credentialId: 'credential-internal-reference',
-  status: 'completed',
-  semanticAnalysisId: 'semantic-private-reference',
-  artifactStatus: 'partial',
-  sourceCount: 1,
-  completedAt: '2026-08-05T12:00:08.000Z'
-};
-const analysisRunResponse = {
-  analysisRunId: 'analysis-run-private-reference',
-  credentialId: 'credential-internal-reference',
-  status: 'completed',
-  inputMode: 'document',
-  trigger: 'manual',
-  requestedPipelineVersion: 'pipeline-v1',
-  requestedTaxonomyVersion: 'taxonomy-v1',
-  sourceCount: 1,
-  sourceTypes: ['document_evidence'],
-  createdAt: '2026-08-05T12:00:00.000Z',
-  startedAt: '2026-08-05T12:00:01.000Z',
-  completedAt: '2026-08-05T12:00:08.000Z',
-  failedAt: null,
-  errorCode: null,
-  errorMessage: null,
-  semanticAnalysis: {
-    semanticAnalysisId: 'semantic-private-reference',
-    status: 'partial',
-    pipelineVersion: 'pipeline-v1',
-    taxonomyVersion: 'taxonomy-v1',
-    confidence: null,
-    areasCount: 0,
-    skillsCount: 0,
-    conceptsCount: 0,
-    qualityFlags: [],
-    analyzedAt: '2026-08-05T12:00:08.000Z'
-  }
-};
-
 const draftResponse = {
   id: 'credential-internal-reference',
   title: 'Arquitectura de Software',
@@ -289,7 +250,7 @@ describe('CredentialDetailController', () => {
     expect(screen.getAllByText('Curso').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
     expect(screen.getByText('did:example:issuer')).toBeTruthy();
-    expect(screen.getByText('Demo Holder')).toBeTruthy();
+    expect(screen.getAllByText('Demo Holder').length).toBeGreaterThanOrEqual(2);
     expect(
       screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
@@ -367,6 +328,10 @@ describe('CredentialDetailController', () => {
   it('issues once through the issuer-scoped endpoint and keeps analysis visible', async () => {
     const canonicalHash = `0x${'a'.repeat(64)}`;
     mockCredentialDetailApi({
+      detail: {
+        ...draftResponse,
+        documentEvidence: { currentDocument: uploadResponse }
+      },
       issue: {
         ...draftResponse,
         status: 'issued',
@@ -731,14 +696,11 @@ describe('CredentialDetailController', () => {
     ).toBeTruthy();
   });
 
-  it('triggers once and reads the exact created run instead of latest', async () => {
+  it('does not offer or call the manual document-analysis trigger from issuer detail', async () => {
     sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
       if (path.endsWith('/analysis-runs/latest')) return Promise.resolve(null);
       if (path.endsWith('/analysis-runs/document')) {
-        return Promise.resolve(analysisTriggerResponse);
-      }
-      if (path.endsWith('/analysis-runs/analysis-run-private-reference')) {
-        return Promise.resolve(analysisRunResponse);
+        return Promise.reject(new Error('manual trigger must not be called'));
       }
       return Promise.resolve({
         ...draftResponse,
@@ -753,22 +715,13 @@ describe('CredentialDetailController', () => {
       />
     );
 
-    const trigger = await screen.findByRole('button', {
-      name: 'Analizar documento'
-    });
-    fireEvent.click(trigger);
-    fireEvent.click(trigger);
-
-    expect(await screen.findByText('Habilidades detectadas')).toBeTruthy();
-    expect(screen.getByText('No informada')).toBeTruthy();
+    await screen.findByText('Traza generará el análisis automáticamente al emitir la credencial.');
+    expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
     expect(
       sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
         String(path).endsWith('/analysis-runs/document')
       )
-    ).toHaveLength(1);
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
-      '/issuers/issuer-selected-reference/credentials/credential-internal-reference/analysis-runs/analysis-run-private-reference'
-    );
+    ).toHaveLength(0);
     expect(
       sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
         String(path).endsWith('/analysis-runs/latest')
@@ -776,7 +729,7 @@ describe('CredentialDetailController', () => {
     ).toHaveLength(1);
     expect(
       sessionMocks.requestAuthenticated.mock.calls.some(
-        ([path]) => /fastapi|blockchain|\/issue(?:\/|$)/i.test(String(path))
+        ([path]) => /fastapi|blockchain/i.test(String(path))
       )
     ).toBe(false);
   });
@@ -868,7 +821,7 @@ describe('CredentialDetailView institutional consistency', () => {
       />
     );
 
-    expect(screen.getAllByText('Arquitectura de Software')).toHaveLength(1);
+    expect(screen.getAllByText('Arquitectura de Software')).toHaveLength(2);
     expect(
       screen.queryByText(/nombre registrado en el borrador no coincide/i)
     ).toBeNull();
@@ -884,7 +837,7 @@ describe('CredentialDetailView institutional consistency', () => {
       />
     );
 
-    expect(screen.getByText('Arquitectura de Software')).toBeTruthy();
+    expect(screen.getAllByText('Arquitectura de Software')).toHaveLength(2);
     expect(
       screen.queryByText(/nombre registrado en el borrador no coincide/i)
     ).toBeNull();

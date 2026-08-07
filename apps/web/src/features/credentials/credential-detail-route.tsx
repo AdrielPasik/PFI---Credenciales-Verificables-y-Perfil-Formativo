@@ -304,8 +304,7 @@ export function CredentialDetailController({
       detail={detail}
       documentAnalysis={{
         state: documentAnalysis.state,
-        onRefresh: documentAnalysis.refresh,
-        onTrigger: documentAnalysis.trigger
+        onRefresh: documentAnalysis.refresh
       }}
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
@@ -336,7 +335,6 @@ export function CredentialDetailView({
   detail: IssuerCredentialDetailVM;
   documentAnalysis?: {
     state: DocumentAnalysisState;
-    onTrigger(): Promise<void>;
     onRefresh(): Promise<void>;
   };
   onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
@@ -573,7 +571,6 @@ export function CredentialDetailView({
             credentialStatus={detail.status}
             currentDocument={detail.documentEvidence.currentDocument}
             state={documentAnalysis.state}
-            onTrigger={documentAnalysis.onTrigger}
             onRefresh={documentAnalysis.onRefresh}
           />
         ) : null}

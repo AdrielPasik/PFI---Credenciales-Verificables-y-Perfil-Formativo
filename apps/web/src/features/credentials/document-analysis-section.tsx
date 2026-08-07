@@ -1,9 +1,7 @@
 import {
   BrainCircuit,
   CircleDashed,
-  RefreshCw,
-  RotateCcw,
-  Sparkles
+  RefreshCw
 } from 'lucide-react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
@@ -25,7 +23,6 @@ interface DocumentAnalysisSectionProps {
   credentialStatus: CredentialStatus;
   currentDocument: DocumentEvidenceVM | null;
   state: DocumentAnalysisState;
-  onTrigger(): Promise<void>;
   onRefresh(): Promise<void>;
 }
 
@@ -33,27 +30,16 @@ export function DocumentAnalysisSection({
   credentialStatus,
   currentDocument,
   state,
-  onRefresh,
-  onTrigger
+  onRefresh
 }: DocumentAnalysisSectionProps) {
-  const runActive =
-    state.currentRun?.status === 'pending' ||
-    state.currentRun?.status === 'running';
   const hasPdf =
     currentDocument?.kind === 'pdf' &&
     currentDocument.mimeType === 'application/pdf';
-  const canTrigger =
-    credentialStatus === 'draft' &&
-    hasPdf &&
-    !runActive &&
-    state.latestStatus === 'ready' &&
-    state.actionError === null;
-  const triggerLabel = getTriggerLabel(state.currentRun);
 
   return (
     <section
       aria-labelledby="document-analysis-title"
-      aria-busy={state.triggering}
+      aria-busy={state.refreshing}
       className="grid gap-6"
     >
       <Card className="overflow-hidden border-border-strong shadow-none">
@@ -81,22 +67,6 @@ export function DocumentAnalysisSection({
 
           <div className="flex shrink-0 flex-col gap-2 sm:items-end">
             {state.currentRun ? <RunBadge run={state.currentRun} /> : null}
-            {canTrigger ? (
-              <Button
-                type="button"
-                disabled={state.triggering || state.refreshing}
-                onClick={() => void onTrigger()}
-              >
-                {state.triggering ? (
-                  <RefreshCw aria-hidden="true" className="animate-spin" />
-                ) : state.currentRun ? (
-                  <RotateCcw aria-hidden="true" />
-                ) : (
-                  <Sparkles aria-hidden="true" />
-                )}
-                {state.triggering ? 'Analizando documento' : triggerLabel}
-              </Button>
-            ) : null}
           </div>
         </CardHeader>
 
@@ -104,9 +74,6 @@ export function DocumentAnalysisSection({
           <div aria-live="polite">
             {state.latestStatus === 'loading' ? (
               <AnalysisLoading label="Consultando último análisis" />
-            ) : null}
-            {state.triggering ? (
-              <AnalysisLoading label="Traza está procesando la evidencia documental" />
             ) : null}
             {state.successMessage ? (
               <p className="text-sm font-semibold text-status-valid">
@@ -118,18 +85,15 @@ export function DocumentAnalysisSection({
           {state.latestError ? (
             <FeedbackAlert
               variant="error"
-              title="No pudimos consultar el análisis"
+              title={
+                credentialStatus === 'issued'
+                  ? 'No pudimos consultar el estado del análisis'
+                  : 'No pudimos consultar el análisis'
+              }
             >
-              {state.latestError}
-            </FeedbackAlert>
-          ) : null}
-
-          {state.actionError ? (
-            <FeedbackAlert
-              variant="error"
-              title="No pudimos iniciar el análisis"
-            >
-              {state.actionError}
+              {credentialStatus === 'issued'
+                ? 'No pudimos consultar el estado del análisis. La credencial emitida sigue disponible.'
+                : state.latestError}
             </FeedbackAlert>
           ) : null}
 
@@ -142,7 +106,9 @@ export function DocumentAnalysisSection({
               </p>
               <p className="mt-1 text-sm leading-6 text-text-muted">
                 {credentialStatus === 'draft'
-                  ? 'También se generará automáticamente al emitir si hay un PDF vigente.'
+                  ? hasPdf
+                    ? 'Traza generará el análisis automáticamente al emitir la credencial.'
+                    : 'Adjuntá una evidencia PDF para habilitar el análisis automático al emitir.'
                   : 'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'}
               </p>
             </div>
@@ -151,7 +117,6 @@ export function DocumentAnalysisSection({
           <EligibilityNotice
             credentialStatus={credentialStatus}
             currentDocument={currentDocument}
-            runActive={runActive}
           />
 
           <div className="flex flex-wrap items-center gap-3">
@@ -160,7 +125,6 @@ export function DocumentAnalysisSection({
               variant="secondary"
               disabled={
                 state.refreshing ||
-                state.triggering ||
                 state.latestStatus === 'loading'
               }
               onClick={() => void onRefresh()}
@@ -201,10 +165,20 @@ function AnalysisRunSummary({ run }: { run: IssuerAnalysisRunVM }) {
         </p>
       </div>
 
-      {run.status === 'failed' && run.errorMessage ? (
-        <FeedbackAlert variant="error" title="Ejecución no completada">
-          {run.errorMessage}
-        </FeedbackAlert>
+      {run.status === 'failed' ? (
+        run.trigger === 'system' ? (
+          <FeedbackAlert
+            variant="warning"
+            title="El análisis automático no pudo completarse"
+          >
+            La credencial sigue emitida y puede consultarse nuevamente más
+            adelante.
+          </FeedbackAlert>
+        ) : run.errorMessage ? (
+          <FeedbackAlert variant="error" title="Ejecución no completada">
+            {run.errorMessage}
+          </FeedbackAlert>
+        ) : null
       ) : null}
 
       {run.status === 'completed' && semantic?.status === 'partial' ? (
@@ -300,12 +274,10 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function EligibilityNotice({
   credentialStatus,
-  currentDocument,
-  runActive
+  currentDocument
 }: {
   credentialStatus: CredentialStatus;
   currentDocument: DocumentEvidenceVM | null;
-  runActive: boolean;
 }) {
   if (credentialStatus !== 'draft') {
     return (
@@ -317,19 +289,14 @@ function EligibilityNotice({
     );
   }
 
-  if (runActive) {
-    return (
-      <FeedbackAlert variant="information" title="Ejecución en curso">
-        Consultá el estado antes de iniciar una nueva ejecución.
-      </FeedbackAlert>
-    );
-  }
-
   if (!currentDocument) {
     return (
-      <FeedbackAlert variant="information" title="Falta evidencia PDF">
-        Primero adjuntá una evidencia documental en formato PDF para iniciar el
-        análisis.
+      <FeedbackAlert
+        variant="information"
+        title="Sin PDF para análisis automático"
+      >
+        Sin un PDF vigente, la credencial puede emitirse, pero no se generará
+        análisis documental automático.
       </FeedbackAlert>
     );
   }
@@ -340,8 +307,8 @@ function EligibilityNotice({
   ) {
     return (
       <FeedbackAlert variant="warning" title="Formato no disponible">
-        En esta etapa, el análisis inteligente admite únicamente evidencia
-        documental en formato PDF.
+        La evidencia documental está disponible como respaldo. El análisis
+        automático actual requiere un PDF vigente.
       </FeedbackAlert>
     );
   }
@@ -379,13 +346,6 @@ function AnalysisLoading({ label }: { label: string }) {
       {label}…
     </p>
   );
-}
-
-function getTriggerLabel(run: IssuerAnalysisRunVM | null) {
-  if (!run) return 'Analizar documento';
-  if (run.status === 'failed') return 'Reintentar análisis';
-  if (run.status === 'canceled') return 'Iniciar nuevo análisis';
-  return 'Volver a analizar';
 }
 
 function visualTitle(run: IssuerAnalysisRunVM) {

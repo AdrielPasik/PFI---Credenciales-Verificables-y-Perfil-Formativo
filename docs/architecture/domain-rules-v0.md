@@ -394,6 +394,11 @@ Estas reglas impactaran directamente:
 - despues de emitir, un PDF `current` puede disparar un AnalysisRun documental
   `system` fuera de la transaccion de emision; la ausencia de PDF o cualquier
   fallo IA/storage no bloquea ni revierte la credencial emitida;
+- `TextEvidence` vigente tambien constituye respaldo institucional para emitir,
+  pero no dispara analisis documental; analisis textual y `combined` permanecen
+  futuros. Una emision sin `DocumentEvidence` ni `TextEvidence` requiere una
+  confirmacion explicita del emisor en el Portal, sin tratar skills o
+  competencias como sustitutos de una fuente;
 - el autoanalisis evita otro run activo/completado para la misma evidencia y no
   modifica `canon_v1`, hash canonico, blockchain ni la fuente documental;
 - latest sin runs devuelve null y un run ausente/cross-credential devuelve 404
