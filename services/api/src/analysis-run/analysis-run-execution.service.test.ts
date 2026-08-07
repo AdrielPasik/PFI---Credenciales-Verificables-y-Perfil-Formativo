@@ -34,7 +34,7 @@ function setup(options: {
   const calls = {
     updates: [] as any[], documents: [] as any[], reads: [] as string[],
     ai: [] as any[], semantic: [] as any[], credentialWrites: 0,
-    blockchainWrites: 0, textReads: 0, events: [] as string[]
+    blockchainWrites: 0, textReads: 0, events: [] as string[], logs: [] as string[]
   };
   const run = {
     id: 'run-1', credentialId: 'credential-1',
@@ -109,8 +109,17 @@ function setup(options: {
       return { id: 'semantic-1', status: options.artifactStatus ?? SemanticAnalysisStatus.completed };
     }
   };
+  const service = new AnalysisRunExecutionService(
+    prisma as never,
+    ai as never,
+    semantic as never,
+    storage
+  );
+  Object.defineProperty(service, 'logger', {
+    value: { error: (message: string) => calls.logs.push(message) }
+  });
   return {
-    service: new AnalysisRunExecutionService(prisma as never, ai as never, semantic as never, storage),
+    service,
     calls,
     transactionCount: () => transactionNumber
   };
@@ -128,6 +137,7 @@ test('claims document run, reads exact source, persists semantic and completes',
   assert.equal(calls.ai.length, 1);
   assert.deepEqual(calls.ai[0], {
     fileBytes: Buffer.from('%PDF-1.4 synthetic'), documentId: 'run-1',
+    correlationId: 'run-1',
     fileName: 'programa.pdf', pipelineVersion: 'pipeline-v1', taxonomyVersion: 'taxonomy-v1'
   });
   assert.equal(calls.semantic[0][0], 'credential-1');
@@ -234,7 +244,8 @@ test('storage and AI failures mark failed with safe categories', async () => {
   const cases = [
     [setup({ storageError: new DocumentStorageError('upstream', 'sensitive key') }), 'document_unavailable'],
     [setup({ aiError: new AiServiceClientError('upstream secret', 'timeout') }), 'ai_timeout'],
-    [setup({ aiError: new AiServiceClientError('upstream secret', 'http', 401) }), 'ai_authentication_failed']
+    [setup({ aiError: new AiServiceClientError('upstream secret', 'http', 401) }), 'ai_authentication_failed'],
+    [setup({ aiError: new AiServiceClientError('upstream secret', 'http', 403) }), 'ai_authentication_failed']
   ] as const;
   for (const [context, code] of cases) {
     await assert.rejects(context.service.executePendingDocumentRun('run-1'), ServiceUnavailableException);
@@ -243,6 +254,73 @@ test('storage and AI failures mark failed with safe categories', async () => {
     assert.equal(JSON.stringify(failure).includes('sensitive'), false);
     assert.equal(JSON.stringify(failure).includes('secret'), false);
   }
+});
+
+test('maps AI HTTP, client, and network failures to diagnostic-safe codes', async () => {
+  const cases: Array<[AiServiceClientError, string]> = [
+    [new AiServiceClientError('raw', 'http', 400), 'ai_input_rejected'],
+    [new AiServiceClientError('raw', 'http', 404), 'ai_endpoint_not_found'],
+    [new AiServiceClientError('raw', 'http', 405), 'ai_endpoint_not_found'],
+    [new AiServiceClientError('raw', 'http', 409), 'ai_version_conflict'],
+    [new AiServiceClientError('raw', 'http', 413), 'ai_input_too_large'],
+    [new AiServiceClientError('raw', 'http', 422), 'ai_input_rejected'],
+    [new AiServiceClientError('raw', 'http', 500), 'ai_unavailable'],
+    [new AiServiceClientError('raw', 'http', 503), 'ai_dependency_unavailable'],
+    [new AiServiceClientError('raw', 'http', 504), 'ai_timeout'],
+    [new AiServiceClientError('raw', 'invalid_response'), 'ai_invalid_response'],
+    [new AiServiceClientError('raw', 'configuration'), 'ai_invalid_configuration'],
+    [new AiServiceClientError('raw', 'unavailable', null, null, 'ENOTFOUND'), 'ai_network_unreachable']
+  ];
+
+  for (const [aiError, code] of cases) {
+    const { service, calls } = setup({ aiError });
+    await assert.rejects(
+      service.executePendingDocumentRun('run-1'),
+      ServiceUnavailableException
+    );
+    assert.equal(calls.updates.at(-1).data.errorCode, code);
+  }
+});
+
+test('failure logs preserve diagnostic categories without upstream secrets', async () => {
+  const { service, calls } = setup({
+    aiError: new AiServiceClientError(
+      'raw upstream error',
+      'unavailable',
+      null,
+      'https://internal.example/path?token=secret storageKey=private-key %PDF-1.4 raw artifact',
+      'ECONNREFUSED'
+    )
+  });
+
+  await assert.rejects(
+    service.executePendingDocumentRun('run-1'),
+    ServiceUnavailableException
+  );
+
+  assert.equal(calls.logs.length, 1);
+  const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
+  assert.deepEqual(Object.keys(logged).sort(), [
+    'aiServiceErrorCode',
+    'analysisRunId',
+    'causeCode',
+    'credentialId',
+    'detail',
+    'durationMs',
+    'errorCode',
+    'event',
+    'httpStatus',
+    'stage'
+  ]);
+  assert.equal(logged.errorCode, 'ai_network_unreachable');
+  assert.equal(logged.causeCode, 'ECONNREFUSED');
+  assert.equal(logged.detail, 'upstream_detail_redacted');
+  const serialized = JSON.stringify(logged);
+  assert.equal(serialized.includes('internal.example'), false);
+  assert.equal(serialized.includes('secret'), false);
+  assert.equal(serialized.includes('private-key'), false);
+  assert.equal(serialized.includes('%PDF-1.4'), false);
+  assert.equal(serialized.includes('raw artifact'), false);
 });
 
 test('invalid artifact or semantic persistence failure rolls back completion and marks failed', async () => {

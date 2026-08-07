@@ -844,6 +844,18 @@ automatico. La ausencia de fuentes no bloquea el contrato backend actual: el
 Portal Emisor exige una confirmacion adicional y no infiere evidencia desde
 skills, competencias o catalogo.
 
+P6d no corrige por si solo una falla del servicio IA: la vuelve diagnosticable
+sin exponer detalles crudos. Los `AnalysisRun` fallidos pueden persistir los
+codigos internos allowlisted `ai_input_rejected`, `ai_endpoint_not_found`,
+`ai_version_conflict`, `ai_input_too_large`, `ai_dependency_unavailable`,
+`ai_invalid_response`, `ai_invalid_configuration` o
+`ai_network_unreachable`, ademas de los codigos existentes. Los reads P5d
+devuelven exclusivamente el codigo y un mensaje estatico seguro; nunca URL,
+tokens, headers, storage keys, contenido, artifacts ni stack traces. NestJS
+envia `X-Analysis-Run-Id` al analisis documental como correlacion interna y
+registra un evento sanitizado con categoria, status HTTP cuando exista y causa
+de red segura cuando Node la exponga.
+
 P5d implementa:
 
 ```text

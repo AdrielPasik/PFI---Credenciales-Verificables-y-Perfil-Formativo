@@ -72,11 +72,16 @@ export class AiServiceClient {
       input.taxonomyVersion
     );
 
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+
     return this.requestJson(
       '/v1/semantic-analysis/pdf',
       {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: correlationId
+          ? { 'x-analysis-run-id': correlationId }
+          : undefined
       },
       true
     );
@@ -190,7 +195,10 @@ export class AiServiceClient {
 
       throw new AiServiceClientError(
         'AI Service is unavailable.',
-        'unavailable'
+        'unavailable',
+        null,
+        null,
+        this.readCauseCode(error)
       );
     } finally {
       clearTimeout(timeout);
@@ -343,6 +351,34 @@ export class AiServiceClient {
   private optionalNonEmptyString(value: unknown): string | null {
     return typeof value === 'string' && value.trim().length > 0
       ? value.trim()
+      : null;
+  }
+
+  private optionalCorrelationId(value: unknown): string | null {
+    const normalized = this.optionalNonEmptyString(value);
+    if (!normalized) return null;
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(normalized)) {
+      throw new AiServiceClientError(
+        'correlationId must contain only safe identifier characters.',
+        'configuration'
+      );
+    }
+    return normalized;
+  }
+
+  private readCauseCode(error: unknown): string | null {
+    if (!error || typeof error !== 'object' || !('cause' in error)) {
+      return null;
+    }
+
+    const cause = (error as { cause?: unknown }).cause;
+    if (!cause || typeof cause !== 'object' || !('code' in cause)) {
+      return null;
+    }
+
+    const code = (cause as { code?: unknown }).code;
+    return typeof code === 'string' && /^[A-Z0-9_-]{2,64}$/.test(code)
+      ? code
       : null;
   }
 

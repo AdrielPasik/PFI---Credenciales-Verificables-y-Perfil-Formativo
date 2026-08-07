@@ -127,6 +127,46 @@ test('analyzePdf accepts an in-memory PDF without filesystem access', async (con
   });
 });
 
+test('analyzePdf forwards a safe analysis-run correlation header', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      assert.equal(
+        new Headers(init?.headers).get('x-analysis-run-id'),
+        'run-123'
+      );
+      return jsonResponse({ schemaVersion: 'semantic_analysis_v1' });
+    }
+  );
+
+  await new AiServiceClient().analyzePdf({
+    fileBytes: Buffer.from('%PDF-1.4\ncorrelation test', 'utf8'),
+    correlationId: 'run-123'
+  });
+});
+
+test('fetch failure preserves only a safe network cause code', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(globalThis, 'fetch', async () => {
+    const cause = Object.assign(new Error('internal DNS detail'), {
+      code: 'ENOTFOUND'
+    });
+    throw Object.assign(new TypeError('fetch failed'), { cause });
+  });
+
+  await assert.rejects(
+    () => new AiServiceClient().getHealth(),
+    (error: unknown) =>
+      error instanceof AiServiceClientError &&
+      error.code === 'unavailable' &&
+      error.causeCode === 'ENOTFOUND' &&
+      error.detail === null &&
+      !error.message.includes('internal DNS detail')
+  );
+});
+
 test('analyzePdf preserves useful detail from a 422 response', async (context) => {
   configureAiEnv(context);
   await withTemporaryPdf(async (filePath) => {

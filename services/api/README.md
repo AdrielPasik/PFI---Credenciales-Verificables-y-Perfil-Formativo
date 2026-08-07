@@ -229,6 +229,17 @@ las llamadas `/v1` reciben solamente el token de servicio con
 En modo local `none`, omitir `AI_SERVICE_BASE_URL` no bloquea modulos ajenos;
 una llamada IA falla de forma controlada hasta que se configure la URL.
 
+P6d clasifica los fallos documentales de IA sin exponer internals en el read
+model: `ai_input_rejected` indica revisar la evidencia; `ai_version_conflict`
+indica revisar despliegue/versiones; `ai_dependency_unavailable` apunta a la
+imagen o dependencias FastAPI; `ai_network_unreachable` apunta a conectividad o
+base URL; `ai_invalid_configuration` a variables de entorno; y
+`ai_invalid_response` a contrato/respuesta upstream. Esto no repara el fallo
+por si solo. El log interno de NestJS conserva solamente la categoria, status
+HTTP si existe, causa de red segura y un detalle sanitizado/truncado. Para
+analisis documentales, `X-Analysis-Run-Id` transporta la correlacion interna;
+no contiene identidad de usuario ni secretos.
+
 En demo, P4i-6a registra temporalmente una URL HTTPS publica del Web Service
 FastAPI; `AI_SERVICE_AUTH_MODE` permanece en `jwt` y el browser nunca consume
 esa URL. La red privada sigue siendo el objetivo. `none` es solo local, no una

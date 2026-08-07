@@ -7,6 +7,7 @@ export interface AnalyzePdfWithAiInput {
   filePath?: string;
   fileBytes?: Uint8Array;
   documentId?: string;
+  correlationId?: string;
   fileName?: string;
   pipelineVersion?: string;
   taxonomyVersion?: string;
@@ -29,7 +30,8 @@ export class AiServiceClientError extends Error {
     message: string,
     readonly code: AiServiceErrorCode,
     readonly status: number | null = null,
-    readonly detail: unknown = null
+    readonly detail: unknown = null,
+    readonly causeCode: string | null = null
   ) {
     super(message);
     this.name = 'AiServiceClientError';

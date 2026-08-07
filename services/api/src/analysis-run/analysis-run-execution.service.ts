@@ -2,6 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   ServiceUnavailableException
 } from '@nestjs/common';
@@ -36,8 +37,17 @@ type ClaimedRun = {
   sourceCount: number;
 };
 
+type ExecutionStage = 'document' | 'ai' | 'semantic';
+
+type SafeFailure = {
+  code: string;
+  message: string;
+};
+
 @Injectable()
 export class AnalysisRunExecutionService {
+  private readonly logger = new Logger(AnalysisRunExecutionService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiClient: AiServiceClient,
@@ -51,7 +61,8 @@ export class AnalysisRunExecutionService {
   ): Promise<AnalysisRunExecutionSummary> {
     const runId = this.requiredId(analysisRunId);
     const claimed = await this.claim(runId);
-    let stage: 'document' | 'ai' | 'semantic' = 'document';
+    const executionStartedAt = Date.now();
+    let stage: ExecutionStage = 'document';
 
     try {
       const document = await this.prisma.documentEvidence.findUnique({
@@ -79,6 +90,7 @@ export class AnalysisRunExecutionService {
       const artifact = await this.aiClient.analyzePdf({
         fileBytes: bytes,
         documentId: claimed.id,
+        correlationId: claimed.id,
         fileName: this.safeFileName(document.originalFileName),
         pipelineVersion: claimed.requestedPipelineVersion,
         taxonomyVersion: claimed.requestedTaxonomyVersion
@@ -132,6 +144,14 @@ export class AnalysisRunExecutionService {
             errorMessage: safe.message
           }
         });
+      });
+      this.logFailure({
+        analysisRunId: claimed.id,
+        credentialId: claimed.credentialId,
+        stage,
+        safe,
+        error,
+        durationMs: Date.now() - executionStartedAt
       });
       if (error instanceof ConflictException) {
         throw error;
@@ -215,19 +235,158 @@ export class AnalysisRunExecutionService {
     );
   }
 
-  private safeFailure(error: unknown, stage: string) {
+  private safeFailure(error: unknown, stage: ExecutionStage): SafeFailure {
     if (error instanceof AiServiceClientError) {
-      if (error.code === 'timeout') return { code: 'ai_timeout', message: 'El servicio de analisis excedio el tiempo disponible.' };
-      if (error.status === 401 || error.status === 403) return { code: 'ai_authentication_failed', message: 'El servicio de analisis rechazo la credencial interna.' };
-      return { code: 'ai_unavailable', message: 'El servicio de analisis no esta disponible.' };
+      if (error.status === 401 || error.status === 403) {
+        return {
+          code: 'ai_authentication_failed',
+          message: 'El servicio de análisis rechazó la credencial interna.'
+        };
+      }
+      if (error.code === 'timeout' || error.status === 504) {
+        return {
+          code: 'ai_timeout',
+          message: 'El servicio de análisis excedió el tiempo disponible.'
+        };
+      }
+      if (error.code === 'configuration') {
+        return {
+          code: 'ai_invalid_configuration',
+          message: 'La configuración del servicio de análisis no es válida.'
+        };
+      }
+      if (error.code === 'invalid_response') {
+        return {
+          code: 'ai_invalid_response',
+          message: 'El servicio de análisis devolvió una respuesta no válida.'
+        };
+      }
+      if (error.code === 'http') return this.mapHttpFailure(error.status);
+      if (error.code === 'unavailable') {
+        return {
+          code: 'ai_network_unreachable',
+          message: 'No se pudo conectar con el servicio de análisis.'
+        };
+      }
+      if (error.code === 'file') {
+        return {
+          code: 'ai_input_rejected',
+          message: 'La evidencia no pudo procesarse automáticamente.'
+        };
+      }
+      return {
+        code: 'ai_unavailable',
+        message: 'El servicio de análisis no está disponible.'
+      };
     }
     if (error instanceof DocumentStorageError || stage === 'document') {
-      return { code: 'document_unavailable', message: 'No se pudo leer la evidencia documental.' };
+      return {
+        code: 'document_unavailable',
+        message: 'No se pudo leer la evidencia documental.'
+      };
     }
     if (stage === 'semantic') {
-      return { code: 'semantic_persistence_failed', message: 'No se pudo validar o persistir el resultado semantico.' };
+      return {
+        code: 'semantic_persistence_failed',
+        message: 'No se pudo validar o persistir el resultado semántico.'
+      };
     }
-    return { code: 'analysis_failed', message: 'No se pudo completar el analisis.' };
+    return {
+      code: 'analysis_failed',
+      message: 'No se pudo completar el análisis.'
+    };
+  }
+
+  private mapHttpFailure(status: number | null): SafeFailure {
+    switch (status) {
+      case 400:
+      case 422:
+        return {
+          code: 'ai_input_rejected',
+          message: 'La evidencia no pudo procesarse automáticamente.'
+        };
+      case 404:
+      case 405:
+        return {
+          code: 'ai_endpoint_not_found',
+          message: 'El servicio de análisis no respondió en la ruta esperada.'
+        };
+      case 409:
+        return {
+          code: 'ai_version_conflict',
+          message: 'El servicio de análisis no está alineado con la versión solicitada.'
+        };
+      case 413:
+        return {
+          code: 'ai_input_too_large',
+          message: 'La evidencia supera el tamaño permitido para análisis.'
+        };
+      case 503:
+        return {
+          code: 'ai_dependency_unavailable',
+          message: 'El servicio de análisis no tiene disponible una dependencia necesaria.'
+        };
+      case 500:
+      default:
+        return {
+          code: 'ai_unavailable',
+          message: 'El servicio de análisis no está disponible.'
+        };
+    }
+  }
+
+  private logFailure(input: {
+    analysisRunId: string;
+    credentialId: string;
+    stage: ExecutionStage;
+    safe: SafeFailure;
+    error: unknown;
+    durationMs: number;
+  }) {
+    const clientError =
+      input.error instanceof AiServiceClientError ? input.error : null;
+    const event = {
+      event: 'analysis_run_execution_failed',
+      analysisRunId: input.analysisRunId,
+      credentialId: input.credentialId,
+      stage: input.stage,
+      errorCode: input.safe.code,
+      aiServiceErrorCode: clientError?.code ?? null,
+      httpStatus: this.safeHttpStatus(clientError?.status),
+      detail: this.sanitizeDiagnosticDetail(clientError?.detail),
+      causeCode: this.safeCauseCode(clientError?.causeCode),
+      durationMs: Math.max(0, Math.round(input.durationMs))
+    };
+    this.logger.error(JSON.stringify(event));
+  }
+
+  private safeHttpStatus(value: number | null | undefined): number | null {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 100 && value <= 599
+      ? value
+      : null;
+  }
+
+  private safeCauseCode(value: string | null | undefined): string | null {
+    return typeof value === 'string' && /^[A-Z0-9_-]{2,64}$/.test(value)
+      ? value
+      : null;
+  }
+
+  private sanitizeDiagnosticDetail(value: unknown): string | null {
+    if (typeof value !== 'string') {
+      return value === null || value === undefined ? null : 'structured_detail';
+    }
+
+    const normalized = value.replace(/\s+/g, ' ').trim();
+    if (!normalized) return null;
+    if (
+      /https?:\/\/|%PDF-|\b(?:authorization|bearer|token|secret|password|storage(?:key)?|path|artifact|content|analysisJson|textForEmbedding)\b/i.test(
+        normalized
+      )
+    ) {
+      return 'upstream_detail_redacted';
+    }
+    return normalized.slice(0, 160);
   }
 
   private requiredId(value: unknown): string {

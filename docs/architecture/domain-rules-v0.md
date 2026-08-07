@@ -401,6 +401,13 @@ Estas reglas impactaran directamente:
   competencias como sustitutos de una fuente;
 - el autoanalisis evita otro run activo/completado para la misma evidencia y no
   modifica `canon_v1`, hash canonico, blockchain ni la fuente documental;
+- P6d clasifica fallos IA de forma segura: errores HTTP, timeout,
+  configuracion, red y respuesta invalida se distinguen mediante `errorCode`
+  allowlisted. El detalle crudo solo se usa para logging interno sanitizado y
+  truncado; no llega al read model, frontend ni a la persistencia expuesta;
+- la ejecucion documental envia el `AnalysisRun.id` en `X-Analysis-Run-Id`
+  como correlacion interna. FastAPI no necesita cambiar su contrato para este
+  header; su consumo en logs es una mejora futura opcional;
 - latest sin runs devuelve null y un run ausente/cross-credential devuelve 404
   uniforme; el read model no llama IA/storage ni expone artifact o JSON crudo;
 - `text`, `combined`, propuestas, endpoint generico y worker siguen futuros.

@@ -140,6 +140,32 @@ test('failed runs expose only allowlisted static error details', () => {
   assert.equal(JSON.stringify(unknown).includes('raw'), false);
 });
 
+test('new AI failure codes expose allowlisted diagnostic messages only', () => {
+  const cases: Array<[string, string]> = [
+    ['ai_input_rejected', 'La evidencia no pudo procesarse automaticamente.'],
+    ['ai_endpoint_not_found', 'El servicio de analisis no respondio en la ruta esperada.'],
+    ['ai_version_conflict', 'El servicio de analisis no esta alineado con la version solicitada.'],
+    ['ai_input_too_large', 'La evidencia supera el tamano permitido para analisis.'],
+    ['ai_dependency_unavailable', 'El servicio de analisis no tiene disponible una dependencia necesaria.'],
+    ['ai_invalid_response', 'El servicio de analisis devolvio una respuesta no valida.'],
+    ['ai_invalid_configuration', 'La configuracion del servicio de analisis no es valida.'],
+    ['ai_network_unreachable', 'No se pudo conectar con el servicio de analisis.']
+  ];
+
+  for (const [errorCode, errorMessage] of cases) {
+    const mapped = mapIssuerAnalysisRunReadModel(run({
+      status: AnalysisRunStatus.failed,
+      errorCode,
+      errorMessage: 'https://internal.example/path token=secret storageKey=private'
+    }));
+    assert.equal(mapped.errorCode, errorCode);
+    assert.equal(mapped.errorMessage, errorMessage);
+    assert.equal(JSON.stringify(mapped).includes('internal.example'), false);
+    assert.equal(JSON.stringify(mapped).includes('secret'), false);
+    assert.equal(JSON.stringify(mapped).includes('storageKey'), false);
+  }
+});
+
 test('non-failed runs never expose stale persisted error fields', () => {
   const mapped = mapIssuerAnalysisRunReadModel(run({
     status: AnalysisRunStatus.completed,

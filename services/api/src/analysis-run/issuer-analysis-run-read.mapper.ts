@@ -14,6 +14,22 @@ const safeFailureMessages: Record<string, string> = {
   ai_authentication_failed:
     'El servicio de analisis rechazo la credencial interna.',
   ai_unavailable: 'El servicio de analisis no esta disponible.',
+  ai_input_rejected:
+    'La evidencia no pudo procesarse automaticamente.',
+  ai_endpoint_not_found:
+    'El servicio de analisis no respondio en la ruta esperada.',
+  ai_version_conflict:
+    'El servicio de analisis no esta alineado con la version solicitada.',
+  ai_input_too_large:
+    'La evidencia supera el tamano permitido para analisis.',
+  ai_dependency_unavailable:
+    'El servicio de analisis no tiene disponible una dependencia necesaria.',
+  ai_invalid_response:
+    'El servicio de analisis devolvio una respuesta no valida.',
+  ai_invalid_configuration:
+    'La configuracion del servicio de analisis no es valida.',
+  ai_network_unreachable:
+    'No se pudo conectar con el servicio de analisis.',
   document_unavailable: 'No se pudo leer la evidencia documental.',
   semantic_persistence_failed:
     'No se pudo validar o persistir el resultado semantico.',
