@@ -323,7 +323,7 @@ describe('TextEvidenceSection', () => {
       expect(screen.getByText('Fuente textual actual')).toBeTruthy();
       expect(
         screen.getByText(
-          'La evidencia textual solo puede modificarse mientras la credencial está en borrador.'
+          'La evidencia textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
         )
       ).toBeTruthy();
       expect(screen.queryByLabelText('Contenido de respaldo')).toBeNull();
@@ -345,6 +345,11 @@ describe('TextEvidenceSection', () => {
       );
 
       expect(screen.getByText('No hay evidencia textual registrada.')).toBeTruthy();
+      expect(
+        screen.getByText(
+          'La evidencia textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
+        )
+      ).toBeTruthy();
       expect(screen.queryByLabelText('Contenido de respaldo')).toBeNull();
     }
   );

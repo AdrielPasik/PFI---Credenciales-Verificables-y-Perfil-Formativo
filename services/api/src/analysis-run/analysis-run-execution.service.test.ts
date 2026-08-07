@@ -6,6 +6,7 @@ import {
   AnalysisRunInputMode,
   AnalysisRunSourceType,
   AnalysisRunStatus,
+  AnalysisRunTrigger,
   CredentialStatus,
   DocumentEvidenceKind,
   SemanticAnalysisStatus
@@ -21,6 +22,7 @@ function setup(options: {
   mode?: AnalysisRunInputMode;
   runStatus?: AnalysisRunStatus;
   credentialStatus?: CredentialStatus;
+  trigger?: AnalysisRunTrigger;
   sources?: any[];
   claimCount?: number;
   documentHash?: string;
@@ -38,6 +40,7 @@ function setup(options: {
     id: 'run-1', credentialId: 'credential-1',
     status: options.runStatus ?? AnalysisRunStatus.pending,
     inputMode: options.mode ?? AnalysisRunInputMode.document,
+    trigger: options.trigger ?? AnalysisRunTrigger.manual,
     requestedPipelineVersion: 'pipeline-v1', requestedTaxonomyVersion: 'taxonomy-v1',
     credential: { status: options.credentialStatus ?? CredentialStatus.draft },
     sources: options.sources ?? [{
@@ -172,6 +175,35 @@ test('non-pending, non-draft, malformed source and duplicate claim do not execut
     await assert.rejects(context.service.executePendingDocumentRun('run-1'), ConflictException);
     assert.equal(context.calls.ai.length, 0);
   }
+});
+
+test('issued execution is allowed only for a system-triggered run', async () => {
+  const system = setup({
+    credentialStatus: CredentialStatus.issued,
+    trigger: AnalysisRunTrigger.system
+  });
+  await system.service.executePendingDocumentRun('run-1');
+  assert.equal(system.calls.ai.length, 1);
+
+  const manual = setup({
+    credentialStatus: CredentialStatus.issued,
+    trigger: AnalysisRunTrigger.manual
+  });
+  await assert.rejects(
+    manual.service.executePendingDocumentRun('run-1'),
+    ConflictException
+  );
+  assert.equal(manual.calls.ai.length, 0);
+
+  const revoked = setup({
+    credentialStatus: CredentialStatus.revoked,
+    trigger: AnalysisRunTrigger.system
+  });
+  await assert.rejects(
+    revoked.service.executePendingDocumentRun('run-1'),
+    ConflictException
+  );
+  assert.equal(revoked.calls.ai.length, 0);
 });
 
 test('hash mismatch fails run with a sanitized conflict', async () => {

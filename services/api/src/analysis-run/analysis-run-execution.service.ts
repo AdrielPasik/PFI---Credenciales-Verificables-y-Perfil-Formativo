@@ -9,6 +9,7 @@ import {
   AnalysisRunInputMode,
   AnalysisRunSourceType,
   AnalysisRunStatus,
+  AnalysisRunTrigger,
   CredentialStatus,
   DocumentEvidenceKind,
   Prisma
@@ -149,6 +150,7 @@ export class AnalysisRunExecutionService {
             credentialId: true,
             status: true,
             inputMode: true,
+            trigger: true,
             requestedPipelineVersion: true,
             requestedTaxonomyVersion: true,
             credential: { select: { status: true } },
@@ -169,8 +171,14 @@ export class AnalysisRunExecutionService {
         if (run.inputMode !== AnalysisRunInputMode.document) {
           throw new ConflictException('P5b solo ejecuta analisis documentales.');
         }
-        if (run.credential.status !== CredentialStatus.draft) {
-          throw new ConflictException('La credencial ya no esta en borrador.');
+        const canExecuteForCredential =
+          run.credential.status === CredentialStatus.draft ||
+          (run.trigger === AnalysisRunTrigger.system &&
+            run.credential.status === CredentialStatus.issued);
+        if (!canExecuteForCredential) {
+          throw new ConflictException(
+            'La credencial no admite la ejecucion de este analisis.'
+          );
         }
         const documents = run.sources.filter(
           (source) => source.sourceType === AnalysisRunSourceType.document_evidence

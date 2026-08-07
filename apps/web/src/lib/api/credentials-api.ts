@@ -165,7 +165,7 @@ const manualCredentialTypes = new Set(['course', 'certification', 'degree']);
 
 function invalidCreateCommand(): never {
   throw new ApiError(
-    'La informaciÃ³n para crear el borrador es invÃ¡lida.',
+    'La información para crear el borrador es inválida.',
     'http',
     400
   );

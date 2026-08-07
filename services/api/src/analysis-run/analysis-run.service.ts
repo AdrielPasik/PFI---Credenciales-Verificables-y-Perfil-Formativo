@@ -53,9 +53,15 @@ export class AnalysisRunService {
         if (!credential) {
           throw new NotFoundException('No se encontro la credencial solicitada.');
         }
-        if (credential.status !== CredentialStatus.draft) {
+        if (
+          credential.status !== CredentialStatus.draft &&
+          !(
+            normalized.trigger === AnalysisRunTrigger.system &&
+            credential.status === CredentialStatus.issued
+          )
+        ) {
           throw new ConflictException(
-            'Solo una credencial en borrador puede preparar un analisis.'
+            'La credencial no admite este tipo de analisis.'
           );
         }
 

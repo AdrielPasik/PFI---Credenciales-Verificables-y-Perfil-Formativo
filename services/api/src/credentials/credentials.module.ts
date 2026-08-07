@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { AnalysisRunModule } from '../analysis-run/analysis-run.module';
 import { BlockchainModule } from '../blockchain/blockchain.module';
 import { IssuersModule } from '../issuers/issuers.module';
 import { CredentialHashingService } from './credential-hashing.service';
@@ -14,7 +15,12 @@ import { IssuerCredentialReadController } from './issuer-credential-read.control
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
 @Module({
-  imports: [AuthModule, IssuersModule, BlockchainModule],
+  imports: [
+    AnalysisRunModule,
+    AuthModule,
+    IssuersModule,
+    BlockchainModule
+  ],
   controllers: [
     CredentialsController,
     IssuerCredentialIssueController,

@@ -157,6 +157,33 @@ test('system trigger may omit requester and transaction is serializable', async 
   assert.equal((calls.creates[0] as any).data.requestedByUserId, null);
 });
 
+test('issued credentials allow only system runs and revoked stays rejected', async () => {
+  const issuedSystem = setup({ credentialStatus: CredentialStatus.issued });
+  await issuedSystem.service.createPendingRun(
+    input(AnalysisRunInputMode.document, {
+      trigger: AnalysisRunTrigger.system,
+      requestedByUserId: null
+    })
+  );
+  assert.equal(issuedSystem.calls.creates.length, 1);
+
+  await assert.rejects(
+    setup({ credentialStatus: CredentialStatus.issued }).service.createPendingRun(
+      input(AnalysisRunInputMode.document)
+    ),
+    ConflictException
+  );
+  await assert.rejects(
+    setup({ credentialStatus: CredentialStatus.revoked }).service.createPendingRun(
+      input(AnalysisRunInputMode.document, {
+        trigger: AnalysisRunTrigger.system,
+        requestedByUserId: null
+      })
+    ),
+    ConflictException
+  );
+});
+
 test('creating a run has no semantic, credential, canonical or blockchain writes', async () => {
   const { service, calls } = setup();
   await service.createPendingRun(input(AnalysisRunInputMode.combined));

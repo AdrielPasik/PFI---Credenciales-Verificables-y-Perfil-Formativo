@@ -57,7 +57,7 @@ describe('DocumentEvidenceSection', () => {
     ).toBeTruthy();
     expect(
       screen.getByText(
-        'La evidencia respalda el borrador. Adjuntarla no emite la credencial ni ejecuta análisis IA automáticamente.'
+        'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
       )
     ).toBeTruthy();
     expect(
@@ -293,7 +293,12 @@ describe('DocumentEvidenceSection', () => {
       expect(screen.getByText('programa.pdf')).toBeTruthy();
       expect(
         screen.getByText(
-          'La evidencia solo puede modificarse mientras la credencial está en borrador.'
+          'Esta evidencia quedó asociada a la credencial emitida.'
+        )
+      ).toBeTruthy();
+      expect(
+        screen.getByText(
+          'Las modificaciones de evidencia solo están disponibles mientras la credencial está en borrador.'
         )
       ).toBeTruthy();
       expect(

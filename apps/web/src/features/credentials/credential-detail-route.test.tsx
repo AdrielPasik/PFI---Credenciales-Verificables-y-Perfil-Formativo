@@ -403,6 +403,11 @@ describe('CredentialDetailController', () => {
       )
     ).toHaveLength(1);
     expect(
+      sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
+        String(path).endsWith('/analysis-runs/latest')
+      )
+    ).toHaveLength(2);
+    expect(
       screen.getByRole('heading', {
         name: 'Análisis inteligente del documento'
       })
@@ -413,6 +418,9 @@ describe('CredentialDetailController', () => {
     expect(
       screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
     ).toBeTruthy();
+    expect(
+      screen.queryByRole('button', { name: 'Analizar documento' })
+    ).toBeNull();
   });
 
   it('uploads one multipart document and updates only the current evidence snapshot', async () => {

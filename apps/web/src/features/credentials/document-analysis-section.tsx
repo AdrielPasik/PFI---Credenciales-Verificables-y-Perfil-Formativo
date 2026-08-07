@@ -141,8 +141,9 @@ export function DocumentAnalysisSection({
                 Todavía no hay análisis registrados.
               </p>
               <p className="mt-1 text-sm leading-6 text-text-muted">
-                Cuando exista una ejecución, este espacio mostrará su estado y
-                un resumen seguro del resultado.
+                {credentialStatus === 'draft'
+                  ? 'También se generará automáticamente al emitir si hay un PDF vigente.'
+                  : 'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'}
               </p>
             </div>
           ) : null}
@@ -309,8 +310,9 @@ function EligibilityNotice({
   if (credentialStatus !== 'draft') {
     return (
       <FeedbackAlert variant="information" title="Análisis en modo lectura">
-        El análisis puede consultarse, pero solo se inicia nuevamente mientras
-        la credencial está en borrador.
+        El análisis puede consultarse en modo lectura. Si había un PDF vigente
+        al emitir, Traza intentó generar una ejecución automática sin afectar
+        la emisión.
       </FeedbackAlert>
     );
   }

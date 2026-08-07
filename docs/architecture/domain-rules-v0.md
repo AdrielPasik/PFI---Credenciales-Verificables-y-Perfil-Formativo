@@ -372,8 +372,9 @@ Estas reglas impactaran directamente:
 - `semantic_analysis_v1` es resultado oficial validado, no claim humano;
 - propuestas IA se persisten separadas y requieren revision del emisor;
 - `DocumentEvidence` y `TextEvidence` no entran automaticamente en `canon_v1`;
-- P5a crea `AnalysisRun` `pending` solo para drafts y captura evidencias current
-  por referencia/hash; no cambia `draft|issued|revoked`;
+- P5a crea `AnalysisRun` `pending` para triggers manuales sobre drafts y captura
+  evidencias current por referencia/hash; P6b permite exclusivamente un trigger
+  interno `system` sobre la credencial recien emitida;
 - document exige documento, text exige texto y combined exige ambos;
 - cada source referencia documento XOR texto y no guarda contenido, bytes,
   storage key, paths ni payloads IA;
@@ -390,10 +391,14 @@ Estas reglas impactaran directamente:
   fuentes de identidad, modo, trigger y versiones; el body no es autoritativo;
 - P5d permite leer runs historicos de credenciales `draft`, `issued` o
   `revoked`; `draft` es requisito de trigger, no de lectura;
+- despues de emitir, un PDF `current` puede disparar un AnalysisRun documental
+  `system` fuera de la transaccion de emision; la ausencia de PDF o cualquier
+  fallo IA/storage no bloquea ni revierte la credencial emitida;
+- el autoanalisis evita otro run activo/completado para la misma evidencia y no
+  modifica `canon_v1`, hash canonico, blockchain ni la fuente documental;
 - latest sin runs devuelve null y un run ausente/cross-credential devuelve 404
   uniforme; el read model no llama IA/storage ni expone artifact o JSON crudo;
-- `text`, `combined`, propuestas, endpoint generico, frontend y worker siguen
-  futuros.
+- `text`, `combined`, propuestas, endpoint generico y worker siguen futuros.
 
 `canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
 definan que claims oficiales forman parte de la emision.

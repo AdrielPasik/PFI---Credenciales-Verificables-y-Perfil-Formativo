@@ -22,12 +22,14 @@ function createService(options?: {
   scopedCredential?: { id: string } | null;
   authorizationError?: Error;
   issuanceError?: Error;
+  automaticAnalysisError?: Error;
 }) {
   const order: string[] = [];
   const authorizationCalls: unknown[] = [];
   const lookupCalls: unknown[] = [];
   const issueCalls: unknown[] = [];
   const readCalls: unknown[] = [];
+  const automaticAnalysisCalls: string[] = [];
   const safeReadModel = {
     id: 'credential-1',
     status: 'issued',
@@ -77,6 +79,15 @@ function createService(options?: {
         readCalls.push(args);
         return safeReadModel;
       }
+    } as never,
+    {
+      async analyzeIssuedCredentialIfEligible(credentialId: string) {
+        order.push('automatic_analysis');
+        automaticAnalysisCalls.push(credentialId);
+        if (options?.automaticAnalysisError) {
+          throw options.automaticAnalysisError;
+        }
+      }
     } as never
   );
 
@@ -87,6 +98,7 @@ function createService(options?: {
     lookupCalls,
     issueCalls,
     readCalls,
+    automaticAnalysisCalls,
     safeReadModel
   };
 }
@@ -103,6 +115,7 @@ test('service authorizes and scopes before reusing legacy issuance once', async 
     'authorization',
     'scoped_lookup',
     'legacy_issue',
+    'automatic_analysis',
     'safe_read'
   ]);
   assert.deepEqual(context.lookupCalls, [
@@ -114,6 +127,7 @@ test('service authorizes and scopes before reusing legacy issuance once', async 
   assert.deepEqual(context.issueCalls, [
     ['credential-1', { issuerId: 'issuer-1' }, currentUser]
   ]);
+  assert.deepEqual(context.automaticAnalysisCalls, ['credential-1']);
   assert.deepEqual(context.readCalls, [
     ['issuer-1', 'credential-1', currentUser]
   ]);
@@ -137,6 +151,7 @@ test('service does not disclose or issue a cross-issuer credential', async () =>
   );
   assert.deepEqual(context.order, ['authorization', 'scoped_lookup']);
   assert.deepEqual(context.issueCalls, []);
+  assert.deepEqual(context.automaticAnalysisCalls, []);
 });
 
 test('service stops before credential lookup when institutional authorization fails', async () => {
@@ -167,6 +182,7 @@ test('service preserves safe domain HttpExceptions from legacy issuance', async 
     'legacy_issue'
   ]);
   assert.deepEqual(context.readCalls, []);
+  assert.deepEqual(context.automaticAnalysisCalls, []);
 });
 
 test('service sanitizes unexpected hashing or blockchain failures', async () => {
@@ -186,4 +202,30 @@ test('service sanitizes unexpected hashing or blockchain failures', async () => 
       return true;
     }
   );
+});
+
+test('automatic analysis failure never changes the successful issuance response', async () => {
+  const context = createService({
+    automaticAnalysisError: new Error(
+      'FastAPI URL, token, storageKey and private payload'
+    )
+  });
+
+  const response = await context.service.issueForIssuer(
+    'issuer-1',
+    'credential-1',
+    currentUser
+  );
+
+  assert.deepEqual(context.order, [
+    'authorization',
+    'scoped_lookup',
+    'legacy_issue',
+    'automatic_analysis',
+    'safe_read'
+  ]);
+  assert.deepEqual(response, context.safeReadModel);
+  assert.equal(JSON.stringify(response).includes('FastAPI'), false);
+  assert.equal(JSON.stringify(response).includes('storageKey'), false);
+  assert.equal(JSON.stringify(response).includes('private payload'), false);
 });

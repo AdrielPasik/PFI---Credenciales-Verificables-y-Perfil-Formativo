@@ -34,7 +34,7 @@
     "test:profile-ingest": "node --require ts-node/register/transpile-only --test src/profiles/formative-profile-result-artifact.mapper.test.ts src/profiles/formative-profile-ai-ingest.service.test.ts src/profiles/scripts/ingest-formative-profile-file.test.ts",
     "test:ai-service-client": "node --require ts-node/register/transpile-only --test src/ai/ai-service-internal-auth.test.ts src/ai/ai-service.client.test.ts src/ai/ai-integration.service.test.ts src/ai/scripts/ai-script.utils.test.ts",
     "test:ai-endpoints": "node --require ts-node/register/transpile-only --test src/ai/ai-service-http-error.mapper.test.ts src/ai/ai-endpoints.test.ts",
-    "test:analysis-run": "node --require ts-node/register/transpile-only --test prisma/analysis-run-migration.test.ts src/analysis-run/analysis-run.service.test.ts",
+    "test:analysis-run": "node --require ts-node/register/transpile-only --test prisma/analysis-run-migration.test.ts src/analysis-run/analysis-run.service.test.ts src/analysis-run/automatic-document-analysis.service.test.ts",
     "test:analysis-run-execution": "node --require ts-node/register/transpile-only --test src/analysis-run/analysis-run-execution.service.test.ts src/semantic/semantic.service.test.ts",
     "test:issuer-analysis-run": "node --require ts-node/register/transpile-only --test src/analysis-run/issuer-analysis-run.controller.test.ts src/analysis-run/issuer-analysis-run.service.test.ts src/issuers/issuers.service.test.ts",
     "test:issuer-analysis-run-read": "node --require ts-node/register/transpile-only --test src/analysis-run/issuer-analysis-run-read.controller.test.ts src/analysis-run/issuer-analysis-run-read.mapper.test.ts src/analysis-run/issuer-analysis-run-read.service.test.ts src/issuers/issuers.service.test.ts",

@@ -14,10 +14,10 @@ import {
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
+import { BACKEND_CONTROLLED_ANALYSIS_VERSION } from './analysis-run.constants';
 import { AnalysisRunService } from './analysis-run.service';
 import { IssuerDocumentAnalysisResponseDto } from './dto/issuer-document-analysis-response.dto';
 
-const BACKEND_CONTROLLED_VERSION = 'unversioned_current';
 const CREDENTIAL_NOT_FOUND_MESSAGE = 'No se encontro la credencial solicitada.';
 const EXECUTION_FAILED_MESSAGE = 'No se pudo completar el analisis documental.';
 
@@ -58,8 +58,8 @@ export class IssuerAnalysisRunService {
       requestedByUserId,
       inputMode: AnalysisRunInputMode.document,
       trigger: AnalysisRunTrigger.manual,
-      requestedPipelineVersion: BACKEND_CONTROLLED_VERSION,
-      requestedTaxonomyVersion: BACKEND_CONTROLLED_VERSION
+      requestedPipelineVersion: BACKEND_CONTROLLED_ANALYSIS_VERSION,
+      requestedTaxonomyVersion: BACKEND_CONTROLLED_ANALYSIS_VERSION
     });
 
     try {

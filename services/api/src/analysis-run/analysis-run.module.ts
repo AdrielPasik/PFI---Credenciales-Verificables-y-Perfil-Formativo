@@ -7,6 +7,7 @@ import { IssuersModule } from '../issuers/issuers.module';
 import { SemanticModule } from '../semantic/semantic.module';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
 import { AnalysisRunService } from './analysis-run.service';
+import { AutomaticDocumentAnalysisService } from './automatic-document-analysis.service';
 import { IssuerAnalysisRunController } from './issuer-analysis-run.controller';
 import { IssuerAnalysisRunReadService } from './issuer-analysis-run-read.service';
 import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
@@ -23,9 +24,14 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
   providers: [
     AnalysisRunService,
     AnalysisRunExecutionService,
+    AutomaticDocumentAnalysisService,
     IssuerAnalysisRunReadService,
     IssuerAnalysisRunService
   ],
-  exports: [AnalysisRunService, AnalysisRunExecutionService]
+  exports: [
+    AnalysisRunService,
+    AnalysisRunExecutionService,
+    AutomaticDocumentAnalysisService
+  ]
 })
 export class AnalysisRunModule {}

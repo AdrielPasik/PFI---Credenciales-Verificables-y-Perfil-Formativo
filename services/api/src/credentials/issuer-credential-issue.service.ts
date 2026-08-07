@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
+import { AutomaticDocumentAnalysisService } from '../analysis-run/automatic-document-analysis.service';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CredentialsService } from './credentials.service';
@@ -22,7 +23,8 @@ export class IssuerCredentialIssueService {
     private readonly prisma: PrismaService,
     private readonly issuersService: IssuersService,
     private readonly credentialsService: CredentialsService,
-    private readonly issuerCredentialReadService: IssuerCredentialReadService
+    private readonly issuerCredentialReadService: IssuerCredentialReadService,
+    private readonly automaticDocumentAnalysisService: AutomaticDocumentAnalysisService
   ) {}
 
   async issueForIssuer(
@@ -61,6 +63,14 @@ export class IssuerCredentialIssueService {
       }
 
       throw new BadGatewayException(ISSUANCE_FAILED_MESSAGE);
+    }
+
+    try {
+      await this.automaticDocumentAnalysisService.analyzeIssuedCredentialIfEligible(
+        credentialId
+      );
+    } catch {
+      // Automatic analysis is best-effort and must never roll back issuance.
     }
 
     return this.issuerCredentialReadService.getCredentialForIssuer(

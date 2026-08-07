@@ -822,6 +822,21 @@ POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/document
 - Efectos: crea/ejecuta un run document y persiste `SemanticAnalysis`; no
   modifica Credential, canon, emision ni blockchain.
 
+P6b agrega una via interna, no publica, posterior a la emision issuer-scoped:
+
+- despues de una emision exitosa, NestJS busca la `DocumentEvidence` `current`;
+- solo un PDF vigente habilita el intento automatico `document` con trigger
+  `system`;
+- el run se crea y ejecuta fuera de la transaccion de emision;
+- un run activo o completado para la misma evidencia evita duplicados;
+- cualquier fallo de storage, IA o persistencia semantica queda sanitizado en
+  el run cuando corresponde y nunca convierte la emision exitosa en error;
+- el response de emision no expone el run ni artifacts: el cliente consulta los
+  reads P5d existentes.
+
+El endpoint manual anterior permanece `draft`-only. No existe trigger manual
+post-emision, ni analisis automatico de texto o modo `combined`.
+
 P5d implementa:
 
 ```text

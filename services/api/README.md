@@ -148,6 +148,14 @@ El detalle issuer-facing devuelve siempre
 respuesta allowlisted incluye referencia, tipo, estado, nombre, MIME, tamano,
 SHA-256 documental y fecha; no incluye provider, key, path ni uploader.
 
+Después de una emisión issuer-scoped exitosa, el backend intenta crear y
+ejecutar un `AnalysisRun` documental `system` cuando existe un PDF `current`.
+El intento ocurre fuera de la transacción de emisión, reutiliza la evidencia
+exacta y evita duplicar un run activo o completado para esa misma fuente. La
+ausencia de PDF o un fallo de storage/AI/persistencia semántica no bloquean ni
+revierten la emisión. El endpoint manual de análisis permanece limitado a
+drafts; texto y `combined` no se ejecutan automáticamente.
+
 `POST /issuers/:issuerId/credentials/:credentialId/evidence/texts` recibe JSON
 con `content` requerido y `label` opcional. Aplica una allowlist exacta,
 normaliza Unicode a NFC, saltos CRLF/CR a LF y whitespace exterior, conserva

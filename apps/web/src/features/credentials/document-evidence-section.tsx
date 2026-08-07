@@ -153,8 +153,9 @@ export function DocumentEvidenceSection({
           Evidencia documental
         </h2>
         <p className="mt-2 leading-7 text-text-muted">
-          La evidencia respalda el borrador. Adjuntarla no emite la
-          credencial ni ejecuta análisis IA automáticamente.
+          {isDraft
+            ? 'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
+            : 'Esta evidencia quedó asociada a la credencial emitida.'}
         </p>
       </div>
 
@@ -206,8 +207,8 @@ export function DocumentEvidenceSection({
 
       {!isDraft ? (
         <FeedbackAlert variant="information" title="Evidencia en modo lectura">
-          La evidencia solo puede modificarse mientras la credencial está en
-          borrador.
+          Las modificaciones de evidencia solo están disponibles mientras la
+          credencial está en borrador.
         </FeedbackAlert>
       ) : null}
     </section>

@@ -125,9 +125,10 @@ cuando valen cero. La confianza describe la fiabilidad del análisis, no el
 nivel del titular; `null` se presenta como `No informada`. Los `qualityFlags`
 se transforman en observaciones legibles y nunca se expone el artifact raw.
 
-El reanálisis y la actualización de estado son manuales. P5e-web no incorpora
-polling, análisis textual o combinado, proposals, readiness, emisión ni
-blockchain.
+El trigger manual y la actualización de estado se mantienen para drafts. No hay
+polling: después de emitir, el frontend vuelve a consultar `latest` y deja el
+análisis en modo lectura. P5e-web no incorpora análisis textual o combinado,
+proposals ni readiness.
 
 ## Polish del detalle emisor
 
@@ -162,6 +163,13 @@ Las credenciales `issued` y `revoked` conservan evidencia documental, textual
 y análisis inteligente en modo lectura. P6a-2 no incorpora revocación, Wallet
 del holder, verificador público, QR, sharing ni operaciones blockchain desde el
 frontend.
+
+P6b agrega un intento automático documental controlado por NestJS después de
+una emisión exitosa cuando existe un PDF vigente. La IA es best-effort: no
+bloquea ni invalida la emisión y no participa en `canon_v1`. El navegador solo
+refresca el último `AnalysisRun`; no llama FastAPI, no hace polling y no ofrece
+trigger manual sobre credenciales `issued` o `revoked`. Documento y texto
+permanecen visibles sin controles de carga o reemplazo en modo lectura.
 
 ## Prerrequisitos
 

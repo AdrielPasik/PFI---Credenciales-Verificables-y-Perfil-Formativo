@@ -4,6 +4,7 @@ import test from 'node:test';
 import { MODULE_METADATA } from '@nestjs/common/constants';
 import { NestFactory } from '@nestjs/core';
 
+import { AnalysisRunModule } from '../analysis-run/analysis-run.module';
 import { AppModule } from '../app.module';
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthModule } from '../auth/auth.module';
@@ -33,6 +34,7 @@ test('CredentialsModule wires issuer credential read without duplicate auth prov
 
   assert.equal(imports.includes(AuthModule), true);
   assert.equal(imports.includes(IssuersModule), true);
+  assert.equal(imports.includes(AnalysisRunModule), true);
   assert.equal(providers.includes(AuthService), false);
   assert.equal(providers.includes(AuthGuard), false);
   assert.equal(providers.includes(IssuerCredentialReadService), true);

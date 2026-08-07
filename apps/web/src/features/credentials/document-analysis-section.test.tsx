@@ -122,6 +122,11 @@ describe('DocumentAnalysisSection', () => {
 
     renderSection();
     expect(screen.getByText('Todavía no hay análisis registrados.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'También se generará automáticamente al emitir si hay un PDF vigente.'
+      )
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Analizar documento' })).toBeTruthy();
   });
 
@@ -244,10 +249,27 @@ describe('DocumentAnalysisSection', () => {
         credentialStatus,
         currentState: state({ currentRun: runFixture() })
       });
-      expect(screen.getByText(/solo se inicia nuevamente mientras la credencial está en borrador/)).toBeTruthy();
+      expect(
+        screen.getByText(/Traza intentó generar una ejecución automática/)
+      ).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Volver a analizar' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
     }
   );
+
+  it('shows the automatic-analysis wait state for issued credentials without a run', () => {
+    renderSection({ credentialStatus: 'issued' });
+
+    expect(
+      screen.getByText(
+        'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Consultar último análisis' })
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
+  });
 
   it('supports manual refresh and keeps visible output with an error', () => {
     const onRefresh = vi.fn(async () => undefined);

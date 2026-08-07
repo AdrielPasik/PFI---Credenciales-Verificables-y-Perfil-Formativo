@@ -229,7 +229,7 @@ historica y no exige que la credencial permanezca draft.
 | Modulos | detalle issuer, API client, adapters, view models. |
 | Migracion | No. |
 | Endpoint | Triggers P5c-P5e + GET latest/run. |
-| Aceptacion | No hay analisis automatico al subir; IA no se presenta como verdad. |
+| Aceptacion | No hay analisis automatico al subir; la emision puede iniciar un intento `system` best-effort si existe un PDF vigente. IA no se presenta como verdad. |
 | Pruebas | estados, 401/403/409/5xx, doble submit, read-only. |
 | Riesgos | UI optimista o artifacts crudos expuestos. |
 | Entrega | 50%, obligatorio. |
@@ -282,6 +282,11 @@ Base disponible desde P6a-1: endpoint issuer-scoped de emision que reutiliza
 `canon_v1` y read model institucional con evidencia tecnica allowlisted. Esto
 no adelanta readiness, `canon_v2`, reconciliacion productiva ni verificador
 publico.
+
+P6b conecta esa emision con un intento documental `system` best-effort cuando
+existe un PDF vigente. Se ejecuta fuera de la transaccion, no bloquea emision,
+no cambia `canon_v1` y se consulta mediante los reads P5d. No incorpora worker,
+texto, `combined` ni propuestas.
 
 | Campo | Definicion |
 | --- | --- |

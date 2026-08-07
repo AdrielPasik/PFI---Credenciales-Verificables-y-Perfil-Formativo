@@ -266,8 +266,8 @@ export function TextEvidenceSection({
           variant="information"
           title="Evidencia textual en modo lectura"
         >
-          La evidencia textual solo puede modificarse mientras la credencial
-          está en borrador.
+          La evidencia textual puede registrarse mientras la credencial está
+          en borrador. Esta credencial ya está en modo lectura.
         </FeedbackAlert>
       ) : null}
     </section>

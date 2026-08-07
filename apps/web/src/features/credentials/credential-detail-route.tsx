@@ -295,6 +295,7 @@ export function CredentialDetailController({
     );
 
     setDetail(issued);
+    await documentAnalysis.refresh();
     return issued;
   }
 
