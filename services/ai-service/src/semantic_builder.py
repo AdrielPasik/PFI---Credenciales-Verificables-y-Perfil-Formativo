@@ -870,6 +870,32 @@ MULTI_DOMAIN_SKILLS_REQUIRING_CORE_EVIDENCE = {
     "AutoCAD", "SolidWorks",
     "Six Sigma", "Control Estadístico de Procesos",
     "Evaluación de Impacto Ambiental",
+
+    # IA-Q1b (hardening): las 41 skills multi-dominio agregadas en IA-Q1
+    # (config/semantic/skill_evidence_patterns.json) quedaban sin el gate de
+    # evidencia fuerte -- se detectaban con solo aparecer en objectives_raw/
+    # course_name/keywords, a diferencia de SOFTWARE_SKILLS. Se agregan aca
+    # con el mismo criterio conservador: exigen evidencia en
+    # CORE_CURRICULAR_SECTIONS y modo de deteccion explicito (nunca solo
+    # semantic_match_local_*). Ver
+    # ia-q1-general-semantic-quality-upgrade-review-bundle.txt seccion 12.
+    "Pensamiento Crítico", "Lectura Crítica", "Comunicación Escrita",
+    "Comunicación Oral", "Análisis Argumentativo", "Debate y Argumentación",
+    "Producción de Textos", "Interpretación Conceptual", "Ética Aplicada",
+    "Investigación Bibliográfica",
+    "Metodología de Investigación", "Análisis Cualitativo",
+    "Análisis Cuantitativo", "Relevamiento de Información",
+    "Elaboración de Informes", "Análisis de Casos", "Diseño de Instrumentos",
+    "Gestión de Proyectos", "Trabajo en Equipo", "Toma de Decisiones",
+    "Resolución de Problemas", "Planificación Estratégica",
+    "Gestión Organizacional", "Mejora de Procesos",
+    "Análisis Financiero", "Evaluación de Inversiones", "Presupuestación",
+    "Control de Gestión", "Análisis de Costos",
+    "Bases de Datos", "Análisis de Datos", "Testing de Software", "DevOps",
+    "Cloud Computing", "Seguridad Informática",
+    "Diseño Centrado en Usuario", "Investigación de Usuarios",
+    "Prototipado", "Evaluación de Usabilidad", "Diseño de Interfaces",
+    "Comunicación Visual",
 }
 
 # Union usada en detect_skills() para decidir que skills exigen evidencia en

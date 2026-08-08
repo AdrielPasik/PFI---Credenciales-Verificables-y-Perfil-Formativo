@@ -188,7 +188,15 @@ EXTENDED_AREA_ANCHORS: Dict[str, List[str]] = {
     "Recursos Hídricos y Gestión Ambiental": ["recursos hidricos", "impacto ambiental", "remediacion"],
     "Agro y Producción Agropecuaria": ["suelos", "riego", "agricultura de precision", "sig"],
     "Diseño y Desarrollo de Videojuegos": ["game design", "motores graficos", "renderizado", "ux", "ui"],
-    "Gestión de Proyectos Tecnológicos": ["gestion de proyectos", "gestión de proyectos", "gestion del alcance", "alcance del proyecto", "cronograma", "riesgos"],
+    # IA-Q1b (hardening): "gestion de proyectos"/"cronograma"/"riesgos" son
+    # demasiado genericos como anchor -- cualquier curso de gestion/negocios
+    # generico (dominio nuevo de IA-Q1, sin area_profiles propia) los
+    # contiene y terminaba resolviendo falsamente a esta area, que en
+    # realidad es especifica del curso de proyecto integrador final (PFI).
+    # Se tightening a anchors que si son distintivos de ESE curso puntual.
+    # "gestion de proyectos" sigue funcionando como keyword de scoring
+    # normal (area_profiles.json strong), solo se retira como ANCHOR.
+    "Gestión de Proyectos Tecnológicos": ["proyecto integrador final", "defensa oral", "normativa e instructivo de pfi", "gestion del alcance del proyecto"],
 }
 
 

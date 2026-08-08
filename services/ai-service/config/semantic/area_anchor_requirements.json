@@ -20,7 +20,6 @@
 	"Tecnología Industrial de los Alimentos": ["tecnologia industrial de los alimentos", "procesamiento de alimentos", "envasado", "inocuidad"],
 	"Comunicación y Humanidades": ["pensamiento critico", "comprension lectora", "argumentacion", "comunicacion efectiva", "etica", "filosofia", "epistemologia", "logica proposicional"],
 	"Instrumentación y Mediciones": ["instrumentacion", "mediciones", "metrologia", "calibracion", "teoria de errores"],
-	"Gestión de Proyectos Tecnológicos": ["gestion de proyectos", "gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "project charter"],
 	"Matemática": ["calculo", "ecuaciones diferenciales", "algebra lineal", "metodos numericos", "algebra", "geometria", "espacios vectoriales"],
 	"Física": ["optica fisica", "interferencia", "difraccion", "campo electrico", "teoria de errores"]
 }

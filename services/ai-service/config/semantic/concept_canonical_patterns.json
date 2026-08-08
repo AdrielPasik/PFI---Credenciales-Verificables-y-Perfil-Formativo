@@ -48,5 +48,25 @@
 	["motores graficos", "motores gráficos"],
 	["renderizado", "renderizado"],
 	["animacion", "animación"],
-	["sonido interactivo", "sonido interactivo"]
+	["sonido interactivo", "sonido interactivo"],
+
+	["metodologia de investigacion", "metodología de investigación"],
+	["marco teorico", "marco teórico"],
+	["muestra representativa", "muestra representativa"],
+	["variables de estudio", "variables de estudio"],
+	["revision bibliografica", "revisión bibliográfica"],
+	["diseno metodologico", "diseño metodológico"],
+
+	["estados financieros", "estados financieros"],
+	["presupuesto operativo", "presupuesto operativo"],
+	["indicadores de gestion", "indicadores de gestión"],
+	["analisis foda", "análisis FODA"],
+	["cadena de valor", "cadena de valor"],
+	["ventaja competitiva", "ventaja competitiva"],
+
+	["diseno centrado en el usuario", "diseño centrado en el usuario"],
+	["experiencia de usuario", "experiencia de usuario"],
+	["prototipado", "prototipado"],
+	["usabilidad", "usabilidad"],
+	["arquitectura de informacion", "arquitectura de información"]
 ]

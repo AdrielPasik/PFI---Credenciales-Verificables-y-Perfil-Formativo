@@ -140,14 +140,14 @@
 		"light": ["maquinas termicas", "máquinas térmicas", "termohidraulico", "termohidráulico"]
 	},
 	"Costos y Contabilidad": {
-		"strong": ["costos directos", "costos indirectos", "costeo abc", "costeo abm"],
-		"medium": ["valuacion", "valuación", "plan de cuentas", "indicadores de costos", "flujo de fondos"],
-		"light": ["van", "tir", "mantenimiento", "confiabilidad"]
+		"strong": ["costos directos", "costos indirectos", "costeo abc", "costeo abm", "analisis financiero", "análisis financiero", "estados financieros"],
+		"medium": ["valuacion", "valuación", "plan de cuentas", "indicadores de costos", "flujo de fondos", "presupuesto operativo", "evaluacion de inversiones", "evaluación de inversiones", "control de gestion", "control de gestión"],
+		"light": ["van", "tir", "mantenimiento", "confiabilidad", "valor actual neto", "tasa interna de retorno"]
 	},
 	"Comunicación y Humanidades": {
 		"strong": ["pensamiento critico", "pensamiento crítico", "comprension lectora", "comprensión lectora", "comunicacion efectiva", "comunicación efectiva"],
-		"medium": ["argumentacion", "argumentación", "liderazgo situacional", "ética aplicada", "filosofía moral", "dialéctica"],
-		"light": ["retorica", "retórica", "debate", "expresion oral", "expresión oral"]
+		"medium": ["argumentacion", "argumentación", "liderazgo situacional", "ética aplicada", "filosofía moral", "dialéctica", "comunicacion asertiva", "comunicación asertiva", "redaccion academica", "redacción académica"],
+		"light": ["retorica", "retórica", "debate", "expresion oral", "expresión oral", "diversidad cultural", "responsabilidad social"]
 	},
 	"Física": {
 		"strong": ["optica fisica", "óptica física", "interferencia", "difraccion", "difracción", "campo electrico", "campo eléctrico"],

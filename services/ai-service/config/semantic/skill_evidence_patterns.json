@@ -2,5 +2,52 @@
 	"Unreal": ["unreal engine", "unreal"],
 	"Unity": ["unity", "unity3d"],
 	"MATLAB": ["matlab"],
-	"LabVIEW": ["labview"]
+	"LabVIEW": ["labview"],
+
+	"Pensamiento Crítico": ["pensamiento critico", "pensamiento crítico"],
+	"Lectura Crítica": ["lectura critica", "lectura crítica", "comprension lectora", "comprensión lectora"],
+	"Comunicación Escrita": ["comunicacion escrita", "comunicación escrita", "redaccion academica", "redacción académica"],
+	"Comunicación Oral": ["comunicacion oral", "comunicación oral", "expresion oral", "expresión oral"],
+	"Análisis Argumentativo": ["analisis argumentativo", "análisis argumentativo", "argumentacion critica", "argumentación crítica"],
+	"Debate y Argumentación": ["debate y argumentacion", "debate y argumentación", "tecnicas de debate", "técnicas de debate"],
+	"Producción de Textos": ["produccion de textos", "producción de textos", "produccion textual", "producción textual"],
+	"Interpretación Conceptual": ["interpretacion conceptual", "interpretación conceptual", "interpretacion de conceptos", "interpretación de conceptos"],
+	"Ética Aplicada": ["etica aplicada", "ética aplicada", "etica profesional", "ética profesional"],
+	"Investigación Bibliográfica": ["investigacion bibliografica", "investigación bibliográfica", "revision bibliografica", "revisión bibliográfica"],
+
+	"Metodología de Investigación": ["metodologia de investigacion", "metodología de investigación", "diseno metodologico", "diseño metodológico"],
+	"Análisis Cualitativo": ["analisis cualitativo", "análisis cualitativo", "investigacion cualitativa", "investigación cualitativa"],
+	"Análisis Cuantitativo": ["analisis cuantitativo", "análisis cuantitativo", "investigacion cuantitativa", "investigación cuantitativa"],
+	"Relevamiento de Información": ["relevamiento de informacion", "relevamiento de información", "recoleccion de datos", "recolección de datos"],
+	"Elaboración de Informes": ["elaboracion de informes", "elaboración de informes", "redaccion de informes", "redacción de informes"],
+	"Análisis de Casos": ["analisis de casos", "análisis de casos", "estudio de casos", "estudio de caso"],
+	"Diseño de Instrumentos": ["diseno de instrumentos de recoleccion", "diseño de instrumentos de recolección", "diseno de encuestas", "diseño de encuestas"],
+
+	"Gestión de Proyectos": ["gestion de proyectos", "gestión de proyectos", "administracion de proyectos", "administración de proyectos"],
+	"Trabajo en Equipo": ["trabajo en equipo", "trabajo colaborativo"],
+	"Toma de Decisiones": ["toma de decisiones", "proceso de toma de decisiones"],
+	"Resolución de Problemas": ["resolucion de problemas", "resolución de problemas", "pensamiento resolutivo"],
+	"Planificación Estratégica": ["planificacion estrategica", "planificación estratégica", "analisis estrategico", "análisis estratégico"],
+	"Gestión Organizacional": ["gestion organizacional", "gestión organizacional", "comportamiento organizacional"],
+	"Mejora de Procesos": ["mejora de procesos", "mejora continua de procesos", "optimizacion de procesos", "optimización de procesos"],
+
+	"Análisis Financiero": ["analisis financiero", "análisis financiero", "interpretacion de estados financieros", "interpretación de estados financieros"],
+	"Evaluación de Inversiones": ["evaluacion de inversiones", "evaluación de inversiones", "valor actual neto", "tasa interna de retorno"],
+	"Presupuestación": ["presupuestacion", "presupuestación", "elaboracion de presupuestos", "elaboración de presupuestos"],
+	"Control de Gestión": ["control de gestion", "control de gestión", "indicadores de gestion", "indicadores de gestión"],
+	"Análisis de Costos": ["analisis de costos", "análisis de costos", "costeo abc", "costeo abm"],
+
+	"Bases de Datos": ["modelado de bases de datos", "diseno de bases de datos", "diseño de bases de datos", "bases de datos relacionales"],
+	"Análisis de Datos": ["analisis de datos", "análisis de datos", "ciencia de datos", "data science"],
+	"Testing de Software": ["testing de software", "pruebas de software", "pruebas unitarias"],
+	"DevOps": ["devops", "integracion continua", "integración continua", "despliegue continuo"],
+	"Cloud Computing": ["cloud computing", "computacion en la nube", "computación en la nube"],
+	"Seguridad Informática": ["seguridad informatica", "seguridad informática", "ciberseguridad"],
+
+	"Diseño Centrado en Usuario": ["diseno centrado en el usuario", "diseño centrado en el usuario", "diseno centrado en usuario", "diseño centrado en usuario"],
+	"Investigación de Usuarios": ["investigacion de usuarios", "investigación de usuarios", "user research"],
+	"Prototipado": ["prototipado", "prototipos de baja fidelidad", "prototipos de alta fidelidad"],
+	"Evaluación de Usabilidad": ["evaluacion de usabilidad", "evaluación de usabilidad", "pruebas de usabilidad"],
+	"Diseño de Interfaces": ["diseno de interfaces", "diseño de interfaces", "diseno de interfaz de usuario", "diseño de interfaz de usuario"],
+	"Comunicación Visual": ["comunicacion visual", "comunicación visual", "diseno grafico", "diseño gráfico"]
 }
