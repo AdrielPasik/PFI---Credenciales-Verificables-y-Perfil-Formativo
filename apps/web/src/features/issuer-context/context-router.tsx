@@ -7,7 +7,6 @@ import { SessionErrorState } from '@/components/feedback/session-error-state';
 import { SessionLoadingState } from '@/components/feedback/session-loading-state';
 import { ContextShell } from '@/components/layout/context-shell';
 import { IssuerSelector } from '@/features/issuer-context/issuer-selector';
-import { NoOperationalIssuerState } from '@/features/issuer-context/no-operational-issuer-state';
 import { useSession } from '@/lib/session/session-provider';
 
 export function ContextRouter() {
@@ -31,6 +30,10 @@ export function ContextRouter() {
         state.issuerContext.kind === 'selected')
     ) {
       router.replace('/issuer');
+    }
+
+    if (state.status === 'authenticated' && state.issuerContext.kind === 'none') {
+      router.replace('/wallet');
     }
   }, [router, state]);
 
@@ -65,9 +68,7 @@ export function ContextRouter() {
 
   return (
     <ContextShell email={state.currentUser.email} onLogout={handleLogout}>
-      {context.kind === 'none' ? (
-        <NoOperationalIssuerState memberships={context.issuerContexts} />
-      ) : null}
+      {context.kind === 'none' ? <SessionLoadingState label="Abriendo tu espacio personal" /> : null}
       {context.kind === 'selection-required' ? (
         <IssuerSelector
           memberships={context.operationalIssuerContexts}

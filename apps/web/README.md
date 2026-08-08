@@ -43,6 +43,9 @@ Las rutas implementadas son:
 - `/issuer`: portal mínimo del emisor;
 - `/issuer/credentials/new`: resolución de titular y creación de draft;
 - `/issuer/credentials/[credentialId]`: detalle y edición manual del draft.
+- `/wallet`: perfil formativo del titular;
+- `/wallet/credentials`: biblioteca de credenciales del titular;
+- `/wallet/credentials/[credentialId]`: detalle holder de solo lectura.
 
 F1c obtiene la institución exclusivamente del contexto autenticado, conserva
 el ID del titular como referencia interna y no permite crear usuarios ni
@@ -79,9 +82,9 @@ siendo la autoridad sobre la firma real, MIME, extensión y SHA-256. En drafts
 se puede cargar o reemplazar explícitamente la evidencia vigente; en
 credenciales issued o revoked se presenta únicamente en modo lectura.
 
-P4b no incorpora descarga, preview, historial visible, eliminación, evidencia
-textual, análisis IA automático, readiness, emisión ni blockchain. Todavía no
-están implementadas la Wallet ni el listado de credenciales desde la interfaz.
+P4b no incorporaba descarga, preview, historial visible, eliminación, evidencia
+textual, análisis IA automático, readiness, emisión ni blockchain. La Wallet y
+el listado holder se incorporaron posteriormente en H1.
 La edición P3 y el reemplazo documental P4b se limitan a credenciales en estado
 `draft`.
 
@@ -230,8 +233,8 @@ La sesión F1a es explícitamente demo-grade:
 - con una institución operativa se abre `/issuer`;
 - con varias se exige una elección explícita y se permite cambiarla sin cerrar
   sesión;
-- sin instituciones operativas se muestra un estado autenticado honesto, sin
-  redirigir a una Wallet inexistente.
+- sin instituciones operativas se abre `/wallet` como espacio personal del
+  titular.
 
 `sessionStorage` sigue siendo accesible al JavaScript de la página y, por lo
 tanto, vulnerable ante XSS. Una evolución productiva debería evaluar cookies
@@ -263,6 +266,28 @@ npm run test --workspace @credential-intelligence/web
 npm run build --workspace @credential-intelligence/web
 npm run start --workspace @credential-intelligence/web
 ```
+
+## Holder Wallet v1
+
+La experiencia del titular usa rutas propias y mobile-first:
+
+- `/wallet`: perfil formativo actual construido a partir de credenciales y análisis disponibles;
+- `/wallet/credentials`: biblioteca de credenciales emitidas o revocadas del titular;
+- `/wallet/credentials/[credentialId]`: detalle de solo lectura con información emitida, fuentes de respaldo, análisis disponible y evidencia de integridad.
+
+El navegador consume únicamente los endpoints autenticados `/me/credentials`,
+`/me/credentials/:id` y `/me/profile/current` mediante NestJS. No llama a
+FastAPI, S3, RPC ni servicios blockchain. Las referencias internas se usan solo
+para requests y rutas; la interfaz no las presenta como datos de producto.
+
+La Wallet no permite emitir, editar, cargar evidencia, reconstruir perfiles ni
+reintentar análisis. QR, sharing, verificador público y aplicación nativa/PWA
+siguen fuera de alcance.
+
+El perfil formativo y la biblioteca de credenciales se cargan de forma
+independiente. La Wallet no afirma que una credencial concreta haya sido fuente
+de un perfil mientras no exista una relación de procedencia segura expuesta por
+el backend; presenta ambas vistas como información disponible para el titular.
 
 ## Deployment en Vercel
 
