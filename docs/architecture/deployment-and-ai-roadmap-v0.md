@@ -111,6 +111,11 @@ real. P4i-6a registra el deploy demo ya operativo como Web Service Free con URL
 HTTPS publica y JWT interno, una desviacion temporal por restricciones de
 costo/entorno actuales. Health, rechazo sin JWT y smoke NestJS -> FastAPI
 pasaron; integracion de fuentes y hardening continuan en slices siguientes.
+P6d registro un incidente de cold start/gateway `502` del Web Service Free:
+un run automatico fallo de forma best-effort con `ai_invalid_response`, pero
+health posterior y reintento funcionaron. La mitigacion demo es health previo;
+una instancia sin spin-down y Private Service o equivalente son el objetivo
+estructural futuro.
 
 | Campo | Definicion |
 | --- | --- |

@@ -240,6 +240,14 @@ HTTP si existe, causa de red segura y un detalle sanitizado/truncado. Para
 analisis documentales, `X-Analysis-Run-Id` transporta la correlacion interna;
 no contiene identidad de usuario ni secretos.
 
+En cloud demo se observo un fallo transitorio de cold start/gateway del Web
+Service Free: un run automatico registro `ai_invalid_response` con HTTP `502`
+antes de recibir JSON valido. Health posterior y un nuevo analisis funcionaron.
+La emision no se revierte porque el analisis es best-effort. Antes de una demo
+IA, consultar el health tecnico del AI Service; no registrar ni compartir URL,
+token, storage key, PDF ni logs crudos. La solucion estructural futura es una
+instancia sin spin-down y Private Service o equivalente cuando sea viable.
+
 En demo, P4i-6a registra temporalmente una URL HTTPS publica del Web Service
 FastAPI; `AI_SERVICE_AUTH_MODE` permanece en `jwt` y el browser nunca consume
 esa URL. La red privada sigue siendo el objetivo. `none` es solo local, no una

@@ -143,6 +143,13 @@ documentan en
 `../../docs/architecture/render-ai-cloud-deployment-record-v0.md`. La URL
 publica demo no habilita llamadas directas desde frontend.
 
+En la demo cloud se observo un cold start/gateway temporal antes de que FastAPI
+pudiera devolver JSON: el backend registro un `AnalysisRun` fallido seguro y
+el health posterior fue exitoso. Antes de una demo IA, consultar `/health` para
+despertar el servicio si corresponde. No incluir URL real, token, PDF ni logs
+sensibles en comandos o documentacion. Una instancia sin spin-down y Private
+Service o equivalente son la mejora estructural futura.
+
 ## Limites
 
 - auth interna JWT HS256 disponible, deshabilitada por default local;

@@ -57,6 +57,18 @@ No se implementan aislamiento privado, WAF, rate limiting distribuido, mTLS o
 workload identity. Una filtracion del secreto seria mas grave al existir
 conectividad publica. Esta excepcion no debe asumirse productiva.
 
+La modalidad demo tambien puede introducir riesgo de disponibilidad por cold
+start o gateway temporal. Un incidente posterior, diagnosticado por P6d,
+registro un `AnalysisRun` automatico con `ai_invalid_response` y HTTP `502`
+antes de que FastAPI respondiera JSON. El health posterior fue exitoso y el
+analisis volvio a funcionar, por lo que no se atribuyo a JWT, S3, Prisma ni al
+contrato FastAPI. La emision no se revierte ante este fallo best-effort.
+
+La mitigacion de demo es consultar `/health` antes de usar IA. La solucion
+estructural es usar una instancia sin spin-down y, cuando sea viable, migrar a
+Private Service o equivalente. Esta observacion no altera la decision de que
+NestJS sigue siendo el orquestador ni habilita llamadas browser -> FastAPI.
+
 ## Condiciones para migrar
 
 Migrar a Private Service o equivalente cuando:

@@ -147,6 +147,40 @@ JSON y validacion contractual. No persistio resultados, no uso
 `DocumentEvidence` ni `TextEvidence`, no creo `AnalysisRun` y no modifico
 emision, canon o blockchain.
 
+## Incidente operativo de analisis automatico
+
+Despues de P6d se observo un `AnalysisRun` documental automatico con trigger
+`system` que fallo en la etapa `ai`. El run persistio `ai_invalid_response`,
+`httpStatus=502` y una duracion aproximada de 634 ms. La emision asociada se
+completo y no fue revertida: el analisis automatico es best-effort y su fallo
+solo afecta ese `AnalysisRun`.
+
+Luego, una consulta tecnica a `/health` respondio `200` y un nuevo intento de
+analisis funciono. La evidencia es consistente con un cold start o gateway
+temporal del Render Web Service Free antes de que FastAPI pudiera responder
+JSON valido. No se identifico un fallo de JWT interno, S3, Prisma, mapper,
+schema ni contrato FastAPI.
+
+P6d permite distinguir este caso mediante `errorCode`, `stage`, status HTTP y
+logs sanitizados del backend. El read model conserva solamente mensajes seguros
+y no expone URLs, tokens, storage keys, contenido PDF, artifacts ni logs
+crudos.
+
+### Mitigacion para demo
+
+Antes de iniciar una demo que use IA, ejecutar un `GET /health` tecnico contra
+el AI Service y confirmar respuesta exitosa. Esta accion puede despertar el
+servicio, pero no sustituye una garantia de disponibilidad ni debe incluir la
+URL real en documentacion, capturas o scripts versionados.
+
+### Solucion estructural futura
+
+Para reducir el riesgo de spin-down/cold start, evaluar una instancia que no se
+duerma dentro del plan aprobado y migrar a Private Service o equivalente cuando
+sea viable. La red privada sigue siendo el objetivo de seguridad; la mejora de
+disponibilidad debe verificarse contra las capacidades y costo vigentes del
+proveedor.
+
 ## Browser boundary
 
 - el frontend no conoce `AI_SERVICE_BASE_URL`;
@@ -222,7 +256,8 @@ El deploy cloud no implementa ninguna de esas capacidades.
 ## Proximos pasos
 
 1. mantener el smoke sanitizado como gate de deployment;
-2. monitorear trafico, latencia, memoria y rechazos sin registrar payloads;
+2. ejecutar health tecnico antes de demos IA y monitorear latencia, gateway y
+   rechazos sin registrar payloads;
 3. migrar a servicio privado cuando el entorno demo/produccion lo permita;
 4. ejecutar P5 con resolucion de fuentes y trazabilidad;
 5. abordar calidad semantica en un slice separado con metricas y regresiones;
