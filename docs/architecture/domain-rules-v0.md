@@ -414,3 +414,16 @@ Estas reglas impactaran directamente:
 
 `canon_v2` no se decide en P4d. Debe esperar a que revision humana y readiness
 definan que claims oficiales forman parte de la emision.
+
+## Holder wallet v1
+
+- El titular consulta únicamente sus credenciales `issued` o `revoked`; un
+  borrador institucional no forma parte de la Wallet.
+- La Wallet es de solo lectura: no emite, edita, reemplaza evidencia ni
+  reintenta análisis.
+- El perfil formativo organiza información disponible de credenciales y
+  análisis; no certifica capacidades, niveles ni completitud individual.
+- La UI no atribuye un área, habilidad o concepto del perfil a una credencial
+  concreta sin una relación de procedencia segura entregada por el backend.
+- La evidencia de integridad es técnica. En `anvil` o `mock` se presenta como
+  entorno técnico/demo, nunca como red pública productiva.

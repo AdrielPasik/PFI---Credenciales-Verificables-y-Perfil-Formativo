@@ -6,345 +6,84 @@ import { NotFoundException } from '@nestjs/common';
 import { MeService } from './me.service';
 
 function decimalLike(value: string) {
-  return {
-    toString() {
-      return value;
-    }
-  };
+  return { toString: () => value };
 }
 
-test('MeService lists only holder credentials with issued/revoked status and omits rawData', async () => {
-  const findManyCalls: Array<Record<string, unknown>> = [];
+test('MeService lists only holder issued/revoked credentials through a minimized select', async () => {
+  const calls: Array<Record<string, unknown>> = [];
   const service = new MeService({
     credential: {
       async findMany(args: Record<string, unknown>) {
-        findManyCalls.push(args);
-        return [
-          {
-            id: 'cred-issued',
-            title: 'Issued credential',
-            type: 'academic_subject',
-            status: 'issued',
-            issuedAt: new Date('2026-07-22T19:00:00Z'),
-            revokedAt: null,
-            canonicalHash: '0x' + '1'.repeat(64),
-            canonicalizationVersion: 'canon_v1',
-            rawData: { hidden: true },
-            issuer: {
-              id: 'issuer-1',
-              name: 'Demo University',
-              did: 'did:example:issuer-demo'
-            },
-            blockchainRecords: [
-              {
-                id: 'record-1',
-                network: 'anvil',
-                chainId: 31337,
-                txHash: '0x' + '2'.repeat(64),
-                status: 'registered',
-                registeredAt: new Date('2026-07-22T19:10:00Z')
-              }
-            ],
-            semanticAnalyses: [
-              {
-                id: 'sem-1',
-                status: 'completed',
-                confidence: decimalLike('0.8750'),
-                analyzedAt: new Date('2026-07-22T19:20:00Z')
-              }
-            ]
-          }
-        ];
-      },
-      async findFirst() {
-        return null;
+        calls.push(args);
+        return [{
+          id: 'cred-issued', title: 'Credencial emitida', type: 'course', status: 'issued',
+          issuedAt: new Date('2026-08-01T10:00:00Z'),
+          issuer: { name: 'Institución demo' },
+          blockchainRecords: [{ id: 'record-1' }],
+          semanticAnalyses: [{ id: 'analysis-1' }]
+        }];
       }
     }
   } as never);
 
   const response = await service.listCredentialsForUser('holder-1');
-
-  assert.deepEqual(findManyCalls, [
-    {
-      where: {
-        subjectUserId: 'holder-1',
-        status: {
-          in: ['issued', 'revoked']
-        }
-      },
-      include: {
-        issuer: {
-          select: {
-            id: true,
-            name: true,
-            did: true
-          }
-        },
-        blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
-          },
-          take: 1
-        },
-        semanticAnalyses: {
-          orderBy: {
-            analyzedAt: 'desc'
-          },
-          take: 1
-        }
-      },
-      orderBy: [
-        {
-          issuedAt: 'desc'
-        },
-        {
-          createdAt: 'desc'
-        }
-      ]
-    }
-  ]);
-
-  assert.deepEqual(response, [
-    {
-      id: 'cred-issued',
-      title: 'Issued credential',
-      type: 'academic_subject',
-      status: 'issued',
-      issuer: {
-        id: 'issuer-1',
-        name: 'Demo University',
-        did: 'did:example:issuer-demo'
-      },
-      issuedAt: '2026-07-22T19:00:00Z',
-      revokedAt: null,
-      canonicalHash: '0x' + '1'.repeat(64),
-      canonicalizationVersion: 'canon_v1',
-      latestBlockchainRecord: {
-        id: 'record-1',
-        network: 'anvil',
-        chainId: 31337,
-        txHash: '0x' + '2'.repeat(64),
-        status: 'registered',
-        registeredAt: '2026-07-22T19:10:00Z'
-      },
-      latestSemanticAnalysis: {
-        id: 'sem-1',
-        status: 'completed',
-        confidence: 0.875,
-        analyzedAt: '2026-07-22T19:20:00Z'
-      }
-    }
-  ]);
-  assert.equal('rawData' in response[0], false);
+  const query = calls[0];
+  assert.deepEqual(query.where, { subjectUserId: 'holder-1', status: { in: ['issued', 'revoked'] } });
+  assert.equal('select' in query, true);
+  assert.equal(JSON.stringify(query).includes('rawData'), false);
+  assert.equal(JSON.stringify(query).includes('canonicalHash'), false);
+  assert.equal(JSON.stringify(query).includes('txHash'), false);
+  assert.equal(JSON.stringify(query).includes('issuer":{"select":{"id"'), false);
+  assert.deepEqual(response, [{
+    id: 'cred-issued', title: 'Credencial emitida', type: 'course', status: 'issued',
+    issuerName: 'Institución demo', issuedAt: '2026-08-01T10:00:00Z',
+    hasIntegrityEvidence: true, hasAnalysis: true
+  }]);
 });
 
-test('MeService returns an empty list for issuer admin without holder credentials', async () => {
+test('MeService returns a holder-safe detail without raw data, storage keys, metadata or blockchain addresses', async () => {
+  const calls: Array<Record<string, unknown>> = [];
   const service = new MeService({
     credential: {
-      async findMany() {
-        return [];
-      },
-      async findFirst() {
-        return null;
-      }
-    }
-  } as never);
-
-  const response = await service.listCredentialsForUser('issuer-admin-user');
-  assert.deepEqual(response, []);
-});
-
-test('MeService returns detail for holder-owned issued credential and does not expose rawData', async () => {
-  const findFirstCalls: Array<Record<string, unknown>> = [];
-  const service = new MeService({
-    credential: {
-      async findMany() {
-        return [];
-      },
       async findFirst(args: Record<string, unknown>) {
-        findFirstCalls.push(args);
+        calls.push(args);
         return {
-          id: 'cred-1',
-          schemaVersion: 'credential_v1',
-          type: 'academic_subject',
-          title: 'Detalle credencial',
-          description: 'Descripcion demo',
-          status: 'issued',
-          issuedAt: new Date('2026-07-22T19:00:00Z'),
-          revokedAt: null,
-          revocationReason: null,
-          canonicalHash: '0x' + '3'.repeat(64),
-          canonicalizationVersion: 'canon_v1',
-          credentialSubject: {
-            achievement_name: 'Detalle credencial',
-            institution_name: 'Demo University'
-          },
-          metadata: {
-            audience: 'holder'
-          },
-          rawData: {
-            hidden: true
-          },
-          issuer: {
-            id: 'issuer-1',
-            name: 'Demo University',
-            did: 'did:example:issuer-demo'
-          },
-          subjectUser: {
-            id: 'holder-1',
-            did: 'did:example:holder-demo',
-            email: 'holder.demo@example.com',
-            displayName: 'Demo Holder'
-          },
-          blockchainRecords: [
-            {
-              id: 'record-1',
-              network: 'anvil',
-              chainId: 31337,
-              contractAddress: '0x0000000000000000000000000000000000000001',
-              txHash: '0x' + '4'.repeat(64),
-              issuerAddress: '0x00000000000000000000000000000000000000aa',
-              status: 'registered',
-              registeredAt: new Date('2026-07-22T19:10:00Z'),
-              revokedAt: null
-            }
-          ],
-          semanticAnalyses: [
-            {
-              id: 'sem-1',
-              schemaVersion: 'semantic_analysis_v1',
-              status: 'completed',
-              pipelineVersion: 'pipeline-v1',
-              taxonomyVersion: 'taxonomy-v1',
-              confidence: decimalLike('0.9200'),
-              areas: [{ id: 'software_engineering' }],
-              skills: [{ id: 'typescript' }],
-              concepts: [{ id: 'oop' }],
-              qualityFlags: ['area_assignment_confident'],
-              analyzedAt: new Date('2026-07-22T19:20:00Z')
-            }
-          ]
+          id: 'cred-1', type: 'academic_subject', title: 'Arquitectura de software', description: 'Descripción emitida', hours: decimalLike('64'), status: 'issued',
+          issuedAt: new Date('2026-08-01T10:00:00Z'), revokedAt: null, revocationReason: null,
+          canonicalHash: '0x' + '3'.repeat(64), canonicalizationVersion: 'canon_v1', rawData: { hidden: true }, metadata: { hidden: true },
+          credentialSubject: { achievement_name: 'Arquitectura de software', institution_name: 'Institución demo', academic_period: '2026', skills: ['Diseño'], competencies: ['Análisis'], learning_outcomes: ['Modelar'] },
+          issuer: { id: 'issuer-1', name: 'Institución demo', did: 'did:example:issuer' },
+          subjectUser: { did: 'did:example:holder', email: 'holder@example.com', displayName: 'Titular demo' },
+          blockchainRecords: [{ network: 'anvil', chainId: 31337, txHash: '0x' + '4'.repeat(64), status: 'registered', registeredAt: new Date('2026-08-01T10:10:00Z'), revokedAt: null, contractAddress: 'hidden', issuerAddress: 'hidden' }],
+          semanticAnalyses: [{ status: 'completed', confidence: decimalLike('0.9'), areas: [{ id: 'software', label: 'Software' }], skills: [{ id: 'design', skill: 'Diseño' }], concepts: ['arquitectura'], qualityFlags: ['partial_source'], analyzedAt: new Date('2026-08-01T10:20:00Z'), analysisJson: { hidden: true }, textForEmbedding: 'hidden' }],
+          documentEvidences: [{ originalFileName: 'respaldo.pdf', mimeType: 'application/pdf', sizeBytes: 200, sha256: 'a'.repeat(64), uploadedAt: new Date('2026-08-01T10:30:00Z'), storageKey: 'hidden' }],
+          textEvidences: [{ label: 'Programa', content: 'Texto institucional de respaldo con contenido visible solo como anticipo.', sha256: 'b'.repeat(64), submittedAt: new Date('2026-08-01T10:35:00Z') }]
         };
       }
     }
   } as never);
 
   const response = await service.getCredentialForUser('holder-1', 'cred-1');
-
-  assert.deepEqual(findFirstCalls, [
-    {
-      where: {
-        id: 'cred-1',
-        subjectUserId: 'holder-1',
-        status: {
-          in: ['issued', 'revoked']
-        }
-      },
-      include: {
-        issuer: {
-          select: {
-            id: true,
-            name: true,
-            did: true
-          }
-        },
-        subjectUser: {
-          select: {
-            id: true,
-            did: true,
-            email: true,
-            displayName: true
-          }
-        },
-        blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
-          }
-        },
-        semanticAnalyses: {
-          orderBy: {
-            analyzedAt: 'desc'
-          },
-          take: 1
-        }
-      }
-    }
-  ]);
-
-  assert.deepEqual(response, {
-    id: 'cred-1',
-    schemaVersion: 'credential_v1',
-    type: 'academic_subject',
-    title: 'Detalle credencial',
-    description: 'Descripcion demo',
-    status: 'issued',
-    issuer: {
-      id: 'issuer-1',
-      name: 'Demo University',
-      did: 'did:example:issuer-demo'
-    },
-    subject: {
-      id: 'holder-1',
-      did: 'did:example:holder-demo',
-      email: 'holder.demo@example.com',
-      displayName: 'Demo Holder'
-    },
-    issuedAt: '2026-07-22T19:00:00Z',
-    revokedAt: null,
-    revocationReason: null,
-    canonicalHash: '0x' + '3'.repeat(64),
-    canonicalizationVersion: 'canon_v1',
-    credentialSubject: {
-      achievement_name: 'Detalle credencial',
-      institution_name: 'Demo University'
-    },
-    metadata: {
-      audience: 'holder'
-    },
-    blockchainRecords: [
-      {
-        id: 'record-1',
-        network: 'anvil',
-        chainId: 31337,
-        contractAddress: '0x0000000000000000000000000000000000000001',
-        txHash: '0x' + '4'.repeat(64),
-        issuerAddress: '0x00000000000000000000000000000000000000aa',
-        status: 'registered',
-        registeredAt: '2026-07-22T19:10:00Z',
-        revokedAt: null
-      }
-    ],
-    latestSemanticAnalysis: {
-      id: 'sem-1',
-      schemaVersion: 'semantic_analysis_v1',
-      status: 'completed',
-      pipelineVersion: 'pipeline-v1',
-      taxonomyVersion: 'taxonomy-v1',
-      confidence: 0.92,
-      areas: [{ id: 'software_engineering' }],
-      skills: [{ id: 'typescript' }],
-      concepts: [{ id: 'oop' }],
-      qualityFlags: ['area_assignment_confident'],
-      analyzedAt: '2026-07-22T19:20:00Z'
-    }
+  assert.deepEqual(calls[0].where, { id: 'cred-1', subjectUserId: 'holder-1', status: { in: ['issued', 'revoked'] } });
+  assert.equal(JSON.stringify(calls[0]).includes('storageKey'), false);
+  assert.equal(JSON.stringify(response).includes('rawData'), false);
+  assert.equal(JSON.stringify(response).includes('metadata'), false);
+  assert.equal(JSON.stringify(response).includes('contractAddress'), false);
+  assert.equal(JSON.stringify(response).includes('issuerAddress'), false);
+  assert.equal(JSON.stringify(response).includes('analysisJson'), false);
+  assert.equal(JSON.stringify(response).includes('textForEmbedding'), false);
+  assert.equal(JSON.stringify(response).includes('"id":"software"'), false);
+  assert.equal(JSON.stringify(response).includes('"id":"design"'), false);
+  assert.deepEqual(response.credentialSubject, {
+    achievementName: 'Arquitectura de software', institutionName: 'Institución demo', completionDate: null, academicPeriod: '2026', programName: null, grade: null,
+    skills: ['Diseño'], competencies: ['Análisis'], learningOutcomes: ['Modelar']
   });
-  assert.equal('rawData' in response, false);
+  assert.equal(response.documentEvidence?.originalFileName, 'respaldo.pdf');
+  assert.equal(response.textEvidence?.preview.startsWith('Texto institucional'), true);
+  assert.deepEqual(response.latestSemanticAnalysis?.areas, ['Software']);
 });
 
-test('MeService returns 404 when credential does not exist or is not visible for holder', async () => {
-  const service = new MeService({
-    credential: {
-      async findMany() {
-        return [];
-      },
-      async findFirst() {
-        return null;
-      }
-    }
-  } as never);
-
-  await assert.rejects(
-    service.getCredentialForUser('holder-1', 'cred-missing'),
-    NotFoundException
-  );
+test('MeService returns 404 when a credential is not owned by the holder', async () => {
+  const service = new MeService({ credential: { async findFirst() { return null; } } } as never);
+  await assert.rejects(() => service.getCredentialForUser('holder-1', 'other'), NotFoundException);
 });

@@ -2,7 +2,11 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { CredentialStatus } from '@prisma/client';
+import {
+  CredentialStatus,
+  DocumentEvidenceStatus,
+  TextEvidenceStatus
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { MeCredentialDetailResponseDto } from './dto/me-credential-detail-response.dto';
@@ -27,25 +31,34 @@ export class MeService {
           in: [...HOLDER_VISIBLE_STATUSES]
         }
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        status: true,
+        issuedAt: true,
         issuer: {
           select: {
-            id: true,
-            name: true,
-            did: true
+            name: true
           }
         },
         blockchainRecords: {
           orderBy: {
             registeredAt: 'desc'
           },
-          take: 1
+          take: 1,
+          select: {
+            id: true,
+          }
         },
         semanticAnalyses: {
           orderBy: {
             analyzedAt: 'desc'
           },
-          take: 1
+          take: 1,
+          select: {
+            id: true,
+          }
         }
       },
       orderBy: [
@@ -63,41 +76,10 @@ export class MeService {
       title: credential.title,
       type: credential.type,
       status: credential.status,
-      issuer: {
-        id: credential.issuer.id,
-        name: credential.issuer.name,
-        did: credential.issuer.did
-      },
+      issuerName: credential.issuer.name,
       issuedAt: credential.issuedAt ? this.serializeDateTime(credential.issuedAt) : null,
-      revokedAt: credential.revokedAt
-        ? this.serializeDateTime(credential.revokedAt)
-        : null,
-      canonicalHash: credential.canonicalHash,
-      canonicalizationVersion: credential.canonicalizationVersion,
-      latestBlockchainRecord: credential.blockchainRecords[0]
-        ? {
-            id: credential.blockchainRecords[0].id,
-            network: credential.blockchainRecords[0].network,
-            chainId: credential.blockchainRecords[0].chainId,
-            txHash: credential.blockchainRecords[0].txHash,
-            status: credential.blockchainRecords[0].status,
-            registeredAt: this.serializeDateTime(
-              credential.blockchainRecords[0].registeredAt
-            )
-          }
-        : null,
-      latestSemanticAnalysis: credential.semanticAnalyses[0]
-        ? {
-            id: credential.semanticAnalyses[0].id,
-            status: credential.semanticAnalyses[0].status,
-            confidence: this.toNullableNumber(
-              credential.semanticAnalyses[0].confidence
-            ),
-            analyzedAt: this.serializeDateTime(
-              credential.semanticAnalyses[0].analyzedAt
-            )
-          }
-        : null
+      hasIntegrityEvidence: credential.blockchainRecords.length > 0,
+      hasAnalysis: credential.semanticAnalyses.length > 0
     }));
   }
 
@@ -113,32 +95,80 @@ export class MeService {
           in: [...HOLDER_VISIBLE_STATUSES]
         }
       },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        description: true,
+        hours: true,
+        status: true,
+        issuedAt: true,
+        revokedAt: true,
+        revocationReason: true,
+        canonicalHash: true,
+        canonicalizationVersion: true,
+        credentialSubject: true,
         issuer: {
           select: {
-            id: true,
             name: true,
             did: true
           }
         },
         subjectUser: {
           select: {
-            id: true,
             did: true,
             email: true,
             displayName: true
           }
         },
         blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
+          orderBy: { registeredAt: 'desc' },
+          select: {
+            network: true,
+            chainId: true,
+            txHash: true,
+            status: true,
+            registeredAt: true,
+            revokedAt: true
           }
         },
         semanticAnalyses: {
           orderBy: {
             analyzedAt: 'desc'
           },
-          take: 1
+          take: 1,
+          select: {
+            status: true,
+            confidence: true,
+            areas: true,
+            skills: true,
+            concepts: true,
+            qualityFlags: true,
+            analyzedAt: true
+          }
+        },
+        documentEvidences: {
+          where: { status: DocumentEvidenceStatus.current },
+          orderBy: { uploadedAt: 'desc' },
+          take: 1,
+          select: {
+            originalFileName: true,
+            mimeType: true,
+            sizeBytes: true,
+            sha256: true,
+            uploadedAt: true
+          }
+        },
+        textEvidences: {
+          where: { status: TextEvidenceStatus.current },
+          orderBy: { submittedAt: 'desc' },
+          take: 1,
+          select: {
+            label: true,
+            content: true,
+            sha256: true,
+            submittedAt: true
+          }
         }
       }
     });
@@ -151,18 +181,16 @@ export class MeService {
 
     return {
       id: credential.id,
-      schemaVersion: credential.schemaVersion,
       type: credential.type,
       title: credential.title,
       description: credential.description,
+      hours: this.toNullableNumber(credential.hours),
       status: credential.status,
       issuer: {
-        id: credential.issuer.id,
         name: credential.issuer.name,
         did: credential.issuer.did
       },
       subject: {
-        id: credential.subjectUser.id,
         did: credential.subjectUser.did,
         email: credential.subjectUser.email,
         displayName: credential.subjectUser.displayName
@@ -174,33 +202,51 @@ export class MeService {
       revocationReason: credential.revocationReason,
       canonicalHash: credential.canonicalHash,
       canonicalizationVersion: credential.canonicalizationVersion,
-      credentialSubject: credential.credentialSubject,
-      metadata: credential.metadata,
+      credentialSubject: this.mapCredentialSubject(credential.credentialSubject),
+      documentEvidence: credential.documentEvidences[0]
+        ? {
+            originalFileName: credential.documentEvidences[0].originalFileName,
+            mimeType: credential.documentEvidences[0].mimeType,
+            sizeBytes: credential.documentEvidences[0].sizeBytes,
+            sha256: credential.documentEvidences[0].sha256,
+            uploadedAt: this.serializeDateTime(credential.documentEvidences[0].uploadedAt)
+          }
+        : null,
+      textEvidence: credential.textEvidences[0]
+        ? this.mapTextEvidence(credential.textEvidences[0])
+        : null,
       blockchainRecords: credential.blockchainRecords.map((record) => ({
-        id: record.id,
         network: record.network,
         chainId: record.chainId,
-        contractAddress: record.contractAddress,
         txHash: record.txHash,
-        issuerAddress: record.issuerAddress,
         status: record.status,
         registeredAt: this.serializeDateTime(record.registeredAt),
         revokedAt: record.revokedAt ? this.serializeDateTime(record.revokedAt) : null
       })),
       latestSemanticAnalysis: credential.semanticAnalyses[0]
         ? {
-            id: credential.semanticAnalyses[0].id,
-            schemaVersion: credential.semanticAnalyses[0].schemaVersion,
             status: credential.semanticAnalyses[0].status,
-            pipelineVersion: credential.semanticAnalyses[0].pipelineVersion,
-            taxonomyVersion: credential.semanticAnalyses[0].taxonomyVersion,
-            confidence: this.toNullableNumber(
+            confidence: this.toNullableConfidence(
               credential.semanticAnalyses[0].confidence
             ),
-            areas: credential.semanticAnalyses[0].areas,
-            skills: credential.semanticAnalyses[0].skills,
-            concepts: credential.semanticAnalyses[0].concepts,
-            qualityFlags: credential.semanticAnalyses[0].qualityFlags,
+            areas: this.readLabels(credential.semanticAnalyses[0].areas, [
+              'area',
+              'name',
+              'label'
+            ]),
+            skills: this.readLabels(credential.semanticAnalyses[0].skills, [
+              'skill',
+              'name',
+              'label'
+            ]),
+            concepts: this.readLabels(credential.semanticAnalyses[0].concepts, [
+              'concept',
+              'name',
+              'label'
+            ]),
+            qualityFlags: this.readStringArray(
+              credential.semanticAnalyses[0].qualityFlags
+            ),
             analyzedAt: this.serializeDateTime(
               credential.semanticAnalyses[0].analyzedAt
             )
@@ -235,5 +281,98 @@ export class MeService {
     }
 
     return null;
+  }
+
+  private toNullableConfidence(value: unknown): number | null {
+    const confidence = this.toNullableNumber(value);
+    return confidence !== null && confidence >= 0 && confidence <= 1
+      ? confidence
+      : null;
+  }
+
+  private mapCredentialSubject(value: unknown) {
+    const subject = this.isRecord(value) ? value : {};
+
+    return {
+      achievementName: this.readString(subject.achievement_name),
+      institutionName: this.readString(subject.institution_name),
+      completionDate: this.readString(subject.completion_date),
+      academicPeriod: this.readString(subject.academic_period),
+      programName: this.readString(subject.program_name),
+      grade: this.readString(subject.grade),
+      skills: this.readStringArray(subject.skills),
+      competencies: this.readStringArray(subject.competencies),
+      learningOutcomes: this.readStringArray(subject.learning_outcomes)
+    };
+  }
+
+  private mapTextEvidence(value: {
+    label: string | null;
+    content: string;
+    sha256: string;
+    submittedAt: Date;
+  }) {
+    const normalized = value.content.trim().replace(/\s+/g, ' ');
+
+    return {
+      label: this.readString(value.label),
+      preview:
+        normalized.length > 240
+          ? `${normalized.slice(0, 237)}...`
+          : normalized,
+      characterCount: Array.from(value.content).length,
+      sha256: value.sha256,
+      submittedAt: this.serializeDateTime(value.submittedAt)
+    };
+  }
+
+  private readLabels(value: unknown, fields: string[]) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((entry) => {
+        if (typeof entry === 'string') {
+          return this.readString(entry);
+        }
+
+        if (!this.isRecord(entry)) {
+          return null;
+        }
+
+        for (const field of fields) {
+          const label = this.readString(entry[field]);
+          if (label) {
+            return label;
+          }
+        }
+
+        return null;
+      })
+      .filter((label): label is string => label !== null);
+  }
+
+  private readStringArray(value: unknown) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return value
+      .map((entry) => this.readString(entry))
+      .filter((entry): entry is string => entry !== null);
+  }
+
+  private readString(value: unknown): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const normalized = value.trim().replace(/\s+/g, ' ');
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 }

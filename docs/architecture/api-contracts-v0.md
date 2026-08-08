@@ -896,3 +896,25 @@ POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
 
 Las propuestas y revision humana tendran contratos separados en P5h/P6a. No se
 debe reutilizar el artifact crudo como command de actualizacion.
+
+## Holder wallet v1
+
+Los reads autenticados del titular son `GET /me/credentials`,
+`GET /me/credentials/:id` y `GET /me/profile/current`. El backend deriva el
+titular exclusivamente del token y limita las credenciales a estados `issued`
+o `revoked`. El detalle holder entrega un resumen de emisor, campos formativos
+allowlisted, evidencia documental y textual actual en modo lectura, integridad
+abreviable y el último resumen semántico disponible.
+
+Estos reads no exponen `rawData`, `metadata`, direcciones de contrato, claves
+de storage, contenido completo de evidencia textual, `analysisJson`,
+`textForEmbedding`, `evidenceMap`, identificadores de fuentes ni artifacts
+crudos. `GET /me/profile/current` proyecta el snapshot persistido a áreas,
+habilidades, conceptos, confianza, observaciones y totales seguros; no entrega
+`profileJson`, IDs de perfil ni referencias de fuentes.
+`POST /me/profile/rebuild` aplica la misma proyección holder-safe antes de
+responder: reconstruir no habilita la exposición del snapshot interno.
+
+La Wallet carga el perfil y la biblioteca de credenciales como recursos
+independientes. Mientras no exista un mapeo seguro de procedencia, el contrato
+no afirma que una credencial individual haya sido fuente de un perfil concreto.
