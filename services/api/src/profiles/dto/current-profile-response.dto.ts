@@ -15,3 +15,17 @@ export interface CurrentProfileResponseDto {
   userId: string;
   currentProfile: FormativeProfileSnapshotDto | null;
 }
+
+export interface HolderCurrentProfileResponseDto {
+  currentProfile: {
+    profileVersion: string;
+    credentialsCount: number;
+    totalHours: number | null;
+    areas: Array<{ label: string; estimatedHours: number | null }>;
+    skills: Array<{ label: string; confidence: number | null }>;
+    concepts: string[];
+    confidence: number | null;
+    qualityFlags: string[];
+    generatedAt: string;
+  } | null;
+}

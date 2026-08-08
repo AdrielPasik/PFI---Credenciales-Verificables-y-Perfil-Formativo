@@ -42,7 +42,7 @@ test('ProfilesController reads current profile using current user id', async () 
   const response = await controller.getCurrentProfile(currentUser);
 
   assert.deepEqual(calls, ['holder-1']);
-  assert.deepEqual(response, expectedResponse);
+  assert.deepEqual(response, { currentProfile: null });
 });
 
 test('ProfilesController rebuilds profile using current user id', async () => {
@@ -75,5 +75,14 @@ test('ProfilesController rebuilds profile using current user id', async () => {
   const response = await controller.rebuildProfile(currentUser);
 
   assert.deepEqual(calls, ['holder-1']);
-  assert.deepEqual(response, expectedResponse);
+  assert.deepEqual(response, {
+    currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0', credentialsCount: 1,
+      totalHours: 64, areas: [], skills: [], concepts: [], confidence: null,
+      qualityFlags: [], generatedAt: '2026-07-24T12:00:00.000Z'
+    }
+  });
+  assert.equal(JSON.stringify(response).includes('holder-1'), false);
+  assert.equal(JSON.stringify(response).includes('profile-1'), false);
+  assert.equal(JSON.stringify(response).includes('profileJson'), false);
 });
