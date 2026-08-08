@@ -99,6 +99,10 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     {
       id: 'credential-1',
       hours: decimalLike('40.00'),
+      credentialSubject: {
+        skills: ['Python'],
+        competencies: ['Trabajo en equipo']
+      },
       semanticAnalyses: [
         {
           id: 'analysis-1',
@@ -158,6 +162,10 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     {
       id: 'credential-3',
       hours: null,
+      credentialSubject: {
+        skills: ['Excel'],
+        learning_outcomes: ['Aplicar principios de gestión']
+      },
       semanticAnalyses: []
     }
   ];
@@ -217,6 +225,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       select: {
         id: true,
         hours: true,
+        credentialSubject: true,
         semanticAnalyses: {
           orderBy: [
             {
@@ -271,6 +280,9 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     areas: Array<Record<string, unknown>>;
     skills: Array<Record<string, unknown>>;
     concepts: Array<Record<string, unknown>>;
+    emittedSkills: Array<Record<string, unknown>>;
+    emittedCompetencies: Array<Record<string, unknown>>;
+    emittedLearningOutcomes: Array<Record<string, unknown>>;
     confidence: Record<string, unknown>;
     warnings: string[];
   };
@@ -315,15 +327,188 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     method: 'derived'
   });
   assert.deepEqual(profileJson.warnings, [
+    'area_hours_are_estimated_not_emitted',
     'credential_without_semantic_analysis',
-    'online_course_catalog_not_completion_evidence'
+    'credential_without_semantic_analysis_has_emitted_data',
+    'online_course_catalog_not_completion_evidence',
+    'profile_partially_built'
   ]);
   assert.equal(
     profileJson.skills.some((skill) => skill.skill === 'invented-skill'),
     false
   );
+
+  // credential-3 no tiene SemanticAnalysis, pero SI tiene
+  // credentialSubject.skills/.learning_outcomes: debe aportar al perfil via
+  // los arrays "emitted*", nunca mezclado con "skills" (inferido por IA).
+  assert.deepEqual(profileJson.emittedSkills, [
+    { label: 'Excel', credentialIds: ['credential-3'], evidenceCount: 1 },
+    { label: 'Python', credentialIds: ['credential-1'], evidenceCount: 1 }
+  ]);
+  assert.deepEqual(profileJson.emittedCompetencies, [
+    {
+      label: 'Trabajo en equipo',
+      credentialIds: ['credential-1'],
+      evidenceCount: 1
+    }
+  ]);
+  assert.deepEqual(profileJson.emittedLearningOutcomes, [
+    {
+      label: 'Aplicar principios de gestión',
+      credentialIds: ['credential-3'],
+      evidenceCount: 1
+    }
+  ]);
+  for (const emittedSkill of profileJson.emittedSkills) {
+    assert.equal(
+      'confidence' in emittedSkill,
+      false,
+      'emitted skills must never carry a fabricated confidence value'
+    );
+  }
   assert.equal(response.currentProfile?.isCurrent, true);
   assert.equal(response.currentProfile?.totalHours, 60);
+});
+
+test('FormativeProfileService keeps skills empty (inferred) but still populates emitted arrays when no credential has SemanticAnalysis', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'credential-1',
+      hours: decimalLike('12.00'),
+      credentialSubject: {
+        skills: ['Excel', 'excel'],
+        competencies: ['Comunicación efectiva']
+      },
+      semanticAnalyses: []
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({
+              generatedAt: data.generatedAt,
+              credentialsCount: data.credentialsCount,
+              totalHours: data.totalHours,
+              qualityFlags: data.qualityFlags,
+              profileJson: data.profileJson
+            });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+  const createData = createCalls[0].data as Record<string, unknown>;
+  const profileJson = createData.profileJson as {
+    skills: unknown[];
+    emittedSkills: Array<Record<string, unknown>>;
+    emittedCompetencies: Array<Record<string, unknown>>;
+    warnings: string[];
+  };
+
+  // "Excel" y "excel" cargados dos veces en el mismo draft no deben
+  // duplicarse en el perfil (misma normalizacion que el resto de accumulators).
+  assert.deepEqual(profileJson.emittedSkills, [
+    { label: 'Excel', credentialIds: ['credential-1'], evidenceCount: 1 }
+  ]);
+  assert.deepEqual(profileJson.emittedCompetencies, [
+    {
+      label: 'Comunicación efectiva',
+      credentialIds: ['credential-1'],
+      evidenceCount: 1
+    }
+  ]);
+  // El perfil "no queda vacio": aunque no hay SemanticAnalysis, hay senal
+  // emitida. skills (inferido) SI queda vacio -- no se inventa una senal IA.
+  assert.deepEqual(profileJson.skills, []);
+  assert.ok(profileJson.warnings.includes('credential_without_semantic_analysis'));
+  assert.ok(
+    profileJson.warnings.includes(
+      'credential_without_semantic_analysis_has_emitted_data'
+    )
+  );
+  assert.ok(!profileJson.warnings.includes('no_emitted_skills_available'));
+});
+
+test('FormativeProfileService flags no_emitted_skills_available when neither analysis nor emitted data exist', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'credential-1',
+      hours: null,
+      credentialSubject: {},
+      semanticAnalyses: []
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({
+              generatedAt: data.generatedAt,
+              credentialsCount: data.credentialsCount,
+              totalHours: data.totalHours,
+              qualityFlags: data.qualityFlags,
+              profileJson: data.profileJson
+            });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+  const createData = createCalls[0].data as Record<string, unknown>;
+  const profileJson = createData.profileJson as { warnings: string[] };
+
+  assert.ok(profileJson.warnings.includes('no_emitted_skills_available'));
+  assert.ok(profileJson.warnings.includes('total_hours_unavailable'));
+  assert.ok(
+    !profileJson.warnings.includes(
+      'credential_without_semantic_analysis_has_emitted_data'
+    )
+  );
 });
 
 test('FormativeProfileService persists a valid empty snapshot when no issued credentials exist', async () => {

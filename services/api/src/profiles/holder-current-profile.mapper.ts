@@ -25,6 +25,15 @@ export function mapHolderCurrentProfileResponse(
       areas: areas(profile.areasSummary),
       skills: skills(profile.skillsSummary),
       concepts: concepts(profile.profileJson),
+      emittedSkills: emittedLabels(profile.profileJson, 'emittedSkills'),
+      emittedCompetencies: emittedLabels(
+        profile.profileJson,
+        'emittedCompetencies'
+      ),
+      emittedLearningOutcomes: emittedLabels(
+        profile.profileJson,
+        'emittedLearningOutcomes'
+      ),
       confidence: confidence(profile.profileJson),
       qualityFlags: strings(profile.qualityFlags, 120),
       generatedAt: profile.generatedAt
@@ -59,6 +68,18 @@ function concepts(value: unknown) {
     return isRecord(entry) && labelFrom(entry, LABEL_FIELDS.concept)
       ? [labelFrom(entry, LABEL_FIELDS.concept)!]
       : [];
+  });
+}
+
+function emittedLabels(
+  value: unknown,
+  field: 'emittedSkills' | 'emittedCompetencies' | 'emittedLearningOutcomes'
+) {
+  if (!isRecord(value) || !Array.isArray(value[field])) return [];
+  return value[field].flatMap((entry) => {
+    if (!isRecord(entry)) return [];
+    const label = normalize(entry.label);
+    return label ? [label] : [];
   });
 }
 

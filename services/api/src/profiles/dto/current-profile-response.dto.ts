@@ -22,8 +22,16 @@ export interface HolderCurrentProfileResponseDto {
     credentialsCount: number;
     totalHours: number | null;
     areas: Array<{ label: string; estimatedHours: number | null }>;
+    // Inferido por IA a partir de SemanticAnalysis. Ver emittedSkills para
+    // habilidades cargadas por el emisor (dato distinto, nunca certificado
+    // por IA).
     skills: Array<{ label: string; confidence: number | null }>;
     concepts: string[];
+    // Dato emitido por el issuer (credentialSubject), no una deteccion de
+    // IA. Nunca lleva confidence porque no es una inferencia.
+    emittedSkills: string[];
+    emittedCompetencies: string[];
+    emittedLearningOutcomes: string[];
     confidence: number | null;
     qualityFlags: string[];
     generatedAt: string;

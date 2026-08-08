@@ -78,8 +78,9 @@ test('ProfilesController rebuilds profile using current user id', async () => {
   assert.deepEqual(response, {
     currentProfile: {
       profileVersion: 'backend_formative_profile_snapshot_v0', credentialsCount: 1,
-      totalHours: 64, areas: [], skills: [], concepts: [], confidence: null,
-      qualityFlags: [], generatedAt: '2026-07-24T12:00:00.000Z'
+      totalHours: 64, areas: [], skills: [], concepts: [],
+      emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
+      confidence: null, qualityFlags: [], generatedAt: '2026-07-24T12:00:00.000Z'
     }
   });
   assert.equal(JSON.stringify(response).includes('holder-1'), false);

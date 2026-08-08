@@ -23,6 +23,17 @@ const LABEL_FIELDS = {
   concept: ['concept', 'name', 'label', 'concept_label', 'conceptLabel']
 } as const;
 
+// credentialSubject es JSON emitido por el emisor al crear/editar el draft
+// (issuer-credential-draft-subject.ts). Estos campos NUNCA vienen de IA: son
+// dato certificado por el emisor, igual que Credential.hours. Se agregan al
+// perfil como una fuente separada ("emitted*"), nunca mezclada con los
+// arrays inferidos por SemanticAnalysis ("areas"/"skills"/"concepts").
+const CREDENTIAL_SUBJECT_EMITTED_FIELDS = {
+  skill: 'skills',
+  competency: 'competencies',
+  learningOutcome: 'learning_outcomes'
+} as const;
+
 interface EvidenceAccumulator {
   labels: Set<string>;
   credentialIds: Set<string>;
@@ -51,6 +62,17 @@ interface ProfileConcept extends ProfileEvidence {
   concept: string;
 }
 
+interface EmittedEvidenceAccumulator {
+  labels: Set<string>;
+  credentialIds: Set<string>;
+}
+
+interface ProfileEmittedEntry {
+  label: string;
+  credentialIds: string[];
+  evidenceCount: number;
+}
+
 interface FormativeProfileJson {
   profileVersion: typeof PROFILE_VERSION;
   generatedAt: string;
@@ -65,8 +87,17 @@ interface FormativeProfileJson {
     totalHours: number | null;
   };
   areas: ProfileArea[];
+  // Inferido por IA a partir de SemanticAnalysis. Nunca certifica ni
+  // reemplaza credentialSubject.skills — ver emittedSkills.
   skills: ProfileSkill[];
   concepts: ProfileConcept[];
+  // Dato emitido por el issuer (credentialSubject.skills/.competencies/
+  // .learning_outcomes). No tiene confidence porque no es una inferencia de
+  // IA: es texto cargado por el emisor al draft. No implica que la IA haya
+  // detectado ni validado estas habilidades.
+  emittedSkills: ProfileEmittedEntry[];
+  emittedCompetencies: ProfileEmittedEntry[];
+  emittedLearningOutcomes: ProfileEmittedEntry[];
   confidence: {
     score: number | null;
     method: 'derived' | 'unavailable';
@@ -75,6 +106,7 @@ interface FormativeProfileJson {
 }
 
 type SemanticEntryKind = keyof typeof LABEL_FIELDS;
+type EmittedEntryKind = keyof typeof CREDENTIAL_SUBJECT_EMITTED_FIELDS;
 
 @Injectable()
 export class FormativeProfileService {
@@ -113,6 +145,7 @@ export class FormativeProfileService {
       select: {
         id: true,
         hours: true,
+        credentialSubject: true,
         semanticAnalyses: {
           orderBy: [
             {
@@ -259,6 +292,7 @@ export class FormativeProfileService {
     credentials: Array<{
       id: string;
       hours: unknown;
+      credentialSubject?: unknown;
       semanticAnalyses: Array<{
         id: string;
         analyzedAt: Date;
@@ -274,10 +308,23 @@ export class FormativeProfileService {
     const areaAccumulators = new Map<string, EvidenceAccumulator>();
     const skillAccumulators = new Map<string, EvidenceAccumulator>();
     const conceptAccumulators = new Map<string, EvidenceAccumulator>();
+    const emittedSkillAccumulators = new Map<
+      string,
+      EmittedEvidenceAccumulator
+    >();
+    const emittedCompetencyAccumulators = new Map<
+      string,
+      EmittedEvidenceAccumulator
+    >();
+    const emittedLearningOutcomeAccumulators = new Map<
+      string,
+      EmittedEvidenceAccumulator
+    >();
     const semanticAnalysisIds: string[] = [];
     const globalConfidenceValues: number[] = [];
     const warnings = new Set<string>();
     const knownHours: number[] = [];
+    let credentialsWithoutAnalysisButWithEmittedData = 0;
 
     if (credentials.length === 0) {
       warnings.add('no_issued_credentials');
@@ -289,9 +336,20 @@ export class FormativeProfileService {
         knownHours.push(hours);
       }
 
+      const hadEmittedSignal = this.aggregateEmittedEvidenceForCredential(
+        credential.id,
+        credential.credentialSubject,
+        emittedSkillAccumulators,
+        emittedCompetencyAccumulators,
+        emittedLearningOutcomeAccumulators
+      );
+
       const semanticAnalysis = credential.semanticAnalyses[0];
       if (!semanticAnalysis) {
         warnings.add('credential_without_semantic_analysis');
+        if (hadEmittedSignal) {
+          credentialsWithoutAnalysisButWithEmittedData += 1;
+        }
         continue;
       }
 
@@ -347,6 +405,32 @@ export class FormativeProfileService {
       warnings.add('confidence_not_available');
     }
 
+    const areas = this.finalizeAreas(areaAccumulators);
+    const totalHours =
+      knownHours.length > 0 ? this.round(this.sum(knownHours), 2) : null;
+
+    if (credentials.length > 0) {
+      if (credentialsWithoutAnalysisButWithEmittedData > 0) {
+        warnings.add('credential_without_semantic_analysis_has_emitted_data');
+      }
+      if (
+        emittedSkillAccumulators.size === 0 &&
+        emittedCompetencyAccumulators.size === 0 &&
+        emittedLearningOutcomeAccumulators.size === 0
+      ) {
+        warnings.add('no_emitted_skills_available');
+      }
+      if (semanticAnalysisIds.length < credentials.length) {
+        warnings.add('profile_partially_built');
+      }
+      if (totalHours === null) {
+        warnings.add('total_hours_unavailable');
+      }
+      if (areas.some((area) => area.estimatedHours !== null)) {
+        warnings.add('area_hours_are_estimated_not_emitted');
+      }
+    }
+
     return {
       profileVersion: PROFILE_VERSION,
       generatedAt: generatedAt.toISOString(),
@@ -358,12 +442,16 @@ export class FormativeProfileService {
       summary: {
         credentialsCount: credentials.length,
         analyzedCredentialsCount: semanticAnalysisIds.length,
-        totalHours:
-          knownHours.length > 0 ? this.round(this.sum(knownHours), 2) : null
+        totalHours
       },
-      areas: this.finalizeAreas(areaAccumulators),
+      areas,
       skills: this.finalizeSkills(skillAccumulators),
       concepts: this.finalizeConcepts(conceptAccumulators),
+      emittedSkills: this.finalizeEmitted(emittedSkillAccumulators),
+      emittedCompetencies: this.finalizeEmitted(emittedCompetencyAccumulators),
+      emittedLearningOutcomes: this.finalizeEmitted(
+        emittedLearningOutcomeAccumulators
+      ),
       confidence: {
         score:
           globalConfidenceValues.length > 0
@@ -374,6 +462,116 @@ export class FormativeProfileService {
       },
       warnings: [...warnings].sort()
     };
+  }
+
+  /**
+   * Agrega credentialSubject.skills/.competencies/.learning_outcomes de UNA
+   * credencial a los acumuladores "emitted*". Es dato cargado por el emisor,
+   * no una inferencia de IA: nunca toca los acumuladores inferidos
+   * (areaAccumulators/skillAccumulators/conceptAccumulators). Devuelve true
+   * si la credencial aporto al menos una etiqueta emitida.
+   */
+  private aggregateEmittedEvidenceForCredential(
+    credentialId: string,
+    credentialSubject: unknown,
+    skillAccumulators: Map<string, EmittedEvidenceAccumulator>,
+    competencyAccumulators: Map<string, EmittedEvidenceAccumulator>,
+    learningOutcomeAccumulators: Map<string, EmittedEvidenceAccumulator>
+  ): boolean {
+    const skills = this.readEmittedStringArray(credentialSubject, 'skill');
+    const competencies = this.readEmittedStringArray(
+      credentialSubject,
+      'competency'
+    );
+    const learningOutcomes = this.readEmittedStringArray(
+      credentialSubject,
+      'learningOutcome'
+    );
+
+    this.aggregateEmittedEntries(skillAccumulators, skills, credentialId);
+    this.aggregateEmittedEntries(
+      competencyAccumulators,
+      competencies,
+      credentialId
+    );
+    this.aggregateEmittedEntries(
+      learningOutcomeAccumulators,
+      learningOutcomes,
+      credentialId
+    );
+
+    return (
+      skills.length > 0 || competencies.length > 0 || learningOutcomes.length > 0
+    );
+  }
+
+  private aggregateEmittedEntries(
+    accumulators: Map<string, EmittedEvidenceAccumulator>,
+    labels: string[],
+    credentialId: string
+  ) {
+    for (const label of labels) {
+      const key = this.normalizeKey(label);
+      const accumulator = accumulators.get(key) ?? {
+        labels: new Set<string>(),
+        credentialIds: new Set<string>()
+      };
+      accumulator.labels.add(label);
+      accumulator.credentialIds.add(credentialId);
+      accumulators.set(key, accumulator);
+    }
+  }
+
+  private readEmittedStringArray(
+    credentialSubject: unknown,
+    kind: EmittedEntryKind
+  ): string[] {
+    if (!this.isRecord(credentialSubject)) {
+      return [];
+    }
+
+    const field = CREDENTIAL_SUBJECT_EMITTED_FIELDS[kind];
+    const value = credentialSubject[field];
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    const labels: string[] = [];
+    for (const entry of value) {
+      if (typeof entry !== 'string') {
+        continue;
+      }
+      const normalized = this.normalizeLabel(entry);
+      if (normalized) {
+        labels.push(normalized);
+      }
+    }
+    return labels;
+  }
+
+  private finalizeEmitted(
+    accumulators: Map<string, EmittedEvidenceAccumulator>
+  ): ProfileEmittedEntry[] {
+    return [...new Set(accumulators.values())]
+      .sort((left, right) =>
+        this.compareStrings(
+          this.preferredEmittedLabel(left).toLowerCase(),
+          this.preferredEmittedLabel(right).toLowerCase()
+        )
+      )
+      .map((accumulator) => ({
+        label: this.preferredEmittedLabel(accumulator),
+        credentialIds: [...accumulator.credentialIds].sort(),
+        evidenceCount: accumulator.credentialIds.size
+      }));
+  }
+
+  private preferredEmittedLabel(
+    accumulator: EmittedEvidenceAccumulator
+  ): string {
+    return [...accumulator.labels].sort((left, right) =>
+      this.compareStrings(left, right)
+    )[0];
   }
 
   private aggregateEntries(
