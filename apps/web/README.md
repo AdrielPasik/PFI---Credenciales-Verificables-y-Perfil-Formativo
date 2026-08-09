@@ -31,7 +31,11 @@ flujos reales del navegador sobre la base F0.1:
   nombre provisional ni PATCH posterior al alta;
 - carga multipart de evidencia documental PDF, PNG o JPEG, con validación
   preliminar, metadata segura y reemplazo explícito mientras la credencial
-  permanece en borrador.
+  permanece en borrador;
+- H1.2: `/wallet` distingue el perfil interpretado por análisis (áreas,
+  habilidades, conceptos) de la información declarada por instituciones
+  emisoras (`emittedSkills`/`emittedCompetencies`/`emittedLearningOutcomes`),
+  sin mezclar ambos orígenes ni sugerir que la IA certifica lo declarado.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

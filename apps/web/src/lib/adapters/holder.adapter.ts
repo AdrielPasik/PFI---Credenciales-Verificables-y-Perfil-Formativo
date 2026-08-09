@@ -151,6 +151,12 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
       };
     }),
     concepts: stringArray(profile.concepts),
+    // Compatibilidad temporal: mientras Render API no tenga IA-Q1
+    // desplegado, currentProfile puede no traer estos campos todavia.
+    // Ausentes (undefined) -> []. Presentes pero invalidos -> rechazo.
+    emittedSkills: optionalStringArray(profile.emittedSkills),
+    emittedCompetencies: optionalStringArray(profile.emittedCompetencies),
+    emittedLearningOutcomes: optionalStringArray(profile.emittedLearningOutcomes),
     confidenceLabel: nullableConfidenceLabel(profile.confidence),
     qualityFlags: qualityFlags(profile.qualityFlags),
     generatedAtLabel: dateLabel(profile.generatedAt)
@@ -191,6 +197,7 @@ function nullableString(value: unknown): string | null {
   return normalized || null;
 }
 function stringArray(value: unknown): string[] { return array(value).map((entry) => safeString(entry, 160)); }
+function optionalStringArray(value: unknown): string[] { return value === undefined ? [] : stringArray(value); }
 function qualityFlags(value: unknown): string[] { return array(value).map((entry) => formatHolderQualityFlag(safeString(entry, 120))); }
 function safeString(value: unknown, maxLength: number): string { const normalized = requiredString(value); if (normalized.length > maxLength || /[\u0000-\u001f\u007f]/.test(normalized)) invalid(); return normalized; }
 function nonNegativeInteger(value: unknown): number { if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) invalid(); return value; }

@@ -61,6 +61,33 @@ describe('holder adapters', () => {
     expect(JSON.stringify(result)).not.toContain('forbidden');
   });
 
+  it('accepts emittedSkills/emittedCompetencies/emittedLearningOutcomes and drops forbidden nested fields', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: null, generatedAt: '2026-08-08T10:00:00.000Z',
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: [],
+      emittedSkills: ['Excel'],
+      emittedCompetencies: ['Trabajo en equipo'],
+      emittedLearningOutcomes: ['Redactar informes técnicos']
+    } });
+    expect(result).toMatchObject({
+      emittedSkills: ['Excel'],
+      emittedCompetencies: ['Trabajo en equipo'],
+      emittedLearningOutcomes: ['Redactar informes técnicos']
+    });
+  });
+
+  it('treats absent emitted arrays as [] for backend/frontend deploy skew (H1.2 compatibility)', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: null, generatedAt: '2026-08-08T10:00:00.000Z',
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+      // emittedSkills/emittedCompetencies/emittedLearningOutcomes omitted on purpose:
+      // simulates an old Render API deployed before IA-Q1.
+    } });
+    expect(result).toMatchObject({ emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [] });
+  });
+
   it('rejects unsafe or incompatible holder payloads', () => {
     expect(() => adaptMyCredentials([{ ...listPayload()[0], status: 'draft' }])).toThrow(IncompatiblePayloadError);
     expect(() => adaptMyCredential({ id: 'missing-fields' })).toThrow(IncompatiblePayloadError);
@@ -68,5 +95,21 @@ describe('holder adapters', () => {
       profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalHours: null,
       areas: [], skills: [], concepts: [], confidence: 1.2, qualityFlags: [], generatedAt: '2026-08-01T10:00:00.000Z'
     } })).toThrow(IncompatiblePayloadError);
+  });
+
+  it('rejects emitted arrays that are present but not safe string arrays', () => {
+    const base = {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: null, generatedAt: '2026-08-08T10:00:00.000Z',
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    };
+    expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedSkills: [{ label: 'Excel', credentialIds: ['forbidden'] }] } }))
+      .toThrow(IncompatiblePayloadError);
+    expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedCompetencies: [42] } }))
+      .toThrow(IncompatiblePayloadError);
+    expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedLearningOutcomes: [null] } }))
+      .toThrow(IncompatiblePayloadError);
+    expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedSkills: 'not-an-array' } }))
+      .toThrow(IncompatiblePayloadError);
   });
 });

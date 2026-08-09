@@ -79,8 +79,13 @@ export interface HolderProfileVM {
   credentialsCount: number;
   totalHoursLabel: string | null;
   areas: Array<{ label: string; estimatedHoursLabel: string | null }>;
+  /** Inferido/agregado por análisis de IA. Ver emittedSkills para lo declarado por el emisor. */
   skills: Array<{ label: string; confidenceLabel: string | null }>;
   concepts: string[];
+  /** Declarado por la institución emisora en la credencial. Nunca es una inferencia de IA. */
+  emittedSkills: string[];
+  emittedCompetencies: string[];
+  emittedLearningOutcomes: string[];
   confidenceLabel: string | null;
   qualityFlags: string[];
   generatedAtLabel: string;
