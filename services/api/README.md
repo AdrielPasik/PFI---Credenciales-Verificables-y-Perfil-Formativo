@@ -197,6 +197,52 @@ y `POST /me/profile/build-from-ai` permanecen protegidos por el JWT humano en
 NestJS; el navegador nunca llama FastAPI ni recibe la credencial interna entre
 servicios.
 
+### Reanalysis/backfill interno (IA-Q1c)
+
+`SemanticAnalysis` ya persistido no se recalcula solo porque el AI Service
+mejore su taxonomia (IA-Q1/IA-Q1b). `npm run analysis:reprocess:documents`
+es una herramienta interna de admin/demo -no un endpoint publico- para volver
+a analizar credenciales `issued` con `DocumentEvidence` PDF vigente, usando el
+mismo pipeline que el analisis automatico
+(`AnalysisRunService.createPendingRun` + `AnalysisRunExecutionService`):
+
+```bash
+# dry-run (default): no escribe, no llama IA
+npm run analysis:reprocess:documents --workspace @credential-intelligence/api -- \
+  --holderEmail holder.demo@example.com
+
+# ejecuta de verdad, fuerza reanalisis aunque ya haya un run completed,
+# y reconstruye el perfil del holder al final
+npm run analysis:reprocess:documents --workspace @credential-intelligence/api -- \
+  --holderEmail holder.demo@example.com --force --rebuildProfile --execute
+
+npm run analysis:reprocess:documents --workspace @credential-intelligence/api -- \
+  --credentialId <id> --force --execute
+
+npm run analysis:reprocess:documents --workspace @credential-intelligence/api -- --help
+```
+
+- `--execute` es obligatorio para escribir en la base y llamar al AI Service;
+  sin el, el script es dry-run puro.
+- Requiere exactamente uno de `--holderEmail` o `--credentialId` (sin
+  busquedas parciales; falla con uso seguro si falta o si vienen ambos).
+- Sin `--force`, saltea una credencial que ya tenga un `AnalysisRun`
+  `completed` para el `DocumentEvidence` `current` exacto (si la evidencia
+  fue reemplazada, la evidencia nueva SI se reanaliza sin `--force`). Con
+  `--force`, un run `pending`/`running` para esa misma evidencia sigue
+  bloqueando -nunca se toma control de un run en curso.
+- No borra `AnalysisRun` ni `SemanticAnalysis` anteriores, no muta
+  `Credential`, no cambia `issued`/`revoked`/`draft`.
+- No agrega enums Prisma nuevos: usa `inputMode=document`,
+  `trigger=system`, `requestedByUserId=null`, igual que el analisis
+  automatico best-effort al emitir.
+- `--rebuildProfile` llama a `FormativeProfileService.rebuildForUser`
+  directamente (no al endpoint HTTP) despues de procesar el batch, solo si
+  hubo al menos una ejecucion exitosa con `--execute`.
+- Logs seguros: id/status/titulo truncado de la credencial, skip reason,
+  run id, errorCode ya sanitizado por `AnalysisRunExecutionService`. Nunca
+  storageKey, bytes de PDF, artifact crudo, `analysisJson` ni secretos.
+
 ## AI Service interno
 
 `AiServiceClient` valida auth y cualquier URL configurada al construirse. En
