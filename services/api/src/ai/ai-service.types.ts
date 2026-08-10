@@ -17,6 +17,32 @@ export interface BuildFormativeProfileWithAiInput {
   artifacts: unknown[];
 }
 
+// C2b.2: metadata declarada por el emisor, separada de `content` a
+// proposito -- nunca se concatena con el texto analizable (ver
+// AiServiceClient.analyzeText). `languageHint` existe en el contrato para
+// uso futuro; el backend todavia no lo infiere ni lo completa.
+export interface AnalyzeTextWithAiMetadata {
+  platformName?: string;
+  hours?: number;
+  modality?: string;
+  credentialType?: string;
+  languageHint?: string;
+}
+
+export interface AnalyzeTextWithAiSourceRefs {
+  textEvidenceId?: string;
+  credentialId?: string;
+}
+
+export interface AnalyzeTextWithAiInput {
+  content: string;
+  metadata?: AnalyzeTextWithAiMetadata;
+  sourceRefs?: AnalyzeTextWithAiSourceRefs;
+  correlationId?: string;
+  pipelineVersion?: string;
+  taxonomyVersion?: string;
+}
+
 export type AiServiceErrorCode =
   | 'configuration'
   | 'file'

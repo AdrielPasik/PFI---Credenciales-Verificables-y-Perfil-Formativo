@@ -5,6 +5,7 @@ import { type AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { IssuerDocumentAnalysisResponseDto } from './dto/issuer-document-analysis-response.dto';
 import { IssuerAnalysisRunStatusResponseDto } from './dto/issuer-analysis-run-status-response.dto';
+import { IssuerTextAnalysisResponseDto } from './dto/issuer-text-analysis-response.dto';
 import { IssuerAnalysisRunReadService } from './issuer-analysis-run-read.service';
 import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
 
@@ -54,6 +55,21 @@ export class IssuerAnalysisRunController {
     @Body() _untrustedBody: unknown
   ): Promise<IssuerDocumentAnalysisResponseDto> {
     return this.issuerAnalysisRunService.triggerDocumentAnalysis(
+      issuerId,
+      credentialId,
+      currentUser.id
+    );
+  }
+
+  @Post('text')
+  @UseGuards(AuthGuard)
+  triggerTextAnalysis(
+    @Param('issuerId') issuerId: string,
+    @Param('credentialId') credentialId: string,
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Body() _untrustedBody: unknown
+  ): Promise<IssuerTextAnalysisResponseDto> {
+    return this.issuerAnalysisRunService.triggerTextAnalysis(
       issuerId,
       credentialId,
       currentUser.id

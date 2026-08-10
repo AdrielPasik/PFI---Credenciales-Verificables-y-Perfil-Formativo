@@ -839,7 +839,48 @@ P6b agrega una via interna, no publica, posterior a la emision issuer-scoped:
   reads P5d existentes.
 
 El endpoint manual anterior permanece `draft`-only. No existe trigger manual
-post-emision, ni analisis automatico de texto o modo `combined`.
+post-emision para texto, ni analisis automatico de texto, ni modo `combined`
+(C2b.2 implementa el trigger manual textual descripto abajo; el auto-trigger
+post-emision para cursos sin PDF queda para C2b.3).
+
+C2b.2 implementa:
+
+```text
+POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/text
+```
+
+- Actor: membership `active`, rol `admin|operator`, issuer `authorized`
+  (mismo chequeo que el trigger documental — no se agrego un permiso nuevo).
+- Scope: credential `draft` perteneciente al issuer del path (draft-only,
+  igual que el trigger documental manual; issued/revoked quedan
+  operativamente read-only para triggers manuales).
+- Precondicion: requiere una `TextEvidence` `current` vigente para la
+  credencial; sin ella responde `422` con
+  *"La credencial no tiene evidencia textual vigente para analizar."*
+- Dedup: por `TextEvidence.id` vigente exacto, no solo por `credentialId` —
+  si ya existe un `AnalysisRun` `text` en `pending`/`running`/`completed`
+  para la misma evidencia, responde `409` sin crear ni reejecutar un run
+  duplicado. Reemplazar la evidencia (nueva `TextEvidence` `current`) libera
+  un analisis nuevo.
+- Body: no autoritativo; IDs, actor, source, modo, trigger y versiones se
+  derivan de params, JWT y defaults backend-controlled (mismo patron que
+  `analysis-runs/document`).
+- Response: `analysisRunId`, `credentialId`, `status`, `semanticAnalysisId`,
+  `artifactStatus`, `sourceCount` y `completedAt` — nunca `content`, el
+  artifact crudo, `textForEmbedding`, `evidenceMap` completo ni storage keys.
+- Errores: `401`, `403`, `404`, `409` (credencial no-draft, o run duplicado
+  para la misma evidencia), `422` (sin evidencia textual vigente) y fallos
+  de ejecucion sanitizados (mismos codigos `ai_*`/`text_unavailable`/
+  `semantic_persistence_failed` que ya usa el flujo documental).
+- Efectos: crea/ejecuta un run `text` y persiste `SemanticAnalysis` con
+  `sourceType: "text"`; no modifica Credential, canon, emision ni
+  blockchain; no genera `TextEvidence` nueva; no cambia el `status` de la
+  `TextEvidence` leida.
+- `AnalysisRunExecutionService` envia al AI Service `content` (desde
+  `TextEvidence.content`) mas metadata declarada separada
+  (`credentialType`, `platform_name`, `modality`, `hours` cuando existen) y
+  `sourceRefs` (`textEvidenceId`, `credentialId`) — nunca `externalUrl` ni
+  contenido dentro de la metadata.
 
 P6c mantiene este contrato de emision flexible: el endpoint issuer-scoped no
 requiere un PDF universalmente. Una evidencia textual o documental no-PDF puede
@@ -880,11 +921,10 @@ GET /issuers/:issuerId/credentials/:credentialId/analysis-runs/:analysisRunId
 - Efectos: lectura pura; no IA, storage, Credential, canon, emision o
   blockchain.
 
-Permanecen candidatos futuros:
+Permanece candidato futuro:
 
 ```text
-POST /issuers/:issuerId/credentials/:credentialId/analysis/text
-POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
+POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/combined
 ```
 
 - Actor: membership `active`, rol `admin|operator`, issuer `authorized`.
@@ -895,8 +935,10 @@ POST /issuers/:issuerId/credentials/:credentialId/analysis/combined
 - Persistencia: NestJS valida artifacts antes de persistirlos.
 - Efectos prohibidos: no PATCH automatico de `Credential`, no readiness, no
   emision, no hash y no blockchain.
-- Estado: trigger document y reads implementados; text y combined siguen
-  `future_p5`.
+- Estado: trigger document, trigger text (C2b.2) y reads implementados;
+  `combined` sigue `future_p5` — `AnalysisRunExecutionService` lo rechaza
+  explicitamente con *"El analisis combinado todavia no esta implementado."*
+  en ambos puntos de entrada (documental y textual).
 
 Las propuestas y revision humana tendran contratos separados en P5h/P6a. No se
 debe reutilizar el artifact crudo como command de actualizacion.

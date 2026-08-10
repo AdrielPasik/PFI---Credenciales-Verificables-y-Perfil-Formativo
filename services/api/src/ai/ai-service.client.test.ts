@@ -214,6 +214,193 @@ test('analyzePdf reports a controlled timeout', async (context) => {
   });
 });
 
+test('analyzeText sends the expected JSON body to /v1/semantic-analysis/text', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (url: string | URL | Request, init?: RequestInit) => {
+      assert.equal(url, 'http://ai.test/v1/semantic-analysis/text');
+      assert.equal(init?.method, 'POST');
+      assert.equal(init?.body instanceof FormData, false);
+      assert.deepEqual(
+        Object.fromEntries(new Headers(init?.headers).entries()),
+        {
+          'content-type': 'application/json',
+          'x-analysis-run-id': 'run-9'
+        }
+      );
+      assert.deepEqual(JSON.parse(String(init?.body)), {
+        content: 'The Complete Python Bootcamp',
+        metadata: {
+          platformName: 'Plataforma de Cursos Demo',
+          hours: 22,
+          modality: 'Online',
+          credentialType: 'course'
+        },
+        sourceRefs: {
+          textEvidenceId: 'text-evidence-1',
+          credentialId: 'credential-1'
+        },
+        requestedPipelineVersion: 'unversioned_current',
+        requestedTaxonomyVersion: 'unversioned_current'
+      });
+
+      return jsonResponse({
+        schemaVersion: 'semantic_analysis_v1',
+        sourceType: 'text'
+      });
+    }
+  );
+
+  const response = await new AiServiceClient().analyzeText({
+    content: 'The Complete Python Bootcamp',
+    metadata: {
+      platformName: 'Plataforma de Cursos Demo',
+      hours: 22,
+      modality: 'Online',
+      credentialType: 'course'
+    },
+    sourceRefs: {
+      textEvidenceId: 'text-evidence-1',
+      credentialId: 'credential-1'
+    },
+    correlationId: 'run-9',
+    pipelineVersion: 'unversioned_current',
+    taxonomyVersion: 'unversioned_current'
+  });
+
+  assert.deepEqual(response, {
+    schemaVersion: 'semantic_analysis_v1',
+    sourceType: 'text'
+  });
+});
+
+test('analyzeText omits metadata/sourceRefs entirely when nothing is provided', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      const parsed = JSON.parse(String(init?.body));
+      assert.deepEqual(Object.keys(parsed), ['content']);
+      return jsonResponse({ schemaVersion: 'semantic_analysis_v1' });
+    }
+  );
+
+  await new AiServiceClient().analyzeText({ content: 'texto minimo' });
+});
+
+test('analyzeText uses the same internal JWT auth as analyzePdf', async (context) => {
+  configureJwtAiEnv(context);
+  const captured: { authorization: string | null } = { authorization: null };
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (_url: string | URL | Request, init?: RequestInit) => {
+      captured.authorization = new Headers(init?.headers).get('authorization');
+      return jsonResponse({ schemaVersion: 'semantic_analysis_v1' });
+    }
+  );
+
+  await new AiServiceClient().analyzeText({ content: 'texto minimo' });
+
+  const upstreamAuthorization = captured.authorization;
+  assert.ok(upstreamAuthorization?.startsWith('Bearer '));
+  const payload = decodeJwtPayload(upstreamAuthorization as string);
+  assert.deepEqual(Object.keys(payload).sort(), [
+    'aud',
+    'exp',
+    'iat',
+    'iss',
+    'jti',
+    'sub'
+  ]);
+});
+
+test('analyzeText rejects blank content before calling fetch', async (context) => {
+  configureAiEnv(context);
+  let fetchCalled = false;
+  context.mock.method(globalThis, 'fetch', async () => {
+    fetchCalled = true;
+    return jsonResponse({ schemaVersion: 'semantic_analysis_v1' });
+  });
+
+  await assert.rejects(
+    () => new AiServiceClient().analyzeText({ content: '   ' }),
+    (error: unknown) =>
+      error instanceof AiServiceClientError && error.code === 'configuration'
+  );
+  assert.equal(fetchCalled, false);
+});
+
+test('analyzeText maps a 409 version conflict without leaking upstream detail', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(globalThis, 'fetch', async () =>
+    jsonResponse(
+      {
+        detail:
+          "pipelineVersion='future-version' is not available; this service exposes 'unversioned_current'"
+      },
+      409
+    )
+  );
+
+  await assert.rejects(
+    () =>
+      new AiServiceClient().analyzeText({
+        content: 'texto minimo',
+        pipelineVersion: 'future-version'
+      }),
+    (error: unknown) =>
+      error instanceof AiServiceClientError &&
+      error.code === 'http' &&
+      error.status === 409
+  );
+});
+
+test('analyzeText maps a 422 rejection without leaking the full content in the thrown error', async (context) => {
+  configureAiEnv(context);
+  const secretContent =
+    'contenido formativo confidencial que no debe aparecer en logs de error';
+  context.mock.method(globalThis, 'fetch', async () =>
+    jsonResponse({ detail: 'text_could_not_be_processed: input rejected' }, 422)
+  );
+
+  await assert.rejects(
+    () =>
+      new AiServiceClient().analyzeText({ content: secretContent }),
+    (error: unknown) => {
+      assert.ok(error instanceof AiServiceClientError);
+      assert.equal(error.code, 'http');
+      assert.equal(error.status, 422);
+      assert.equal(error.message.includes(secretContent), false);
+      return true;
+    }
+  );
+});
+
+test('analyzeText maps a non-JSON response to invalid_response', async (context) => {
+  configureAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async () =>
+      new Response('service unavailable', {
+        status: 500,
+        headers: { 'content-type': 'text/plain' }
+      })
+  );
+
+  await assert.rejects(
+    () => new AiServiceClient().analyzeText({ content: 'texto minimo' }),
+    (error: unknown) =>
+      error instanceof AiServiceClientError &&
+      error.code === 'invalid_response' &&
+      error.status === 500
+  );
+});
+
 test('buildFormativeProfile sends the expected JSON body', async (context) => {
   configureAiEnv(context);
   const artifacts = [

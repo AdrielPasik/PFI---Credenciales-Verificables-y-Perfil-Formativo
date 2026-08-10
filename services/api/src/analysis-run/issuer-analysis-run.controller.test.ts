@@ -44,6 +44,92 @@ test('document analysis route is issuer-scoped POST protected by AuthGuard', () 
   );
 });
 
+test('text analysis route is issuer-scoped POST protected by AuthGuard', () => {
+  assert.equal(
+    Reflect.getMetadata(
+      PATH_METADATA,
+      IssuerAnalysisRunController.prototype.triggerTextAnalysis
+    ),
+    'text'
+  );
+  assert.equal(
+    Reflect.getMetadata(
+      METHOD_METADATA,
+      IssuerAnalysisRunController.prototype.triggerTextAnalysis
+    ),
+    RequestMethod.POST
+  );
+  assert.deepEqual(
+    Reflect.getMetadata(
+      GUARDS_METADATA,
+      IssuerAnalysisRunController.prototype.triggerTextAnalysis
+    ),
+    [AuthGuard]
+  );
+});
+
+test('text controller uses params and current user and ignores an untrusted body', async () => {
+  const calls: unknown[] = [];
+  const expected = {
+    analysisRunId: 'run-1',
+    credentialId: 'credential-1',
+    status: AnalysisRunStatus.completed,
+    semanticAnalysisId: 'semantic-1',
+    artifactStatus: SemanticAnalysisStatus.partial,
+    sourceCount: 1,
+    completedAt: '2026-08-10T12:01:00.000Z'
+  };
+  const controller = new IssuerAnalysisRunController(
+    {
+      async triggerTextAnalysis(...args: unknown[]) {
+        calls.push(args);
+        return expected;
+      }
+    } as never,
+    {} as never
+  );
+  const currentUser = {
+    id: 'authenticated-user',
+    email: 'operator@example.com',
+    did: null,
+    status: UserStatus.active
+  };
+  const maliciousBody = {
+    issuerId: 'other-issuer',
+    credentialId: 'other-credential',
+    requestedByUserId: 'other-user',
+    textEvidenceId: 'other-text-evidence',
+    content: 'attacker-supplied text',
+    inputMode: 'combined',
+    trigger: 'system'
+  };
+
+  const response = await controller.triggerTextAnalysis(
+    'issuer-1',
+    'credential-1',
+    currentUser,
+    maliciousBody
+  );
+
+  assert.deepEqual(calls, [
+    ['issuer-1', 'credential-1', 'authenticated-user']
+  ]);
+  assert.deepEqual(response, expected);
+  for (const forbidden of [
+    'content',
+    'artifact',
+    'analysisJson',
+    'textForEmbedding',
+    'evidenceMap',
+    'storageKey',
+    'path',
+    'token',
+    'authorization'
+  ]) {
+    assert.equal(forbidden in response, false);
+  }
+});
+
 test('controller uses params and current user and ignores an untrusted body', async () => {
   const calls: unknown[] = [];
   const expected = {

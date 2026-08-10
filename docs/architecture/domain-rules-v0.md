@@ -236,13 +236,30 @@ habilidades visibles deben provenir de un
 
 ### Gap C2b: analisis textual de cursos
 
-`TextEvidence` y `AnalysisRunInputMode.text` existen para trazabilidad, pero
-la ejecucion implementada actualmente solo procesa fuentes PDF y el AI Service
-solo expone el endpoint semantico PDF. Por lo tanto, C2 no genera un analisis
-textual parcial ni reutiliza skills declaradas como skills inferidas. C2b debe
-agregar un contrato interno de analisis textual, una fuente textual generada
-con hash estable y ejecucion `system` best-effort despues de emitir un curso
-sin PDF vigente.
+`TextEvidence` y `AnalysisRunInputMode.text` existen para trazabilidad desde
+antes de C2b. C2b.1 agrego `POST /v1/semantic-analysis/text` en el AI Service
+(reusa el pipeline de deteccion existente sobre texto declarado, sin PDF,
+con reglas conservadoras para texto corto/no estructurado). C2b.2 conecto el
+backend a ese endpoint:
+
+- `AnalysisRunExecutionService.executePendingTextRun` ejecuta de verdad
+  `inputMode=text` (leer `TextEvidence.content` vigente, llamar
+  `AiServiceClient.analyzeText`, validar/persistir `SemanticAnalysis` con
+  `sourceType: "text"`, completar/marcar failed) — ya no rechaza este modo
+  genericamente.
+- `POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/text` es
+  el trigger manual, draft-only, con deduplicacion por `TextEvidence.id`
+  vigente exacto.
+- `SemanticAnalysisArtifactSourceType` (backend) acepta `"text"` ademas de
+  `"academic_pdf"`/`"online_course_catalog"`.
+
+Lo que **todavia falta** (C2b.3, fuera de alcance de C2b.2): generar
+automaticamente una `TextEvidence` a partir de los campos declarados de un
+`course` (`achievementName`/`description`/`competencies`/`learningOutcomes`)
+cuando no hay PDF vigente, y disparar la ejecucion `system` best-effort
+despues de emitir. Hoy el analisis textual solo ocurre si el emisor ya cargo
+una `TextEvidence` manualmente y dispara el endpoint manual — no hay
+auto-trigger post-emision para texto todavia.
 
 ## 12. Catalogo y curricula institucional para academic_subject
 

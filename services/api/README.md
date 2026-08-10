@@ -153,8 +153,48 @@ ejecutar un `AnalysisRun` documental `system` cuando existe un PDF `current`.
 El intento ocurre fuera de la transacción de emisión, reutiliza la evidencia
 exacta y evita duplicar un run activo o completado para esa misma fuente. La
 ausencia de PDF o un fallo de storage/AI/persistencia semántica no bloquean ni
-revierten la emisión. El endpoint manual de análisis permanece limitado a
-drafts; texto y `combined` no se ejecutan automáticamente.
+revierten la emisión. Los endpoints manuales de análisis permanecen limitados
+a drafts; `combined` sigue sin ejecutarse (todavía no implementado, ver
+abajo).
+
+### C2b.2 — `AnalysisRun` textual (manual, sin auto-trigger)
+
+`POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/text` crea y
+ejecuta, de forma sincrónica y draft-only, un `AnalysisRun` con
+`inputMode=text` sobre la `TextEvidence` `current` de la credencial. Sigue
+exactamente el mismo patrón que el endpoint `.../analysis-runs/document`:
+`AuthGuard`, admin/operator activo del issuer autorizado, credencial scoped al
+issuer, y el mismo DTO de respuesta seguro (`analysisRunId`, `credentialId`,
+`status`, `semanticAnalysisId`, `artifactStatus`, `sourceCount`,
+`completedAt` — nunca `content`, el artifact crudo, `textForEmbedding` ni
+storage keys).
+
+- Reusa `AnalysisRunService.createPendingRun` (nunca crea `AnalysisRun` o
+  `AnalysisRunSource` a mano) y el mismo `claim -> ejecutar -> completar/failed`
+  que ya prueba el flujo documental, ahora también para `inputMode=text`
+  (`AnalysisRunExecutionService.executePendingTextRun`).
+- Lee `TextEvidence.content` a partir de la fuente asociada al run (nunca
+  desde parámetros libres del request) y envía al AI Service `content` +
+  metadata declarada (`credentialType`, `platform_name`, `modality`, `hours`
+  cuando existen en `Credential`/`credentialSubject`) + `sourceRefs`
+  (`textEvidenceId`, `credentialId`) — nunca `externalUrl` ni contenido
+  textual dentro de la metadata.
+- Si no hay `TextEvidence` vigente: `422` con
+  *"La credencial no tiene evidencia textual vigente para analizar."*
+- Deduplicación por fuente exacta: si ya existe un `AnalysisRun` `text` en
+  estado `pending`/`running`/`completed` para la MISMA `TextEvidence.id`
+  vigente, se rechaza con `409` en vez de crear o reejecutar un run
+  duplicado. Reemplazar la evidencia (nueva `TextEvidence` `current`) libera
+  un análisis nuevo, porque el filtro es por `textEvidenceId` exacto, no por
+  `credentialId`.
+- `combined` sigue rechazado explícitamente con
+  *"El análisis combinado todavía no está implementado."* en ambos puntos de
+  entrada (documental y textual).
+- Todavía NO genera `TextEvidence` automáticamente desde los campos
+  declarados de un `course` (`achievementName`/`description`/
+  `competencies`/`learningOutcomes`) y todavía NO se dispara al emitir una
+  credencial sin PDF — eso queda para C2b.3. Este endpoint es manual
+  únicamente.
 
 La emisión issuer-scoped no convierte el PDF en requisito universal: una
 `TextEvidence` vigente también puede respaldarla y una evidencia documental no

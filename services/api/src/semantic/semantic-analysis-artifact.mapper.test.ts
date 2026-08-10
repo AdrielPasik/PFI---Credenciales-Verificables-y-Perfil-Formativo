@@ -6,7 +6,8 @@ import { BadRequestException } from '@nestjs/common';
 import {
   createAcademicPdfCompletedArtifact,
   createAcademicPdfPartialArtifact,
-  createOnlineCourseArtifact
+  createOnlineCourseArtifact,
+  createTextArtifact
 } from './__fixtures__/semantic-analysis-artifact.fixtures';
 import { mapSemanticAnalysisArtifact } from './semantic-analysis-artifact.mapper';
 import { validateSemanticAnalysisArtifact } from './semantic-analysis-artifact.validator';
@@ -38,6 +39,73 @@ test('valid online artifact with unavailable confidence passes validation', () =
   assert.equal(artifact.sourceType, 'online_course_catalog');
   assert.equal(artifact.confidence.global, null);
   assert.equal(artifact.confidence.globalMethod, 'unavailable');
+});
+
+test('valid text artifact passes validation', () => {
+  const artifact = validateSemanticAnalysisArtifact(createTextArtifact());
+
+  assert.equal(artifact.sourceType, 'text');
+  assert.equal(artifact.status, 'partial');
+  assert.deepEqual(artifact.sourceRefs, {
+    documentId: 'text-evidence-1',
+    fileName: null,
+    textEvidenceId: 'text-evidence-1',
+    credentialId: 'credential-1'
+  });
+});
+
+test('text artifact does not require sourceRefs.textEvidenceId', () => {
+  const artifact = {
+    ...createTextArtifact(),
+    sourceRefs: { documentId: 'text-input' }
+  };
+
+  const validated = validateSemanticAnalysisArtifact(artifact);
+  assert.equal(validated.sourceType, 'text');
+  assert.equal('textEvidenceId' in validated.sourceRefs, false);
+});
+
+test('academic_pdf artifact does not require sourceRefs.textEvidenceId', () => {
+  const artifact = validateSemanticAnalysisArtifact(
+    createAcademicPdfCompletedArtifact()
+  );
+  assert.equal('textEvidenceId' in artifact.sourceRefs, false);
+});
+
+test('non-empty sourceRefs.textEvidenceId must be a string when present', () => {
+  const artifact = {
+    ...createTextArtifact(),
+    sourceRefs: { ...createTextArtifact().sourceRefs, textEvidenceId: 42 }
+  };
+
+  assert.throws(
+    () => validateSemanticAnalysisArtifact(artifact),
+    BadRequestException
+  );
+});
+
+test('empty sourceRefs.credentialId is rejected when present', () => {
+  const artifact = {
+    ...createTextArtifact(),
+    sourceRefs: { ...createTextArtifact().sourceRefs, credentialId: '   ' }
+  };
+
+  assert.throws(
+    () => validateSemanticAnalysisArtifact(artifact),
+    BadRequestException
+  );
+});
+
+test('invalid sourceType is rejected', () => {
+  const artifact = {
+    ...createAcademicPdfCompletedArtifact(),
+    sourceType: 'course_dataset'
+  };
+
+  assert.throws(
+    () => validateSemanticAnalysisArtifact(artifact),
+    BadRequestException
+  );
 });
 
 test('incorrect schemaVersion fails validation', () => {
@@ -125,6 +193,19 @@ test('mapper preserves metadata contract fields', () => {
     documentId: '3.4.080',
     fileName: '3.4.080_BASE_DE_DATOS_I.pdf'
   });
+});
+
+test('mapper preserves text sourceRefs safely (opaque ids, no content)', () => {
+  const mapped = mapSemanticAnalysisArtifact(createTextArtifact());
+
+  assert.equal(mapped.metadata.sourceType, 'text');
+  assert.deepEqual(mapped.metadata.sourceRefs, {
+    documentId: 'text-evidence-1',
+    fileName: null,
+    textEvidenceId: 'text-evidence-1',
+    credentialId: 'credential-1'
+  });
+  assert.equal(hasOwn(mapped.metadata.sourceRefs as object, 'content'), false);
 });
 
 test('mapper does not generate canonicalHash', () => {

@@ -108,6 +108,51 @@ export function createAcademicPdfPartialArtifact(): SemanticAnalysisArtifact {
   };
 }
 
+export function createTextArtifact(): SemanticAnalysisArtifact {
+  return {
+    schemaVersion: 'semantic_analysis_v1',
+    pipelineVersion: 'unversioned_current',
+    taxonomyVersion: 'unversioned_current',
+    status: 'partial',
+    sourceType: 'text',
+    sourceRefs: {
+      documentId: 'text-evidence-1',
+      fileName: null,
+      textEvidenceId: 'text-evidence-1',
+      credentialId: 'credential-1'
+    },
+    areas: [],
+    skills: [
+      {
+        id: 'skill_python',
+        label: 'Python',
+        confidence: 0.45,
+        confidenceMethod: 'heuristic',
+        source: 'explicit'
+      }
+    ],
+    concepts: [],
+    hoursDistribution: [],
+    evidenceMap: {
+      areas: {},
+      skills: {
+        skill_python: ['matched_signal:python']
+      },
+      concepts: {}
+    },
+    confidence: {
+      global: null,
+      globalMethod: 'unavailable',
+      coverage: null,
+      coverageMethod: 'unavailable'
+    },
+    qualityFlags: ['short_unstructured_text', 'no_curricular_sections_detected'],
+    textForEmbedding: 'The Complete Python Bootcamp From Zero to Hero in Python.',
+    warnings: ['low_text_signal'],
+    partialReasons: ['short_unstructured_text_source']
+  };
+}
+
 export function createOnlineCourseArtifact(): SemanticAnalysisArtifact {
   return {
     schemaVersion: 'semantic_analysis_v1',

@@ -8,6 +8,9 @@ import {
   AiServiceClientError,
   type AiServiceHealthResponse,
   type AnalyzePdfWithAiInput,
+  type AnalyzeTextWithAiInput,
+  type AnalyzeTextWithAiMetadata,
+  type AnalyzeTextWithAiSourceRefs,
   type BuildFormativeProfileWithAiInput
 } from './ai-service.types';
 import { AiServiceInternalAuth } from './ai-service-internal-auth';
@@ -126,6 +129,65 @@ export class AiServiceClient {
       fileBytes: await readFile(filePath),
       defaultFileName: basename(filePath)
     };
+  }
+
+  async analyzeText(input: AnalyzeTextWithAiInput): Promise<unknown> {
+    const content = this.expectNonEmptyString(input.content, 'content');
+    const metadata = this.buildTextMetadata(input.metadata);
+    const sourceRefs = this.buildTextSourceRefs(input.sourceRefs);
+    const pipelineVersion = this.optionalNonEmptyString(input.pipelineVersion);
+    const taxonomyVersion = this.optionalNonEmptyString(input.taxonomyVersion);
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+
+    const body: Record<string, unknown> = { content };
+    if (metadata) body.metadata = metadata;
+    if (sourceRefs) body.sourceRefs = sourceRefs;
+    if (pipelineVersion) body.requestedPipelineVersion = pipelineVersion;
+    if (taxonomyVersion) body.requestedTaxonomyVersion = taxonomyVersion;
+
+    return this.requestJson(
+      '/v1/semantic-analysis/text',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+        },
+        body: JSON.stringify(body)
+      },
+      true
+    );
+  }
+
+  private buildTextMetadata(
+    metadata: AnalyzeTextWithAiMetadata | undefined
+  ): Record<string, unknown> | undefined {
+    if (!metadata) return undefined;
+    const result: Record<string, unknown> = {};
+    const platformName = this.optionalNonEmptyString(metadata.platformName);
+    if (platformName) result.platformName = platformName;
+    if (typeof metadata.hours === 'number' && Number.isFinite(metadata.hours)) {
+      result.hours = metadata.hours;
+    }
+    const modality = this.optionalNonEmptyString(metadata.modality);
+    if (modality) result.modality = modality;
+    const credentialType = this.optionalNonEmptyString(metadata.credentialType);
+    if (credentialType) result.credentialType = credentialType;
+    const languageHint = this.optionalNonEmptyString(metadata.languageHint);
+    if (languageHint) result.languageHint = languageHint;
+    return Object.keys(result).length > 0 ? result : undefined;
+  }
+
+  private buildTextSourceRefs(
+    sourceRefs: AnalyzeTextWithAiSourceRefs | undefined
+  ): Record<string, unknown> | undefined {
+    if (!sourceRefs) return undefined;
+    const result: Record<string, unknown> = {};
+    const textEvidenceId = this.optionalNonEmptyString(sourceRefs.textEvidenceId);
+    if (textEvidenceId) result.textEvidenceId = textEvidenceId;
+    const credentialId = this.optionalNonEmptyString(sourceRefs.credentialId);
+    if (credentialId) result.credentialId = credentialId;
+    return Object.keys(result).length > 0 ? result : undefined;
   }
 
   async buildFormativeProfile(

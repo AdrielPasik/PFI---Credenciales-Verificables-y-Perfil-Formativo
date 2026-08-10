@@ -3,7 +3,10 @@ export const SEMANTIC_ANALYSIS_SCHEMA_VERSION = 'semantic_analysis_v1';
 export const SEMANTIC_ANALYSIS_STATUSES = ['completed', 'partial'] as const;
 export const SEMANTIC_ANALYSIS_SOURCE_TYPES = [
   'academic_pdf',
-  'online_course_catalog'
+  'online_course_catalog',
+  // C2b.2: texto formativo declarado (sin PDF), generado por el AI Service
+  // desde TextEvidence.content — ver ai-backend-integration-contract-v0.md.
+  'text'
 ] as const;
 export const SEMANTIC_ANALYSIS_CONFIDENCE_METHODS = [
   'measured',

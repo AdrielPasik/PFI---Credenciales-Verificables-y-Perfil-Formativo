@@ -52,6 +52,12 @@ export function validateSemanticAnalysisArtifact(
     artifact.sourceRefs,
     'sourceRefs'
   ) as SemanticAnalysisArtifactSourceRefs;
+  // C2b.2: textEvidenceId/credentialId solo existen para sourceType="text"
+  // y son opacos (nunca contenido). No se exigen globalmente -- academic_pdf
+  // sigue usando documentId -- pero si estan presentes deben ser strings
+  // no vacios, igual que cualquier otro identificador de correlacion.
+  assertOptionalNonEmptyStringField(sourceRefs, 'textEvidenceId', 'sourceRefs.textEvidenceId');
+  assertOptionalNonEmptyStringField(sourceRefs, 'credentialId', 'sourceRefs.credentialId');
   const areas = expectDescriptorArray(artifact.areas, 'areas');
   const skills = expectDescriptorArray(artifact.skills, 'skills');
   const concepts = expectDescriptorArray(artifact.concepts, 'concepts');
@@ -96,6 +102,17 @@ export function validateSemanticAnalysisArtifact(
     warnings,
     partialReasons
   };
+}
+
+function assertOptionalNonEmptyStringField(
+  record: Record<string, unknown>,
+  key: string,
+  path: string
+): void {
+  if (record[key] === undefined) {
+    return;
+  }
+  expectNonEmptyString(record[key], path);
 }
 
 function expectPlainObject(
