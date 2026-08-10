@@ -9,7 +9,8 @@ export function buildDemoSeedSummary(input: DemoSeedSummaryInput) {
   return {
     status: 'ok' as const,
     demoIssuerReady: true,
-    demoUsersReady: 2,
+    demoCoursePlatformIssuerReady: true,
+    demoUsersReady: 3,
     academicCoursesImported: input.academicCoursesImported,
     academicProgramsImported: input.academicProgramsImported,
     curriculumVersionsImported: input.curriculumVersionsImported,

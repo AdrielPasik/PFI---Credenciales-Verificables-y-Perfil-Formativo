@@ -22,7 +22,8 @@ test('demo seed summary contains counts without identifiers or authentication da
   assert.deepEqual(summary, {
     status: 'ok',
     demoIssuerReady: true,
-    demoUsersReady: 2,
+    demoCoursePlatformIssuerReady: true,
+    demoUsersReady: 3,
     academicCoursesImported: 617,
     academicProgramsImported: 22,
     curriculumVersionsImported: 22,

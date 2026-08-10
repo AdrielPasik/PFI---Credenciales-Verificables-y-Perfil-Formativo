@@ -22,7 +22,7 @@ describe('holder adapters', () => {
   it('adapts only holder-safe credential list fields and accepts issued/revoked', () => {
     const result = adaptMyCredentials(listPayload());
     expect(result[0]).toEqual({
-      credentialReference: 'credential-internal-reference', title: 'Arquitectura de software', typeLabel: 'Curso',
+      credentialReference: 'credential-internal-reference', title: 'Arquitectura de software', type: 'course', typeLabel: 'Curso',
       status: 'issued', statusLabel: 'Emitida', issuerName: 'Institución demo', issuedAtLabel: expect.any(String),
       hasIntegrityEvidence: true, hasAnalysis: true
     });
@@ -46,6 +46,65 @@ describe('holder adapters', () => {
     expect(result.analysis?.statusLabel).toBe('Análisis parcial');
     expect(JSON.stringify(result)).not.toContain('forbidden');
     expect(JSON.stringify(result)).not.toContain('analysisJson');
+  });
+
+  it('accepts declared course fields (providerName/platformName/modality/level/externalUrl)', () => {
+    const result = adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Plataforma de Cursos Online Demo', did: null },
+      subject: { displayName: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: {
+        achievementName: 'Curso de Cloud', institutionName: 'Plataforma de Cursos Online Demo',
+        completionDate: null, academicPeriod: null, programName: null, grade: null,
+        providerName: 'Instituto Demo', platformName: 'Campus Virtual Demo', modality: 'Online asincrónica',
+        level: 'Intermedio', externalUrl: 'https://plataforma-demo.example.com/curso/123',
+        skills: ['Cloud'], competencies: [], learningOutcomes: []
+      },
+      documentEvidence: null, textEvidence: null,
+      blockchainRecords: [], latestSemanticAnalysis: null
+    });
+
+    expect(result.subject.providerName).toBe('Instituto Demo');
+    expect(result.subject.platformName).toBe('Campus Virtual Demo');
+    expect(result.subject.modality).toBe('Online asincrónica');
+    expect(result.subject.level).toBe('Intermedio');
+    expect(result.subject.externalUrl).toBe('https://plataforma-demo.example.com/curso/123');
+  });
+
+  it('rejects a course externalUrl that is not http or https', () => {
+    expect(() => adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Plataforma de Cursos Online Demo', did: null },
+      subject: { displayName: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: {
+        achievementName: 'Curso de Cloud', institutionName: 'Plataforma de Cursos Online Demo',
+        completionDate: null, academicPeriod: null, programName: null, grade: null,
+        providerName: null, platformName: null, modality: null, level: null,
+        externalUrl: 'javascript:alert(1)',
+        skills: [], competencies: [], learningOutcomes: []
+      },
+      documentEvidence: null, textEvidence: null,
+      blockchainRecords: [], latestSemanticAnalysis: null
+    })).toThrow(IncompatiblePayloadError);
+  });
+
+  it('rejects a credentialSubject payload with non-string declared course fields', () => {
+    expect(() => adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Plataforma de Cursos Online Demo', did: null },
+      subject: { displayName: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: {
+        achievementName: 'Curso de Cloud', institutionName: 'Plataforma de Cursos Online Demo',
+        completionDate: null, academicPeriod: null, programName: null, grade: null,
+        providerName: { forbidden: true }, platformName: null, modality: null, level: null, externalUrl: null,
+        skills: [], competencies: [], learningOutcomes: []
+      },
+      documentEvidence: null, textEvidence: null,
+      blockchainRecords: [], latestSemanticAnalysis: null
+    })).toThrow(IncompatiblePayloadError);
   });
 
   it('adapts the current profile through an allowlist and handles no profile', () => {

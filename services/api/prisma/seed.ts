@@ -10,6 +10,7 @@ import {
 
 import { hashPassword } from '../src/auth/password-hashing';
 import { loadDemoAcademicCatalog } from './demo-academic-catalog';
+import { buildDemoCoursePlatformIssuerUpsertArgs } from './demo-course-platform-issuer-seed';
 import { buildDemoIssuerUpsertArgs } from './demo-issuer-seed';
 import { buildDemoSeedSummary } from './demo-seed-summary';
 
@@ -17,8 +18,12 @@ const prisma = new PrismaClient();
 
 const DEMO_ISSUER_PASSWORD = 'DemoIssuer123!';
 const DEMO_HOLDER_PASSWORD = 'DemoHolder123!';
+const DEMO_COURSE_PLATFORM_ISSUER_PASSWORD = 'DemoPlatform123!';
 async function main() {
   const issuer = await prisma.issuer.upsert(buildDemoIssuerUpsertArgs());
+  const coursePlatformIssuer = await prisma.issuer.upsert(
+    buildDemoCoursePlatformIssuerUpsertArgs()
+  );
 
   const academicCatalog = await loadDemoAcademicCatalog();
 
@@ -166,6 +171,23 @@ async function main() {
     }
   });
 
+  const coursePlatformIssuerAdmin = await prisma.user.upsert({
+    where: {
+      email: 'platform.issuer.demo@example.com'
+    },
+    update: {
+      displayName: 'Demo Course Platform Admin',
+      did: 'did:example:course-platform-issuer-admin-demo',
+      status: UserStatus.active
+    },
+    create: {
+      email: 'platform.issuer.demo@example.com',
+      displayName: 'Demo Course Platform Admin',
+      did: 'did:example:course-platform-issuer-admin-demo',
+      status: UserStatus.active
+    }
+  });
+
   await prisma.issuerMembership.upsert({
     where: {
       userId_issuerId: {
@@ -180,6 +202,25 @@ async function main() {
     create: {
       userId: issuerAdmin.id,
       issuerId: issuer.id,
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
+    }
+  });
+
+  await prisma.issuerMembership.upsert({
+    where: {
+      userId_issuerId: {
+        userId: coursePlatformIssuerAdmin.id,
+        issuerId: coursePlatformIssuer.id
+      }
+    },
+    update: {
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
+    },
+    create: {
+      userId: coursePlatformIssuerAdmin.id,
+      issuerId: coursePlatformIssuer.id,
       role: IssuerMembershipRole.admin,
       status: IssuerMembershipStatus.active
     }
@@ -208,6 +249,19 @@ async function main() {
     create: {
       userId: issuerAdmin.id,
       passwordHash: await hashPassword(DEMO_ISSUER_PASSWORD)
+    }
+  });
+
+  await prisma.authCredential.upsert({
+    where: {
+      userId: coursePlatformIssuerAdmin.id
+    },
+    update: {
+      passwordHash: await hashPassword(DEMO_COURSE_PLATFORM_ISSUER_PASSWORD)
+    },
+    create: {
+      userId: coursePlatformIssuerAdmin.id,
+      passwordHash: await hashPassword(DEMO_COURSE_PLATFORM_ISSUER_PASSWORD)
     }
   });
 

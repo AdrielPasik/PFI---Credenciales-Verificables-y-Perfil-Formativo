@@ -86,6 +86,7 @@ export const credentialDraftFieldsByType: Record<
     'platformName',
     'modality',
     'level',
+    'externalUrl',
     'skills',
     'competencies',
     'learningOutcomes'

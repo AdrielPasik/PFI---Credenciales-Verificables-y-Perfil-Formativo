@@ -69,6 +69,11 @@ export function adaptMyCredential(payload: unknown): HolderCredentialDetailVM {
       academicPeriod: nullableString(credentialSubject.academicPeriod),
       programName: nullableString(credentialSubject.programName),
       grade: nullableString(credentialSubject.grade),
+      providerName: nullableString(credentialSubject.providerName),
+      platformName: nullableString(credentialSubject.platformName),
+      modality: nullableString(credentialSubject.modality),
+      level: nullableString(credentialSubject.level),
+      externalUrl: nullableExternalUrl(credentialSubject.externalUrl),
       skills: stringArray(credentialSubject.skills),
       competencies: stringArray(credentialSubject.competencies),
       learningOutcomes: stringArray(credentialSubject.learningOutcomes)
@@ -171,6 +176,7 @@ function adaptCredentialListItem(value: unknown): HolderCredentialListItemVM {
   return {
     credentialReference: requiredString(credential.id),
     title: requiredString(credential.title),
+    type,
     typeLabel: typeLabels[type],
     status,
     statusLabel: status === 'issued' ? 'Emitida' : 'Revocada',
@@ -208,6 +214,18 @@ function enumValue<T extends readonly string[]>(value: unknown, allowed: T): T[n
 function dateLabel(value: unknown): string { if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) invalid(); return formatIntegrityDate(value); }
 function nullableDateLabel(value: unknown): string | null { return value === null ? null : dateLabel(value); }
 function nullableHash(value: unknown): string | null { if (value === null) return null; const hash = requiredString(value); if (!hashPattern.test(hash)) invalid(); return hash; }
+function nullableExternalUrl(value: unknown): string | null {
+  const url = nullableString(value);
+  if (url === null) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    invalid();
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') invalid();
+  return url;
+}
 function shortHash(value: unknown): string { return abbreviateIntegrityReference(nullableHash(value) ?? requiredString(value)); }
 function shortDigest(value: unknown): string { const digest = requiredString(value); if (!/^[a-fA-F0-9]{64}$/.test(digest)) invalid(); return abbreviateIntegrityReference(digest); }
 function nullableConfidenceLabel(value: unknown): string | null { const confidence = nullableConfidence(value); return confidence === null ? null : `${Math.round(confidence * 100)}% de confianza`; }

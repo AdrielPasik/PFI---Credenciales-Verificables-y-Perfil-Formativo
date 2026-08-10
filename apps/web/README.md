@@ -36,6 +36,13 @@ flujos reales del navegador sobre la base F0.1:
   habilidades, conceptos) de la información declarada por instituciones
   emisoras (`emittedSkills`/`emittedCompetencies`/`emittedLearningOutcomes`),
   sin mezclar ambos orígenes ni sugerir que la IA certifica lo declarado.
+- C1a-c: el editor de borrador habilita `externalUrl` ("URL del curso o
+  certificado") también para `course`, con copy que aclara que es un dato
+  declarado por el emisor. `/wallet/credentials/[credentialId]` agrega una
+  sección "Información declarada del curso" (plataforma, proveedor,
+  modalidad, nivel y URL) para credenciales `course` con esos datos, separada
+  de la interpretación asistida por IA. El detalle post-emisión del emisor
+  agrega una tarjeta de solo lectura equivalente para `issued`/`revoked`.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

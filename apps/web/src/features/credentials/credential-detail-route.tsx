@@ -5,6 +5,7 @@ import {
   CalendarDays,
   FilePlus2,
   Landmark,
+  Link2,
   Tags,
   UserRound
 } from 'lucide-react';
@@ -540,6 +541,10 @@ export function CredentialDetailView({
 
       <CredentialIssuanceSection detail={detail} onIssue={onIssue} />
 
+      {!isDraft && detail.type === 'course' ? (
+        <CourseDeclaredDataCard subject={detail.credentialSubject} />
+      ) : null}
+
       <section aria-labelledby="supporting-evidence-title" className="grid gap-8">
         <div className="max-w-3xl border-t border-border-default pt-8">
           <p className="text-sm font-semibold text-teal-700">Fuentes institucionales</p>
@@ -602,6 +607,110 @@ function holderDescription(holder: IssuerCredentialDetailVM['holder']) {
   const did = holder.did ?? 'DID no disponible';
 
   return `${email} · ${did}`;
+}
+
+function CourseDeclaredDataCard({
+  subject
+}: {
+  subject: IssuerCredentialDetailVM['credentialSubject'];
+}) {
+  const hasDeclaredData =
+    subject.platformName !== null ||
+    subject.providerName !== null ||
+    subject.modality !== null ||
+    subject.level !== null ||
+    subject.externalUrl !== null ||
+    subject.skills.length > 0 ||
+    subject.competencies.length > 0 ||
+    subject.learningOutcomes.length > 0;
+
+  if (!hasDeclaredData) {
+    return null;
+  }
+
+  return (
+    <Card className="border-border-strong shadow-none">
+      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
+        <Link2 aria-hidden="true" className="size-5 text-teal-700" />
+        <div>
+          <h2 className="text-lg font-semibold text-text-strong">
+            Datos declarados del curso
+          </h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Información declarada por la institución emisora. Modo lectura.
+          </p>
+        </div>
+      </CardHeader>
+      <CardContent className="grid gap-4 pt-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <OptionalDetailRow icon={Tags} label="Plataforma" value={subject.platformName} />
+          <OptionalDetailRow icon={Building2} label="Proveedor" value={subject.providerName} />
+          <OptionalDetailRow icon={Tags} label="Modalidad" value={subject.modality} />
+          <OptionalDetailRow icon={Tags} label="Nivel" value={subject.level} />
+        </div>
+        {subject.externalUrl ? (
+          <div>
+            <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
+              <Link2 aria-hidden="true" className="size-4" />
+              URL del curso o certificado
+            </span>
+            <a
+              href={subject.externalUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-1 inline-block break-words font-semibold text-brand-700 underline underline-offset-4"
+            >
+              {subject.externalUrl}
+            </a>
+            <p className="mt-1 text-sm leading-5 text-text-muted">
+              Enlace declarado por la institución emisora. No implica verificación oficial externa.
+            </p>
+          </div>
+        ) : null}
+        <TagList title="Skills declaradas" items={subject.skills} />
+        <TagList title="Competencias declaradas" items={subject.competencies} />
+        <TagList title="Resultados de aprendizaje declarados" items={subject.learningOutcomes} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function OptionalDetailRow({
+  icon,
+  label,
+  value
+}: {
+  icon: typeof Landmark;
+  label: string;
+  value: string | null;
+}) {
+  if (!value) {
+    return null;
+  }
+
+  return <DetailRow icon={icon} label={label} value={value} />;
+}
+
+function TagList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-semibold text-text-muted">{title}</p>
+      <ul className="mt-2 flex flex-wrap gap-2">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="rounded-full border border-border-strong px-3 py-1 text-sm text-text-strong"
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function DetailRow({

@@ -412,6 +412,22 @@ local/dev son:
 - `issuer.admin@example.com / DemoIssuer123!`
 - `holder.demo@example.com / DemoHolder123!`
 
+El seed tambien crea (o actualiza de forma idempotente) un segundo issuer
+demo generico, `Plataforma de Cursos Online Demo`
+(`prisma/demo-course-platform-issuer-seed.ts`), con su propio usuario y
+membership `admin` activa:
+
+- `platform.issuer.demo@example.com / DemoPlatform123!`
+
+Este issuer existe para habilitar el flujo manual de credenciales `course`
+(login como emisor -> crear draft -> completar datos -> emitir -> el holder
+ve el impacto en su wallet) sin depender de una integracion real con ninguna
+plataforma de cursos. No representa a Udemy, Coursera, AWS ni ninguna marca
+real; el nombre del issuer es deliberadamente generico. El seed no crea
+credenciales `course` de ejemplo: la emision queda para probarse manualmente
+o para un slice posterior de datos demo. Ni el issuer UADE ni el holder demo
+existentes se modifican al agregar este issuer.
+
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
 
 Para Neon demo/staging, configurar `DATABASE_URL` fuera del repositorio y usar

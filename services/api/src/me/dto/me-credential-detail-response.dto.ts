@@ -26,6 +26,11 @@ export interface MeCredentialDetailResponseDto {
     academicPeriod: string | null;
     programName: string | null;
     grade: string | null;
+    providerName: string | null;
+    platformName: string | null;
+    modality: string | null;
+    level: string | null;
+    externalUrl: string | null;
     skills: string[];
     competencies: string[];
     learningOutcomes: string[];

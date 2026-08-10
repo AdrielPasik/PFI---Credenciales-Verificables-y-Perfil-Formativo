@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
 
 const credential = {
-  credentialReference: 'credential-reference', title: 'Arquitectura de software', typeLabel: 'Curso',
+  credentialReference: 'credential-reference', title: 'Arquitectura de software', type: 'course' as const, typeLabel: 'Curso',
   status: 'issued' as const, statusLabel: 'Emitida', issuerName: 'Institución demo',
   issuedAtLabel: '1 ago 2026', hasIntegrityEvidence: true, hasAnalysis: true
 };

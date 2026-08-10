@@ -732,6 +732,7 @@ test('service accepts every controlled field applicable to each CredentialType',
         platformName: 'Campus',
         modality: 'Hibrida',
         level: 'Avanzado',
+        externalUrl: 'https://plataforma-demo.example.com/curso/123',
         skills: ['TypeScript'],
         competencies: ['Diseno de sistemas'],
         learningOutcomes: ['Construir APIs']
@@ -742,6 +743,7 @@ test('service accepts every controlled field applicable to each CredentialType',
         platform_name: 'Campus',
         modality: 'Hibrida',
         level: 'Avanzado',
+        external_url: 'https://plataforma-demo.example.com/curso/123',
         skills: ['TypeScript'],
         competencies: ['Diseno de sistemas'],
         learning_outcomes: ['Construir APIs']
@@ -823,6 +825,26 @@ test('service accepts every controlled field applicable to each CredentialType',
       ...testCase.expectedSubject
     });
   }
+});
+
+test('service rejects an invalid externalUrl for course before updating the draft', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({ type: CredentialType.course })
+  });
+
+  await assert.rejects(
+    service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      {
+        expectedUpdatedAt: EXPECTED_UPDATED_AT,
+        externalUrl: 'javascript:alert(1)'
+      },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.deepEqual(updateManyCalls, []);
 });
 
 test('service normalizes an academic grade and accepts the structured academic period', async () => {
@@ -978,8 +1000,7 @@ test('service rejects every field that is not applicable to the final type, incl
         'programName',
         'grade',
         'certificationCode',
-        'expirationDate',
-        'externalUrl'
+        'expirationDate'
       ]
     },
     {

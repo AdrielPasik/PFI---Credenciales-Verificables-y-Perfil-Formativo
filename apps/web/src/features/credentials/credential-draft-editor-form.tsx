@@ -686,6 +686,7 @@ function SpecificField({
         placeholder="https://..."
         disabled={disabled}
         error={externalUrlError}
+        description="Enlace declarado por la institución emisora. No implica verificación oficial externa."
         onChange={(event) => onChange('externalUrl', event.target.value)}
       />
     );
@@ -734,6 +735,10 @@ function fieldLabel(
 
   if (field === 'providerName') {
     return type === 'course' ? 'Proveedor' : 'Entidad o proveedor';
+  }
+
+  if (field === 'externalUrl' && type === 'course') {
+    return 'URL del curso o certificado';
   }
 
   if (field === 'level' && type === 'degree') {

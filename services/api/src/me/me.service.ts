@@ -300,6 +300,11 @@ export class MeService {
       academicPeriod: this.readString(subject.academic_period),
       programName: this.readString(subject.program_name),
       grade: this.readString(subject.grade),
+      providerName: this.readString(subject.provider_name),
+      platformName: this.readString(subject.platform_name),
+      modality: this.readString(subject.modality),
+      level: this.readString(subject.level),
+      externalUrl: this.readString(subject.external_url),
       skills: this.readStringArray(subject.skills),
       competencies: this.readStringArray(subject.competencies),
       learningOutcomes: this.readStringArray(subject.learning_outcomes)

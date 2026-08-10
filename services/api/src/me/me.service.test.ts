@@ -76,6 +76,7 @@ test('MeService returns a holder-safe detail without raw data, storage keys, met
   assert.equal(JSON.stringify(response).includes('"id":"design"'), false);
   assert.deepEqual(response.credentialSubject, {
     achievementName: 'Arquitectura de software', institutionName: 'Institución demo', completionDate: null, academicPeriod: '2026', programName: null, grade: null,
+    providerName: null, platformName: null, modality: null, level: null, externalUrl: null,
     skills: ['Diseño'], competencies: ['Análisis'], learningOutcomes: ['Modelar']
   });
   assert.equal(response.documentEvidence?.originalFileName, 'respaldo.pdf');
@@ -86,4 +87,41 @@ test('MeService returns a holder-safe detail without raw data, storage keys, met
 test('MeService returns 404 when a credential is not owned by the holder', async () => {
   const service = new MeService({ credential: { async findFirst() { return null; } } } as never);
   await assert.rejects(() => service.getCredentialForUser('holder-1', 'other'), NotFoundException);
+});
+
+test('MeService exposes declared course fields (providerName/platformName/modality/level/externalUrl) without leaking internals', async () => {
+  const service = new MeService({
+    credential: {
+      async findFirst() {
+        return {
+          id: 'cred-course', type: 'course', title: 'Curso de Cloud', description: null, hours: decimalLike('12'), status: 'issued',
+          issuedAt: new Date('2026-08-01T10:00:00Z'), revokedAt: null, revocationReason: null,
+          canonicalHash: null, canonicalizationVersion: null, rawData: { hidden: true },
+          credentialSubject: {
+            achievement_name: 'Curso de Cloud', institution_name: 'Plataforma de Cursos Online Demo',
+            provider_name: 'Instituto Demo', platform_name: 'Campus Virtual Demo', modality: 'Online asincrónica',
+            level: 'Intermedio', external_url: 'https://plataforma-demo.example.com/curso/123',
+            skills: ['Cloud'], competencies: [], learning_outcomes: []
+          },
+          issuer: { id: 'issuer-2', name: 'Plataforma de Cursos Online Demo', did: null },
+          subjectUser: { did: null, email: 'holder@example.com', displayName: 'Titular demo' },
+          blockchainRecords: [],
+          semanticAnalyses: [],
+          documentEvidences: [],
+          textEvidences: []
+        };
+      }
+    }
+  } as never);
+
+  const response = await service.getCredentialForUser('holder-1', 'cred-course');
+  assert.deepEqual(response.credentialSubject, {
+    achievementName: 'Curso de Cloud', institutionName: 'Plataforma de Cursos Online Demo',
+    completionDate: null, academicPeriod: null, programName: null, grade: null,
+    providerName: 'Instituto Demo', platformName: 'Campus Virtual Demo', modality: 'Online asincrónica',
+    level: 'Intermedio', externalUrl: 'https://plataforma-demo.example.com/curso/123',
+    skills: ['Cloud'], competencies: [], learningOutcomes: []
+  });
+  assert.equal(JSON.stringify(response).includes('rawData'), false);
+  assert.equal(JSON.stringify(response).includes('hidden'), false);
 });

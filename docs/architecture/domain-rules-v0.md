@@ -206,7 +206,7 @@ Aplicabilidad:
 | Tipo | Campos especificos |
 | --- | --- |
 | `academic_subject` | `completion_date`, `academic_period`, `program_name`, `grade`, `skills`, `competencies` |
-| `course` | `completion_date`, `provider_name`, `platform_name`, `modality`, `level`, `skills`, `competencies`, `learning_outcomes` |
+| `course` | `completion_date`, `provider_name`, `platform_name`, `modality`, `level`, `external_url`, `skills`, `competencies`, `learning_outcomes` |
 | `certification` | `completion_date`, `certification_code`, `expiration_date`, `external_url`, `provider_name`, `level`, `skills`, `competencies` |
 | `degree` | `completion_date`, `program_name`, `level`, `grade`, `competencies`, `learning_outcomes` |
 

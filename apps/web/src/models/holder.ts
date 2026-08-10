@@ -1,4 +1,9 @@
 export type HolderCredentialStatus = 'issued' | 'revoked';
+export type HolderCredentialType =
+  | 'academic_subject'
+  | 'course'
+  | 'certification'
+  | 'degree';
 export type HolderSemanticAnalysisStatus = 'completed' | 'partial';
 
 export interface HolderCredentialIntegrityVM {
@@ -17,6 +22,7 @@ export interface HolderCredentialIntegrityVM {
 export interface HolderCredentialListItemVM {
   credentialReference: string;
   title: string;
+  type: HolderCredentialType;
   typeLabel: string;
   status: HolderCredentialStatus;
   statusLabel: string;
@@ -43,6 +49,11 @@ export interface HolderCredentialDetailVM
     academicPeriod: string | null;
     programName: string | null;
     grade: string | null;
+    providerName: string | null;
+    platformName: string | null;
+    modality: string | null;
+    level: string | null;
+    externalUrl: string | null;
     skills: string[];
     competencies: string[];
     learningOutcomes: string[];

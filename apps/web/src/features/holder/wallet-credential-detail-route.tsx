@@ -57,7 +57,42 @@ function IntegrityCard({ detail }: { detail: HolderCredentialDetailVM }) {
 }
 
 function FormativeContribution({ detail }: { detail: HolderCredentialDetailVM }) {
-  return <Card><CardHeader className="flex-row items-center gap-3"><BookOpenCheck aria-hidden="true" className="size-5 text-teal-700" /><div><h2 className="text-lg font-semibold text-text-strong">Aporte formativo de esta credencial</h2><p className="mt-1 text-sm text-text-muted">Información emitida y, cuando existe, una interpretación asistida de su evidencia.</p></div></CardHeader><CardContent className="grid gap-6"><section><h3 className="text-sm font-semibold text-text-strong">Información emitida por la institución</h3><div className="mt-3 grid gap-4 sm:grid-cols-2"><ReadField label="Institución" value={detail.subject.institutionName ?? detail.issuerName} /><ReadField label="Programa o carrera" value={detail.subject.programName} /><ReadField label="Período académico" value={detail.subject.academicPeriod} /><ReadField label="Fecha de finalización" value={detail.subject.completionDate} /><ReadField label="Calificación" value={detail.subject.grade} /><ReadField label="Horas" value={detail.hoursLabel} /></div>{detail.description ? <p className="mt-4 max-w-3xl text-sm leading-6 text-text-muted">{detail.description}</p> : null}<div className="mt-5 grid gap-4 sm:grid-cols-3"><TagGroup title="Habilidades declaradas" items={detail.subject.skills} /><TagGroup title="Competencias" items={detail.subject.competencies} /><TagGroup title="Resultados de aprendizaje" items={detail.subject.learningOutcomes} /></div></section>{detail.analysis ? <section className="border-t border-border-default pt-5"><div className="flex items-start gap-3"><BrainCircuit aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-teal-700" /><div><h3 className="font-semibold text-text-strong">Interpretación asistida por IA</h3><p className="mt-1 text-sm text-text-muted">{detail.analysis.statusLabel} · {detail.analysis.analyzedAtLabel}</p></div></div><p className="mt-3 text-sm leading-6 text-text-muted">Este análisis organiza información detectada en la evidencia. No modifica ni reemplaza los datos emitidos por la institución.</p><div className="mt-4 grid gap-4 sm:grid-cols-3"><TagGroup title="Áreas detectadas" items={detail.analysis.areas} /><TagGroup title="Habilidades detectadas" items={detail.analysis.skills} /><TagGroup title="Conceptos detectados" items={detail.analysis.concepts} /></div>{detail.analysis.confidenceLabel ? <p className="mt-4 text-sm text-text-muted">Confianza del análisis: {detail.analysis.confidenceLabel}.</p> : null}{detail.analysis.qualityFlags.length > 0 ? <p className="mt-2 text-sm text-text-muted">Observaciones: {detail.analysis.qualityFlags.join(', ')}.</p> : null}</section> : <section className="border-t border-border-default pt-5"><h3 className="font-semibold text-text-strong">Interpretación asistida por IA</h3><p className="mt-2 text-sm leading-6 text-text-muted">No hay análisis disponible para esta credencial.</p></section>}</CardContent></Card>;
+  const hasCourseDeclaredData = detail.type === 'course' && (
+    detail.subject.platformName !== null ||
+    detail.subject.providerName !== null ||
+    detail.subject.modality !== null ||
+    detail.subject.level !== null ||
+    detail.subject.externalUrl !== null
+  );
+
+  return <Card><CardHeader className="flex-row items-center gap-3"><BookOpenCheck aria-hidden="true" className="size-5 text-teal-700" /><div><h2 className="text-lg font-semibold text-text-strong">Aporte formativo de esta credencial</h2><p className="mt-1 text-sm text-text-muted">Información emitida y, cuando existe, una interpretación asistida de su evidencia.</p></div></CardHeader><CardContent className="grid gap-6"><section><h3 className="text-sm font-semibold text-text-strong">Información emitida por la institución</h3><div className="mt-3 grid gap-4 sm:grid-cols-2"><ReadField label="Institución" value={detail.subject.institutionName ?? detail.issuerName} /><ReadField label="Programa o carrera" value={detail.subject.programName} /><ReadField label="Período académico" value={detail.subject.academicPeriod} /><ReadField label="Fecha de finalización" value={detail.subject.completionDate} /><ReadField label="Calificación" value={detail.subject.grade} /><ReadField label="Horas" value={detail.hoursLabel} /></div>{detail.description ? <p className="mt-4 max-w-3xl text-sm leading-6 text-text-muted">{detail.description}</p> : null}<div className="mt-5 grid gap-4 sm:grid-cols-3"><TagGroup title="Habilidades declaradas" items={detail.subject.skills} /><TagGroup title="Competencias" items={detail.subject.competencies} /><TagGroup title="Resultados de aprendizaje" items={detail.subject.learningOutcomes} /></div></section>{hasCourseDeclaredData ? <CourseDeclaredDataSection subject={detail.subject} /> : null}{detail.analysis ? <section className="border-t border-border-default pt-5"><div className="flex items-start gap-3"><BrainCircuit aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-teal-700" /><div><h3 className="font-semibold text-text-strong">Interpretación asistida por IA</h3><p className="mt-1 text-sm text-text-muted">{detail.analysis.statusLabel} · {detail.analysis.analyzedAtLabel}</p></div></div><p className="mt-3 text-sm leading-6 text-text-muted">Este análisis organiza información detectada en la evidencia. No modifica ni reemplaza los datos emitidos por la institución.</p><div className="mt-4 grid gap-4 sm:grid-cols-3"><TagGroup title="Áreas detectadas" items={detail.analysis.areas} /><TagGroup title="Habilidades detectadas" items={detail.analysis.skills} /><TagGroup title="Conceptos detectados" items={detail.analysis.concepts} /></div>{detail.analysis.confidenceLabel ? <p className="mt-4 text-sm text-text-muted">Confianza del análisis: {detail.analysis.confidenceLabel}.</p> : null}{detail.analysis.qualityFlags.length > 0 ? <p className="mt-2 text-sm text-text-muted">Observaciones: {detail.analysis.qualityFlags.join(', ')}.</p> : null}</section> : <section className="border-t border-border-default pt-5"><h3 className="font-semibold text-text-strong">Interpretación asistida por IA</h3><p className="mt-2 text-sm leading-6 text-text-muted">No hay análisis disponible para esta credencial.</p></section>}</CardContent></Card>;
+}
+
+function CourseDeclaredDataSection({ subject }: { subject: HolderCredentialDetailVM['subject'] }) {
+  return <section className="border-t border-border-default pt-5">
+    <h3 className="text-sm font-semibold text-text-strong">Información declarada del curso</h3>
+    <p className="mt-1 text-sm text-text-muted">Estos datos fueron declarados por la institución emisora de la credencial.</p>
+    <div className="mt-3 grid gap-4 sm:grid-cols-2">
+      <ReadField label="Plataforma" value={subject.platformName} />
+      <ReadField label="Proveedor" value={subject.providerName} />
+      <ReadField label="Modalidad" value={subject.modality} />
+      <ReadField label="Nivel" value={subject.level} />
+    </div>
+    {subject.externalUrl ? (
+      <div className="mt-4">
+        <p className="text-xs font-semibold tracking-wide text-text-muted uppercase">URL del curso o certificado</p>
+        <a
+          href={subject.externalUrl}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mt-1 inline-block break-words font-medium text-brand-700 underline underline-offset-4"
+        >
+          {subject.externalUrl}
+        </a>
+        <p className="mt-1 text-xs text-text-subtle">Enlace declarado por la institución emisora. No implica verificación oficial externa.</p>
+      </div>
+    ) : null}
+  </section>;
 }
 
 function TagGroup({ title, items }: { title: string; items: string[] }) { if (!items.length) return null; return <div><h3 className="text-sm font-semibold text-text-strong">{title}</h3><ul className="mt-2 flex flex-wrap gap-2">{items.map((item) => <li key={item}><Badge variant="outline">{item}</Badge></li>)}</ul></div>; }

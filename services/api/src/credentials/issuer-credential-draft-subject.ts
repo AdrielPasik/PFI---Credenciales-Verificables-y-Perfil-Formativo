@@ -46,6 +46,7 @@ const APPLICABLE_FIELDS_BY_TYPE: Record<
     'platformName',
     'modality',
     'level',
+    'externalUrl',
     'skills',
     'competencies',
     'learningOutcomes'

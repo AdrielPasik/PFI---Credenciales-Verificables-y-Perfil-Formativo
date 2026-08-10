@@ -85,6 +85,7 @@ describe('credential draft editor helpers', () => {
         'platformName',
         'modality',
         'level',
+        'externalUrl',
         'skills',
         'competencies',
         'learningOutcomes'
@@ -337,6 +338,25 @@ describe('credential draft editor helpers', () => {
     ).toMatchObject({
       completionDate: '2026-07-30',
       expirationDate: '2027-07-30'
+    });
+  });
+
+  it('includes a changed externalUrl in the sparse command for course', () => {
+    const detail = detailFixture();
+    const state = {
+      ...detailToDraftEditorState(detail),
+      externalUrl: 'https://plataforma-demo.example.com/curso/123'
+    };
+
+    expect(
+      buildDraftUpdateCommand({
+        detail,
+        state,
+        issuerReference: 'issuer-reference',
+        credentialReference: 'credential-reference'
+      })
+    ).toMatchObject({
+      externalUrl: 'https://plataforma-demo.example.com/curso/123'
     });
   });
 

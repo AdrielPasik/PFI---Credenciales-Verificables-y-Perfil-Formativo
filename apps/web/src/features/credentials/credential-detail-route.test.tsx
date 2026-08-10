@@ -925,4 +925,74 @@ describe('CredentialDetailView read-only states', () => {
     expect(screen.queryByLabelText('Nombre del logro')).toBeNull();
     expect(screen.queryByRole('button', { name: 'Guardar cambios' })).toBeNull();
   });
+
+  it('shows a read-only declared course data card for an issued course credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          typeLabel: 'Curso',
+          status: 'issued',
+          statusLabel: 'Emitida',
+          credentialSubject: {
+            platformName: 'Campus Virtual Demo',
+            providerName: 'Instituto Demo',
+            modality: 'Online asincrónica',
+            level: 'Intermedio',
+            externalUrl: 'https://plataforma-demo.example.com/curso/123',
+            skills: ['Cloud']
+          }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Datos declarados del curso')).toBeTruthy();
+    expect(screen.getByText('Campus Virtual Demo')).toBeTruthy();
+    expect(screen.getByText('Instituto Demo')).toBeTruthy();
+    expect(screen.getByText('Online asincrónica')).toBeTruthy();
+    expect(screen.getByText('Intermedio')).toBeTruthy();
+    expect(screen.getByText('Cloud')).toBeTruthy();
+
+    const link = screen.getByRole('link', {
+      name: 'https://plataforma-demo.example.com/curso/123'
+    }) as HTMLAnchorElement;
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toContain('noreferrer');
+    expect(link.rel).toContain('noopener');
+    expect(document.body.textContent).not.toMatch(/verificado por|udemy|coursera|aws/i);
+  });
+
+  it('does not show the declared course data card for a draft course credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          typeLabel: 'Curso',
+          status: 'draft',
+          statusLabel: 'Borrador',
+          credentialSubject: {
+            platformName: 'Campus Virtual Demo'
+          }
+        })}
+      />
+    );
+
+    expect(screen.queryByText('Datos declarados del curso')).toBeNull();
+  });
+
+  it('does not show the declared course data card for an issued academic_subject credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          status: 'issued',
+          statusLabel: 'Emitida'
+        })}
+      />
+    );
+
+    expect(screen.queryByText('Datos declarados del curso')).toBeNull();
+  });
 });

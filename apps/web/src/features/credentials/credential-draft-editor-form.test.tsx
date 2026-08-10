@@ -232,6 +232,23 @@ describe('CredentialDraftEditorForm', () => {
     }
   );
 
+  it('shows a course-specific label and declared-data copy for externalUrl', () => {
+    renderEditor({ detail: detailFixture('course') });
+
+    expect(screen.getByLabelText('URL del curso o certificado')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Enlace declarado por la institución emisora. No implica verificación oficial externa.'
+      )
+    ).toBeTruthy();
+  });
+
+  it('uses a generic externalUrl label for certification', () => {
+    renderEditor({ detail: detailFixture('certification') });
+
+    expect(screen.getByLabelText('URL de validación')).toBeTruthy();
+  });
+
   it('uses the curricular selector and only approved achievement fields for academic subjects', () => {
     renderEditor({ detail: detailFixture('academic_subject') });
 

@@ -487,7 +487,7 @@
 | Tipo final | Campos especificos permitidos |
 | --- | --- |
 | `academic_subject` | `completionDate`, `academicPeriod`, `programName`, `grade`, `skills`, `competencies` |
-| `course` | `completionDate`, `providerName`, `platformName`, `modality`, `level`, `skills`, `competencies`, `learningOutcomes` |
+| `course` | `completionDate`, `providerName`, `platformName`, `modality`, `level`, `externalUrl`, `skills`, `competencies`, `learningOutcomes` |
 | `certification` | `completionDate`, `certificationCode`, `expirationDate`, `externalUrl`, `providerName`, `level`, `skills`, `competencies` |
 | `degree` | `completionDate`, `programName`, `level`, `grade`, `competencies`, `learningOutcomes` |
 
@@ -903,8 +903,10 @@ Los reads autenticados del titular son `GET /me/credentials`,
 `GET /me/credentials/:id` y `GET /me/profile/current`. El backend deriva el
 titular exclusivamente del token y limita las credenciales a estados `issued`
 o `revoked`. El detalle holder entrega un resumen de emisor, campos formativos
-allowlisted, evidencia documental y textual actual en modo lectura, integridad
-abreviable y el último resumen semántico disponible.
+allowlisted (incluyendo `providerName`, `platformName`, `modality`, `level` y
+`externalUrl` cuando el emisor los declaró en `credentialSubject`), evidencia
+documental y textual actual en modo lectura, integridad abreviable y el último
+resumen semántico disponible.
 
 Estos reads no exponen `rawData`, `metadata`, direcciones de contrato, claves
 de storage, contenido completo de evidencia textual, `analysisJson`,
