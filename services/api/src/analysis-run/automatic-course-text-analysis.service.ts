@@ -16,8 +16,9 @@ import { buildCourseTextAnalysisContent } from '../credentials/course-text-analy
 import { TextEvidenceService } from '../text-evidence/text-evidence.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
-import { BACKEND_CONTROLLED_ANALYSIS_VERSION } from './analysis-run.constants';
 import { AnalysisRunService } from './analysis-run.service';
+import { AutomaticProfileRebuildService } from './automatic-profile-rebuild.service';
+import { BACKEND_CONTROLLED_ANALYSIS_VERSION } from './analysis-run.constants';
 
 // C2b.3: a diferencia del endpoint manual (C2b.2, que permite reintentar
 // despues de un `failed`), el auto-trigger post-emision debe ser
@@ -37,6 +38,7 @@ type EligibleCredential = {
   status: CredentialStatus;
   title: string;
   description: string | null;
+  subjectUserId: string;
   credentialSubject: Prisma.JsonValue;
   documentEvidences: Array<{ kind: DocumentEvidenceKind; mimeType: string }>;
 };
@@ -59,7 +61,8 @@ export class AutomaticCourseTextAnalysisService {
     private readonly prisma: PrismaService,
     private readonly textEvidenceService: TextEvidenceService,
     private readonly analysisRunService: AnalysisRunService,
-    private readonly executionService: AnalysisRunExecutionService
+    private readonly executionService: AnalysisRunExecutionService,
+    private readonly profileRebuildService: AutomaticProfileRebuildService
   ) {}
 
   async analyzeIssuedCourseIfEligible(
@@ -94,7 +97,18 @@ export class AutomaticCourseTextAnalysisService {
         requestedTaxonomyVersion: BACKEND_CONTROLLED_ANALYSIS_VERSION
       });
 
-      await this.executionService.executePendingTextRun(pending.runReference);
+      const executed = await this.executionService.executePendingTextRun(
+        pending.runReference
+      );
+
+      // C2b.4: solo se llega aca si la ejecucion completo y persistio un
+      // SemanticAnalysis (executePendingTextRun lanza en cualquier otro
+      // caso, y el catch de abajo lo atraparia antes de esta linea).
+      await this.profileRebuildService.rebuildAfterAutomaticAnalysis({
+        credentialId,
+        holderUserId: credential.subjectUserId,
+        analysisRunId: executed.runReference
+      });
     } catch (error: unknown) {
       this.logSafeFailure(credentialId, error);
     }
@@ -111,6 +125,7 @@ export class AutomaticCourseTextAnalysisService {
         status: true,
         title: true,
         description: true,
+        subjectUserId: true,
         credentialSubject: true,
         documentEvidences: {
           where: { status: DocumentEvidenceStatus.current },

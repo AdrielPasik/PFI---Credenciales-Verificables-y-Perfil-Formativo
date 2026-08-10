@@ -21,6 +21,7 @@ type CredentialFixture = {
   status: CredentialStatus;
   title: string;
   description: string | null;
+  subjectUserId: string;
   credentialSubject: unknown;
   documentEvidences: Array<{ kind: DocumentEvidenceKind; mimeType: string }>;
 };
@@ -32,6 +33,7 @@ const DEFAULT_CREDENTIAL: CredentialFixture = {
   title: 'Python Bootcamp',
   description:
     'Curso introductorio de Python con proyectos practicos y ejercicios guiados.',
+  subjectUserId: 'holder-user-1',
   credentialSubject: {},
   documentEvidences: []
 };
@@ -49,6 +51,7 @@ function setup(options: {
   existingRun?: { id: string } | null;
   createError?: Error;
   executionError?: Error;
+  rebuildError?: Error;
 } = {}) {
   const calls = {
     credentialReads: [] as unknown[],
@@ -57,6 +60,7 @@ function setup(options: {
     ensureCalls: [] as unknown[],
     creates: [] as unknown[],
     executions: [] as string[],
+    rebuildCalls: [] as unknown[],
     logs: [] as string[]
   };
 
@@ -119,6 +123,14 @@ function setup(options: {
     async executePendingTextRun(runId: string) {
       calls.executions.push(runId);
       if (options.executionError) throw options.executionError;
+      return { runReference: runId };
+    }
+  };
+
+  const profileRebuildService = {
+    async rebuildAfterAutomaticAnalysis(input: unknown) {
+      calls.rebuildCalls.push(input);
+      if (options.rebuildError) throw options.rebuildError;
     }
   };
 
@@ -126,7 +138,8 @@ function setup(options: {
     prisma as never,
     textEvidenceService as never,
     analysisRunService as never,
-    executionService as never
+    executionService as never,
+    profileRebuildService as never
   );
   Object.defineProperty(service, 'logger', {
     value: { error: (message: string) => calls.logs.push(message) }
@@ -161,6 +174,13 @@ test('generates a system TextEvidence and executes a system text run end-to-end'
     }
   ]);
   assert.deepEqual(calls.executions, ['run-1']);
+  assert.deepEqual(calls.rebuildCalls, [
+    {
+      credentialId: 'credential-1',
+      holderUserId: 'holder-user-1',
+      analysisRunId: 'run-1'
+    }
+  ]);
 });
 
 test('skips when the credential is not issued', async () => {
@@ -170,6 +190,7 @@ test('skips when the credential is not issued', async () => {
     assert.equal(calls.textReads.length, 0);
     assert.equal(calls.creates.length, 0);
     assert.equal(calls.executions.length, 0);
+    assert.equal(calls.rebuildCalls.length, 0);
   }
 });
 
@@ -184,6 +205,7 @@ test('skips when the credential type is not course', async () => {
     assert.equal(calls.textReads.length, 0);
     assert.equal(calls.creates.length, 0);
     assert.equal(calls.executions.length, 0);
+    assert.equal(calls.rebuildCalls.length, 0);
   }
 });
 
@@ -202,9 +224,10 @@ test('skips when there is a current PDF (document flow has priority)', async () 
   assert.equal(calls.ensureCalls.length, 0);
   assert.equal(calls.creates.length, 0);
   assert.equal(calls.executions.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
 });
 
-test('a non-PDF current document does not block the textual path', async () => {
+test('a non-PDF current document does not block the textual path and still triggers rebuild once', async () => {
   const { service, calls } = setup({
     credential: {
       documentEvidences: [
@@ -217,9 +240,10 @@ test('a non-PDF current document does not block the textual path', async () => {
 
   assert.equal(calls.creates.length, 1);
   assert.equal(calls.executions.length, 1);
+  assert.equal(calls.rebuildCalls.length, 1);
 });
 
-test('skips without creating anything when the declared text is insufficient', async () => {
+test('skips without creating anything when the declared text is insufficient, and never rebuilds', async () => {
   const { service, calls } = setup({
     credential: { title: 'Curso', description: null }
   });
@@ -230,6 +254,7 @@ test('skips without creating anything when the declared text is insufficient', a
   assert.equal(calls.creates.length, 0);
   assert.equal(calls.executions.length, 0);
   assert.equal(calls.logs.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
 });
 
 test('uses an existing current TextEvidence as-is instead of generating a new one', async () => {
@@ -281,10 +306,11 @@ test('does not duplicate when a run already exists for the same TextEvidence, fo
     await service.analyzeIssuedCourseIfEligible('credential-1', 'issuer-user-1');
     assert.equal(calls.creates.length, 0);
     assert.equal(calls.executions.length, 0);
+    assert.equal(calls.rebuildCalls.length, 0);
   }
 });
 
-test('never throws when TextEvidence generation fails -- logs a safe reason instead', async () => {
+test('never throws when TextEvidence generation fails -- logs a safe reason instead, never rebuilds', async () => {
   const { service, calls } = setup({
     ensureError: new Error('raw db secret detail')
   });
@@ -292,6 +318,7 @@ test('never throws when TextEvidence generation fails -- logs a safe reason inst
   await service.analyzeIssuedCourseIfEligible('credential-1', 'issuer-user-1');
 
   assert.equal(calls.creates.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
   assert.equal(calls.logs.length, 1);
   const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
   assert.equal(logged.event, 'automatic_course_text_analysis_failed');
@@ -300,7 +327,7 @@ test('never throws when TextEvidence generation fails -- logs a safe reason inst
   assert.equal(JSON.stringify(logged).includes('raw db secret'), false);
 });
 
-test('never throws when run creation is rejected -- logs the safe HttpException message', async () => {
+test('never throws when run creation is rejected -- logs the safe HttpException message, never rebuilds', async () => {
   const { service, calls } = setup({
     createError: new ConflictException('La credencial no admite este tipo de analisis.')
   });
@@ -308,12 +335,13 @@ test('never throws when run creation is rejected -- logs the safe HttpException 
   await service.analyzeIssuedCourseIfEligible('credential-1', 'issuer-user-1');
 
   assert.equal(calls.executions.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
   assert.equal(calls.logs.length, 1);
   const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
   assert.equal(logged.reason, 'La credencial no admite este tipo de analisis.');
 });
 
-test('never throws when execution fails -- issuance remains unaffected, error is logged safely', async () => {
+test('never throws when execution fails -- issuance remains unaffected, error is logged safely, never rebuilds', async () => {
   const { service, calls } = setup({
     executionError: new ServiceUnavailableException(
       'El servicio de análisis no está disponible.'
@@ -324,6 +352,7 @@ test('never throws when execution fails -- issuance remains unaffected, error is
 
   assert.equal(calls.creates.length, 1);
   assert.equal(calls.executions.length, 1);
+  assert.equal(calls.rebuildCalls.length, 0);
   assert.equal(calls.logs.length, 1);
   const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
   assert.equal(logged.reason, 'El servicio de análisis no está disponible.');
@@ -336,5 +365,26 @@ test('skips gracefully when the credential no longer exists', async () => {
 
   assert.equal(calls.textReads.length, 0);
   assert.equal(calls.creates.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
   assert.equal(calls.logs.length, 0);
+});
+
+// ─── C2b.4: automatic profile rebuild after successful analysis ────────────
+
+test('rebuild failure does not rethrow -- the analysis stays completed and is logged under its own event', async () => {
+  const { service, calls } = setup({
+    rebuildError: new Error('raw analysisJson content')
+  });
+
+  await service.analyzeIssuedCourseIfEligible('credential-1', 'issuer-user-1');
+
+  assert.equal(calls.executions.length, 1);
+  assert.equal(calls.rebuildCalls.length, 1);
+  // The fake profileRebuildService throws to simulate a defect in that
+  // dependency; AutomaticCourseTextAnalysisService's own outer catch is a
+  // second safety net and logs it under its own event -- in production,
+  // AutomaticProfileRebuildService never actually throws (see its own
+  // dedicated tests), so this only exercises defense-in-depth.
+  assert.equal(calls.logs.length, 1);
+  assert.equal(JSON.stringify(calls.logs).includes('raw analysisJson'), false);
 });

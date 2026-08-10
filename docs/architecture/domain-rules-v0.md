@@ -277,10 +277,42 @@ patron que el flujo documental automatico ya existente. Reglas clave:
 - Best-effort real: cualquier error se atrapa y se loguea de forma segura
   dentro del propio servicio, ademas del `try/catch` ya existente en
   `IssuerCredentialIssueService` — nunca revierte la emision.
-- No reconstruye `FormativeProfile` automaticamente (igual que el flujo
-  documental existente); el perfil holder puede requerir rebuild manual.
 - C2c (presentacion de horas/cobertura), C3 (catalogo reutilizable) y C4
   (interpretacion aprobada) siguen pendientes y fuera de alcance de C2b.3.
+
+### C2b.4: reconstruccion automatica del perfil holder tras analisis IA exitoso
+
+Antes de C2b.4, ni el flujo documental automatico ni el textual automatico
+(C2b.3) reconstruian `FormativeProfile` -- dependia de
+`POST /me/profile/rebuild` manual. C2b.4 cierra ese gap para los dos
+caminos **automaticos** (`trigger=system`):
+
+- `AutomaticProfileRebuildService` (nuevo, `services/api/src/analysis-run/`)
+  llama `FormativeProfileService.rebuildForUser(holderUserId)` -- sin
+  modificar `FormativeProfileService` ni su logica semantica (eso es C2c).
+- Se invoca desde `AutomaticDocumentAnalysisService` y
+  `AutomaticCourseTextAnalysisService`, unicamente DESPUES de que la
+  ejecucion automatica termino `completed` y persistio un
+  `SemanticAnalysis` -- nunca antes, nunca si hubo skip/dedup/fallo de
+  ejecucion.
+- `holderUserId` = `Credential.subjectUserId`, leido de la misma
+  credencial que se esta analizando.
+- **No aplica a `trigger=manual`** (ni el endpoint documental P5c ni el
+  textual de C2b.2): el flujo manual puede requerir revision antes de
+  impactar el perfil holder; queda pendiente para una decision futura,
+  no es un descuido.
+- Best-effort real: un fallo de `rebuildForUser` se atrapa y se loguea de
+  forma segura (`automatic_profile_rebuild_failed`, sin `analysisJson`,
+  contenido textual, storage path ni secretos) y nunca marca `failed` un
+  `AnalysisRun` que ya quedo `completed`, ni revierte la emision.
+- No llama IA de nuevo (`rebuildForUser` solo lee/escribe Postgres). No
+  toca canon, hash ni blockchain.
+- Como maximo un rebuild por emision: documental y textual automaticos
+  son mutuamente excluyentes por diseno (ver C2b.3); si ambos llegaran a
+  completar en la misma emision (no deberia ocurrir dado el chequeo de
+  PDF), un segundo rebuild no rompe nada -- `rebuildForUser` es
+  idempotente (reconstruye el snapshot completo desde cero cada vez), solo
+  seria trabajo redundante.
 
 ## 12. Catalogo y curricula institucional para academic_subject
 

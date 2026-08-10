@@ -20,6 +20,8 @@ function setup(options: {
   };
   existingRun?: { id: string } | null;
   executionError?: Error;
+  credentialForRebuild?: { subjectUserId: string } | null;
+  rebuildError?: Error;
 } = {}) {
   const calls = {
     documents: [] as unknown[],
@@ -28,7 +30,9 @@ function setup(options: {
     executions: [] as string[],
     textEvidenceReads: 0,
     credentialWrites: 0,
-    blockchainWrites: 0
+    blockchainWrites: 0,
+    credentialReadsForRebuild: [] as unknown[],
+    rebuildCalls: [] as unknown[]
   };
   const document =
     options.document === undefined
@@ -54,6 +58,12 @@ function setup(options: {
       credential: {
         async update() {
           calls.credentialWrites += 1;
+        },
+        async findUnique(args: unknown) {
+          calls.credentialReadsForRebuild.push(args);
+          return options.credentialForRebuild === undefined
+            ? { subjectUserId: 'holder-user-1' }
+            : options.credentialForRebuild;
         }
       },
       blockchainRecord: {
@@ -78,6 +88,13 @@ function setup(options: {
       async executePendingDocumentRun(runId: string) {
         calls.executions.push(runId);
         if (options.executionError) throw options.executionError;
+        return { runReference: runId };
+      }
+    } as never,
+    {
+      async rebuildAfterAutomaticAnalysis(input: unknown) {
+        calls.rebuildCalls.push(input);
+        if (options.rebuildError) throw options.rebuildError;
       }
     } as never
   );
@@ -114,6 +131,16 @@ test('current PDF creates and executes one backend-controlled system run', async
   assert.equal(calls.textEvidenceReads, 0);
   assert.equal(calls.credentialWrites, 0);
   assert.equal(calls.blockchainWrites, 0);
+  assert.deepEqual(calls.credentialReadsForRebuild, [
+    { where: { id: 'credential-1' }, select: { subjectUserId: true } }
+  ]);
+  assert.deepEqual(calls.rebuildCalls, [
+    {
+      credentialId: 'credential-1',
+      holderUserId: 'holder-user-1',
+      analysisRunId: 'run-1'
+    }
+  ]);
 });
 
 test('missing or non-PDF current evidence skips analysis', async () => {
@@ -135,6 +162,7 @@ test('missing or non-PDF current evidence skips analysis', async () => {
     assert.equal(calls.existingRuns.length, 0);
     assert.equal(calls.creates.length, 0);
     assert.equal(calls.executions.length, 0);
+    assert.equal(calls.rebuildCalls.length, 0);
   }
 });
 
@@ -167,9 +195,10 @@ test('existing active or completed run for the exact evidence is reused', async 
   ]);
   assert.equal(calls.creates.length, 0);
   assert.equal(calls.executions.length, 0);
+  assert.equal(calls.rebuildCalls.length, 0);
 });
 
-test('execution failure propagates only to the best-effort caller after run creation', async () => {
+test('execution failure propagates only to the best-effort caller after run creation, and never triggers rebuild', async () => {
   const failure = new Error('private FastAPI URL and storage key');
   const { service, calls } = setup({ executionError: failure });
 
@@ -179,4 +208,27 @@ test('execution failure propagates only to the best-effort caller after run crea
   );
   assert.equal(calls.creates.length, 1);
   assert.deepEqual(calls.executions, ['run-1']);
+  assert.equal(calls.rebuildCalls.length, 0);
+});
+
+// ─── C2b.4: automatic profile rebuild after successful analysis ────────────
+
+test('rebuild failure does not rethrow and does not affect the already-completed analysis', async () => {
+  const rebuildError = new Error('raw db secret detail');
+  const { service, calls } = setup({ rebuildError });
+
+  // Must resolve normally -- the analysis already completed before the
+  // rebuild attempt; a rebuild failure must never surface here.
+  await service.analyzeIssuedCredentialIfEligible('credential-1');
+
+  assert.deepEqual(calls.executions, ['run-1']);
+  assert.equal(calls.rebuildCalls.length, 1);
+});
+
+test('does not call rebuild when the credential lookup for subjectUserId returns nothing', async () => {
+  const { service, calls } = setup({ credentialForRebuild: null });
+
+  await service.analyzeIssuedCredentialIfEligible('credential-1');
+
+  assert.equal(calls.rebuildCalls.length, 0);
 });

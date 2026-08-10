@@ -950,8 +950,24 @@ issuer-scoped, analoga a P6b pero para `course` sin PDF:
   exitosa en error;
 - el response de emision no expone el run ni artifacts: el cliente consulta
   los reads P5d/C2b.2 existentes;
-- no reconstruye `FormativeProfile` automaticamente (igual que el flujo
-  documental); no modifica canon, hash ni blockchain.
+- desde C2b.4, si el run automatico completa y persiste `SemanticAnalysis`,
+  reconstruye `FormativeProfile` del holder best-effort (ver abajo); no
+  modifica canon, hash ni blockchain.
+
+C2b.4 agrega, sin exponer ningun endpoint nuevo, un paso interno posterior
+a P6b y a C2b.3:
+
+- si el run automatico (`trigger=system`, documental o textual) termina
+  `completed` y persistio `SemanticAnalysis`, `AutomaticProfileRebuildService`
+  llama `FormativeProfileService.rebuildForUser(Credential.subjectUserId)`;
+- NO aplica a `trigger=manual` (ni P5c ni C2b.2): esos siguen sin
+  reconstruir perfil en este slice; `POST /me/profile/rebuild` sigue
+  disponible para reconstruccion explicita;
+- si `rebuildForUser` falla, se loguea de forma segura y no se relanza; el
+  `AnalysisRun` (ya `completed`) no cambia de estado y la emision no se ve
+  afectada;
+- no llama IA de nuevo, no toca canon/hash/blockchain, no cambia la logica
+  semantica del perfil (horas/skills/areas/concepts siguen igual -- C2c).
 
 Permanece candidato futuro:
 

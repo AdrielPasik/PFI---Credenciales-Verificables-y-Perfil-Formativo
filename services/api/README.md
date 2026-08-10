@@ -252,16 +252,58 @@ igual que ya ocurre con PDFs desde antes de C2b.
   `Credential.canonicalHash`, `BlockchainRecord` ni el flujo de emisión —
   corre después de que la emisión (con su hashing/blockchain) ya se
   completó.
-- **Rebuild de perfil:** igual que el flujo documental automático
-  existente, este análisis NO reconstruye `FormativeProfile`
-  automáticamente. El perfil holder puede requerir `POST /me/profile/rebuild`
-  manual (o un slice futuro) para reflejar un `SemanticAnalysis` generado
-  por este camino. Esto es intencional: C2b.3 no introduce un
-  comportamiento distinto al que ya existía para PDFs.
+- **Rebuild de perfil:** desde C2b.4 (ver abajo), un análisis textual
+  automático exitoso SI reconstruye el `FormativeProfile` del holder,
+  best-effort. Antes de C2b.4 esto requería `POST /me/profile/rebuild`
+  manual; ese endpoint sigue existiendo para reconstrucciones explícitas
+  o para credenciales analizadas antes de C2b.4.
 - **Pendiente (C2c/C3/C4):** presentación de horas/cobertura semántica
   mejorada, catálogo reutilizable de cursos y aprobación curada de
   interpretaciones IA quedan fuera de este slice — ver
   `c2b-c3-text-ai-course-catalog-design-review-bundle.txt`.
+
+### C2b.4 — Reconstrucción automática del perfil holder tras análisis IA exitoso
+
+Después de que un análisis IA **automático** (`trigger=system`, documental
+o textual) termina `completed` y ya persistió un `SemanticAnalysis`, el
+backend reconstruye el `FormativeProfile` actual del holder de forma
+best-effort — sin esperar a que alguien llame
+`POST /me/profile/rebuild` manualmente.
+
+- **Dónde se dispara:** `AutomaticProfileRebuildService` (nuevo, en
+  `services/api/src/analysis-run/`), llamado desde
+  `AutomaticDocumentAnalysisService` y `AutomaticCourseTextAnalysisService`
+  — únicamente después de que `executePendingDocumentRun`/
+  `executePendingTextRun` retorna exitosamente (nunca antes). No se
+  dispara desde `AnalysisRunExecutionService` a propósito: ese servicio
+  no distingue `trigger=system` de `trigger=manual` en su lógica de
+  ejecución, y disparar el rebuild ahí habría afectado también al
+  endpoint manual issuer-facing (C2b.2), que **no** reconstruye perfil en
+  este slice.
+- **Cómo obtiene el holder:** `Credential.subjectUserId` — leído desde la
+  misma credencial que ya se está analizando (columna requerida, siempre
+  presente si la credencial existe).
+- **Aplica a:** análisis documental automático post-emisión Y análisis
+  textual automático post-emisión de `course` sin PDF. Como máximo uno de
+  los dos ejecuta un análisis real por emisión (ver C2b.3), así que como
+  máximo hay un rebuild por emisión.
+- **NO aplica a `trigger=manual`:** ni el endpoint manual documental
+  (P5c) ni el manual textual (C2b.2) disparan rebuild automático en este
+  slice — el flujo manual puede querer revisión antes de impactar el
+  perfil holder; la reconstrucción explícita sigue disponible vía
+  `POST /me/profile/rebuild`.
+- **Best-effort real:** si `rebuildForUser` falla, el error se atrapa y se
+  loguea de forma segura (`automatic_profile_rebuild_failed` +
+  `credentialId` + `holderUserId` + `analysisRunId` + razón sanitizada —
+  nunca `analysisJson`, contenido textual, storage path ni secretos) y el
+  método retorna normalmente. El `AnalysisRun` ya quedó `completed` antes
+  de intentar el rebuild — un fallo aquí nunca lo revierte a `failed` ni
+  afecta la emisión.
+- **No llama IA de nuevo:** `rebuildForUser` solo lee/escribe Postgres.
+- **No cambia la lógica del perfil:** este slice solo automatiza el
+  disparo; la separación horas emitidas/estimadas, skills inferidas y
+  demás reglas de `FormativeProfileService` quedan exactamente igual
+  (mejorarlas es C2c, fuera de alcance aquí).
 
 La emisión issuer-scoped no convierte el PDF en requisito universal: una
 `TextEvidence` vigente también puede respaldarla y una evidencia documental no
