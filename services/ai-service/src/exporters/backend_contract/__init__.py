@@ -26,6 +26,11 @@ TAXONOMY_VERSION = "unversioned_current"
 
 SOURCE_TYPE_ACADEMIC_PDF = "academic_pdf"
 SOURCE_TYPE_ONLINE_COURSE_CATALOG = "online_course_catalog"
+# C2b.1: texto formativo declarado (sin PDF), ej. course sin documento
+# adjunto. Ver semantic_analysis_exporter._export_text para las reglas
+# conservadoras especificas de esta fuente (confidence topeada, status
+# nunca "completed" para texto corto/no estructurado).
+SOURCE_TYPE_TEXT = "text"
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -33,4 +38,5 @@ __all__ = [
     "TAXONOMY_VERSION",
     "SOURCE_TYPE_ACADEMIC_PDF",
     "SOURCE_TYPE_ONLINE_COURSE_CATALOG",
+    "SOURCE_TYPE_TEXT",
 ]

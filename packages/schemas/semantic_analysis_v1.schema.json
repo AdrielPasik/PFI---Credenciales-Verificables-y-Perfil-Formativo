@@ -46,7 +46,8 @@
       "type": "string",
       "enum": [
         "academic_pdf",
-        "online_course_catalog"
+        "online_course_catalog",
+        "text"
       ]
     },
     "sourceRefs": {

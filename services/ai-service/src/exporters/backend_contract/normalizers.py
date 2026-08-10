@@ -326,3 +326,44 @@ def unavailable_confidence() -> tuple[Optional[float], str]:
     """Online: no hay ninguna base real de confidence hoy en el pipeline.
     Nunca se fabrica un numero — se declara explicitamente no disponible."""
     return None, "unavailable"
+
+
+# ─── Texto (C2b.1) ──────────────────────────────────────────────────────────
+# El pipeline de deteccion (semantic_builder.detect_skills / build_area_evidence)
+# fue calibrado sobre PDFs con secciones curriculares explicitas
+# (objetivos, contenidos minimos, etc.). Un texto de course sin esa
+# estructura (titulo + descripcion declarados por el emisor) es evidencia
+# estructuralmente mas debil, aunque el mismo hit de keyword produzca el
+# mismo score numerico. Para no heredar una confianza que aparenta haber
+# sido calibrada ("measured") sobre una fuente que nunca tuvo ese nivel de
+# evidencia, se topea el valor y se re-etiqueta como "heuristic".
+TEXT_CONFIDENCE_CEILING = 0.45
+
+
+def apply_text_confidence_policy(entry: dict[str, Any], ceiling: float = TEXT_CONFIDENCE_CEILING) -> dict[str, Any]:
+    confidence = entry.get("confidence")
+    if confidence is None:
+        return entry
+    capped = min(float(confidence), ceiling)
+    return {**entry, "confidence": round(capped, 2), "confidenceMethod": "heuristic"}
+
+
+def normalize_text_areas(semantic_final: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+    """Reusa la forma PDF (mismo build_semantic_output subyacente vía
+    manual_text) pero aplica la politica de confidence conservadora de texto."""
+    areas, sentinel_found = normalize_pdf_areas(semantic_final)
+    return [apply_text_confidence_policy(a) for a in areas], sentinel_found
+
+
+def normalize_text_skills(semantic_final: dict[str, Any]) -> list[dict[str, Any]]:
+    skills = normalize_pdf_skills(semantic_final)
+    return [apply_text_confidence_policy(s) for s in skills]
+
+
+def derive_status_text(area_assignment_status: Optional[str], is_short_unstructured_text: bool) -> str:
+    """Igual regla que PDF (confident -> completed), salvo que un texto
+    corto/no estructurado nunca se declara "completed": la evidencia
+    disponible no alcanza para afirmar un analisis completo."""
+    if is_short_unstructured_text:
+        return "partial"
+    return derive_status_pdf(area_assignment_status)

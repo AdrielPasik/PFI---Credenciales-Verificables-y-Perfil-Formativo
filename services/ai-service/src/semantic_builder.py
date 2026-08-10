@@ -2980,7 +2980,15 @@ def infer_name_hints(normalized_name: str) -> List[str]:
     hints: List[str] = []
     for signal, areas in NAME_AREA_HINTS.items():
         signal_norm = normalize_for_match(signal)
-        if signal_norm in normalized_name:
+        if not signal_norm:
+            continue
+        # Word-boundary match (not plain substring): un signal corto como
+        # "cam" (hint de "Manufactura y CAD/CAM") no debe matchear dentro de
+        # "bootcamp". Mismo criterio que appears_in_sources/
+        # build_word_boundary_pattern usan para el resto de los signals de
+        # area — infer_name_hints era la unica ruta que todavia comparaba
+        # por "in" plano.
+        if re.search(build_word_boundary_pattern(signal_norm), normalized_name):
             for area in areas:
                 if area not in hints:
                     hints.append(area)

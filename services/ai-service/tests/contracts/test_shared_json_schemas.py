@@ -6,7 +6,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from src.exporters.backend_contract import SOURCE_TYPE_ACADEMIC_PDF
+from src.exporters.backend_contract import SOURCE_TYPE_ACADEMIC_PDF, SOURCE_TYPE_TEXT
 from src.exporters.backend_contract.semantic_analysis_exporter import (
     export_semantic_analysis,
 )
@@ -116,6 +116,22 @@ def test_generated_semantic_analysis_matches_shared_schema() -> None:
     artifact = _generated_semantic_artifact()
 
     assert artifact["schemaVersion"] == "semantic_analysis_v1"
+    _validate(artifact, "semantic_analysis_v1.schema.json")
+
+
+def test_generated_text_semantic_analysis_matches_shared_schema() -> None:
+    # C2b.1: mismo record shape que PDF (comparte build_semantic_output),
+    # solo cambia source_type + los kwargs extra de texto.
+    artifact = export_semantic_analysis(
+        _source_record(),
+        SOURCE_TYPE_TEXT,
+        "schema-test-text-fallback",
+        source_refs={"textEvidenceId": "text-evidence-schema-test"},
+        text_quality={"short_unstructured_text": True, "no_curricular_sections_detected": True},
+    ).to_dict()
+
+    assert artifact["sourceType"] == "text"
+    assert artifact["sourceRefs"]["textEvidenceId"] == "text-evidence-schema-test"
     _validate(artifact, "semantic_analysis_v1.schema.json")
 
 

@@ -14,9 +14,19 @@ STATUS_VALUES = ("completed", "partial")
 class SourceRefs:
     documentId: str
     fileName: Optional[str] = None
+    # C2b.1: referencias opacas de la fuente textual (TextEvidence/Credential
+    # del backend). Solo se completan para sourceType="text"; se omiten del
+    # dict de salida cuando son None para no ensuciar el contrato PDF/online.
+    textEvidenceId: Optional[str] = None
+    credentialId: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {"documentId": self.documentId, "fileName": self.fileName}
+        data: dict[str, Any] = {"documentId": self.documentId, "fileName": self.fileName}
+        if self.textEvidenceId is not None:
+            data["textEvidenceId"] = self.textEvidenceId
+        if self.credentialId is not None:
+            data["credentialId"] = self.credentialId
+        return data
 
 
 @dataclass

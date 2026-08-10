@@ -135,3 +135,20 @@ def test_management_and_business_domain_has_no_dedicated_area_yet() -> None:
         "un texto de gestion generica no deberia caer en el area "
         "especifica del proyecto integrador final"
     )
+
+
+def test_name_hints_require_word_boundary_not_substring() -> None:
+    """C2b.1: infer_name_hints comparaba por "in" plano, asi que "cam" (hint
+    de "Manufactura y CAD/CAM") matcheaba dentro de "bootcamp". Un titulo de
+    course en ingles ("The Complete Python Bootcamp...") sin ninguna
+    senal real de manufactura/CAD/CAM no debe resolver a esa area -- debe
+    quedar sin area confirmada."""
+    text = (
+        "The Complete Python Bootcamp From Zero to Hero in Python\n\n"
+        "Learn Python like a Professional. Start from the basics and go "
+        "all the way to creating your own applications and games."
+    )
+    semantic_final = _semantic_final("python-bootcamp.txt", text)
+    areas = semantic_final.get("areas_detected") or []
+
+    assert "Manufactura y CAD/CAM" not in areas

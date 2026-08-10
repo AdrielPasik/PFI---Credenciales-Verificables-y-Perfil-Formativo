@@ -11,11 +11,12 @@ from src.api.internal_auth import (
     load_internal_auth_settings,
     require_internal_service,
 )
-from src.api.models import FormativeProfileBuildRequest
+from src.api.models import FormativeProfileBuildRequest, SemanticAnalysisTextRequest
 from src.api.service import (
     InvalidPdfUploadError,
     UnsupportedVersionError,
     analyze_academic_pdf,
+    analyze_text,
     build_formative_profile,
     save_pdf_upload,
 )
@@ -83,6 +84,24 @@ def semantic_analysis_pdf(
         file.file.close()
 
 
+def semantic_analysis_text(payload: SemanticAnalysisTextRequest) -> dict[str, Any]:
+    try:
+        return analyze_text(
+            payload.content,
+            metadata=payload.metadata.model_dump() if payload.metadata else None,
+            source_refs=payload.sourceRefs.model_dump() if payload.sourceRefs else None,
+            pipeline_version=payload.requestedPipelineVersion,
+            taxonomy_version=payload.requestedTaxonomyVersion,
+        )
+    except UnsupportedVersionError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"text_could_not_be_processed: {exc}",
+        ) from exc
+
+
 def create_app(
     internal_auth_settings: InternalAuthSettings | None = None,
 ) -> FastAPI:
@@ -105,6 +124,12 @@ def create_app(
     application.add_api_route(
         "/v1/semantic-analysis/pdf",
         semantic_analysis_pdf,
+        methods=["POST"],
+        dependencies=[auth_dependency],
+    )
+    application.add_api_route(
+        "/v1/semantic-analysis/text",
+        semantic_analysis_text,
         methods=["POST"],
         dependencies=[auth_dependency],
     )

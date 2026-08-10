@@ -26,9 +26,75 @@ El servicio todavia no tiene conexion automatica de `DocumentEvidence` o
 - `GET /health`: health liviano, sin ejecutar pipelines.
 - `POST /v1/semantic-analysis/pdf`: recibe un PDF por multipart y devuelve
   `semantic_analysis_v1`; requiere JWT interno en modo `jwt`.
+- `POST /v1/semantic-analysis/text` (C2b.1): recibe texto formativo
+  declarado (sin PDF, ej. un `course` sin documento adjunto) y devuelve
+  `semantic_analysis_v1` con `sourceType: "text"`; requiere JWT interno en
+  modo `jwt`, igual que el endpoint PDF. Endpoint interno unicamente —
+  pensado para que el backend lo llame, nunca el frontend.
 - `POST /v1/formative-profile/build`: recibe artifacts
   `semantic_analysis_v1` y devuelve `formative_profile_result_v0`; requiere
   JWT interno en modo `jwt`.
+
+### `POST /v1/semantic-analysis/text` (C2b.1)
+
+Reusa el mismo pipeline de deteccion que el endpoint PDF
+(`process_single_input(manual_text=...)`, ya existente pero antes solo
+usado por el batch/CLI offline) — no agrega un modelo ni un pipeline
+nuevo. No usa LLM ni embeddings, no hace OCR y no hace fetch de ninguna
+URL (`externalUrl` no forma parte del contrato de request; enviarlo dentro
+de `metadata` es un 422).
+
+Request:
+
+```json
+{
+  "content": "The Complete Python Bootcamp From Zero to Hero in Python\n\nLearn Python like a Professional. Start from the basics and go all the way to creating your own applications and games.",
+  "metadata": {
+    "platformName": "Plataforma de Cursos Demo",
+    "hours": 22,
+    "modality": "Online",
+    "credentialType": "course",
+    "languageHint": "en"
+  },
+  "sourceRefs": {
+    "textEvidenceId": "text-evidence-demo",
+    "credentialId": "credential-demo"
+  },
+  "requestedPipelineVersion": "unversioned_current",
+  "requestedTaxonomyVersion": "unversioned_current"
+}
+```
+
+- `content` es el unico campo analizable (max. 30000 caracteres, no puede
+  quedar en blanco tras normalizar espacios).
+- `metadata` y `sourceRefs` son opcionales y nunca se mezclan con `content`
+  — evita que "Online" o el nombre de una plataforma contaminen la
+  deteccion de skills/areas. `metadata.hours` es solo informativo: nunca
+  se usa para fabricar `hoursDistribution` (esa distribucion solo sale de
+  evidencia real dentro de `content`, y en la practica queda vacia para
+  texto corto/no estructurado).
+- `requestedPipelineVersion`/`requestedTaxonomyVersion` siguen el mismo
+  contrato 409 que el endpoint PDF si no coinciden con lo que expone el
+  servicio.
+
+Reglas de conservadurismo especificas de texto (`sourceType: "text"`,
+ver `src/exporters/backend_contract/semantic_analysis_exporter.py::_export_text`
+y `normalizers.py`):
+
+- `status` nunca es `"completed"` para texto corto/no estructurado
+  (< 400 caracteres o sin secciones curriculares detectadas) —
+  `qualityFlags` incluye `short_unstructured_text` y/o
+  `no_curricular_sections_detected` cuando corresponde.
+- La confianza de areas/skills detectadas se topea (`<= 0.45`) y se
+  re-etiqueta `confidenceMethod: "heuristic"` — nunca `"measured"` — porque
+  un texto declarado sin estructura curricular es evidencia mas debil que
+  un PDF con secciones explicitas, aunque el mismo keyword produzca el
+  mismo score interno.
+- No inventa `hoursDistribution` para texto corto: solo se puebla si hay
+  evidencia real de area en `content` (mismo umbral conservador que PDF).
+- El backend todavia no llama a este endpoint — la ejecucion real de un
+  `AnalysisRun` en modo `text`/`combined` queda para C2b.2. Este endpoint
+  es la base HTTP sobre la que se construye ese paso siguiente.
 
 Los JSON Schemas autoritativos no se duplican en este servicio. Permanecen en:
 

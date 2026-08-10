@@ -2,12 +2,24 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, Mapping, Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SETTINGS_PATH = PROJECT_ROOT / "config" / "settings.json"
 DEFAULT_MAX_PDF_BYTES = 25 * 1024 * 1024
+
+# C2b.1: por debajo de este largo (caracteres, tras trim) el texto se trata
+# como "corto/no estructurado" — status nunca "completed", confidence
+# topeada. 400 caracteres es aproximadamente un titulo + 2-3 oraciones de
+# descripcion (el caso real de un course sin PDF), deliberadamente bajo
+# para no exigir un ensayo para calificar como "con estructura".
+TEXT_SHORT_LENGTH_THRESHOLD = 400
+
+# Usado como sourceRefs.documentId (requerido y no vacio por el JSON Schema
+# compartido) unicamente cuando el caller no provee ni textEvidenceId ni
+# credentialId. No es un ID persistente ni estable entre llamadas.
+DEFAULT_TEXT_FALLBACK_DOCUMENT_ID = "text-input"
 
 
 class InvalidPdfUploadError(ValueError):
@@ -16,6 +28,12 @@ class InvalidPdfUploadError(ValueError):
 
 class UnsupportedVersionError(ValueError):
     """The caller requested a pipeline or taxonomy version not served here."""
+
+
+def _clean_optional_str(value: Any) -> Optional[str]:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return None
 
 
 def max_pdf_bytes() -> int:
@@ -113,4 +131,64 @@ def build_formative_profile(artifacts: list[dict[str, Any]]) -> dict[str, Any]:
     from src.profile_builder.formative_profile_result import build_formative_profile_result
 
     return build_formative_profile_result(artifacts)
+
+
+def analyze_text(
+    content: str,
+    *,
+    metadata: Mapping[str, Any] | None,
+    source_refs: Mapping[str, Any] | None,
+    pipeline_version: str | None,
+    taxonomy_version: str | None,
+) -> dict[str, Any]:
+    """Run the existing pipeline against declared course text (no PDF).
+
+    Reuses `process_single_input(manual_text=...)`, already able to accept
+    raw text (used today only by the offline batch/CLI path). `metadata`
+    (platformName/hours/modality/credentialType/languageHint) is accepted
+    for the request contract but is intentionally never mixed into the
+    text handed to the pipeline, and is not used to fabricate an
+    `hoursDistribution` — only `content` is analyzable text. `externalUrl`
+    is not part of this contract at all and is never fetched.
+    """
+    _assert_requested_versions(pipeline_version, taxonomy_version)
+
+    from src.config_loader import load_config
+    from src.exporters.backend_contract import SOURCE_TYPE_TEXT
+    from src.exporters.backend_contract.semantic_analysis_exporter import export_semantic_analysis
+    from src.pipeline import process_single_input
+
+    result = process_single_input(
+        config=load_config(SETTINGS_PATH),
+        source_name=DEFAULT_TEXT_FALLBACK_DOCUMENT_ID,
+        manual_text=content,
+    )
+    record = {
+        "raw_normalized": result.raw_normalized,
+        "semantic_final": result.semantic_final,
+    }
+
+    raw_sections = result.raw_normalized.get("raw_sections")
+    no_curricular_sections_detected = not isinstance(raw_sections, dict) or set(raw_sections.keys()) <= {
+        "contents_raw"
+    }
+    is_short_unstructured_text = len(content.strip()) < TEXT_SHORT_LENGTH_THRESHOLD
+
+    resolved_source_refs = dict(source_refs or {})
+    fallback_document_id = (
+        _clean_optional_str(resolved_source_refs.get("textEvidenceId"))
+        or _clean_optional_str(resolved_source_refs.get("credentialId"))
+        or DEFAULT_TEXT_FALLBACK_DOCUMENT_ID
+    )
+
+    return export_semantic_analysis(
+        record=record,
+        source_type=SOURCE_TYPE_TEXT,
+        fallback_document_id=fallback_document_id,
+        source_refs=resolved_source_refs,
+        text_quality={
+            "short_unstructured_text": is_short_unstructured_text,
+            "no_curricular_sections_detected": no_curricular_sections_detected,
+        },
+    ).to_dict()
 
