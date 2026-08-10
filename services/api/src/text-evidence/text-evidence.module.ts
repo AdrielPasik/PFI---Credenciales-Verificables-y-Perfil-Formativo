@@ -8,6 +8,10 @@ import { TextEvidenceService } from './text-evidence.service';
 @Module({
   imports: [AuthModule, IssuersModule],
   controllers: [TextEvidenceController],
-  providers: [TextEvidenceService]
+  providers: [TextEvidenceService],
+  // C2b.3: AutomaticCourseTextAnalysisService (analysis-run module) reusa
+  // ensureSystemGeneratedCurrentTextEvidenceForCredential en vez de
+  // duplicar la logica de creacion/normalizacion de TextEvidence.
+  exports: [TextEvidenceService]
 })
 export class TextEvidenceModule {}

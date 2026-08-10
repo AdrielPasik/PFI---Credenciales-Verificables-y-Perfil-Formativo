@@ -23,6 +23,7 @@ function createService(options?: {
   authorizationError?: Error;
   issuanceError?: Error;
   automaticAnalysisError?: Error;
+  automaticCourseTextAnalysisError?: Error;
 }) {
   const order: string[] = [];
   const authorizationCalls: unknown[] = [];
@@ -30,6 +31,7 @@ function createService(options?: {
   const issueCalls: unknown[] = [];
   const readCalls: unknown[] = [];
   const automaticAnalysisCalls: string[] = [];
+  const automaticCourseTextAnalysisCalls: unknown[][] = [];
   const safeReadModel = {
     id: 'credential-1',
     status: 'issued',
@@ -88,6 +90,15 @@ function createService(options?: {
           throw options.automaticAnalysisError;
         }
       }
+    } as never,
+    {
+      async analyzeIssuedCourseIfEligible(...args: unknown[]) {
+        order.push('automatic_course_text_analysis');
+        automaticCourseTextAnalysisCalls.push(args);
+        if (options?.automaticCourseTextAnalysisError) {
+          throw options.automaticCourseTextAnalysisError;
+        }
+      }
     } as never
   );
 
@@ -99,6 +110,7 @@ function createService(options?: {
     issueCalls,
     readCalls,
     automaticAnalysisCalls,
+    automaticCourseTextAnalysisCalls,
     safeReadModel
   };
 }
@@ -116,6 +128,7 @@ test('service authorizes and scopes before reusing legacy issuance once', async 
     'scoped_lookup',
     'legacy_issue',
     'automatic_analysis',
+    'automatic_course_text_analysis',
     'safe_read'
   ]);
   assert.deepEqual(context.lookupCalls, [
@@ -128,6 +141,9 @@ test('service authorizes and scopes before reusing legacy issuance once', async 
     ['credential-1', { issuerId: 'issuer-1' }, currentUser]
   ]);
   assert.deepEqual(context.automaticAnalysisCalls, ['credential-1']);
+  assert.deepEqual(context.automaticCourseTextAnalysisCalls, [
+    ['credential-1', currentUser.id]
+  ]);
   assert.deepEqual(context.readCalls, [
     ['issuer-1', 'credential-1', currentUser]
   ]);
@@ -152,6 +168,7 @@ test('service does not disclose or issue a cross-issuer credential', async () =>
   assert.deepEqual(context.order, ['authorization', 'scoped_lookup']);
   assert.deepEqual(context.issueCalls, []);
   assert.deepEqual(context.automaticAnalysisCalls, []);
+  assert.deepEqual(context.automaticCourseTextAnalysisCalls, []);
 });
 
 test('service stops before credential lookup when institutional authorization fails', async () => {
@@ -183,6 +200,7 @@ test('service preserves safe domain HttpExceptions from legacy issuance', async 
   ]);
   assert.deepEqual(context.readCalls, []);
   assert.deepEqual(context.automaticAnalysisCalls, []);
+  assert.deepEqual(context.automaticCourseTextAnalysisCalls, []);
 });
 
 test('service sanitizes unexpected hashing or blockchain failures', async () => {
@@ -222,10 +240,71 @@ test('automatic analysis failure never changes the successful issuance response'
     'scoped_lookup',
     'legacy_issue',
     'automatic_analysis',
+    'automatic_course_text_analysis',
     'safe_read'
   ]);
   assert.deepEqual(response, context.safeReadModel);
   assert.equal(JSON.stringify(response).includes('FastAPI'), false);
   assert.equal(JSON.stringify(response).includes('storageKey'), false);
   assert.equal(JSON.stringify(response).includes('private payload'), false);
+});
+
+// ─── C2b.3: automatic course text analysis integration ─────────────────────
+
+test('automatic course text analysis is invoked after issuance with the acting user id', async () => {
+  const context = createService();
+
+  await context.service.issueForIssuer('issuer-1', 'credential-1', currentUser);
+
+  assert.deepEqual(context.automaticCourseTextAnalysisCalls, [
+    ['credential-1', currentUser.id]
+  ]);
+});
+
+test('automatic course text analysis failure never changes the successful issuance response', async () => {
+  const context = createService({
+    automaticCourseTextAnalysisError: new Error(
+      'raw declared course content, credentialSubject and internal detail'
+    )
+  });
+
+  const response = await context.service.issueForIssuer(
+    'issuer-1',
+    'credential-1',
+    currentUser
+  );
+
+  assert.deepEqual(context.order, [
+    'authorization',
+    'scoped_lookup',
+    'legacy_issue',
+    'automatic_analysis',
+    'automatic_course_text_analysis',
+    'safe_read'
+  ]);
+  assert.deepEqual(response, context.safeReadModel);
+  assert.equal(JSON.stringify(response).includes('raw declared course'), false);
+  assert.equal(JSON.stringify(response).includes('credentialSubject'), false);
+});
+
+test('automatic course text analysis still runs even when the document analysis attempt failed', async () => {
+  // Both attempts are independent and best-effort: a failure in the
+  // document path must not skip the textual attempt, and vice versa.
+  const context = createService({
+    automaticAnalysisError: new Error('document analysis internal failure')
+  });
+
+  await context.service.issueForIssuer('issuer-1', 'credential-1', currentUser);
+
+  assert.deepEqual(context.order, [
+    'authorization',
+    'scoped_lookup',
+    'legacy_issue',
+    'automatic_analysis',
+    'automatic_course_text_analysis',
+    'safe_read'
+  ]);
+  assert.deepEqual(context.automaticCourseTextAnalysisCalls, [
+    ['credential-1', currentUser.id]
+  ]);
 });

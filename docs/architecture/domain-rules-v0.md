@@ -253,13 +253,34 @@ backend a ese endpoint:
 - `SemanticAnalysisArtifactSourceType` (backend) acepta `"text"` ademas de
   `"academic_pdf"`/`"online_course_catalog"`.
 
-Lo que **todavia falta** (C2b.3, fuera de alcance de C2b.2): generar
-automaticamente una `TextEvidence` a partir de los campos declarados de un
-`course` (`achievementName`/`description`/`competencies`/`learningOutcomes`)
-cuando no hay PDF vigente, y disparar la ejecucion `system` best-effort
-despues de emitir. Hoy el analisis textual solo ocurre si el emisor ya cargo
-una `TextEvidence` manualmente y dispara el endpoint manual — no hay
-auto-trigger post-emision para texto todavia.
+C2b.3 cierra este gap: al emitir un `course` sin PDF vigente,
+`AutomaticCourseTextAnalysisService.analyzeIssuedCourseIfEligible` genera o
+reutiliza una `TextEvidence` (nunca reemplaza una `current` existente,
+manual o previa) y dispara el analisis textual `system` best-effort, igual
+patron que el flujo documental automatico ya existente. Reglas clave:
+
+- PDF siempre tiene prioridad: si hay `DocumentEvidence` `current` PDF, este
+  servicio se salta sin generar ni analizar texto.
+- El texto se construye SOLO desde `achievementName`/`title`, `description`,
+  `competencies`, `learningOutcomes` (`buildCourseTextAnalysisContent`,
+  `services/api/src/credentials/course-text-analysis-content.ts`) — nunca
+  `platformName`, `providerName`, `modality`, `externalUrl`, issuer, holder
+  ni blockchain. Regla de suficiencia conservadora: rechaza un titulo
+  generico solo, exige descripcion con senal propia o al menos dos fuentes
+  formativas distintas.
+- Si ya existe una `TextEvidence` `current` (de cualquier origen), se usa
+  tal cual, nunca se reemplaza -- el schema no distingue manual vs.
+  sistema, asi que la regla conservadora es no pisar nunca contenido
+  existente.
+- Dedup por `TextEvidence.id` exacta incluye `failed` (mas estricta que el
+  endpoint manual de C2b.2): el auto-trigger nunca reintenta indefinidamente.
+- Best-effort real: cualquier error se atrapa y se loguea de forma segura
+  dentro del propio servicio, ademas del `try/catch` ya existente en
+  `IssuerCredentialIssueService` — nunca revierte la emision.
+- No reconstruye `FormativeProfile` automaticamente (igual que el flujo
+  documental existente); el perfil holder puede requerir rebuild manual.
+- C2c (presentacion de horas/cobertura), C3 (catalogo reutilizable) y C4
+  (interpretacion aprobada) siguen pendientes y fuera de alcance de C2b.3.
 
 ## 12. Catalogo y curricula institucional para academic_subject
 

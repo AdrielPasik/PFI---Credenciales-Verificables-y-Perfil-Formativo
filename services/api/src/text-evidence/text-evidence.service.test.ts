@@ -357,6 +357,158 @@ test('service always creates a new row even when normalized content and hash are
   assert.deepEqual(calls.forbiddenWrites, []);
 });
 
+// ─── C2b.3: ensureSystemGeneratedCurrentTextEvidenceForCredential ──────────
+
+function setupEnsure(options: {
+  existing?: { id: string; sha256: string; status: TextEvidenceStatus } | null;
+} = {}) {
+  const calls = {
+    finds: [] as unknown[],
+    creates: [] as unknown[],
+    transactions: [] as unknown[]
+  };
+  const transaction = {
+    textEvidence: {
+      async findFirst(args: unknown) {
+        calls.finds.push(args);
+        return options.existing === undefined ? null : options.existing;
+      },
+      async create(args: unknown) {
+        calls.creates.push(args);
+        const data = (args as { data: Record<string, unknown> }).data;
+        return {
+          id: 'text-evidence-system-1',
+          sha256: data.sha256 as string,
+          status: TextEvidenceStatus.current
+        };
+      }
+    }
+  };
+  const prisma = {
+    async $transaction(
+      callback: (value: typeof transaction) => Promise<unknown>,
+      transactionOptions: unknown
+    ) {
+      calls.transactions.push(transactionOptions);
+      return callback(transaction);
+    }
+  };
+  return {
+    calls,
+    service: new TextEvidenceService(prisma as never, {} as never)
+  };
+}
+
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential creates a current row when none exists', async () => {
+  const { service, calls } = setupEnsure({ existing: null });
+
+  const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Nombre del curso:\nPython Bootcamp',
+    'issuer-user-1'
+  );
+
+  assert.deepEqual(calls.transactions, [
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+  ]);
+  assert.deepEqual(calls.finds, [
+    {
+      where: { credentialId: 'credential-1', status: TextEvidenceStatus.current },
+      select: { id: true, sha256: true, status: true }
+    }
+  ]);
+  const create = calls.creates[0] as { data: Record<string, unknown> };
+  assert.equal(create.data.credentialId, 'credential-1');
+  assert.equal(create.data.submittedByUserId, 'issuer-user-1');
+  assert.equal(
+    create.data.label,
+    'Texto generado para análisis desde datos declarados del curso'
+  );
+  assert.equal(create.data.content, 'Nombre del curso:\nPython Bootcamp');
+  assert.equal(create.data.status, TextEvidenceStatus.current);
+  assert.match(create.data.sha256 as string, /^[0-9a-f]{64}$/);
+  assert.deepEqual(result, {
+    id: 'text-evidence-system-1',
+    sha256: create.data.sha256,
+    status: TextEvidenceStatus.current,
+    reused: false
+  });
+});
+
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential reuses an existing current row without writing', async () => {
+  const existing = {
+    id: 'text-evidence-manual-1',
+    sha256: 'a'.repeat(64),
+    status: TextEvidenceStatus.current
+  };
+  const { service, calls } = setupEnsure({ existing });
+
+  const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Nombre del curso:\nPython Bootcamp',
+    'issuer-user-1'
+  );
+
+  assert.deepEqual(result, { ...existing, reused: true });
+  assert.equal(calls.creates.length, 0);
+});
+
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential never replaces an existing current row even with different content', async () => {
+  // C2b.3 "Prioridad de fuentes textuales": el schema no distingue manual
+  // vs generado por sistema, asi que la regla conservadora es no pisar
+  // NUNCA una TextEvidence current existente, sea cual sea su origen.
+  const existing = {
+    id: 'text-evidence-manual-1',
+    sha256: 'b'.repeat(64),
+    status: TextEvidenceStatus.current
+  };
+  const { service, calls } = setupEnsure({ existing });
+
+  const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Contenido totalmente distinto generado por el sistema para este curso.',
+    'issuer-user-1'
+  );
+
+  assert.equal(result.id, existing.id);
+  assert.equal(result.sha256, existing.sha256);
+  assert.equal(result.reused, true);
+  assert.equal(calls.creates.length, 0);
+});
+
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential computes a stable real sha256 over the normalized content', async () => {
+  const { service: first } = setupEnsure({ existing: null });
+  const { service: second } = setupEnsure({ existing: null });
+
+  const resultA = await first.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Contenido identico',
+    'issuer-user-1'
+  );
+  const resultB = await second.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-2',
+    'Contenido identico',
+    'issuer-user-2'
+  );
+
+  assert.equal(resultA.sha256, resultB.sha256);
+  assert.match(resultA.sha256, /^[0-9a-f]{64}$/);
+});
+
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential does not delete or alter history', async () => {
+  const { service, calls } = setupEnsure({ existing: null });
+  await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Nombre del curso:\nPython Bootcamp',
+    'issuer-user-1'
+  );
+
+  // No updateMany/delete calls exist on the fake transaction's textEvidence
+  // model at all -- if the implementation tried to call them, this test
+  // setup would throw a "not a function" error instead of passing quietly.
+  assert.equal(calls.creates.length, 1);
+});
+
 function forbiddenWriter(name: string, calls: string[]) {
   return {
     async create() {

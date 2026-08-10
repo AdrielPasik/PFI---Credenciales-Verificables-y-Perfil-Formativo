@@ -838,10 +838,10 @@ P6b agrega una via interna, no publica, posterior a la emision issuer-scoped:
 - el response de emision no expone el run ni artifacts: el cliente consulta los
   reads P5d existentes.
 
-El endpoint manual anterior permanece `draft`-only. No existe trigger manual
-post-emision para texto, ni analisis automatico de texto, ni modo `combined`
-(C2b.2 implementa el trigger manual textual descripto abajo; el auto-trigger
-post-emision para cursos sin PDF queda para C2b.3).
+El endpoint manual anterior permanece `draft`-only. No existe modo
+`combined` todavia (C2b.2 implementa el trigger manual textual descripto
+abajo; C2b.3 implementa el auto-trigger post-emision para `course` sin PDF,
+descripto despues).
 
 C2b.2 implementa:
 
@@ -920,6 +920,38 @@ GET /issuers/:issuerId/credentials/:credentialId/analysis-runs/:analysisRunId
   storage internals, artifacts crudos y errores persistidos no allowlisted.
 - Efectos: lectura pura; no IA, storage, Credential, canon, emision o
   blockchain.
+
+C2b.3 agrega una via interna, no publica, posterior a la emision
+issuer-scoped, analoga a P6b pero para `course` sin PDF:
+
+- despues de una emision exitosa, si `type=course` y no hay `DocumentEvidence`
+  `current` PDF, NestJS busca la `TextEvidence` `current`;
+- si ya existe una `TextEvidence` `current` (manual o de una ejecucion
+  anterior), se usa tal cual — nunca se reemplaza ni se genera una nueva;
+- si no existe ninguna, se construye texto desde `achievementName`/`title`,
+  `description`, `competencies`, `learningOutcomes` (nunca `platformName`,
+  `modality`, `externalUrl`, issuer, holder, blockchain) y, solo si supera
+  una regla de suficiencia conservadora (rechaza titulo generico solo), se
+  genera una `TextEvidence` nueva marcada explicitamente como generada por
+  sistema;
+- si el texto declarado es insuficiente, la emision continua sin crear
+  ningun analisis — no es un error;
+- el run se crea y ejecuta fuera de la transaccion de emision, con
+  `trigger=system` y `requestedByUserId=null`, igual patron que P6b;
+- dedup por `TextEvidence.id` exacta incluye estado `failed` (mas estricto
+  que el endpoint manual de C2b.2): nunca reintenta automaticamente sobre
+  la misma evidencia;
+- PDF tiene prioridad absoluta: si hay un PDF vigente, este camino nunca se
+  ejecuta (el flujo documental automatico existente aplica en su lugar);
+- ambos automaticos (documental y textual) se invocan siempre tras emitir,
+  pero por construccion nunca ejecutan un analisis real los dos a la vez;
+- cualquier fallo (generacion de evidencia, creacion del run, ejecucion IA)
+  queda atrapado y logueado de forma segura, nunca convierte la emision
+  exitosa en error;
+- el response de emision no expone el run ni artifacts: el cliente consulta
+  los reads P5d/C2b.2 existentes;
+- no reconstruye `FormativeProfile` automaticamente (igual que el flujo
+  documental); no modifica canon, hash ni blockchain.
 
 Permanece candidato futuro:
 

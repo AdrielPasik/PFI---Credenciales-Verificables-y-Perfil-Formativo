@@ -193,8 +193,75 @@ storage keys).
 - Todavía NO genera `TextEvidence` automáticamente desde los campos
   declarados de un `course` (`achievementName`/`description`/
   `competencies`/`learningOutcomes`) y todavía NO se dispara al emitir una
-  credencial sin PDF — eso queda para C2b.3. Este endpoint es manual
-  únicamente.
+  credencial sin PDF — eso ya lo hace C2b.3 (ver abajo). Este endpoint
+  sigue existiendo para disparar manualmente un análisis textual
+  puntual (por ejemplo, reanalizar una `TextEvidence` reemplazada).
+
+### C2b.3 — Análisis textual automático de `course` sin PDF al emitir
+
+Después de una emisión issuer-scoped exitosa, si la credencial es
+`type=course` y **no** tiene un PDF `current`, el backend intenta generar o
+reutilizar una `TextEvidence` y ejecutar un análisis textual `system`
+best-effort — el mismo camino de C2b.2, ahora disparado automáticamente,
+igual que ya ocurre con PDFs desde antes de C2b.
+
+- **Prioridad PDF sobre texto, siempre:** `AutomaticCourseTextAnalysisService`
+  hace su propio chequeo de `DocumentEvidence` `current` `kind=pdf` y se
+  salta por completo si existe uno — nunca genera ni analiza texto en ese
+  caso. `AutomaticDocumentAnalysisService` (documental) no fue modificado;
+  ambos servicios se llaman siempre, uno detrás del otro, pero por
+  construcción nunca ejecutan un análisis real los dos en la misma emisión.
+- **Texto analizable:** `buildCourseTextAnalysisContent` (función pura,
+  `services/api/src/credentials/course-text-analysis-content.ts`) construye
+  el contenido SOLO desde `achievementName`/`title`, `description`,
+  `competencies` y `learningOutcomes` — nunca `platformName`, `providerName`,
+  `modality`, `externalUrl`, issuer, holder, credential id, blockchain ni
+  metadata completa. Regla de suficiencia conservadora: una descripción con
+  señal propia (≥ 30 caracteres) alcanza sola; si no, se exige al menos dos
+  fuentes formativas distintas presentes (por ejemplo, título + una
+  competencia) y que el contenido final normalizado supere los 30
+  caracteres. Un título genérico solo (`"Curso"`, `"Python"`,
+  `"Capacitación online"`) nunca dispara análisis, aunque sea largo.
+- **Prioridad de fuentes textuales:** si la credencial ya tiene una
+  `TextEvidence` `current` (cargada manualmente por el emisor, o de una
+  ejecución anterior), **nunca se reemplaza ni se genera una nueva** — se
+  usa esa evidencia tal cual como fuente. Solo se genera una `TextEvidence`
+  nueva cuando no existe ninguna `current`. El schema actual no distingue
+  origen manual vs. generado por sistema; esta es la regla conservadora
+  elegida para no pisar contenido cargado por el emisor.
+- **`TextEvidence` generada por sistema:** `TextEvidenceService.
+  ensureSystemGeneratedCurrentTextEvidenceForCredential` crea la fila con
+  `label` explícito *"Texto generado para análisis desde datos declarados
+  del curso"* (nunca dice "cargado por el emisor"), `submittedByUserId` es
+  el usuario que ejecutó la emisión (un usuario real y autenticado, no un
+  usuario de sistema inventado — el schema exige un `submittedByUserId` no
+  nulo), y `sha256` real sobre el contenido normalizado. No borra historial,
+  no cambia `Credential` ni `credentialSubject`.
+- **Deduplicación por `TextEvidence.id` exacta, más estricta que la manual:**
+  a diferencia del endpoint manual de C2b.2 (que permite reintentar después
+  de un `failed`), el auto-trigger nunca reintenta si ya existe CUALQUIER
+  `AnalysisRun` `text` — `pending`, `running`, `completed` o `failed` — para
+  la misma `TextEvidence.id`. Best-effort significa "se intenta una vez",
+  no "se reintenta indefinidamente en cada emisión o reintento de request".
+- **Nunca revierte la emisión:** `AutomaticCourseTextAnalysisService`
+  atrapa y loguea de forma segura cualquier error interno (generación de
+  evidencia, creación del run, ejecución IA) — nunca lanza. El caller
+  (`IssuerCredentialIssueService`) además envuelve la llamada en su propio
+  `try/catch` como segunda red de seguridad.
+- **No toca canon/hash/blockchain:** ningún paso de este flujo modifica
+  `Credential.canonicalHash`, `BlockchainRecord` ni el flujo de emisión —
+  corre después de que la emisión (con su hashing/blockchain) ya se
+  completó.
+- **Rebuild de perfil:** igual que el flujo documental automático
+  existente, este análisis NO reconstruye `FormativeProfile`
+  automáticamente. El perfil holder puede requerir `POST /me/profile/rebuild`
+  manual (o un slice futuro) para reflejar un `SemanticAnalysis` generado
+  por este camino. Esto es intencional: C2b.3 no introduce un
+  comportamiento distinto al que ya existía para PDFs.
+- **Pendiente (C2c/C3/C4):** presentación de horas/cobertura semántica
+  mejorada, catálogo reutilizable de cursos y aprobación curada de
+  interpretaciones IA quedan fuera de este slice — ver
+  `c2b-c3-text-ai-course-catalog-design-review-bundle.txt`.
 
 La emisión issuer-scoped no convierte el PDF en requisito universal: una
 `TextEvidence` vigente también puede respaldarla y una evidencia documental no

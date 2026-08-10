@@ -21,6 +21,20 @@ import { validateTextEvidenceBody } from './text-evidence.validator';
 
 const CREDENTIAL_NOT_FOUND_MESSAGE = 'No se encontro la credencial solicitada.';
 
+// C2b.3: label explicito para toda TextEvidence generada por sistema desde
+// datos declarados del course (achievementName/title, description,
+// competencies, learningOutcomes) -- nunca se dice "cargado por el emisor",
+// para no aparentar una accion manual que no ocurrio.
+export const SYSTEM_GENERATED_TEXT_EVIDENCE_LABEL =
+  'Texto generado para análisis desde datos declarados del curso';
+
+export interface EnsuredSystemTextEvidence {
+  id: string;
+  sha256: string;
+  status: TextEvidenceStatus;
+  reused: boolean;
+}
+
 @Injectable()
 export class TextEvidenceService {
   constructor(
@@ -117,5 +131,65 @@ export class TextEvidenceService {
     );
 
     return mapTextEvidenceResponse(evidence);
+  }
+
+  /**
+   * C2b.3: asegura una TextEvidence `current` utilizable como fuente de
+   * analisis automatico para un `course` sin PDF, SIN reemplazar nunca una
+   * evidencia `current` ya existente -- el schema actual no distingue
+   * origen manual vs generado por sistema, asi que la regla conservadora
+   * es: si ya hay una `current` (de cualquier origen), se devuelve tal
+   * cual, sin tocarla; solo se genera una nueva cuando no existe ninguna.
+   *
+   * A diferencia de `submitCurrentText`, esto NO es draft-only por diseño:
+   * se invoca DESPUES de emitir (`Credential.status === issued`), sobre
+   * datos ya declarados por el emisor -- no es una edicion de contenido,
+   * es una snapshot de lo que el curso ya tenia al momento de emitirse.
+   *
+   * `content` ya debe venir compuesto y normalizado por el caller (ver
+   * `buildCourseTextAnalysisContent`); aca se revalida/renormaliza con el
+   * mismo validador que usa el endpoint manual para no duplicar reglas de
+   * longitud/caracteres de control.
+   */
+  async ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    credentialId: string,
+    content: string,
+    submittedByUserId: string
+  ): Promise<EnsuredSystemTextEvidence> {
+    return this.prisma.$transaction(
+      async (transaction) => {
+        const existing = await transaction.textEvidence.findFirst({
+          where: {
+            credentialId,
+            status: TextEvidenceStatus.current
+          },
+          select: { id: true, sha256: true, status: true }
+        });
+
+        if (existing) {
+          return { ...existing, reused: true };
+        }
+
+        const input = validateTextEvidenceBody({
+          content,
+          label: SYSTEM_GENERATED_TEXT_EVIDENCE_LABEL
+        });
+
+        const created = await transaction.textEvidence.create({
+          data: {
+            credentialId,
+            submittedByUserId,
+            label: input.label,
+            content: input.content,
+            sha256: input.sha256,
+            status: TextEvidenceStatus.current
+          },
+          select: { id: true, sha256: true, status: true }
+        });
+
+        return { ...created, reused: false };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
   }
 }

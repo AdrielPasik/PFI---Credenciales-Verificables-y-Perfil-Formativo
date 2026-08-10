@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
+import { AutomaticCourseTextAnalysisService } from '../analysis-run/automatic-course-text-analysis.service';
 import { AutomaticDocumentAnalysisService } from '../analysis-run/automatic-document-analysis.service';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,7 +25,8 @@ export class IssuerCredentialIssueService {
     private readonly issuersService: IssuersService,
     private readonly credentialsService: CredentialsService,
     private readonly issuerCredentialReadService: IssuerCredentialReadService,
-    private readonly automaticDocumentAnalysisService: AutomaticDocumentAnalysisService
+    private readonly automaticDocumentAnalysisService: AutomaticDocumentAnalysisService,
+    private readonly automaticCourseTextAnalysisService: AutomaticCourseTextAnalysisService
   ) {}
 
   async issueForIssuer(
@@ -68,6 +70,20 @@ export class IssuerCredentialIssueService {
     try {
       await this.automaticDocumentAnalysisService.analyzeIssuedCredentialIfEligible(
         credentialId
+      );
+    } catch {
+      // Automatic analysis is best-effort and must never roll back issuance.
+    }
+
+    // C2b.3: analisis textual automatico solo para `course` sin PDF vigente.
+    // AutomaticCourseTextAnalysisService hace su propio chequeo de PDF
+    // vigente (nunca corre si el documental ya aplico) y ya atrapa/loguea
+    // sus propios errores; este try/catch es una segunda red de seguridad,
+    // no la unica -- nunca debe revertir la emision.
+    try {
+      await this.automaticCourseTextAnalysisService.analyzeIssuedCourseIfEligible(
+        credentialId,
+        currentUser.id
       );
     } catch {
       // Automatic analysis is best-effort and must never roll back issuance.
