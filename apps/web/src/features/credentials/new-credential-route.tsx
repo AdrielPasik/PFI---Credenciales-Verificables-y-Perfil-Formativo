@@ -145,6 +145,7 @@ export function NewCredentialController({
 
   return (
     <CredentialDraftForm
+      issuerDid={membership.issuerDid}
       issuerName={membership.issuerName}
       onResolveHolder={resolveHolder}
       onCreateDraft={createDraft}

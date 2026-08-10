@@ -444,6 +444,10 @@
   `hours` admiten `null` para limpiar. `type` es opcional, no admite `null` y
   solo acepta `academic_subject`, `course`, `certification` o `degree`. Los
   campos omitidos conservan su valor.
+- La restriccion temporal de tipos por issuer tambien se aplica al PATCH:
+  solo el issuer UADE demo puede terminar un draft como `academic_subject` o
+  `degree`; los demas emisores solo pueden terminarlo como `course` o
+  `certification`.
 - Seleccion de catalogo: `academicCourseReference` es un string no vacio y
   solo aplica cuando la credencial actual y final son `academic_subject`. El
   backend resuelve dentro de la transaccion una asignatura `active` del mismo
@@ -487,7 +491,7 @@
 | Tipo final | Campos especificos permitidos |
 | --- | --- |
 | `academic_subject` | `completionDate`, `academicPeriod`, `programName`, `grade`, `skills`, `competencies` |
-| `course` | `completionDate`, `providerName`, `platformName`, `modality`, `level`, `externalUrl`, `skills`, `competencies`, `learningOutcomes` |
+| `course` | `completionDate`, `platformName`, `modality`, `externalUrl`, `competencies`, `learningOutcomes` |
 | `certification` | `completionDate`, `certificationCode`, `expirationDate`, `externalUrl`, `providerName`, `level`, `skills`, `competencies` |
 | `degree` | `completionDate`, `programName`, `level`, `grade`, `competencies`, `learningOutcomes` |
 

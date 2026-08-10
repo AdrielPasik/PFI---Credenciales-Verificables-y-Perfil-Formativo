@@ -30,6 +30,12 @@ import { CredentialStatusResponseDto } from './dto/credential-status-response.dt
 import { CredentialSummaryResponseDto } from './dto/credential-summary-response.dto';
 import { IssueCredentialDto } from './dto/issue-credential.dto';
 
+const UADE_ISSUER_DID = 'did:example:issuer-demo';
+const ACADEMIC_CREDENTIAL_TYPES = new Set<CredentialType>([
+  CredentialType.academic_subject,
+  CredentialType.degree
+]);
+
 @Injectable()
 export class CredentialsService {
   constructor(
@@ -60,6 +66,24 @@ export class CredentialsService {
     this.assertEnumValue(CredentialSourceType, dto.sourceType, 'sourceType');
     this.assertOptionalJsonObject(dto.metadata, 'metadata');
     this.assertOptionalJsonObject(dto.rawData, 'rawData');
+
+    const issuer = await this.prisma.issuer.findUnique({
+      where: { id: dto.issuerId },
+      select: { did: true }
+    });
+
+    if (!issuer) {
+      throw new NotFoundException('No se encontro el emisor solicitado.');
+    }
+
+    if (
+      issuer.did !== UADE_ISSUER_DID &&
+      ACADEMIC_CREDENTIAL_TYPES.has(dto.type)
+    ) {
+      throw new BadRequestException(
+        'Este emisor no puede crear credenciales académicas.'
+      );
+    }
 
     const manualTitle = curricularSelection
       ? null

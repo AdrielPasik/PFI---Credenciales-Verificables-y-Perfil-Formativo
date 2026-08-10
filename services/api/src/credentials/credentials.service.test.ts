@@ -124,6 +124,7 @@ function createDraftService(options?: {
   ) => Promise<unknown>;
   subjectUser?: { id: string } | null;
   programCourse?: ProgramCourseFixture | null;
+  issuerDid?: string | null;
 }) {
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const subjectLookupCalls: Array<Record<string, unknown>> = [];
@@ -165,6 +166,12 @@ function createDraftService(options?: {
     }
   };
   const prisma = {
+    issuer: {
+      async findUnique() {
+        operationOrder.push('issuer_lookup');
+        return { did: options?.issuerDid ?? 'did:example:issuer-demo' };
+      }
+    },
     async $transaction(
       callback: (client: typeof transaction) => Promise<unknown>,
       transactionOption: Record<string, unknown>
@@ -304,6 +311,7 @@ test('createDraft creates a curricular academic subject and derives its official
   ]);
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'issuer_lookup',
     'transaction_start',
     'subject_lookup',
     'program_course_lookup',
@@ -537,6 +545,7 @@ test('CredentialsService creates a draft only after issuer authorization and hol
   ]);
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'issuer_lookup',
     'transaction_start',
     'subject_lookup',
     'credential_create'
@@ -585,6 +594,38 @@ test('CredentialsService preserves manual draft creation for every credential ty
   }
 });
 
+test('CredentialsService rejects academic credential types for non-UADE issuers', async () => {
+  for (const type of [CredentialType.academic_subject, CredentialType.degree]) {
+    const { service, createCalls } = createDraftService({
+      issuerDid: 'did:example:course-platform-issuer-demo'
+    });
+
+    await assert.rejects(
+      service.createDraft(
+        {
+          ...validDraftDto,
+          type,
+          title: `Draft ${type}`,
+          credentialSubject: {
+            achievement_name: `Draft ${type}`,
+            institution_name: 'Plataforma de Cursos Demo'
+          }
+        },
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.equal(error instanceof BadRequestException, true);
+        assert.equal(
+          (error as Error).message,
+      'Este emisor no puede crear credenciales académicas.'
+        );
+        return true;
+      }
+    );
+    assert.equal(createCalls.length, 0);
+  }
+});
+
 test('CredentialsService rejects arbitrary issuerIds before holder lookup or credential creation', async () => {
   const { service, subjectLookupCalls, createCalls, operationOrder } =
     createDraftService({
@@ -623,6 +664,7 @@ test('CredentialsService preserves not found behavior for a missing holder after
 
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'issuer_lookup',
     'transaction_start',
     'subject_lookup'
   ]);
@@ -640,6 +682,7 @@ test('CredentialsService treats an inactive holder as not eligible before catalo
 
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'issuer_lookup',
     'transaction_start',
     'subject_lookup'
   ]);
@@ -663,6 +706,7 @@ test('CredentialsService does not create a draft when current domain validation 
 
   assert.deepEqual(operationOrder, [
     'issuer_authorization',
+    'issuer_lookup',
     'transaction_start',
     'subject_lookup'
   ]);

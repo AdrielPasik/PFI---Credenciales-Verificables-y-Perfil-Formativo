@@ -59,6 +59,9 @@ function createCredentialRecord(
     },
     academicCourse: null,
     programCourse: null,
+    documentEvidences: [],
+    textEvidences: [],
+    blockchainRecords: [],
     ...overrides
   };
 }
@@ -636,7 +639,6 @@ test('service authorizes, runs a Serializable transaction and applies an atomic 
   assert.deepEqual(updateCall.data.credentialSubject, {
     achievement_name: 'Arquitectura de Software',
     institution_name: 'Demo University',
-    skills: ['preservada'],
     legacy_key: 'preservada'
   });
   assert.equal(response.title, response.credentialSubject.achievement_name);
@@ -692,7 +694,6 @@ test('service clears nullable fields, keeps omitted title and preserves existing
   assert.deepEqual(data.credentialSubject, {
     achievement_name: 'Nombre anterior',
     institution_name: 'Demo University',
-    skills: ['preservada'],
     legacy_key: 'preservada'
   });
   assert.equal(response.description, null);
@@ -728,23 +729,17 @@ test('service accepts every controlled field applicable to each CredentialType',
       type: CredentialType.course,
       payload: {
         completionDate: '2026-07-30',
-        providerName: 'Traza Academy',
         platformName: 'Campus',
-        modality: 'Hibrida',
-        level: 'Avanzado',
+        modality: 'Online',
         externalUrl: 'https://plataforma-demo.example.com/curso/123',
-        skills: ['TypeScript'],
         competencies: ['Diseno de sistemas'],
         learningOutcomes: ['Construir APIs']
       },
       expectedSubject: {
         completion_date: '2026-07-30',
-        provider_name: 'Traza Academy',
         platform_name: 'Campus',
-        modality: 'Hibrida',
-        level: 'Avanzado',
+        modality: 'Online',
         external_url: 'https://plataforma-demo.example.com/curso/123',
-        skills: ['TypeScript'],
         competencies: ['Diseno de sistemas'],
         learning_outcomes: ['Construir APIs']
       }
@@ -845,6 +840,35 @@ test('service rejects an invalid externalUrl for course before updating the draf
     BadRequestException
   );
   assert.deepEqual(updateManyCalls, []);
+});
+
+test('service only accepts the controlled course modalities', async () => {
+  for (const modality of ['Presencial', 'Online', 'Asincrónica']) {
+    const { service, updateManyCalls } = createService();
+    await service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      { expectedUpdatedAt: EXPECTED_UPDATED_AT, modality },
+      currentUser
+    );
+    assert.equal(
+      ((updateManyCalls[0] as { data: { credentialSubject: Record<string, unknown> } }).data
+        .credentialSubject.modality),
+      modality
+    );
+  }
+
+  const { service, updateManyCalls } = createService();
+  await assert.rejects(
+    service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      { expectedUpdatedAt: EXPECTED_UPDATED_AT, modality: 'Híbrido' },
+      currentUser
+    ),
+    BadRequestException
+  );
+  assert.equal(updateManyCalls.length, 0);
 });
 
 test('service normalizes an academic grade and accepts the structured academic period', async () => {
@@ -1053,6 +1077,107 @@ test('service rejects every field that is not applicable to the final type, incl
   }
 });
 
+test('service rejects non-UADE draft type changes to academic types before persistence', async () => {
+  for (const targetType of [
+    CredentialType.academic_subject,
+    CredentialType.degree
+  ]) {
+    const { service, updateManyCalls, academicCourseCalls, operationOrder } =
+      createService({
+        credential: createCredentialRecord({
+          type: CredentialType.course,
+          issuer: {
+            name: 'Plataforma de Cursos Demo',
+            did: 'did:example:course-platform-demo'
+          }
+        })
+      });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          type: targetType
+        },
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof BadRequestException);
+        assert.equal(
+          error.message,
+          'Este emisor no puede crear credenciales académicas.'
+        );
+        return true;
+      }
+    );
+
+    assert.deepEqual(updateManyCalls, []);
+    assert.deepEqual(academicCourseCalls, []);
+    assert.deepEqual(operationOrder, [
+      'issuer_authorization',
+      'transaction',
+      'credential_read'
+    ]);
+  }
+});
+
+test('service allows non-UADE drafts to remain course or become certification', async () => {
+  for (const targetType of [CredentialType.course, CredentialType.certification]) {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({
+        type: CredentialType.course,
+        issuer: {
+          name: 'Plataforma de Cursos Demo',
+          did: 'did:example:course-platform-demo'
+        }
+      })
+    });
+
+    await service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      {
+        expectedUpdatedAt: EXPECTED_UPDATED_AT,
+        ...(targetType === CredentialType.course ? { description: 'Valido' } : { type: targetType })
+      },
+      currentUser
+    );
+
+    assert.equal(updateManyCalls.length, 1);
+    const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
+    assert.equal(
+      'type' in data ? data.type : CredentialType.course,
+      targetType
+    );
+  }
+});
+
+test('service preserves UADE draft type changes to academic types', async () => {
+  for (const targetType of [
+    CredentialType.academic_subject,
+    CredentialType.degree
+  ]) {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({ type: CredentialType.course })
+    });
+
+    await service.updateDraftForIssuer(
+      'issuer-1',
+      'credential-1',
+      { expectedUpdatedAt: EXPECTED_UPDATED_AT, type: targetType },
+      currentUser
+    );
+
+    assert.equal(updateManyCalls.length, 1);
+    assert.equal(
+      (updateManyCalls[0] as { data: Record<string, unknown> }).data.type,
+      targetType
+    );
+  }
+});
+
 test('service evaluates applicability against the requested final type', async () => {
   const { service, updateManyCalls } = createService({
     credential: createCredentialRecord({ type: CredentialType.course })
@@ -1152,9 +1277,7 @@ test('service applies null clearing semantics to applicable controlled fields', 
       credentialSubject: {
         achievement_name: 'Nombre anterior',
         institution_name: 'Institucion anterior',
-        provider_name: 'Proveedor',
         platform_name: 'Campus',
-        skills: ['TypeScript'],
         legacy_key: 'preservada'
       }
     })
@@ -1166,7 +1289,7 @@ test('service applies null clearing semantics to applicable controlled fields', 
     {
       expectedUpdatedAt: EXPECTED_UPDATED_AT,
       platformName: null,
-      skills: null
+      competencies: null
     },
     currentUser
   );
@@ -1175,8 +1298,8 @@ test('service applies null clearing semantics to applicable controlled fields', 
     data: { credentialSubject: Record<string, unknown> };
   }).data.credentialSubject;
   assert.equal('platform_name' in subject, false);
-  assert.deepEqual(subject.skills, []);
-  assert.equal(subject.provider_name, 'Proveedor');
+  assert.deepEqual(subject.competencies, []);
+  assert.equal('provider_name' in subject, false);
   assert.equal(subject.legacy_key, 'preservada');
 });
 

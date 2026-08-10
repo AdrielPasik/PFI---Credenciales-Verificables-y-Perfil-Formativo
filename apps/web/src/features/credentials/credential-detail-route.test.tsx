@@ -937,11 +937,9 @@ describe('CredentialDetailView read-only states', () => {
           statusLabel: 'Emitida',
           credentialSubject: {
             platformName: 'Campus Virtual Demo',
-            providerName: 'Instituto Demo',
             modality: 'Online asincrónica',
-            level: 'Intermedio',
             externalUrl: 'https://plataforma-demo.example.com/curso/123',
-            skills: ['Cloud']
+            skills: []
           }
         })}
       />
@@ -949,10 +947,10 @@ describe('CredentialDetailView read-only states', () => {
 
     expect(screen.getByText('Datos declarados del curso')).toBeTruthy();
     expect(screen.getByText('Campus Virtual Demo')).toBeTruthy();
-    expect(screen.getByText('Instituto Demo')).toBeTruthy();
     expect(screen.getByText('Online asincrónica')).toBeTruthy();
-    expect(screen.getByText('Intermedio')).toBeTruthy();
-    expect(screen.getByText('Cloud')).toBeTruthy();
+    expect(screen.queryByText('Proveedor')).toBeNull();
+    expect(screen.queryByText('Nivel')).toBeNull();
+    expect(screen.queryByText('Cloud')).toBeNull();
 
     const link = screen.getByRole('link', {
       name: 'https://plataforma-demo.example.com/curso/123'

@@ -82,12 +82,9 @@ export const credentialDraftFieldsByType: Record<
   ],
   course: [
     'completionDate',
-    'providerName',
     'platformName',
     'modality',
-    'level',
     'externalUrl',
-    'skills',
     'competencies',
     'learningOutcomes'
   ],

@@ -31,7 +31,7 @@ vi.mock('@/lib/session/session-provider', () => ({
 const membership = {
   issuerReference: 'issuer-selected-reference',
   issuerName: 'Universidad Seleccionada',
-  issuerDid: 'did:example:issuer',
+  issuerDid: 'did:example:issuer-demo',
   issuerAuthorizationStatus: 'authorized' as const,
   issuerAuthorizationLabel: 'Autorizada',
   role: 'admin' as const,

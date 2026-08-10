@@ -59,9 +59,7 @@ function IntegrityCard({ detail }: { detail: HolderCredentialDetailVM }) {
 function FormativeContribution({ detail }: { detail: HolderCredentialDetailVM }) {
   const hasCourseDeclaredData = detail.type === 'course' && (
     detail.subject.platformName !== null ||
-    detail.subject.providerName !== null ||
     detail.subject.modality !== null ||
-    detail.subject.level !== null ||
     detail.subject.externalUrl !== null
   );
 
@@ -74,9 +72,7 @@ function CourseDeclaredDataSection({ subject }: { subject: HolderCredentialDetai
     <p className="mt-1 text-sm text-text-muted">Estos datos fueron declarados por la institución emisora de la credencial.</p>
     <div className="mt-3 grid gap-4 sm:grid-cols-2">
       <ReadField label="Plataforma" value={subject.platformName} />
-      <ReadField label="Proveedor" value={subject.providerName} />
       <ReadField label="Modalidad" value={subject.modality} />
-      <ReadField label="Nivel" value={subject.level} />
     </div>
     {subject.externalUrl ? (
       <div className="mt-4">

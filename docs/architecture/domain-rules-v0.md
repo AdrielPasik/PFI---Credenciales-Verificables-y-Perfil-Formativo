@@ -206,7 +206,7 @@ Aplicabilidad:
 | Tipo | Campos especificos |
 | --- | --- |
 | `academic_subject` | `completion_date`, `academic_period`, `program_name`, `grade`, `skills`, `competencies` |
-| `course` | `completion_date`, `provider_name`, `platform_name`, `modality`, `level`, `external_url`, `skills`, `competencies`, `learning_outcomes` |
+| `course` | `completion_date`, `platform_name`, `modality`, `external_url`, `competencies`, `learning_outcomes` |
 | `certification` | `completion_date`, `certification_code`, `expiration_date`, `external_url`, `provider_name`, `level`, `skills`, `competencies` |
 | `degree` | `completion_date`, `program_name`, `level`, `grade`, `competencies`, `learning_outcomes` |
 
@@ -216,6 +216,33 @@ Los campos `program_name`, `provider_name`, `platform_name`, `modality`,
 `learning_outcomes` no participan actualmente en `canon_v1`. Antes de P7 debe
 decidirse si permanecen como metadata no canonica o requieren una nueva
 version de canonicalizacion.
+
+### Regla demo de tipos por emisor
+
+En el MVP, solo el issuer con DID `did:example:issuer-demo` puede crear o
+dejar como tipo final de un draft `academic_subject` y `degree`. Cualquier
+otro issuer autorizado puede crear o actualizar drafts solamente como `course`
+o `certification`. Esta es una regla temporal de demo;
+una futura capacidad de dominio debe reemplazarla por `issuer.kind` o
+`issuer.capabilities`.
+
+Para `course`, `provider_name`, `level` y `skills` no forman parte del
+contrato editable. Las `skills` legacy ya persistidas se conservan en la
+credencial, pero el rebuild de `FormativeProfile` las ignora para `course`.
+`competencies` y `learning_outcomes` son datos declarados por el emisor; las
+habilidades visibles deben provenir de un
+`SemanticAnalysis` cuando exista. La modalidad solo admite `Presencial`,
+`Online` o `Asincrónica`.
+
+### Gap C2b: analisis textual de cursos
+
+`TextEvidence` y `AnalysisRunInputMode.text` existen para trazabilidad, pero
+la ejecucion implementada actualmente solo procesa fuentes PDF y el AI Service
+solo expone el endpoint semantico PDF. Por lo tanto, C2 no genera un analisis
+textual parcial ni reutiliza skills declaradas como skills inferidas. C2b debe
+agregar un contrato interno de analisis textual, una fuente textual generada
+con hash estable y ejecucion `system` best-effort despues de emitir un curso
+sin PDF vigente.
 
 ## 12. Catalogo y curricula institucional para academic_subject
 

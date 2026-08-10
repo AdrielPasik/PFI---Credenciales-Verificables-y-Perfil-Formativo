@@ -372,7 +372,10 @@ export function adaptIssuerCredentialDetail(
         credentialSubject.expiration_date
       ),
       externalUrl: nullableString(credentialSubject.external_url),
-      skills: stringArray(credentialSubject.skills),
+      // Course skills are only inferred from a SemanticAnalysis, never copied
+      // from legacy issuer-declared subject data.
+      skills:
+        type === 'course' ? [] : stringArray(credentialSubject.skills),
       competencies: stringArray(credentialSubject.competencies),
       learningOutcomes: stringArray(
         credentialSubject.learning_outcomes

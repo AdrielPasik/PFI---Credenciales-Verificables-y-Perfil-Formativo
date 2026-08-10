@@ -40,9 +40,15 @@ flujos reales del navegador sobre la base F0.1:
   certificado") también para `course`, con copy que aclara que es un dato
   declarado por el emisor. `/wallet/credentials/[credentialId]` agrega una
   sección "Información declarada del curso" (plataforma, proveedor,
-  modalidad, nivel y URL) para credenciales `course` con esos datos, separada
+  modalidad y URL) para credenciales `course` con esos datos, separada
   de la interpretación asistida por IA. El detalle post-emisión del emisor
   agrega una tarjeta de solo lectura equivalente para `issued`/`revoked`.
+- C2: los tipos académicos se habilitan en UI únicamente para UADE mediante
+  su DID, con fallback temporal por nombre para compatibilidad. Los cursos
+  editan plataforma, modalidad controlada, URL, competencias y resultados de
+  aprendizaje; no muestran proveedor, nivel ni skills declaradas. Las skills
+  visibles requieren un análisis IA cuando exista; el análisis textual de
+  cursos queda pendiente de C2b.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -76,8 +82,9 @@ P3.1d-b aplica el mismo orden curricular al alta de una asignatura académica.
 La pantalla resuelve al titular, selecciona carrera y materia, presenta un
 resumen local y envía un único `POST /credentials/draft` con las dos
 referencias. El backend deriva el título y el snapshot oficial. La creación
-manual permanece disponible exclusivamente para `course`, `certification` y
-`degree`.
+manual permanece disponible para `course`, `certification` y `degree`; el
+backend restringe los tipos académicos al issuer UADE. Los emisores no-UADE
+solo ven `course` y `certification`.
 
 P3.2 presenta el issuer academico seed como
 `Universidad Argentina de la Empresa (UADE)` usando siempre el nombre recibido

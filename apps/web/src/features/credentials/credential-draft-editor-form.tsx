@@ -46,7 +46,7 @@ import {
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import {
   credentialTypeLabels,
-  credentialTypeOptions,
+  credentialTypesForIssuer,
   type CredentialFeedback,
   type CredentialType,
   type CurriculumAcademicSubjectSearchItemVM,
@@ -320,6 +320,10 @@ export function CredentialDraftEditorForm({
               label="Tipo de credencial"
               value={state.type}
               disabled={saving}
+              options={credentialTypesForIssuer(
+                detail.issuer.did,
+                detail.issuer.displayName
+              )}
               onChange={(value) => requestTypeChange(value)}
             />
             {state.type !== 'academic_subject' ? (
@@ -692,6 +696,26 @@ function SpecificField({
     );
   }
 
+  if (field === 'modality' && state.type === 'course') {
+    return (
+      <div className="grid gap-2">
+        <Label htmlFor="credential-modality">Modalidad</Label>
+        <select
+          id="credential-modality"
+          value={state.modality}
+          disabled={disabled}
+          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
+          onChange={(event) => onChange('modality', event.target.value)}
+        >
+          <option value="">Seleccioná una modalidad</option>
+          <option value="Presencial">Presencial</option>
+          <option value="Online">Online</option>
+          <option value="Asincrónica">Asincrónica</option>
+        </select>
+      </div>
+    );
+  }
+
   if (field === 'grade' && state.type === 'academic_subject') {
     return (
       <TextField
@@ -847,12 +871,14 @@ function SelectField({
   id,
   label,
   onChange,
+  options,
   value
 }: {
   disabled: boolean;
   id: string;
   label: string;
   onChange(value: CredentialType): void;
+  options: readonly CredentialType[];
   value: CredentialType;
 }) {
   return (
@@ -867,7 +893,7 @@ function SelectField({
           onChange(event.target.value as CredentialType)
         }
       >
-        {credentialTypeOptions.map((type) => (
+        {options.map((type) => (
           <option key={type} value={type}>
             {credentialTypeLabels[type]}
           </option>

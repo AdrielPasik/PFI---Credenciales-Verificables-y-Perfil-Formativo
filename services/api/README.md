@@ -189,6 +189,9 @@ readiness, emision, IA ni blockchain, y no expone historial o submitter.
 - no modifica `Credential`, `SemanticAnalysis` ni `BlockchainRecord`;
 - conserva evidencia por `credentialId` y `semanticAnalysisId` dentro de `profileJson`;
 - si una credencial no tiene analisis, genera warning y continua;
+- para `course`, ignora `credentialSubject.skills` legacy durante la
+  agregacion; conserva `competencies` y `learning_outcomes`, y solo toma
+  habilidades desde `SemanticAnalysis` cuando exista;
 - mantiene un perfil actual mediante transaccion Prisma.
 
 El backend tambien puede validar y persistir artifacts IA reales mediante la
@@ -427,6 +430,14 @@ real; el nombre del issuer es deliberadamente generico. El seed no crea
 credenciales `course` de ejemplo: la emision queda para probarse manualmente
 o para un slice posterior de datos demo. Ni el issuer UADE ni el holder demo
 existentes se modifican al agregar este issuer.
+
+En el MVP, solo el issuer UADE identificado por `did:example:issuer-demo`
+puede crear `academic_subject` y `degree`; cualquier otro issuer autorizado
+solo puede crear `course` o `certification`. Para cursos, el PATCH acepta
+`competencies` y `learningOutcomes`, pero no `providerName`, `level` ni
+`skills`; `modality` solo acepta `Presencial`, `Online` o `Asincrónica`.
+El analisis semantico textual de cursos aun no esta implementado: el flujo IA
+actual procesa PDF y no infiere habilidades desde datos declarados.
 
 Los emails y nombres demo de ambos administradores (UADE y Cursos Demo)
 cambiaron una vez (naming en espanol, sin sabor "generado por IA"; ver

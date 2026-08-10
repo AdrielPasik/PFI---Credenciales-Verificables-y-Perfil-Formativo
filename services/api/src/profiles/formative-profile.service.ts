@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   CredentialStatus,
+  CredentialType,
   Prisma,
   type FormativeProfile
 } from '@prisma/client';
@@ -144,6 +145,7 @@ export class FormativeProfileService {
       },
       select: {
         id: true,
+        type: true,
         hours: true,
         credentialSubject: true,
         semanticAnalyses: {
@@ -291,6 +293,7 @@ export class FormativeProfileService {
     userId: string,
     credentials: Array<{
       id: string;
+      type: CredentialType;
       hours: unknown;
       credentialSubject?: unknown;
       semanticAnalyses: Array<{
@@ -338,6 +341,7 @@ export class FormativeProfileService {
 
       const hadEmittedSignal = this.aggregateEmittedEvidenceForCredential(
         credential.id,
+        credential.type,
         credential.credentialSubject,
         emittedSkillAccumulators,
         emittedCompetencyAccumulators,
@@ -465,20 +469,27 @@ export class FormativeProfileService {
   }
 
   /**
-   * Agrega credentialSubject.skills/.competencies/.learning_outcomes de UNA
-   * credencial a los acumuladores "emitted*". Es dato cargado por el emisor,
+   * Agrega competencias y resultados de una credencial a los acumuladores
+   * "emitted*", junto con skills declaradas solo cuando el tipo lo permite.
+   * Las skills legacy de course se preservan en la credencial, pero no se usan
+   * para reconstruir el perfil: las skills de cursos deben ser inferidas.
+   * El resto es dato cargado por el emisor,
    * no una inferencia de IA: nunca toca los acumuladores inferidos
    * (areaAccumulators/skillAccumulators/conceptAccumulators). Devuelve true
    * si la credencial aporto al menos una etiqueta emitida.
    */
   private aggregateEmittedEvidenceForCredential(
     credentialId: string,
+    credentialType: CredentialType,
     credentialSubject: unknown,
     skillAccumulators: Map<string, EmittedEvidenceAccumulator>,
     competencyAccumulators: Map<string, EmittedEvidenceAccumulator>,
     learningOutcomeAccumulators: Map<string, EmittedEvidenceAccumulator>
   ): boolean {
-    const skills = this.readEmittedStringArray(credentialSubject, 'skill');
+    const skills =
+      credentialType === CredentialType.course
+        ? []
+        : this.readEmittedStringArray(credentialSubject, 'skill');
     const competencies = this.readEmittedStringArray(
       credentialSubject,
       'competency'

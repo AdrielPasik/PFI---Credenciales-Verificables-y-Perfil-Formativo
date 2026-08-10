@@ -44,6 +44,7 @@ const subject: CurriculumAcademicSubjectSearchItemVM = {
 };
 
 function renderForm(options?: {
+  issuerDid?: string | null;
   onResolveHolder?: (email: string) => Promise<HolderSummaryVM>;
   onCreateDraft?: (input: CredentialDraftFormSubmission) => Promise<void>;
   searchPrograms?: (
@@ -63,6 +64,7 @@ function renderForm(options?: {
 
   render(
     <CredentialDraftForm
+      issuerDid={options?.issuerDid ?? 'did:example:issuer-demo'}
       issuerName="Universidad Contextual"
       onResolveHolder={onResolveHolder}
       onCreateDraft={onCreateDraft}
@@ -419,4 +421,17 @@ describe('CredentialDraftForm', () => {
     expect(document.body.textContent).not.toContain('private detail');
     expect(document.body.textContent).not.toContain('Crear usuario');
   });
+});
+
+it('limits a non-UADE issuer to course and certification', () => {
+  renderForm({ issuerDid: 'did:example:course-platform-issuer-demo' });
+
+  expect(
+    Array.from(
+      (screen.getByLabelText('Tipo de credencial') as HTMLSelectElement)
+        .options
+    ).map((option) => option.textContent)
+  ).toEqual(['Seleccioná un tipo', 'Curso', 'Certificación']);
+  expect(screen.queryByText('Asignatura académica')).toBeNull();
+  expect(screen.queryByText('Título académico')).toBeNull();
 });

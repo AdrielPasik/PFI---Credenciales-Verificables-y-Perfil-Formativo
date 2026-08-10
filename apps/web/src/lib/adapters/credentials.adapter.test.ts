@@ -555,7 +555,7 @@ describe('credential adapters', () => {
       certificationCode: null,
       expirationDate: null,
       externalUrl: null,
-      skills: ['Arquitectura', 'Testing'],
+      skills: [],
       competencies: ['Diseño'],
       learningOutcomes: ['Documentar decisiones']
     });

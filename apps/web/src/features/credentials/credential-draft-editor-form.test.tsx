@@ -76,7 +76,7 @@ function detailFixture(
     blockchainEvidence: null,
     issuer: {
       displayName: 'Universidad Seleccionada',
-      did: null
+      did: 'did:example:issuer-demo'
     },
     credentialSubject: {
       achievementName: 'Arquitectura de Software',
@@ -194,11 +194,11 @@ describe('CredentialDraftEditorForm', () => {
     expect(screen.getByLabelText('Descripción')).toBeTruthy();
     expect(screen.getByLabelText('Horas')).toBeTruthy();
     expect(screen.getByLabelText('Fecha de finalización')).toBeTruthy();
-    expect(screen.getByLabelText('Proveedor')).toBeTruthy();
+    expect(screen.queryByLabelText('Proveedor')).toBeNull();
     expect(screen.getByLabelText('Plataforma')).toBeTruthy();
     expect(screen.getByLabelText('Modalidad')).toBeTruthy();
-    expect(screen.getByLabelText('Nivel')).toBeTruthy();
-    expect(screen.getByLabelText('Skills')).toBeTruthy();
+    expect(screen.queryByLabelText('Nivel')).toBeNull();
+    expect(screen.queryByLabelText('Skills')).toBeNull();
     expect(screen.getByLabelText('Competencias')).toBeTruthy();
     expect(screen.getByLabelText('Resultados de aprendizaje')).toBeTruthy();
     expect(

@@ -81,12 +81,9 @@ describe('credential draft editor helpers', () => {
       ],
       course: [
         'completionDate',
-        'providerName',
         'platformName',
         'modality',
-        'level',
         'externalUrl',
-        'skills',
         'competencies',
         'learningOutcomes'
       ],
@@ -209,8 +206,7 @@ describe('credential draft editor helpers', () => {
       credentialReference: 'credential-reference',
       expectedUpdatedAt: '2026-07-30T13:00:00.000Z',
       achievementName: 'Arquitectura Aplicada',
-      description: null,
-      skills: ['Arquitectura', 'Observabilidad']
+      description: null
     });
   });
 
@@ -270,7 +266,7 @@ describe('credential draft editor helpers', () => {
     const detail = detailFixture();
     const state = {
       ...detailToDraftEditorState(detail),
-      providerName: '   ',
+      platformName: '   ',
       competencies: ''
     };
 
@@ -282,7 +278,7 @@ describe('credential draft editor helpers', () => {
         credentialReference: 'credential-reference'
       })
     ).toMatchObject({
-      providerName: null,
+      platformName: null,
       competencies: []
     });
   });

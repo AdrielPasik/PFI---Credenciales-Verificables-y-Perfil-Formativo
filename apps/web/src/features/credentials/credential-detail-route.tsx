@@ -616,11 +616,8 @@ function CourseDeclaredDataCard({
 }) {
   const hasDeclaredData =
     subject.platformName !== null ||
-    subject.providerName !== null ||
     subject.modality !== null ||
-    subject.level !== null ||
     subject.externalUrl !== null ||
-    subject.skills.length > 0 ||
     subject.competencies.length > 0 ||
     subject.learningOutcomes.length > 0;
 
@@ -644,9 +641,7 @@ function CourseDeclaredDataCard({
       <CardContent className="grid gap-4 pt-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <OptionalDetailRow icon={Tags} label="Plataforma" value={subject.platformName} />
-          <OptionalDetailRow icon={Building2} label="Proveedor" value={subject.providerName} />
           <OptionalDetailRow icon={Tags} label="Modalidad" value={subject.modality} />
-          <OptionalDetailRow icon={Tags} label="Nivel" value={subject.level} />
         </div>
         {subject.externalUrl ? (
           <div>
@@ -667,7 +662,6 @@ function CourseDeclaredDataCard({
             </p>
           </div>
         ) : null}
-        <TagList title="Skills declaradas" items={subject.skills} />
         <TagList title="Competencias declaradas" items={subject.competencies} />
         <TagList title="Resultados de aprendizaje declarados" items={subject.learningOutcomes} />
       </CardContent>

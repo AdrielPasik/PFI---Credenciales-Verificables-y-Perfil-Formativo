@@ -32,7 +32,7 @@ import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credential
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import {
   credentialTypeLabels,
-  credentialTypeOptions
+  credentialTypesForIssuer
 } from '@/models/credentials';
 import type {
   AcademicProgramSearchItemVM,
@@ -47,18 +47,24 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface CredentialDraftFormProps
   extends AcademicSubjectCatalogSearchHandlers {
+  issuerDid: string | null;
   issuerName: string;
   onResolveHolder(email: string): Promise<HolderSummaryVM>;
   onCreateDraft(input: CredentialDraftFormSubmission): Promise<void>;
 }
 
 export function CredentialDraftForm({
+  issuerDid,
   issuerName,
   onCreateDraft,
   onResolveHolder,
   searchPrograms,
   searchSubjects
 }: CredentialDraftFormProps) {
+  const availableCredentialTypes = credentialTypesForIssuer(
+    issuerDid,
+    issuerName
+  );
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState<string>();
   const [holder, setHolder] = useState<HolderSummaryVM | null>(null);
@@ -90,7 +96,7 @@ export function CredentialDraftForm({
     selectedSubject !== null;
 
   function changeCredentialType(value: string) {
-    const nextType = credentialTypeOptions.includes(
+    const nextType = availableCredentialTypes.includes(
       value as CredentialType
     )
       ? (value as CredentialType)
@@ -424,7 +430,7 @@ export function CredentialDraftForm({
                         className="min-h-11 w-full appearance-none rounded-control border border-border-strong bg-surface px-3 py-2 pr-10 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted disabled:opacity-70 aria-invalid:border-status-error aria-invalid:ring-status-error/20 sm:text-sm"
                       >
                         <option value="">Seleccioná un tipo</option>
-                        {credentialTypeOptions.map((type) => (
+                        {availableCredentialTypes.map((type) => (
                           <option key={type} value={type}>
                             {credentialTypeLabels[type]}
                           </option>

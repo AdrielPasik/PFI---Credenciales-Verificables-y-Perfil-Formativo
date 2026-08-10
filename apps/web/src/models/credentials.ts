@@ -66,6 +66,23 @@ export const credentialTypeOptions: readonly CredentialType[] = [
   'degree'
 ];
 
+export const UADE_ISSUER_DID = 'did:example:issuer-demo';
+const UADE_ISSUER_NAME_FALLBACKS = new Set([
+  'Universidad Argentina de la Empresa (UADE)',
+  'Demo University'
+]);
+
+export function credentialTypesForIssuer(
+  issuerDid: string | null,
+  issuerName?: string
+): readonly CredentialType[] {
+  return issuerDid === UADE_ISSUER_DID ||
+    (issuerDid === null &&
+      UADE_ISSUER_NAME_FALLBACKS.has(issuerName?.trim() ?? ''))
+    ? credentialTypeOptions
+    : ['course', 'certification'];
+}
+
 export type ManualCredentialType = Exclude<
   CredentialType,
   'academic_subject'

@@ -42,12 +42,9 @@ const APPLICABLE_FIELDS_BY_TYPE: Record<
   ]),
   [CredentialType.course]: new Set([
     'completionDate',
-    'providerName',
     'platformName',
     'modality',
-    'level',
     'externalUrl',
-    'skills',
     'competencies',
     'learningOutcomes'
   ]),
@@ -79,6 +76,18 @@ export function buildUpdatedCredentialSubject(input: {
   update: NormalizedIssuerCredentialDraftUpdate;
 }): Prisma.InputJsonObject {
   assertRequestedFieldsApplyToType(input.update, input.finalType);
+
+  if (
+    input.finalType === CredentialType.course &&
+    input.update.modality.provided &&
+    input.update.modality.value !== null &&
+    input.update.modality.value !== undefined &&
+    !COURSE_MODALITIES.has(input.update.modality.value)
+  ) {
+    throw new BadRequestException(
+      'modality debe ser Presencial, Online o Asincrónica para course.'
+    );
+  }
 
   const result = {
     ...input.currentSubject
@@ -114,6 +123,8 @@ export function buildUpdatedCredentialSubject(input: {
 
   return result as Prisma.InputJsonObject;
 }
+
+const COURSE_MODALITIES = new Set(['Presencial', 'Online', 'Asincrónica']);
 
 function assertRequestedFieldsApplyToType(
   update: NormalizedIssuerCredentialDraftUpdate,

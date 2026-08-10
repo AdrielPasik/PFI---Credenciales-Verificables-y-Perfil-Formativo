@@ -74,7 +74,10 @@ export function adaptMyCredential(payload: unknown): HolderCredentialDetailVM {
       modality: nullableString(credentialSubject.modality),
       level: nullableString(credentialSubject.level),
       externalUrl: nullableExternalUrl(credentialSubject.externalUrl),
-      skills: stringArray(credentialSubject.skills),
+      skills:
+        listItem.type === 'course'
+          ? []
+          : stringArray(credentialSubject.skills),
       competencies: stringArray(credentialSubject.competencies),
       learningOutcomes: stringArray(credentialSubject.learningOutcomes)
     },

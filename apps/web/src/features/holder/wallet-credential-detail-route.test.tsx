@@ -24,10 +24,8 @@ const courseDetailWithDeclaredData: HolderCredentialDetailVM = {
   ...detail,
   subject: {
     ...detail.subject,
-    providerName: 'Instituto Demo',
     platformName: 'Campus Virtual Demo',
     modality: 'Online asincrónica',
-    level: 'Intermedio',
     externalUrl: 'https://plataforma-demo.example.com/curso/123'
   }
 };
@@ -59,10 +57,8 @@ it('shows declared course data separated from the AI interpretation section', ()
   expect(
     screen.getByText('Estos datos fueron declarados por la institución emisora de la credencial.')
   ).toBeTruthy();
-  expect(screen.getByText('Instituto Demo')).toBeTruthy();
   expect(screen.getByText('Campus Virtual Demo')).toBeTruthy();
   expect(screen.getByText('Online asincrónica')).toBeTruthy();
-  expect(screen.getByText('Intermedio')).toBeTruthy();
 
   const link = screen.getByRole('link', {
     name: 'https://plataforma-demo.example.com/curso/123'

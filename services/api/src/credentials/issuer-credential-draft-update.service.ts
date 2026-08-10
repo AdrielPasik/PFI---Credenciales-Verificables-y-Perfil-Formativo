@@ -37,6 +37,11 @@ const CURRICULUM_COURSE_NOT_FOUND_MESSAGE =
   'No se encontro la asignatura dentro de la curricula activa solicitada.';
 const ACADEMIC_PERIOD_PATTERN = /^\d{4}-[12]$/;
 const ACADEMIC_GRADE_PATTERN = /^\d+(?:\.\d{1,2})?$/;
+const UADE_ISSUER_DID = 'did:example:issuer-demo';
+const ACADEMIC_CREDENTIAL_TYPES = new Set<CredentialType>([
+  CredentialType.academic_subject,
+  CredentialType.degree
+]);
 
 @Injectable()
 export class IssuerCredentialDraftUpdateService {
@@ -86,6 +91,9 @@ export class IssuerCredentialDraftUpdateService {
         const finalType = update.type.provided
           ? update.type.value!
           : credential.type;
+
+        assertIssuerCanUseCredentialType(credential.issuer.did, finalType);
+
         const selectedAcademicCourse = update.academicCourseReference.provided
           ? await this.getAcademicCourseForSelection(
               transaction,
@@ -263,6 +271,20 @@ export class IssuerCredentialDraftUpdateService {
       programCourseId: null,
       programName: null
     };
+  }
+}
+
+function assertIssuerCanUseCredentialType(
+  issuerDid: string | null,
+  credentialType: CredentialType
+) {
+  if (
+    issuerDid !== UADE_ISSUER_DID &&
+    ACADEMIC_CREDENTIAL_TYPES.has(credentialType)
+  ) {
+    throw new BadRequestException(
+      'Este emisor no puede crear credenciales académicas.'
+    );
   }
 }
 

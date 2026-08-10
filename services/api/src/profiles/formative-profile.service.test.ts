@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CredentialType } from '@prisma/client';
+
 import { FormativeProfileService } from './formative-profile.service';
 
 function decimalLike(value: string) {
@@ -98,6 +100,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
   const credentials = [
     {
       id: 'credential-1',
+      type: CredentialType.academic_subject,
       hours: decimalLike('40.00'),
       credentialSubject: {
         skills: ['Python'],
@@ -135,6 +138,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     },
     {
       id: 'credential-2',
+      type: CredentialType.certification,
       hours: decimalLike('20.00'),
       semanticAnalyses: [
         {
@@ -161,6 +165,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     },
     {
       id: 'credential-3',
+      type: CredentialType.certification,
       hours: null,
       credentialSubject: {
         skills: ['Excel'],
@@ -224,6 +229,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       },
       select: {
         id: true,
+        type: true,
         hours: true,
         credentialSubject: true,
         semanticAnalyses: {
@@ -375,6 +381,7 @@ test('FormativeProfileService keeps skills empty (inferred) but still populates 
   const credentials = [
     {
       id: 'credential-1',
+      type: CredentialType.certification,
       hours: decimalLike('12.00'),
       credentialSubject: {
         skills: ['Excel', 'excel'],
@@ -452,11 +459,116 @@ test('FormativeProfileService keeps skills empty (inferred) but still populates 
   assert.ok(!profileJson.warnings.includes('no_emitted_skills_available'));
 });
 
+test('FormativeProfileService ignores legacy course skills while preserving declared course evidence and inferred skills', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'course-legacy-1',
+      type: CredentialType.course,
+      hours: decimalLike('10.00'),
+      credentialSubject: {
+        skills: ['Programming & Development'],
+        competencies: ['Desarrollo de aplicaciones con Python'],
+        learning_outcomes: ['Crear aplicaciones y juegos simples con Python']
+      },
+      semanticAnalyses: [
+        {
+          id: 'analysis-course-1',
+          analyzedAt: new Date('2026-08-10T12:00:00Z'),
+          confidence: decimalLike('0.8000'),
+          areas: [],
+          skills: [{ label: 'Python', confidence: 0.8 }],
+          concepts: [],
+          analysisJson: {}
+        }
+      ]
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({
+              generatedAt: data.generatedAt,
+              credentialsCount: data.credentialsCount,
+              totalHours: data.totalHours,
+              qualityFlags: data.qualityFlags,
+              profileJson: data.profileJson
+            });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+  const profileJson = (createCalls[0].data as {
+    profileJson: {
+      skills: Array<Record<string, unknown>>;
+      emittedSkills: Array<Record<string, unknown>>;
+      emittedCompetencies: Array<Record<string, unknown>>;
+      emittedLearningOutcomes: Array<Record<string, unknown>>;
+    };
+  }).profileJson;
+
+  const emittedSkills = profileJson.emittedSkills;
+  assert.equal(
+    emittedSkills.some(
+      (entry) => entry.label === 'Programming & Development'
+    ),
+    false
+  );
+  assert.deepEqual(emittedSkills, []);
+  assert.deepEqual(profileJson.emittedCompetencies, [
+    {
+      label: 'Desarrollo de aplicaciones con Python',
+      credentialIds: ['course-legacy-1'],
+      evidenceCount: 1
+    }
+  ]);
+  assert.deepEqual(profileJson.emittedLearningOutcomes, [
+    {
+      label: 'Crear aplicaciones y juegos simples con Python',
+      credentialIds: ['course-legacy-1'],
+      evidenceCount: 1
+    }
+  ]);
+  assert.deepEqual(profileJson.skills, [
+    {
+      skill: 'Python',
+      credentialIds: ['course-legacy-1'],
+      semanticAnalysisIds: ['analysis-course-1'],
+      evidenceCount: 1,
+      confidence: 0.8
+    }
+  ]);
+});
+
 test('FormativeProfileService flags no_emitted_skills_available when neither analysis nor emitted data exist', async () => {
   const createCalls: Array<Record<string, unknown>> = [];
   const credentials = [
     {
       id: 'credential-1',
+      type: CredentialType.course,
       hours: null,
       credentialSubject: {},
       semanticAnalyses: []
