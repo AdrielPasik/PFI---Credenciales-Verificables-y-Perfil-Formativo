@@ -14,6 +14,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:migrate:status": "prisma migrate status --schema prisma/schema.prisma",
     "prisma:seed": "node --env-file=.env -r ts-node/register/transpile-only prisma/seed.ts",
+    "prisma:seed:demo-identities": "node --env-file=.env -r ts-node/register/transpile-only prisma/seed-demo-identities.ts",
+    "prisma:seed:course-platform-user": "node --env-file=.env -r ts-node/register/transpile-only prisma/seed-course-platform-user.ts",
     "db:seed": "node -r ts-node/register/transpile-only prisma/seed.ts",
     "db:verify-demo": "node -r ts-node/register/transpile-only prisma/verify-demo-database.ts",
     "blockchain:register": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/blockchain/scripts/register-credential-on-registry.ts",

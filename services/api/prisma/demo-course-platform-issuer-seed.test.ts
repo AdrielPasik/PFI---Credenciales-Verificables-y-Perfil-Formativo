@@ -3,8 +3,13 @@ import test from 'node:test';
 
 import { IssuerAuthorizationStatus } from '@prisma/client';
 
+import * as demoCoursePlatformIssuerSeed from './demo-course-platform-issuer-seed';
 import {
   buildDemoCoursePlatformIssuerUpsertArgs,
+  DEMO_COURSE_PLATFORM_ISSUER_ADMIN_DID,
+  DEMO_COURSE_PLATFORM_ISSUER_ADMIN_DISPLAY_NAME,
+  DEMO_COURSE_PLATFORM_ISSUER_ADMIN_EMAIL,
+  DEMO_COURSE_PLATFORM_ISSUER_ADMIN_PASSWORD,
   DEMO_COURSE_PLATFORM_ISSUER_DID,
   DEMO_COURSE_PLATFORM_ISSUER_NAME,
   DEMO_COURSE_PLATFORM_ISSUER_WALLET_ADDRESS
@@ -63,4 +68,61 @@ test('demo course platform issuer upsert does not contain a historical credentia
 
   assert.deepEqual(Object.keys(args), ['where', 'update', 'create']);
   assert.equal('credentials' in args.update, false);
+});
+
+test('demo course platform admin email is exactly cursos.demo@example.com', () => {
+  assert.equal(
+    DEMO_COURSE_PLATFORM_ISSUER_ADMIN_EMAIL,
+    'cursos.demo@example.com'
+  );
+  assert.equal(
+    DEMO_COURSE_PLATFORM_ISSUER_ADMIN_DISPLAY_NAME,
+    'Administrador Cursos Demo'
+  );
+  assert.equal(
+    DEMO_COURSE_PLATFORM_ISSUER_ADMIN_DID,
+    'did:example:cursos-demo-admin'
+  );
+  assert.equal(DEMO_COURSE_PLATFORM_ISSUER_ADMIN_PASSWORD, 'CursosDemo123!');
+});
+
+test('demo course platform issuer name is a natural Spanish generic name', () => {
+  assert.equal(DEMO_COURSE_PLATFORM_ISSUER_NAME, 'Plataforma de Cursos Demo');
+});
+
+test('demo course platform issuer DID and wallet stay unchanged across the naming hotfix', () => {
+  assert.equal(
+    DEMO_COURSE_PLATFORM_ISSUER_DID,
+    'did:example:course-platform-issuer-demo'
+  );
+  assert.equal(
+    DEMO_COURSE_PLATFORM_ISSUER_WALLET_ADDRESS,
+    '0x00000000000000000000000000000000000000bb'
+  );
+});
+
+test('no exported demo course platform constant contains markdown/mailto-wrapped email syntax', () => {
+  const stringExports = Object.entries(demoCoursePlatformIssuerSeed).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string'
+  );
+
+  assert.ok(stringExports.length > 0);
+
+  for (const [name, value] of stringExports) {
+    assert.doesNotMatch(
+      value,
+      /mailto:/i,
+      `${name} no debe contener "mailto:"`
+    );
+    assert.doesNotMatch(
+      value,
+      /\[(platform\.issuer\.demo|cursos\.demo)/i,
+      `${name} no debe contener un email envuelto en corchetes markdown`
+    );
+    assert.doesNotMatch(
+      value,
+      /\]\(mailto/i,
+      `${name} no debe contener "](mailto" (markdown de link)`
+    );
+  }
 });

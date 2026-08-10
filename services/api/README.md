@@ -402,22 +402,22 @@ npm run prisma:seed --workspace @credential-intelligence/api
 ```
 
 El seed idempotente crea o actualiza el mismo issuer estable como
-`Universidad Argentina de la Empresa (UADE)`, ademas de `Issuer Admin`,
+`Universidad Argentina de la Empresa (UADE)`, ademas de `Administrador UADE`,
 `Demo Holder`, 617 `AcademicCourse`, 22 `Program`, 22 `CurriculumVersion` y
 977 `ProgramCourse`. Los codigos institucionales y las relaciones pertenecen
 al catalogo demo UADE y provienen de los artifacts locales versionados en
 `data/academic_catalog`. Las credenciales demo
 local/dev son:
 
-- `issuer.admin@example.com / DemoIssuer123!`
+- `emisor.uade@uade.edu.ar / UadeDemo123!`
 - `holder.demo@example.com / DemoHolder123!`
 
 El seed tambien crea (o actualiza de forma idempotente) un segundo issuer
-demo generico, `Plataforma de Cursos Online Demo`
+demo generico, `Plataforma de Cursos Demo`
 (`prisma/demo-course-platform-issuer-seed.ts`), con su propio usuario y
 membership `admin` activa:
 
-- `platform.issuer.demo@example.com / DemoPlatform123!`
+- `cursos.demo@example.com / CursosDemo123!`
 
 Este issuer existe para habilitar el flujo manual de credenciales `course`
 (login como emisor -> crear draft -> completar datos -> emitir -> el holder
@@ -427,6 +427,75 @@ real; el nombre del issuer es deliberadamente generico. El seed no crea
 credenciales `course` de ejemplo: la emision queda para probarse manualmente
 o para un slice posterior de datos demo. Ni el issuer UADE ni el holder demo
 existentes se modifican al agregar este issuer.
+
+Los emails y nombres demo de ambos administradores (UADE y Cursos Demo)
+cambiaron una vez (naming en espanol, sin sabor "generado por IA"; ver
+`issuer.admin@example.com`/`Issuer Admin` y
+`platform.issuer.demo@example.com`/`Demo Course Platform Admin` como
+identidades legadas). El seed y el bootstrap puntual ubican al usuario
+existente por su identidad legada (email o DID anterior) y lo renombran en
+el lugar preservando su `id`, en vez de un upsert simple por email -que
+duplicaria el usuario si el email cambia y el registro viejo ya existe en
+el ambiente-. El DID de ambos administradores no cambio junto con el email:
+sigue siendo `did:example:issuer-admin-demo` (UADE) y ahora
+`did:example:cursos-demo-admin` (Cursos Demo, el unico DID que si cambio,
+documentado en `demo-course-platform-issuer-seed.ts`). Si por accidente
+coexistieran un registro con la identidad legada y otro ya con la nueva, el
+seed falla con un mensaje explicito en vez de borrar o fusionar nada
+automaticamente.
+
+`prisma/seed.ts` es un script monolitico: si falla en un paso posterior (por
+ejemplo, la carga del catalogo academico, que inserta cientos de filas), todo
+lo que se crea despues de ese punto -incluyendo el usuario, la membership y el
+AuthCredential de cualquiera de los dos administradores demo- queda sin
+crear, aunque el issuer correspondiente ya haya quedado persistido (los
+issuers se crean antes en el script). Para reparar ese estado parcial contra
+un ambiente cloud/demo sin correr el seed completo (y sin tocar
+`AcademicCourse`, `Program`, `CurriculumVersion`, `ProgramCourse` ni el
+holder demo), el comando recomendado es:
+
+```text
+npm run prisma:seed:demo-identities --workspace @credential-intelligence/api
+```
+
+Ejecuta `prisma/seed-demo-identities.ts`, que asegura AMBAS identidades de
+emisor demo en una sola corrida -UADE (`emisor.uade@uade.edu.ar`) y
+"Plataforma de Cursos Demo" (`cursos.demo@example.com`)- reutilizando
+integramente `bootstrapDemoUadeAdmin` (exportado desde `seed.ts`) y
+`bootstrapDemoCoursePlatformUser`, sin reimplementar ninguna logica de
+upsert o renombrado. Es el comando recomendado para cloud/demo porque
+actualiza ambas identidades sin el riesgo ni el costo de tiempo del seed
+completo. Imprime un resumen seguro:
+
+```json
+{
+  "uadeIssuerReady": true,
+  "uadeUserReady": true,
+  "uadeAuthCredentialReady": true,
+  "uadeMembershipReady": true,
+  "courseIssuerReady": true,
+  "courseUserReady": true,
+  "courseAuthCredentialReady": true,
+  "courseMembershipReady": true
+}
+```
+
+sin exponer `passwordHash` ni `DATABASE_URL`. Correrlo dos veces no duplica
+nada. Si el usuario de UADE o el de Cursos Demo tiene ya la identidad legada
+(`issuer.admin@example.com` / `platform.issuer.demo@example.com`), lo
+renombra en el lugar preservando su `id`; si por accidente coexisten la
+identidad legada y la nueva para el mismo administrador, falla con un
+mensaje explicito y no borra ni fusiona nada.
+
+Tambien sigue disponible (y sin cambios de comportamiento) el bootstrap
+puntual que asegura unicamente la identidad de Cursos Demo:
+
+```text
+npm run prisma:seed:course-platform-user --workspace @credential-intelligence/api
+```
+
+Ejecuta `prisma/seed-course-platform-user.ts`, util cuando solo hace falta
+reparar/asegurar esa identidad especifica.
 
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
 

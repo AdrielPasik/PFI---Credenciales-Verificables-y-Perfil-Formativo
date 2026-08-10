@@ -10,20 +10,154 @@ import {
 
 import { hashPassword } from '../src/auth/password-hashing';
 import { loadDemoAcademicCatalog } from './demo-academic-catalog';
-import { buildDemoCoursePlatformIssuerUpsertArgs } from './demo-course-platform-issuer-seed';
-import { buildDemoIssuerUpsertArgs } from './demo-issuer-seed';
+import {
+  buildDemoIssuerUpsertArgs,
+  DEMO_UADE_ISSUER_ADMIN_DID,
+  DEMO_UADE_ISSUER_ADMIN_DISPLAY_NAME,
+  DEMO_UADE_ISSUER_ADMIN_EMAIL,
+  DEMO_UADE_ISSUER_ADMIN_PASSWORD,
+  LEGACY_DEMO_UADE_ISSUER_ADMIN_EMAIL
+} from './demo-issuer-seed';
 import { buildDemoSeedSummary } from './demo-seed-summary';
+import { bootstrapDemoCoursePlatformUser } from './seed-course-platform-user';
 
 const prisma = new PrismaClient();
 
-const DEMO_ISSUER_PASSWORD = 'DemoIssuer123!';
 const DEMO_HOLDER_PASSWORD = 'DemoHolder123!';
-const DEMO_COURSE_PLATFORM_ISSUER_PASSWORD = 'DemoPlatform123!';
+
+interface DemoUserRecord {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface DemoUserDatabase {
+  findMany: (args: unknown) => Promise<DemoUserRecord[]>;
+  update: (args: unknown) => Promise<DemoUserRecord>;
+  create: (args: unknown) => Promise<DemoUserRecord>;
+}
+
+/**
+ * Ubica el usuario administrador demo de UADE por su email actual o el
+ * legado (`issuer.admin@example.com`) y lo renombra en el lugar
+ * preservando su `id`, en vez de un upsert simple por email -que crearia
+ * un usuario duplicado si el usuario viejo ya existe en el ambiente-. El
+ * DID no cambia entre la identidad legada y la actual, por lo que tambien
+ * sirve como ancla adicional.
+ *
+ * - Ningun match -> crea el usuario con la identidad nueva.
+ * - Un match -> lo actualiza a la identidad nueva (mismo id).
+ * - Mas de un match -> viejo y nuevo coexisten por accidente; no se borra
+ *   nada automaticamente, se lanza un error claro para resolver a mano.
+ */
+export async function resolveDemoUadeAdminUser(
+  database: DemoUserDatabase
+): Promise<DemoUserRecord> {
+  const candidateEmails = [
+    DEMO_UADE_ISSUER_ADMIN_EMAIL,
+    LEGACY_DEMO_UADE_ISSUER_ADMIN_EMAIL
+  ];
+
+  const matches = await database.findMany({
+    where: {
+      OR: [
+        { email: { in: candidateEmails } },
+        { did: DEMO_UADE_ISSUER_ADMIN_DID }
+      ]
+    }
+  });
+
+  if (matches.length > 1) {
+    throw new Error(
+      'Se encontraron multiples usuarios para la identidad demo "UADE" ' +
+        '(el usuario legado y el renombrado coexisten). No se borra nada ' +
+        'automaticamente: resolver manualmente antes de continuar. IDs ' +
+        `en conflicto: ${matches.map((user) => user.id).join(', ')}`
+    );
+  }
+
+  const identity = {
+    email: DEMO_UADE_ISSUER_ADMIN_EMAIL,
+    displayName: DEMO_UADE_ISSUER_ADMIN_DISPLAY_NAME,
+    did: DEMO_UADE_ISSUER_ADMIN_DID,
+    status: UserStatus.active
+  };
+
+  if (matches.length === 1) {
+    return database.update({
+      where: { id: matches[0].id },
+      data: identity
+    });
+  }
+
+  return database.create({ data: identity });
+}
+
+/**
+ * Asegura unicamente el issuer UADE, su administrador demo (renombrado en
+ * el lugar si hace falta), su IssuerMembership admin/active y su
+ * AuthCredential. No toca AcademicCourse, Program, CurriculumVersion,
+ * ProgramCourse ni el holder demo. Pensado para reutilizarse tanto desde
+ * el seed completo (`main()`, que ademas necesita `issuerId` para el
+ * catalogo academico) como desde un bootstrap puntual de identidades demo.
+ */
+export async function bootstrapDemoUadeAdmin(
+  database: {
+    issuer: { upsert: (args: unknown) => Promise<{ id: string; name: string }> };
+    user: DemoUserDatabase;
+    issuerMembership: { upsert: (args: unknown) => Promise<unknown> };
+    authCredential: { upsert: (args: unknown) => Promise<unknown> };
+  },
+  hashPasswordFn: (password: string) => Promise<string>
+) {
+  const issuer = await database.issuer.upsert(buildDemoIssuerUpsertArgs());
+  const user = await resolveDemoUadeAdminUser(database.user);
+
+  await database.issuerMembership.upsert({
+    where: {
+      userId_issuerId: {
+        userId: user.id,
+        issuerId: issuer.id
+      }
+    },
+    update: {
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
+    },
+    create: {
+      userId: user.id,
+      issuerId: issuer.id,
+      role: IssuerMembershipRole.admin,
+      status: IssuerMembershipStatus.active
+    }
+  });
+
+  await database.authCredential.upsert({
+    where: {
+      userId: user.id
+    },
+    update: {
+      passwordHash: await hashPasswordFn(DEMO_UADE_ISSUER_ADMIN_PASSWORD)
+    },
+    create: {
+      userId: user.id,
+      passwordHash: await hashPasswordFn(DEMO_UADE_ISSUER_ADMIN_PASSWORD)
+    }
+  });
+
+  return {
+    issuerReady: true as const,
+    userReady: true as const,
+    authCredentialReady: true as const,
+    membershipReady: true as const,
+    email: DEMO_UADE_ISSUER_ADMIN_EMAIL,
+    issuerName: issuer.name,
+    issuerId: issuer.id
+  };
+}
+
 async function main() {
-  const issuer = await prisma.issuer.upsert(buildDemoIssuerUpsertArgs());
-  const coursePlatformIssuer = await prisma.issuer.upsert(
-    buildDemoCoursePlatformIssuerUpsertArgs()
-  );
+  const uadeBootstrap = await bootstrapDemoUadeAdmin(prisma, hashPassword);
+  const issuerId = uadeBootstrap.issuerId;
 
   const academicCatalog = await loadDemoAcademicCatalog();
 
@@ -32,7 +166,7 @@ async function main() {
       prisma.academicCourse.upsert({
         where: {
           issuerId_code: {
-            issuerId: issuer.id,
+            issuerId: issuerId,
             code: course.code
           }
         },
@@ -43,7 +177,7 @@ async function main() {
           status: CourseStatus.active
         },
         create: {
-          issuerId: issuer.id,
+          issuerId: issuerId,
           code: course.code,
           name: course.name,
           description: null,
@@ -61,7 +195,7 @@ async function main() {
       prisma.program.upsert({
         where: {
           issuerId_code: {
-            issuerId: issuer.id,
+            issuerId: issuerId,
             code: program.code
           }
         },
@@ -70,7 +204,7 @@ async function main() {
           status: ProgramStatus.active
         },
         create: {
-          issuerId: issuer.id,
+          issuerId: issuerId,
           code: program.code,
           name: program.name,
           status: ProgramStatus.active
@@ -154,78 +288,6 @@ async function main() {
     }
   });
 
-  const issuerAdmin = await prisma.user.upsert({
-    where: {
-      email: 'issuer.admin@example.com'
-    },
-    update: {
-      displayName: 'Issuer Admin',
-      did: 'did:example:issuer-admin-demo',
-      status: UserStatus.active
-    },
-    create: {
-      email: 'issuer.admin@example.com',
-      displayName: 'Issuer Admin',
-      did: 'did:example:issuer-admin-demo',
-      status: UserStatus.active
-    }
-  });
-
-  const coursePlatformIssuerAdmin = await prisma.user.upsert({
-    where: {
-      email: 'platform.issuer.demo@example.com'
-    },
-    update: {
-      displayName: 'Demo Course Platform Admin',
-      did: 'did:example:course-platform-issuer-admin-demo',
-      status: UserStatus.active
-    },
-    create: {
-      email: 'platform.issuer.demo@example.com',
-      displayName: 'Demo Course Platform Admin',
-      did: 'did:example:course-platform-issuer-admin-demo',
-      status: UserStatus.active
-    }
-  });
-
-  await prisma.issuerMembership.upsert({
-    where: {
-      userId_issuerId: {
-        userId: issuerAdmin.id,
-        issuerId: issuer.id
-      }
-    },
-    update: {
-      role: IssuerMembershipRole.admin,
-      status: IssuerMembershipStatus.active
-    },
-    create: {
-      userId: issuerAdmin.id,
-      issuerId: issuer.id,
-      role: IssuerMembershipRole.admin,
-      status: IssuerMembershipStatus.active
-    }
-  });
-
-  await prisma.issuerMembership.upsert({
-    where: {
-      userId_issuerId: {
-        userId: coursePlatformIssuerAdmin.id,
-        issuerId: coursePlatformIssuer.id
-      }
-    },
-    update: {
-      role: IssuerMembershipRole.admin,
-      status: IssuerMembershipStatus.active
-    },
-    create: {
-      userId: coursePlatformIssuerAdmin.id,
-      issuerId: coursePlatformIssuer.id,
-      role: IssuerMembershipRole.admin,
-      status: IssuerMembershipStatus.active
-    }
-  });
-
   await prisma.authCredential.upsert({
     where: {
       userId: holder.id
@@ -239,31 +301,7 @@ async function main() {
     }
   });
 
-  await prisma.authCredential.upsert({
-    where: {
-      userId: issuerAdmin.id
-    },
-    update: {
-      passwordHash: await hashPassword(DEMO_ISSUER_PASSWORD)
-    },
-    create: {
-      userId: issuerAdmin.id,
-      passwordHash: await hashPassword(DEMO_ISSUER_PASSWORD)
-    }
-  });
-
-  await prisma.authCredential.upsert({
-    where: {
-      userId: coursePlatformIssuerAdmin.id
-    },
-    update: {
-      passwordHash: await hashPassword(DEMO_COURSE_PLATFORM_ISSUER_PASSWORD)
-    },
-    create: {
-      userId: coursePlatformIssuerAdmin.id,
-      passwordHash: await hashPassword(DEMO_COURSE_PLATFORM_ISSUER_PASSWORD)
-    }
-  });
+  await bootstrapDemoCoursePlatformUser(prisma, hashPassword);
 
   console.log(
     JSON.stringify(
@@ -279,13 +317,15 @@ async function main() {
   );
 }
 
-main()
-  .catch(() => {
-    console.error(
-      'El seed demo fallo. Revise migraciones, catalogos y configuracion del ambiente.'
-    );
-    process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  main()
+    .catch(() => {
+      console.error(
+        'El seed demo fallo. Revise migraciones, catalogos y configuracion del ambiente.'
+      );
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
