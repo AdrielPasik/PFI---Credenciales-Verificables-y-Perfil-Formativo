@@ -104,6 +104,17 @@ export class IssuersService {
     );
   }
 
+  async assertUserCanManageCourseTemplatesForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'gestionar el catalogo de cursos reutilizables'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

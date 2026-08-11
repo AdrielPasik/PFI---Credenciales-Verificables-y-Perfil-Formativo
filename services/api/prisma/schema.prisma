@@ -117,6 +117,11 @@ enum CourseStatus {
   archived
 }
 
+enum CourseTemplateStatus {
+  active
+  archived
+}
+
 enum SharingGrantScope {
   credential
   profile
@@ -163,25 +168,26 @@ enum AnalysisRunSourceType {
 }
 
 model User {
-  id                        String              @id @default(uuid())
-  did                       String?             @unique
-  email                     String?             @unique
+  id                        String                 @id @default(uuid())
+  did                       String?                @unique
+  email                     String?                @unique
   firstName                 String?
   lastName                  String?
   displayName               String?
-  status                    UserStatus          @default(active)
-  createdAt                 DateTime            @default(now())
-  updatedAt                 DateTime            @updatedAt
+  status                    UserStatus             @default(active)
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
   issuerMemberships         IssuerMembership[]
-  subjectCredentials        Credential[]        @relation("CredentialSubject")
-  verifierEvents            VerificationEvent[] @relation("VerifierUser")
+  subjectCredentials        Credential[]           @relation("CredentialSubject")
+  verifierEvents            VerificationEvent[]    @relation("VerifierUser")
   profiles                  FormativeProfile[]
-  sharingGrants             SharingGrant[]      @relation("SharingGrantOwner")
-  createdSharingGrants      SharingGrant[]      @relation("SharingGrantCreator")
+  sharingGrants             SharingGrant[]         @relation("SharingGrantOwner")
+  createdSharingGrants      SharingGrant[]         @relation("SharingGrantCreator")
   authCredential            AuthCredential?
-  uploadedDocumentEvidences DocumentEvidence[]  @relation("DocumentEvidenceUploader")
-  submittedTextEvidences    TextEvidence[]      @relation("TextEvidenceSubmitter")
-  requestedAnalysisRuns     AnalysisRun[]       @relation("AnalysisRunRequester")
+  uploadedDocumentEvidences DocumentEvidence[]     @relation("DocumentEvidenceUploader")
+  submittedTextEvidences    TextEvidence[]         @relation("TextEvidenceSubmitter")
+  requestedAnalysisRuns     AnalysisRun[]          @relation("AnalysisRunRequester")
+  createdCourseTemplates    IssuerCourseTemplate[] @relation("IssuerCourseTemplateCreator")
 }
 
 model AuthCredential {
@@ -209,6 +215,7 @@ model Issuer {
   memberships         IssuerMembership[]
   programs            Program[]
   academicCourses     AcademicCourse[]
+  courseTemplates     IssuerCourseTemplate[]
 
   @@index([authorizationStatus])
 }
@@ -507,6 +514,36 @@ model ExternalCourse {
   @@index([providerName])
   @@index([externalReference])
   @@index([status])
+}
+
+// C3a: catalogo reusable de cursos PROPIO de cada issuer -- deliberadamente
+// distinto de ExternalCourse (sin issuerId, pensado para import externo, no
+// para este caso de uso). No participa en canonical hash ni blockchain: no
+// es una credencial emitida, es solo una plantilla para agilizar la carga
+// manual futura de cursos repetidos por el mismo issuer.
+model IssuerCourseTemplate {
+  id                      String               @id @default(uuid())
+  issuerId                String
+  title                   String
+  description             String?              @db.Text
+  hours                   Decimal?             @db.Decimal(10, 2)
+  modality                String?
+  platformName            String?
+  externalUrl             String?
+  competencies            String[]
+  learningOutcomes        String[]
+  status                  CourseTemplateStatus @default(active)
+  createdFromCredentialId String?
+  lastSemanticAnalysisId  String?
+  createdByUserId         String
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  issuer                  Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  createdByUser           User                 @relation("IssuerCourseTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([issuerId])
+  @@index([issuerId, status])
+  @@index([issuerId, title])
 }
 
 model Program {

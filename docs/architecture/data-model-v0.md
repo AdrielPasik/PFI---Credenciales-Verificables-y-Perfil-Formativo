@@ -126,6 +126,35 @@
 - JSONB: datos de importacion o certificacion externa.
 - No on-chain: contenido completo, datos del proveedor no necesarios para verificacion.
 
+## IssuerCourseTemplate
+
+- Proposito: catalogo reusable de cursos PROPIO de cada issuer (C3a), para
+  reutilizar cursos que un issuer carga manualmente en vez de volver a
+  tipear los mismos datos. Deliberadamente distinto de `ExternalCourse`
+  (ver nota abajo).
+- Campos conceptuales: `id`, `issuer_id`, `title`, `description`, `hours`,
+  `modality`, `platform_name`, `external_url`, `competencies`,
+  `learning_outcomes`, `status` (`active`/`archived`),
+  `created_from_credential_id`, `last_semantic_analysis_id`,
+  `created_by_user_id`.
+- Relaciones: pertenece a `Issuer` (`onDelete: Restrict`); pertenece a
+  `User` como creador (`onDelete: Restrict`); `created_from_credential_id`
+  y `last_semantic_analysis_id` son referencias informativas sin FK (el
+  patron actual del schema evita relaciones opcionales adicionales cuando
+  no son estrictamente necesarias para C3a).
+- Relacional: issuer, titulo, horas, modality, status, timestamps.
+- Postgres nativo: `competencies` y `learning_outcomes` son `String[]`
+  (arrays escalares de Postgres), no JSONB -- primer uso de este tipo de
+  columna en el schema.
+- No on-chain: no participa en `canon_v1` ni blockchain -- no es una
+  credencial emitida.
+- Nota `ExternalCourse` vs `IssuerCourseTemplate`: `ExternalCourse` no
+  tiene `issuer_id` (no es scoped a un emisor) y fue modelado para un
+  futuro import de catalogos externos, no para un catalogo propio por
+  issuer. El bundle de auditoria C2b-C3 ya habia señalado que no
+  correspondia reutilizarlo para este caso. C3a no migra datos desde
+  `ExternalCourse` ni lo modifica.
+
 ## Program
 
 - Proposito: representar una carrera, trayecto o programa formativo.
@@ -180,6 +209,8 @@
 - `Program` 1..N `CurriculumVersion`
 - `CurriculumVersion` 1..N `ProgramCourse`
 - `AcademicCourse` 1..N `ProgramCourse`
+- `Issuer` 1..N `IssuerCourseTemplate`
+- `User` 1..N `IssuerCourseTemplate` como creador
 
 ## Limites de modelado para la siguiente iteracion
 

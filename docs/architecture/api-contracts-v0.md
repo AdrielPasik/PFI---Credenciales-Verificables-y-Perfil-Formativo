@@ -1037,3 +1037,77 @@ funcionando igual, y los perfiles persistidos antes de C2c (sin
 `null`. `areasSummary`/la distribucion de horas estimadas por area no
 cambian: siguen dependiendo exclusivamente de `SemanticAnalysis.hoursDistribution`
 cuando existe.
+
+## C3a: catalogo reusable de cursos por issuer
+
+Cuatro endpoints nuevos, todos protegidos por `AuthGuard` y issuer-scoped
+(membership `admin`/`operator` activa, issuer `authorized`):
+
+```text
+GET   /issuers/:issuerId/course-templates?search=&status=
+POST  /issuers/:issuerId/course-templates
+POST  /issuers/:issuerId/course-templates/from-credential/:credentialId
+PATCH /issuers/:issuerId/course-templates/:templateId
+```
+
+`GET` devuelve un array (no `{ items: [...] }`) de templates del issuer
+solicitado:
+
+```json
+[
+  {
+    "id": "...",
+    "title": "...",
+    "description": "...",
+    "hours": "22.00",
+    "modality": "Online",
+    "platformName": "...",
+    "externalUrl": "...",
+    "competencies": ["..."],
+    "learningOutcomes": ["..."],
+    "status": "active",
+    "createdFromCredentialId": "...",
+    "lastSemanticAnalysisId": "...",
+    "createdAt": "2026-08-11T12:00:00.000Z",
+    "updatedAt": "2026-08-11T12:00:00.000Z"
+  }
+]
+```
+
+Nunca expone `issuerId` ni `createdByUserId`, y nunca devuelve templates de
+otro issuer. `status` default `active`; acepta `archived` o `all`. `search`
+compara contra `title`, `platformName` y `description` (normalizado NFD +
+minusculas es-AR, mismo criterio que el catalogo academico). Orden
+`updatedAt desc`, limite fijo `20`.
+
+`POST` (creacion manual) acepta `title` (requerido), `description`, `hours`
+(**`number` JSON**, no decimal string -- distinto del contrato de
+`PATCH .../credentials/:credentialId/draft` que usa decimal string para
+`hours`), `modality` (`Presencial`/`Online`/`Asincrónica`), `platformName`,
+`externalUrl` (HTTP/HTTPS), `competencies` y `learningOutcomes` (arrays de
+string, normalizados y dedupeados case-insensitive). Rechaza `skills`,
+`providerName`, `level`, `issuerId`, `createdByUserId` y `status` en el
+body -- el template siempre se crea `active`.
+
+`POST .../from-credential/:credentialId` crea un template a partir de una
+credencial `course` del mismo issuer (`draft` o `issued`). Resuelve el
+titulo con prioridad `credentialSubject.achievement_name` sobre
+`Credential.title`; si ninguno alcanza, responde `400`. Copia
+`description`, `hours`, `platformName`, `modality`, `externalUrl`,
+`competencies` y `learningOutcomes` desde la credencial. Nunca copia
+`skills`, `providerName`, `level` ni `rawData`. Si ya existe un template
+`active` del mismo issuer con el mismo `createdFromCredentialId` y un
+titulo igual tras normalizar, responde `409 Conflict`:
+*"Este curso ya fue guardado como reutilizable."*
+
+`PATCH .../:templateId` acepta los mismos campos que `POST` mas `status`
+(`active`/`archived`, para archivar). Nunca acepta `issuerId`,
+`createdByUserId`, `createdFromCredentialId` ni `lastSemanticAnalysisId`
+desde el body -- son derivados o inmutables despues de creado el template.
+
+`IssuerCourseTemplate` no es una credencial emitida: no participa en
+`canon_v1`, no se registra en blockchain, no modifica `Credential` ni
+`SemanticAnalysis` existentes. No hay endpoint para crear un draft de
+credencial a partir de un template, ni un endpoint de aprobacion de
+interpretacion IA sobre un template -- eso queda para C3c/C4. No hay UI ni
+selector en este slice (C3b).

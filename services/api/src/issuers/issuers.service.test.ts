@@ -472,6 +472,49 @@ test('IssuersService applies the shared institutional rules to academic catalog 
   }
 });
 
+test('C3a: IssuersService applies the shared institutional rules to course template management', async () => {
+  for (const role of [
+    IssuerMembershipRole.admin,
+    IssuerMembershipRole.operator
+  ]) {
+    const membership = createMembershipFixture({ role });
+    const { service } = createService(membership);
+
+    assert.equal(
+      await service.assertUserCanManageCourseTemplatesForIssuer(
+        'issuer-user-1',
+        'issuer-1'
+      ),
+      membership
+    );
+  }
+
+  const forbiddenMemberships = [
+    null,
+    createMembershipFixture({ role: IssuerMembershipRole.viewer }),
+    createMembershipFixture({ status: IssuerMembershipStatus.pending }),
+    createMembershipFixture({ status: IssuerMembershipStatus.revoked }),
+    createMembershipFixture({
+      authorizationStatus: IssuerAuthorizationStatus.pending
+    }),
+    createMembershipFixture({
+      authorizationStatus: IssuerAuthorizationStatus.revoked
+    })
+  ];
+
+  for (const membership of forbiddenMemberships) {
+    const { service } = createService(membership);
+
+    await assert.rejects(
+      service.assertUserCanManageCourseTemplatesForIssuer(
+        'issuer-user-1',
+        'issuer-arbitrary'
+      ),
+      ForbiddenException
+    );
+  }
+});
+
 test('IssuersService applies shared institutional rules to document evidence uploads', async () => {
   for (const role of [
     IssuerMembershipRole.admin,

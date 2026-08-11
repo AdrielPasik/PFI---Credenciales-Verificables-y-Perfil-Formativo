@@ -565,3 +565,58 @@ definan que claims oficiales forman parte de la emision.
   concreta sin una relación de procedencia segura entregada por el backend.
 - La evidencia de integridad es técnica. En `anvil` o `mock` se presenta como
   entorno técnico/demo, nunca como red pública productiva.
+
+## 17. C3a — Catalogo reusable de cursos por issuer (`IssuerCourseTemplate`)
+
+Cada issuer puede tener su propio catalogo reusable de cursos, separado del
+draft/credencial concreto que los origina. Objetivo: si "Plataforma de
+Cursos Demo" carga un curso de Python a mano, despues puede guardarlo como
+reutilizable y seleccionarlo la proxima vez (el selector/autocomplete es
+C3b/C3c; C3a es solo el modelo y la API).
+
+- `IssuerCourseTemplate` es **issuer-scoped**: `issuerId` es obligatorio y
+  todas las operaciones (list/create/patch/create-from-credential) validan
+  membership `admin`/`operator` activa sobre un issuer `authorized`, mismo
+  patron que el resto de endpoints issuer-facing.
+- **Por que no `ExternalCourse`**: `ExternalCourse` no tiene `issuerId` (no
+  es scoped a un emisor) ni los campos que necesita un curso institucional
+  propio (`modality`, `platformName`, `externalUrl`, `competencies`,
+  `learningOutcomes` controlados como en `course`). Fue modelado para un
+  futuro import de catalogos externos, no para este caso de uso, y el
+  bundle de auditoria C2b-C3 ya habia señalado que no correspondia
+  reutilizarlo. C3a no migra datos desde `ExternalCourse` ni lo borra;
+  queda intacto y sin uso para este flujo.
+- **Campos que replican el dominio `course` ya limpio (C2)**: `modality`
+  (`Presencial`/`Online`/`Asincrónica`), `platformName`, `externalUrl`,
+  `competencies`, `learningOutcomes`. **Nunca** `providerName`, `level` ni
+  `skills` -- esos campos no aplican a `course` desde C2 y `C3a` los
+  rechaza explicitamente en create/patch/create-from-credential.
+- **Resolucion de titulo al crear desde credencial**: prioridad
+  `credentialSubject.achievement_name`, despues `Credential.title`; si
+  ninguno alcanza, se rechaza con un error controlado (nunca se inventa un
+  titulo ni se usa un string vacio).
+- **Deduplicacion**: al crear desde credencial, si ya existe un template
+  `active` del mismo issuer con el mismo `createdFromCredentialId` y un
+  titulo igual tras normalizar (trim, espacios colapsados,
+  case-insensitive), se rechaza con `409` en vez de duplicar. La
+  normalizacion de titulo es solo para comparar en el momento de la
+  request -- no se persiste un campo `normalizedTitle` (no hizo falta para
+  C3a).
+- **`hours`**: `Decimal(10,2)` igual que `Credential.hours`; en el body de
+  create/patch se acepta como `number` JSON (no decimal string) para
+  simplificar el contrato de este endpoint nuevo; en la response se expone
+  como decimal string, nunca como objeto `Decimal` crudo.
+- **No participa en canon ni blockchain**: `IssuerCourseTemplate` no es una
+  credencial emitida, no entra a `canon_v1`, no se registra on-chain y no
+  modifica `Credential` ni `SemanticAnalysis` existentes al crearse o
+  editarse.
+- **`lastSemanticAnalysisId`**: referencia informativa opcional al ultimo
+  `SemanticAnalysis` de la credencial de origen (sin FK, ver Prisma) --
+  nunca dispara ni recalcula un analisis nuevo.
+- Pendiente, explicitamente fuera de alcance de C3a: boton/selector en el
+  frontend (C3b), crear un draft de credencial a partir de un template
+  (C3c), aprobar la interpretacion de IA sobre un template (C4), usar
+  templates para `FormativeProfileService`/rebuild del perfil (no
+  aplica -- el perfil sigue derivando solo de credenciales emitidas
+  reales, ver seccion C2c mas arriba), y cualquier integracion real con
+  Udemy, Coursera o AWS (no existe, no se afirma, no se simula).

@@ -29,6 +29,10 @@ POST /issuers/:issuerId/credentials/:credentialId/issue
 PATCH /issuers/:issuerId/credentials/:credentialId/draft
 POST /issuers/:issuerId/credentials/:credentialId/evidence/documents
 POST /issuers/:issuerId/credentials/:credentialId/evidence/texts
+GET  /issuers/:issuerId/course-templates
+POST /issuers/:issuerId/course-templates
+POST /issuers/:issuerId/course-templates/from-credential/:credentialId
+PATCH /issuers/:issuerId/course-templates/:templateId
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -108,6 +112,71 @@ codigo o nombre y devuelve su version curricular activa. El endpoint
 devuelve exclusivamente las materias activas vinculadas a esa curricula del
 mismo issuer. Ambos reutilizan la autorizacion institucional, limites `20/50`,
 orden deterministico y DTOs allowlisted.
+
+### C3a: catalogo reusable de cursos por issuer (`IssuerCourseTemplate`)
+
+`IssuerCourseTemplate` es un catalogo propio de cada issuer para reutilizar
+cursos que carga manualmente (ej. "Plataforma de Cursos Demo" guarda su curso
+de Python una vez y lo reutiliza despues). Es deliberadamente **distinto** de
+`ExternalCourse`: `ExternalCourse` no tiene `issuerId` ni los campos
+correctos para este caso de uso (fue pensado para import externo, no para un
+catalogo propio por emisor), y el bundle de auditoria C2b-C3 ya habia
+recomendado no reutilizarlo. C3a no migra ni borra `ExternalCourse` -- queda
+sin uso para este flujo, sin cambios.
+
+`IssuerCourseTemplate` **no** es una credencial emitida: no participa en
+`canon_v1`, no se registra en blockchain y no modifica `Credential` ni
+`SemanticAnalysis` existentes. Tampoco hay scraping ni import masivo de
+catalogos externos (Udemy/Coursera/AWS no son integraciones reales en este
+slice).
+
+Endpoints (todos requieren `AuthGuard` + membership `admin`/`operator`
+activa del issuer autorizado, mismo patron que el resto de endpoints
+issuer-scoped):
+
+- `GET /issuers/:issuerId/course-templates?search=&status=` lista templates
+  del issuer (nunca de otro issuer). `status` default `active`; acepta
+  `archived` o `all`. `search` compara contra `title`, `platformName` y
+  `description` con la misma normalizacion (NFD + minusculas es-AR) que el
+  catalogo academico. Orden `updatedAt desc` (los templates tocados/creados
+  mas recientemente aparecen primero -- pensado para el flujo de reuso
+  frecuente de C3b/C3c). Limite fijo `20`.
+- `POST /issuers/:issuerId/course-templates` crea un template manualmente.
+  `title` requerido; `hours` es un `number` JSON (no decimal string) >= 0,
+  redondeado a 2 decimales; `modality` debe ser `Presencial`, `Online` o
+  `Asincrónica` si se envia; `externalUrl` debe ser HTTP/HTTPS.
+  `competencies`/`learningOutcomes` se normalizan y dedupean
+  case-insensitive. Rechaza `skills`, `providerName`, `level`, `issuerId`,
+  `createdByUserId` y `status` en el body (siempre se crea `active`).
+- `POST /issuers/:issuerId/course-templates/from-credential/:credentialId`
+  crea un template a partir de una credencial `course` del mismo issuer
+  (`draft` o `issued`, ambos permitidos). Copia `title` (prioridad:
+  `credentialSubject.achievement_name`, luego `Credential.title`; si
+  ninguno es usable, rechaza con 400), `description`, `hours`,
+  `platformName`, `modality`, `externalUrl`, `competencies` y
+  `learningOutcomes`. **Nunca** copia `skills`, `providerName`, `level` ni
+  `rawData`. `lastSemanticAnalysisId` toma el ultimo `SemanticAnalysis` de
+  la credencial si existe, o `null`. Deduplicacion: si ya existe un
+  template `active` del mismo issuer con el mismo `createdFromCredentialId`
+  y un titulo igual tras normalizar (trim, espacios colapsados,
+  case-insensitive), responde `409 Conflict` con
+  *"Este curso ya fue guardado como reutilizable."* en vez de duplicar.
+- `PATCH /issuers/:issuerId/course-templates/:templateId` actualiza los
+  mismos campos que el create (title/description/hours/modality/
+  platformName/externalUrl/competencies/learningOutcomes) mas `status`
+  (`active`/`archived`) para archivar. Nunca acepta `issuerId`,
+  `createdByUserId`, `createdFromCredentialId` ni `lastSemanticAnalysisId`
+  desde el body.
+
+`hours` se serializa como decimal string (`"22.00"`) en la response, nunca
+como objeto `Decimal` crudo -- mismo patron que `Credential.hours` en
+`issuer-credential-read.mapper.ts`. La response nunca expone `issuerId` ni
+`createdByUserId`.
+
+Pendiente, explicitamente fuera de alcance de C3a: boton/selector en el
+frontend, crear un draft de credencial a partir de un template, aprobar la
+interpretacion de IA y usar templates para reconstruir el perfil formativo
+(`FormativeProfileService` no cambia). Eso queda para C3b/C3c/C4.
 
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.
@@ -566,6 +635,7 @@ Tests de slices:
 - `npm run test:issuer-credential-draft-update --workspace @credential-intelligence/api`
 - `npm run test:issuer-credential-type-fields --workspace @credential-intelligence/api`
 - `npm run test:protected-issuance --workspace @credential-intelligence/api`
+- `npm run test:issuer-course-templates --workspace @credential-intelligence/api`
 - `npm run test:me-wallet --workspace @credential-intelligence/api`
 - `npm run test:profiles --workspace @credential-intelligence/api`
 - `npm run test:hashing --workspace @credential-intelligence/api`
