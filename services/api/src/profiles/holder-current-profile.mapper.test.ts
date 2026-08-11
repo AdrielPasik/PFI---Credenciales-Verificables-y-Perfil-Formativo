@@ -12,19 +12,76 @@ test('maps a current profile through a holder-safe allowlist', () => {
       areasSummary: [{ area: 'Software', estimatedHours: 80, sourceRefs: ['must-not-leak'] }],
       skillsSummary: [{ skill: 'Diseño', confidence: 0.8, analysisJson: { mustNotLeak: true } }],
       qualityFlags: ['partial_evidence'],
-      profileJson: { concepts: [{ concept: 'arquitectura', sourceRefs: ['must-not-leak'] }], confidence: { score: 0.8 }, evidenceMap: { mustNotLeak: true } }
+      profileJson: {
+        summary: { totalOfficialHours: 80, credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 1 },
+        concepts: [{ concept: 'arquitectura', sourceRefs: ['must-not-leak'] }], confidence: { score: 0.8 }, evidenceMap: { mustNotLeak: true }
+      }
     }
   });
 
   assert.deepEqual(response, {
     currentProfile: {
       profileVersion: 'formative_profile_result_v0', credentialsCount: 2, totalHours: 80,
+      totalOfficialHours: 80, credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 1,
       areas: [{ label: 'Software', estimatedHours: 80 }], skills: [{ label: 'Diseño', confidence: 0.8 }],
       concepts: ['arquitectura'], emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
       confidence: 0.8, qualityFlags: ['partial_evidence'], generatedAt: '2026-08-01T10:00:00Z'
     }
   });
   assert.equal(JSON.stringify(response).includes('must-not-leak'), false);
+});
+
+test('C2c: falls back to totalHours and null counters for profiles persisted before C2c (no profileJson.summary fields)', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'backend_formative_profile_snapshot_v0', isCurrent: true,
+      credentialsCount: 1, totalHours: 64, generatedAt: '2026-07-24T12:00:00.000Z',
+      areasSummary: [], skillsSummary: [], qualityFlags: [],
+      // Perfil pre-C2c: sin summary.totalOfficialHours ni contadores.
+      profileJson: { concepts: [], confidence: { score: null } }
+    }
+  });
+
+  assert.equal(response.currentProfile?.totalOfficialHours, 64);
+  assert.equal(response.currentProfile?.credentialsWithoutHours, null);
+  assert.equal(response.currentProfile?.credentialsWithoutSemanticCoverage, null);
+});
+
+test('C2c: exposes zero-valued coverage counters without collapsing them to null', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'backend_formative_profile_snapshot_v0', isCurrent: true,
+      credentialsCount: 2, totalHours: 40, generatedAt: '2026-08-10T12:00:00.000Z',
+      areasSummary: [], skillsSummary: [], qualityFlags: [],
+      profileJson: {
+        summary: { totalOfficialHours: 40, credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 0 },
+        concepts: [], confidence: { score: null }
+      }
+    }
+  });
+
+  assert.equal(response.currentProfile?.credentialsWithoutHours, 0);
+  assert.equal(response.currentProfile?.credentialsWithoutSemanticCoverage, 0);
+});
+
+test('C2c: rejects an invalid (negative/non-integer) counter instead of exposing a fabricated value', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'backend_formative_profile_snapshot_v0', isCurrent: true,
+      credentialsCount: 1, totalHours: null, generatedAt: '2026-08-10T12:00:00.000Z',
+      areasSummary: [], skillsSummary: [], qualityFlags: [],
+      profileJson: {
+        summary: { credentialsWithoutHours: -1, credentialsWithoutSemanticCoverage: 1.5 },
+        concepts: [], confidence: { score: null }
+      }
+    }
+  });
+
+  assert.equal(response.currentProfile?.credentialsWithoutHours, null);
+  assert.equal(response.currentProfile?.credentialsWithoutSemanticCoverage, null);
 });
 
 test('maps emitted skills/competencies/learning outcomes to holder-safe labels without leaking credentialIds', () => {

@@ -282,6 +282,9 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       credentialsCount: number;
       analyzedCredentialsCount: number;
       totalHours: number | null;
+      totalOfficialHours: number | null;
+      credentialsWithoutHours: number;
+      credentialsWithoutSemanticCoverage: number;
     };
     areas: Array<Record<string, unknown>>;
     skills: Array<Record<string, unknown>>;
@@ -300,7 +303,11 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
   assert.deepEqual(profileJson.summary, {
     credentialsCount: 3,
     analyzedCredentialsCount: 2,
-    totalHours: 60
+    totalHours: 60,
+    totalOfficialHours: 60,
+    // credential-3 no tiene hours declaradas y no tiene SemanticAnalysis.
+    credentialsWithoutHours: 1,
+    credentialsWithoutSemanticCoverage: 1
   });
   assert.deepEqual(profileJson.areas, [
     {
@@ -674,7 +681,10 @@ test('FormativeProfileService persists a valid empty snapshot when no issued cre
   assert.deepEqual(profileJson.summary, {
     credentialsCount: 0,
     analyzedCredentialsCount: 0,
-    totalHours: null
+    totalHours: null,
+    totalOfficialHours: null,
+    credentialsWithoutHours: 0,
+    credentialsWithoutSemanticCoverage: 0
   });
   assert.deepEqual(profileJson.warnings, [
     'confidence_not_available',
@@ -682,4 +692,275 @@ test('FormativeProfileService persists a valid empty snapshot when no issued cre
     'no_skills_detected'
   ]);
   assert.equal(response.currentProfile?.totalHours, null);
+});
+
+// ─── C2c: totalOfficialHours, credentialsWithoutHours, credentialsWithoutSemanticCoverage ───
+
+test('C2c: rebuildForUser never selects Credential.title/achievementName -- area/skill/concept labels can only come from SemanticAnalysis or credentialSubject, never from the credential name', async () => {
+  const findManyCalls: Array<Record<string, unknown>> = [];
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany(args: Record<string, unknown>) {
+        findManyCalls.push(args);
+        return [];
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({ profileJson: data.profileJson });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+
+  const select = (findManyCalls[0] as { select: Record<string, unknown> }).select;
+  assert.equal('title' in select, false);
+  assert.equal('achievementName' in select, false);
+});
+
+test('C2c: a course credential named after an area-like title does not turn that title into an area/skill', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'course-1',
+      type: CredentialType.course,
+      hours: decimalLike('36.00'),
+      credentialSubject: {},
+      // El nombre de la credencial (fuera de este objeto, ni siquiera se
+      // selecciona -- ver test anterior) es "Algoritmos y Estructuras de
+      // Datos". La unica fuente real de areas/skills es SemanticAnalysis.
+      semanticAnalyses: [
+        {
+          id: 'analysis-course-1',
+          analyzedAt: new Date('2026-08-10T12:00:00Z'),
+          confidence: decimalLike('0.4500'),
+          areas: [],
+          skills: [{ label: 'Python', confidence: 0.45 }],
+          concepts: [],
+          analysisJson: { sourceType: 'text' }
+        }
+      ]
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({ profileJson: data.profileJson });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+  const profileJson = (createCalls[0].data as {
+    profileJson: {
+      areas: Array<Record<string, unknown>>;
+      skills: Array<Record<string, unknown>>;
+    };
+  }).profileJson;
+
+  assert.deepEqual(profileJson.areas, []);
+  assert.equal(
+    profileJson.skills.some(
+      (skill) => skill.skill === 'Algoritmos y Estructuras de Datos'
+    ),
+    false
+  );
+  assert.deepEqual(
+    profileJson.skills.map((skill) => skill.skill),
+    ['Python']
+  );
+});
+
+test('C2c: a course analyzed from text conserves official hours separately from estimated hours when the artifact has no hoursDistribution', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'course-text-1',
+      type: CredentialType.course,
+      hours: decimalLike('22.00'),
+      credentialSubject: {},
+      semanticAnalyses: [
+        {
+          id: 'analysis-text-1',
+          analyzedAt: new Date('2026-08-10T12:00:00Z'),
+          confidence: decimalLike('0.4500'),
+          areas: [],
+          skills: [{ label: 'Python', confidence: 0.45 }],
+          concepts: [],
+          // C2b.1/C2b.2: texto corto sin evidencia fuerte de area -> el AI
+          // Service no envia hoursDistribution en absoluto.
+          analysisJson: { sourceType: 'text' }
+        }
+      ]
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({
+              totalHours: data.totalHours,
+              profileJson: data.profileJson
+            });
+          }
+        }
+      });
+    }
+  } as never);
+
+  const response = await service.rebuildForUser('holder-1');
+  const profileJson = (createCalls[0].data as {
+    profileJson: {
+      summary: Record<string, unknown>;
+      areas: Array<Record<string, unknown>>;
+    };
+  }).profileJson;
+
+  assert.deepEqual(profileJson.summary, {
+    credentialsCount: 1,
+    analyzedCredentialsCount: 1,
+    totalHours: 22,
+    totalOfficialHours: 22,
+    credentialsWithoutHours: 0,
+    credentialsWithoutSemanticCoverage: 0
+  });
+  // Sin hoursDistribution en el artifact, no hay areas con estimatedHours --
+  // nunca se inventa una distribucion a partir de las 22 horas oficiales.
+  assert.deepEqual(profileJson.areas, []);
+  assert.equal(response.currentProfile?.totalHours, 22);
+});
+
+test('C2c: credentialsWithoutHours counts credentials with hours === null, regardless of analysis coverage', async () => {
+  const createCalls: Array<Record<string, unknown>> = [];
+  const credentials = [
+    {
+      id: 'credential-with-hours',
+      type: CredentialType.certification,
+      hours: decimalLike('10.00'),
+      credentialSubject: {},
+      semanticAnalyses: []
+    },
+    {
+      id: 'credential-without-hours-a',
+      type: CredentialType.certification,
+      hours: null,
+      credentialSubject: {},
+      semanticAnalyses: [
+        {
+          id: 'analysis-b',
+          analyzedAt: new Date('2026-08-10T12:00:00Z'),
+          confidence: decimalLike('0.9000'),
+          areas: [],
+          skills: [],
+          concepts: [],
+          analysisJson: {}
+        }
+      ]
+    },
+    {
+      id: 'credential-without-hours-b',
+      type: CredentialType.certification,
+      hours: null,
+      credentialSubject: {},
+      semanticAnalyses: []
+    }
+  ];
+
+  const service = new FormativeProfileService({
+    credential: {
+      async findMany() {
+        return credentials;
+      }
+    },
+    async $transaction(
+      callback: (transaction: {
+        formativeProfile: {
+          updateMany(): Promise<unknown>;
+          create(args: Record<string, unknown>): Promise<unknown>;
+        };
+      }) => Promise<unknown>
+    ) {
+      return callback({
+        formativeProfile: {
+          async updateMany() {
+            return { count: 0 };
+          },
+          async create(args: Record<string, unknown>) {
+            createCalls.push(args);
+            const data = args.data as Record<string, unknown>;
+            return persistedProfile({ profileJson: data.profileJson });
+          }
+        }
+      });
+    }
+  } as never);
+
+  await service.rebuildForUser('holder-1');
+  const profileJson = (createCalls[0].data as {
+    profileJson: { summary: Record<string, unknown> };
+  }).profileJson;
+
+  assert.equal(profileJson.summary.credentialsWithoutHours, 2);
+  // credential-without-hours-a SI tiene SemanticAnalysis; credential-with-hours
+  // y credential-without-hours-b no tienen ninguna -- dos credenciales sin
+  // cobertura semantica, independientemente de si tienen horas o no (los
+  // dos contadores son independientes entre si).
+  assert.equal(profileJson.summary.credentialsWithoutSemanticCoverage, 2);
 });

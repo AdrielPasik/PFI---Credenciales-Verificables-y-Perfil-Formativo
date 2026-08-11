@@ -30,6 +30,18 @@ describe('holder adapters', () => {
     expect(adaptMyCredentials([{ ...listPayload()[0], status: 'revoked' }])[0].statusLabel).toBe('Revocada');
   });
 
+  it('C2c: labels declared hours as official hours', () => {
+    const result = adaptMyCredential({
+      ...listPayload()[0], description: 'Contenido emitido', hours: 64,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Institución demo', did: null },
+      subject: { displayName: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: { achievementName: 'Arquitectura de software', institutionName: 'Institución demo', completionDate: null, academicPeriod: '2026', programName: null, grade: '9', skills: ['Diseño'], competencies: [], learningOutcomes: [] },
+      documentEvidence: null, textEvidence: null, blockchainRecords: [], latestSemanticAnalysis: null
+    });
+    expect(result.hoursLabel).toBe('64 horas');
+  });
+
   it('adapts holder detail without raw artifacts, source ids or storage internals', () => {
     const result = adaptMyCredential({
       ...listPayload()[0], description: 'Contenido emitido', hours: 64,
@@ -118,6 +130,73 @@ describe('holder adapters', () => {
     } });
     expect(result).toMatchObject({ credentialsCount: 2, areas: [{ label: 'Software' }], skills: [{ label: 'Diseño' }], concepts: ['arquitectura'] });
     expect(JSON.stringify(result)).not.toContain('forbidden');
+  });
+
+  it('C2c: labels official hours and area estimates unambiguously as an AI estimate', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 2, totalHours: 80, totalOfficialHours: 80, generatedAt: '2026-08-01T10:00:00.000Z',
+      areas: [{ label: 'Software', estimatedHours: 80 }],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(result?.totalOfficialHoursLabel).toBe('80 horas oficiales declaradas');
+    expect(result?.areas[0].estimatedHoursLabel).toBe('80 horas estimadas por IA');
+  });
+
+  it('C2c: omits estimatedHoursLabel (never "0h") for an area without estimatedHours', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: null, totalOfficialHours: null, generatedAt: '2026-08-01T10:00:00.000Z',
+      areas: [{ label: 'Software', estimatedHours: null }],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(result?.areas[0]).toEqual({ label: 'Software', estimatedHoursLabel: null });
+  });
+
+  it('C2c: falls back totalOfficialHours to totalHours when the backend has not deployed it yet', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: 64, generatedAt: '2026-08-01T10:00:00.000Z',
+      // totalOfficialHours omitted on purpose: simulates a pre-C2c backend deploy.
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(result?.totalOfficialHoursLabel).toBe('64 horas oficiales declaradas');
+  });
+
+  it('C2c: builds soft coverage notices only when the counters are positive', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 3, totalHours: 40, totalOfficialHours: 40, generatedAt: '2026-08-01T10:00:00.000Z',
+      credentialsWithoutHours: 1, credentialsWithoutSemanticCoverage: 2,
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(result?.hoursCoverageNoticeLabel).toBe('1 credencial no informa horas.');
+    expect(result?.semanticCoverageNoticeLabel).toBe('2 credenciales todavía no tienen análisis semántico.');
+  });
+
+  it('C2c: does not build a coverage notice when a counter is zero or absent', () => {
+    const zeroCounters = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: 40, totalOfficialHours: 40, generatedAt: '2026-08-01T10:00:00.000Z',
+      credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 0,
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(zeroCounters).toMatchObject({ hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null });
+
+    const absentCounters = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: 40, generatedAt: '2026-08-01T10:00:00.000Z',
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+    expect(absentCounters).toMatchObject({ hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null });
+  });
+
+  it('C2c: rejects an invalid (negative) coverage counter instead of exposing a fabricated value', () => {
+    expect(() => adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'backend_formative_profile_snapshot_v0',
+      credentialsCount: 1, totalHours: 40, credentialsWithoutHours: -1, generatedAt: '2026-08-01T10:00:00.000Z',
+      areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
+    } })).toThrow(IncompatiblePayloadError);
   });
 
   it('accepts emittedSkills/emittedCompetencies/emittedLearningOutcomes and drops forbidden nested fields', () => {

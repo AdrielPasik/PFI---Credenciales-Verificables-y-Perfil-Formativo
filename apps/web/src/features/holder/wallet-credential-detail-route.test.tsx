@@ -90,3 +90,13 @@ it('does not show declared course data for a course credential without declared 
 
   expect(screen.queryByText('Información declarada del curso')).toBeNull();
 });
+
+it('C2c: labels declared hours as official hours and never ties them to a specific skill or area', () => {
+  const detailWithHours = { ...detail, hoursLabel: '64 horas' };
+  render(<WalletCredentialDetailView detail={detailWithHours} />);
+
+  expect(screen.getByText('Horas oficiales declaradas')).toBeTruthy();
+  expect(screen.getByText('64 horas')).toBeTruthy();
+  expect(screen.queryByText('Horas')).toBeNull();
+  expect(document.body.textContent).not.toMatch(/horas de\s+(software|diseño|arquitectura)/i);
+});

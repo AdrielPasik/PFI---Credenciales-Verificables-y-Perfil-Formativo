@@ -1014,3 +1014,26 @@ responder: reconstruir no habilita la exposición del snapshot interno.
 La Wallet carga el perfil y la biblioteca de credenciales como recursos
 independientes. Mientras no exista un mapeo seguro de procedencia, el contrato
 no afirma que una credencial individual haya sido fuente de un perfil concreto.
+
+### C2c: horas oficiales y cobertura semantica
+
+`GET /me/profile/current` y `POST /me/profile/rebuild` agregan, sin nuevo
+endpoint, tres campos adicionales al `currentProfile` ya existente:
+
+- `totalOfficialHours: number | null` — igual a `totalHours`; nombre
+  inequivoco para el total declarado por las credenciales, nunca una
+  distribucion por area.
+- `credentialsWithoutHours: number | null` — cantidad de credenciales
+  `issued` con `hours` nulo. `null` cuando el perfil se genero antes de
+  C2c y el contador no esta disponible (no significa cero).
+- `credentialsWithoutSemanticCoverage: number | null` — cantidad de
+  credenciales `issued` sin `SemanticAnalysis` utilizable. Mismo criterio
+  de `null` vs `0` que el campo anterior.
+
+Estos campos son additivos: los clientes que todavia no los lean siguen
+funcionando igual, y los perfiles persistidos antes de C2c (sin
+`profileJson.summary.totalOfficialHours`/contadores) se sirven con
+`totalOfficialHours` calculado desde `totalHours` y los contadores en
+`null`. `areasSummary`/la distribucion de horas estimadas por area no
+cambian: siguen dependiendo exclusivamente de `SemanticAnalysis.hoursDistribution`
+cuando existe.

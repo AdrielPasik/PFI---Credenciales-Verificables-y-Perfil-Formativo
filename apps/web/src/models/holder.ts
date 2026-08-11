@@ -88,7 +88,16 @@ export interface HolderCredentialDetailVM
 export interface HolderProfileVM {
   profileVersion: string;
   credentialsCount: number;
-  totalHoursLabel: string | null;
+  // C2c: horas oficiales/declaradas (suma de Credential.hours), nunca una
+  // distribucion por area. Renombrado desde totalHoursLabel para que el
+  // nombre nunca se preste a confundirse con una estimacion de IA.
+  totalOfficialHoursLabel: string | null;
+  /** "N credenciales no informan horas." Null cuando no hay ninguna (o el
+   * contador no esta disponible en un perfil generado antes de C2c). */
+  hoursCoverageNoticeLabel: string | null;
+  /** "N credenciales todavía no tienen análisis semántico." Null cuando no
+   * hay ninguna (o el contador no esta disponible en un perfil pre-C2c). */
+  semanticCoverageNoticeLabel: string | null;
   areas: Array<{ label: string; estimatedHoursLabel: string | null }>;
   /** Inferido/agregado por análisis de IA. Ver emittedSkills para lo declarado por el emisor. */
   skills: Array<{ label: string; confidenceLabel: string | null }>;

@@ -85,7 +85,19 @@ interface FormativeProfileJson {
   summary: {
     credentialsCount: number;
     analyzedCredentialsCount: number;
+    // Suma de Credential.hours (dato oficial/declarado por el emisor, nunca
+    // IA) entre las credenciales issued del holder. totalOfficialHours es
+    // el mismo valor con un nombre inequivoco -- totalHours se conserva
+    // por compatibilidad con consumidores existentes (C2c).
     totalHours: number | null;
+    totalOfficialHours: number | null;
+    // Credenciales issued sin Credential.hours declarado. Nunca se infiere
+    // ni se completa con IA -- simplemente se cuenta.
+    credentialsWithoutHours: number;
+    // Credenciales issued sin ningun SemanticAnalysis persistido (el mismo
+    // criterio que ya dispara el warning credential_without_semantic_analysis
+    // por credencial, contado aca a nivel de perfil).
+    credentialsWithoutSemanticCoverage: number;
   };
   areas: ProfileArea[];
   // Inferido por IA a partir de SemanticAnalysis. Nunca certifica ni
@@ -328,6 +340,11 @@ export class FormativeProfileService {
     const warnings = new Set<string>();
     const knownHours: number[] = [];
     let credentialsWithoutAnalysisButWithEmittedData = 0;
+    // C2c: contadores derivados aditivos -- no cambian ninguna regla de
+    // agregacion semantica existente, solo cuentan sobre los mismos datos
+    // que el loop ya recorre.
+    let credentialsWithoutHours = 0;
+    let credentialsWithoutSemanticCoverage = 0;
 
     if (credentials.length === 0) {
       warnings.add('no_issued_credentials');
@@ -337,6 +354,8 @@ export class FormativeProfileService {
       const hours = this.toNullableNumber(credential.hours);
       if (hours !== null) {
         knownHours.push(hours);
+      } else {
+        credentialsWithoutHours += 1;
       }
 
       const hadEmittedSignal = this.aggregateEmittedEvidenceForCredential(
@@ -351,6 +370,7 @@ export class FormativeProfileService {
       const semanticAnalysis = credential.semanticAnalyses[0];
       if (!semanticAnalysis) {
         warnings.add('credential_without_semantic_analysis');
+        credentialsWithoutSemanticCoverage += 1;
         if (hadEmittedSignal) {
           credentialsWithoutAnalysisButWithEmittedData += 1;
         }
@@ -446,7 +466,10 @@ export class FormativeProfileService {
       summary: {
         credentialsCount: credentials.length,
         analyzedCredentialsCount: semanticAnalysisIds.length,
-        totalHours
+        totalHours,
+        totalOfficialHours: totalHours,
+        credentialsWithoutHours,
+        credentialsWithoutSemanticCoverage
       },
       areas,
       skills: this.finalizeSkills(skillAccumulators),

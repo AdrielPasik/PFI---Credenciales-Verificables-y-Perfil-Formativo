@@ -343,6 +343,32 @@ readiness, emision, IA ni blockchain, y no expone historial o submitter.
   habilidades desde `SemanticAnalysis` cuando exista;
 - mantiene un perfil actual mediante transaccion Prisma.
 
+### C2c: horas oficiales y cobertura semantica
+
+`profileJson.summary` agrega tres campos derivados, sin migracion y sin
+tocar como se calculan `areas`/`skills`/`concepts`:
+
+- `totalOfficialHours`: igual a `totalHours` (suma de `Credential.hours`
+  de credenciales `issued`). Nombre inequivoco: nunca es una distribucion
+  por area ni una estimacion de IA.
+- `credentialsWithoutHours`: cantidad de credenciales `issued` con
+  `hours === null`. Solo cuenta, nunca infiere ni completa un valor.
+- `credentialsWithoutSemanticCoverage`: cantidad de credenciales `issued`
+  sin `SemanticAnalysis` utilizable (mismo criterio que ya generaba el
+  warning `credential_without_semantic_analysis`).
+
+Los dos contadores son independientes: una credencial puede faltar en
+uno, el otro, ambos o ninguno. El nombre de la credencial nunca participa
+del calculo de horas/areas -- el `select` de Prisma en `rebuildForUser` no
+incluye `title` ni `achievementName`.
+
+`GET /me/profile/current` y `POST /me/profile/rebuild` exponen estos
+campos vía `holder-current-profile.mapper.ts` sin nuevo endpoint.
+Perfiles generados antes de C2c (sin `profileJson.summary` con estos
+campos) se sirven con `totalOfficialHours` calculado desde `totalHours` y
+los contadores en `null` (no `0` -- "no sabemos" es distinto de "cero
+credenciales sin cobertura").
+
 El backend tambien puede validar y persistir artifacts IA reales mediante la
 integracion HTTP existente. `POST /credentials/:id/semantic-analysis/from-pdf`
 y `POST /me/profile/build-from-ai` permanecen protegidos por el JWT humano en

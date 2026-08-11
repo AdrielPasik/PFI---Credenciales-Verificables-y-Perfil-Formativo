@@ -132,12 +132,26 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
   const profile = nullableRecord(response.currentProfile);
   if (!profile) return null;
 
+  // C2c: totalOfficialHours es el campo inequivoco; si el backend todavia
+  // no lo manda (deploy skew) cae a totalHours -- mismo dato, nombre viejo.
+  const totalOfficialHours = profile.totalOfficialHours === undefined
+    ? nullableNumber(profile.totalHours)
+    : nullableNumber(profile.totalOfficialHours);
+  const credentialsWithoutHours = optionalNonNegativeInteger(profile.credentialsWithoutHours);
+  const credentialsWithoutSemanticCoverage = optionalNonNegativeInteger(profile.credentialsWithoutSemanticCoverage);
+
   return {
     profileVersion: requiredString(profile.profileVersion),
     credentialsCount: nonNegativeInteger(profile.credentialsCount),
-    totalHoursLabel: nullableNumber(profile.totalHours) === null
+    totalOfficialHoursLabel: totalOfficialHours === null
       ? null
-      : `${formatDisplayValue(nullableNumber(profile.totalHours))} horas`,
+      : `${formatDisplayValue(totalOfficialHours)} horas oficiales declaradas`,
+    hoursCoverageNoticeLabel: credentialsWithoutHours !== null && credentialsWithoutHours > 0
+      ? `${credentialsWithoutHours} ${pluralCredencial(credentialsWithoutHours)} no ${credentialsWithoutHours === 1 ? 'informa' : 'informan'} horas.`
+      : null,
+    semanticCoverageNoticeLabel: credentialsWithoutSemanticCoverage !== null && credentialsWithoutSemanticCoverage > 0
+      ? `${credentialsWithoutSemanticCoverage} ${pluralCredencial(credentialsWithoutSemanticCoverage)} todavía no ${credentialsWithoutSemanticCoverage === 1 ? 'tiene' : 'tienen'} análisis semántico.`
+      : null,
     areas: array(profile.areas).map((entry) => {
       const area = record(entry);
       const estimatedHours = nullableNumber(area.estimatedHours);
@@ -145,7 +159,7 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
         label: requiredString(area.label),
         estimatedHoursLabel: estimatedHours === null
           ? null
-          : `${formatDisplayValue(estimatedHours)} horas estimadas`
+          : `${formatDisplayValue(estimatedHours)} horas estimadas por IA`
       };
     }),
     skills: array(profile.skills).map((entry) => {
@@ -211,6 +225,11 @@ function qualityFlags(value: unknown): string[] { return array(value).map((entry
 function safeString(value: unknown, maxLength: number): string { const normalized = requiredString(value); if (normalized.length > maxLength || /[\u0000-\u001f\u007f]/.test(normalized)) invalid(); return normalized; }
 function nonNegativeInteger(value: unknown): number { if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) invalid(); return value; }
 function nullableNumber(value: unknown): number | null { if (value === null || value === undefined) return null; if (typeof value !== 'number' || !Number.isFinite(value)) invalid(); return value; }
+// C2c: contadores de cobertura ausentes (perfil pre-C2c) o null (backend ya
+// los declaro no disponibles) -> null. Presentes pero invalidos -> rechazo,
+// igual criterio que el resto de los campos numericos de este adapter.
+function optionalNonNegativeInteger(value: unknown): number | null { if (value === undefined || value === null) return null; return nonNegativeInteger(value); }
+function pluralCredencial(count: number): string { return count === 1 ? 'credencial' : 'credenciales'; }
 function nullableConfidence(value: unknown): number | null { const confidence = nullableNumber(value); if (confidence !== null && (confidence < 0 || confidence > 1)) invalid(); return confidence; }
 function requiredBoolean(value: unknown): boolean { if (typeof value !== 'boolean') invalid(); return value; }
 function enumValue<T extends readonly string[]>(value: unknown, allowed: T): T[number] { const normalized = requiredString(value); if (!allowed.includes(normalized)) invalid(); return normalized as T[number]; }

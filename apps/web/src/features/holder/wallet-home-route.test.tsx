@@ -9,8 +9,9 @@ const credential = {
   issuedAtLabel: '1 ago 2026', hasIntegrityEvidence: true, hasAnalysis: true
 };
 const profile = {
-  profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalHoursLabel: '64 horas',
-  areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas' }],
+  profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalOfficialHoursLabel: '64 horas',
+  hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null,
+  areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA' }],
   skills: [{ label: 'Diseño', confidenceLabel: '80% de confianza' }], concepts: ['arquitectura'],
   emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
   confidenceLabel: '80% de confianza', qualityFlags: ['Información parcial'], generatedAtLabel: '1 ago 2026'
@@ -94,5 +95,46 @@ describe('WalletHomeView', () => {
   ])('keeps one stable main heading with the declared-by-institutions section too', (profileState) => {
     render(<WalletHomeView profileState={profileState} credentialsState={credentialsReady} />);
     expect(screen.getAllByRole('heading', { level: 1, name: 'Mi perfil formativo' })).toHaveLength(1);
+  });
+
+  it('C2c: labels official hours clearly and never shows the ambiguous "Horas" copy', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.getByText(/credenciales y 64 horas\./)).toBeTruthy();
+    expect(screen.getByText(/Suma de horas informadas por las credenciales emitidas\. No representa una distribución por área\./)).toBeTruthy();
+  });
+
+  it('C2c: labels area hours as an AI estimate, never as official hours', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('Software · 64 horas estimadas por IA')).toBeTruthy();
+  });
+
+  it('C2c: never renders "0h" for an area without an AI hours estimate', () => {
+    const profileWithUnestimatedArea = { ...profile, areas: [{ label: 'Software', estimatedHoursLabel: null }] };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithUnestimatedArea }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('Software')).toBeTruthy();
+    expect(screen.queryByText(/0h/)).toBeNull();
+  });
+
+  it('C2c: shows a soft notice when credentials lack declared hours or semantic coverage', () => {
+    const profileWithGaps = {
+      ...profile,
+      hoursCoverageNoticeLabel: '1 credencial no informa horas.',
+      semanticCoverageNoticeLabel: '2 credenciales todavía no tienen análisis semántico.'
+    };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithGaps }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('1 credencial no informa horas.')).toBeTruthy();
+    expect(screen.getByText('2 credenciales todavía no tienen análisis semántico.')).toBeTruthy();
+    expect(screen.getByText('La distribución por áreas se muestra solo cuando existe evidencia suficiente.')).toBeTruthy();
+  });
+
+  it('C2c: hides the coverage notice card when both counters are absent', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.queryByText('Cobertura del perfil')).toBeNull();
+  });
+
+  it('C2c: never claims AI certified competencies or that blockchain validates them', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
+    expect(screen.queryByText(/la ia certificó/i)).toBeNull();
+    expect(screen.queryByText(/blockchain valida/i)).toBeNull();
   });
 });

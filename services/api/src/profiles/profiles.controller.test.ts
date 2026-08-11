@@ -78,7 +78,13 @@ test('ProfilesController rebuilds profile using current user id', async () => {
   assert.deepEqual(response, {
     currentProfile: {
       profileVersion: 'backend_formative_profile_snapshot_v0', credentialsCount: 1,
-      totalHours: 64, areas: [], skills: [], concepts: [],
+      // profileJson: {} simula un perfil generado antes de C2c (sin
+      // summary.totalOfficialHours ni contadores): totalOfficialHours cae a
+      // totalHours; los contadores caen a null (no a 0 -- "no sabemos" es
+      // distinto de "cero credenciales sin cobertura").
+      totalHours: 64, totalOfficialHours: 64,
+      credentialsWithoutHours: null, credentialsWithoutSemanticCoverage: null,
+      areas: [], skills: [], concepts: [],
       emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
       confidence: null, qualityFlags: [], generatedAt: '2026-07-24T12:00:00.000Z'
     }

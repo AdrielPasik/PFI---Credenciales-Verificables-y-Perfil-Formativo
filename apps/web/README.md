@@ -49,6 +49,19 @@ flujos reales del navegador sobre la base F0.1:
   aprendizaje; no muestran proveedor, nivel ni skills declaradas. Las skills
   visibles requieren un análisis IA cuando exista; el análisis textual de
   cursos queda pendiente de C2b.
+- C2c: `/wallet` etiqueta el total del perfil como "Horas oficiales
+  declaradas" (nunca "Horas" ambiguo) y aclara que es la suma de horas
+  informadas por credenciales emitidas, no una distribución por área. Las
+  áreas con estimación de IA se marcan como "Horas estimadas por IA"; las
+  áreas sin estimación nunca muestran "0h". Cuando corresponde, se muestran
+  avisos suaves ("N credenciales no informan horas.", "N credenciales
+  todavía no tienen análisis semántico.") a partir de los contadores
+  `credentialsWithoutHours`/`credentialsWithoutSemanticCoverage` del
+  backend. `/wallet/credentials/[credentialId]` usa la misma etiqueta
+  "Horas oficiales declaradas" para el campo `hoursLabel` del detalle. La
+  distribución de horas estimadas por credencial individual (no solo
+  agregada por perfil) queda pendiente — requeriría exponer
+  `hoursDistribution` por credencial en el read model.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

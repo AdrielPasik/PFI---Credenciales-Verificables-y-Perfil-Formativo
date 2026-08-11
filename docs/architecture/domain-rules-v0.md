@@ -314,6 +314,47 @@ caminos **automaticos** (`trigger=system`):
   idempotente (reconstruye el snapshot completo desde cero cada vez), solo
   seria trabajo redundante.
 
+### C2c: horas oficiales y cobertura semantica en el perfil holder
+
+C2c no rediseña `FormativeProfileService` ni cambia como se calculan
+areas/skills/concepts -- agrega campos derivados, adicionales, a
+`profileJson.summary` para que el holder pueda distinguir horas oficiales
+de estimaciones de IA, y para que sepa cuando el perfil todavia no tiene
+evidencia suficiente:
+
+- `summary.totalOfficialHours`: igual a `summary.totalHours` (la suma de
+  `Credential.hours` de credenciales `issued`). Es el mismo dato con un
+  nombre que nunca se confunde con una distribucion por area o con una
+  estimacion de IA.
+- `summary.credentialsWithoutHours`: cantidad de credenciales `issued`
+  con `hours === null`. No se infiere ni se completa ese valor -- solo se
+  cuenta.
+- `summary.credentialsWithoutSemanticCoverage`: cantidad de credenciales
+  `issued` sin un `SemanticAnalysis` utilizable (mismo criterio que ya
+  generaba el warning `credential_without_semantic_analysis`).
+- Los dos contadores son independientes entre si: una credencial puede
+  faltar en uno, en el otro, en ambos o en ninguno.
+- `areasSummary`/`hoursDistribution` siguen siendo la unica fuente de
+  horas estimadas por area, y solo existen cuando un `SemanticAnalysis`
+  trae `hoursDistribution`. El nombre de la credencial (`title`,
+  `achievementName`) nunca participa del calculo -- el `select` de Prisma
+  en `rebuildForUser` no lo incluye.
+- Compatibilidad con perfiles generados antes de C2c: `profileJson.summary`
+  puede no tener estos campos. El mapper (`holder-current-profile.mapper.ts`)
+  y el adaptador del frontend (`holder.adapter.ts`) hacen fallback en
+  capas independientes: `totalOfficialHours` cae a `totalHours`; los
+  contadores ausentes se exponen como `null` (no como `0` -- "no sabemos"
+  es distinto de "cero credenciales sin cobertura").
+- El wallet (`/wallet`) usa "Horas oficiales declaradas" para el total y
+  "Horas estimadas por IA" para las areas, y muestra avisos suaves cuando
+  los contadores son mayores a cero. Nunca muestra "0h" para un area sin
+  estimacion.
+- Pendiente, fuera de alcance de C2c: catalogo reutilizable de areas/horas
+  (C3), interpretacion aprobada (C4) y distribucion de horas estimadas por
+  credencial individual en el detalle holder (requeriria exponer
+  `hoursDistribution` por credencial en el read model, no solo agregado
+  por perfil).
+
 ## 12. Catalogo y curricula institucional para academic_subject
 
 P3.1a vincula opcionalmente un draft `academic_subject` con un

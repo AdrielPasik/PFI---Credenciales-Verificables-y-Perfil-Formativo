@@ -21,13 +21,25 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
           </div>
           <div>
             <h2 id="holder-profile-summary-title" className="text-xl font-semibold">Resumen del perfil</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalHoursLabel ? ` y ${profile.totalHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
+            {profile.totalOfficialHoursLabel ? <p className="mt-2 max-w-2xl text-xs leading-5 text-brand-100/70">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
           </div>
         </CardHeader>
       </Card>
 
+      {profile.hoursCoverageNoticeLabel || profile.semanticCoverageNoticeLabel ? (
+        <Card className="border-amber-300 bg-amber-50">
+          <CardContent className="pt-5 text-sm leading-6 text-amber-900 sm:pt-6">
+            <p className="font-semibold">Cobertura del perfil</p>
+            {profile.semanticCoverageNoticeLabel ? <p className="mt-2">{profile.semanticCoverageNoticeLabel}</p> : null}
+            {profile.hoursCoverageNoticeLabel ? <p className="mt-2">{profile.hoursCoverageNoticeLabel}</p> : null}
+            <p className="mt-2 text-amber-800">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-5 lg:grid-cols-2">
-        <ProfileList title="Áreas principales" icon={<BookOpenCheck aria-hidden="true" className="size-5" />} items={profile.areas.map((area) => area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label)} empty="Todavía no hay áreas formativas disponibles." />
+        <ProfileList title="Áreas principales" icon={<BookOpenCheck aria-hidden="true" className="size-5" />} items={profile.areas.map((area) => area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label)} empty="Sin estimación horaria por área todavía." />
         <ProfileList title="Habilidades del perfil" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={profile.skills.map((skill) => skill.label)} empty="Todavía no hay habilidades disponibles." />
       </div>
       <ProfileList title="Conceptos relevantes" icon={<Sparkles aria-hidden="true" className="size-5" />} items={profile.concepts} empty="Todavía no hay conceptos disponibles." />

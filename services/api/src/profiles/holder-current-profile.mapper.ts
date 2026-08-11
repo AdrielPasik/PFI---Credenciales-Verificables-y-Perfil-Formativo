@@ -22,6 +22,15 @@ export function mapHolderCurrentProfileResponse(
       profileVersion: profile.profileVersion,
       credentialsCount: profile.credentialsCount,
       totalHours: profile.totalHours,
+      totalOfficialHours: totalOfficialHours(profile),
+      credentialsWithoutHours: summaryCounter(
+        profile.profileJson,
+        'credentialsWithoutHours'
+      ),
+      credentialsWithoutSemanticCoverage: summaryCounter(
+        profile.profileJson,
+        'credentialsWithoutSemanticCoverage'
+      ),
       areas: areas(profile.areasSummary),
       skills: skills(profile.skillsSummary),
       concepts: concepts(profile.profileJson),
@@ -81,6 +90,43 @@ function emittedLabels(
     const label = normalize(entry.label);
     return label ? [label] : [];
   });
+}
+
+// C2c: totalOfficialHours es el mismo dato que totalHours (suma de
+// Credential.hours declarado, nunca IA), solo con un nombre inequivoco.
+// Si el perfil persistido es anterior a C2c y no tiene
+// profileJson.summary.totalOfficialHours, cae al totalHours ya calculado
+// por FormativeProfileService.toCurrentProfileResponse (columna DB o
+// profileJson.summary.totalHours -- misma cadena de fallback existente).
+function totalOfficialHours(profile: {
+  totalHours: number | null;
+  profileJson: unknown;
+}) {
+  const summary = summaryRecord(profile.profileJson);
+  if (summary && 'totalOfficialHours' in summary) {
+    return number(summary.totalOfficialHours);
+  }
+  return profile.totalHours;
+}
+
+// Contadores de cobertura (C2c). Ausentes en perfiles pre-C2c -> null, no 0:
+// "no sabemos" es distinto de "cero credenciales sin cobertura".
+function summaryCounter(
+  profileJsonValue: unknown,
+  field: 'credentialsWithoutHours' | 'credentialsWithoutSemanticCoverage'
+) {
+  const summary = summaryRecord(profileJsonValue);
+  if (!summary || !(field in summary)) return null;
+  const value = summary[field];
+  return typeof value === 'number' &&
+    Number.isInteger(value) &&
+    value >= 0
+    ? value
+    : null;
+}
+
+function summaryRecord(value: unknown): Record<string, unknown> | null {
+  return isRecord(value) && isRecord(value.summary) ? value.summary : null;
 }
 
 function confidence(value: unknown) {
