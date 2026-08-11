@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { CourseTemplateStatus } from '@prisma/client';
+import { CourseTemplateStatus, CredentialType } from '@prisma/client';
 
 import { mapCourseTemplateResponse } from './issuer-course-templates.mapper';
 
@@ -9,15 +9,21 @@ function decimalLike(value: string) {
   return { toFixed: (fractionDigits?: number) => Number(value).toFixed(fractionDigits) };
 }
 
-test('mapCourseTemplateResponse serializes Decimal hours as a string, never a raw object', () => {
+test('mapCourseTemplateResponse serializes Decimal hours as a string, never a raw object, for a course template', () => {
   const response = mapCourseTemplateResponse({
     id: 'template-1',
+    credentialType: CredentialType.course,
     title: 'Curso de Python',
     description: 'Introduccion a Python',
     hours: decimalLike('22'),
     modality: 'Online',
     platformName: 'Plataforma de Cursos Demo',
     externalUrl: 'https://plataforma-demo.example.com/curso/python',
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
     competencies: ['Programacion'],
     learningOutcomes: ['Escribir scripts basicos'],
     status: CourseTemplateStatus.active,
@@ -29,16 +35,21 @@ test('mapCourseTemplateResponse serializes Decimal hours as a string, never a ra
 
   assert.equal(response.hours, '22.00');
   assert.equal(typeof response.hours, 'string');
-  assert.equal(response.createdAt, '2026-08-11T10:00:00.000Z');
-  assert.equal(response.updatedAt, '2026-08-11T10:05:00.000Z');
+  assert.equal(response.credentialType, CredentialType.course);
   assert.deepEqual(response, {
     id: 'template-1',
+    credentialType: CredentialType.course,
     title: 'Curso de Python',
     description: 'Introduccion a Python',
     hours: '22.00',
     modality: 'Online',
     platformName: 'Plataforma de Cursos Demo',
     externalUrl: 'https://plataforma-demo.example.com/curso/python',
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
     competencies: ['Programacion'],
     learningOutcomes: ['Escribir scripts basicos'],
     status: CourseTemplateStatus.active,
@@ -51,15 +62,55 @@ test('mapCourseTemplateResponse serializes Decimal hours as a string, never a ra
   assert.equal(JSON.stringify(response).includes('createdByUserId'), false);
 });
 
-test('mapCourseTemplateResponse maps null hours and null optional fields safely', () => {
+test('mapCourseTemplateResponse exposes certification-only fields and credentialType=certification', () => {
   const response = mapCourseTemplateResponse({
     id: 'template-2',
+    credentialType: CredentialType.certification,
+    title: 'Certificacion AWS Cloud Practitioner',
+    description: null,
+    hours: decimalLike('10'),
+    modality: null,
+    platformName: null,
+    externalUrl: 'https://certificaciones-demo.example.com/aws-ccp',
+    certificationCode: 'AWS-CCP',
+    expirationDate: '2027-01-01',
+    providerName: 'Instituto Demo',
+    level: 'Fundamentos',
+    skills: ['Cloud'],
+    competencies: ['Fundamentos de nube'],
+    learningOutcomes: [],
+    status: CourseTemplateStatus.active,
+    createdFromCredentialId: 'credential-2',
+    lastSemanticAnalysisId: null,
+    createdAt: new Date('2026-08-11T10:00:00.000Z'),
+    updatedAt: new Date('2026-08-11T10:00:00.000Z')
+  });
+
+  assert.equal(response.credentialType, CredentialType.certification);
+  assert.equal(response.certificationCode, 'AWS-CCP');
+  assert.equal(response.expirationDate, '2027-01-01');
+  assert.equal(response.providerName, 'Instituto Demo');
+  assert.equal(response.level, 'Fundamentos');
+  assert.deepEqual(response.skills, ['Cloud']);
+  assert.equal(response.modality, null);
+  assert.equal(response.platformName, null);
+});
+
+test('mapCourseTemplateResponse maps null hours and null optional fields safely', () => {
+  const response = mapCourseTemplateResponse({
+    id: 'template-3',
+    credentialType: CredentialType.course,
     title: 'Curso manual',
     description: null,
     hours: null,
     modality: null,
     platformName: null,
     externalUrl: null,
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
     competencies: [],
     learningOutcomes: [],
     status: CourseTemplateStatus.archived,

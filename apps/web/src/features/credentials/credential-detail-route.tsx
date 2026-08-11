@@ -29,6 +29,7 @@ import { CredentialDraftEditorForm } from '@/features/credentials/credential-dra
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
+import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
 import {
   useIssuerDocumentAnalysis,
@@ -51,11 +52,13 @@ import {
   submitCredentialTextEvidenceRequest,
   uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
+import { saveCourseTemplateFromCredential } from '@/lib/api/course-templates-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
 import type {
   CredentialFeedback,
   AcademicProgramSearchItemVM,
+  CourseTemplateSummaryVM,
   CurriculumAcademicSubjectSearchItemVM,
   DocumentEvidenceVM,
   IssuerCredentialDetailVM,
@@ -300,6 +303,16 @@ export function CredentialDetailController({
     return issued;
   }
 
+  // C3b: guarda la credencial actual como IssuerCourseTemplate reutilizable.
+  // No llama setDetail -- nunca modifica la credencial visible ni crea una
+  // credencial nueva, solo un registro aparte en el catalogo del issuer.
+  async function saveReusableTemplate(): Promise<CourseTemplateSummaryVM> {
+    return saveCourseTemplateFromCredential(requestAuthenticated, {
+      issuerReference: membership.issuerReference,
+      credentialReference
+    });
+  }
+
   return (
     <CredentialDetailView
       detail={detail}
@@ -310,6 +323,7 @@ export function CredentialDetailController({
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
       onIssue={issueCredential}
+      onSaveReusableTemplate={saveReusableTemplate}
       draftEditor={{
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
@@ -331,6 +345,7 @@ export function CredentialDetailView({
   draftEditor,
   onIssue = unavailableCredentialIssuance,
   onSubmitTextEvidence = unavailableTextEvidenceSubmission,
+  onSaveReusableTemplate = unavailableSaveReusableTemplate,
   onUploadDocumentEvidence
 }: {
   detail: IssuerCredentialDetailVM;
@@ -344,6 +359,7 @@ export function CredentialDetailView({
     label: string | null;
     content: string;
   }): Promise<TextEvidenceVM>;
+  onSaveReusableTemplate?(): Promise<CourseTemplateSummaryVM>;
   draftEditor?: {
     issuerReference: string;
     onSave(
@@ -545,6 +561,14 @@ export function CredentialDetailView({
         <CourseDeclaredDataCard subject={detail.credentialSubject} />
       ) : null}
 
+      {(detail.type === 'course' || detail.type === 'certification') &&
+      detail.status !== 'revoked' ? (
+        <SaveReusableTemplateSection
+          credentialType={detail.type}
+          onSave={onSaveReusableTemplate}
+        />
+      ) : null}
+
       <section aria-labelledby="supporting-evidence-title" className="grid gap-8">
         <div className="max-w-3xl border-t border-border-default pt-8">
           <p className="text-sm font-semibold text-teal-700">Fuentes institucionales</p>
@@ -590,6 +614,10 @@ async function unavailableTextEvidenceSubmission(): Promise<TextEvidenceVM> {
 
 async function unavailableCredentialIssuance(): Promise<IssuerCredentialDetailVM> {
   throw new Error('Credential issuance is not available in this view.');
+}
+
+async function unavailableSaveReusableTemplate(): Promise<CourseTemplateSummaryVM> {
+  throw new Error('Saving a reusable template is not available in this view.');
 }
 
 function valuesDiffer(

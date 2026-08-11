@@ -1,9 +1,11 @@
 import { CourseTemplateStatus } from '@prisma/client';
 
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
+import type { ReusableCredentialType } from './issuer-course-templates.validator';
 
 export interface CourseTemplateRecord {
   id: string;
+  credentialType: ReusableCredentialType;
   title: string;
   description: string | null;
   hours: {
@@ -12,6 +14,11 @@ export interface CourseTemplateRecord {
   modality: string | null;
   platformName: string | null;
   externalUrl: string | null;
+  certificationCode: string | null;
+  expirationDate: string | null;
+  providerName: string | null;
+  level: string | null;
+  skills: string[];
   competencies: string[];
   learningOutcomes: string[];
   status: CourseTemplateStatus;
@@ -29,12 +36,18 @@ export function mapCourseTemplateResponse(
 ): CourseTemplateResponseDto {
   return {
     id: template.id,
+    credentialType: template.credentialType,
     title: template.title,
     description: template.description,
     hours: template.hours?.toFixed(2) ?? null,
     modality: template.modality,
     platformName: template.platformName,
     externalUrl: template.externalUrl,
+    certificationCode: template.certificationCode,
+    expirationDate: template.expirationDate,
+    providerName: template.providerName,
+    level: template.level,
+    skills: template.skills,
     competencies: template.competencies,
     learningOutcomes: template.learningOutcomes,
     status: template.status,

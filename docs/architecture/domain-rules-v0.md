@@ -620,3 +620,91 @@ C3b/C3c; C3a es solo el modelo y la API).
   aplica -- el perfil sigue derivando solo de credenciales emitidas
   reales, ver seccion C2c mas arriba), y cualquier integracion real con
   Udemy, Coursera o AWS (no existe, no se afirma, no se simula).
+
+### C3a.2 — `IssuerCourseTemplate` extendido a `certification`
+
+C3a limitaba el catalogo reusable a `course`. C3a.2 corrige eso: el
+catalogo tambien acepta `certification`, porque ambos son ofertas
+reutilizables de un emisor (una plataforma de cursos, una universidad o
+cualquier institucion privada puede reofrecer un curso o una
+certificacion), independientemente de si el issuer es UADE o "Plataforma
+de Cursos Demo" -- la restriccion depende del **tipo de credencial**, no
+del tipo de issuer.
+
+- **Por que `academic_subject` y `degree` siguen excluidos**:
+  `academic_subject` pertenece al catalogo academico formal de una
+  universidad -- plan de estudio, carrera y materia oficial
+  (`AcademicCourse`/`Program`/`CurriculumVersion`). `degree` tambien
+  pertenece a una estructura academica formal. Ninguno de los dos
+  corresponde a un template reutilizable libre desde una credencial
+  individual. `course` y `certification` si, porque son ofertas que un
+  emisor puede repetir tal cual para distintos titulares.
+- **Decision de modelado (Opcion A extendida)**: se agrego
+  `credentialType: CredentialType` (`@default(course)`, solo
+  `course`/`certification` validos aca) y los campos
+  `certificationCode`, `expirationDate`, `providerName`, `level`,
+  `skills: String[]` al mismo modelo `IssuerCourseTemplate`, en vez de
+  crear `IssuerCertificationTemplate` (Opcion B) o un
+  `IssuerCredentialTemplate` nuevo (Opcion C). Motivo: `course` y
+  `certification` comparten la mayoria de los campos (`title`,
+  `description`, `hours`, `externalUrl`, `competencies`) y el mismo
+  catalogo/busqueda/dedup; duplicar el modelo habria significado
+  duplicar tambien el service, el validator, el mapper y el controller
+  casi entero. Se documenta como **deuda de naming**: el modelo sigue
+  llamandose `IssuerCourseTemplate` aunque ya no es solo de cursos; no se
+  renombra fisicamente para no agrandar la migracion.
+- **`credentialType` es inmutable** despues de creado -- no se acepta en
+  `PATCH`. Define que subconjunto de campos aplica (ver mas abajo), y
+  cambiarlo despues de creado abriria la puerta a un template con datos
+  de un tipo y `credentialType` de otro.
+- **Campos exclusivos de `course`** (igual que antes de C3a.2):
+  `modality`, `platformName`, `learningOutcomes`.
+- **Campos exclusivos de `certification`** (nuevos en C3a.2):
+  `certificationCode`, `expirationDate`, `providerName`, `level`,
+  `skills` -- los mismos que `credentialSubject` ya permite para
+  `certification` en el draft (`issuer-credential-draft-subject.ts`).
+  `skills` SI aplica a `certification` (a diferencia de `course`, que
+  nunca lo permitio desde C2).
+- **Campos comunes a ambos**: `title`, `description`, `hours`,
+  `externalUrl`, `competencies`. `learningOutcomes` se lee de forma
+  defensiva al copiar desde una credencial `certification` (por si
+  existiera como dato legacy), pero no es un campo controlado de
+  `certification` en el contrato actual -- no se puede setear
+  manualmente en un template `certification` via API.
+- **Nunca se cruzan campos entre tipos**: un template `course` nunca
+  copia ni acepta `certificationCode`/`providerName`/`level`/`skills`; un
+  template `certification` nunca copia ni acepta
+  `modality`/`platformName`. Verificado con tests dedicados en ambas
+  direcciones (create manual, patch y create-from-credential).
+- **Deduplicacion separada por tipo**: la regla de C3a
+  (`issuerId` + `createdFromCredentialId` + titulo normalizado, solo
+  contra templates `active`) ya separa por tipo de forma natural, porque
+  cada `Credential` tiene un unico `type` fijo -- un `course` y un
+  `certification` con el mismo titulo nunca comparten
+  `createdFromCredentialId` y por lo tanto nunca colisionan entre si.
+- **No se creo un endpoint nuevo**: se mantiene
+  `POST /issuers/:issuerId/course-templates/from-credential/:credentialId`
+  (y el resto de la familia `course-templates`) pese al nombre historico
+  -- ahora acepta `course` y `certification`. No se creo
+  `reusable-credential-templates` ni un nombre mas generico para no
+  agrandar el cambio; queda documentado aca como la fuente de verdad de
+  que, pese al nombre, el endpoint ya no es exclusivo de `course`.
+
+### C3b — Guardar como reutilizable desde el detalle issuer-facing
+
+`/issuer/credentials/[credentialId]` agrega una accion "Guardar como
+curso/certificación reutilizable" que llama al endpoint de C3a/C3a.2
+descripto arriba. Reglas de UX:
+
+- Visible unicamente cuando `credential.type` es `course` o
+  `certification`, la credencial esta en `draft` o `issued` (nunca
+  `revoked`), y el usuario opera dentro de un contexto de issuer valido
+  (el mismo `IssuerRouteBoundary` que ya protege el resto del portal
+  emisor). Nunca visible para `academic_subject`, `degree`, en la wallet
+  holder, en paginas de verifier/publico ni en pantallas de creacion de
+  credencial.
+- La accion **no modifica la credencial visible** ni **crea una
+  credencial nueva** -- solo agrega un registro aparte en el catalogo
+  reutilizable del issuer. El copy lo aclara explicitamente en la UI.
+- No hay pantalla de gestion del catalogo ni selector en la creacion de
+  credenciales en C3b -- eso queda para un slice futuro (analogo a C3c).

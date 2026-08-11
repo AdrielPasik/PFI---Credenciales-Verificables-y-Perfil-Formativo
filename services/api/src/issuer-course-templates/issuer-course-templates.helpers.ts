@@ -1,11 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { CredentialType, Prisma } from '@prisma/client';
 
-// C3a: mismas claves de credentialSubject que
+import type { ReusableCredentialType } from './issuer-course-templates.validator';
+
+// C3a/C3a.2: mismas claves de credentialSubject que
 // issuer-credential-read.mapper.ts (achievement_name, platform_name,
-// external_url, competencies, learning_outcomes). Se duplica localmente
-// porque esos helpers no estan exportados y no queremos acoplar este
-// catalogo al mapper de lectura de credenciales.
+// modality, external_url, certification_code, expiration_date,
+// provider_name, level, competencies, learning_outcomes, skills). Se
+// duplica localmente porque esos helpers no estan exportados y no queremos
+// acoplar este catalogo al mapper de lectura de credenciales.
 
 export function toJsonObject(
   value: Prisma.JsonValue
@@ -19,7 +22,15 @@ export function toJsonObject(
 
 export function readSubjectText(
   source: Record<string, Prisma.JsonValue>,
-  key: 'achievement_name' | 'platform_name' | 'modality' | 'external_url'
+  key:
+    | 'achievement_name'
+    | 'platform_name'
+    | 'modality'
+    | 'external_url'
+    | 'certification_code'
+    | 'expiration_date'
+    | 'provider_name'
+    | 'level'
 ): string | null {
   const value = source[key];
 
@@ -33,7 +44,7 @@ export function readSubjectText(
 
 export function readSubjectStringArray(
   source: Record<string, Prisma.JsonValue>,
-  key: 'competencies' | 'learning_outcomes'
+  key: 'competencies' | 'learning_outcomes' | 'skills'
 ): string[] {
   const value = source[key];
 
@@ -62,7 +73,8 @@ export function readSubjectStringArray(
 }
 
 // Prioridad: credentialSubject.achievement_name, despues Credential.title.
-// Nunca copia providerName, level ni skills, y nunca usa un titulo vacio.
+// Nunca copia providerName/level/skills como titulo, y nunca usa un titulo
+// vacio.
 export function resolveTemplateTitleFromCredential(
   subject: Record<string, Prisma.JsonValue>,
   credentialTitle: string
@@ -81,7 +93,7 @@ export function resolveTemplateTitleFromCredential(
   }
 
   throw new BadRequestException(
-    'La credencial no tiene un titulo suficiente para crear un curso reutilizable.'
+    'La credencial no tiene un titulo suficiente para crear un template reutilizable.'
   );
 }
 
@@ -89,4 +101,22 @@ export function resolveTemplateTitleFromCredential(
 // case-insensitive. No se persiste (ver decision documentada en el bundle).
 export function normalizeTitleForComparison(value: string): string {
   return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-US');
+}
+
+// C3a.2: solo course y certification pueden guardarse como reutilizables.
+// academic_subject y degree pertenecen al catalogo academico formal
+// (AcademicCourse/Program) -- nunca a un catalogo libre por issuer.
+export function resolveReusableCredentialType(
+  credentialType: CredentialType
+): ReusableCredentialType {
+  if (
+    credentialType !== CredentialType.course &&
+    credentialType !== CredentialType.certification
+  ) {
+    throw new BadRequestException(
+      'Solo se pueden guardar como reutilizables credenciales de tipo course o certification.'
+    );
+  }
+
+  return credentialType;
 }

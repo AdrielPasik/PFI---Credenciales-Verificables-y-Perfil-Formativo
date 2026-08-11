@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { BadRequestException } from '@nestjs/common';
+import { CredentialType } from '@prisma/client';
 
 import {
   normalizeTitleForComparison,
   readSubjectStringArray,
   readSubjectText,
+  resolveReusableCredentialType,
   resolveTemplateTitleFromCredential,
   toJsonObject
 } from './issuer-course-templates.helpers';
@@ -74,5 +76,50 @@ test('normalizeTitleForComparison trims, collapses whitespace and lowercases', (
   assert.equal(
     normalizeTitleForComparison('Python para Data'),
     normalizeTitleForComparison('  python   PARA   data ')
+  );
+});
+
+test('readSubjectText reads certification-only keys the same way', () => {
+  assert.equal(
+    readSubjectText({ certification_code: '  AWS-CCP  ' }, 'certification_code'),
+    'AWS-CCP'
+  );
+  assert.equal(
+    readSubjectText({ expiration_date: '2027-01-01' }, 'expiration_date'),
+    '2027-01-01'
+  );
+  assert.equal(
+    readSubjectText({ provider_name: 'Instituto Demo' }, 'provider_name'),
+    'Instituto Demo'
+  );
+  assert.equal(readSubjectText({ level: 'Fundamentos' }, 'level'), 'Fundamentos');
+});
+
+test('readSubjectStringArray reads skills the same way as competencies/learning_outcomes', () => {
+  assert.deepEqual(
+    readSubjectStringArray({ skills: ['Cloud', 'cloud', ''] }, 'skills'),
+    ['Cloud']
+  );
+});
+
+test('resolveReusableCredentialType accepts course and certification', () => {
+  assert.equal(
+    resolveReusableCredentialType(CredentialType.course),
+    CredentialType.course
+  );
+  assert.equal(
+    resolveReusableCredentialType(CredentialType.certification),
+    CredentialType.certification
+  );
+});
+
+test('resolveReusableCredentialType rejects academic_subject and degree', () => {
+  assert.throws(
+    () => resolveReusableCredentialType(CredentialType.academic_subject),
+    BadRequestException
+  );
+  assert.throws(
+    () => resolveReusableCredentialType(CredentialType.degree),
+    BadRequestException
   );
 });

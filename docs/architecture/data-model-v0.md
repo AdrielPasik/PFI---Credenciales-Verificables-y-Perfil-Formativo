@@ -128,12 +128,14 @@
 
 ## IssuerCourseTemplate
 
-- Proposito: catalogo reusable de cursos PROPIO de cada issuer (C3a), para
-  reutilizar cursos que un issuer carga manualmente en vez de volver a
-  tipear los mismos datos. Deliberadamente distinto de `ExternalCourse`
-  (ver nota abajo).
-- Campos conceptuales: `id`, `issuer_id`, `title`, `description`, `hours`,
-  `modality`, `platform_name`, `external_url`, `competencies`,
+- Proposito: catalogo reusable PROPIO de cada issuer (C3a), para
+  reutilizar cursos o certificaciones que un issuer carga manualmente en
+  vez de volver a tipear los mismos datos. Deliberadamente distinto de
+  `ExternalCourse` (ver nota abajo).
+- Campos conceptuales: `id`, `issuer_id`, `credential_type`
+  (`course`/`certification`, C3a.2), `title`, `description`, `hours`,
+  `modality`, `platform_name`, `external_url`, `certification_code`,
+  `expiration_date`, `provider_name`, `level`, `skills`, `competencies`,
   `learning_outcomes`, `status` (`active`/`archived`),
   `created_from_credential_id`, `last_semantic_analysis_id`,
   `created_by_user_id`.
@@ -142,18 +144,30 @@
   y `last_semantic_analysis_id` son referencias informativas sin FK (el
   patron actual del schema evita relaciones opcionales adicionales cuando
   no son estrictamente necesarias para C3a).
-- Relacional: issuer, titulo, horas, modality, status, timestamps.
-- Postgres nativo: `competencies` y `learning_outcomes` son `String[]`
-  (arrays escalares de Postgres), no JSONB -- primer uso de este tipo de
-  columna en el schema.
+- Relacional: issuer, tipo de credencial, titulo, horas, modality, status,
+  timestamps.
+- Postgres nativo: `skills`, `competencies` y `learning_outcomes` son
+  `String[]` (arrays escalares de Postgres), no JSONB -- primer uso de
+  este tipo de columna en el schema (introducido en C3a con
+  `competencies`/`learning_outcomes`; `skills` se agrego en C3a.2).
 - No on-chain: no participa en `canon_v1` ni blockchain -- no es una
   credencial emitida.
 - Nota `ExternalCourse` vs `IssuerCourseTemplate`: `ExternalCourse` no
   tiene `issuer_id` (no es scoped a un emisor) y fue modelado para un
   futuro import de catalogos externos, no para un catalogo propio por
   issuer. El bundle de auditoria C2b-C3 ya habia señalado que no
-  correspondia reutilizarlo para este caso. C3a no migra datos desde
-  `ExternalCourse` ni lo modifica.
+  correspondia reutilizarlo para este caso. Ni C3a ni C3a.2 migran datos
+  desde `ExternalCourse` ni lo modifican.
+- Nota C3a.2 (`credentialType`): solo `course` y `certification` son
+  validos -- `academic_subject` y `degree` pertenecen al catalogo
+  academico formal (`AcademicCourse`/`Program`), nunca a este catalogo
+  libre. `credentialType` es inmutable despues de creado (define que
+  subconjunto de columnas aplica: `modality`/`platform_name`/
+  `learning_outcomes` para `course`; `certification_code`/
+  `expiration_date`/`provider_name`/`level`/`skills` para
+  `certification`). El modelo no se renombro fisicamente al agregar
+  `certification` -- deuda de naming documentada, ver
+  `docs/architecture/domain-rules-v0.md`.
 
 ## Program
 

@@ -994,3 +994,215 @@ describe('CredentialDetailView read-only states', () => {
     expect(screen.queryByText('Datos declarados del curso')).toBeNull();
   });
 });
+
+describe('CredentialDetailView reusable template action', () => {
+  it.each([
+    ['course', 'draft', 'Guardar como curso reutilizable'],
+    ['course', 'issued', 'Guardar como curso reutilizable'],
+    ['certification', 'draft', 'Guardar como certificación reutilizable'],
+    ['certification', 'issued', 'Guardar como certificación reutilizable']
+  ] as const)('shows the button for %s in %s status', (type, status, buttonLabel) => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type, status })}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: buttonLabel })).toBeTruthy();
+  });
+
+  it.each(['academic_subject', 'degree'] as const)(
+    'never shows the button for %s',
+    (type) => {
+      render(
+        <CredentialDetailView
+          onUploadDocumentEvidence={unusedDocumentUpload}
+          detail={detailFixture({ type, status: 'issued' })}
+        />
+      );
+
+      expect(
+        screen.queryByRole('button', { name: /Guardar como .* reutilizable/ })
+      ).toBeNull();
+    }
+  );
+
+  it('never shows the button for a revoked credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'revoked' })}
+      />
+    );
+
+    expect(
+      screen.queryByRole('button', { name: /Guardar como .* reutilizable/ })
+    ).toBeNull();
+  });
+
+  it('never mentions "asignatura" in this action', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          typeLabel: 'Curso',
+          status: 'issued'
+        })}
+      />
+    );
+
+    const section = screen.getByTestId('save-reusable-template-section');
+    expect(section.textContent ?? '').not.toMatch(/asignatura/i);
+  });
+
+  it('shows a loading state, then success, and never mutates the visible credential', async () => {
+    const onSaveReusableTemplate = vi.fn().mockResolvedValue({
+      reference: 'template-1',
+      credentialType: 'course',
+      title: 'Curso de Python',
+      description: null,
+      hours: null,
+      modality: null,
+      platformName: null,
+      externalUrl: null,
+      certificationCode: null,
+      expirationDate: null,
+      providerName: null,
+      level: null,
+      skills: [],
+      competencies: [],
+      learningOutcomes: [],
+      status: 'active',
+      createdFromCredentialId: 'credential-internal-reference',
+      lastSemanticAnalysisId: null,
+      createdAt: '2026-08-11T10:00:00.000Z',
+      updatedAt: '2026-08-11T10:00:00.000Z'
+    });
+    const detail = detailFixture({ type: 'course', status: 'issued' });
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+        detail={detail}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    expect(screen.getByRole('button', { name: 'Guardando…' })).toBeTruthy();
+
+    await waitFor(() => {
+      expect(screen.getByText('Curso guardado como reutilizable.')).toBeTruthy();
+    });
+
+    expect(onSaveReusableTemplate).toHaveBeenCalledTimes(1);
+    // El titulo visible de la credencial nunca cambia.
+    expect(screen.getByText(detail.title)).toBeTruthy();
+  });
+
+  it('shows a non-danger duplicate notice on 409', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockRejectedValue(new ApiError('conflict', 'http', 409));
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+        detail={detailFixture({ type: 'certification', status: 'issued' })}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como certificación reutilizable' })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Esta certificación ya fue guardada como reutilizable.')
+      ).toBeTruthy();
+    });
+    // No-danger: no debe renderizarse con el rol de error/alert.
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('shows safe feedback on a generic backend error without breaking the screen', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockRejectedValue(new ApiError('private backend detail', 'http', 400));
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'No pudimos guardar este contenido como reutilizable. Revisá los datos e intentá nuevamente.'
+        )
+      ).toBeTruthy();
+    });
+    expect(document.body.textContent).not.toContain('private backend detail');
+    // La pantalla sigue mostrando el resto del detalle sin romperse.
+    expect(screen.getByText('Arquitectura de Software')).toBeTruthy();
+  });
+
+  it('shows safe feedback on a network error', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockRejectedValue(new ApiError('private transport detail', 'network'));
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No pudimos conectar con el servicio. Revisá la conexión e intentá nuevamente.')
+      ).toBeTruthy();
+    });
+  });
+
+  it('never renders forbidden copy near this action', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          typeLabel: 'Curso',
+          status: 'issued'
+        })}
+      />
+    );
+
+    const section = screen.getByTestId('save-reusable-template-section');
+    const text = section.textContent ?? '';
+    expect(text).not.toMatch(/IA certificó/i);
+    expect(text).not.toMatch(/blockchain valida/i);
+    expect(text).not.toMatch(/verificado por|udemy|coursera|aws/i);
+    expect(text).toMatch(/No modifica la credencial original\./);
+    expect(text).toMatch(/No crea una nueva credencial\./);
+    expect(text).toMatch(/No implica integración oficial con plataformas externas\./);
+  });
+});

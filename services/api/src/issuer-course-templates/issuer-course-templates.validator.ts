@@ -1,11 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
-import { CourseTemplateStatus, Prisma } from '@prisma/client';
+import { CourseTemplateStatus, CredentialType, Prisma } from '@prisma/client';
 
 import {
   CONTROLLED_ARRAY_ITEM_MAX_LENGTH,
   CONTROLLED_ARRAY_MAX_ITEMS,
   CONTROLLED_STRING_MAX_LENGTH,
   EXTERNAL_URL_MAX_LENGTH,
+  isCalendarDate,
   type FieldUpdate
 } from '../credentials/issuer-credential-draft-update.validator';
 
@@ -15,27 +16,68 @@ import {
 const COURSE_TEMPLATE_MODALITIES = new Set(['Presencial', 'Online', 'Asincrónica']);
 const MAX_HOURS = new Prisma.Decimal('99999999.99');
 
-const CREATE_FIELDS = [
+// C3a.2: solo course y certification pueden guardarse como reutilizables
+// (ver domain-rules-v0.md -- academic_subject/degree pertenecen al catalogo
+// academico formal, no a un catalogo libre por issuer).
+export const REUSABLE_CREDENTIAL_TYPES = [
+  CredentialType.course,
+  CredentialType.certification
+] as const;
+export type ReusableCredentialType = (typeof REUSABLE_CREDENTIAL_TYPES)[number];
+
+// Campos comunes a ambos tipos (coinciden con lo que credentialSubject ya
+// permite para course Y certification, ver APPLICABLE_FIELDS_BY_TYPE en
+// issuer-credential-draft-subject.ts).
+const COMMON_FIELDS = [
   'title',
   'description',
   'hours',
-  'modality',
-  'platformName',
+  'credentialType',
   'externalUrl',
-  'competencies',
-  'learningOutcomes'
+  'competencies'
 ] as const;
-const PATCH_FIELDS = [...CREATE_FIELDS, 'status'] as const;
+// Exclusivos de course.
+const COURSE_ONLY_FIELDS = ['modality', 'platformName', 'learningOutcomes'] as const;
+// Exclusivos de certification.
+const CERTIFICATION_ONLY_FIELDS = [
+  'certificationCode',
+  'expirationDate',
+  'providerName',
+  'level',
+  'skills'
+] as const;
+
+const CREATE_FIELDS = [
+  ...COMMON_FIELDS,
+  ...COURSE_ONLY_FIELDS,
+  ...CERTIFICATION_ONLY_FIELDS
+] as const;
+// credentialType es inmutable despues de creado (define que campos aplican);
+// no se acepta en PATCH, igual criterio que createdFromCredentialId.
+const PATCH_FIELDS = [
+  ...COMMON_FIELDS.filter((field) => field !== 'credentialType'),
+  ...COURSE_ONLY_FIELDS,
+  ...CERTIFICATION_ONLY_FIELDS,
+  'status'
+] as const;
 const CREATE_ALLOWED_FIELDS = new Set<string>(CREATE_FIELDS);
 const PATCH_ALLOWED_FIELDS = new Set<string>(PATCH_FIELDS);
+const COURSE_ONLY_SET = new Set<string>(COURSE_ONLY_FIELDS);
+const CERTIFICATION_ONLY_SET = new Set<string>(CERTIFICATION_ONLY_FIELDS);
 
 export interface NormalizedCourseTemplateCreate {
+  credentialType: ReusableCredentialType;
   title: string;
   description: string | null;
   hours: Prisma.Decimal | null;
   modality: string | null;
   platformName: string | null;
   externalUrl: string | null;
+  certificationCode: string | null;
+  expirationDate: string | null;
+  providerName: string | null;
+  level: string | null;
+  skills: string[];
   competencies: string[];
   learningOutcomes: string[];
 }
@@ -47,6 +89,11 @@ export interface NormalizedCourseTemplatePatch {
   modality: FieldUpdate<string | null>;
   platformName: FieldUpdate<string | null>;
   externalUrl: FieldUpdate<string | null>;
+  certificationCode: FieldUpdate<string | null>;
+  expirationDate: FieldUpdate<string | null>;
+  providerName: FieldUpdate<string | null>;
+  level: FieldUpdate<string | null>;
+  skills: FieldUpdate<string[]>;
   competencies: FieldUpdate<string[]>;
   learningOutcomes: FieldUpdate<string[]>;
   status: FieldUpdate<CourseTemplateStatus>;
@@ -62,7 +109,14 @@ export function validateCreateCourseTemplatePayload(
     throw new BadRequestException('title es requerido.');
   }
 
+  const credentialType = hasOwn(body, 'credentialType')
+    ? normalizeCredentialType(body.credentialType)
+    : CredentialType.course;
+
+  rejectFieldsNotApplicableToType(body, credentialType);
+
   return {
+    credentialType,
     title: normalizeRequiredTitle(body.title),
     description: hasOwn(body, 'description')
       ? normalizeDescription(body.description)
@@ -75,6 +129,19 @@ export function validateCreateCourseTemplatePayload(
     externalUrl: hasOwn(body, 'externalUrl')
       ? normalizeExternalUrl(body.externalUrl)
       : null,
+    certificationCode: hasOwn(body, 'certificationCode')
+      ? normalizeControlledString(body.certificationCode, 'certificationCode')
+      : null,
+    expirationDate: hasOwn(body, 'expirationDate')
+      ? normalizeCalendarDate(body.expirationDate, 'expirationDate')
+      : null,
+    providerName: hasOwn(body, 'providerName')
+      ? normalizeControlledString(body.providerName, 'providerName')
+      : null,
+    level: hasOwn(body, 'level') ? normalizeControlledString(body.level, 'level') : null,
+    skills: hasOwn(body, 'skills')
+      ? normalizeControlledStringArray(body.skills, 'skills')
+      : [],
     competencies: hasOwn(body, 'competencies')
       ? normalizeControlledStringArray(body.competencies, 'competencies')
       : [],
@@ -85,7 +152,8 @@ export function validateCreateCourseTemplatePayload(
 }
 
 export function validatePatchCourseTemplatePayload(
-  payload: unknown
+  payload: unknown,
+  currentCredentialType: ReusableCredentialType
 ): NormalizedCourseTemplatePatch {
   const body = asObject(payload);
   rejectUnknownFields(body, PATCH_ALLOWED_FIELDS);
@@ -93,6 +161,8 @@ export function validatePatchCourseTemplatePayload(
   if (Object.keys(body).length === 0) {
     throw new BadRequestException('Debe enviarse al menos un campo para actualizar.');
   }
+
+  rejectFieldsNotApplicableToType(body, currentCredentialType);
 
   return {
     title: normalizeOptionalField(body, 'title', normalizeRequiredTitle),
@@ -103,6 +173,21 @@ export function validatePatchCourseTemplatePayload(
       normalizeControlledString(value, 'platformName')
     ),
     externalUrl: normalizeOptionalField(body, 'externalUrl', normalizeExternalUrl),
+    certificationCode: normalizeOptionalField(body, 'certificationCode', (value) =>
+      normalizeControlledString(value, 'certificationCode')
+    ),
+    expirationDate: normalizeOptionalField(body, 'expirationDate', (value) =>
+      normalizeCalendarDate(value, 'expirationDate')
+    ),
+    providerName: normalizeOptionalField(body, 'providerName', (value) =>
+      normalizeControlledString(value, 'providerName')
+    ),
+    level: normalizeOptionalField(body, 'level', (value) =>
+      normalizeControlledString(value, 'level')
+    ),
+    skills: normalizeOptionalField(body, 'skills', (value) =>
+      normalizeControlledStringArray(value, 'skills')
+    ),
     competencies: normalizeOptionalField(body, 'competencies', (value) =>
       normalizeControlledStringArray(value, 'competencies')
     ),
@@ -113,14 +198,32 @@ export function validatePatchCourseTemplatePayload(
   };
 }
 
+function rejectFieldsNotApplicableToType(
+  body: Record<string, unknown>,
+  credentialType: ReusableCredentialType
+) {
+  const forbidden =
+    credentialType === CredentialType.course
+      ? CERTIFICATION_ONLY_SET
+      : COURSE_ONLY_SET;
+
+  for (const key of Object.keys(body)) {
+    if (forbidden.has(key)) {
+      throw new BadRequestException(
+        `${key} no aplica a un template de tipo ${credentialType}.`
+      );
+    }
+  }
+}
+
 function rejectUnknownFields(body: Record<string, unknown>, allowed: Set<string>) {
   const keys = Object.keys(body);
 
   if (keys.some((key) => !allowed.has(key))) {
     throw new BadRequestException(
-      'El payload contiene campos no permitidos para el curso reutilizable. ' +
-        'skills, providerName, level, issuerId, createdByUserId, ' +
-        'createdFromCredentialId y lastSemanticAnalysisId no se aceptan desde el body.'
+      'El payload contiene campos no permitidos para el template reutilizable. ' +
+        'issuerId, createdByUserId, createdFromCredentialId y ' +
+        'lastSemanticAnalysisId no se aceptan desde el body.'
     );
   }
 }
@@ -145,6 +248,20 @@ function asObject(payload: unknown): Record<string, unknown> {
 
 function hasOwn(source: Record<string, unknown>, key: string) {
   return Object.prototype.hasOwnProperty.call(source, key);
+}
+
+// C3a.2: academic_subject y degree nunca son validos aca -- pertenecen al
+// catalogo academico formal (AcademicCourse/Program), no a un catalogo
+// reutilizable libre por issuer.
+function normalizeCredentialType(value: unknown): ReusableCredentialType {
+  if (
+    value !== CredentialType.course &&
+    value !== CredentialType.certification
+  ) {
+    throw new BadRequestException('credentialType debe ser course o certification.');
+  }
+
+  return value;
 }
 
 function normalizeRequiredTitle(value: unknown) {
@@ -249,6 +366,28 @@ function normalizeControlledString(value: unknown, field: string) {
     throw new BadRequestException(
       `${field} no puede superar ${CONTROLLED_STRING_MAX_LENGTH} caracteres.`
     );
+  }
+
+  return normalized;
+}
+
+function normalizeCalendarDate(value: unknown, field: string) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value !== 'string') {
+    throw new BadRequestException(`${field} debe ser YYYY-MM-DD o null.`);
+  }
+
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (!isCalendarDate(normalized)) {
+    throw new BadRequestException(`${field} debe ser una fecha real YYYY-MM-DD.`);
   }
 
   return normalized;

@@ -28,12 +28,18 @@ function decimalLike(value: string) {
 function baseTemplateRow(overrides?: Record<string, unknown>) {
   return {
     id: 'template-1',
+    credentialType: CredentialType.course,
     title: 'Curso de Python',
     description: null,
     hours: null,
     modality: null,
     platformName: null,
     externalUrl: null,
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
     competencies: [],
     learningOutcomes: [],
     status: CourseTemplateStatus.active,
@@ -219,6 +225,43 @@ test('list search filters by title, platformName and description', async () => {
   );
 });
 
+test('list search also matches providerName (certification parity with platformName)', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({
+        id: 't-cert-1',
+        credentialType: CredentialType.certification,
+        title: 'Certificacion AWS',
+        providerName: 'Instituto Python Academy'
+      })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer(
+    'issuer-1',
+    { search: 'python' },
+    currentUser
+  );
+
+  assert.deepEqual(result.map((item) => item.id), ['t-cert-1']);
+});
+
+test('list includes course and certification templates together in the same catalog', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({ id: 't-course', credentialType: CredentialType.course }),
+      baseTemplateRow({ id: 't-cert', credentialType: CredentialType.certification })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer('issuer-1', {}, currentUser);
+
+  assert.deepEqual(
+    result.map((item) => item.credentialType).sort(),
+    [CredentialType.certification, CredentialType.course]
+  );
+});
+
 test('create manual builds a template scoped to the issuer and current user', async () => {
   const { service, calls } = createService();
 
@@ -233,7 +276,33 @@ test('create manual builds a template scoped to the issuer and current user', as
   assert.equal(data.issuerId, 'issuer-1');
   assert.equal(data.createdByUserId, 'issuer-user-1');
   assert.equal(data.status, CourseTemplateStatus.active);
+  assert.equal(data.credentialType, CredentialType.course);
   assert.equal(data.title, 'Curso de Python');
+});
+
+test('create manual accepts credentialType=certification with certification-only fields', async () => {
+  const { service, calls } = createService();
+
+  await service.createTemplateForIssuer(
+    'issuer-1',
+    {
+      credentialType: CredentialType.certification,
+      title: 'Certificacion AWS Cloud Practitioner',
+      certificationCode: 'AWS-CCP',
+      providerName: 'Instituto Demo',
+      level: 'Fundamentos',
+      skills: ['Cloud']
+    },
+    currentUser
+  );
+
+  const createCall = calls.find((call) => call.op === 'create');
+  const data = (createCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+  assert.equal(data.credentialType, CredentialType.certification);
+  assert.equal(data.certificationCode, 'AWS-CCP');
+  assert.equal(data.providerName, 'Instituto Demo');
+  assert.equal(data.level, 'Fundamentos');
+  assert.deepEqual(data.skills, ['Cloud']);
 });
 
 test('create manual rejects an empty title', async () => {
@@ -271,7 +340,7 @@ test('create manual rejects an invalid externalUrl', async () => {
   );
 });
 
-test('create manual rejects skills, providerName and level', async () => {
+test('create manual rejects skills, providerName and level on a course template', async () => {
   const { service } = createService();
 
   for (const field of ['skills', 'providerName', 'level']) {
@@ -279,6 +348,25 @@ test('create manual rejects skills, providerName and level', async () => {
       service.createTemplateForIssuer(
         'issuer-1',
         { title: 'Curso', [field]: field === 'skills' ? ['x'] : 'x' },
+        currentUser
+      ),
+      BadRequestException
+    );
+  }
+});
+
+test('create manual rejects modality and platformName on a certification template', async () => {
+  const { service } = createService();
+
+  for (const field of ['modality', 'platformName']) {
+    await assert.rejects(
+      service.createTemplateForIssuer(
+        'issuer-1',
+        {
+          credentialType: CredentialType.certification,
+          title: 'Certificacion',
+          [field]: field === 'modality' ? 'Online' : 'x'
+        },
         currentUser
       ),
       BadRequestException
@@ -302,14 +390,42 @@ function courseCredentialFixture(overrides?: Record<string, unknown>) {
       learning_outcomes: ['Escribir scripts basicos'],
       provider_name: 'must-not-copy',
       level: 'must-not-copy',
-      skills: ['must-not-copy']
+      skills: ['must-not-copy'],
+      academic_period: 'must-not-copy',
+      program_name: 'must-not-copy'
     },
     semanticAnalyses: [{ id: 'analysis-1' }],
     ...overrides
   };
 }
 
-test('create from credential copies title, description, hours, platform, modality, externalUrl, competencies and learningOutcomes', async () => {
+function certificationCredentialFixture(overrides?: Record<string, unknown>) {
+  return {
+    id: 'credential-2',
+    type: CredentialType.certification,
+    title: 'Certificacion AWS (legacy)',
+    description: 'Certificacion de fundamentos de cloud',
+    hours: decimalLike('10'),
+    credentialSubject: {
+      achievement_name: 'Certificacion AWS Cloud Practitioner',
+      certification_code: 'AWS-CCP',
+      expiration_date: '2027-01-01',
+      external_url: 'https://certificaciones-demo.example.com/aws-ccp',
+      provider_name: 'Instituto Demo',
+      level: 'Fundamentos',
+      skills: ['Cloud'],
+      competencies: ['Fundamentos de nube'],
+      modality: 'must-not-copy',
+      platform_name: 'must-not-copy',
+      academic_period: 'must-not-copy',
+      program_name: 'must-not-copy'
+    },
+    semanticAnalyses: [{ id: 'analysis-2' }],
+    ...overrides
+  };
+}
+
+test('create from credential copies title, description, hours, platform, modality, externalUrl, competencies and learningOutcomes for a course', async () => {
   const { service, calls } = createService({
     credential: courseCredentialFixture()
   });
@@ -323,6 +439,7 @@ test('create from credential copies title, description, hours, platform, modalit
   const createCall = calls.find((call) => call.op === 'create');
   const data = (createCall?.args as Record<string, unknown>).data as Record<string, unknown>;
 
+  assert.equal(data.credentialType, CredentialType.course);
   assert.equal(data.title, 'Curso de Python');
   assert.equal(data.description, 'Introduccion a Python');
   assert.equal((data.hours as { toString: () => string }).toString(), '22');
@@ -336,7 +453,7 @@ test('create from credential copies title, description, hours, platform, modalit
   assert.equal(data.createdByUserId, 'issuer-user-1');
 });
 
-test('create from credential never copies skills, providerName or level', async () => {
+test('create from credential never copies skills, providerName or level for a course', async () => {
   const { service, calls } = createService({
     credential: courseCredentialFixture()
   });
@@ -353,7 +470,57 @@ test('create from credential never copies skills, providerName or level', async 
   assert.equal('skills' in data, false);
   assert.equal('providerName' in data, false);
   assert.equal('level' in data, false);
+  assert.equal('certificationCode' in data, false);
+  assert.equal('expirationDate' in data, false);
   assert.equal(JSON.stringify(data).includes('must-not-copy'), false);
+});
+
+test('create from credential accepts certification and copies its permitted fields', async () => {
+  const { service, calls } = createService({
+    credential: certificationCredentialFixture()
+  });
+
+  await service.createTemplateFromCredentialForIssuer(
+    'issuer-1',
+    'credential-2',
+    currentUser
+  );
+
+  const createCall = calls.find((call) => call.op === 'create');
+  const data = (createCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+
+  assert.equal(data.credentialType, CredentialType.certification);
+  assert.equal(data.title, 'Certificacion AWS Cloud Practitioner');
+  assert.equal(data.description, 'Certificacion de fundamentos de cloud');
+  assert.equal((data.hours as { toString: () => string }).toString(), '10');
+  assert.equal(data.certificationCode, 'AWS-CCP');
+  assert.equal(data.expirationDate, '2027-01-01');
+  assert.equal(data.externalUrl, 'https://certificaciones-demo.example.com/aws-ccp');
+  assert.equal(data.providerName, 'Instituto Demo');
+  assert.equal(data.level, 'Fundamentos');
+  assert.deepEqual(data.skills, ['Cloud']);
+  assert.deepEqual(data.competencies, ['Fundamentos de nube']);
+});
+
+test('create from credential never copies modality, platformName or academic fields for a certification', async () => {
+  const { service, calls } = createService({
+    credential: certificationCredentialFixture()
+  });
+
+  await service.createTemplateFromCredentialForIssuer(
+    'issuer-1',
+    'credential-2',
+    currentUser
+  );
+
+  const createCall = calls.find((call) => call.op === 'create');
+  const data = (createCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+
+  assert.equal('modality' in data, false);
+  assert.equal('platformName' in data, false);
+  assert.equal(JSON.stringify(data).includes('must-not-copy'), false);
+  assert.equal(JSON.stringify(data).includes('rawData'), false);
+  assert.equal(JSON.stringify(data).includes('academicCourseReference'), false);
 });
 
 test('create from credential prioritizes achievement_name over Credential.title', async () => {
@@ -395,9 +562,20 @@ test('create from credential falls back to lastSemanticAnalysisId null when no a
   assert.equal(data.lastSemanticAnalysisId, null);
 });
 
-test('create from credential rejects a non-course credential', async () => {
+test('create from credential rejects an academic_subject credential', async () => {
   const { service } = createService({
-    credential: courseCredentialFixture({ type: CredentialType.certification })
+    credential: courseCredentialFixture({ type: CredentialType.academic_subject })
+  });
+
+  await assert.rejects(
+    service.createTemplateFromCredentialForIssuer('issuer-1', 'credential-1', currentUser),
+    BadRequestException
+  );
+});
+
+test('create from credential rejects a degree credential', async () => {
+  const { service } = createService({
+    credential: courseCredentialFixture({ type: CredentialType.degree })
   });
 
   await assert.rejects(
@@ -438,7 +616,7 @@ test('create from credential rejects when neither achievement_name nor Credentia
   );
 });
 
-test('create from credential deduplication returns 409 for an existing active template from the same credential and title', async () => {
+test('create from credential deduplication returns 409 with a course-specific message', async () => {
   const { service } = createService({
     credential: courseCredentialFixture(),
     templates: [
@@ -452,7 +630,32 @@ test('create from credential deduplication returns 409 for an existing active te
 
   await assert.rejects(
     service.createTemplateFromCredentialForIssuer('issuer-1', 'credential-1', currentUser),
-    ConflictException
+    (error: unknown) =>
+      error instanceof ConflictException &&
+      (error.getResponse() as { message: string }).message ===
+        'Este curso ya fue guardado como reutilizable.'
+  );
+});
+
+test('create from credential deduplication returns 409 with a certification-specific message', async () => {
+  const { service } = createService({
+    credential: certificationCredentialFixture(),
+    templates: [
+      baseTemplateRow({
+        credentialType: CredentialType.certification,
+        title: 'Certificacion AWS Cloud Practitioner',
+        createdFromCredentialId: 'credential-2',
+        status: CourseTemplateStatus.active
+      })
+    ]
+  });
+
+  await assert.rejects(
+    service.createTemplateFromCredentialForIssuer('issuer-1', 'credential-2', currentUser),
+    (error: unknown) =>
+      error instanceof ConflictException &&
+      (error.getResponse() as { message: string }).message ===
+        'Esta certificacion ya fue guardada como reutilizable.'
   );
 });
 
@@ -469,6 +672,31 @@ test('create from credential deduplication ignores archived templates', async ()
   });
 
   await service.createTemplateFromCredentialForIssuer('issuer-1', 'credential-1', currentUser);
+
+  assert.ok(calls.some((call) => call.op === 'create'));
+});
+
+test('create from credential deduplication is separated by credential/type: a course and a certification with the same title never collide', async () => {
+  const { service, calls } = createService({
+    credential: certificationCredentialFixture({
+      credentialSubject: {
+        achievement_name: 'Curso de Python',
+        certification_code: 'X',
+        skills: [],
+        competencies: []
+      }
+    }),
+    templates: [
+      baseTemplateRow({
+        credentialType: CredentialType.course,
+        title: 'Curso de Python',
+        createdFromCredentialId: 'credential-1',
+        status: CourseTemplateStatus.active
+      })
+    ]
+  });
+
+  await service.createTemplateFromCredentialForIssuer('issuer-1', 'credential-2', currentUser);
 
   assert.ok(calls.some((call) => call.op === 'create'));
 });
@@ -510,7 +738,7 @@ test('patch archive changes status to archived', async () => {
   assert.equal(data.status, CourseTemplateStatus.archived);
 });
 
-test('patch does not allow changing issuerId or createdByUserId', async () => {
+test('patch does not allow changing issuerId, createdByUserId or credentialType', async () => {
   const { service } = createService({
     templates: [baseTemplateRow()]
   });
@@ -529,6 +757,43 @@ test('patch does not allow changing issuerId or createdByUserId', async () => {
       'issuer-1',
       'template-1',
       { createdByUserId: 'someone-else' },
+      currentUser
+    ),
+    BadRequestException
+  );
+  await assert.rejects(
+    service.patchTemplateForIssuer(
+      'issuer-1',
+      'template-1',
+      { credentialType: CredentialType.certification },
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('patch rejects certification-only fields on a course template and vice versa', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({ id: 'course-template', credentialType: CredentialType.course }),
+      baseTemplateRow({ id: 'cert-template', credentialType: CredentialType.certification })
+    ]
+  });
+
+  await assert.rejects(
+    service.patchTemplateForIssuer(
+      'issuer-1',
+      'course-template',
+      { certificationCode: 'X' },
+      currentUser
+    ),
+    BadRequestException
+  );
+  await assert.rejects(
+    service.patchTemplateForIssuer(
+      'issuer-1',
+      'cert-template',
+      { modality: 'Online' },
       currentUser
     ),
     BadRequestException

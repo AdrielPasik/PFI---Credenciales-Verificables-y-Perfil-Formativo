@@ -152,4 +152,29 @@ describe('mapCredentialError', () => {
         'No pudimos confirmar el resultado de la emisión. Actualizá el detalle antes de volver a intentarlo.'
     });
   });
+
+  it.each([
+    [400, 'invalid_input', 'No pudimos guardar este contenido como reutilizable. Revisá los datos e intentá nuevamente.'],
+    [403, 'forbidden', 'No tenés permisos para guardar contenido reutilizable en esta institución.'],
+    [404, 'not_found', 'No encontramos la credencial dentro del contexto institucional activo.'],
+    [409, 'conflict', 'Este contenido ya fue guardado como reutilizable.'],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps save-reusable-template HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'save-reusable-template'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it('maps save-reusable-template network failures without exposing transport detail', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'save-reusable-template'
+      ).code
+    ).toBe('network');
+  });
 });

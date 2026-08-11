@@ -1038,10 +1038,12 @@ funcionando igual, y los perfiles persistidos antes de C2c (sin
 cambian: siguen dependiendo exclusivamente de `SemanticAnalysis.hoursDistribution`
 cuando existe.
 
-## C3a: catalogo reusable de cursos por issuer
+## C3a/C3a.2: catalogo reusable de cursos y certificaciones por issuer
 
-Cuatro endpoints nuevos, todos protegidos por `AuthGuard` y issuer-scoped
-(membership `admin`/`operator` activa, issuer `authorized`):
+Cuatro endpoints, todos protegidos por `AuthGuard` y issuer-scoped
+(membership `admin`/`operator` activa, issuer `authorized`). El nombre de
+ruta (`course-templates`) es historico de C3a; desde C3a.2 el catalogo
+tambien acepta `certification` (ver nota al final):
 
 ```text
 GET   /issuers/:issuerId/course-templates?search=&status=
@@ -1051,23 +1053,51 @@ PATCH /issuers/:issuerId/course-templates/:templateId
 ```
 
 `GET` devuelve un array (no `{ items: [...] }`) de templates del issuer
-solicitado:
+solicitado, `course` y `certification` mezclados en la misma lista:
 
 ```json
 [
   {
     "id": "...",
+    "credentialType": "course",
     "title": "...",
     "description": "...",
     "hours": "22.00",
     "modality": "Online",
     "platformName": "...",
     "externalUrl": "...",
+    "certificationCode": null,
+    "expirationDate": null,
+    "providerName": null,
+    "level": null,
+    "skills": [],
     "competencies": ["..."],
     "learningOutcomes": ["..."],
     "status": "active",
     "createdFromCredentialId": "...",
     "lastSemanticAnalysisId": "...",
+    "createdAt": "2026-08-11T12:00:00.000Z",
+    "updatedAt": "2026-08-11T12:00:00.000Z"
+  },
+  {
+    "id": "...",
+    "credentialType": "certification",
+    "title": "Certificacion AWS Cloud Practitioner",
+    "description": "...",
+    "hours": "10.00",
+    "modality": null,
+    "platformName": null,
+    "externalUrl": "...",
+    "certificationCode": "AWS-CCP",
+    "expirationDate": "2027-01-01",
+    "providerName": "Instituto Demo",
+    "level": "Fundamentos",
+    "skills": ["Cloud"],
+    "competencies": ["..."],
+    "learningOutcomes": [],
+    "status": "active",
+    "createdFromCredentialId": "...",
+    "lastSemanticAnalysisId": null,
     "createdAt": "2026-08-11T12:00:00.000Z",
     "updatedAt": "2026-08-11T12:00:00.000Z"
   }
@@ -1076,38 +1106,93 @@ solicitado:
 
 Nunca expone `issuerId` ni `createdByUserId`, y nunca devuelve templates de
 otro issuer. `status` default `active`; acepta `archived` o `all`. `search`
-compara contra `title`, `platformName` y `description` (normalizado NFD +
-minusculas es-AR, mismo criterio que el catalogo academico). Orden
-`updatedAt desc`, limite fijo `20`.
+compara contra `title`, `platformName`, `providerName` y `description`
+(normalizado NFD + minusculas es-AR, mismo criterio que el catalogo
+academico). Orden `updatedAt desc`, limite fijo `20`. `credentialType`
+distingue `course` de `certification` en la response; `academic_subject` y
+`degree` nunca aparecen como valor de `credentialType`.
 
-`POST` (creacion manual) acepta `title` (requerido), `description`, `hours`
-(**`number` JSON**, no decimal string -- distinto del contrato de
-`PATCH .../credentials/:credentialId/draft` que usa decimal string para
-`hours`), `modality` (`Presencial`/`Online`/`Asincrónica`), `platformName`,
-`externalUrl` (HTTP/HTTPS), `competencies` y `learningOutcomes` (arrays de
-string, normalizados y dedupeados case-insensitive). Rechaza `skills`,
-`providerName`, `level`, `issuerId`, `createdByUserId` y `status` en el
-body -- el template siempre se crea `active`.
+`POST` (creacion manual) acepta `credentialType` opcional
+(`course`/`certification`, default `course` por compatibilidad con C3a),
+`title` (requerido), `description`, `hours` (**`number` JSON**, no decimal
+string -- distinto del contrato de `PATCH .../credentials/:credentialId/draft`
+que usa decimal string para `hours`), `externalUrl` (HTTP/HTTPS) y
+`competencies` (comunes a ambos tipos, arrays de string normalizados y
+dedupeados case-insensitive). Segun `credentialType`:
+- `course`: acepta ademas `modality`
+  (`Presencial`/`Online`/`Asincrónica`), `platformName` y
+  `learningOutcomes`; rechaza `certificationCode`/`expirationDate`/
+  `providerName`/`level`/`skills`.
+- `certification`: acepta ademas `certificationCode`, `expirationDate`
+  (`YYYY-MM-DD`), `providerName` y `skills` (array de string); rechaza
+  `modality`/`platformName`/`learningOutcomes`.
+
+Rechaza `issuerId`, `createdByUserId` y `status` en el body en ambos casos
+-- el template siempre se crea `active`.
 
 `POST .../from-credential/:credentialId` crea un template a partir de una
-credencial `course` del mismo issuer (`draft` o `issued`). Resuelve el
-titulo con prioridad `credentialSubject.achievement_name` sobre
-`Credential.title`; si ninguno alcanza, responde `400`. Copia
-`description`, `hours`, `platformName`, `modality`, `externalUrl`,
-`competencies` y `learningOutcomes` desde la credencial. Nunca copia
-`skills`, `providerName`, `level` ni `rawData`. Si ya existe un template
-`active` del mismo issuer con el mismo `createdFromCredentialId` y un
-titulo igual tras normalizar, responde `409 Conflict`:
-*"Este curso ya fue guardado como reutilizable."*
+credencial `course` **o** `certification` del mismo issuer (`draft` o
+`issued`). `academic_subject` y `degree` responden `400` -- pertenecen al
+catalogo academico formal, no a este catalogo libre. Resuelve el titulo con
+prioridad `credentialSubject.achievement_name` sobre `Credential.title`; si
+ninguno alcanza, responde `400`. Copia `description`, `hours` y
+`externalUrl` (comunes), mas los campos exclusivos del tipo detectado
+automaticamente desde `credential.type` (el cliente no lo elige): `course`
+copia `platformName`/`modality`/`competencies`/`learningOutcomes`;
+`certification` copia `certificationCode`/`expirationDate`/`providerName`/
+`level`/`skills`/`competencies`. Nunca cruza campos entre tipos, y nunca
+copia `rawData`, `metadata`, datos de blockchain/holder ni referencias
+academicas. Si ya existe un template `active` del mismo issuer con el mismo
+`createdFromCredentialId` y un titulo igual tras normalizar, responde
+`409 Conflict` con *"Este curso ya fue guardado como reutilizable."*
+(`course`) o *"Esta certificacion ya fue guardada como reutilizable."*
+(`certification`).
 
-`PATCH .../:templateId` acepta los mismos campos que `POST` mas `status`
+`PATCH .../:templateId` acepta los mismos campos que `POST` (segun el
+`credentialType` ya fijado del template al crearlo) mas `status`
 (`active`/`archived`, para archivar). Nunca acepta `issuerId`,
-`createdByUserId`, `createdFromCredentialId` ni `lastSemanticAnalysisId`
-desde el body -- son derivados o inmutables despues de creado el template.
+`createdByUserId`, `credentialType`, `createdFromCredentialId` ni
+`lastSemanticAnalysisId` desde el body -- son derivados o inmutables
+despues de creado el template.
 
 `IssuerCourseTemplate` no es una credencial emitida: no participa en
 `canon_v1`, no se registra en blockchain, no modifica `Credential` ni
 `SemanticAnalysis` existentes. No hay endpoint para crear un draft de
 credencial a partir de un template, ni un endpoint de aprobacion de
-interpretacion IA sobre un template -- eso queda para C3c/C4. No hay UI ni
-selector en este slice (C3b).
+interpretacion IA sobre un template -- eso queda para C3c/C4.
+
+**Nota de naming**: se evaluo crear un endpoint mas generico
+(`reusable-credential-templates` o similar) al agregar soporte para
+`certification`, pero se descarto para no agrandar el cambio -- se
+mantiene `course-templates` documentando explicitamente que, pese al
+nombre historico, acepta ambos tipos desde C3a.2.
+
+### C3b: consumo frontend desde el detalle de credencial issuer-facing
+
+C3b agrega solo el consumo del endpoint `from-credential` desde
+`/issuer/credentials/[credentialId]`, sin pantalla de catalogo ni
+selector en creacion de credencial (eso sigue siendo C3c):
+
+- `saveCourseTemplateFromCredential(requestAuthenticated, { issuerReference, credentialReference })`
+  (`apps/web/src/lib/api/course-templates-api.ts`) llama
+  `POST /issuers/:issuerId/course-templates/from-credential/:credentialId`
+  sin body -- el backend deriva todos los campos de la credencial.
+- `adaptCourseTemplateSummary` (`apps/web/src/lib/adapters/course-templates.adapter.ts`)
+  adapta la response a `CourseTemplateSummaryVM`
+  (`apps/web/src/models/credentials.ts`), tolera nulls opcionales y
+  rechaza un payload incompatible con `IncompatiblePayloadError`. No lee
+  `issuerId` ni `createdByUserId` aunque el backend los devolviera.
+- `mapCredentialError(error, 'save-reusable-template')`
+  (`apps/web/src/lib/errors/credential-error-mapper.ts`) mapea `409` a
+  `code: 'conflict'` con un mensaje generico; el componente
+  (`SaveReusableTemplateSection`) es quien decide el texto final
+  especifico por tipo ("Este curso ya fue guardado como reutilizable."
+  vs "Esta certificación ya fue guardada como reutilizable.") -- el
+  mapper no conoce el `credentialType`, solo el codigo HTTP.
+- El boton ("Guardar como curso reutilizable" / "Guardar como
+  certificación reutilizable") solo se muestra en
+  `/issuer/credentials/[credentialId]` cuando
+  `detail.type === 'course' || detail.type === 'certification'` y
+  `detail.status !== 'revoked'`. Nunca aparece para `academic_subject`,
+  `degree`, en la wallet holder, en verifier/public ni en pantallas de
+  creacion.

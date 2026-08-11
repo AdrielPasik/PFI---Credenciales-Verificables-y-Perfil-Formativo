@@ -14,7 +14,8 @@ type CredentialOperation =
   | 'document-evidence-upload'
   | 'text-evidence-submit'
   | 'issue'
-  | 'detail';
+  | 'detail'
+  | 'save-reusable-template';
 
 function feedback(
   code: CredentialFeedbackCode,
@@ -93,6 +94,13 @@ export function mapCredentialError(
       );
     }
 
+    if (operation === 'save-reusable-template') {
+      return feedback(
+        'forbidden',
+        'No tenés permisos para guardar contenido reutilizable en esta institución.'
+      );
+    }
+
     return feedback(
       'forbidden',
       operation === 'document-evidence-upload'
@@ -123,12 +131,35 @@ export function mapCredentialError(
       );
     }
 
+    if (operation === 'save-reusable-template') {
+      return feedback(
+        'not_found',
+        'No encontramos la credencial dentro del contexto institucional activo.'
+      );
+    }
+
     return feedback(
       'not_found',
       operation === 'document-evidence-upload'
         ? 'No encontramos la credencial dentro del contexto institucional activo.'
         : 'No encontramos la credencial solicitada.'
     );
+  }
+
+  if (operation === 'save-reusable-template') {
+    if (error.status === 409) {
+      return feedback(
+        'conflict',
+        'Este contenido ya fue guardado como reutilizable.'
+      );
+    }
+
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'No pudimos guardar este contenido como reutilizable. Revisá los datos e intentá nuevamente.'
+      );
+    }
   }
 
   if (operation === 'document-evidence-upload') {

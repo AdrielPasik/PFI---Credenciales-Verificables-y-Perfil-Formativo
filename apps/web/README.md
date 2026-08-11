@@ -62,6 +62,21 @@ flujos reales del navegador sobre la base F0.1:
   distribución de horas estimadas por credencial individual (no solo
   agregada por perfil) queda pendiente — requeriría exponer
   `hoursDistribution` por credencial en el read model.
+- C3b: en el detalle issuer-facing (`/issuer/credentials/[credentialId]`),
+  una credencial `course` o `certification` en estado `draft` o `issued`
+  muestra una tarjeta "Catálogo reutilizable del emisor" con un botón
+  ("Guardar como curso reutilizable" / "Guardar como certificación
+  reutilizable") que llama a
+  `POST /issuers/:issuerId/course-templates/from-credential/:credentialId`
+  (C3a/C3a.2). Nunca aparece para `academic_subject`, `degree`, credenciales
+  `revoked`, holder wallet, verifier/public ni pantallas de creación. Estados:
+  idle → "Guardando…" → éxito ("Curso/Certificación guardado/a como
+  reutilizable.") o aviso no-danger en 409 ("Este curso/Esta certificación
+  ya fue guardado/a como reutilizable."). El botón nunca modifica la
+  credencial visible ni crea una credencial nueva -- solo llama al catálogo
+  reutilizable del issuer. No hay pantalla de gestión del catálogo ni
+  selector en creación de credencial en este slice (quedan para un slice
+  futuro tipo C3c).
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

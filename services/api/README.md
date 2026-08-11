@@ -130,53 +130,91 @@ sin uso para este flujo, sin cambios.
 catalogos externos (Udemy/Coursera/AWS no son integraciones reales en este
 slice).
 
+### C3a.2: `IssuerCourseTemplate` tambien cubre `certification`
+
+C3a limitaba `from-credential` a `credential.type === 'course'`. C3a.2
+extiende el mismo modelo (sin crear una tabla nueva) para que tambien se
+pueda guardar como reutilizable una credencial `certification`:
+
+- Se agrego `credentialType: CredentialType` (`@default(course)`, solo
+  `course`/`certification` son validos en este catalogo) y los campos
+  `certificationCode`, `expirationDate`, `providerName`, `level`,
+  `skills: String[]` -- los mismos campos que `credentialSubject` ya
+  permite para `certification` en el draft (ver seccion mas abajo).
+- **Deuda de naming documentada**: el modelo sigue llamandose
+  `IssuerCourseTemplate` (no se renombro fisicamente para no agrandar la
+  migracion de C3a.2). El nombre es historico de cuando solo cubria
+  `course`; hoy cubre `course` y `certification` por igual.
+- `academic_subject` y `degree` **nunca** son validos en este catalogo --
+  pertenecen al catalogo academico formal (`AcademicCourse`/`Program`),
+  no a un catalogo libre por issuer. `from-credential` los rechaza con
+  `400`.
+- `credentialType` es **inmutable** despues de creado: no se acepta en
+  `PATCH` (define que campos aplican, igual criterio que
+  `createdFromCredentialId`).
+
 Endpoints (todos requieren `AuthGuard` + membership `admin`/`operator`
 activa del issuer autorizado, mismo patron que el resto de endpoints
 issuer-scoped):
 
-- `GET /issuers/:issuerId/course-templates?search=&status=` lista templates
-  del issuer (nunca de otro issuer). `status` default `active`; acepta
-  `archived` o `all`. `search` compara contra `title`, `platformName` y
-  `description` con la misma normalizacion (NFD + minusculas es-AR) que el
-  catalogo academico. Orden `updatedAt desc` (los templates tocados/creados
-  mas recientemente aparecen primero -- pensado para el flujo de reuso
-  frecuente de C3b/C3c). Limite fijo `20`.
-- `POST /issuers/:issuerId/course-templates` crea un template manualmente.
-  `title` requerido; `hours` es un `number` JSON (no decimal string) >= 0,
-  redondeado a 2 decimales; `modality` debe ser `Presencial`, `Online` o
-  `Asincrónica` si se envia; `externalUrl` debe ser HTTP/HTTPS.
-  `competencies`/`learningOutcomes` se normalizan y dedupean
-  case-insensitive. Rechaza `skills`, `providerName`, `level`, `issuerId`,
-  `createdByUserId` y `status` en el body (siempre se crea `active`).
+- `GET /issuers/:issuerId/course-templates?search=&status=` lista
+  templates `course` y `certification` juntos, del issuer solicitado
+  (nunca de otro issuer). `status` default `active`; acepta `archived` o
+  `all`. `search` compara contra `title`, `platformName`, `providerName`
+  y `description` con la misma normalizacion (NFD + minusculas es-AR) que
+  el catalogo academico. Orden `updatedAt desc`. Limite fijo `20`.
+- `POST /issuers/:issuerId/course-templates` crea un template
+  manualmente. `credentialType` opcional (`course` por default, para
+  compatibilidad con C3a). `title` requerido; `hours` es un `number` JSON
+  (no decimal string) >= 0, redondeado a 2 decimales; `externalUrl` debe
+  ser HTTP/HTTPS; `competencies` (comun a ambos tipos) se normaliza y
+  dedupea case-insensitive. Campos exclusivos de `course`
+  (`modality`/`platformName`/`learningOutcomes`) se rechazan si
+  `credentialType=certification`, y viceversa para los exclusivos de
+  `certification` (`certificationCode`/`expirationDate`/`providerName`/
+  `level`/`skills`). Rechaza `issuerId`, `createdByUserId` y `status` en
+  el body (siempre se crea `active`).
 - `POST /issuers/:issuerId/course-templates/from-credential/:credentialId`
-  crea un template a partir de una credencial `course` del mismo issuer
-  (`draft` o `issued`, ambos permitidos). Copia `title` (prioridad:
+  crea un template a partir de una credencial `course` **o**
+  `certification` del mismo issuer (`draft` o `issued`, ambos
+  permitidos). Copia `title` (prioridad:
   `credentialSubject.achievement_name`, luego `Credential.title`; si
-  ninguno es usable, rechaza con 400), `description`, `hours`,
-  `platformName`, `modality`, `externalUrl`, `competencies` y
-  `learningOutcomes`. **Nunca** copia `skills`, `providerName`, `level` ni
-  `rawData`. `lastSemanticAnalysisId` toma el ultimo `SemanticAnalysis` de
-  la credencial si existe, o `null`. Deduplicacion: si ya existe un
-  template `active` del mismo issuer con el mismo `createdFromCredentialId`
-  y un titulo igual tras normalizar (trim, espacios colapsados,
-  case-insensitive), responde `409 Conflict` con
-  *"Este curso ya fue guardado como reutilizable."* en vez de duplicar.
+  ninguno es usable, rechaza con 400), `description`, `hours` y
+  `externalUrl` (comunes a ambos tipos), mas los campos exclusivos del
+  tipo detectado: `course` copia `platformName`/`modality`/
+  `competencies`/`learningOutcomes`; `certification` copia
+  `certificationCode`/`expirationDate`/`providerName`/`level`/`skills`/
+  `competencies`. **Nunca cruza campos entre tipos** (un `course` nunca
+  copia `skills`/`providerName`/`level`; un `certification` nunca copia
+  `modality`/`platformName`), y nunca copia `rawData`, `metadata`, datos
+  de blockchain/holder ni referencias academicas
+  (`academicCourseReference`/`curriculumReference`/`programCourseId`).
+  `lastSemanticAnalysisId` toma el ultimo `SemanticAnalysis` de la
+  credencial si existe, o `null`. Deduplicacion (separada por
+  `createdFromCredentialId`, y por lo tanto por tipo -- una credencial
+  fija un solo `credentialType`): si ya existe un template `active` del
+  mismo issuer con el mismo `createdFromCredentialId` y un titulo igual
+  tras normalizar (trim, espacios colapsados, case-insensitive), responde
+  `409 Conflict` con *"Este curso ya fue guardado como reutilizable."*
+  (`course`) o *"Esta certificacion ya fue guardada como reutilizable."*
+  (`certification`).
 - `PATCH /issuers/:issuerId/course-templates/:templateId` actualiza los
-  mismos campos que el create (title/description/hours/modality/
-  platformName/externalUrl/competencies/learningOutcomes) mas `status`
-  (`active`/`archived`) para archivar. Nunca acepta `issuerId`,
-  `createdByUserId`, `createdFromCredentialId` ni `lastSemanticAnalysisId`
-  desde el body.
+  mismos campos que el create (segun el `credentialType` ya fijado del
+  template) mas `status` (`active`/`archived`) para archivar. Nunca
+  acepta `issuerId`, `createdByUserId`, `credentialType`,
+  `createdFromCredentialId` ni `lastSemanticAnalysisId` desde el body.
 
 `hours` se serializa como decimal string (`"22.00"`) en la response, nunca
 como objeto `Decimal` crudo -- mismo patron que `Credential.hours` en
 `issuer-credential-read.mapper.ts`. La response nunca expone `issuerId` ni
-`createdByUserId`.
+`createdByUserId`, y siempre incluye `credentialType` para que el cliente
+distinga `course` de `certification`.
 
-Pendiente, explicitamente fuera de alcance de C3a: boton/selector en el
-frontend, crear un draft de credencial a partir de un template, aprobar la
-interpretacion de IA y usar templates para reconstruir el perfil formativo
-(`FormativeProfileService` no cambia). Eso queda para C3b/C3c/C4.
+Pendiente, explicitamente fuera de alcance de C3a/C3a.2: boton/selector en
+el frontend (C3b lo agrega solo para el detalle de credencial issuer-facing,
+sin pantalla de catalogo), crear un draft de credencial a partir de un
+template (C3c), aprobar la interpretacion de IA (C4) y usar templates para
+reconstruir el perfil formativo (`FormativeProfileService` no cambia).
 
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.

@@ -299,3 +299,38 @@ export interface CredentialFeedback {
   code: CredentialFeedbackCode;
   message: string;
 }
+
+// C3b: solo course y certification pueden guardarse como reutilizables --
+// academic_subject y degree pertenecen al catalogo academico formal, no a
+// un catalogo libre por issuer (ver domain-rules-v0.md, seccion C3a.2).
+export type ReusableCredentialType = 'course' | 'certification';
+
+export interface SaveCourseTemplateFromCredentialCommand {
+  issuerReference: string;
+  credentialReference: string;
+}
+
+// Minimo necesario para C3b (confirmar guardado exitoso); se adapta la
+// respuesta completa para no romper C3c cuando agregue el selector.
+export interface CourseTemplateSummaryVM {
+  reference: string;
+  credentialType: ReusableCredentialType;
+  title: string;
+  description: string | null;
+  hours: string | null;
+  modality: string | null;
+  platformName: string | null;
+  externalUrl: string | null;
+  certificationCode: string | null;
+  expirationDate: string | null;
+  providerName: string | null;
+  level: string | null;
+  skills: string[];
+  competencies: string[];
+  learningOutcomes: string[];
+  status: 'active' | 'archived';
+  createdFromCredentialId: string | null;
+  lastSemanticAnalysisId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

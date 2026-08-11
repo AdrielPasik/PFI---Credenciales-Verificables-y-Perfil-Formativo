@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { CourseTemplateStatus, CredentialType, Prisma } from '@prisma/client';
+import { CourseTemplateStatus, Prisma } from '@prisma/client';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
@@ -14,6 +14,7 @@ import {
   normalizeTitleForComparison,
   readSubjectStringArray,
   readSubjectText,
+  resolveReusableCredentialType,
   resolveTemplateTitleFromCredential,
   toJsonObject
 } from './issuer-course-templates.helpers';
@@ -30,18 +31,24 @@ export const DEFAULT_COURSE_TEMPLATE_LIMIT = 20;
 const MAX_SEARCH_LENGTH = 255;
 const CREDENTIAL_NOT_FOUND_MESSAGE = 'No se encontro la credencial solicitada.';
 const TEMPLATE_NOT_FOUND_MESSAGE =
-  'No se encontro el curso reutilizable solicitado.';
+  'No se encontro el template reutilizable solicitado.';
 const DUPLICATE_TEMPLATE_MESSAGE =
   'Este curso ya fue guardado como reutilizable.';
 
 const COURSE_TEMPLATE_RESPONSE_SELECT = {
   id: true,
+  credentialType: true,
   title: true,
   description: true,
   hours: true,
   modality: true,
   platformName: true,
   externalUrl: true,
+  certificationCode: true,
+  expirationDate: true,
+  providerName: true,
+  level: true,
+  skills: true,
   competencies: true,
   learningOutcomes: true,
   status: true,
@@ -77,6 +84,10 @@ export class IssuerCourseTemplatesService {
       ...(statusFilter === 'all' ? {} : { status: toStatusEnum(statusFilter) })
     };
 
+    // C3a.2: el mismo catalogo/endpoint sirve course y certification juntos
+    // -- no hay filtro de credentialType en list (ambos comparten status y
+    // busqueda). El cliente distingue por el campo credentialType de la
+    // response.
     const templates = (await this.prisma.issuerCourseTemplate.findMany({
       where,
       select: COURSE_TEMPLATE_RESPONSE_SELECT,
@@ -107,12 +118,18 @@ export class IssuerCourseTemplatesService {
         issuerId,
         createdByUserId: currentUser.id,
         status: CourseTemplateStatus.active,
+        credentialType: normalized.credentialType,
         title: normalized.title,
         description: normalized.description,
         hours: normalized.hours,
         modality: normalized.modality,
         platformName: normalized.platformName,
         externalUrl: normalized.externalUrl,
+        certificationCode: normalized.certificationCode,
+        expirationDate: normalized.expirationDate,
+        providerName: normalized.providerName,
+        level: normalized.level,
+        skills: normalized.skills,
         competencies: normalized.competencies,
         learningOutcomes: normalized.learningOutcomes
       },
@@ -156,11 +173,9 @@ export class IssuerCourseTemplatesService {
       throw new NotFoundException(CREDENTIAL_NOT_FOUND_MESSAGE);
     }
 
-    if (credential.type !== CredentialType.course) {
-      throw new BadRequestException(
-        'Solo se pueden guardar como reutilizables credenciales de tipo course.'
-      );
-    }
+    // C3a.2: academic_subject y degree se rechazan aca (400) -- solo
+    // course/certification pueden guardarse como reutilizables.
+    const credentialType = resolveReusableCredentialType(credential.type);
 
     const subject = toJsonObject(credential.credentialSubject);
     const title = resolveTemplateTitleFromCredential(subject, credential.title);
@@ -182,22 +197,48 @@ export class IssuerCourseTemplatesService {
     );
 
     if (isDuplicate) {
-      throw new ConflictException(DUPLICATE_TEMPLATE_MESSAGE);
+      throw new ConflictException(duplicateMessageFor(credentialType));
     }
+
+    // Campos comunes a ambos tipos.
+    const commonData = {
+      title,
+      description: normalizeNullableText(credential.description),
+      hours: credential.hours,
+      externalUrl: readSubjectText(subject, 'external_url'),
+      competencies: readSubjectStringArray(subject, 'competencies'),
+      // Lectura defensiva: certification no lo controla por contrato hoy,
+      // pero se copia si existiera como dato legacy en credentialSubject
+      // (nunca se inventa, readSubjectStringArray devuelve [] si no esta).
+      learningOutcomes: readSubjectStringArray(subject, 'learning_outcomes')
+    };
+
+    // Campos exclusivos por tipo -- se omiten por completo (ni siquiera se
+    // envian como null) para el tipo que no aplica, nunca se copian
+    // cruzados (ej. course nunca copia certificationCode/providerName/
+    // level/skills, y certification nunca copia modality/platformName).
+    const typeSpecificData =
+      credentialType === 'course'
+        ? {
+            modality: readSubjectText(subject, 'modality'),
+            platformName: readSubjectText(subject, 'platform_name')
+          }
+        : {
+            certificationCode: readSubjectText(subject, 'certification_code'),
+            expirationDate: readSubjectText(subject, 'expiration_date'),
+            providerName: readSubjectText(subject, 'provider_name'),
+            level: readSubjectText(subject, 'level'),
+            skills: readSubjectStringArray(subject, 'skills')
+          };
 
     const created = (await this.prisma.issuerCourseTemplate.create({
       data: {
         issuerId,
         createdByUserId: currentUser.id,
         status: CourseTemplateStatus.active,
-        title,
-        description: normalizeNullableText(credential.description),
-        hours: credential.hours,
-        modality: readSubjectText(subject, 'modality'),
-        platformName: readSubjectText(subject, 'platform_name'),
-        externalUrl: readSubjectText(subject, 'external_url'),
-        competencies: readSubjectStringArray(subject, 'competencies'),
-        learningOutcomes: readSubjectStringArray(subject, 'learning_outcomes'),
+        credentialType,
+        ...commonData,
+        ...typeSpecificData,
         createdFromCredentialId: credential.id,
         lastSemanticAnalysisId: credential.semanticAnalyses[0]?.id ?? null
       },
@@ -220,14 +261,17 @@ export class IssuerCourseTemplatesService {
 
     const existing = await this.prisma.issuerCourseTemplate.findFirst({
       where: { id: templateId, issuerId },
-      select: { id: true }
+      select: { id: true, credentialType: true }
     });
 
     if (!existing) {
       throw new NotFoundException(TEMPLATE_NOT_FOUND_MESSAGE);
     }
 
-    const normalized = validatePatchCourseTemplatePayload(dto);
+    const normalized = validatePatchCourseTemplatePayload(
+      dto,
+      existing.credentialType as 'course' | 'certification'
+    );
     const data: Prisma.IssuerCourseTemplateUpdateInput = {};
 
     if (normalized.title.provided) {
@@ -248,6 +292,21 @@ export class IssuerCourseTemplatesService {
     if (normalized.externalUrl.provided) {
       data.externalUrl = normalized.externalUrl.value;
     }
+    if (normalized.certificationCode.provided) {
+      data.certificationCode = normalized.certificationCode.value;
+    }
+    if (normalized.expirationDate.provided) {
+      data.expirationDate = normalized.expirationDate.value;
+    }
+    if (normalized.providerName.provided) {
+      data.providerName = normalized.providerName.value;
+    }
+    if (normalized.level.provided) {
+      data.level = normalized.level.value;
+    }
+    if (normalized.skills.provided) {
+      data.skills = { set: normalized.skills.value };
+    }
     if (normalized.competencies.provided) {
       data.competencies = { set: normalized.competencies.value };
     }
@@ -266,6 +325,12 @@ export class IssuerCourseTemplatesService {
 
     return mapCourseTemplateResponse(updated);
   }
+}
+
+function duplicateMessageFor(credentialType: 'course' | 'certification') {
+  return credentialType === 'certification'
+    ? 'Esta certificacion ya fue guardada como reutilizable.'
+    : DUPLICATE_TEMPLATE_MESSAGE;
 }
 
 function normalizeNullableText(value: string | null): string | null {
@@ -327,7 +392,12 @@ function normalizeSearchText(value: string) {
 }
 
 function matchesSearch(
-  template: { title: string; platformName: string | null; description: string | null },
+  template: {
+    title: string;
+    platformName: string | null;
+    providerName: string | null;
+    description: string | null;
+  },
   search: string | null
 ) {
   if (!search) {
@@ -338,6 +408,9 @@ function matchesSearch(
     normalizeSearchText(template.title).includes(search) ||
     (template.platformName
       ? normalizeSearchText(template.platformName).includes(search)
+      : false) ||
+    (template.providerName
+      ? normalizeSearchText(template.providerName).includes(search)
       : false) ||
     (template.description
       ? normalizeSearchText(template.description).includes(search)

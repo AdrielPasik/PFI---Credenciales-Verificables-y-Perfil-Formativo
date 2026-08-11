@@ -521,15 +521,30 @@ model ExternalCourse {
 // para este caso de uso). No participa en canonical hash ni blockchain: no
 // es una credencial emitida, es solo una plantilla para agilizar la carga
 // manual futura de cursos repetidos por el mismo issuer.
+//
+// C3a.2: el modelo tambien cubre certification (deuda de naming documentada
+// -- el nombre IssuerCourseTemplate quedo de C3a y no se renombra fisicamente
+// para no agrandar la migracion; ver docs/architecture/domain-rules-v0.md).
+// credentialType distingue course de certification; academic_subject y
+// degree nunca son validos aca (pertenecen al catalogo academico formal,
+// ver AcademicCourse/Program). Los campos certificationCode/expirationDate/
+// providerName/level/skills solo aplican cuando credentialType=certification,
+// igual que en credentialSubject de una Credential certification real.
 model IssuerCourseTemplate {
   id                      String               @id @default(uuid())
   issuerId                String
+  credentialType          CredentialType       @default(course)
   title                   String
   description             String?              @db.Text
   hours                   Decimal?             @db.Decimal(10, 2)
   modality                String?
   platformName            String?
   externalUrl             String?
+  certificationCode       String?
+  expirationDate          String?
+  providerName            String?
+  level                   String?
+  skills                  String[]
   competencies            String[]
   learningOutcomes        String[]
   status                  CourseTemplateStatus @default(active)
@@ -544,6 +559,7 @@ model IssuerCourseTemplate {
   @@index([issuerId])
   @@index([issuerId, status])
   @@index([issuerId, title])
+  @@index([issuerId, credentialType])
 }
 
 model Program {
