@@ -1,6 +1,7 @@
-import { CourseTemplateStatus } from '@prisma/client';
+import { CourseTemplateStatus, Prisma } from '@prisma/client';
 
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
+import { buildApprovedSemanticSnapshotSummary } from './issuer-course-templates.helpers';
 import type { ReusableCredentialType } from './issuer-course-templates.validator';
 
 export interface CourseTemplateRecord {
@@ -24,6 +25,12 @@ export interface CourseTemplateRecord {
   status: CourseTemplateStatus;
   createdFromCredentialId: string | null;
   lastSemanticAnalysisId: string | null;
+  approvedSemanticAnalysisId: string | null;
+  approvedSemanticSnapshot: Prisma.JsonValue | null;
+  approvedSemanticApprovedAt: Date | null;
+  approvedSemanticPipelineVersion: string | null;
+  approvedSemanticTaxonomyVersion: string | null;
+  approvedSemanticSourceCredentialId: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +60,16 @@ export function mapCourseTemplateResponse(
     status: template.status,
     createdFromCredentialId: template.createdFromCredentialId,
     lastSemanticAnalysisId: template.lastSemanticAnalysisId,
+    approvedSemanticAnalysisId: template.approvedSemanticAnalysisId,
+    approvedSemanticApprovedAt:
+      template.approvedSemanticApprovedAt?.toISOString() ?? null,
+    approvedSemanticPipelineVersion: template.approvedSemanticPipelineVersion,
+    approvedSemanticTaxonomyVersion: template.approvedSemanticTaxonomyVersion,
+    approvedSemanticSourceCredentialId:
+      template.approvedSemanticSourceCredentialId,
+    approvedSemanticSnapshotSummary: buildApprovedSemanticSnapshotSummary(
+      template.approvedSemanticSnapshot
+    ),
     createdAt: template.createdAt.toISOString(),
     updatedAt: template.updatedAt.toISOString()
   };

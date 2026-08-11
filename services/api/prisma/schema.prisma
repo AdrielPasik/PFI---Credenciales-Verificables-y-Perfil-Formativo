@@ -530,31 +530,46 @@ model ExternalCourse {
 // ver AcademicCourse/Program). Los campos certificationCode/expirationDate/
 // providerName/level/skills solo aplican cuando credentialType=certification,
 // igual que en credentialSubject de una Credential certification real.
+//
+// C4a.1: approvedSemantic* es una aprobacion EXPLICITA del emisor sobre una
+// interpretacion semantica ya generada para reutilizar -- nunca significa
+// que la IA certifico el contenido. No participa en canon/hash/blockchain,
+// no reconstruye FormativeProfile, no se aplica a credenciales nuevas en
+// este slice (eso es C4b). approvedSemanticAnalysisId/
+// approvedSemanticSourceCredentialId son referencias informativas sin FK,
+// mismo patron que lastSemanticAnalysisId/createdFromCredentialId.
 model IssuerCourseTemplate {
-  id                      String               @id @default(uuid())
-  issuerId                String
-  credentialType          CredentialType       @default(course)
-  title                   String
-  description             String?              @db.Text
-  hours                   Decimal?             @db.Decimal(10, 2)
-  modality                String?
-  platformName            String?
-  externalUrl             String?
-  certificationCode       String?
-  expirationDate          String?
-  providerName            String?
-  level                   String?
-  skills                  String[]
-  competencies            String[]
-  learningOutcomes        String[]
-  status                  CourseTemplateStatus @default(active)
-  createdFromCredentialId String?
-  lastSemanticAnalysisId  String?
-  createdByUserId         String
-  createdAt               DateTime             @default(now())
-  updatedAt               DateTime             @updatedAt
-  issuer                  Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
-  createdByUser           User                 @relation("IssuerCourseTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  id                                 String               @id @default(uuid())
+  issuerId                           String
+  credentialType                     CredentialType       @default(course)
+  title                              String
+  description                        String?              @db.Text
+  hours                              Decimal?             @db.Decimal(10, 2)
+  modality                           String?
+  platformName                       String?
+  externalUrl                        String?
+  certificationCode                  String?
+  expirationDate                     String?
+  providerName                       String?
+  level                              String?
+  skills                             String[]
+  competencies                       String[]
+  learningOutcomes                   String[]
+  status                             CourseTemplateStatus @default(active)
+  createdFromCredentialId            String?
+  lastSemanticAnalysisId             String?
+  approvedSemanticAnalysisId         String?
+  approvedSemanticSnapshot           Json?
+  approvedSemanticApprovedByUserId   String?
+  approvedSemanticApprovedAt         DateTime?
+  approvedSemanticPipelineVersion    String?
+  approvedSemanticTaxonomyVersion    String?
+  approvedSemanticSourceCredentialId String?
+  createdByUserId                    String
+  createdAt                          DateTime             @default(now())
+  updatedAt                          DateTime             @updatedAt
+  issuer                             Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  createdByUser                      User                 @relation("IssuerCourseTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
 
   @@index([issuerId])
   @@index([issuerId, status])

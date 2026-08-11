@@ -29,7 +29,12 @@ test('course template routes are protected by AuthGuard and issuer-scoped', () =
     ['listTemplates', '/', RequestMethod.GET],
     ['createTemplate', '/', RequestMethod.POST],
     ['createTemplateFromCredential', 'from-credential/:credentialId', RequestMethod.POST],
-    ['patchTemplate', ':templateId', RequestMethod.PATCH]
+    ['patchTemplate', ':templateId', RequestMethod.PATCH],
+    [
+      'approveTemplateSemanticAnalysis',
+      ':templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId',
+      RequestMethod.POST
+    ]
   ];
 
   for (const [handler, path, method] of routes) {
@@ -113,5 +118,36 @@ test('controller delegates patch with issuerId, templateId, dto and current user
 
   assert.deepEqual(calls, [
     { issuerId: 'issuer-1', templateId: 'template-1', dto, user: currentUser }
+  ]);
+});
+
+test('controller delegates approveTemplateSemanticAnalysis with issuerId, templateId, semanticAnalysisId and current user', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const controller = new IssuerCourseTemplatesController({
+    async approveTemplateSemanticAnalysisForIssuer(
+      issuerId: string,
+      templateId: string,
+      semanticAnalysisId: string,
+      user: Record<string, unknown>
+    ) {
+      calls.push({ issuerId, templateId, semanticAnalysisId, user });
+      return {};
+    }
+  } as never);
+
+  await controller.approveTemplateSemanticAnalysis(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  assert.deepEqual(calls, [
+    {
+      issuerId: 'issuer-1',
+      templateId: 'template-1',
+      semanticAnalysisId: 'analysis-1',
+      user: currentUser
+    }
   ]);
 });

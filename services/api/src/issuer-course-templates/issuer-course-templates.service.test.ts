@@ -7,7 +7,12 @@ import {
   ForbiddenException,
   NotFoundException
 } from '@nestjs/common';
-import { CourseTemplateStatus, CredentialType, UserStatus } from '@prisma/client';
+import {
+  CourseTemplateStatus,
+  CredentialType,
+  SemanticAnalysisStatus,
+  UserStatus
+} from '@prisma/client';
 
 import { IssuerCourseTemplatesService } from './issuer-course-templates.service';
 
@@ -45,8 +50,40 @@ function baseTemplateRow(overrides?: Record<string, unknown>) {
     status: CourseTemplateStatus.active,
     createdFromCredentialId: null,
     lastSemanticAnalysisId: null,
+    approvedSemanticAnalysisId: null,
+    approvedSemanticSnapshot: null,
+    approvedSemanticApprovedAt: null,
+    approvedSemanticPipelineVersion: null,
+    approvedSemanticTaxonomyVersion: null,
+    approvedSemanticSourceCredentialId: null,
     createdAt: new Date('2026-08-11T10:00:00.000Z'),
     updatedAt: new Date('2026-08-11T10:00:00.000Z'),
+    ...overrides
+  };
+}
+
+function baseSemanticAnalysisRow(overrides?: Record<string, unknown>) {
+  return {
+    id: 'analysis-1',
+    credentialId: 'credential-1',
+    status: SemanticAnalysisStatus.completed,
+    schemaVersion: 'semantic_analysis_v1',
+    pipelineVersion: 'pipeline-v1',
+    taxonomyVersion: 'taxonomy-v1',
+    areas: [{ id: 'area-1', label: 'Programacion', confidence: 0.9 }],
+    skills: [{ id: 'skill-1', label: 'Python', confidence: 0.8 }],
+    concepts: [],
+    qualityFlags: [],
+    confidence: 0.85,
+    analysisJson: {
+      hoursDistribution: [{ areaId: 'area-1', hours: 12 }],
+      warnings: []
+    },
+    credential: {
+      id: 'credential-1',
+      type: CredentialType.course,
+      issuerId: 'issuer-1'
+    },
     ...overrides
   };
 }
@@ -57,6 +94,7 @@ function createService(options?: {
   credential?: Record<string, unknown> | null;
   createReturn?: Record<string, unknown>;
   updateReturn?: Record<string, unknown>;
+  semanticAnalyses?: Array<Record<string, unknown>>;
 }) {
   const calls: Array<Record<string, unknown>> = [];
   const authorizationCalls: Array<Record<string, unknown>> = [];
@@ -99,13 +137,27 @@ function createService(options?: {
       },
       async update(args: Record<string, unknown>) {
         calls.push({ op: 'update', args });
-        return options?.updateReturn ?? baseTemplateRow();
+        return (
+          options?.updateReturn ??
+          baseTemplateRow(args.data as Record<string, unknown>)
+        );
       }
     },
     credential: {
       async findFirst(args: Record<string, unknown>) {
         calls.push({ op: 'credential.findFirst', args });
         return options?.credential ?? null;
+      }
+    },
+    semanticAnalysis: {
+      async findFirst(args: Record<string, unknown>) {
+        calls.push({ op: 'semanticAnalysis.findFirst', args });
+        const where = (args.where ?? {}) as Record<string, unknown>;
+        return (
+          (options?.semanticAnalyses ?? []).find(
+            (analysis) => analysis.id === where.id
+          ) ?? null
+        );
       }
     }
   };
@@ -922,6 +974,320 @@ test('auth is required for every operation before touching prisma', async () => 
     service.patchTemplateForIssuer('issuer-1', 'template-1', { title: 'x' }, currentUser),
     ForbiddenException
   );
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    ForbiddenException
+  );
 
   assert.equal(calls.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// C4a.1: approveTemplateSemanticAnalysisForIssuer
+// ---------------------------------------------------------------------------
+
+test('approve returns 404 when the template does not belong to the issuer', async () => {
+  const { service } = createService({
+    templates: [],
+    semanticAnalyses: [baseSemanticAnalysisRow()]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'missing-template',
+      'analysis-1',
+      currentUser
+    ),
+    NotFoundException
+  );
+});
+
+test('approve returns 404 when the semantic analysis does not exist', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: []
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'missing-analysis',
+      currentUser
+    ),
+    NotFoundException
+  );
+});
+
+test('approve returns 404 (not 403) when the semantic analysis belongs to a credential of another issuer', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({
+        credential: { id: 'credential-1', type: CredentialType.course, issuerId: 'issuer-2' }
+      })
+    ]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    NotFoundException
+  );
+});
+
+test('approve rejects when the analyzed credential type does not match the template credentialType', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow({ credentialType: CredentialType.certification })],
+    semanticAnalyses: [baseSemanticAnalysisRow()]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('approve rejects an analysis whose credential is academic_subject (template can never be that type, so this is a structural 400)', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow({ credentialType: CredentialType.course })],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({
+        credential: {
+          id: 'credential-1',
+          type: CredentialType.academic_subject,
+          issuerId: 'issuer-1'
+        }
+      })
+    ]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('approve rejects an analysis whose credential is degree', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow({ credentialType: CredentialType.course })],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({
+        credential: { id: 'credential-1', type: CredentialType.degree, issuerId: 'issuer-1' }
+      })
+    ]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('approve rejects a semantic analysis with an unusable status', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({ status: 'failed' as unknown as SemanticAnalysisStatus })
+    ]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('approve accepts a completed semantic analysis and persists the 7 approval fields', async () => {
+  const template = baseTemplateRow();
+  const { service, calls } = createService({
+    templates: [template],
+    semanticAnalyses: [baseSemanticAnalysisRow()]
+  });
+
+  await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  const updateCall = calls.find((call) => call.op === 'update');
+  const data = (updateCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+
+  assert.equal(data.approvedSemanticAnalysisId, 'analysis-1');
+  assert.equal(data.approvedSemanticApprovedByUserId, 'issuer-user-1');
+  assert.ok(data.approvedSemanticApprovedAt instanceof Date);
+  assert.equal(data.approvedSemanticPipelineVersion, 'pipeline-v1');
+  assert.equal(data.approvedSemanticTaxonomyVersion, 'taxonomy-v1');
+  assert.equal(data.approvedSemanticSourceCredentialId, 'credential-1');
+  assert.equal(
+    (data.approvedSemanticSnapshot as { schema: string }).schema,
+    'approved_template_semantic_snapshot_v1'
+  );
+  assert.equal((data.approvedSemanticSnapshot as { status: string }).status, 'completed');
+});
+
+test('approve accepts a partial semantic analysis (issuer judgment call, no auto-completeness claim)', async () => {
+  const { service, calls } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({ status: SemanticAnalysisStatus.partial })
+    ]
+  });
+
+  await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  const updateCall = calls.find((call) => call.op === 'update');
+  const data = (updateCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+  assert.equal(
+    (data.approvedSemanticSnapshot as { status: string }).status,
+    'partial'
+  );
+});
+
+test('approve enforces createdFromCredentialId when the template has one: rejects an analysis from a different credential', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow({ createdFromCredentialId: 'credential-other' })],
+    semanticAnalyses: [baseSemanticAnalysisRow({ credentialId: 'credential-1' })]
+  });
+
+  await assert.rejects(
+    service.approveTemplateSemanticAnalysisForIssuer(
+      'issuer-1',
+      'template-1',
+      'analysis-1',
+      currentUser
+    ),
+    BadRequestException
+  );
+});
+
+test('approve allows the exact matching credential when createdFromCredentialId is set', async () => {
+  const { service, calls } = createService({
+    templates: [baseTemplateRow({ createdFromCredentialId: 'credential-1' })],
+    semanticAnalyses: [baseSemanticAnalysisRow({ credentialId: 'credential-1' })]
+  });
+
+  await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  assert.ok(calls.some((call) => call.op === 'update'));
+});
+
+test('approve allows an analysis from any same-issuer/same-type credential when the template has no createdFromCredentialId', async () => {
+  const { service, calls } = createService({
+    templates: [baseTemplateRow({ createdFromCredentialId: null })],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({
+        credentialId: 'unrelated-credential',
+        credential: { id: 'unrelated-credential', type: CredentialType.course, issuerId: 'issuer-1' }
+      })
+    ]
+  });
+
+  await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  const updateCall = calls.find((call) => call.op === 'update');
+  const data = (updateCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+  assert.equal(data.approvedSemanticSourceCredentialId, 'unrelated-credential');
+});
+
+test('approve never touches Credential and never creates a new SemanticAnalysis', async () => {
+  const { service, calls } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: [baseSemanticAnalysisRow()]
+  });
+
+  await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  assert.equal(calls.some((call) => call.op === 'credential.findFirst'), false);
+  assert.equal(
+    calls.some((call) => String(call.op).startsWith('credential.update')),
+    false
+  );
+  assert.equal(
+    calls.some((call) => String(call.op).includes('semanticAnalysis.create')),
+    false
+  );
+});
+
+test('approve response never exposes the raw snapshot or any forbidden evidence keys', async () => {
+  const { service } = createService({
+    templates: [baseTemplateRow()],
+    semanticAnalyses: [
+      baseSemanticAnalysisRow({
+        analysisJson: {
+          hoursDistribution: [{ areaId: 'area-1', hours: 12 }],
+          warnings: [],
+          sourceRefs: { documentEvidenceId: 'doc-1' },
+          evidenceMap: { 'area-1': ['doc-1'] },
+          textForEmbedding: 'contenido crudo'
+        }
+      })
+    ]
+  });
+
+  const response = await service.approveTemplateSemanticAnalysisForIssuer(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  const serialized = JSON.stringify(response);
+  assert.equal(serialized.includes('sourceRefs'), false);
+  assert.equal(serialized.includes('evidenceMap'), false);
+  assert.equal(serialized.includes('textForEmbedding'), false);
+  assert.equal(serialized.includes('documentEvidenceId'), false);
+  assert.ok(response.approvedSemanticSnapshotSummary);
 });

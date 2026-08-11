@@ -11,6 +11,8 @@ import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
 import {
+  assertSemanticAnalysisStatusIsUsable,
+  buildApprovedTemplateSemanticSnapshot,
   normalizeTitleForComparison,
   readSubjectStringArray,
   readSubjectText,
@@ -34,6 +36,12 @@ const TEMPLATE_NOT_FOUND_MESSAGE =
   'No se encontro el template reutilizable solicitado.';
 const DUPLICATE_TEMPLATE_MESSAGE =
   'Este curso ya fue guardado como reutilizable.';
+const SEMANTIC_ANALYSIS_NOT_FOUND_MESSAGE =
+  'No se encontro la interpretacion semantica solicitada.';
+const SEMANTIC_ANALYSIS_TYPE_MISMATCH_MESSAGE =
+  'El tipo de la credencial analizada no coincide con el tipo del template.';
+const SEMANTIC_ANALYSIS_SOURCE_CREDENTIAL_MISMATCH_MESSAGE =
+  'Este template solo puede aprobar interpretaciones semanticas de la credencial con la que fue creado.';
 
 const COURSE_TEMPLATE_RESPONSE_SELECT = {
   id: true,
@@ -54,6 +62,12 @@ const COURSE_TEMPLATE_RESPONSE_SELECT = {
   status: true,
   createdFromCredentialId: true,
   lastSemanticAnalysisId: true,
+  approvedSemanticAnalysisId: true,
+  approvedSemanticSnapshot: true,
+  approvedSemanticApprovedAt: true,
+  approvedSemanticPipelineVersion: true,
+  approvedSemanticTaxonomyVersion: true,
+  approvedSemanticSourceCredentialId: true,
   createdAt: true,
   updatedAt: true
 } as const;
@@ -332,6 +346,116 @@ export class IssuerCourseTemplatesService {
     const updated = (await this.prisma.issuerCourseTemplate.update({
       where: { id: templateId },
       data,
+      select: COURSE_TEMPLATE_RESPONSE_SELECT
+    })) as CourseTemplateRecord;
+
+    return mapCourseTemplateResponse(updated);
+  }
+
+  // C4a.1: aprobacion explicita del emisor de una interpretacion semantica
+  // (SemanticAnalysis) ya generada, como snapshot reutilizable del template.
+  // No modifica Credential, no crea un SemanticAnalysis nuevo, no llama a la
+  // IA, no reconstruye FormativeProfile, no toca blockchain/hash. Ver
+  // docs/architecture/domain-rules-v0.md para las reglas completas.
+  async approveTemplateSemanticAnalysisForIssuer(
+    issuerId: string,
+    templateId: string,
+    semanticAnalysisId: string,
+    currentUser: AuthenticatedUser
+  ): Promise<CourseTemplateResponseDto> {
+    await this.issuersService.assertUserCanManageCourseTemplatesForIssuer(
+      currentUser.id,
+      issuerId
+    );
+
+    const template = await this.prisma.issuerCourseTemplate.findFirst({
+      where: { id: templateId, issuerId },
+      select: {
+        id: true,
+        credentialType: true,
+        createdFromCredentialId: true
+      }
+    });
+
+    if (!template) {
+      throw new NotFoundException(TEMPLATE_NOT_FOUND_MESSAGE);
+    }
+
+    const semanticAnalysis = await this.prisma.semanticAnalysis.findFirst({
+      where: { id: semanticAnalysisId },
+      select: {
+        id: true,
+        credentialId: true,
+        status: true,
+        schemaVersion: true,
+        pipelineVersion: true,
+        taxonomyVersion: true,
+        areas: true,
+        skills: true,
+        concepts: true,
+        qualityFlags: true,
+        confidence: true,
+        analysisJson: true,
+        credential: {
+          select: { id: true, type: true, issuerId: true }
+        }
+      }
+    });
+
+    // Se devuelve el mismo 404 que "no existe" cuando la credencial
+    // analizada pertenece a otro emisor -- no debe filtrarse la existencia
+    // de un SemanticAnalysis de otro issuer.
+    if (!semanticAnalysis || semanticAnalysis.credential.issuerId !== issuerId) {
+      throw new NotFoundException(SEMANTIC_ANALYSIS_NOT_FOUND_MESSAGE);
+    }
+
+    // Esta comprobacion tambien rechaza, por construccion, academic_subject
+    // y degree: template.credentialType nunca puede ser esos valores (ver
+    // resolveReusableCredentialType), asi que cualquier credencial analizada
+    // de esos tipos jamas puede coincidir.
+    if (semanticAnalysis.credential.type !== template.credentialType) {
+      throw new BadRequestException(SEMANTIC_ANALYSIS_TYPE_MISMATCH_MESSAGE);
+    }
+
+    assertSemanticAnalysisStatusIsUsable(semanticAnalysis.status);
+
+    // Si el template fue creado desde una credencial concreta, solo se
+    // pueden aprobar interpretaciones semanticas de esa misma credencial.
+    // Si el template no tiene createdFromCredentialId (ej. creado a mano),
+    // se permite aprobar cualquier analisis de una credencial del mismo
+    // issuer y del mismo credentialType -- comportamiento documentado en
+    // docs/architecture/domain-rules-v0.md.
+    if (
+      template.createdFromCredentialId &&
+      semanticAnalysis.credentialId !== template.createdFromCredentialId
+    ) {
+      throw new BadRequestException(
+        SEMANTIC_ANALYSIS_SOURCE_CREDENTIAL_MISMATCH_MESSAGE
+      );
+    }
+
+    const snapshot = buildApprovedTemplateSemanticSnapshot({
+      schemaVersion: semanticAnalysis.schemaVersion,
+      status: semanticAnalysis.status,
+      areas: semanticAnalysis.areas,
+      skills: semanticAnalysis.skills,
+      concepts: semanticAnalysis.concepts,
+      qualityFlags: semanticAnalysis.qualityFlags,
+      confidence: semanticAnalysis.confidence,
+      analysisJson: semanticAnalysis.analysisJson
+    });
+
+    const updated = (await this.prisma.issuerCourseTemplate.update({
+      where: { id: template.id },
+      data: {
+        approvedSemanticAnalysisId: semanticAnalysis.id,
+        approvedSemanticSnapshot: snapshot as unknown as Prisma.InputJsonValue,
+        approvedSemanticApprovedByUserId: currentUser.id,
+        approvedSemanticApprovedAt: new Date(),
+        approvedSemanticPipelineVersion: semanticAnalysis.pipelineVersion,
+        approvedSemanticTaxonomyVersion: semanticAnalysis.taxonomyVersion,
+        approvedSemanticSourceCredentialId: semanticAnalysis.credentialId
+      },
       select: COURSE_TEMPLATE_RESPONSE_SELECT
     })) as CourseTemplateRecord;
 

@@ -1158,8 +1158,10 @@ despues de creado el template.
 `IssuerCourseTemplate` no es una credencial emitida: no participa en
 `canon_v1`, no se registra en blockchain, no modifica `Credential` ni
 `SemanticAnalysis` existentes. No hay endpoint para crear un draft de
-credencial a partir de un template, ni un endpoint de aprobacion de
-interpretacion IA sobre un template -- eso queda para C3c/C4.
+credencial a partir de un template -- eso lo resuelve C3c del lado del
+selector. El endpoint de aprobacion explicita de interpretacion semantica
+se agrego en C4a.1 (ver seccion propia mas abajo); aplicar esa aprobacion a
+credenciales nuevas o al perfil formativo sigue pendiente (C4b).
 
 **Nota de naming**: se evaluo crear un endpoint mas generico
 (`reusable-credential-templates` o similar) al agregar soporte para
@@ -1269,3 +1271,86 @@ Consumo frontend nuevo, en `/issuer/credentials/new`:
   emitir -> analisis automatico propio -> `SemanticAnalysis` propio ->
   rebuild de perfil automatico si aplica) sin ninguna relacion con el
   template usado para precargarla.
+
+### C4a.1: aprobacion explicita de una interpretacion semantica como snapshot reutilizable (backend)
+
+C4a.1 agrega la posibilidad de que el issuer apruebe explicitamente una
+`SemanticAnalysis` ya generada y la persista como snapshot reutilizable en
+el `IssuerCourseTemplate` correspondiente. Es puramente backend: no hay UI
+(eso es C4a.2) y no se aplica la interpretacion a credenciales nuevas ni al
+perfil formativo (eso es C4b).
+
+```
+POST /issuers/:issuerId/course-templates/:templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId
+```
+
+Requiere `AuthGuard` + membership `admin`/`operator` activa del issuer
+(mismo `IssuersService.assertUserCanManageCourseTemplatesForIssuer` que ya
+usan el resto de los endpoints de este modulo desde C3a). Sin body.
+
+Reglas de validacion, en el orden en que se aplican:
+
+1. El template debe existir y pertenecer al `issuerId` de la ruta -- `404`
+   si no (mismo criterio que el resto del modulo: nunca se filtra
+   existencia de un template de otro issuer).
+2. La `SemanticAnalysis` referenciada debe existir y su
+   `credential.issuerId` debe coincidir con el `issuerId` de la ruta --
+   `404` si no existe o si pertenece a otro issuer (deliberadamente el
+   mismo codigo que "no existe", nunca un `403`, para no filtrar la
+   existencia de un `SemanticAnalysis` de otro issuer).
+3. `semanticAnalysis.credential.type` debe ser exactamente igual a
+   `template.credentialType` -- `400` si no coincide. Esta regla, por si
+   sola, rechaza tambien cualquier intento de aprobar un analisis de una
+   credencial `academic_subject` o `degree` (esos valores nunca son un
+   `credentialType` valido de template).
+4. `semanticAnalysis.status` debe ser usable: `completed` o `partial`.
+   Cualquier otro valor responde `400`. **El emisor aprueba esta
+   interpretacion parcial para reutilizacion, no se afirma completitud
+   automatica** cuando el estado es `partial`.
+5. Si `template.createdFromCredentialId` esta definido, la
+   `SemanticAnalysis` debe pertenecer exactamente a esa credencial (`400`
+   si no). Si es `null`, se permite aprobar un analisis de cualquier
+   credencial del mismo issuer y mismo `credentialType` -- comportamiento
+   intencional (un template creado a mano no tiene una credencial "de
+   origen" unica que lo restrinja).
+
+Al aprobar, se actualizan en `IssuerCourseTemplate`:
+`approvedSemanticAnalysisId`, `approvedSemanticSnapshot`,
+`approvedSemanticApprovedByUserId` (el `user.id` autenticado),
+`approvedSemanticApprovedAt`, `approvedSemanticPipelineVersion`,
+`approvedSemanticTaxonomyVersion` y `approvedSemanticSourceCredentialId`.
+Nunca se modifica `Credential`, nunca se crea una nueva `SemanticAnalysis`,
+nunca se llama a la IA, nunca se toca blockchain/canon, nunca se reconstruye
+`FormativeProfile`.
+
+**Snapshot allowlisted** (`buildApprovedTemplateSemanticSnapshot`,
+`services/api/src/issuer-course-templates/issuer-course-templates.helpers.ts`):
+nunca una copia ciega de `analysisJson`. Copia: `status`,
+`areas`/`skills`/`concepts` (cada entrada reducida a
+`{id, label, confidence}`), `hoursDistribution` (leido de `analysisJson`
+con el mismo fallback de dos rutas que usa `FormativeProfileService`),
+`confidence` (numero `[0,1]`), `warnings`, `qualityFlags`. **Nunca copia**
+`analysisJson` completo, `sourceRefs`, `evidenceMap`, `textForEmbedding`,
+IDs de `DocumentEvidence`/`TextEvidence`, `storageKey`/paths, texto crudo,
+debug/audit interno, datos de holder/blockchain ni tokens/secrets -- hay
+tests dedicados que fallan si cualquiera de esas claves aparece en el
+snapshot serializado. **Omite deliberadamente** `competencies` y
+`learningOutcomes`: no existen en `SemanticAnalysis` (son dato *emitido*
+por el issuer en `Credential.credentialSubject`), asi que incluirlos como
+arrays vacios inventaria un dato que no aplica a esta fuente.
+
+La response del template nunca expone el snapshot completo, solo
+`approvedSemanticSnapshotSummary` (`schema`, `status`, `areaCount`,
+`skillCount`, `conceptCount`, `hasHoursDistribution`, `warningCount`,
+`qualityFlagCount`, o `null` sin aprobacion), ademas de
+`approvedSemanticAnalysisId`, `approvedSemanticApprovedAt`,
+`approvedSemanticPipelineVersion`, `approvedSemanticTaxonomyVersion` y
+`approvedSemanticSourceCredentialId`. Estos campos aparecen (aditivos,
+`null` por default) en la response de `GET`/`POST`/`PATCH` de
+`course-templates` tambien, no solo en la del nuevo endpoint.
+
+Pendiente, fuera de alcance de C4a.1: la UI de revision/aprobacion (C4a.2),
+aplicar la interpretacion aprobada a credenciales nuevas o al perfil
+formativo (C4b), y un endpoint de revocacion
+(`DELETE .../approved-analysis` o equivalente, no implementado en este
+slice).

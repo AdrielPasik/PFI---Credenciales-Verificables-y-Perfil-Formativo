@@ -73,4 +73,23 @@ export class IssuerCourseTemplatesController {
       currentUser
     );
   }
+
+  // C4a.1: aprobacion explicita de una interpretacion semantica ya generada
+  // como snapshot reutilizable del template. No crea ni modifica
+  // Credential/SemanticAnalysis, no llama a la IA.
+  @Post(':templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId')
+  @UseGuards(AuthGuard)
+  approveTemplateSemanticAnalysis(
+    @Param('issuerId') issuerId: string,
+    @Param('templateId') templateId: string,
+    @Param('semanticAnalysisId') semanticAnalysisId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<CourseTemplateResponseDto> {
+    return this.issuerCourseTemplatesService.approveTemplateSemanticAnalysisForIssuer(
+      issuerId,
+      templateId,
+      semanticAnalysisId,
+      currentUser
+    );
+  }
 }

@@ -615,11 +615,12 @@ C3b/C3c; C3a es solo el modelo y la API).
   nunca dispara ni recalcula un analisis nuevo.
 - Pendiente, explicitamente fuera de alcance de C3a: boton/selector en el
   frontend (C3b), crear un draft de credencial a partir de un template
-  (C3c), aprobar la interpretacion de IA sobre un template (C4), usar
-  templates para `FormativeProfileService`/rebuild del perfil (no
-  aplica -- el perfil sigue derivando solo de credenciales emitidas
-  reales, ver seccion C2c mas arriba), y cualquier integracion real con
-  Udemy, Coursera o AWS (no existe, no se afirma, no se simula).
+  (C3c), aprobar la interpretacion de IA sobre un template (resuelto en
+  C4a.1, ver seccion propia mas abajo), usar templates para
+  `FormativeProfileService`/rebuild del perfil (no aplica -- el perfil
+  sigue derivando solo de credenciales emitidas reales, ver seccion C2c
+  mas arriba), y cualquier integracion real con Udemy, Coursera o AWS (no
+  existe, no se afirma, no se simula).
 
 ### C3a.2 — `IssuerCourseTemplate` extendido a `certification`
 
@@ -770,3 +771,100 @@ campos editables del formulario, nada relacionado a IA.
 - **No hay pantalla de gestion del catalogo** en C3c (list/archivar
   templates existentes desde una UI dedicada) -- explicitamente fuera de
   alcance, igual que en C3b.
+
+## 18. C4a.1 — Aprobacion explicita de una interpretacion semantica como snapshot reutilizable
+
+C4a.1 permite que un issuer apruebe explicitamente una `SemanticAnalysis`
+ya generada (para una credencial `course`/`certification` propia) y la
+persista como snapshot reutilizable dentro del `IssuerCourseTemplate`
+correspondiente. Es exclusivamente backend (sin UI, eso es C4a.2) y no
+aplica la interpretacion a ninguna credencial futura ni al perfil
+formativo (eso es C4b).
+
+- **Que significa aprobar**: es una decision del **emisor**, tomada sobre
+  una interpretacion que la IA ya genero para una credencial concreta, de
+  que esa interpretacion es reutilizable a futuro desde el template. **No
+  significa que la IA certifico el contenido** -- sigue siendo una
+  inferencia de IA, solo que ahora tiene el respaldo explicito de una
+  revision humana del emisor.
+- **Aplica solo a `course`/`certification`**: igual que el resto del
+  catalogo (`IssuerCourseTemplate.credentialType`), nunca a
+  `academic_subject` ni `degree`. La regla que lo garantiza no es un chequeo
+  adicional: como `template.credentialType` nunca puede ser esos dos
+  valores, comparar `semanticAnalysis.credential.type` contra
+  `template.credentialType` los rechaza por construccion.
+- **No modifica la credencial original**: `Credential` no se toca. No crea
+  una `SemanticAnalysis` nueva. No llama a la IA (no hay ningun cliente de
+  IA en el flujo de aprobacion). No escribe en blockchain. No entra al
+  hash canonico (`canon_v1`). No reconstruye `FormativeProfile` ni ningun
+  perfil de holder en este slice.
+- **No reemplaza el analisis independiente de una credencial futura**:
+  aprobar una interpretacion para el template no significa que una
+  credencial nueva creada desde ese template "hereda" el analisis. Cada
+  credencial nueva sigue generando su propio `SemanticAnalysis`
+  independiente cuando corresponda (esa relacion -- aplicar el snapshot
+  aprobado a una credencial nueva -- es exactamente lo que C4b resuelve;
+  C4a.1 solo persiste la aprobacion en el template).
+- **Persistencia aditiva, sin tabla nueva**: se agregaron 7 campos
+  nullable a `IssuerCourseTemplate` (migracion
+  `20260811193253_add_approved_semantic_snapshot_to_issuer_course_template`):
+  `approvedSemanticAnalysisId`, `approvedSemanticSnapshot`,
+  `approvedSemanticApprovedByUserId`, `approvedSemanticApprovedAt`,
+  `approvedSemanticPipelineVersion`, `approvedSemanticTaxonomyVersion`,
+  `approvedSemanticSourceCredentialId`. `approvedSemanticAnalysisId` y
+  `approvedSemanticSourceCredentialId` son referencias informativas sin FK
+  -- mismo patron que `lastSemanticAnalysisId`/`createdFromCredentialId`
+  de C3a/C3a.2. **No se agrego** `approvedSemanticProfileId`: la aprobacion
+  no se acopla a ningun perfil en este slice.
+- **Regla `createdFromCredentialId`**: si el template fue creado desde una
+  credencial concreta (`createdFromCredentialId` no nulo), solo se puede
+  aprobar una `SemanticAnalysis` de esa misma credencial -- coherente con
+  que el template representa la oferta de esa credencial especifica. Si el
+  template fue creado a mano (`createdFromCredentialId` nulo), se permite
+  aprobar un analisis de **cualquier** credencial del mismo issuer y del
+  mismo `credentialType` -- regla intencional, ya que un template manual no
+  tiene una credencial de origen unica que lo restrinja.
+- **`completed` y `partial` son ambos aprobables**: Traza trata `partial`
+  como un analisis valido pero incompleto, y aprobarlo es una decision del
+  emisor, no un error. **El emisor aprueba esta interpretacion parcial
+  para reutilizacion, no se afirma completitud automatica.** Un analisis
+  con estado invalido (estructuralmente, `SemanticAnalysisStatus` solo
+  admite `completed`/`partial` -- un analisis fallido nunca llega a
+  persistirse como fila, solo como `AnalysisRun` con `status: failed`) se
+  rechaza con `400` de forma defensiva. Nunca se llama a la IA para
+  "completar" o "mejorar" un analisis `partial` antes de aprobarlo.
+- **Snapshot allowlisted, nunca un clon de `analysisJson`**: el snapshot
+  aprobado (`buildApprovedTemplateSemanticSnapshot`) copia unicamente
+  `status`, `areas`/`skills`/`concepts` (reducidos a
+  `{id, label, confidence}` cada entrada), `hoursDistribution`,
+  `confidence` (numero, no el `Decimal` crudo), `warnings` y
+  `qualityFlags`. **Nunca copia**: `analysisJson` completo, `sourceRefs`,
+  `evidenceMap`, `textForEmbedding`, IDs de `DocumentEvidence`/
+  `TextEvidence`, `storageKey`/paths de almacenamiento, texto crudo de PDF,
+  metadata de debug/auditoria interna, `rawData` de `Credential`, datos de
+  holder/blockchain, ni tokens/secrets.
+- **Omision deliberada de `competencies`/`learningOutcomes` en el
+  snapshot**: esos dos campos no existen en `SemanticAnalysis` -- solo
+  existen como dato **emitido** por el issuer en
+  `Credential.credentialSubject` (ver seccion C2c: separacion
+  "emitido vs inferido"). Incluirlos en el snapshot como arrays vacios
+  inventaria un concepto que no aplica a esta fuente de datos; se omiten
+  por completo en vez de fingir que existen.
+- **Response siempre segura**: la respuesta del template nunca expone el
+  snapshot completo, solo un resumen (`approvedSemanticSnapshotSummary`:
+  `schema`, `status`, `areaCount`, `skillCount`, `conceptCount`,
+  `hasHoursDistribution`, `warningCount`, `qualityFlagCount`, o `null` sin
+  aprobacion), junto con `approvedSemanticAnalysisId`,
+  `approvedSemanticApprovedAt`, `approvedSemanticPipelineVersion`,
+  `approvedSemanticTaxonomyVersion` y
+  `approvedSemanticSourceCredentialId`.
+- **Aislamiento por issuer, igual que el resto del modulo**: el template y
+  la `SemanticAnalysis` deben pertenecer al mismo issuer autorizado. Un
+  `SemanticAnalysis` de otro issuer responde `404` (nunca `403`, para no
+  filtrar su existencia). Un usuario sin membership activa, o con rol
+  `viewer`, no puede aprobar nada -- mismo `IssuersService.assertUserCanManageCourseTemplatesForIssuer`
+  que ya protege el resto de `course-templates`.
+- Pendiente, explicitamente fuera de alcance de C4a.1: la UI de
+  revision/aprobacion (C4a.2), aplicar la interpretacion aprobada a
+  credenciales nuevas o al perfil formativo (C4b), y un endpoint de
+  revocacion/limpieza de la aprobacion (no implementado en este slice).

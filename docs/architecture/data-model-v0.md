@@ -138,12 +138,17 @@
   `expiration_date`, `provider_name`, `level`, `skills`, `competencies`,
   `learning_outcomes`, `status` (`active`/`archived`),
   `created_from_credential_id`, `last_semantic_analysis_id`,
-  `created_by_user_id`.
+  `approved_semantic_analysis_id`, `approved_semantic_snapshot`,
+  `approved_semantic_approved_by_user_id`, `approved_semantic_approved_at`,
+  `approved_semantic_pipeline_version`, `approved_semantic_taxonomy_version`,
+  `approved_semantic_source_credential_id` (los 7 ultimos son de C4a.1, ver
+  nota mas abajo), `created_by_user_id`.
 - Relaciones: pertenece a `Issuer` (`onDelete: Restrict`); pertenece a
-  `User` como creador (`onDelete: Restrict`); `created_from_credential_id`
-  y `last_semantic_analysis_id` son referencias informativas sin FK (el
-  patron actual del schema evita relaciones opcionales adicionales cuando
-  no son estrictamente necesarias para C3a).
+  `User` como creador (`onDelete: Restrict`); `created_from_credential_id`,
+  `last_semantic_analysis_id`, `approved_semantic_analysis_id` y
+  `approved_semantic_source_credential_id` son referencias informativas
+  sin FK (el patron actual del schema evita relaciones opcionales
+  adicionales cuando no son estrictamente necesarias).
 - Relacional: issuer, tipo de credencial, titulo, horas, modality, status,
   timestamps.
 - Postgres nativo: `skills`, `competencies` y `learning_outcomes` son
@@ -168,6 +173,23 @@
   `certification`). El modelo no se renombro fisicamente al agregar
   `certification` -- deuda de naming documentada, ver
   `docs/architecture/domain-rules-v0.md`.
+- Nota C4a.1 (`approved_semantic_*`): 7 campos aditivos, todos nullable,
+  que persisten la aprobacion **explicita** del emisor de una
+  `SemanticAnalysis` como interpretacion reutilizable del template.
+  `approved_semantic_snapshot` (JSONB) es un allowlist estricto -- ver
+  `buildApprovedTemplateSemanticSnapshot` en
+  `services/api/src/issuer-course-templates/issuer-course-templates.helpers.ts`
+  -- nunca una copia de `analysisJson`; excluye `sourceRefs`,
+  `evidenceMap`, `textForEmbedding`, IDs de evidencia, storage paths y
+  omite deliberadamente `competencies`/`learning_outcomes` (no existen en
+  `SemanticAnalysis`). `approved_semantic_approved_by_user_id` guarda el
+  `user.id` autenticado que aprobo; `approved_semantic_approved_at` la
+  fecha de aprobacion. No se agrego `approved_semantic_profile_id` -- la
+  aprobacion no se acopla a ningun `FormativeProfile` en este slice.
+  Migracion:
+  `20260811193253_add_approved_semantic_snapshot_to_issuer_course_template`.
+  Ver `docs/architecture/domain-rules-v0.md` (seccion 18) para las reglas
+  completas.
 
 ## Program
 
