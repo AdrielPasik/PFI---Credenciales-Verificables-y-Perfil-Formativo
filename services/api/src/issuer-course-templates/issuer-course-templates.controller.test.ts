@@ -43,7 +43,7 @@ test('course template routes are protected by AuthGuard and issuer-scoped', () =
   }
 });
 
-test('controller delegates list with issuerId, search, status and current user', async () => {
+test('controller delegates list with issuerId, search, status, credentialType and current user', async () => {
   const calls: Array<Record<string, unknown>> = [];
   const controller = new IssuerCourseTemplatesController({
     async listTemplatesForIssuer(issuerId: string, query: Record<string, unknown>, user: Record<string, unknown>) {
@@ -52,12 +52,12 @@ test('controller delegates list with issuerId, search, status and current user',
     }
   } as never);
 
-  await controller.listTemplates('issuer-1', 'python', 'archived', currentUser);
+  await controller.listTemplates('issuer-1', 'python', 'archived', 'course', currentUser);
 
   assert.deepEqual(calls, [
     {
       issuerId: 'issuer-1',
-      query: { search: 'python', status: 'archived' },
+      query: { search: 'python', status: 'archived', credentialType: 'course' },
       user: currentUser
     }
   ]);

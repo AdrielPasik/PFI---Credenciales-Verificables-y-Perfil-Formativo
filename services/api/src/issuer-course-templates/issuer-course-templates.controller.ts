@@ -20,11 +20,12 @@ export class IssuerCourseTemplatesController {
     @Param('issuerId') issuerId: string,
     @Query('search') search: string | undefined,
     @Query('status') status: string | undefined,
+    @Query('credentialType') credentialType: string | undefined,
     @CurrentUser() currentUser: AuthenticatedUser
   ): Promise<CourseTemplateResponseDto[]> {
     return this.issuerCourseTemplatesService.listTemplatesForIssuer(
       issuerId,
-      { search, status },
+      { search, status, credentialType },
       currentUser
     );
   }

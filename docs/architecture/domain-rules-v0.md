@@ -708,3 +708,65 @@ descripto arriba. Reglas de UX:
   reutilizable del issuer. El copy lo aclara explicitamente en la UI.
 - No hay pantalla de gestion del catalogo ni selector en la creacion de
   credenciales en C3b -- eso queda para un slice futuro (analogo a C3c).
+
+### C3c — Usar templates reutilizables al crear course/certification
+
+C3c cierra el ciclo: guardar como reutilizable (C3b) -> buscar template
+-> seleccionarlo -> precargar el formulario de creacion
+(`/issuer/credentials/new`). Decision de alcance explicita del
+enunciado: este slice cierra la reutilizacion **solo a nivel de datos
+declarados** -- no toca aprobacion semantica reusable, no copia
+`SemanticAnalysis`, no usa `lastSemanticAnalysisId` para precargar
+analisis. Motivo: C4 requiere una revision explicita de que
+interpretacion semantica se aprueba; en C3c el template solo precarga
+campos editables del formulario, nada relacionado a IA.
+
+- **Solo course y certification muestran el selector.** `academic_subject`
+  y `degree` mantienen su flujo academico existente sin cambios -- nunca
+  vieron ni veran este selector, porque no usan el catalogo reutilizable
+  (ver seccion C3a.2).
+- **El formulario de creacion es minimo por diseño** (captura solo
+  `achievementName` para tipos manuales; el resto de los campos se
+  completan despues en el editor de borrador de la pantalla de detalle,
+  patron ya existente desde C2). C3c respeta ese diseño en vez de
+  agrandar el formulario de creacion: seleccionar un template precarga
+  `achievementName` ahi mismo (visible, editable) y el resto de los
+  campos aplicables se aplican con un `PATCH` best-effort inmediatamente
+  despues de crear el draft, reusando el mismo endpoint que ya usa el
+  editor de borrador -- el usuario los revisa/edita en la pantalla de
+  detalle, no en la de creacion.
+- **Nunca cruza campos entre tipos**, mismo criterio que C3a/C3a.2: un
+  template `course` nunca precarga `skills`/`providerName`/`level`; uno
+  `certification` nunca precarga `modality`/`platformName`. Tampoco se
+  precargan referencias academicas (`academicCourseReference`/
+  `curriculumReference`) ni datos de blockchain/canonical/hash.
+- **`learningOutcomes` para `certification` es defensivo, no
+  garantizado**: el template lo guarda si existiera como dato legacy
+  (ver C3a.2), pero el contrato de `PATCH .../credentials/:credentialId/draft`
+  no admite `learningOutcomes` para `certification`
+  (`assertRequestedFieldsApplyToType` lo rechazaria con 400). C3c nunca
+  lo envia en ese caso -- se descarta en silencio en vez de romper la
+  aplicacion del resto de los campos.
+- **Nunca se envia `templateId` al backend**: `Credential` no tiene ese
+  campo y C3c no lo agrega ni migra nada. La relacion "esta credencial
+  vino de este template" simplemente no se persiste en ningun lado --
+  es una conveniencia de una sola vez al momento de crear.
+- **El PATCH que aplica el template es best-effort**: si falla, el draft
+  ya fue creado exitosamente y la redireccion ocurre igual. Nunca
+  bloquea ni revierte la creacion del draft por un fallo en esta
+  operacion secundaria.
+- **Nunca copia interpretacion de IA**: seleccionar un template no copia
+  `SemanticAnalysis`, no copia `lastSemanticAnalysisId` a la credencial
+  nueva como si fuera su propio analisis, no llama a IA, no reconstruye
+  el perfil formativo. La credencial nueva sigue su ciclo normal completo
+  (crear draft -> emitir -> analisis automatico propio si corresponde ->
+  `SemanticAnalysis` propio -> rebuild de perfil automatico si aplica),
+  totalmente independiente del template usado para precargarla.
+- **Filtro `credentialType` en list** (`course`/`certification`/`all`,
+  default `all` sin cambios de comportamiento respecto a C3a.2): se
+  agrego para que el selector pueda pedir solo el tipo que necesita, sin
+  arriesgarse a que el limite fijo de 20 resultados del catalogo
+  mezclado oculte templates del tipo buscado.
+- **No hay pantalla de gestion del catalogo** en C3c (list/archivar
+  templates existentes desde una UI dedicada) -- explicitamente fuera de
+  alcance, igual que en C3b.

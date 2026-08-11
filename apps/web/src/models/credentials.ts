@@ -113,6 +113,12 @@ export type CredentialDraftFormSubmission =
       credentialType: ManualCredentialType;
       achievementName: string;
       holder: HolderSummaryVM;
+      // C3c: presente solo si el usuario aplico un template reutilizable
+      // (course/certification). Nunca se manda al backend como campo propio
+      // -- el controller lo usa para disparar un PATCH best-effort
+      // inmediatamente despues de crear el draft, con los mismos campos que
+      // ya acepta el editor de borrador existente.
+      appliedTemplate?: CourseTemplateSummaryVM;
     }
   | {
       credentialType: 'academic_subject';
@@ -174,6 +180,10 @@ export interface CreatedCredentialDraftVM {
   credentialReference: string;
   issuerReference: string;
   status: CredentialStatus;
+  // C3c: necesario para el PATCH best-effort que aplica los campos de un
+  // template reutilizable inmediatamente despues de crear el draft
+  // (compare-and-swap, mismo contrato que el resto de PATCH .../draft).
+  updatedAt: string;
 }
 
 export interface IssuerCredentialSubjectVM {
@@ -308,6 +318,19 @@ export type ReusableCredentialType = 'course' | 'certification';
 export interface SaveCourseTemplateFromCredentialCommand {
   issuerReference: string;
   credentialReference: string;
+}
+
+// C3c: busqueda del catalogo reutilizable para precargar el formulario de
+// creacion. credentialType es opcional -- el selector de /issuer/credentials/new
+// siempre lo manda (course o certification, nunca 'all') para no arriesgarse
+// a que el limite fijo de 20 resultados del backend oculte templates del
+// tipo que el usuario esta buscando.
+export interface ListCourseTemplatesCommand {
+  issuerReference: string;
+  search?: string;
+  status?: 'active' | 'archived' | 'all';
+  credentialType?: ReusableCredentialType | 'all';
+  signal?: AbortSignal;
 }
 
 // Minimo necesario para C3b (confirmar guardado exitoso); se adapta la

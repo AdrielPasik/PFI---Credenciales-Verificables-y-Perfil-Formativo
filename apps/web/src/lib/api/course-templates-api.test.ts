@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { saveCourseTemplateFromCredential } from '@/lib/api/course-templates-api';
+import {
+  listCourseTemplates,
+  saveCourseTemplateFromCredential
+} from '@/lib/api/course-templates-api';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 
 function courseTemplateResponse(overrides: Record<string, unknown> = {}) {
@@ -96,5 +99,120 @@ describe('saveCourseTemplateFromCredential', () => {
         credentialReference: 'credential-1'
       })
     ).rejects.toMatchObject({ status: 409 });
+  });
+});
+
+describe('listCourseTemplates', () => {
+  it('calls GET /issuers/:issuerId/course-templates with search/status/credentialType', async () => {
+    const requestAuthenticated = vi
+      .fn()
+      .mockResolvedValue([courseTemplateResponse()]);
+
+    await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer selected',
+      search: 'python',
+      status: 'active',
+      credentialType: 'course'
+    });
+
+    const [path, options] = requestAuthenticated.mock.calls[0];
+    expect(path).toBe(
+      '/issuers/issuer%20selected/course-templates?search=python&status=active&credentialType=course'
+    );
+    expect(options).not.toHaveProperty('body');
+  });
+
+  it('omits search/status/credentialType from the query string when not provided', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue([]);
+
+    await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer-1'
+    });
+
+    expect(requestAuthenticated).toHaveBeenCalledWith(
+      '/issuers/issuer-1/course-templates',
+      { signal: undefined }
+    );
+  });
+
+  it('adapts a course template correctly', async () => {
+    const requestAuthenticated = vi
+      .fn()
+      .mockResolvedValue([courseTemplateResponse()]);
+
+    const result = await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer-1',
+      credentialType: 'course'
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0].credentialType).toBe('course');
+    expect(result[0].modality).toBe('Online');
+  });
+
+  it('adapts a certification template correctly', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue([
+      courseTemplateResponse({
+        credentialType: 'certification',
+        modality: null,
+        platformName: null,
+        certificationCode: 'AWS-CCP',
+        providerName: 'Instituto Demo',
+        level: 'Fundamentos',
+        skills: ['Cloud']
+      })
+    ]);
+
+    const result = await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer-1',
+      credentialType: 'certification'
+    });
+
+    expect(result[0].credentialType).toBe('certification');
+    expect(result[0].certificationCode).toBe('AWS-CCP');
+    expect(result[0].providerName).toBe('Instituto Demo');
+    expect(result[0].skills).toEqual(['Cloud']);
+  });
+
+  it('rejects an incompatible response (non-array)', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue({ items: [] });
+
+    await expect(
+      listCourseTemplates(requestAuthenticated, { issuerReference: 'issuer-1' })
+    ).rejects.toThrow(IncompatiblePayloadError);
+  });
+
+  it('handles an empty response', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue([]);
+
+    const result = await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer-1'
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it('never exposes issuerId or createdByUserId even if the backend returned them', async () => {
+    const requestAuthenticated = vi.fn().mockResolvedValue([
+      courseTemplateResponse({
+        issuerId: 'must-not-leak',
+        createdByUserId: 'must-not-leak'
+      })
+    ]);
+
+    const result = await listCourseTemplates(requestAuthenticated, {
+      issuerReference: 'issuer-1'
+    });
+
+    expect(JSON.stringify(result)).not.toContain('must-not-leak');
+  });
+
+  it('rejects a blank issuer reference before calling the API', async () => {
+    const requestAuthenticated = vi.fn();
+
+    await expect(
+      listCourseTemplates(requestAuthenticated, { issuerReference: '  ' })
+    ).rejects.toThrow(ApiError);
+    expect(requestAuthenticated).not.toHaveBeenCalled();
   });
 });

@@ -177,4 +177,32 @@ describe('mapCredentialError', () => {
       ).code
     ).toBe('network');
   });
+
+  it('maps template-search HTTP 400 to a safe message without exposing backend detail', () => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', 400),
+      'template-search'
+    );
+
+    expect(result).toEqual({
+      code: 'invalid_input',
+      message: 'No pudimos buscar contenido reutilizable. Intentá nuevamente.'
+    });
+    expect(result.message).not.toContain('private');
+  });
+
+  it('maps template-search network and 403 failures using the generic safe fallbacks', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'template-search'
+      ).code
+    ).toBe('network');
+    expect(
+      mapCredentialError(
+        new ApiError('private backend detail', 'http', 403),
+        'template-search'
+      ).code
+    ).toBe('forbidden');
+  });
 });

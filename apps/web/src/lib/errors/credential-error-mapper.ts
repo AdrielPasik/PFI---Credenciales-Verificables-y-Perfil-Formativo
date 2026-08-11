@@ -15,7 +15,8 @@ type CredentialOperation =
   | 'text-evidence-submit'
   | 'issue'
   | 'detail'
-  | 'save-reusable-template';
+  | 'save-reusable-template'
+  | 'template-search';
 
 function feedback(
   code: CredentialFeedbackCode,
@@ -206,6 +207,13 @@ export function mapCredentialError(
         'Revisá el texto ingresado e intentá nuevamente.'
       );
     }
+  }
+
+  if (operation === 'template-search' && error.status === 400) {
+    return feedback(
+      'invalid_input',
+      'No pudimos buscar contenido reutilizable. Intentá nuevamente.'
+    );
   }
 
   if (error.status === 409 && operation === 'draft-update') {

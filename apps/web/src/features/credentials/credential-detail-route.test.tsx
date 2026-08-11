@@ -17,6 +17,10 @@ const sessionMocks = vi.hoisted(() => ({
   requestAuthenticated: vi.fn()
 }));
 
+const navigationMocks = vi.hoisted(() => ({
+  searchParams: new URLSearchParams()
+}));
+
 const unusedDocumentUpload = vi.fn(async () => {
   throw new Error('Document upload is not used in this test.');
 });
@@ -25,6 +29,10 @@ vi.mock('@/lib/session/session-provider', () => ({
   useSession: () => ({
     requestAuthenticated: sessionMocks.requestAuthenticated
   })
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => navigationMocks.searchParams
 }));
 
 const membership = {
@@ -207,6 +215,7 @@ function mockCredentialDetailApi({
 describe('CredentialDetailController', () => {
   beforeEach(() => {
     sessionMocks.requestAuthenticated.mockReset();
+    navigationMocks.searchParams = new URLSearchParams();
   });
 
   it('loads the direct URL and latest analysis through issuer-scoped reads', () => {
@@ -732,6 +741,105 @@ describe('CredentialDetailController', () => {
         ([path]) => /fastapi|blockchain/i.test(String(path))
       )
     ).toBe(false);
+  });
+});
+
+describe('CredentialDetailController templateApplyFailed warning (C3c fix)', () => {
+  beforeEach(() => {
+    sessionMocks.requestAuthenticated.mockReset();
+    navigationMocks.searchParams = new URLSearchParams();
+  });
+
+  it('shows the warning when redirected with ?templateApply=failed', async () => {
+    navigationMocks.searchParams = new URLSearchParams('templateApply=failed');
+    mockCredentialDetailApi();
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    expect(
+      await screen.findByText(
+        'El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByText('Podés completarlos manualmente en el editor.')
+    ).toBeTruthy();
+  });
+
+  it('does not show the warning when there is no failure query param', async () => {
+    mockCredentialDetailApi();
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    await screen.findByRole('heading', { name: 'Arquitectura de Software' });
+    expect(
+      screen.queryByText(
+        'El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable'
+      )
+    ).toBeNull();
+  });
+
+  it('never exposes raw backend detail in the warning', async () => {
+    navigationMocks.searchParams = new URLSearchParams('templateApply=failed');
+    mockCredentialDetailApi();
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    await screen.findByText(
+      'El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable'
+    );
+    expect(document.body.textContent).not.toMatch(
+      /stack|token|payload|templateId|Error:/i
+    );
+  });
+});
+
+describe('CredentialDetailView templateApplyFailed warning (C3c fix)', () => {
+  it('renders a warning FeedbackAlert, not an error/danger one', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        templateApplyFailed
+      />
+    );
+
+    const alert = screen.getByText(
+      'El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable'
+    );
+    expect(alert).toBeTruthy();
+    // El aviso es no-danger: no debe usar role="alert" (exclusivo de error).
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it('does not render the warning by default', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture()}
+      />
+    );
+
+    expect(
+      screen.queryByText(
+        'El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable'
+      )
+    ).toBeNull();
   });
 });
 

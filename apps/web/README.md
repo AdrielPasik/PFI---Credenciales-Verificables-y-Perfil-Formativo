@@ -77,6 +77,28 @@ flujos reales del navegador sobre la base F0.1:
   reutilizable del issuer. No hay pantalla de gestión del catálogo ni
   selector en creación de credencial en este slice (quedan para un slice
   futuro tipo C3c).
+- C3c: `/issuer/credentials/new` cierra el ciclo de C3b -- al elegir
+  `type=course` o `type=certification` aparece "Usar contenido
+  reutilizable", que busca en el catálogo del issuer actual
+  (`GET /issuers/:issuerId/course-templates?search=&credentialType=`,
+  siempre filtrado al tipo elegido) y permite previsualizar un resultado
+  antes de aplicarlo ("Usar este contenido"). Aplicar un template
+  precarga `achievementName` (visible y editable en el mismo formulario)
+  y, best-effort, el resto de los campos aplicables al tipo
+  (`description`/`hours`/`platformName`/`modality`/`externalUrl`/
+  `competencies`/`learningOutcomes` para `course`;
+  `description`/`hours`/`certificationCode`/`expirationDate`/
+  `providerName`/`level`/`skills`/`competencies` para `certification`)
+  mediante un `PATCH` inmediatamente después de crear el draft, reusando
+  el mismo endpoint que ya usa el editor de borrador -- nunca envía
+  `templateId` (no existe ese campo) ni copia `skills`/`providerName`/
+  `level` a un `course`, ni `platformName`/`modality`/`learningOutcomes`
+  a una `certification`. Nunca copia `SemanticAnalysis`,
+  `lastSemanticAnalysisId` como si fuera análisis propio, ni datos de
+  aprobación semántica (eso es C4). Cambiar el tipo de credencial limpia
+  la selección de template. `academic_subject`/`degree` no muestran este
+  selector -- siguen su flujo académico existente sin cambios. No hay
+  pantalla de gestión del catálogo en este slice.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

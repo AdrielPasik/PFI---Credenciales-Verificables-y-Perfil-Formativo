@@ -13,14 +13,18 @@ import {
 import {
   createAcademicSubjectCurricularDraftRequest,
   createManualCredentialDraftRequest,
+  patchIssuerCredentialDraftRequest,
   resolveHolderRequest,
   searchAcademicProgramsRequest,
   searchCurriculumAcademicSubjectsRequest
 } from '@/lib/api/credentials-api';
+import { listCourseTemplates } from '@/lib/api/course-templates-api';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
 import type {
-  CredentialDraftFormSubmission
+  CourseTemplateSummaryVM,
+  CredentialDraftFormSubmission,
+  ReusableCredentialType
 } from '@/models/credentials';
 import type { IssuerMembershipSummaryVM } from '@/models/issuer-context';
 
@@ -84,6 +88,73 @@ export function NewCredentialController({
     return adaptCurriculumAcademicSubjectSearch(payload);
   }
 
+  async function searchReusableTemplates(
+    credentialType: ReusableCredentialType,
+    query: string,
+    signal: AbortSignal
+  ) {
+    return listCourseTemplates(requestAuthenticated, {
+      issuerReference: membership.issuerReference,
+      search: query,
+      credentialType,
+      signal
+    });
+  }
+
+  // C3c: aplica los campos precargables de un template reutilizable
+  // inmediatamente despues de crear el draft, reusando el mismo PATCH que
+  // ya usa el editor de borrador existente. Best-effort: si falla, el
+  // draft ya fue creado y el usuario sigue pudiendo completarlo a mano en
+  // la pantalla de detalle -- nunca bloquea ni revierte la creacion.
+  // Nunca copia skills/providerName/level/lastSemanticAnalysisId/datos de
+  // blockchain -- eso es exactamente lo que este slice no debe hacer.
+  //
+  // C3c fix: devuelve si el PATCH tuvo exito o no (en vez de tragarse el
+  // error en silencio) para que createDraft pueda avisarle al usuario en
+  // el detalle sin bloquear ni revertir la creacion del draft.
+  async function applyTemplateToNewDraft(
+    credentialReference: string,
+    expectedUpdatedAt: string,
+    template: CourseTemplateSummaryVM
+  ): Promise<boolean> {
+    const commonFields = {
+      description: template.description,
+      hours: template.hours,
+      externalUrl: template.externalUrl,
+      competencies: template.competencies
+    };
+    const typeSpecificFields =
+      template.credentialType === 'course'
+        ? {
+            modality: template.modality,
+            platformName: template.platformName,
+            learningOutcomes: template.learningOutcomes
+          }
+        : {
+            certificationCode: template.certificationCode,
+            expirationDate: template.expirationDate,
+            providerName: template.providerName,
+            level: template.level,
+            skills: template.skills
+          };
+
+    try {
+      await patchIssuerCredentialDraftRequest(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialReference,
+        expectedUpdatedAt,
+        ...commonFields,
+        ...typeSpecificFields
+      });
+      return true;
+    } catch {
+      // Best-effort: la creacion del draft ya se confirmo. No propagamos
+      // el error para no bloquear la redireccion -- createDraft usa el
+      // valor de retorno para avisarle al usuario en el detalle.
+      return false;
+    }
+  }
+
   async function createDraft(input: CredentialDraftFormSubmission) {
     let payload: unknown;
 
@@ -138,8 +209,26 @@ export function NewCredentialController({
       throw new IncompatiblePayloadError();
     }
 
+    let templateApplyFailed = false;
+
+    if (
+      input.credentialType !== 'academic_subject' &&
+      input.appliedTemplate
+    ) {
+      const applied = await applyTemplateToNewDraft(
+        draft.credentialReference,
+        draft.updatedAt,
+        input.appliedTemplate
+      );
+      templateApplyFailed = !applied;
+    }
+
+    const detailPath = `/issuer/credentials/${encodeURIComponent(draft.credentialReference)}`;
+    // C3c fix: nunca bloquea ni revierte la creacion del draft -- el
+    // query param es la unica señal que el detalle necesita para avisar
+    // al usuario que el PATCH del template no se pudo aplicar.
     router.replace(
-      `/issuer/credentials/${encodeURIComponent(draft.credentialReference)}`
+      templateApplyFailed ? `${detailPath}?templateApply=failed` : detailPath
     );
   }
 
@@ -150,6 +239,7 @@ export function NewCredentialController({
       onResolveHolder={resolveHolder}
       onCreateDraft={createDraft}
       searchPrograms={searchPrograms}
+      searchReusableTemplates={searchReusableTemplates}
       searchSubjects={searchSubjects}
     />
   );

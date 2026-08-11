@@ -71,6 +71,12 @@ function createService(options?: {
             return false;
           }
           if (
+            'credentialType' in where &&
+            template.credentialType !== where.credentialType
+          ) {
+            return false;
+          }
+          if (
             'createdFromCredentialId' in where &&
             template.createdFromCredentialId !== where.createdFromCredentialId
           ) {
@@ -201,6 +207,96 @@ test('list rejects an invalid status filter', async () => {
     service.listTemplatesForIssuer('issuer-1', { status: 'deleted' }, currentUser),
     BadRequestException
   );
+});
+
+test('list without credentialType keeps the existing behavior (both types mixed)', async () => {
+  const { service, calls } = createService({
+    templates: [
+      baseTemplateRow({ id: 't-course', credentialType: CredentialType.course }),
+      baseTemplateRow({ id: 't-cert', credentialType: CredentialType.certification })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer('issuer-1', {}, currentUser);
+
+  assert.deepEqual(result.map((item) => item.id).sort(), ['t-cert', 't-course']);
+  const where = (calls.find((call) => call.op === 'findMany')?.args as Record<string, unknown>)
+    .where as Record<string, unknown>;
+  assert.equal('credentialType' in where, false);
+});
+
+test('list credentialType=course returns only course templates', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({ id: 't-course', credentialType: CredentialType.course }),
+      baseTemplateRow({ id: 't-cert', credentialType: CredentialType.certification })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer(
+    'issuer-1',
+    { credentialType: 'course' },
+    currentUser
+  );
+
+  assert.deepEqual(result.map((item) => item.id), ['t-course']);
+});
+
+test('list credentialType=certification returns only certification templates', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({ id: 't-course', credentialType: CredentialType.course }),
+      baseTemplateRow({ id: 't-cert', credentialType: CredentialType.certification })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer(
+    'issuer-1',
+    { credentialType: 'certification' },
+    currentUser
+  );
+
+  assert.deepEqual(result.map((item) => item.id), ['t-cert']);
+});
+
+test('list rejects an invalid credentialType filter', async () => {
+  const { service } = createService({ templates: [] });
+
+  await assert.rejects(
+    service.listTemplatesForIssuer('issuer-1', { credentialType: 'academic_subject' }, currentUser),
+    BadRequestException
+  );
+});
+
+test('list combines search and credentialType correctly', async () => {
+  const { service } = createService({
+    templates: [
+      baseTemplateRow({ id: 't-course-python', credentialType: CredentialType.course, title: 'Curso de Python' }),
+      baseTemplateRow({ id: 't-cert-python', credentialType: CredentialType.certification, title: 'Certificacion Python' }),
+      baseTemplateRow({ id: 't-course-excel', credentialType: CredentialType.course, title: 'Curso de Excel' })
+    ]
+  });
+
+  const result = await service.listTemplatesForIssuer(
+    'issuer-1',
+    { search: 'python', credentialType: 'course' },
+    currentUser
+  );
+
+  assert.deepEqual(result.map((item) => item.id), ['t-course-python']);
+});
+
+test('list credentialType filter stays scoped to the requested issuer', async () => {
+  const { service, calls } = createService({
+    templates: [baseTemplateRow({ id: 't-course', credentialType: CredentialType.course })]
+  });
+
+  await service.listTemplatesForIssuer('issuer-1', { credentialType: 'course' }, currentUser);
+
+  const where = (calls.find((call) => call.op === 'findMany')?.args as Record<string, unknown>)
+    .where as Record<string, unknown>;
+  assert.equal(where.issuerId, 'issuer-1');
+  assert.equal(where.credentialType, CredentialType.course);
 });
 
 test('list search filters by title, platformName and description', async () => {

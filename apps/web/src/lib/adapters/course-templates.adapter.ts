@@ -97,3 +97,16 @@ export function adaptCourseTemplateSummary(
     updatedAt: isoDateTime(template.updatedAt)
   };
 }
+
+// C3c: GET /issuers/:issuerId/course-templates devuelve un array (no
+// { items: [...] }); cada elemento pasa por el mismo allowlist que
+// adaptCourseTemplateSummary.
+export function adaptCourseTemplateSummaryList(
+  payload: unknown
+): CourseTemplateSummaryVM[] {
+  if (!Array.isArray(payload)) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return payload.map(adaptCourseTemplateSummary);
+}

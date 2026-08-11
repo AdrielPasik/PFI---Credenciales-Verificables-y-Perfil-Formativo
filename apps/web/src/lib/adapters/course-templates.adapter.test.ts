@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { adaptCourseTemplateSummary } from '@/lib/adapters/course-templates.adapter';
+import {
+  adaptCourseTemplateSummary,
+  adaptCourseTemplateSummaryList
+} from '@/lib/adapters/course-templates.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
 function courseTemplatePayload(overrides?: Record<string, unknown>) {
@@ -134,5 +137,30 @@ describe('adaptCourseTemplateSummary', () => {
         courseTemplatePayload({ competencies: 'not-an-array' })
       )
     ).toThrow(IncompatiblePayloadError);
+  });
+});
+
+describe('adaptCourseTemplateSummaryList', () => {
+  it('adapts each item in the array', () => {
+    const result = adaptCourseTemplateSummaryList([
+      courseTemplatePayload({ id: 't-1' }),
+      courseTemplatePayload({ id: 't-2', credentialType: 'certification' })
+    ]);
+
+    expect(result.map((item) => item.reference)).toEqual(['t-1', 't-2']);
+    expect(result[1].credentialType).toBe('certification');
+  });
+
+  it('handles an empty array', () => {
+    expect(adaptCourseTemplateSummaryList([])).toEqual([]);
+  });
+
+  it('rejects a non-array payload', () => {
+    expect(() => adaptCourseTemplateSummaryList({ items: [] })).toThrow(
+      IncompatiblePayloadError
+    );
+    expect(() => adaptCourseTemplateSummaryList(null)).toThrow(
+      IncompatiblePayloadError
+    );
   });
 });

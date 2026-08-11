@@ -10,6 +10,7 @@ import {
   UserRound
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   useEffect,
   useState
@@ -97,6 +98,11 @@ export function CredentialDetailController({
   membership: IssuerMembershipSummaryVM;
 }) {
   const { requestAuthenticated } = useSession();
+  const searchParams = useSearchParams();
+  // C3c fix: unica señal segura de que el PATCH best-effort que aplica un
+  // template reutilizable falló después de crear el draft con éxito.
+  // Nunca expone detalle del backend -- es solo un query param booleano.
+  const templateApplyFailed = searchParams.get('templateApply') === 'failed';
   const documentAnalysis = useIssuerDocumentAnalysis({
     requestAuthenticated,
     issuerReference: membership.issuerReference,
@@ -324,6 +330,7 @@ export function CredentialDetailController({
       onSubmitTextEvidence={submitTextEvidence}
       onIssue={issueCredential}
       onSaveReusableTemplate={saveReusableTemplate}
+      templateApplyFailed={templateApplyFailed}
       draftEditor={{
         issuerReference: membership.issuerReference,
         onSave: saveDraft,
@@ -346,6 +353,7 @@ export function CredentialDetailView({
   onIssue = unavailableCredentialIssuance,
   onSubmitTextEvidence = unavailableTextEvidenceSubmission,
   onSaveReusableTemplate = unavailableSaveReusableTemplate,
+  templateApplyFailed = false,
   onUploadDocumentEvidence
 }: {
   detail: IssuerCredentialDetailVM;
@@ -360,6 +368,10 @@ export function CredentialDetailView({
     content: string;
   }): Promise<TextEvidenceVM>;
   onSaveReusableTemplate?(): Promise<CourseTemplateSummaryVM>;
+  // C3c fix: true cuando el draft se creo con exito pero el PATCH
+  // best-effort que aplico los campos de un template reutilizable fallo.
+  // Nunca bloquea nada -- solo dispara un aviso no-danger.
+  templateApplyFailed?: boolean;
   draftEditor?: {
     issuerReference: string;
     onSave(
@@ -422,6 +434,15 @@ export function CredentialDetailView({
             : 'Esta credencial ya no está en estado borrador. Las operaciones posteriores quedan fuera de este flujo.'}
         </p>
       </header>
+
+      {templateApplyFailed ? (
+        <FeedbackAlert
+          variant="warning"
+          title="El borrador se creó, pero no pudimos aplicar todos los datos del contenido reutilizable"
+        >
+          Podés completarlos manualmente en el editor.
+        </FeedbackAlert>
+      ) : null}
 
       {!isDraft ? (
         <FeedbackAlert

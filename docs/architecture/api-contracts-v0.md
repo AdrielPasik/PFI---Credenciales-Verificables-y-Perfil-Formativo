@@ -1196,3 +1196,76 @@ selector en creacion de credencial (eso sigue siendo C3c):
   `detail.status !== 'revoked'`. Nunca aparece para `academic_subject`,
   `degree`, en la wallet holder, en verifier/public ni en pantallas de
   creacion.
+
+### C3c: filtro `credentialType` en list + selector en la creacion de credenciales
+
+C3c agrega un filtro opcional al `GET` de C3a/C3a.2 y cierra el ciclo
+"guardar como reutilizable -> buscar -> seleccionar -> precargar" desde
+`/issuer/credentials/new`.
+
+`GET /issuers/:issuerId/course-templates?search=&status=&credentialType=`:
+
+- `credentialType` es un query param opcional nuevo. Acepta `course`,
+  `certification` o `all`. Cualquier otro valor responde `400`.
+  Comportamiento sin el parametro: **sin cambios respecto a C3a.2** --
+  list sigue devolviendo `course` y `certification` mezclados (default
+  `all`).
+- Se combina con `search` y `status` de la forma esperada (AND logico).
+  El scope por `issuerId` se mantiene exactamente igual.
+- Motivo: el selector de `/issuer/credentials/new` siempre pide
+  explicitamente `credentialType=course` o `credentialType=certification`
+  (nunca `all`) para no arriesgarse a que el limite fijo de 20 resultados
+  del endpoint oculte templates del tipo que el usuario esta buscando
+  cuando ambos tipos comparten el mismo catalogo.
+
+Consumo frontend nuevo, en `/issuer/credentials/new`:
+
+- `listCourseTemplates(requestAuthenticated, { issuerReference, search, status, credentialType, signal })`
+  (`apps/web/src/lib/api/course-templates-api.ts`) llama el `GET` de
+  arriba y adapta la response con `adaptCourseTemplateSummaryList`
+  (`apps/web/src/lib/adapters/course-templates.adapter.ts`, mapea cada
+  elemento con el mismo allowlist que `adaptCourseTemplateSummary` de
+  C3b). Es un `GET` puro: nunca crea, guarda ni modifica nada.
+- La sección "Usar contenido reutilizable"
+  (`ReusableTemplateSearchSection`,
+  `apps/web/src/features/credentials/reusable-template-search-section.tsx`)
+  solo se muestra cuando el `credentialType` elegido en el formulario es
+  `course` o `certification`. Nunca para `academic_subject`/`degree`.
+- Seleccionar un resultado abre una vista previa; confirmar con "Usar
+  este contenido" precarga `achievementName` (campo visible y editable
+  del mismo formulario) y guarda el template aplicado en estado local del
+  componente -- **no llama a ningun endpoint todavia**.
+- Al crear el draft (mismo flujo existente,
+  `POST /credentials/draft`, sin cambios), si habia un template
+  aplicado, el controller (`NewCredentialController` en
+  `new-credential-route.tsx`) dispara un segundo llamado best-effort:
+  `PATCH /issuers/:issuerId/credentials/:credentialId/draft` (el mismo
+  endpoint que ya usa el editor de borrador de C2/C3b) con los campos
+  aplicables al tipo:
+  - `course`: `description`, `hours`, `externalUrl`, `competencies`,
+    `modality`, `platformName`, `learningOutcomes`.
+  - `certification`: `description`, `hours`, `externalUrl`,
+    `competencies`, `certificationCode`, `expirationDate`,
+    `providerName`, `level`, `skills`. **`learningOutcomes` nunca se
+    manda** para `certification` -- el contrato de `PATCH .../draft` no
+    lo admite para ese tipo (`assertRequestedFieldsApplyToType` lo
+    rechazaria con 400); si el template lo tuviera como dato legacy,
+    se descarta en silencio.
+  - Nunca se manda `templateId` (no existe ese campo en `Credential` y
+    no se agrego); nunca se manda `skills`/`providerName`/`level` para
+    `course`; nunca se manda `modality`/`platformName` para
+    `certification`.
+  - Si el `PATCH` falla, el error se descarta (best-effort): el draft ya
+    fue creado y la redireccion a
+    `/issuer/credentials/[credentialId]` ocurre igual. El usuario puede
+    completar los campos a mano desde ahi, exactamente como si nunca
+    hubiera elegido un template.
+- Cambiar el `credentialType` elegido en el formulario limpia la
+  seleccion de template aplicada (evita que queden campos incompatibles
+  del tipo anterior).
+- No se copia `SemanticAnalysis`, `lastSemanticAnalysisId` como si fuera
+  analisis de la credencial nueva, ni interpretacion semantica aprobada.
+  La credencial nueva sigue su propio ciclo completo (crear draft ->
+  emitir -> analisis automatico propio -> `SemanticAnalysis` propio ->
+  rebuild de perfil automatico si aplica) sin ninguna relacion con el
+  template usado para precargarla.

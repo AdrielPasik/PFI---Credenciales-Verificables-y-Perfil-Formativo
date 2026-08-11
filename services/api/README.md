@@ -157,11 +157,14 @@ Endpoints (todos requieren `AuthGuard` + membership `admin`/`operator`
 activa del issuer autorizado, mismo patron que el resto de endpoints
 issuer-scoped):
 
-- `GET /issuers/:issuerId/course-templates?search=&status=` lista
-  templates `course` y `certification` juntos, del issuer solicitado
-  (nunca de otro issuer). `status` default `active`; acepta `archived` o
-  `all`. `search` compara contra `title`, `platformName`, `providerName`
-  y `description` con la misma normalizacion (NFD + minusculas es-AR) que
+- `GET /issuers/:issuerId/course-templates?search=&status=&credentialType=`
+  lista templates del issuer solicitado (nunca de otro issuer). `status`
+  default `active`; acepta `archived` o `all`. `credentialType` (C3c,
+  opcional) acepta `course`, `certification` o `all`; **default `all` --
+  sin el parametro, el comportamiento es idéntico a C3a.2** (`course` y
+  `certification` mezclados). Cualquier valor invalido responde `400`.
+  `search` compara contra `title`, `platformName`, `providerName` y
+  `description` con la misma normalizacion (NFD + minusculas es-AR) que
   el catalogo academico. Orden `updatedAt desc`. Limite fijo `20`.
 - `POST /issuers/:issuerId/course-templates` crea un template
   manualmente. `credentialType` opcional (`course` por default, para
@@ -210,11 +213,17 @@ como objeto `Decimal` crudo -- mismo patron que `Credential.hours` en
 `createdByUserId`, y siempre incluye `credentialType` para que el cliente
 distinga `course` de `certification`.
 
-Pendiente, explicitamente fuera de alcance de C3a/C3a.2: boton/selector en
-el frontend (C3b lo agrega solo para el detalle de credencial issuer-facing,
-sin pantalla de catalogo), crear un draft de credencial a partir de un
-template (C3c), aprobar la interpretacion de IA (C4) y usar templates para
-reconstruir el perfil formativo (`FormativeProfileService` no cambia).
+C3b agrego el boton/consumo issuer-facing desde el detalle de credencial
+(guardar como reutilizable, sin pantalla de catalogo). C3c cierra el ciclo
+del lado de la creacion: agrega `credentialType` como filtro opcional al
+`GET` de arriba y agrega el selector en
+`POST /credentials/draft` (`/issuer/credentials/new`) que busca, previsualiza
+y aplica un template para precargar el formulario -- ver
+`docs/architecture/api-contracts-v0.md` (seccion C3c) para el detalle del
+consumo frontend y el `PATCH` best-effort que aplica los campos despues de
+crear el draft. Pendiente, explicitamente fuera de alcance: aprobar la
+interpretacion de IA (C4) y usar templates para reconstruir el perfil
+formativo (`FormativeProfileService` no cambia, no aplica).
 
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.

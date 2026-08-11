@@ -221,13 +221,15 @@ describe('credential adapters', () => {
         id: 'credential-internal-reference',
         issuerId: 'issuer-internal-reference',
         status: 'draft',
+        updatedAt: '2026-08-11T10:00:00.000Z',
         subjectUserId: 'must-not-leak',
         canonicalHash: 'must-not-leak'
       })
     ).toEqual({
       credentialReference: 'credential-internal-reference',
       issuerReference: 'issuer-internal-reference',
-      status: 'draft'
+      status: 'draft',
+      updatedAt: '2026-08-11T10:00:00.000Z'
     });
   });
 

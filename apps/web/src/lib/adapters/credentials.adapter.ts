@@ -446,6 +446,7 @@ export function adaptCreatedCredentialDraft(
   return {
     credentialReference: requiredString(credential.id),
     issuerReference: requiredString(credential.issuerId),
-    status: credentialStatus(credential.status)
+    status: credentialStatus(credential.status),
+    updatedAt: isoDateTime(credential.updatedAt)
   };
 }

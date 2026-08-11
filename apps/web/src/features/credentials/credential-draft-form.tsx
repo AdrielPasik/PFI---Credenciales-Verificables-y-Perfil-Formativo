@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { AcademicSubjectCreationCatalogSection } from '@/features/credentials/academic-subject-creation-catalog-section';
 import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credentials/academic-subject-catalog-section';
+import { ReusableTemplateSearchSection } from '@/features/credentials/reusable-template-search-section';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import {
   credentialTypeLabels,
@@ -36,12 +37,20 @@ import {
 } from '@/models/credentials';
 import type {
   AcademicProgramSearchItemVM,
+  CourseTemplateSummaryVM,
   CredentialFeedback,
   CredentialDraftFormSubmission,
   CredentialType,
   CurriculumAcademicSubjectSearchItemVM,
-  HolderSummaryVM
+  HolderSummaryVM,
+  ReusableCredentialType
 } from '@/models/credentials';
+
+function isReusableCredentialType(
+  value: CredentialType | ''
+): value is ReusableCredentialType {
+  return value === 'course' || value === 'certification';
+}
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -51,6 +60,11 @@ interface CredentialDraftFormProps
   issuerName: string;
   onResolveHolder(email: string): Promise<HolderSummaryVM>;
   onCreateDraft(input: CredentialDraftFormSubmission): Promise<void>;
+  searchReusableTemplates?(
+    credentialType: ReusableCredentialType,
+    query: string,
+    signal: AbortSignal
+  ): Promise<CourseTemplateSummaryVM[]>;
 }
 
 export function CredentialDraftForm({
@@ -59,6 +73,7 @@ export function CredentialDraftForm({
   onCreateDraft,
   onResolveHolder,
   searchPrograms,
+  searchReusableTemplates,
   searchSubjects
 }: CredentialDraftFormProps) {
   const availableCredentialTypes = credentialTypesForIssuer(
@@ -81,6 +96,8 @@ export function CredentialDraftForm({
     useState<AcademicProgramSearchItemVM | null>(null);
   const [selectedSubject, setSelectedSubject] =
     useState<CurriculumAcademicSubjectSearchItemVM | null>(null);
+  const [appliedTemplate, setAppliedTemplate] =
+    useState<CourseTemplateSummaryVM | null>(null);
   const [draftFeedback, setDraftFeedback] =
     useState<CredentialFeedback | null>(null);
   const [resolving, setResolving] = useState(false);
@@ -105,6 +122,10 @@ export function CredentialDraftForm({
     if (nextType !== credentialType) {
       setSelectedProgram(null);
       setSelectedSubject(null);
+      // C3c: la seleccion de template reutilizable queda atada al tipo con
+      // el que se busco -- cambiar de tipo la invalida para evitar que
+      // queden campos incompatibles del tipo anterior.
+      setAppliedTemplate(null);
     }
 
     setCredentialType(nextType);
@@ -217,7 +238,8 @@ export function CredentialDraftForm({
       submission = {
         achievementName: normalizedAchievementName,
         credentialType,
-        holder
+        holder,
+        ...(appliedTemplate ? { appliedTemplate } : {})
       };
     }
 
@@ -457,6 +479,26 @@ export function CredentialDraftForm({
                       </p>
                     ) : null}
                   </div>
+
+                  {isReusableCredentialType(credentialType) &&
+                  searchReusableTemplates ? (
+                    <ReusableTemplateSearchSection
+                      credentialType={credentialType}
+                      disabled={submitting}
+                      appliedTemplate={appliedTemplate}
+                      onApply={(template) => {
+                        const precargado = template.title;
+                        setAchievementName(precargado);
+                        setAchievementError(undefined);
+                        setAppliedTemplate(template);
+                        setDraftFeedback(null);
+                      }}
+                      onClearApplied={() => setAppliedTemplate(null)}
+                      searchTemplates={(query, signal) =>
+                        searchReusableTemplates(credentialType, query, signal)
+                      }
+                    />
+                  ) : null}
 
                   {credentialType === 'academic_subject' ? (
                     <AcademicSubjectCreationCatalogSection

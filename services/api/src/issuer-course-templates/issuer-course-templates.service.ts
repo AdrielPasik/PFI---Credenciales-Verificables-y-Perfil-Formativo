@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { CourseTemplateStatus, Prisma } from '@prisma/client';
+import { CourseTemplateStatus, CredentialType, Prisma } from '@prisma/client';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
@@ -59,6 +59,11 @@ const COURSE_TEMPLATE_RESPONSE_SELECT = {
 } as const;
 
 type CourseTemplateStatusFilter = 'active' | 'archived' | 'all';
+// C3c: filtro opcional para que el selector de la creacion de credenciales
+// pueda pedir solo el tipo que le interesa (course o certification) sin
+// arriesgarse a que el limite fijo de 20 resultados oculte templates del
+// tipo buscado cuando ambos tipos comparten el mismo catalogo.
+type CourseTemplateCredentialTypeFilter = 'course' | 'certification' | 'all';
 
 @Injectable()
 export class IssuerCourseTemplatesService {
@@ -69,7 +74,7 @@ export class IssuerCourseTemplatesService {
 
   async listTemplatesForIssuer(
     issuerId: string,
-    query: { search?: unknown; status?: unknown },
+    query: { search?: unknown; status?: unknown; credentialType?: unknown },
     currentUser: AuthenticatedUser
   ): Promise<CourseTemplateResponseDto[]> {
     await this.issuersService.assertUserCanManageCourseTemplatesForIssuer(
@@ -78,16 +83,23 @@ export class IssuerCourseTemplatesService {
     );
 
     const statusFilter = normalizeStatusFilter(query.status);
+    const credentialTypeFilter = normalizeCredentialTypeFilter(
+      query.credentialType
+    );
     const search = normalizeSearch(query.search);
     const where: Prisma.IssuerCourseTemplateWhereInput = {
       issuerId,
-      ...(statusFilter === 'all' ? {} : { status: toStatusEnum(statusFilter) })
+      ...(statusFilter === 'all' ? {} : { status: toStatusEnum(statusFilter) }),
+      ...(credentialTypeFilter === 'all'
+        ? {}
+        : { credentialType: toCredentialTypeEnum(credentialTypeFilter) })
     };
 
-    // C3a.2: el mismo catalogo/endpoint sirve course y certification juntos
-    // -- no hay filtro de credentialType en list (ambos comparten status y
-    // busqueda). El cliente distingue por el campo credentialType de la
-    // response.
+    // C3a.2/C3c: el mismo catalogo/endpoint sirve course y certification
+    // juntos. Por default (sin credentialType) list sigue devolviendo ambos
+    // mezclados -- comportamiento sin cambios respecto a C3a.2. El filtro
+    // opcional existe para que un consumidor (ej. el selector de C3c) pueda
+    // pedir solo el tipo que le interesa.
     const templates = (await this.prisma.issuerCourseTemplate.findMany({
       where,
       select: COURSE_TEMPLATE_RESPONSE_SELECT,
@@ -360,6 +372,28 @@ function toStatusEnum(
   return filter === 'active'
     ? CourseTemplateStatus.active
     : CourseTemplateStatus.archived;
+}
+
+function normalizeCredentialTypeFilter(
+  value: unknown
+): CourseTemplateCredentialTypeFilter {
+  if (value === undefined || value === '') {
+    return 'all';
+  }
+
+  if (value === 'course' || value === 'certification' || value === 'all') {
+    return value;
+  }
+
+  throw new BadRequestException(
+    'credentialType debe ser course, certification o all.'
+  );
+}
+
+function toCredentialTypeEnum(
+  filter: 'course' | 'certification'
+): CredentialType {
+  return filter === 'course' ? CredentialType.course : CredentialType.certification;
 }
 
 function normalizeSearch(value: unknown): string | null {
