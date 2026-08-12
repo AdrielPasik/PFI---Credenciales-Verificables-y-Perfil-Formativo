@@ -301,10 +301,11 @@ caminos **automaticos** (`trigger=system`):
   textual de C2b.2): el flujo manual puede requerir revision antes de
   impactar el perfil holder; queda pendiente para una decision futura,
   no es un descuido.
-- Best-effort real: un fallo de `rebuildForUser` se atrapa y se loguea de
-  forma segura (`automatic_profile_rebuild_failed`, sin `analysisJson`,
-  contenido textual, storage path ni secretos) y nunca marca `failed` un
-  `AnalysisRun` que ya quedo `completed`, ni revierte la emision.
+- Best-effort observable: un fallo de `rebuildForUser` se atrapa y se
+  registra con `automatic_profile_rebuild_failed` y el codigo estable
+  `formative_profile_rebuild_failed`, sin copiar mensajes de excepcion,
+  `analysisJson`, contenido textual, storage path ni secretos. Nunca marca
+  `failed` un `AnalysisRun` que ya quedo `completed`, ni revierte la emision.
 - No llama IA de nuevo (`rebuildForUser` solo lee/escribe Postgres). No
   toca canon, hash ni blockchain.
 - Como maximo un rebuild por emision: documental y textual automaticos
@@ -963,17 +964,12 @@ del Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend
 - **No se afirma integracion oficial con plataformas externas**: no
   aparece copy tipo "verificado por Udemy/Coursera/AWS" en ningun punto de
   la UI de `course`/`certification`.
-- **La carga manual de "Contenido textual de respaldo" se oculta para
-  `course`/`certification`**: esa tarjeta (formulario manual de
-  `TextEvidence`) duplicaba informacion ya declarada
-  (`description`/`competencies`/`learningOutcomes`). Se reemplaza por un
-  aviso ("Base textual para la interpretacion asistida") que explica que
-  la informacion ya declarada alimenta la interpretacion asistida.
-  `academic_subject`/`degree` conservan la carga manual sin cambios -- el
-  soporte de `TextEvidence` en si NO se elimino, solo se deja de exigir/
-  mostrar la UI manual para estos dos tipos. No se llamo a la IA, no se
-  cambio el pipeline de analisis, no se creo ningun `TextEvidence` nuevo
-  desde este slice.
+- **`course`/`certification` no muestran carga textual manual ni una
+  tarjeta tecnica sustituta**: los datos declarados se usan cuando el
+  analisis asistido aplica, sin exponer detalles de `TextEvidence` como
+  complejidad permanente del detalle. `academic_subject`/`degree` conservan
+  la carga manual previa. El PDF es evidencia documental opcional, no un
+  requisito universal de analisis para estos dos tipos.
 - **"Resultados de aprendizaje" se renombra en la UI a "Contenido e
   informacion adicional" para `course`**: el campo sigue siendo
   `learningOutcomes`/`learning_outcomes` en el modelo y el backend, sin
@@ -992,9 +988,8 @@ del Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend
   el titulo nunca alcanza; una descripcion corta o generica (menos de 20
   caracteres efectivos) tampoco; una descripcion sustancial, o al menos
   una entrada real en `competencies`/`learningOutcomes`/`skills`, si
-  alcanza. Se usa tanto para decidir el copy de "Base textual para la
-  interpretacion asistida" como para el warning de emision (ver punto
-  siguiente).
+  alcanza. Se usa para el warning de emision; no agrega una tarjeta tecnica
+  permanente al detalle.
 - **El warning de "emitir sin respaldo" ya no es incorrecto para
   `course`/`certification` con datos declarados suficientes**: antes, ese
   warning se basaba exclusivamente en si habia `DocumentEvidence`/
@@ -1003,9 +998,9 @@ del Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend
   suficiente (via `hasInstitutionalTextualBacking`) cuenta igual que
   evidencia cargada: nunca se afirma "sin fuente de respaldo" en ese caso.
   Cuando hay respaldo declarativo pero no evidencia cargada, se muestra un
-  aviso informativo (no bloqueante) explicando que la informacion
-  declarada se usa como base textual. Cuando no hay ni evidencia cargada
-  ni respaldo declarativo suficiente, se exige la misma confirmacion
+  aviso informativo (no bloqueante) solo cuando aporta una accion concreta.
+  Cuando no hay ni evidencia cargada ni respaldo declarativo suficiente,
+  se exige la misma confirmacion
   explicita que ya existia (checkbox "Confirmo emitir..."), solo que con
   copy ajustado a "informacion declarada insuficiente" en vez de "sin
   fuente de respaldo" -- **no se agrego ningun bloqueo nuevo, ni se quito
@@ -1041,10 +1036,10 @@ del Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend
 ### 20.1 C4x fix — certification sin PDF gana analisis textual automatico; platformName se cierra tambien backend-side
 
 C4x (arriba) fue exclusivamente frontend y dejo dos riesgos funcionales
-documentados como deuda: (1) para `certification`, la UI ya afirmaba que
-los datos declarados sirven como "base textual para la interpretacion
-asistida", pero el backend nunca disparaba un analisis real desde esos
-datos cuando no habia PDF; (2) `platformName` dejo de ser un input en el
+documentados como deuda: (1) para `certification`, la UI ya indicaba que
+los datos declarados podian alimentar el analisis asistido, pero el backend
+nunca disparaba un analisis real desde esos datos cuando no habia PDF; (2)
+`platformName` dejo de ser un input en el
 editor de `course`, pero el backend seguia aceptando/persistiendo un
 valor arbitrario si se llamaba directamente a la API (creacion de
 borrador, PATCH, o templates reutilizables). Este fix cierra ambos
@@ -1143,3 +1138,23 @@ no lo ofreciera como input):
   `400` habria tumbado tambien el resto de los campos de ese request
   (`modality`/`externalUrl`/`competencies`/`learningOutcomes`). Se quito
   esa unica linea -- unico cambio de codigo frontend de este fix.
+
+### C4y — hardening post-pruebas de issuer, semántica y perfil
+
+`course`/`certification` no exponen una carga manual de `TextEvidence` ni una
+tarjeta técnica sustituta en el detalle issuer-facing. El análisis asistido usa
+datos declarados por el emisor cuando existen; el PDF continúa como evidencia
+documental opcional. El builder de `course` permite título, descripción,
+competencias y `learningOutcomes`; el de `certification` permite título,
+descripción, código, vencimiento, proveedor, nivel, skills y competencias.
+Ambos excluyen plataforma, referencias curriculares, snapshots aprobados,
+análisis previos, datos de holder, canon, hash, blockchain y `rawData`.
+
+La taxonomía conserva el área existente `Gestión de Proyectos Tecnológicos`
+para señales ágiles distintivas (Scrum, Kanban, backlog, sprint,
+retrospectiva y metodologías ágiles). No convierte menciones genéricas de
+gestión en una clasificación forzada ni modifica los casos de comunicación y
+humanidades. El rebuild automático, posterior a un análisis persistido,
+mantiene separado lo declarado por el emisor de las inferencias IA y comunica
+fallos best-effort mediante `formative_profile_rebuild_failed`. C4b sigue
+pendiente: no se aplican snapshots aprobados a nuevas credenciales ni perfiles.

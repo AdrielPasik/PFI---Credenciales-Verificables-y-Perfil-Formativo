@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { NotFoundException } from '@nestjs/common';
-
 import { AutomaticProfileRebuildService } from './automatic-profile-rebuild.service';
 
 function setup(options: { rebuildError?: Error } = {}) {
@@ -29,7 +27,7 @@ function setup(options: { rebuildError?: Error } = {}) {
 test('rebuilds the holder profile for the given user', async () => {
   const { service, calls } = setup();
 
-  await service.rebuildAfterAutomaticAnalysis({
+  const result = await service.rebuildAfterAutomaticAnalysis({
     credentialId: 'credential-1',
     holderUserId: 'holder-1',
     analysisRunId: 'run-1'
@@ -37,6 +35,7 @@ test('rebuilds the holder profile for the given user', async () => {
 
   assert.deepEqual(calls.rebuilds, ['holder-1']);
   assert.equal(calls.logs.length, 0);
+  assert.deepEqual(result, { status: 'rebuilt' });
 });
 
 test('never rethrows when rebuildForUser fails -- logs a safe event instead', async () => {
@@ -44,7 +43,7 @@ test('never rethrows when rebuildForUser fails -- logs a safe event instead', as
     rebuildError: new Error('raw db connection string secret')
   });
 
-  await service.rebuildAfterAutomaticAnalysis({
+  const result = await service.rebuildAfterAutomaticAnalysis({
     credentialId: 'credential-1',
     holderUserId: 'holder-1',
     analysisRunId: 'run-1'
@@ -54,17 +53,21 @@ test('never rethrows when rebuildForUser fails -- logs a safe event instead', as
   const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
   assert.deepEqual(logged, {
     event: 'automatic_profile_rebuild_failed',
+    errorCode: 'formative_profile_rebuild_failed',
     credentialId: 'credential-1',
     holderUserId: 'holder-1',
-    analysisRunId: 'run-1',
-    reason: 'unexpected_error'
+    analysisRunId: 'run-1'
   });
   assert.equal(JSON.stringify(logged).includes('raw db connection'), false);
+  assert.deepEqual(result, {
+    status: 'failed',
+    errorCode: 'formative_profile_rebuild_failed'
+  });
 });
 
-test('preserves a safe HttpException message as the logged reason', async () => {
+test('never copies a controlled exception message into the safe rebuild log', async () => {
   const { service, calls } = setup({
-    rebuildError: new NotFoundException('User holder-1 not found')
+    rebuildError: new Error('User holder-1 not found')
   });
 
   await service.rebuildAfterAutomaticAnalysis({
@@ -73,6 +76,6 @@ test('preserves a safe HttpException message as the logged reason', async () => 
   });
 
   const logged = JSON.parse(calls.logs[0]) as Record<string, unknown>;
-  assert.equal(logged.reason, 'User holder-1 not found');
   assert.equal(logged.analysisRunId, null);
+  assert.equal(JSON.stringify(logged).includes('User holder-1 not found'), false);
 });

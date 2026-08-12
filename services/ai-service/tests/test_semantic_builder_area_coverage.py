@@ -137,6 +137,31 @@ def test_management_and_business_domain_has_no_dedicated_area_yet() -> None:
     )
 
 
+def test_agile_project_management_resolves_to_the_existing_project_area() -> None:
+    """Las señales ágiles distintivas habilitan el área existente de gestión
+    de proyectos, sin convertir gestión genérica en una clasificación forzada."""
+    text = (
+        "Gestión ágil de proyectos con Scrum y Kanban\n\n"
+        "Contenidos mínimos\n"
+        "Scrum, Kanban y metodologías ágiles. Gestión de backlog, sprints, "
+        "planificación, estimación, stakeholders, retrospectivas y mejora "
+        "continua para equipos de proyecto.\n"
+    )
+    semantic_final = _semantic_final("gestion-agil-scrum-kanban.txt", text)
+    areas = semantic_final.get("areas_detected") or []
+    skills = {
+        entry.get("skill_label")
+        for entry in semantic_final.get("skills_detected") or []
+        if isinstance(entry, dict)
+    }
+    concepts = set(semantic_final.get("concepts_detected") or [])
+
+    assert areas[0] == "Gestión de Proyectos Tecnológicos"
+    assert "Comunicación y Humanidades" not in areas
+    assert {"Scrum", "Kanban"}.issubset(skills)
+    assert {"scrum", "kanban"}.issubset({concept.lower() for concept in concepts})
+
+
 def test_name_hints_require_word_boundary_not_substring() -> None:
     """C2b.1: infer_name_hints comparaba por "in" plano, asi que "cam" (hint
     de "Manufactura y CAD/CAM") matcheaba dentro de "bootcamp". Un titulo de

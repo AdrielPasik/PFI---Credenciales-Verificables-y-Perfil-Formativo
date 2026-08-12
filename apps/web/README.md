@@ -308,19 +308,13 @@ tanto en el editor como en la tarjeta "Datos declarados del curso" del
 detalle no-draft. Nunca se afirma integración oficial con plataformas
 externas ni copy tipo "verificado por Udemy/Coursera/AWS".
 
-**Se eliminó la sección duplicada "Contenido textual de respaldo" para
-`course`/`certification`.** Antes, `/issuer/credentials/[credentialId]`
-mostraba siempre esa tarjeta (carga manual de `TextEvidence`) junto con
-`description`/`competencies`/`learningOutcomes`, duplicando la misma
-información declarada. Ahora, para `course`/`certification`, esa tarjeta
-se reemplaza por "Base textual para la interpretación asistida", que
-explica que la descripción, las competencias y el contenido adicional ya
-declarados alimentan la interpretación asistida -- sin pedir una carga
-manual aparte. `academic_subject`/`degree` conservan la tarjeta original
-sin cambios. No se eliminó el soporte de `TextEvidence` en sí (otros
-flujos y tipos lo siguen usando); solo se oculta la UI manual para estos
-dos tipos. No se llamó a la IA en ningún momento de este slice, no se
-tocó `services/ai-service` ni el pipeline de análisis.
+**`course`/`certification` no muestran una carga textual manual ni una
+tarjeta técnica sustituta.** El Portal Emisor usa los datos declarados de la
+credencial cuando el análisis asistido aplica, sin pedir al emisor una fuente
+textual duplicada ni explicar detalles de `TextEvidence` permanentemente.
+`academic_subject`/`degree` conservan su flujo manual previo. El PDF sigue
+siendo una evidencia documental opcional, no un requisito conceptual de
+análisis para `course`/`certification`.
 
 **"Resultados de aprendizaje" se renombra en la UI para `course`.** El
 campo sigue siendo `learningOutcomes` en el modelo/backend (sin cambios de
@@ -341,14 +335,9 @@ descripción sustancial (≥20 caracteres) o al menos una entrada real en
 `competencies`/`learningOutcomes`/`skills` -- nunca alcanza con solo el
 título. Se usa tanto en `credential-issuance-section.tsx` (para no
 mostrar "Sin fuente de respaldo" cuando hay respaldo declarativo
-suficiente) como en `credential-detail-route.tsx` (para decidir el copy
-de "Base textual para la interpretación asistida"). Cuando hay respaldo
-declarativo pero no evidencia cargada, se muestra el aviso informativo
-"Esta credencial usa información declarada por el emisor como base
-textual para la interpretación asistida."; cuando no hay ni evidencia
-cargada ni respaldo declarativo suficiente, se muestra "Esta credencial
-tiene poca información declarada para la interpretación asistida. Podés
-completarla antes de emitir." (en vez de "Vas a emitir sin respaldo").
+suficiente). Cuando no hay evidencia cargada ni respaldo declarativo
+suficiente, se muestra una advertencia útil para completar la información
+antes de emitir; no se agrega una tarjeta técnica permanente al detalle.
 `academic_subject`/`degree` no se ven afectados -- conservan el copy y el
 comportamiento de bloqueo original ("Sin fuente de respaldo" +
 confirmación explícita). No se afirma que la IA certifica el contenido ni
@@ -384,11 +373,9 @@ credenciales nuevas creadas desde un template, y su relación con el
 perfil formativo.
 
 **C4x fix (mayormente backend, con un ajuste puntual de frontend):** el
-aviso "Base textual para la interpretación asistida" de arriba dejó de
-ser una afirmación sin respaldo real para `certification` sin PDF -- el
-backend ahora también genera/reutiliza `TextEvidence` y ejecuta un
-análisis textual automático desde los datos declarados de
-`certification`, igual que ya hacía para `course` (ver
+backend genera/reutiliza `TextEvidence` y ejecuta un análisis textual
+automático desde los datos declarados de `certification`, igual que ya hacía
+para `course` (ver
 `services/api/README.md`, sección "C4x fix", y
 `docs/architecture/domain-rules-v0.md`, sección 20.1). `platformName`
 también se cerró backend-side (PATCH de borrador, creación de borrador y
@@ -409,6 +396,20 @@ manualmente que la sección de `TextEvidence` manual sigue oculta para
 sigue funcionando, que el editor de `course` sigue sin enviar
 `platformName`, y que ningún copy prohibido ("IA certificó", "blockchain
 valida", "verificado por Udemy/Coursera/AWS") aparece en la UI.
+
+**C4y — hardening post-pruebas:** el detalle de `course`/`certification`
+elimina también la tarjeta técnica de respaldo textual; los datos declarados
+alimentan el análisis sin presentar la fuente interna. La acción de catálogo
+reutilizable pasó al área de acciones, con copy compacto. Para estos tipos el
+análisis puede usar título, descripción y los campos formativos declarados; el
+PDF sigue siendo evidencia opcional. El estado de un run textual se describe
+como información declarada, no como evidencia documental.
+
+El perfil holder se reconstruye solo tras un análisis automático completado y
+persistido. La reconstrucción conserva por separado las declaraciones del
+emisor y las inferencias de IA; si falla es best-effort y queda identificada
+por un código seguro. C4b sigue pendiente: ningún snapshot semántico aprobado
+de un template se copia a credenciales nuevas ni al perfil.
 
 ## Prerrequisitos
 

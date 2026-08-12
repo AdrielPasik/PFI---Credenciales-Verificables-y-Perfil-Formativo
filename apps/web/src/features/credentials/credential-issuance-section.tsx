@@ -166,6 +166,12 @@ function DraftIssuanceContent({
                 Traza intentará generar automáticamente un análisis documental
                 a partir del PDF vigente. La IA no bloquea la emisión.
               </p>
+            ) : preparation.hasReusableTextSource ? (
+              <p className="mt-2 text-sm leading-6 text-text-default">
+                Traza intentará generar automáticamente un análisis asistido
+                a partir de la información declarada disponible. La IA no
+                bloquea la emisión.
+              </p>
             ) : (
               <p className="mt-2 text-sm leading-6 text-text-default">
                 No se generará análisis automático porque no hay una evidencia
@@ -268,24 +274,16 @@ function IssuancePreparation({
         <PreparationItem
           label="Análisis automático"
           value={preparation.analysisLabel}
-          tone={preparation.hasPdf ? 'complete' : 'warning'}
+          tone={preparation.canAttemptAutomaticAnalysis ? 'complete' : 'warning'}
         />
       </dl>
-      {preparation.hasSupportEvidence && !preparation.hasPdf ? (
+      {preparation.hasSupportEvidence &&
+      !preparation.hasPdf &&
+      !preparation.isReusableType ? (
         <FeedbackAlert variant="information" title="Análisis documental pendiente">
           La credencial tiene una fuente de respaldo, pero el análisis
           automático actual requiere una evidencia documental PDF. El análisis
           textual queda pendiente para una iteración posterior.
-        </FeedbackAlert>
-      ) : null}
-      {/* C4x: para course/certification, informacion declarada suficiente
-          (descripcion/competencias/contenido adicional) cuenta como
-          respaldo textual institucional -- nunca se afirma "sin
-          respaldo" en ese caso. Ver hasInstitutionalTextualBacking. */}
-      {preparation.hasDeclarativeBacking && !preparation.hasUploadedEvidence ? (
-        <FeedbackAlert variant="information" title="Respaldo textual institucional">
-          Esta credencial usa información declarada por el emisor como base
-          textual para la interpretación asistida.
         </FeedbackAlert>
       ) : null}
       {!preparation.hasSupportEvidence ? (
@@ -357,6 +355,8 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
   // cuenta igual que evidencia cargada -- nunca se afirma "sin respaldo"
   // cuando hay informacion declarada suficiente.
   const hasSupportEvidence = hasUploadedEvidence || hasDeclarativeBacking;
+  const hasReusableTextSource =
+    isReusableType && (hasText || hasDeclarativeBacking);
   const recommendations: string[] = [];
 
   if (!detail.credentialSubject.completionDate) {
@@ -380,6 +380,8 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
     hasSupportEvidence,
     hasUploadedEvidence,
     hasDeclarativeBacking,
+    hasReusableTextSource,
+    canAttemptAutomaticAnalysis: hasPdf || hasReusableTextSource,
     isReusableType,
     recommendations,
     evidenceLabel: hasPdf
@@ -391,7 +393,7 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
           : hasDeclarativeBacking
             ? 'Contenido declarado suficiente'
             : 'Pendiente de confirmación',
-    analysisLabel: hasPdf
+    analysisLabel: hasPdf || hasReusableTextSource
       ? 'Se intentará al emitir'
       : 'No disponible automáticamente'
   };

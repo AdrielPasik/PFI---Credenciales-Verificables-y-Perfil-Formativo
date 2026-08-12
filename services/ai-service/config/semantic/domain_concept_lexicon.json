@@ -38,7 +38,7 @@
 	"Finanzas y Administración": ["análisis financiero", "estados financieros", "presupuesto operativo", "evaluación de inversiones", "valor actual neto", "tasa interna de retorno", "análisis de costos", "control de gestión", "flujo de fondos"],
 	"Diseño de Producto y Experiencia de Usuario": ["diseño centrado en el usuario", "experiencia de usuario", "investigación de usuarios", "prototipado", "usabilidad", "arquitectura de información", "diseño de interfaces", "comunicación visual"],
 	"Física": ["óptica física", "óptica geométrica", "interferencia", "difracción", "campo eléctrico", "campo magnético", "magnitudes y mediciones", "teoría de errores"],
-	"Gestión de Proyectos Tecnológicos": ["gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "stakeholders", "project charter", "plan de proyecto", "proyecto integrador final"]
+	"Gestión de Proyectos Tecnológicos": ["gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "stakeholders", "project charter", "plan de proyecto", "proyecto integrador final", "scrum", "kanban", "backlog", "sprint", "retrospectiva", "metodologías ágiles", "mejora continua"]
 	,
 	"Ambiente y Sostenibilidad": ["desarrollo sustentable", "desarrollo sostenible", "sustentabilidad", "sostenibilidad", "agenda 2030", "triple impacto", "externalidades", "economía ecológica", "economia ecologica", "servicios ambientales", "conflictos socioambientales", "gobernanza ambiental"],
 	"Electrónica y Dispositivos": ["semiconductores", "diodos", "transistores", "amplificadores", "filtros", "circuitos electrónicos", "circuitos electronicos", "electrónica de potencia", "electronica de potencia"],

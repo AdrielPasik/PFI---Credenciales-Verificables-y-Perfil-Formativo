@@ -242,6 +242,58 @@ describe('DocumentAnalysisSection', () => {
     expect(screen.getByText(/está disponible como respaldo/)).toBeTruthy();
   });
 
+  it.each(['course', 'certification'] as const)(
+    '%s uses declared data without claiming that a PDF is required',
+    (credentialType) => {
+      render(
+        <DocumentAnalysisSection
+          credentialStatus="draft"
+          credentialType={credentialType}
+          currentDocument={null}
+          state={state()}
+          onRefresh={vi.fn()}
+        />
+      );
+
+      expect(
+        screen.getByRole('heading', { name: 'Análisis inteligente de la credencial' })
+      ).toBeTruthy();
+      expect(
+        screen.getByText(/puede utilizar la información declarada de la credencial/i)
+      ).toBeTruthy();
+      expect(screen.queryByText(/requiere un PDF|requiere evidencia documental|análisis textual queda pendiente/i)).toBeNull();
+    }
+  );
+
+  it('describes a running text analysis as declared credential information', () => {
+    render(
+      <DocumentAnalysisSection
+        credentialStatus="issued"
+        credentialType="course"
+        currentDocument={null}
+        state={state({
+          currentRun: runFixture({
+            status: 'running',
+            statusLabel: 'Analizando',
+            inputMode: 'text',
+            inputModeLabel: 'Información declarada',
+            semanticAnalysis: null,
+            completedAt: null,
+            completedAtLabel: null
+          })
+        })}
+        onRefresh={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'Traza está procesando la información declarada de la credencial.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText('Traza está procesando la evidencia documental.')).toBeNull();
+  });
+
   it.each(['issued', 'revoked'] as const)(
     'keeps %s analysis read-only',
     (credentialStatus) => {

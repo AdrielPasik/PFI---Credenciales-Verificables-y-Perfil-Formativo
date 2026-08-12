@@ -92,9 +92,18 @@ y `normalizers.py`):
   mismo score interno.
 - No inventa `hoursDistribution` para texto corto: solo se puebla si hay
   evidencia real de area en `content` (mismo umbral conservador que PDF).
-- El backend todavia no llama a este endpoint — la ejecucion real de un
-  `AnalysisRun` en modo `text`/`combined` queda para C2b.2. Este endpoint
-  es la base HTTP sobre la que se construye ese paso siguiente.
+- NestJS usa este endpoint internamente para `AnalysisRun` textuales cuando
+  corresponde; el browser nunca lo llama. `combined` sigue pendiente.
+
+### Calidad semantica de gestion agil
+
+La taxonomia usa el area existente **Gestion de Proyectos Tecnologicos** para
+contenidos que combinan señales distintivas de Scrum, Kanban, metodologias
+agiles, backlog, sprint, retrospectiva o gestion agil de proyectos. No se
+agrega un area nueva ni se fuerza por menciones genericas de gestion: los casos
+de comunicacion y humanidades conservan sus reglas de clasificacion. Skills y
+conceptos se detectan mediante patrones controlados, no mediante traduccion
+libre ni LLM.
 
 Los JSON Schemas autoritativos no se duplican en este servicio. Permanecen en:
 

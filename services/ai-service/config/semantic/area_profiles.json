@@ -160,9 +160,9 @@
 		"light": ["sistema internacional de unidades", "magnitudes escalares y vectoriales", "trazabilidad metrologica", "trazabilidad metrológica"]
 	},
 	"Gestión de Proyectos Tecnológicos": {
-		"strong": ["gestion de proyectos", "gestión de proyectos", "project charter", "planificacion de proyectos", "planificación de proyectos"],
-		"medium": ["gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "stakeholders", "proyecto integrador final"],
-		"light": ["normativa e instructivo de pfi", "defensa oral", "entregables", "plan de proyecto"]
+		"strong": ["gestion de proyectos", "gestión de proyectos", "project charter", "planificacion de proyectos", "planificación de proyectos", "scrum", "kanban", "metodologias agiles", "metodologías ágiles", "agile project management"],
+		"medium": ["gestion del alcance", "alcance del proyecto", "cronograma", "riesgos", "stakeholders", "proyecto integrador final", "backlog", "sprint", "retrospectiva", "retrospective", "estimacion agil", "estimación ágil"],
+		"light": ["normativa e instructivo de pfi", "defensa oral", "entregables", "plan de proyecto", "mejora continua"]
 	},
 	"Ambiente y Sostenibilidad": {
 		"strong": ["desarrollo sustentable", "desarrollo sostenible", "sustentabilidad", "sostenibilidad", "impacto ambiental"],

@@ -205,6 +205,29 @@ test('generates a system TextEvidence and executes a system text run end-to-end 
   ]);
 });
 
+test('includes course description, competencies and learning outcomes in the generated analysis text', async () => {
+  const { service, calls } = setup({
+    credential: {
+      title: 'Gestión ágil de proyectos con Scrum y Kanban',
+      description: 'Curso para organizar equipos, iteraciones y mejora continua en proyectos ágiles.',
+      credentialSubject: {
+        competencies: ['Gestión de proyectos', 'Planificación de sprints'],
+        learning_outcomes: ['Organizar el backlog', 'Facilitar retrospectivas']
+      }
+    }
+  });
+
+  await service.analyzeIssuedCredentialIfEligible('credential-1', 'issuer-user-1');
+
+  const content = (calls.ensureCalls[0] as unknown[])[1] as string;
+  assert.match(content, /Gestión ágil de proyectos con Scrum y Kanban/);
+  assert.match(content, /Curso para organizar equipos/);
+  assert.match(content, /- Gestión de proyectos/);
+  assert.match(content, /- Planificación de sprints/);
+  assert.match(content, /- Organizar el backlog/);
+  assert.match(content, /- Facilitar retrospectivas/);
+});
+
 test('skips when the credential is not issued', async () => {
   for (const status of [CredentialStatus.draft, CredentialStatus.revoked]) {
     const { service, calls } = setup({ credential: { status } });
@@ -434,6 +457,48 @@ test('certification issued without PDF and with sufficient declared data generat
   assert.equal(calls.creates.length, 1);
   assert.equal(calls.executions.length, 1);
   assert.equal(calls.rebuildCalls.length, 1);
+});
+
+test('includes only the allowlisted certification fields in generated analysis text', async () => {
+  const { service, calls } = setup({
+    baseCredential: DEFAULT_CERTIFICATION_CREDENTIAL,
+    credential: {
+      credentialSubject: {
+        certification_code: 'SM-2026',
+        expiration_date: '2028-12-31',
+        provider_name: 'Entidad formadora',
+        level: 'Fundamental',
+        skills: ['Scrum', 'Kanban'],
+        competencies: ['Gestión de proyectos ágiles'],
+        platform_name: 'must-not-leak',
+        modality: 'must-not-leak',
+        academic_course_reference: 'must-not-leak',
+        curriculum_reference: 'must-not-leak',
+        approvedSemanticSnapshot: { value: 'must-not-leak' },
+        approvedSemanticAnalysisId: 'must-not-leak',
+        lastSemanticAnalysisId: 'must-not-leak',
+        semanticAnalysis: { value: 'must-not-leak' }
+      }
+    }
+  });
+
+  await service.analyzeIssuedCredentialIfEligible('credential-1', 'issuer-user-1');
+
+  const content = (calls.ensureCalls[0] as unknown[])[1] as string;
+  for (const expected of [
+    'AWS Cloud Practitioner',
+    'Certificacion de fundamentos de nube',
+    'SM-2026',
+    '2028-12-31',
+    'Entidad formadora',
+    'Fundamental',
+    'Scrum',
+    'Kanban',
+    'Gestión de proyectos ágiles'
+  ]) {
+    assert.equal(content.includes(expected), true, `missing ${expected}`);
+  }
+  assert.equal(content.includes('must-not-leak'), false);
 });
 
 test('certification with a current PDF does not trigger automatic text analysis', async () => {

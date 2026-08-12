@@ -1,4 +1,4 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { FormativeProfileService } from '../profiles/formative-profile.service';
 
@@ -7,6 +7,10 @@ export interface AutomaticProfileRebuildInput {
   holderUserId: string;
   analysisRunId?: string;
 }
+
+export type AutomaticProfileRebuildResult =
+  | { status: 'rebuilt' }
+  | { status: 'failed'; errorCode: 'formative_profile_rebuild_failed' };
 
 /**
  * C2b.4: dispara `FormativeProfileService.rebuildForUser(...)` de forma
@@ -32,11 +36,16 @@ export class AutomaticProfileRebuildService {
 
   async rebuildAfterAutomaticAnalysis(
     input: AutomaticProfileRebuildInput
-  ): Promise<void> {
+  ): Promise<AutomaticProfileRebuildResult> {
     try {
       await this.formativeProfileService.rebuildForUser(input.holderUserId);
+      return { status: 'rebuilt' };
     } catch (error: unknown) {
       this.logSafeFailure(input, error);
+      return {
+        status: 'failed',
+        errorCode: 'formative_profile_rebuild_failed'
+      };
     }
   }
 
@@ -44,19 +53,17 @@ export class AutomaticProfileRebuildService {
     input: AutomaticProfileRebuildInput,
     error: unknown
   ): void {
-    // Igual criterio que AutomaticCourseTextAnalysisService.logSafeFailure:
-    // solo el .message de una HttpException ya curada por otra capa (nunca
-    // texto de analisis, PDF/storage path ni tokens), o un literal generico
-    // para cualquier otro error no controlado.
-    const reason =
-      error instanceof HttpException ? error.message : 'unexpected_error';
+    // Un mensaje de excepción puede contener una referencia interna. El
+    // código estable permite diagnosticar sin registrar contenido, secretos
+    // ni datos del titular.
+    void error;
     this.logger.error(
       JSON.stringify({
         event: 'automatic_profile_rebuild_failed',
+        errorCode: 'formative_profile_rebuild_failed',
         credentialId: input.credentialId,
         holderUserId: input.holderUserId,
-        analysisRunId: input.analysisRunId ?? null,
-        reason
+        analysisRunId: input.analysisRunId ?? null
       })
     );
   }

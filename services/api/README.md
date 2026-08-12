@@ -537,6 +537,13 @@ igual que ya ocurre con PDFs desde antes de C2b.
   best-effort. Antes de C2b.4 esto requería `POST /me/profile/rebuild`
   manual; ese endpoint sigue existiendo para reconstrucciones explícitas
   o para credenciales analizadas antes de C2b.4.
+- **Contenido permitido para el análisis automático:** `course` incluye
+  título, descripción, competencias y `learningOutcomes` cuando existen;
+  `certification` incluye título, descripción, código, vencimiento,
+  proveedor, nivel, skills y competencias. Cada builder usa allowlist por
+  tipo: nunca incorpora plataforma, referencias académicas, snapshots o
+  análisis anteriores, hashes, blockchain, `rawData` ni datos privados del
+  holder.
 - **Pendiente (C2c/C3/C4):** presentación de horas/cobertura semántica
   mejorada, catálogo reutilizable de cursos y aprobación curada de
   interpretaciones IA quedan fuera de este slice — ver
@@ -572,11 +579,11 @@ best-effort — sin esperar a que alguien llame
   slice — el flujo manual puede querer revisión antes de impactar el
   perfil holder; la reconstrucción explícita sigue disponible vía
   `POST /me/profile/rebuild`.
-- **Best-effort real:** si `rebuildForUser` falla, el error se atrapa y se
-  loguea de forma segura (`automatic_profile_rebuild_failed` +
-  `credentialId` + `holderUserId` + `analysisRunId` + razón sanitizada —
-  nunca `analysisJson`, contenido textual, storage path ni secretos) y el
-  método retorna normalmente. El `AnalysisRun` ya quedó `completed` antes
+- **Best-effort observable:** si `rebuildForUser` falla, el error se atrapa,
+  devuelve y loguea con el código estable
+  `formative_profile_rebuild_failed` (sin copiar el mensaje de excepción,
+  `analysisJson`, contenido textual, storage path ni secretos). El
+  `AnalysisRun` ya quedó `completed` antes
   de intentar el rebuild — un fallo aquí nunca lo revierte a `failed` ni
   afecta la emisión.
 - **No llama IA de nuevo:** `rebuildForUser` solo lee/escribe Postgres.
@@ -678,6 +685,21 @@ blockchain, canonicalizacion/hash ni Prisma/migrations.
     `competencies`/`learningOutcomes` de ese mismo request. Se quito esa
     unica linea del payload -- ver `apps/web/README.md`, seccion C4x, para
     el detalle completo.
+
+### C4y — contenido declarado y rebuild observable
+
+Para `course` y `certification`, el análisis textual automático usa una
+allowlist de datos declarados por el emisor. `course` incorpora título,
+descripción, competencias y `learningOutcomes`; `certification` incorpora
+título, descripción, código, vencimiento, proveedor, nivel, skills y
+competencias. No usa plataforma, referencias académicas, snapshots ni análisis
+anteriores, hashes, blockchain, `rawData` ni datos privados del titular.
+
+Después de persistir el análisis, el rebuild del perfil crea un nuevo snapshot
+`isCurrent` y mantiene separadas las declaraciones del emisor de áreas, skills
+y conceptos inferidos. Si el rebuild falla, el análisis y la emisión se
+conservan; se registra el código seguro `formative_profile_rebuild_failed`.
+No se aplica `approvedSemanticSnapshot`: C4b permanece pendiente.
 
 ## Perfil formativo
 

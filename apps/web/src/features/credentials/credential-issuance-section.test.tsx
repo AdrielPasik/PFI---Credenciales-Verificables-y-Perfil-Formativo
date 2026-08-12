@@ -277,12 +277,8 @@ describe('CredentialIssuanceSection', () => {
       screen.queryByText('Información insuficiente para la interpretación asistida')
     ).toBeNull();
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
-    expect(screen.getByText('Respaldo textual institucional')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'Esta credencial usa información declarada por el emisor como base textual para la interpretación asistida.'
-      )
-    ).toBeTruthy();
+    expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
+    expect(screen.getByText('Se intentará al emitir')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')
@@ -307,14 +303,15 @@ describe('CredentialIssuanceSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
 
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
-    expect(screen.getByText('Respaldo textual institucional')).toBeTruthy();
+    expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
+    expect(screen.getByText('Se intentará al emitir')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')
     ).toBeNull();
   });
 
-  it('allows textual evidence without promising document analysis', () => {
+  it('uses a reusable credential text source without claiming that analysis requires a PDF', () => {
     render(
       <CredentialIssuanceSection
         detail={detailFixture({
@@ -327,10 +324,11 @@ describe('CredentialIssuanceSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
 
     expect(screen.getByText('Evidencia textual vigente')).toBeTruthy();
-    expect(screen.getByText('Análisis documental pendiente')).toBeTruthy();
     expect(
-      screen.getByText(/análisis textual queda pendiente para una iteración posterior/i)
-    ).toBeTruthy();
+      screen.queryByText(/análisis textual queda pendiente para una iteración posterior/i)
+    ).toBeNull();
+    expect(screen.queryByText(/requiere una evidencia documental PDF/i)).toBeNull();
+    expect(screen.getByText(/a partir de la información declarada disponible/i)).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
       .getAttribute('disabled')

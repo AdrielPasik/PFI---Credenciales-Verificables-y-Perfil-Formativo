@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildCourseTextAnalysisContent } from './course-text-analysis-content';
+import {
+  buildCertificationTextAnalysisContent,
+  buildCourseTextAnalysisContent
+} from './course-text-analysis-content';
 
 test('builds content from achievementName/title and description', () => {
   const content = buildCourseTextAnalysisContent({
@@ -37,6 +40,21 @@ test('adds competencies and learningOutcomes as bullet lists', () => {
     content as string,
     /Resultados de aprendizaje declarados:\n- Crear aplicaciones simples\n- Resolver problemas basicos/
   );
+});
+
+test('includes every declared course block that can inform the automatic analysis', () => {
+  const content = buildCourseTextAnalysisContent({
+    achievementName: 'Gestión ágil de proyectos con Scrum y Kanban',
+    description: 'Curso práctico para planificar trabajo iterativo y facilitar equipos ágiles.',
+    competencies: ['Gestión de proyectos', 'Planificación de sprints'],
+    learningOutcomes: ['Organizar un backlog', 'Aplicar retrospectivas de mejora continua']
+  });
+
+  assert.ok(content);
+  assert.match(content, /Nombre del curso:\nGestión ágil de proyectos con Scrum y Kanban/);
+  assert.match(content, /Descripción|Descripcion/);
+  assert.match(content, /Competencias declaradas:\n- Gestión de proyectos\n- Planificación de sprints/);
+  assert.match(content, /Resultados de aprendizaje declarados:\n- Organizar un backlog\n- Aplicar retrospectivas de mejora continua/);
 });
 
 test('never includes platformName, modality or externalUrl (not accepted as input)', () => {
@@ -143,4 +161,31 @@ test('returns null for a weak description alone, below the minimum signal thresh
     description: 'Curso corto.'
   });
   assert.equal(content, null);
+});
+
+test('includes certification context and declared skills without leaking unsupported fields', () => {
+  const content = buildCertificationTextAnalysisContent({
+    achievementName: 'Certificación Scrum Master',
+    description: 'Evaluación de prácticas ágiles para facilitar equipos y proyectos iterativos.',
+    certificationCode: 'SM-2026',
+    expirationDate: '2028-12-31',
+    providerName: 'Entidad formadora',
+    level: 'Fundamental',
+    skills: ['Scrum', 'Kanban'],
+    competencies: ['Gestión de proyectos ágiles'],
+    platformName: 'must-not-leak' as never,
+    modality: 'must-not-leak' as never,
+    approvedSemanticSnapshot: { value: 'must-not-leak' } as never,
+    lastSemanticAnalysisId: 'must-not-leak' as never
+  } as never);
+
+  assert.ok(content);
+  assert.match(content, /Nombre de la certificacion:\nCertificación Scrum Master/);
+  assert.match(content, /Código de certificacion|Codigo de certificacion/);
+  assert.match(content, /Fecha de vencimiento:\n2028-12-31/);
+  assert.match(content, /Entidad o proveedor:\nEntidad formadora/);
+  assert.match(content, /Nivel:\nFundamental/);
+  assert.match(content, /Habilidades declaradas:\n- Scrum\n- Kanban/);
+  assert.match(content, /Competencias declaradas:\n- Gestión de proyectos ágiles/);
+  assert.equal(content.includes('must-not-leak'), false);
 });

@@ -32,7 +32,6 @@ import { CredentialDraftEditorForm } from '@/features/credentials/credential-dra
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
-import { hasInstitutionalTextualBacking } from '@/features/credentials/institutional-textual-backing';
 import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
@@ -626,6 +625,14 @@ export function CredentialDetailView({
         </p>
       </header>
 
+      {(detail.type === 'course' || detail.type === 'certification') &&
+      detail.status !== 'revoked' ? (
+        <SaveReusableTemplateSection
+          credentialType={detail.type}
+          onSave={handleSaveReusableTemplate}
+        />
+      ) : null}
+
       {templateApplyFailed ? (
         <FeedbackAlert
           variant="warning"
@@ -774,14 +781,6 @@ export function CredentialDetailView({
       ) : null}
 
       {(detail.type === 'course' || detail.type === 'certification') &&
-      detail.status !== 'revoked' ? (
-        <SaveReusableTemplateSection
-          credentialType={detail.type}
-          onSave={handleSaveReusableTemplate}
-        />
-      ) : null}
-
-      {(detail.type === 'course' || detail.type === 'certification') &&
       detail.status !== 'revoked' &&
       reusableTemplate ? (
         <SemanticApprovalSection
@@ -811,19 +810,18 @@ export function CredentialDetailView({
           onUpload={onUploadDocumentEvidence}
         />
 
-        {detail.type === 'course' || detail.type === 'certification' ? (
-          <DeclaredDataAsTextualBackingNotice detail={detail} />
-        ) : (
+        {detail.type !== 'course' && detail.type !== 'certification' ? (
           <TextEvidenceSection
             credentialStatus={detail.status}
             currentText={detail.textEvidence.currentText}
             onSubmit={onSubmitTextEvidence}
           />
-        )}
+        ) : null}
 
         {documentAnalysis ? (
           <DocumentAnalysisSection
             credentialStatus={detail.status}
+            credentialType={detail.type}
             currentDocument={detail.documentEvidence.currentDocument}
             state={documentAnalysis.state}
             onRefresh={documentAnalysis.onRefresh}
@@ -947,51 +945,8 @@ function CourseDeclaredDataCard({
 // respaldo" (TextEvidence) queda oculta -- era una tarjeta duplicada
 // respecto a los datos declarados (descripcion/competencias/contenido
 // adicional) que ya alimentan la interpretacion asistida. No se elimina el
-// soporte de TextEvidence en si (academic_subject/degree lo siguen usando
-// sin cambios); solo se deja de exigir/mostrar para estos dos tipos. Ver
-// hasInstitutionalTextualBacking.
-function DeclaredDataAsTextualBackingNotice({
-  detail
-}: {
-  detail: IssuerCredentialDetailVM;
-}) {
-  const hasBacking = hasInstitutionalTextualBacking({
-    type: detail.type,
-    description: detail.description,
-    credentialSubject: detail.credentialSubject
-  });
-
-  return (
-    <Card className="border-border-strong shadow-none" data-testid="declared-data-textual-backing-notice">
-      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
-        <Link2 aria-hidden="true" className="size-5 text-teal-700" />
-        <div>
-          <h2 className="text-lg font-semibold text-text-strong">
-            Base textual para la interpretación asistida
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            No hace falta cargar una fuente textual aparte.
-          </p>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-5">
-        {hasBacking ? (
-          <FeedbackAlert variant="information">
-            Esta credencial usa información declarada por el emisor
-            (descripción, competencias y contenido adicional) como base
-            textual para la interpretación asistida.
-          </FeedbackAlert>
-        ) : (
-          <FeedbackAlert variant="warning" title="Información insuficiente para la interpretación asistida">
-            Esta credencial tiene poca información declarada para la
-            interpretación asistida. Podés completarla antes de emitir.
-          </FeedbackAlert>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
+// academic_subject/degree mantienen su flujo manual de TextEvidence; course y
+// certification no muestran una fuente textual duplicada en el detalle.
 function OptionalDetailRow({
   icon,
   label,

@@ -16,11 +16,13 @@ import type { DocumentAnalysisState } from '@/features/credentials/use-issuer-do
 import type { IssuerAnalysisRunVM } from '@/models/analysis-runs';
 import type {
   CredentialStatus,
+  CredentialType,
   DocumentEvidenceVM
 } from '@/models/credentials';
 
 interface DocumentAnalysisSectionProps {
   credentialStatus: CredentialStatus;
+  credentialType?: CredentialType;
   currentDocument: DocumentEvidenceVM | null;
   state: DocumentAnalysisState;
   onRefresh(): Promise<void>;
@@ -28,6 +30,7 @@ interface DocumentAnalysisSectionProps {
 
 export function DocumentAnalysisSection({
   credentialStatus,
+  credentialType = 'academic_subject',
   currentDocument,
   state,
   onRefresh
@@ -35,6 +38,8 @@ export function DocumentAnalysisSection({
   const hasPdf =
     currentDocument?.kind === 'pdf' &&
     currentDocument.mimeType === 'application/pdf';
+  const usesDeclaredData =
+    credentialType === 'course' || credentialType === 'certification';
 
   return (
     <section
@@ -54,11 +59,14 @@ export function DocumentAnalysisSection({
               id="document-analysis-title"
               className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
             >
-              Análisis inteligente del documento
+              {usesDeclaredData
+                ? 'Análisis inteligente de la credencial'
+                : 'Análisis inteligente del documento'}
             </h2>
             <p className="mt-2 leading-7 text-text-muted">
-              Traza puede interpretar la evidencia documental para resumir
-              áreas, habilidades y conceptos detectados.
+              {usesDeclaredData
+                ? 'Traza puede interpretar la información declarada de la credencial para resumir áreas, habilidades y conceptos detectados.'
+                : 'Traza puede interpretar la evidencia documental para resumir áreas, habilidades y conceptos detectados.'}
             </p>
             <p className="mt-2 text-sm leading-6 text-text-muted">
               El resultado es asistido por IA y puede requerir revisión.
@@ -108,7 +116,9 @@ export function DocumentAnalysisSection({
                 {credentialStatus === 'draft'
                   ? hasPdf
                     ? 'Traza generará el análisis automáticamente al emitir la credencial.'
-                    : 'Adjuntá una evidencia PDF para habilitar el análisis automático al emitir.'
+                    : usesDeclaredData
+                      ? 'El análisis asistido puede utilizar la información declarada de la credencial al emitir.'
+                      : 'Adjuntá una evidencia PDF para habilitar el análisis automático al emitir.'
                   : 'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'}
               </p>
             </div>
@@ -116,6 +126,7 @@ export function DocumentAnalysisSection({
 
           <EligibilityNotice
             credentialStatus={credentialStatus}
+            credentialType={credentialType}
             currentDocument={currentDocument}
           />
 
@@ -274,19 +285,27 @@ function Metric({ label, value }: { label: string; value: number }) {
 
 function EligibilityNotice({
   credentialStatus,
+  credentialType,
   currentDocument
 }: {
   credentialStatus: CredentialStatus;
+  credentialType?: CredentialType;
   currentDocument: DocumentEvidenceVM | null;
 }) {
+  const usesDeclaredData =
+    credentialType === 'course' || credentialType === 'certification';
   if (credentialStatus !== 'draft') {
     return (
       <FeedbackAlert variant="information" title="Análisis en modo lectura">
-        El análisis puede consultarse en modo lectura. Si había un PDF vigente
-        al emitir, Traza intentó generar una ejecución automática sin afectar
-        la emisión.
+        {usesDeclaredData
+          ? 'El análisis puede consultarse en modo lectura. Traza puede intentar generarlo a partir de la información declarada disponible sin afectar la emisión.'
+          : 'El análisis puede consultarse en modo lectura. Si había un PDF vigente al emitir, Traza intentó generar una ejecución automática sin afectar la emisión.'}
       </FeedbackAlert>
     );
+  }
+
+  if (usesDeclaredData && !currentDocument) {
+    return null;
   }
 
   if (!currentDocument) {
@@ -305,6 +324,9 @@ function EligibilityNotice({
     currentDocument.kind !== 'pdf' ||
     currentDocument.mimeType !== 'application/pdf'
   ) {
+    if (usesDeclaredData) {
+      return null;
+    }
     return (
       <FeedbackAlert variant="warning" title="Formato no disponible">
         La evidencia documental está disponible como respaldo. El análisis
@@ -361,7 +383,9 @@ function visualDescription(run: IssuerAnalysisRunVM) {
     return 'La ejecución fue registrada y todavía no comenzó.';
   }
   if (run.status === 'running') {
-    return 'Traza está procesando la evidencia documental.';
+    return run.inputMode === 'text'
+      ? 'Traza está procesando la información declarada de la credencial.'
+      : 'Traza está procesando la evidencia documental.';
   }
   if (run.status === 'failed') {
     return 'La ejecución terminó sin producir un resultado disponible.';

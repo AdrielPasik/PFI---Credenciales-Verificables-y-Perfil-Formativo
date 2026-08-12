@@ -5,7 +5,6 @@ import { useRef, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import type {
   CourseTemplateSummaryVM,
@@ -22,7 +21,6 @@ interface ReusableTemplateCopy {
   buttonLabel: string;
   successMessage: string;
   duplicateMessage: string;
-  helpText: string;
 }
 
 // C3b: copy resuelto segun credential.type -- nunca "asignatura/curso/
@@ -33,16 +31,12 @@ const copyByType: Record<ReusableCredentialType, ReusableTemplateCopy> = {
   course: {
     buttonLabel: 'Guardar como curso reutilizable',
     successMessage: 'Curso guardado como reutilizable.',
-    duplicateMessage: 'Este curso ya fue guardado como reutilizable.',
-    helpText:
-      'Este curso quedará disponible en el catálogo de este emisor para futuras credenciales.'
+    duplicateMessage: 'Este curso ya fue guardado como reutilizable.'
   },
   certification: {
     buttonLabel: 'Guardar como certificación reutilizable',
     successMessage: 'Certificación guardada como reutilizable.',
-    duplicateMessage: 'Esta certificación ya fue guardada como reutilizable.',
-    helpText:
-      'Esta certificación quedará disponible en el catálogo de este emisor para futuras credenciales.'
+    duplicateMessage: 'Esta certificación ya fue guardada como reutilizable.'
   }
 };
 
@@ -86,64 +80,48 @@ export function SaveReusableTemplateSection({
   }
 
   return (
-    <Card
-      className="border-border-strong shadow-none"
+    <section
+      className="flex flex-wrap items-center gap-3 rounded-card border border-border-default bg-surface-muted p-4"
       data-testid="save-reusable-template-section"
     >
-      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
-        <BookmarkPlus aria-hidden="true" className="size-5 text-teal-700" />
-        <div>
-          <h2 className="text-lg font-semibold text-text-strong">
-            Catálogo reutilizable del emisor
-          </h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Guardá los datos de esta credencial en el catálogo reutilizable
-            de este emisor.
-          </p>
-        </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-5">
-        <ul className="grid gap-1 text-sm leading-6 text-text-muted">
-          <li>{copy.helpText}</li>
-          <li>No modifica la credencial original.</li>
-          <li>No crea una nueva credencial.</li>
-          <li>No implica integración oficial con plataformas externas.</li>
-        </ul>
+      <BookmarkPlus aria-hidden="true" className="size-5 shrink-0 text-teal-700" />
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-text-strong">Reutilizable</p>
+        <p className="mt-1 text-sm text-text-muted">
+          Reutilizá estos datos en futuras credenciales.
+        </p>
+      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        className="shrink-0"
+        disabled={state.kind === 'loading' || state.kind === 'success'}
+        onClick={() => void handleSave()}
+      >
+        {state.kind === 'loading' ? 'Guardando…' : copy.buttonLabel}
+      </Button>
+      <div className="basis-full" aria-live="polite">
+        {state.kind === 'success' ? (
+          <FeedbackAlert variant="success" title={copy.successMessage}>
+            Disponible para reutilizar en futuras credenciales de este emisor.
+          </FeedbackAlert>
+        ) : null}
 
-        <div aria-live="polite">
-          {state.kind === 'success' ? (
-            <FeedbackAlert variant="success" title={copy.successMessage}>
-              Ya podés encontrarlo en el catálogo reutilizable de este emisor.
-            </FeedbackAlert>
-          ) : null}
+        {state.kind === 'duplicate' ? (
+          <FeedbackAlert variant="warning" title={copy.duplicateMessage}>
+            No se creó un registro nuevo para evitar duplicados.
+          </FeedbackAlert>
+        ) : null}
 
-          {state.kind === 'duplicate' ? (
-            <FeedbackAlert variant="warning" title={copy.duplicateMessage}>
-              No se creó un registro nuevo para evitar duplicados en el
-              catálogo.
-            </FeedbackAlert>
-          ) : null}
-
-          {state.kind === 'error' ? (
-            <FeedbackAlert
-              variant="error"
-              title="No pudimos guardar este contenido como reutilizable"
-            >
-              {state.feedback.message}
-            </FeedbackAlert>
-          ) : null}
-        </div>
-
-        <Button
-          type="button"
-          variant="secondary"
-          className="w-fit"
-          disabled={state.kind === 'loading' || state.kind === 'success'}
-          onClick={() => void handleSave()}
-        >
-          {state.kind === 'loading' ? 'Guardando…' : copy.buttonLabel}
-        </Button>
-      </CardContent>
-    </Card>
+        {state.kind === 'error' ? (
+          <FeedbackAlert
+            variant="error"
+            title="No pudimos guardar este contenido como reutilizable"
+          >
+            {state.feedback.message}
+          </FeedbackAlert>
+        ) : null}
+      </div>
+    </section>
   );
 }
