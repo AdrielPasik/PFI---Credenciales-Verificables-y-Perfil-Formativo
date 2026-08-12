@@ -10,6 +10,7 @@ import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
+import { TemplateSemanticApprovalCandidateResponseDto } from './dto/template-semantic-approval-candidate-response.dto';
 import {
   assertSemanticAnalysisStatusIsUsable,
   buildApprovedTemplateSemanticSnapshot,
@@ -363,6 +364,100 @@ export class IssuerCourseTemplatesService {
     semanticAnalysisId: string,
     currentUser: AuthenticatedUser
   ): Promise<CourseTemplateResponseDto> {
+    const { template, semanticAnalysis } =
+      await this.resolveApprovableSemanticAnalysis(
+        issuerId,
+        templateId,
+        semanticAnalysisId,
+        currentUser
+      );
+
+    const snapshot = buildApprovedTemplateSemanticSnapshot({
+      schemaVersion: semanticAnalysis.schemaVersion,
+      status: semanticAnalysis.status,
+      areas: semanticAnalysis.areas,
+      skills: semanticAnalysis.skills,
+      concepts: semanticAnalysis.concepts,
+      qualityFlags: semanticAnalysis.qualityFlags,
+      confidence: semanticAnalysis.confidence,
+      analysisJson: semanticAnalysis.analysisJson
+    });
+
+    const updated = (await this.prisma.issuerCourseTemplate.update({
+      where: { id: template.id },
+      data: {
+        approvedSemanticAnalysisId: semanticAnalysis.id,
+        approvedSemanticSnapshot: snapshot as unknown as Prisma.InputJsonValue,
+        approvedSemanticApprovedByUserId: currentUser.id,
+        approvedSemanticApprovedAt: new Date(),
+        approvedSemanticPipelineVersion: semanticAnalysis.pipelineVersion,
+        approvedSemanticTaxonomyVersion: semanticAnalysis.taxonomyVersion,
+        approvedSemanticSourceCredentialId: semanticAnalysis.credentialId
+      },
+      select: COURSE_TEMPLATE_RESPONSE_SELECT
+    })) as CourseTemplateRecord;
+
+    return mapCourseTemplateResponse(updated);
+  }
+
+  // C4a.2: mismo set de validaciones que approveTemplateSemanticAnalysisForIssuer
+  // (reutiliza resolveApprovableSemanticAnalysis para no duplicar reglas),
+  // pero de solo lectura -- nunca actualiza IssuerCourseTemplate, nunca crea
+  // un SemanticAnalysis, nunca llama a la IA. Permite que la UI muestre un
+  // resumen seguro ANTES de que el emisor decida aprobar.
+  async getTemplateSemanticApprovalCandidateForIssuer(
+    issuerId: string,
+    templateId: string,
+    semanticAnalysisId: string,
+    currentUser: AuthenticatedUser
+  ): Promise<TemplateSemanticApprovalCandidateResponseDto> {
+    const { semanticAnalysis } = await this.resolveApprovableSemanticAnalysis(
+      issuerId,
+      templateId,
+      semanticAnalysisId,
+      currentUser
+    );
+
+    const snapshot = buildApprovedTemplateSemanticSnapshot({
+      schemaVersion: semanticAnalysis.schemaVersion,
+      status: semanticAnalysis.status,
+      areas: semanticAnalysis.areas,
+      skills: semanticAnalysis.skills,
+      concepts: semanticAnalysis.concepts,
+      qualityFlags: semanticAnalysis.qualityFlags,
+      confidence: semanticAnalysis.confidence,
+      analysisJson: semanticAnalysis.analysisJson
+    });
+
+    return {
+      semanticAnalysisId: semanticAnalysis.id,
+      status: semanticAnalysis.status,
+      pipelineVersion: semanticAnalysis.pipelineVersion,
+      taxonomyVersion: semanticAnalysis.taxonomyVersion,
+      sourceCredentialId: semanticAnalysis.credentialId,
+      summary: {
+        schema: snapshot.schema,
+        status: snapshot.status,
+        areaCount: snapshot.areas.length,
+        skillCount: snapshot.skills.length,
+        conceptCount: snapshot.concepts.length,
+        hasHoursDistribution: snapshot.hoursDistribution.length > 0,
+        warningCount: snapshot.warnings.length,
+        qualityFlagCount: snapshot.qualityFlags.length
+      }
+    };
+  }
+
+  // Validaciones compartidas por el POST de aprobacion (C4a.1) y el GET de
+  // candidate (C4a.2) -- unica fuente de verdad para las reglas de scoping/
+  // tipo/status/createdFromCredentialId, para que ambos endpoints nunca
+  // puedan divergir.
+  private async resolveApprovableSemanticAnalysis(
+    issuerId: string,
+    templateId: string,
+    semanticAnalysisId: string,
+    currentUser: AuthenticatedUser
+  ) {
     await this.issuersService.assertUserCanManageCourseTemplatesForIssuer(
       currentUser.id,
       issuerId
@@ -434,32 +529,7 @@ export class IssuerCourseTemplatesService {
       );
     }
 
-    const snapshot = buildApprovedTemplateSemanticSnapshot({
-      schemaVersion: semanticAnalysis.schemaVersion,
-      status: semanticAnalysis.status,
-      areas: semanticAnalysis.areas,
-      skills: semanticAnalysis.skills,
-      concepts: semanticAnalysis.concepts,
-      qualityFlags: semanticAnalysis.qualityFlags,
-      confidence: semanticAnalysis.confidence,
-      analysisJson: semanticAnalysis.analysisJson
-    });
-
-    const updated = (await this.prisma.issuerCourseTemplate.update({
-      where: { id: template.id },
-      data: {
-        approvedSemanticAnalysisId: semanticAnalysis.id,
-        approvedSemanticSnapshot: snapshot as unknown as Prisma.InputJsonValue,
-        approvedSemanticApprovedByUserId: currentUser.id,
-        approvedSemanticApprovedAt: new Date(),
-        approvedSemanticPipelineVersion: semanticAnalysis.pipelineVersion,
-        approvedSemanticTaxonomyVersion: semanticAnalysis.taxonomyVersion,
-        approvedSemanticSourceCredentialId: semanticAnalysis.credentialId
-      },
-      select: COURSE_TEMPLATE_RESPONSE_SELECT
-    })) as CourseTemplateRecord;
-
-    return mapCourseTemplateResponse(updated);
+    return { template, semanticAnalysis };
   }
 }
 

@@ -6,6 +6,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
 import { CreateCourseTemplateDto } from './dto/create-course-template.dto';
 import { PatchCourseTemplateDto } from './dto/patch-course-template.dto';
+import { TemplateSemanticApprovalCandidateResponseDto } from './dto/template-semantic-approval-candidate-response.dto';
 import { IssuerCourseTemplatesService } from './issuer-course-templates.service';
 
 @Controller('issuers/:issuerId/course-templates')
@@ -86,6 +87,26 @@ export class IssuerCourseTemplatesController {
     @CurrentUser() currentUser: AuthenticatedUser
   ): Promise<CourseTemplateResponseDto> {
     return this.issuerCourseTemplatesService.approveTemplateSemanticAnalysisForIssuer(
+      issuerId,
+      templateId,
+      semanticAnalysisId,
+      currentUser
+    );
+  }
+
+  // C4a.2: resumen seguro de solo lectura para revisar ANTES de aprobar.
+  // Mismas validaciones que el POST de arriba (reutiliza
+  // resolveApprovableSemanticAnalysis en el service); nunca actualiza el
+  // template, nunca crea un SemanticAnalysis, nunca llama a la IA.
+  @Get(':templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId')
+  @UseGuards(AuthGuard)
+  getTemplateSemanticApprovalCandidate(
+    @Param('issuerId') issuerId: string,
+    @Param('templateId') templateId: string,
+    @Param('semanticAnalysisId') semanticAnalysisId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<TemplateSemanticApprovalCandidateResponseDto> {
+    return this.issuerCourseTemplatesService.getTemplateSemanticApprovalCandidateForIssuer(
       issuerId,
       templateId,
       semanticAnalysisId,

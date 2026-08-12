@@ -16,7 +16,9 @@ type CredentialOperation =
   | 'issue'
   | 'detail'
   | 'save-reusable-template'
-  | 'template-search';
+  | 'template-search'
+  | 'semantic-approval-candidate'
+  | 'approve-reusable-template-analysis';
 
 function feedback(
   code: CredentialFeedbackCode,
@@ -102,6 +104,16 @@ export function mapCredentialError(
       );
     }
 
+    if (
+      operation === 'semantic-approval-candidate' ||
+      operation === 'approve-reusable-template-analysis'
+    ) {
+      return feedback(
+        'forbidden',
+        'No tenés permisos para revisar o aprobar interpretaciones semánticas en esta institución.'
+      );
+    }
+
     return feedback(
       'forbidden',
       operation === 'document-evidence-upload'
@@ -136,6 +148,16 @@ export function mapCredentialError(
       return feedback(
         'not_found',
         'No encontramos la credencial dentro del contexto institucional activo.'
+      );
+    }
+
+    if (
+      operation === 'semantic-approval-candidate' ||
+      operation === 'approve-reusable-template-analysis'
+    ) {
+      return feedback(
+        'not_found',
+        'No encontramos la interpretación semántica o el contenido reutilizable solicitados.'
       );
     }
 
@@ -214,6 +236,25 @@ export function mapCredentialError(
       'invalid_input',
       'No pudimos buscar contenido reutilizable. Intentá nuevamente.'
     );
+  }
+
+  if (
+    operation === 'semantic-approval-candidate' ||
+    operation === 'approve-reusable-template-analysis'
+  ) {
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'Esta interpretación semántica no se puede aprobar para este contenido reutilizable.'
+      );
+    }
+
+    if (error.status === 409) {
+      return feedback(
+        'conflict',
+        'El estado de este contenido reutilizable cambió. Actualizá la página e intentá nuevamente.'
+      );
+    }
   }
 
   if (error.status === 409 && operation === 'draft-update') {

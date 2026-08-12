@@ -100,3 +100,22 @@ it('C2c: labels declared hours as official hours and never ties them to a specif
   expect(screen.queryByText('Horas')).toBeNull();
   expect(document.body.textContent).not.toMatch(/horas de\s+(software|diseño|arquitectura)/i);
 });
+
+// C4a.2: la revision/aprobacion de interpretacion semantica reutilizable es
+// exclusivamente issuer-facing (credential-detail-route.tsx). La wallet del
+// titular nunca la importa ni la renderiza -- se verifica que no aparezca
+// ningun rastro de su copy en ningun escenario de esta vista.
+it('never shows issuer-facing semantic approval copy in the holder wallet', () => {
+  render(<WalletCredentialDetailView detail={courseDetailWithDeclaredData} />);
+
+  expect(screen.queryByText('Interpretación semántica revisable')).toBeNull();
+  expect(
+    screen.queryByRole('button', {
+      name: 'Aprobar interpretación para reutilización'
+    })
+  ).toBeNull();
+  expect(screen.queryByTestId('semantic-approval-section')).toBeNull();
+  expect(document.body.textContent).not.toMatch(
+    /aprobar interpretación para reutilización/i
+  );
+});

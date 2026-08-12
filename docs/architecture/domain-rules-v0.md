@@ -865,6 +865,73 @@ formativo (eso es C4b).
   `viewer`, no puede aprobar nada -- mismo `IssuersService.assertUserCanManageCourseTemplatesForIssuer`
   que ya protege el resto de `course-templates`.
 - Pendiente, explicitamente fuera de alcance de C4a.1: la UI de
-  revision/aprobacion (C4a.2), aplicar la interpretacion aprobada a
-  credenciales nuevas o al perfil formativo (C4b), y un endpoint de
-  revocacion/limpieza de la aprobacion (no implementado en este slice).
+  revision/aprobacion (resuelta en C4a.2, ver seccion 19), aplicar la
+  interpretacion aprobada a credenciales nuevas o al perfil formativo
+  (C4b), y un endpoint de revocacion/limpieza de la aprobacion (no
+  implementado en este slice).
+
+## 19. C4a.2 — UI issuer-facing de revision/aprobacion de interpretacion semantica
+
+C4a.2 agrega la UI issuer-facing para revisar y aprobar la interpretacion
+semantica de C4a.1, y un endpoint de solo lectura (`candidate`) para poder
+mostrar un resumen seguro ANTES de aprobar. No aplica la interpretacion a
+credenciales nuevas ni al perfil formativo (eso sigue siendo C4b).
+
+- **La revision es obligatoria antes de aprobar**: la UI nunca muestra el
+  boton "Aprobar interpretación para reutilización" hasta que el resumen
+  candidato (endpoint `candidate` de solo lectura) cargo con exito. Si la
+  carga del resumen falla, se muestra un aviso seguro y **no se permite
+  aprobar a ciegas** -- este es un requisito de diseño explicito, no un
+  efecto secundario.
+- **El endpoint `candidate` es de solo lectura**: reutiliza exactamente
+  las mismas validaciones de scoping/tipo/status/createdFromCredentialId
+  que el `POST` de aprobacion de C4a.1 (extraidas a un metodo compartido
+  en el servicio, `resolveApprovableSemanticAnalysis`, para que ambos
+  endpoints nunca puedan divergir en sus reglas). Nunca actualiza
+  `IssuerCourseTemplate`, nunca crea una `SemanticAnalysis`, nunca llama a
+  la IA. Devuelve el mismo tipo de resumen allowlisted que
+  `approvedSemanticSnapshotSummary` (schema, status, counts, flags) --
+  nunca el snapshot completo ni evidencia cruda.
+- **Descubrimiento de template sin endpoint nuevo de busqueda**: se
+  reutiliza `listCourseTemplates` (ya existente desde C3c) en vez de
+  agregar un endpoint dedicado a "buscar template por credencial". El
+  filtro por `createdFromCredentialId` se aplica del lado del cliente
+  porque el backend no lo expone como query param directo en este
+  endpoint.
+- **Orden de fuentes para conocer el template** (documentado y testeado):
+  1) el template que devuelve un guardado exitoso via C3b en la misma
+  sesion; 2) si no, una busqueda automatica al cargar/recargar la pagina;
+  3) si el guardado devuelve `409` duplicado, se reintenta la busqueda
+  automatica para recuperar el template existente y habilitar la
+  aprobacion sin romper el aviso de duplicado que ya muestra C3b; 4) si
+  ninguna fuente resuelve un template, no se muestra ningun boton de
+  aprobacion -- la tarjeta de "guardar como reutilizable" de C3b sigue
+  disponible sin cambios.
+- **`lastSemanticAnalysisId` nulo**: se muestra un aviso suave ("Este
+  contenido reutilizable todavía no tiene una interpretación semántica
+  asociada para aprobar.") y nunca se llama a ningun endpoint de
+  aprobacion o de candidate.
+- **Template ya aprobado**: se muestra "Interpretación ya aprobada para
+  reutilización." con la metadata segura y el boton de aprobar queda
+  deshabilitado. Re-aprobar o revocar una aprobacion existente no esta
+  soportado en este slice -- queda documentado como pendiente, no
+  implementado.
+- **Copy obligatorio** (verificado con tests, nunca reemplazado por texto
+  ad-hoc): "Interpretación semántica revisable", "Aprobar interpretación
+  para reutilización", "La interpretación aprobada quedará asociada al
+  contenido reutilizable de este emisor.", "No modifica la credencial
+  original.", "No crea una nueva credencial.", "No implica que la IA
+  certifique el contenido.", "Se guarda un resumen semántico saneado, sin
+  evidencias crudas." **Nunca** aparece "IA certificó", "blockchain
+  valida", "verificado por Udemy/Coursera/AWS", "aprobación automática" ni
+  "certificación de competencias por IA".
+- **Aislamiento por tipo y por rol de usuario**: nunca aparece para
+  `academic_subject`/`degree` (mismo criterio que C3a.2 -- esos tipos
+  nunca tienen `IssuerCourseTemplate`), nunca para credenciales `revoked`,
+  y nunca en la wallet del titular (la wallet no importa ni renderiza
+  ningun componente de este modulo -- es exclusivamente issuer-facing).
+- Pendiente, explicitamente fuera de alcance de C4a.2: aplicar la
+  interpretacion aprobada a credenciales nuevas creadas desde el template,
+  o usarla para reconstruir `FormativeProfile` (C4b); y un endpoint de
+  revocacion/re-aprobacion (no implementado, mismo estado que documento
+  C4a.1).

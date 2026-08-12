@@ -34,6 +34,7 @@ POST /issuers/:issuerId/course-templates
 POST /issuers/:issuerId/course-templates/from-credential/:credentialId
 PATCH /issuers/:issuerId/course-templates/:templateId
 POST /issuers/:issuerId/course-templates/:templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId
+GET  /issuers/:issuerId/course-templates/:templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId
 POST /credentials/:id/issue
 GET  /me/credentials
 GET  /me/credentials/:id
@@ -329,12 +330,64 @@ deploy`) cuando lo decida.
 
 **Pendiente, explicitamente fuera de alcance de C4a.1**:
 
-- La UI de revision/aprobacion (botones, pantalla) es C4a.2.
+- La UI de revision/aprobacion (botones, pantalla) es C4a.2 -- ver seccion
+  propia mas abajo (ya implementada).
 - Aplicar la interpretacion aprobada a credenciales nuevas o reconstruir
   `FormativeProfile` a partir de ella es C4b.
 - Un endpoint para revocar/limpiar la aprobacion (ej.
   `DELETE /issuers/:issuerId/course-templates/:templateId/approved-analysis`)
   no se implemento en este slice -- queda documentado como pendiente.
+
+### C4a.2: endpoint `candidate` de solo lectura para revisar antes de aprobar
+
+C4a.2 agrega la UI issuer-facing en `apps/web` (ver
+`apps/web/README.md`) para el flujo de aprobacion de C4a.1, y un endpoint
+backend nuevo de solo lectura que permite mostrar un resumen seguro **antes**
+de aprobar (el endpoint de aprobacion de C4a.1 solo devuelve el resumen
+*despues* de aprobar):
+
+```
+GET /issuers/:issuerId/course-templates/:templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId
+```
+
+Requiere `AuthGuard` + membership `admin`/`operator` activa del issuer.
+Reutiliza exactamente las mismas reglas de validacion que
+`approveTemplateSemanticAnalysisForIssuer` (C4a.1): ambos metodos del
+`IssuerCourseTemplatesService` llaman a un unico metodo privado compartido,
+`resolveApprovableSemanticAnalysis`, extraido especificamente para que las
+reglas de scoping/tipo/status/`createdFromCredentialId` nunca puedan
+divergir entre el `GET` y el `POST`. Nunca actualiza
+`IssuerCourseTemplate`, nunca crea una `SemanticAnalysis`, nunca llama a la
+IA -- es puramente de lectura.
+
+Response (`TemplateSemanticApprovalCandidateResponseDto`):
+
+```json
+{
+  "semanticAnalysisId": "...",
+  "status": "completed",
+  "pipelineVersion": "...",
+  "taxonomyVersion": "...",
+  "sourceCredentialId": "...",
+  "summary": {
+    "schema": "approved_template_semantic_snapshot_v1",
+    "status": "completed",
+    "areaCount": 0,
+    "skillCount": 0,
+    "conceptCount": 0,
+    "hasHoursDistribution": false,
+    "warningCount": 0,
+    "qualityFlagCount": 0
+  }
+}
+```
+
+`summary` usa el mismo allowlist que `approvedSemanticSnapshotSummary` de
+C4a.1 (construido a partir de `buildApprovedTemplateSemanticSnapshot`, sin
+duplicar la logica de saneamiento) -- nunca expone el snapshot completo,
+`analysisJson`, `sourceRefs`, `evidenceMap`, `textForEmbedding`, IDs de
+evidencia, storage paths, texto crudo, debug/audit, datos de
+holder/blockchain ni tokens/secrets.
 
 `PATCH /issuers/:issuerId/credentials/:credentialId/draft` actualiza campos
 comunes y campos controlados por `CredentialType` de una credencial `draft`.

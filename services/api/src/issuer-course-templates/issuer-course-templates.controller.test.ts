@@ -34,6 +34,11 @@ test('course template routes are protected by AuthGuard and issuer-scoped', () =
       'approveTemplateSemanticAnalysis',
       ':templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId',
       RequestMethod.POST
+    ],
+    [
+      'getTemplateSemanticApprovalCandidate',
+      ':templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId',
+      RequestMethod.GET
     ]
   ];
 
@@ -136,6 +141,37 @@ test('controller delegates approveTemplateSemanticAnalysis with issuerId, templa
   } as never);
 
   await controller.approveTemplateSemanticAnalysis(
+    'issuer-1',
+    'template-1',
+    'analysis-1',
+    currentUser
+  );
+
+  assert.deepEqual(calls, [
+    {
+      issuerId: 'issuer-1',
+      templateId: 'template-1',
+      semanticAnalysisId: 'analysis-1',
+      user: currentUser
+    }
+  ]);
+});
+
+test('controller delegates getTemplateSemanticApprovalCandidate with issuerId, templateId, semanticAnalysisId and current user', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const controller = new IssuerCourseTemplatesController({
+    async getTemplateSemanticApprovalCandidateForIssuer(
+      issuerId: string,
+      templateId: string,
+      semanticAnalysisId: string,
+      user: Record<string, unknown>
+    ) {
+      calls.push({ issuerId, templateId, semanticAnalysisId, user });
+      return {};
+    }
+  } as never);
+
+  await controller.getTemplateSemanticApprovalCandidate(
     'issuer-1',
     'template-1',
     'analysis-1',

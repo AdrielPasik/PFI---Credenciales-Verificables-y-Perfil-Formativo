@@ -1349,8 +1349,111 @@ La response del template nunca expone el snapshot completo, solo
 `null` por default) en la response de `GET`/`POST`/`PATCH` de
 `course-templates` tambien, no solo en la del nuevo endpoint.
 
-Pendiente, fuera de alcance de C4a.1: la UI de revision/aprobacion (C4a.2),
-aplicar la interpretacion aprobada a credenciales nuevas o al perfil
-formativo (C4b), y un endpoint de revocacion
-(`DELETE .../approved-analysis` o equivalente, no implementado en este
-slice).
+Pendiente, fuera de alcance de C4a.1: la UI de revision/aprobacion
+(resuelta en C4a.2, ver seccion propia mas abajo), aplicar la
+interpretacion aprobada a credenciales nuevas o al perfil formativo (C4b),
+y un endpoint de revocacion (`DELETE .../approved-analysis` o equivalente,
+no implementado en este slice).
+
+### C4a.2: UI issuer-facing de revision/aprobacion + endpoint candidate de solo lectura
+
+C4a.2 agrega la UI de revision/aprobacion en el detalle issuer-facing
+(`/issuer/credentials/[credentialId]`) para el endpoint de aprobacion de
+C4a.1, y un endpoint backend nuevo de solo lectura para poder mostrar un
+resumen seguro **antes** de aprobar (la aprobacion de C4a.1 no expone ese
+resumen hasta despues de aprobar).
+
+**Endpoint nuevo (backend), de solo lectura:**
+
+```
+GET /issuers/:issuerId/course-templates/:templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId
+```
+
+Requiere `AuthGuard` + membership `admin`/`operator` activa del issuer.
+Reutiliza exactamente las mismas validaciones que el `POST` de C4a.1 --
+`IssuerCourseTemplatesService` extrajo esas reglas a un metodo privado
+compartido (`resolveApprovableSemanticAnalysis`) para que ambos endpoints
+nunca puedan divergir. Nunca actualiza `IssuerCourseTemplate`, nunca crea
+un `SemanticAnalysis`, nunca llama a la IA. Response:
+
+```json
+{
+  "semanticAnalysisId": "...",
+  "status": "completed",
+  "pipelineVersion": "...",
+  "taxonomyVersion": "...",
+  "sourceCredentialId": "...",
+  "summary": {
+    "schema": "approved_template_semantic_snapshot_v1",
+    "status": "completed",
+    "areaCount": 0,
+    "skillCount": 0,
+    "conceptCount": 0,
+    "hasHoursDistribution": false,
+    "warningCount": 0,
+    "qualityFlagCount": 0
+  }
+}
+```
+
+Nunca devuelve `approvedSemanticSnapshot`/`analysisJson` completos,
+`sourceRefs`, `evidenceMap`, `textForEmbedding`, IDs de evidencia, storage
+paths, texto crudo, debug/audit, datos de holder/blockchain ni
+tokens/secrets -- mismo allowlist que el summary de C4a.1
+(`buildApprovedTemplateSemanticSnapshot`, reutilizado sin duplicar reglas).
+
+**Consumo frontend nuevo**, en `/issuer/credentials/[credentialId]`:
+
+- `getTemplateSemanticApprovalCandidate` y `approveTemplateSemanticAnalysis`
+  (`apps/web/src/lib/api/course-templates-api.ts`) llaman el `GET` de
+  arriba y el `POST` de C4a.1 respectivamente. Se adaptan con
+  `adaptTemplateSemanticApprovalCandidate`/`adaptCourseTemplateSummary`
+  (`apps/web/src/lib/adapters/course-templates.adapter.ts`) -- ninguno
+  expone el snapshot completo.
+- **Como se determina el template** (sin agregar un endpoint de busqueda
+  por credencial -- se reutiliza `listCourseTemplates` de C3c): (1) si el
+  usuario acaba de guardar la credencial como reutilizable con exito, se
+  usa el template que devuelve ese mismo `POST` de C3b; (2) si no (recarga
+  de pagina, o el template ya existia), se busca automaticamente al
+  montar con `listCourseTemplates({ credentialType, search: title,
+  status: 'all' })` y se filtra client-side por
+  `createdFromCredentialId === credentialId`; (3) si `listCourseTemplates`
+  no encuentra nada, o si la busqueda falla, no se muestra ningun boton de
+  aprobacion -- solo la tarjeta de guardar como reutilizable de C3b sigue
+  disponible; (4) si guardar devuelve `409` (duplicado), se reintenta la
+  busqueda del punto 2 para recuperar el template existente y habilitar la
+  aprobacion, sin cambiar el aviso de duplicado que ya muestra C3b.
+- **Secuencia obligatoria antes de aprobar**: encontrar template -> leer
+  `template.lastSemanticAnalysisId` -> cargar el candidate summary seguro
+  -> solo entonces habilitar "Aprobar interpretación para reutilización".
+  El boton de aprobar **nunca** se muestra antes de que el candidate
+  summary haya cargado con exito; si falla, se muestra un feedback seguro
+  y no se permite aprobar a ciegas.
+- Si `template.lastSemanticAnalysisId` es `null`, se muestra un aviso
+  suave ("Este contenido reutilizable todavía no tiene una interpretación
+  semántica asociada para aprobar.") y nunca se llama al endpoint de
+  aprobacion.
+- Si el template ya tiene `approvedSemanticAnalysisId` (por ejemplo, tras
+  recargar la pagina), se muestra "Interpretación ya aprobada para
+  reutilización." con la metadata segura (`approvedSemanticApprovedAt`,
+  `approvedSemanticPipelineVersion`, `approvedSemanticTaxonomyVersion`,
+  `approvedSemanticSourceCredentialId`, `approvedSemanticSnapshotSummary`)
+  y el boton de aprobar queda deshabilitado -- re-aprobar o revocar la
+  aprobacion queda pendiente, no implementado en este slice.
+- Copy obligatorio verificado con tests: "Interpretación semántica
+  revisable", "Aprobar interpretación para reutilización", "La
+  interpretación aprobada quedará asociada al contenido reutilizable de
+  este emisor.", "No modifica la credencial original.", "No crea una
+  nueva credencial.", "No implica que la IA certifique el contenido.",
+  "Se guarda un resumen semántico saneado, sin evidencias crudas." Nunca
+  aparece "IA certificó", "blockchain valida", "verificado por
+  Udemy/Coursera/AWS", "aprobación automática" ni "certificación de
+  competencias por IA".
+- Nunca aparece para `academic_subject`/`degree`, credenciales `revoked`,
+  ni en la wallet del titular (`/wallet/credentials/[credentialId]` no
+  importa ni renderiza nada de este modulo).
+- No se copia `SemanticAnalysis` a ninguna credencial nueva, no se
+  reconstruye `FormativeProfile`, no se llama a la IA en ningun punto de
+  este flujo. Aplicar la interpretacion aprobada a credenciales nuevas o
+  al perfil formativo sigue pendiente para C4b. Un endpoint de
+  revocacion/re-aprobacion tampoco se implemento en este slice.

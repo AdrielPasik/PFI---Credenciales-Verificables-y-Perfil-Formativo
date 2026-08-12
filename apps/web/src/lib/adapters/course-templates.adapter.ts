@@ -1,7 +1,9 @@
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type {
   CourseTemplateSummaryVM,
-  ReusableCredentialType
+  ReusableCredentialType,
+  SemanticApprovalSnapshotSummaryVM,
+  TemplateSemanticApprovalCandidateVM
 } from '@/models/credentials';
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -62,6 +64,66 @@ function templateStatus(value: unknown): 'active' | 'archived' {
   throw new IncompatiblePayloadError();
 }
 
+function semanticAnalysisStatus(value: unknown): 'completed' | 'partial' {
+  if (value === 'completed' || value === 'partial') {
+    return value;
+  }
+
+  throw new IncompatiblePayloadError();
+}
+
+function nonNegativeInteger(value: unknown): number {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value < 0 ||
+    Math.floor(value) !== value
+  ) {
+    throw new IncompatiblePayloadError();
+  }
+
+  return value;
+}
+
+function requiredBoolean(value: unknown): boolean {
+  if (typeof value !== 'boolean') {
+    throw new IncompatiblePayloadError();
+  }
+
+  return value;
+}
+
+// C4a.1/C4a.2: allowlist estricto -- solo counts y flags, nunca el
+// snapshot/analysisJson completo. Cualquier forma incompatible (falta un
+// campo, un tipo incorrecto) se rechaza con IncompatiblePayloadError en vez
+// de mostrar datos a medias.
+function adaptSemanticApprovalSnapshotSummary(
+  value: unknown
+): SemanticApprovalSnapshotSummaryVM {
+  const record = asRecord(value);
+
+  return {
+    schema: requiredString(record.schema),
+    status: semanticAnalysisStatus(record.status),
+    areaCount: nonNegativeInteger(record.areaCount),
+    skillCount: nonNegativeInteger(record.skillCount),
+    conceptCount: nonNegativeInteger(record.conceptCount),
+    hasHoursDistribution: requiredBoolean(record.hasHoursDistribution),
+    warningCount: nonNegativeInteger(record.warningCount),
+    qualityFlagCount: nonNegativeInteger(record.qualityFlagCount)
+  };
+}
+
+function nullableSemanticApprovalSnapshotSummary(
+  value: unknown
+): SemanticApprovalSnapshotSummaryVM | null {
+  if (value === null) {
+    return null;
+  }
+
+  return adaptSemanticApprovalSnapshotSummary(value);
+}
+
 // C3b: adapta la respuesta de
 // POST /issuers/:issuerId/course-templates/from-credential/:credentialId
 // (y, por construccion, la misma forma que devuelve GET/POST/PATCH
@@ -93,6 +155,24 @@ export function adaptCourseTemplateSummary(
     status: templateStatus(template.status),
     createdFromCredentialId: nullableString(template.createdFromCredentialId),
     lastSemanticAnalysisId: nullableString(template.lastSemanticAnalysisId),
+    approvedSemanticAnalysisId: nullableString(
+      template.approvedSemanticAnalysisId
+    ),
+    approvedSemanticApprovedAt: nullableString(
+      template.approvedSemanticApprovedAt
+    ),
+    approvedSemanticPipelineVersion: nullableString(
+      template.approvedSemanticPipelineVersion
+    ),
+    approvedSemanticTaxonomyVersion: nullableString(
+      template.approvedSemanticTaxonomyVersion
+    ),
+    approvedSemanticSourceCredentialId: nullableString(
+      template.approvedSemanticSourceCredentialId
+    ),
+    approvedSemanticSnapshotSummary: nullableSemanticApprovalSnapshotSummary(
+      template.approvedSemanticSnapshotSummary
+    ),
     createdAt: isoDateTime(template.createdAt),
     updatedAt: isoDateTime(template.updatedAt)
   };
@@ -109,4 +189,22 @@ export function adaptCourseTemplateSummaryList(
   }
 
   return payload.map(adaptCourseTemplateSummary);
+}
+
+// C4a.2: adapta la respuesta de
+// GET .../course-templates/:templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId.
+// Nunca lee/expone un snapshot completo -- solo el resumen allowlisted.
+export function adaptTemplateSemanticApprovalCandidate(
+  payload: unknown
+): TemplateSemanticApprovalCandidateVM {
+  const candidate = asRecord(payload);
+
+  return {
+    semanticAnalysisReference: requiredString(candidate.semanticAnalysisId),
+    status: semanticAnalysisStatus(candidate.status),
+    pipelineVersion: nullableString(candidate.pipelineVersion),
+    taxonomyVersion: nullableString(candidate.taxonomyVersion),
+    sourceCredentialReference: nullableString(candidate.sourceCredentialId),
+    summary: adaptSemanticApprovalSnapshotSummary(candidate.summary)
+  };
 }

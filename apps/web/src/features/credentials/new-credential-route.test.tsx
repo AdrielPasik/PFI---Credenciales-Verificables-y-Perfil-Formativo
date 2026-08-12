@@ -352,6 +352,12 @@ function courseTemplateFixture(overrides: Record<string, unknown> = {}) {
     status: 'active',
     createdFromCredentialId: 'credential-origin',
     lastSemanticAnalysisId: 'analysis-origin',
+    approvedSemanticAnalysisId: null,
+    approvedSemanticApprovedAt: null,
+    approvedSemanticPipelineVersion: null,
+    approvedSemanticTaxonomyVersion: null,
+    approvedSemanticSourceCredentialId: null,
+    approvedSemanticSnapshotSummary: null,
     createdAt: '2026-08-11T09:00:00.000Z',
     updatedAt: '2026-08-11T09:00:00.000Z',
     ...overrides

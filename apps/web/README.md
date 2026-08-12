@@ -99,6 +99,39 @@ flujos reales del navegador sobre la base F0.1:
   la selección de template. `academic_subject`/`degree` no muestran este
   selector -- siguen su flujo académico existente sin cambios. No hay
   pantalla de gestión del catálogo en este slice.
+- C4a.2: en el mismo detalle issuer-facing, justo después de la tarjeta de
+  C3b, aparece "Interpretación semántica revisable" cuando la credencial
+  ya fue guardada como reutilizable **y** tiene un `lastSemanticAnalysisId`
+  usable. El template se determina en este orden: (1) el que devuelve el
+  guardado exitoso de C3b; (2) si no, una búsqueda automática al
+  cargar/recargar la página vía `listCourseTemplates` (filtrando por
+  `credentialType` + `search` por título, y despúes por
+  `createdFromCredentialId === credentialId` del lado del cliente -- no se
+  agregó un endpoint de búsqueda por credencial); (3) si el guardado
+  devuelve `409`, se reintenta la misma búsqueda para recuperar el
+  template existente. Si no se puede determinar el template, o si no tiene
+  análisis semántico asociado, **nunca se muestra el botón de
+  aprobación** -- en el segundo caso se muestra el aviso suave "Este
+  contenido reutilizable todavía no tiene una interpretación semántica
+  asociada para aprobar."
+  Antes de habilitar "Aprobar interpretación para reutilización" se carga
+  un resumen seguro (`GET .../course-templates/:templateId/approved-analysis/candidate/from-semantic-analysis/:semanticAnalysisId`,
+  agregado en C4a.2): áreas/habilidades/conceptos detectados, si hay
+  distribución horaria, warnings y quality flags -- nunca el snapshot
+  completo ni evidencia cruda. El botón solo se habilita si ese resumen
+  cargó con éxito (nunca se aprueba a ciegas). Aprobar llama
+  `POST .../course-templates/:templateId/approved-analysis/from-semantic-analysis/:semanticAnalysisId`
+  (el mismo endpoint de C4a.1). Si el template ya tenía
+  `approvedSemanticAnalysisId` (recarga de página), se muestra
+  "Interpretación ya aprobada para reutilización." con la metadata segura
+  (fecha, pipeline, taxonomía, credencial de origen, resumen) y el botón
+  queda deshabilitado -- re-aprobar o revocar queda pendiente. Aprobar
+  **nunca** significa que la IA certificó el contenido, nunca modifica la
+  credencial visible, nunca crea una credencial nueva, nunca llama a la
+  IA. Nunca aparece para `academic_subject`, `degree`, credenciales
+  `revoked`, ni en la wallet del titular. Aplicar la interpretación
+  aprobada a credenciales nuevas o al perfil formativo queda pendiente
+  para C4b.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.

@@ -1,10 +1,13 @@
 import type { AuthenticatedApiRequest } from '@/lib/api/api-client';
 import {
   adaptCourseTemplateSummary,
-  adaptCourseTemplateSummaryList
+  adaptCourseTemplateSummaryList,
+  adaptTemplateSemanticApprovalCandidate
 } from '@/lib/adapters/course-templates.adapter';
 import { ApiError } from '@/lib/errors/api-error';
 import type {
+  ApproveTemplateSemanticAnalysisCommand,
+  GetTemplateSemanticApprovalCandidateCommand,
   ListCourseTemplatesCommand,
   SaveCourseTemplateFromCredentialCommand
 } from '@/models/credentials';
@@ -73,4 +76,66 @@ export async function listCourseTemplates(
   );
 
   return adaptCourseTemplateSummaryList(payload);
+}
+
+function requireApprovalReferences(command: {
+  issuerReference: string;
+  templateReference: string;
+  semanticAnalysisReference: string;
+}) {
+  const issuerReference = command.issuerReference.trim();
+  const templateReference = command.templateReference.trim();
+  const semanticAnalysisReference = command.semanticAnalysisReference.trim();
+
+  if (
+    issuerReference.length === 0 ||
+    templateReference.length === 0 ||
+    semanticAnalysisReference.length === 0
+  ) {
+    throw new ApiError(
+      'La referencia institucional del contenido reutilizable no es válida.',
+      'http',
+      400
+    );
+  }
+
+  return { issuerReference, templateReference, semanticAnalysisReference };
+}
+
+// C4a.2: resumen seguro de una SemanticAnalysis candidata a ser aprobada,
+// ANTES de aprobarla. Es un GET puro -- nunca crea, guarda ni modifica
+// nada, y nunca expone el snapshot completo (ver adaptTemplateSemanticApprovalCandidate).
+export async function getTemplateSemanticApprovalCandidate(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: GetTemplateSemanticApprovalCandidateCommand
+) {
+  const { issuerReference, templateReference, semanticAnalysisReference } =
+    requireApprovalReferences(command);
+
+  const payload = await requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/course-templates/${encodeURIComponent(templateReference)}/approved-analysis/candidate/from-semantic-analysis/${encodeURIComponent(semanticAnalysisReference)}`,
+    { signal: command.signal }
+  );
+
+  return adaptTemplateSemanticApprovalCandidate(payload);
+}
+
+// C4a.2: aprueba explicitamente una SemanticAnalysis ya generada como
+// interpretacion reutilizable del template. No manda body -- el backend
+// deriva y persiste el snapshot allowlisted a partir del semanticAnalysisId.
+// No modifica la credencial original, no crea una credencial nueva, no
+// llama a la IA.
+export async function approveTemplateSemanticAnalysis(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: ApproveTemplateSemanticAnalysisCommand
+) {
+  const { issuerReference, templateReference, semanticAnalysisReference } =
+    requireApprovalReferences(command);
+
+  const payload = await requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/course-templates/${encodeURIComponent(templateReference)}/approved-analysis/from-semantic-analysis/${encodeURIComponent(semanticAnalysisReference)}`,
+    { method: 'POST' }
+  );
+
+  return adaptCourseTemplateSummary(payload);
 }

@@ -333,8 +333,25 @@ export interface ListCourseTemplatesCommand {
   signal?: AbortSignal;
 }
 
+// C4a.1/C4a.2: resumen seguro de la interpretacion semantica aprobada (o
+// candidata a aprobarse) para reutilizacion -- nunca el snapshot completo
+// ni evidencia cruda. Mismos campos que devuelve el backend
+// (approvedSemanticSnapshotSummary / candidate.summary).
+export interface SemanticApprovalSnapshotSummaryVM {
+  schema: string;
+  status: 'completed' | 'partial';
+  areaCount: number;
+  skillCount: number;
+  conceptCount: number;
+  hasHoursDistribution: boolean;
+  warningCount: number;
+  qualityFlagCount: number;
+}
+
 // Minimo necesario para C3b (confirmar guardado exitoso); se adapta la
-// respuesta completa para no romper C3c cuando agregue el selector.
+// respuesta completa para no romper C3c cuando agregue el selector. C4a.1
+// agrega los campos approvedSemantic* (aditivos, siempre presentes aunque
+// nunca se haya aprobado nada -- en ese caso son null).
 export interface CourseTemplateSummaryVM {
   reference: string;
   credentialType: ReusableCredentialType;
@@ -354,6 +371,40 @@ export interface CourseTemplateSummaryVM {
   status: 'active' | 'archived';
   createdFromCredentialId: string | null;
   lastSemanticAnalysisId: string | null;
+  approvedSemanticAnalysisId: string | null;
+  approvedSemanticApprovedAt: string | null;
+  approvedSemanticPipelineVersion: string | null;
+  approvedSemanticTaxonomyVersion: string | null;
+  approvedSemanticSourceCredentialId: string | null;
+  approvedSemanticSnapshotSummary: SemanticApprovalSnapshotSummaryVM | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// C4a.2: comandos para revisar y aprobar una interpretacion semantica
+// candidata. Nunca incluyen el snapshot -- solo referencias (id) para que
+// el backend haga el lookup y la validacion de scoping.
+export interface GetTemplateSemanticApprovalCandidateCommand {
+  issuerReference: string;
+  templateReference: string;
+  semanticAnalysisReference: string;
+  signal?: AbortSignal;
+}
+
+export interface ApproveTemplateSemanticAnalysisCommand {
+  issuerReference: string;
+  templateReference: string;
+  semanticAnalysisReference: string;
+}
+
+// C4a.2: resumen seguro de una SemanticAnalysis candidata, ANTES de
+// aprobarla. Nunca expone analysisJson, sourceRefs, evidenceMap,
+// textForEmbedding ni ningun identificador de evidencia/almacenamiento.
+export interface TemplateSemanticApprovalCandidateVM {
+  semanticAnalysisReference: string;
+  status: 'completed' | 'partial';
+  pipelineVersion: string | null;
+  taxonomyVersion: string | null;
+  sourceCredentialReference: string | null;
+  summary: SemanticApprovalSnapshotSummaryVM;
 }

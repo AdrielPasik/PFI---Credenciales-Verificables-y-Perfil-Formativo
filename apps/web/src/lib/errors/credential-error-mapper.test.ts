@@ -205,4 +205,52 @@ describe('mapCredentialError', () => {
       ).code
     ).toBe('forbidden');
   });
+
+  // C4a.2
+  it.each([
+    [400, 'invalid_input', 'Esta interpretación semántica no se puede aprobar para este contenido reutilizable.'],
+    [403, 'forbidden', 'No tenés permisos para revisar o aprobar interpretaciones semánticas en esta institución.'],
+    [404, 'not_found', 'No encontramos la interpretación semántica o el contenido reutilizable solicitados.'],
+    [409, 'conflict', 'El estado de este contenido reutilizable cambió. Actualizá la página e intentá nuevamente.'],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps semantic-approval-candidate HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'semantic-approval-candidate'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it.each([
+    [400, 'invalid_input', 'Esta interpretación semántica no se puede aprobar para este contenido reutilizable.'],
+    [403, 'forbidden', 'No tenés permisos para revisar o aprobar interpretaciones semánticas en esta institución.'],
+    [404, 'not_found', 'No encontramos la interpretación semántica o el contenido reutilizable solicitados.'],
+    [409, 'conflict', 'El estado de este contenido reutilizable cambió. Actualizá la página e intentá nuevamente.'],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps approve-reusable-template-analysis HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'approve-reusable-template-analysis'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it('maps semantic approval network failures without exposing transport detail', () => {
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'semantic-approval-candidate'
+      ).code
+    ).toBe('network');
+    expect(
+      mapCredentialError(
+        new ApiError('private transport detail', 'network'),
+        'approve-reusable-template-analysis'
+      ).code
+    ).toBe('network');
+  });
 });

@@ -196,6 +196,12 @@ function mockCredentialDetailApi({
     if (path.endsWith('/analysis-runs/latest')) {
       return Promise.resolve(latest);
     }
+    // C4a.2: busqueda automatica de un template reutilizable existente.
+    // Por default no hay ninguno -- mismo estado que "no se pudo conocer
+    // el templateId" (solo queda disponible guardar como reutilizable).
+    if (path.includes('/course-templates')) {
+      return Promise.resolve([]);
+    }
     if (path.endsWith('/evidence/documents') && documentUpload !== undefined) {
       return Promise.resolve(documentUpload);
     }
@@ -290,7 +296,11 @@ describe('CredentialDetailController', () => {
     expect(document.body.textContent).not.toMatch(
       /F1c|F1d|contrato de detalle|readiness/i
     );
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica (best-effort)
+    // de un template reutilizable existente para esta credencial.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+    );
   });
 
   it('patches edits through the selected issuer context and accepts the response as truth', async () => {
@@ -315,8 +325,10 @@ describe('CredentialDetailController', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
 
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente, ademas del PATCH del draft.
     await waitFor(() =>
-      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(4)
     );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/draft',
@@ -418,7 +430,11 @@ describe('CredentialDetailController', () => {
 
     expect(await screen.findByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente, ademas del upload de evidencia.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(4)
+    );
     const [path, options] = sessionMocks.requestAuthenticated.mock.calls.find(
       ([pathValue]) => String(pathValue).endsWith('/evidence/documents')
     )!;
@@ -461,7 +477,11 @@ describe('CredentialDetailController', () => {
     expect(await screen.findByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(screen.getByText('Documento PDF')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+    );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
@@ -499,7 +519,11 @@ describe('CredentialDetailController', () => {
       screen.getByLabelText('Contenido de la fuente textual').textContent
     ).toBe(textEvidenceContent);
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente, ademas del submit de evidencia.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(4)
+    );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/texts',
       {
@@ -544,7 +568,11 @@ describe('CredentialDetailController', () => {
     ).toBe(textEvidenceContent);
     expect(screen.getByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+    );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
@@ -671,7 +699,11 @@ describe('CredentialDetailController', () => {
         'La institución registrada en el borrador no coincide con el contexto institucional actual.'
       )
     ).toBeTruthy();
-    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2);
+    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
+    // template reutilizable existente.
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+    );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
     );
@@ -681,6 +713,9 @@ describe('CredentialDetailController', () => {
     sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
       if (path.endsWith('/analysis-runs/latest')) {
         return Promise.reject(new ApiError('private upstream', 'http', 503));
+      }
+      if (path.includes('/course-templates')) {
+        return Promise.resolve([]);
       }
       return Promise.resolve({
         ...draftResponse,
@@ -710,6 +745,9 @@ describe('CredentialDetailController', () => {
       if (path.endsWith('/analysis-runs/latest')) return Promise.resolve(null);
       if (path.endsWith('/analysis-runs/document')) {
         return Promise.reject(new Error('manual trigger must not be called'));
+      }
+      if (path.includes('/course-templates')) {
+        return Promise.resolve([]);
       }
       return Promise.resolve({
         ...draftResponse,
@@ -1312,5 +1350,469 @@ describe('CredentialDetailView reusable template action', () => {
     expect(text).toMatch(/No modifica la credencial original\./);
     expect(text).toMatch(/No crea una nueva credencial\./);
     expect(text).toMatch(/No implica integración oficial con plataformas externas\./);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C4a.2: revision/aprobacion de una interpretacion semantica reutilizable.
+// ---------------------------------------------------------------------------
+
+function reusableTemplateFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    reference: 'template-1',
+    credentialType: 'course',
+    title: 'Curso de Python',
+    description: null,
+    hours: null,
+    modality: null,
+    platformName: null,
+    externalUrl: null,
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
+    competencies: [],
+    learningOutcomes: [],
+    status: 'active',
+    createdFromCredentialId: 'credential-internal-reference',
+    lastSemanticAnalysisId: 'analysis-1',
+    approvedSemanticAnalysisId: null,
+    approvedSemanticApprovedAt: null,
+    approvedSemanticPipelineVersion: null,
+    approvedSemanticTaxonomyVersion: null,
+    approvedSemanticSourceCredentialId: null,
+    approvedSemanticSnapshotSummary: null,
+    createdAt: '2026-08-11T10:00:00.000Z',
+    updatedAt: '2026-08-11T10:00:00.000Z',
+    ...overrides
+  };
+}
+
+function semanticApprovalCandidateFixture(
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    semanticAnalysisReference: 'analysis-1',
+    status: 'completed',
+    pipelineVersion: 'pipeline-v1',
+    taxonomyVersion: 'taxonomy-v1',
+    sourceCredentialReference: 'credential-internal-reference',
+    summary: {
+      schema: 'approved_template_semantic_snapshot_v1',
+      status: 'completed',
+      areaCount: 2,
+      skillCount: 3,
+      conceptCount: 1,
+      hasHoursDistribution: true,
+      warningCount: 0,
+      qualityFlagCount: 1
+    },
+    ...overrides
+  };
+}
+
+describe('CredentialDetailView semantic approval (C4a.2)', () => {
+  it('never shows semantic approval for academic_subject', async () => {
+    const onFindReusableTemplate = vi.fn();
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'academic_subject', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+      />
+    );
+
+    expect(screen.queryByText('Interpretación semántica revisable')).toBeNull();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    ).toBeNull();
+    expect(onFindReusableTemplate).not.toHaveBeenCalled();
+  });
+
+  it('never shows semantic approval for degree', async () => {
+    const onFindReusableTemplate = vi.fn();
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'degree', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+      />
+    );
+
+    expect(screen.queryByText('Interpretación semántica revisable')).toBeNull();
+    expect(onFindReusableTemplate).not.toHaveBeenCalled();
+  });
+
+  it('for a course/certification not yet saved as a template, only shows the save-reusable action', async () => {
+    const onFindReusableTemplate = vi.fn().mockResolvedValue(null);
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+      />
+    );
+
+    expect(
+      await screen.findByRole('button', { name: 'Guardar como curso reutilizable' })
+    ).toBeTruthy();
+    await waitFor(() => expect(onFindReusableTemplate).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText('Interpretación semántica revisable')).toBeNull();
+    expect(
+      screen.queryByText('Contenido reutilizable guardado.')
+    ).toBeNull();
+  });
+
+  it('after saving a template with lastSemanticAnalysisId, loads and shows the candidate summary', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    expect(
+      await screen.findByText('Interpretación semántica revisable')
+    ).toBeTruthy();
+    await waitFor(() =>
+      expect(onLoadSemanticApprovalCandidate).toHaveBeenCalledWith(
+        'template-1',
+        'analysis-1'
+      )
+    );
+    expect(await screen.findByText('Áreas detectadas: 2')).toBeTruthy();
+  });
+
+  it('shows the safe candidate counts: areas, skills, concepts, warnings, quality flags', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(
+        semanticApprovalCandidateFixture({
+          summary: {
+            schema: 'approved_template_semantic_snapshot_v1',
+            status: 'completed',
+            areaCount: 4,
+            skillCount: 5,
+            conceptCount: 6,
+            hasHoursDistribution: false,
+            warningCount: 7,
+            qualityFlagCount: 8
+          }
+        })
+      );
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+      />
+    );
+
+    expect(await screen.findByText('Áreas detectadas: 4')).toBeTruthy();
+    expect(screen.getByText('Habilidades detectadas: 5')).toBeTruthy();
+    expect(screen.getByText('Conceptos detectados: 6')).toBeTruthy();
+    expect(screen.getByText('Distribución horaria: No disponible')).toBeTruthy();
+    expect(screen.getByText('Advertencias: 7')).toBeTruthy();
+    expect(screen.getByText('Quality flags: 8')).toBeTruthy();
+  });
+
+  it('clicking "Aprobar interpretación para reutilización" calls the approve endpoint with the template and analysis references', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+    const onApproveTemplateSemanticAnalysis = vi
+      .fn()
+      .mockResolvedValue(
+        reusableTemplateFixture({ approvedSemanticAnalysisId: 'analysis-1' })
+      );
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+        onApproveTemplateSemanticAnalysis={onApproveTemplateSemanticAnalysis}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    );
+
+    await waitFor(() =>
+      expect(onApproveTemplateSemanticAnalysis).toHaveBeenCalledWith(
+        'template-1',
+        'analysis-1'
+      )
+    );
+  });
+
+  it('shows a success message after approving', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+    const onApproveTemplateSemanticAnalysis = vi
+      .fn()
+      .mockResolvedValue(
+        reusableTemplateFixture({ approvedSemanticAnalysisId: 'analysis-1' })
+      );
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+        onApproveTemplateSemanticAnalysis={onApproveTemplateSemanticAnalysis}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    );
+
+    expect(
+      await screen.findByText('Interpretación aprobada para reutilización.')
+    ).toBeTruthy();
+  });
+
+  it('shows "already approved" when the template arrives already approved (page reload)', async () => {
+    const onFindReusableTemplate = vi.fn().mockResolvedValue(
+      reusableTemplateFixture({
+        approvedSemanticAnalysisId: 'analysis-1',
+        approvedSemanticApprovedAt: '2026-08-12T09:00:00.000Z',
+        approvedSemanticPipelineVersion: 'pipeline-v1',
+        approvedSemanticTaxonomyVersion: 'taxonomy-v1',
+        approvedSemanticSourceCredentialId: 'credential-internal-reference',
+        approvedSemanticSnapshotSummary: {
+          schema: 'approved_template_semantic_snapshot_v1',
+          status: 'completed',
+          areaCount: 2,
+          skillCount: 3,
+          conceptCount: 1,
+          hasHoursDistribution: true,
+          warningCount: 0,
+          qualityFlagCount: 1
+        }
+      })
+    );
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+      />
+    );
+
+    expect(
+      await screen.findByText('Interpretación ya aprobada para reutilización.')
+    ).toBeTruthy();
+    expect(
+      screen.queryByText('Interpretación aprobada para reutilización.')
+    ).toBeNull();
+    expect(
+      (screen.getByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      }) as HTMLButtonElement).disabled
+    ).toBe(true);
+  });
+
+  it('shows a soft notice and no approval button when there is no lastSemanticAnalysisId', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(
+        reusableTemplateFixture({ lastSemanticAnalysisId: null })
+      );
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+      />
+    );
+
+    expect(await screen.findByText('Contenido reutilizable guardado.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Este contenido reutilizable todavía no tiene una interpretación semántica asociada para aprobar.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    ).toBeNull();
+  });
+
+  it('shows safe feedback without breaking the screen when the candidate summary fails to load', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockRejectedValue(new ApiError('private upstream detail', 'http', 400));
+    const detail = detailFixture({ type: 'course', status: 'issued' });
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detail}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+      />
+    );
+
+    expect(
+      await screen.findByText(
+        'Esta interpretación semántica no se puede aprobar para este contenido reutilizable.'
+      )
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain('private upstream detail');
+    expect(
+      screen.queryByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    ).toBeNull();
+    expect(screen.getByText(detail.title)).toBeTruthy();
+  });
+
+  it('shows safe feedback without breaking the screen when approving fails', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+    const onApproveTemplateSemanticAnalysis = vi
+      .fn()
+      .mockRejectedValue(new ApiError('private upstream detail', 'http', 409));
+    const detail = detailFixture({ type: 'course', status: 'issued' });
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detail}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+        onApproveTemplateSemanticAnalysis={onApproveTemplateSemanticAnalysis}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        'El estado de este contenido reutilizable cambió. Actualizá la página e intentá nuevamente.'
+      )
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toContain('private upstream detail');
+    expect(screen.getByText(detail.title)).toBeTruthy();
+  });
+
+  it('never modifies the visible credential title when approving', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+    const onApproveTemplateSemanticAnalysis = vi
+      .fn()
+      .mockResolvedValue(
+        reusableTemplateFixture({ approvedSemanticAnalysisId: 'analysis-1' })
+      );
+    const detail = detailFixture({ type: 'course', status: 'issued' });
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detail}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+        onApproveTemplateSemanticAnalysis={onApproveTemplateSemanticAnalysis}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Aprobar interpretación para reutilización'
+      })
+    );
+
+    await screen.findByText('Interpretación aprobada para reutilización.');
+    expect(screen.getByText(detail.title)).toBeTruthy();
+  });
+
+  it('never renders forbidden copy near semantic approval', async () => {
+    const onFindReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    const onLoadSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onFindReusableTemplate={onFindReusableTemplate}
+        onLoadSemanticApprovalCandidate={onLoadSemanticApprovalCandidate}
+      />
+    );
+
+    await screen.findByText(
+      'Revisá este resumen antes de aprobarlo para reutilización.'
+    );
+    const section = screen.getByTestId('semantic-approval-section');
+    const text = section.textContent ?? '';
+    expect(text).not.toMatch(/IA certificó/i);
+    expect(text).not.toMatch(/blockchain valida/i);
+    expect(text).not.toMatch(/verificado por|udemy|coursera|aws/i);
+    expect(text).not.toMatch(/aprobación automática/i);
+    expect(text).not.toMatch(/certificación de competencias por IA/i);
+    expect(text).toMatch(/No modifica la credencial original\./);
+    expect(text).toMatch(/No crea una nueva credencial\./);
+    expect(text).toMatch(/No implica que la IA certifique el contenido\./);
   });
 });
