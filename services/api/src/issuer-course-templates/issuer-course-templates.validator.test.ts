@@ -61,7 +61,6 @@ test('create accepts a full course payload with hours as a JSON number', () => {
     description: 'Introduccion a Python',
     hours: 22,
     modality: 'Online',
-    platformName: 'Plataforma de Cursos Demo',
     externalUrl: 'https://plataforma-demo.example.com/curso/python',
     competencies: ['Programacion', 'Programacion', '  '],
     learningOutcomes: ['Escribir scripts basicos']
@@ -71,10 +70,29 @@ test('create accepts a full course payload with hours as a JSON number', () => {
   assert.equal(result.description, 'Introduccion a Python');
   assert.equal(result.hours?.toFixed(2), '22.00');
   assert.equal(result.modality, 'Online');
-  assert.equal(result.platformName, 'Plataforma de Cursos Demo');
+  assert.equal(result.platformName, null);
   assert.equal(result.externalUrl, 'https://plataforma-demo.example.com/curso/python');
   assert.deepEqual(result.competencies, ['Programacion']);
   assert.deepEqual(result.learningOutcomes, ['Escribir scripts basicos']);
+});
+
+// C4x fix: platformName ya no es un campo de entrada para ningun tipo --
+// se rechaza con el mismo mecanismo que un campo desconocido cualquiera,
+// no con "no aplica a este tipo" (a diferencia de modality/learningOutcomes,
+// que siguen siendo exclusivos de course).
+test('create rejects platformName for both course and certification templates', () => {
+  for (const credentialType of [CredentialType.course, CredentialType.certification]) {
+    assert.throws(
+      () =>
+        validateCreateCourseTemplatePayload({
+          credentialType,
+          title: 'x',
+          platformName: 'Plataforma enviada por el cliente'
+        }),
+      BadRequestException,
+      `expected rejection for ${credentialType} + platformName`
+    );
+  }
 });
 
 test('create accepts a full certification payload', () => {
@@ -130,7 +148,7 @@ test('create rejects certification-only fields for a course template', () => {
 });
 
 test('create rejects course-only fields for a certification template', () => {
-  for (const field of ['modality', 'platformName', 'learningOutcomes']) {
+  for (const field of ['modality', 'learningOutcomes']) {
     assert.throws(
       () =>
         validateCreateCourseTemplatePayload({
@@ -332,7 +350,6 @@ test('patch allows clearing nullable fields with null', () => {
       description: null,
       hours: null,
       modality: null,
-      platformName: null,
       externalUrl: null
     },
     CredentialType.course
@@ -341,6 +358,38 @@ test('patch allows clearing nullable fields with null', () => {
   assert.deepEqual(result.description, { provided: true, value: null });
   assert.deepEqual(result.hours, { provided: true, value: null });
   assert.deepEqual(result.modality, { provided: true, value: null });
-  assert.deepEqual(result.platformName, { provided: true, value: null });
   assert.deepEqual(result.externalUrl, { provided: true, value: null });
+});
+
+// C4x fix: platformName ya no es un campo de entrada en PATCH -- se
+// rechaza si el cliente lo envia (con o sin valor null) y el resultado
+// normalizado siempre lo marca como no provisto, para que
+// patchTemplateForIssuer nunca lo escriba y un platformName legacy
+// persistido sobreviva sin cambios.
+test('patch rejects platformName for course templates, even with a null value', () => {
+  assert.throws(
+    () =>
+      validatePatchCourseTemplatePayload(
+        { platformName: 'Campus nuevo' },
+        CredentialType.course
+      ),
+    BadRequestException
+  );
+  assert.throws(
+    () =>
+      validatePatchCourseTemplatePayload(
+        { platformName: null },
+        CredentialType.course
+      ),
+    BadRequestException
+  );
+});
+
+test('patch always marks platformName as not provided when a payload omits it', () => {
+  const result = validatePatchCourseTemplatePayload(
+    { modality: null },
+    CredentialType.course
+  );
+
+  assert.deepEqual(result.platformName, { provided: false });
 });

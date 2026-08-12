@@ -603,7 +603,6 @@ describe('NewCredentialController reusable templates', () => {
       externalUrl: 'https://plataforma-demo.example.com/curso/python',
       competencies: ['Programación'],
       modality: 'Online',
-      platformName: 'Plataforma de Cursos Demo',
       learningOutcomes: ['Escribir scripts básicos']
     });
     // Nunca envia templateId -- el backend no tiene ese campo.
@@ -612,6 +611,9 @@ describe('NewCredentialController reusable templates', () => {
     expect(patchCall?.[1].body).not.toHaveProperty('skills');
     expect(patchCall?.[1].body).not.toHaveProperty('providerName');
     expect(patchCall?.[1].body).not.toHaveProperty('level');
+    // C4x fix: platformName ya no es un dato editable via PATCH para
+    // ningun tipo -- enviarlo tumbaria todo el PATCH best-effort.
+    expect(patchCall?.[1].body).not.toHaveProperty('platformName');
   });
 
   it('C3c fix: if the draft is created but the template PATCH fails, still redirects to the detail with ?templateApply=failed', async () => {
@@ -716,7 +718,11 @@ describe('NewCredentialController reusable templates', () => {
     expect(patchCall?.[1].body).not.toHaveProperty('learningOutcomes');
   });
 
-  it('changing the credential type clears the applied template selection', async () => {
+  // C4x: reutilizacion atomica -- mientras haya un template aplicado, el
+  // tipo queda bloqueado (antes se permitia cambiarlo, lo que invalidaba
+  // el template en silencio). Ahora el intento de cambio se ignora por
+  // completo: ni el tipo cambia ni el template se pierde.
+  it('does not allow changing the credential type while a template is applied', async () => {
     mockNewCredentialApi({ templates: [courseTemplateFixture()] });
     render(<NewCredentialController membership={membership} />);
     await resolveHolderAndPickType('course');
@@ -730,16 +736,47 @@ describe('NewCredentialController reusable templates', () => {
       screen.getByText('Datos precargados desde contenido reutilizable')
     ).toBeTruthy();
 
-    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
-      target: { value: 'certification' }
-    });
+    const typeSelect = screen.getByLabelText(
+      'Tipo de credencial'
+    ) as HTMLSelectElement;
+    expect(typeSelect.disabled).toBe(true);
 
+    fireEvent.change(typeSelect, { target: { value: 'certification' } });
+
+    expect(typeSelect.value).toBe('course');
     expect(
-      screen.queryByText('Datos precargados desde contenido reutilizable')
-    ).toBeNull();
+      screen.getByText('Datos precargados desde contenido reutilizable')
+    ).toBeTruthy();
   });
 
-  it('allows manual editing of the achievementName after applying a template', async () => {
+  it('unlocks the credential type after removing the applied template', async () => {
+    mockNewCredentialApi({ templates: [courseTemplateFixture()] });
+    render(<NewCredentialController membership={membership} />);
+    await resolveHolderAndPickType('course');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+    fireEvent.click(await screen.findByText('Curso de Python'));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Usar este contenido' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+    );
+
+    const typeSelect = screen.getByLabelText(
+      'Tipo de credencial'
+    ) as HTMLSelectElement;
+    expect(typeSelect.disabled).toBe(false);
+
+    fireEvent.change(typeSelect, { target: { value: 'certification' } });
+    expect(typeSelect.value).toBe('certification');
+  });
+
+  // C4x: el nombre precargado desde un template reutilizable queda
+  // bloqueado mientras el template siga aplicado -- evita que el usuario
+  // aplique un template y despues escriba un nombre distinto (seleccion
+  // no atomica).
+  it('does not allow editing the achievementName while a template is applied', async () => {
     mockNewCredentialApi({ templates: [courseTemplateFixture()] });
     render(<NewCredentialController membership={membership} />);
     await resolveHolderAndPickType('course');
@@ -750,9 +787,15 @@ describe('NewCredentialController reusable templates', () => {
       await screen.findByRole('button', { name: 'Usar este contenido' })
     );
 
-    fireEvent.change(screen.getByLabelText('Nombre del logro'), {
+    const name = screen.getByLabelText(
+      'Nombre del logro'
+    ) as HTMLInputElement;
+    expect(name.disabled).toBe(true);
+
+    fireEvent.change(name, {
       target: { value: 'Curso de Python (editado)' }
     });
+    expect(name.value).toBe('Curso de Python');
 
     fireEvent.click(screen.getByRole('button', { name: 'Crear borrador' }));
 
@@ -762,8 +805,33 @@ describe('NewCredentialController reusable templates', () => {
       );
       expect(
         (createCall?.[1] as { body: { title: string } }).body.title
-      ).toBe('Curso de Python (editado)');
+      ).toBe('Curso de Python');
     });
+  });
+
+  it('unlocks the achievementName after removing the applied template', async () => {
+    mockNewCredentialApi({ templates: [courseTemplateFixture()] });
+    render(<NewCredentialController membership={membership} />);
+    await resolveHolderAndPickType('course');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+    fireEvent.click(await screen.findByText('Curso de Python'));
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Usar este contenido' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+    );
+
+    const name = screen.getByLabelText(
+      'Nombre del logro'
+    ) as HTMLInputElement;
+    expect(name.disabled).toBe(false);
+
+    fireEvent.change(name, {
+      target: { value: 'Curso de Python (editado)' }
+    });
+    expect(name.value).toBe('Curso de Python (editado)');
   });
 
   it('creating a course draft without selecting any template still uses the existing draft endpoint and sends no PATCH', async () => {

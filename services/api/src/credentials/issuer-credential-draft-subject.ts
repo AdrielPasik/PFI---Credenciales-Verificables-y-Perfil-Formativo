@@ -42,6 +42,13 @@ const APPLICABLE_FIELDS_BY_TYPE: Record<
   ]),
   [CredentialType.course]: new Set([
     'completionDate',
+    // C4x fix: `platformName` se mantiene en el set "aplicable" solo para
+    // que el loop de abajo NO borre un `platform_name` legacy ya persistido
+    // cuando el PATCH toca otro campo distinto (se preserva de solo
+    // lectura). Nunca se acepta como dato nuevo: assertPlatformNameIsNotEditable
+    // rechaza con 400 cualquier intento de enviarlo, para cualquier tipo,
+    // antes de llegar a este set. El emisor activo es la fuente
+    // institucional de la plataforma, no un dato libre del operador.
     'platformName',
     'modality',
     'externalUrl',
@@ -75,6 +82,7 @@ export function buildUpdatedCredentialSubject(input: {
   issuerName: string;
   update: NormalizedIssuerCredentialDraftUpdate;
 }): Prisma.InputJsonObject {
+  assertPlatformNameIsNotEditable(input.update);
   assertRequestedFieldsApplyToType(input.update, input.finalType);
 
   if (
@@ -125,6 +133,23 @@ export function buildUpdatedCredentialSubject(input: {
 }
 
 const COURSE_MODALITIES = new Set(['Presencial', 'Online', 'Asincrónica']);
+
+// C4x fix: `platformName` deja de ser un dato editable via PATCH, para
+// cualquier tipo (solo `course` lo aceptaba antes). El curso pertenece al
+// emisor activo y la entidad emisora es la fuente institucional -- no un
+// texto libre que el operador pueda escribir o reenviar. Se rechaza con
+// 400 explicito en cuanto se envia, sin importar si el tipo final es
+// course u otro. Un `platform_name` legacy ya persistido sigue
+// preservandose de solo lectura (ver APPLICABLE_FIELDS_BY_TYPE.course).
+function assertPlatformNameIsNotEditable(
+  update: NormalizedIssuerCredentialDraftUpdate
+) {
+  if (update.platformName.provided) {
+    throw new BadRequestException(
+      'platformName no es un dato editable. La entidad emisora es la fuente institucional de la plataforma.'
+    );
+  }
+}
 
 function assertRequestedFieldsApplyToType(
   update: NormalizedIssuerCredentialDraftUpdate,

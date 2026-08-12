@@ -92,7 +92,7 @@ function createService(options?: {
       }
     } as never,
     {
-      async analyzeIssuedCourseIfEligible(...args: unknown[]) {
+      async analyzeIssuedCredentialIfEligible(...args: unknown[]) {
         order.push('automatic_course_text_analysis');
         automaticCourseTextAnalysisCalls.push(args);
         if (options?.automaticCourseTextAnalysisError) {

@@ -438,6 +438,13 @@
   `learningOutcomes`. Cualquier otra clave produce `400`; siguen prohibidos
   `issuerId`, `subjectUserId`, `status`, `sourceType`, `credentialSubject`,
   nombres snake_case directos, hashes, metadata, datos blockchain y secretos.
+- **C4x fix:** `platformName` sigue siendo una clave reconocida por el
+  validador (para poder dar un mensaje especifico), pero deja de ser un
+  dato editable para cualquier tipo final -- se rechaza con `400`
+  explicito ("platformName no es un dato editable...") en cuanto se
+  envia, con o sin valor `null`, antes de evaluar aplicabilidad por tipo.
+  Un `platform_name` legacy ya persistido en un `course` sobrevive sin
+  cambios a un `PATCH` que edita otro campo distinto.
 - Semantica: `expectedUpdatedAt` es obligatorio y debe coincidir exactamente
   con la version leida. Debe enviarse al menos un campo editable.
   `achievementName` es opcional pero no admite `null`; `description` y
@@ -491,7 +498,7 @@
 | Tipo final | Campos especificos permitidos |
 | --- | --- |
 | `academic_subject` | `completionDate`, `academicPeriod`, `programName`, `grade`, `skills`, `competencies` |
-| `course` | `completionDate`, `platformName`, `modality`, `externalUrl`, `competencies`, `learningOutcomes` |
+| `course` | `completionDate`, `modality`, `externalUrl`, `competencies`, `learningOutcomes` (`platformName` figura en el set interno solo para preservar un valor legacy ya persistido -- **nunca aceptado como dato nuevo**, ver nota C4x fix arriba) |
 | `certification` | `completionDate`, `certificationCode`, `expirationDate`, `externalUrl`, `providerName`, `level`, `skills`, `competencies` |
 | `degree` | `completionDate`, `programName`, `level`, `grade`, `competencies`, `learningOutcomes` |
 
@@ -532,7 +539,7 @@
 | `competencies` | Si | Si | Si |
 | `programName` / `program_name` | Si | Si | No |
 | `providerName` / `provider_name` | Si | Si | No |
-| `platformName` / `platform_name` | Si | Si | No |
+| `platformName` / `platform_name` | Solo legacy (nunca como dato nuevo desde C4x fix) | Si | No |
 | `modality` | Si | Si | No |
 | `level` | Si | Si | No |
 | `certificationCode` / `certification_code` | Si | Si | No |
@@ -633,6 +640,13 @@ ni afirma que un draft este listo para emitir.
 - Errores esperados: `400`, `401`, `403`, `404`.
 - Limites: no calcula readiness, no emite, no crea evidencia blockchain y no
   ejecuta PDF ni IA.
+- **C4x fix:** el camino manual (`credentialSubject` como JSON de entrada,
+  sin allowlist por campo -- a diferencia del `PATCH` de borrador) ignora
+  (descarta) una clave `platform_name` si llega en el payload para
+  `type=course`, en vez de rechazar toda la creacion. Es una asimetria
+  intencional respecto al `PATCH` (que rechaza con `400` explicito):
+  rechazar la creacion completa por esta unica clave, en un camino que no
+  valida ningun otro campo del subject, seria desproporcionado.
 - Estado: implementado para creacion manual y curricular.
 
 ### `POST /credentials/:id/issue`
@@ -1120,15 +1134,20 @@ que usa decimal string para `hours`), `externalUrl` (HTTP/HTTPS) y
 `competencies` (comunes a ambos tipos, arrays de string normalizados y
 dedupeados case-insensitive). Segun `credentialType`:
 - `course`: acepta ademas `modality`
-  (`Presencial`/`Online`/`Asincrónica`), `platformName` y
-  `learningOutcomes`; rechaza `certificationCode`/`expirationDate`/
-  `providerName`/`level`/`skills`.
+  (`Presencial`/`Online`/`Asincrónica`) y `learningOutcomes`; rechaza
+  `certificationCode`/`expirationDate`/`providerName`/`level`/`skills`.
 - `certification`: acepta ademas `certificationCode`, `expirationDate`
   (`YYYY-MM-DD`), `providerName` y `skills` (array de string); rechaza
-  `modality`/`platformName`/`learningOutcomes`.
+  `modality`/`learningOutcomes`.
 
 Rechaza `issuerId`, `createdByUserId` y `status` en el body en ambos casos
 -- el template siempre se crea `active`.
+- **C4x fix**: `platformName` deja de aceptarse como dato de entrada en
+  `POST`/`PATCH`, para cualquier `credentialType` (antes solo era
+  exclusivo de `course`) -- se rechaza con el mismo mecanismo de "campo no
+  permitido" que ya rechaza `issuerId`/`createdByUserId` (`400`
+  explicito). Un `platformName` legacy ya persistido en un template
+  creado antes de este fix sigue devolviendose sin cambios en `GET`.
 
 `POST .../from-credential/:credentialId` crea un template a partir de una
 credencial `course` **o** `certification` del mismo issuer (`draft` o
@@ -1138,11 +1157,14 @@ prioridad `credentialSubject.achievement_name` sobre `Credential.title`; si
 ninguno alcanza, responde `400`. Copia `description`, `hours` y
 `externalUrl` (comunes), mas los campos exclusivos del tipo detectado
 automaticamente desde `credential.type` (el cliente no lo elige): `course`
-copia `platformName`/`modality`/`competencies`/`learningOutcomes`;
+copia `modality`/`competencies`/`learningOutcomes`;
 `certification` copia `certificationCode`/`expirationDate`/`providerName`/
 `level`/`skills`/`competencies`. Nunca cruza campos entre tipos, y nunca
 copia `rawData`, `metadata`, datos de blockchain/holder ni referencias
-academicas. Si ya existe un template `active` del mismo issuer con el mismo
+academicas. **C4x fix**: tampoco copia `platform_name` hacia el template
+nuevo de `course`, aunque exista como dato legacy en la credencial de
+origen -- el emisor activo es la fuente institucional, no un texto libre
+heredado. Si ya existe un template `active` del mismo issuer con el mismo
 `createdFromCredentialId` y un titulo igual tras normalizar, responde
 `409 Conflict` con *"Este curso ya fue guardado como reutilizable."*
 (`course`) o *"Esta certificacion ya fue guardada como reutilizable."*
@@ -1245,7 +1267,11 @@ Consumo frontend nuevo, en `/issuer/credentials/new`:
   endpoint que ya usa el editor de borrador de C2/C3b) con los campos
   aplicables al tipo:
   - `course`: `description`, `hours`, `externalUrl`, `competencies`,
-    `modality`, `platformName`, `learningOutcomes`.
+    `modality`, `learningOutcomes`. **C4x fix**: `platformName` deja de
+    enviarse -- el backend lo rechaza con `400` para cualquier tipo, y al
+    ser un unico body ese `400` tumbaria tambien el resto de estos campos
+    (`modality`/`externalUrl`/`competencies`/`learningOutcomes`), no solo
+    `platformName`.
   - `certification`: `description`, `hours`, `externalUrl`,
     `competencies`, `certificationCode`, `expirationDate`,
     `providerName`, `level`, `skills`. **`learningOutcomes` nunca se

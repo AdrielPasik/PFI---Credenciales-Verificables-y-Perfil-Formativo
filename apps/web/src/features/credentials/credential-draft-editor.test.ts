@@ -81,7 +81,6 @@ describe('credential draft editor helpers', () => {
       ],
       course: [
         'completionDate',
-        'platformName',
         'modality',
         'externalUrl',
         'competencies',
@@ -266,7 +265,7 @@ describe('credential draft editor helpers', () => {
     const detail = detailFixture();
     const state = {
       ...detailToDraftEditorState(detail),
-      platformName: '   ',
+      modality: '   ',
       competencies: ''
     };
 
@@ -278,9 +277,30 @@ describe('credential draft editor helpers', () => {
         credentialReference: 'credential-reference'
       })
     ).toMatchObject({
-      platformName: null,
+      modality: null,
       competencies: []
     });
+  });
+
+  // C4x: platformName ya no es un campo editable de course (ver
+  // "Entidad emisora" en credential-draft-editor-form.tsx) -- nunca debe
+  // incluirse en el PATCH del editor, ni aunque el estado local lo
+  // conserve como dato legacy sin cambios.
+  it('never sends platformName from the editor for course, even if present as legacy state', () => {
+    const detail = detailFixture();
+    const state = {
+      ...detailToDraftEditorState(detail),
+      platformName: 'Otra plataforma distinta'
+    };
+
+    expect(
+      buildDraftUpdateCommand({
+        detail,
+        state,
+        issuerReference: 'issuer-reference',
+        credentialReference: 'credential-reference'
+      })
+    ).toBeNull();
   });
 
   it('sends null when an optional academic grade is cleared', () => {
@@ -361,7 +381,7 @@ describe('credential draft editor helpers', () => {
 
     expect(
       getIncompatiblePopulatedFields(state, 'certification')
-    ).toEqual(['platformName', 'modality', 'learningOutcomes']);
+    ).toEqual(['modality', 'learningOutcomes']);
   });
 
   it('clears only incompatible local fields and preserves compatible values', () => {
@@ -377,10 +397,13 @@ describe('credential draft editor helpers', () => {
       level: 'Intermedio',
       skills: 'Arquitectura\nTesting',
       competencies: 'Diseño',
-      platformName: '',
       modality: '',
       learningOutcomes: ''
     });
+    // platformName ya no forma parte de credentialDraftFieldsByType.course,
+    // asi que applyCredentialTypeChange no lo toca -- queda como dato
+    // legacy sin efecto (nunca se renderiza ni se envia para ningun tipo).
+    expect(changed.platformName).toBe('Campus Virtual');
   });
 
   it('sends the new type without hidden incompatible fields', () => {

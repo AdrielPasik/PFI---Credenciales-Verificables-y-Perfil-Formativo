@@ -347,8 +347,15 @@ export function CredentialDraftEditorForm({
                   value={state.description}
                   disabled={saving}
                   className="sm:col-span-2"
+                  description={descriptionFieldDescription(state.type)}
                   onChange={(value) => updateField('description', value)}
                 />
+                {state.type === 'course' ? (
+                  <IssuingEntityField
+                    issuerDisplayName={detail.issuer.displayName}
+                    legacyPlatformName={state.platformName}
+                  />
+                ) : null}
                 <TextField
                   ref={hoursRef}
                   id="credential-hours"
@@ -777,6 +784,14 @@ function fieldLabel(
     return 'Competencias formativas (opcional)';
   }
 
+  // C4x: "Resultados de aprendizaje" suena academico y no comunica que
+  // el campo alimenta la interpretacion asistida -- para course se
+  // renombra en la UI (el backend sigue usando learningOutcomes/
+  // learning_outcomes sin cambios).
+  if (field === 'learningOutcomes' && type === 'course') {
+    return 'Contenido e información adicional';
+  }
+
   return credentialDraftFieldLabels[field];
 }
 
@@ -792,7 +807,68 @@ function arrayFieldDescription(
     return 'Una entrada por línea. Ejemplos: diseñar soluciones, resolver problemas, comunicar decisiones.';
   }
 
+  // C4x: para course/certification, aclarar que estos campos alimentan la
+  // interpretacion asistida como respaldo textual institucional -- ver
+  // hasInstitutionalTextualBacking e institutional-textual-backing.ts.
+  if (type === 'course' && field === 'learningOutcomes') {
+    return 'Agregá contenidos, temario, herramientas, conocimientos abordados u otra información relevante del curso. Una entrada por línea.';
+  }
+
+  if (type === 'course' && field === 'competencies') {
+    return 'Una entrada por línea. Estas competencias alimentan la interpretación asistida del curso.';
+  }
+
+  if (type === 'certification' && (field === 'competencies' || field === 'skills')) {
+    return 'Una entrada por línea. Esta información alimenta la interpretación asistida de la certificación.';
+  }
+
   return 'Una entrada por línea.';
+}
+
+function descriptionFieldDescription(type: CredentialType) {
+  if (type === 'course') {
+    return 'La descripción alimenta la interpretación asistida del curso, junto con las competencias y el contenido adicional.';
+  }
+
+  if (type === 'certification') {
+    return 'La descripción alimenta la interpretación asistida de la certificación, junto con las competencias y habilidades.';
+  }
+
+  return undefined;
+}
+
+// C4x: reemplaza el input libre de "Plataforma" para course -- la entidad
+// emisora se deriva del issuer activo (nunca texto libre del usuario), asi
+// que nunca puede contradecir al emisor real (ej. "Plataforma de Cursos
+// Demo" emitiendo un curso marcado como "Udemy"). Si existiera un valor
+// legacy de platformName (dato historico, nunca editable desde aca), se
+// muestra aparte, solo de lectura.
+function IssuingEntityField({
+  issuerDisplayName,
+  legacyPlatformName
+}: {
+  issuerDisplayName: string;
+  legacyPlatformName: string;
+}) {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor="credential-issuing-entity">Entidad emisora</Label>
+      <p
+        id="credential-issuing-entity"
+        className="min-h-11 w-full rounded-control border border-border-default bg-surface-muted px-3 py-2 text-base text-text-strong sm:text-sm"
+      >
+        {issuerDisplayName}
+      </p>
+      <p className="text-sm leading-5 text-text-muted">
+        El curso será emitido por la institución activa.
+      </p>
+      {legacyPlatformName ? (
+        <p className="text-sm leading-5 text-text-muted">
+          Plataforma declarada (dato legacy, solo lectura): {legacyPlatformName}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function AcademicPeriodField({

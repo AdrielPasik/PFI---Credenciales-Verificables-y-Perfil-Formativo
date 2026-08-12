@@ -12,8 +12,15 @@ import {
   TextEvidenceStatus
 } from '@prisma/client';
 
-import { buildCourseTextAnalysisContent } from '../credentials/course-text-analysis-content';
-import { TextEvidenceService } from '../text-evidence/text-evidence.service';
+import {
+  buildCertificationTextAnalysisContent,
+  buildCourseTextAnalysisContent
+} from '../credentials/course-text-analysis-content';
+import {
+  SYSTEM_GENERATED_CERTIFICATION_TEXT_EVIDENCE_LABEL,
+  SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL,
+  TextEvidenceService
+} from '../text-evidence/text-evidence.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
 import { AnalysisRunService } from './analysis-run.service';
@@ -44,10 +51,15 @@ type EligibleCredential = {
 };
 
 /**
- * C2b.3: analogo a AutomaticDocumentAnalysisService, pero para `course`
- * sin PDF vigente. Reusa TextEvidenceService/AnalysisRunService/
- * AnalysisRunExecutionService ya existentes -- no crea AnalysisRun ni
- * AnalysisRunSource a mano.
+ * C2b.3 / C4x fix: analogo a AutomaticDocumentAnalysisService, pero para
+ * `course`/`certification` sin PDF vigente. El nombre de la clase quedo
+ * de C2b.3 (cuando solo cubria course) -- se documenta aca explicitamente
+ * que desde C4x fix cubre ambos tipos, para evitar un rename de archivo/
+ * modulo/DI token que no aporta valor funcional (ver
+ * analysis-run.module.ts, text-evidence.module.ts,
+ * issuer-credential-issue.service.ts). Reusa TextEvidenceService/
+ * AnalysisRunService/AnalysisRunExecutionService ya existentes -- no crea
+ * AnalysisRun ni AnalysisRunSource a mano.
  *
  * Nunca lanza: cualquier error (incluida la ejecucion IA) se atrapa y se
  * loguea de forma segura, para que el caller (IssuerCredentialIssueService)
@@ -65,7 +77,7 @@ export class AutomaticCourseTextAnalysisService {
     private readonly profileRebuildService: AutomaticProfileRebuildService
   ) {}
 
-  async analyzeIssuedCourseIfEligible(
+  async analyzeIssuedCredentialIfEligible(
     credentialId: string,
     submittedByUserId: string
   ): Promise<void> {
@@ -73,7 +85,12 @@ export class AutomaticCourseTextAnalysisService {
       const credential = await this.readEligibleCredential(credentialId);
       if (!credential) return;
       if (credential.status !== CredentialStatus.issued) return;
-      if (credential.type !== CredentialType.course) return;
+      if (
+        credential.type !== CredentialType.course &&
+        credential.type !== CredentialType.certification
+      ) {
+        return;
+      }
       if (this.hasCurrentPdf(credential.documentEvidences)) return;
 
       const textEvidenceId = await this.resolveTextEvidenceId(
@@ -152,8 +169,9 @@ export class AutomaticCourseTextAnalysisService {
    * Prioridad de fuentes textuales: si ya existe una TextEvidence
    * `current` (manual o de una ejecucion anterior), se usa tal cual --
    * nunca se genera ni se reemplaza. Solo si no existe ninguna se
-   * construye el texto declarado del curso y se genera una nueva.
-   * Devuelve null si no hay fuente utilizable (ni existente ni generable).
+   * construye el texto declarado (del curso o de la certificacion, segun
+   * `credential.type`) y se genera una nueva. Devuelve null si no hay
+   * fuente utilizable (ni existente ni generable).
    */
   private async resolveTextEvidenceId(
     credential: EligibleCredential,
@@ -168,19 +186,41 @@ export class AutomaticCourseTextAnalysisService {
     }
 
     const subject = this.asPlainRecord(credential.credentialSubject);
-    const content = buildCourseTextAnalysisContent({
-      achievementName: credential.title,
-      description: credential.description,
-      competencies: subject.competencies,
-      learningOutcomes: subject.learning_outcomes
-    });
+    const isCertification = credential.type === CredentialType.certification;
+    // C4x fix: certificationCode/expirationDate/providerName/level nunca
+    // se leen para course; competencies/learningOutcomes nunca se leen
+    // como skills/certificationCode para certification -- cada rama solo
+    // usa las claves declaradas validas para su propio tipo (ver
+    // course-text-analysis-content.ts).
+    const content = isCertification
+      ? buildCertificationTextAnalysisContent({
+          achievementName: credential.title,
+          description: credential.description,
+          certificationCode: this.readOptionalString(subject.certification_code),
+          expirationDate: this.readOptionalString(subject.expiration_date),
+          providerName: this.readOptionalString(subject.provider_name),
+          level: this.readOptionalString(subject.level),
+          skills: subject.skills,
+          competencies: subject.competencies
+        })
+      : buildCourseTextAnalysisContent({
+          achievementName: credential.title,
+          description: credential.description,
+          competencies: subject.competencies,
+          learningOutcomes: subject.learning_outcomes
+        });
     if (!content) return null;
+
+    const label = isCertification
+      ? SYSTEM_GENERATED_CERTIFICATION_TEXT_EVIDENCE_LABEL
+      : SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL;
 
     const ensured =
       await this.textEvidenceService.ensureSystemGeneratedCurrentTextEvidenceForCredential(
         credential.id,
         content,
-        submittedByUserId
+        submittedByUserId,
+        label
       );
     return ensured.id;
   }
@@ -206,6 +246,10 @@ export class AutomaticCourseTextAnalysisService {
     return existingRun !== null;
   }
 
+  private readOptionalString(value: unknown): string | null | undefined {
+    return typeof value === 'string' ? value : undefined;
+  }
+
   private asPlainRecord(value: Prisma.JsonValue): Record<string, unknown> {
     return value && typeof value === 'object' && !Array.isArray(value)
       ? (value as Record<string, unknown>)
@@ -217,7 +261,7 @@ export class AutomaticCourseTextAnalysisService {
       error instanceof HttpException ? error.message : 'unexpected_error';
     this.logger.error(
       JSON.stringify({
-        event: 'automatic_course_text_analysis_failed',
+        event: 'automatic_reusable_credential_text_analysis_failed',
         credentialId,
         reason
       })

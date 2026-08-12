@@ -195,12 +195,18 @@ describe('CredentialDraftEditorForm', () => {
     expect(screen.getByLabelText('Horas')).toBeTruthy();
     expect(screen.getByLabelText('Fecha de finalización')).toBeTruthy();
     expect(screen.queryByLabelText('Proveedor')).toBeNull();
-    expect(screen.getByLabelText('Plataforma')).toBeTruthy();
+    // C4x: platformName ya no es un input libre para course -- se muestra
+    // "Entidad emisora" (read-only, derivada del issuer) en su lugar.
+    expect(screen.queryByLabelText('Plataforma')).toBeNull();
+    expect(screen.getByText('Entidad emisora')).toBeTruthy();
+    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
     expect(screen.getByLabelText('Modalidad')).toBeTruthy();
     expect(screen.queryByLabelText('Nivel')).toBeNull();
     expect(screen.queryByLabelText('Skills')).toBeNull();
     expect(screen.getByLabelText('Competencias')).toBeTruthy();
-    expect(screen.getByLabelText('Resultados de aprendizaje')).toBeTruthy();
+    // C4x: "Resultados de aprendizaje" se renombra para course.
+    expect(screen.queryByLabelText('Resultados de aprendizaje')).toBeNull();
+    expect(screen.getByLabelText('Contenido e información adicional')).toBeTruthy();
     expect(
       (screen.getByRole('button', {
         name: 'Guardar cambios'
@@ -219,7 +225,7 @@ describe('CredentialDraftEditorForm', () => {
 
   it.each([
     ['academic_subject', 'Fecha de aprobación (opcional)', 'Año académico (opcional)'],
-    ['course', 'Fecha de finalización', 'Plataforma'],
+    ['course', 'Fecha de finalización', 'Modalidad'],
     ['certification', 'Fecha de obtención', 'Código de certificación'],
     ['degree', 'Fecha de graduación', 'Programa o carrera']
   ] as const)(
@@ -597,7 +603,10 @@ describe('CredentialDraftEditorForm', () => {
 
   it('cancels a pending type change without clearing values', () => {
     renderEditor({
-      detail: detailFixture('course', { platformName: 'Campus Virtual' })
+      detail: detailFixture('course', {
+        platformName: 'Campus Virtual',
+        modality: 'Online'
+      })
     });
 
     fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
@@ -610,8 +619,15 @@ describe('CredentialDraftEditorForm', () => {
         .value
     ).toBe('course');
     expect(
-      (screen.getByLabelText('Plataforma') as HTMLInputElement).value
-    ).toBe('Campus Virtual');
+      (screen.getByLabelText('Modalidad') as HTMLSelectElement).value
+    ).toBe('Online');
+    // El valor legacy de platformName tampoco se pierde al cancelar (nunca
+    // se edita desde el editor, pero su nota read-only sigue mostrandose).
+    expect(
+      screen.getByText(
+        'Plataforma declarada (dato legacy, solo lectura): Campus Virtual'
+      )
+    ).toBeTruthy();
   });
 
   it('saves a sparse command with the last accepted updatedAt and resets dirty state', async () => {

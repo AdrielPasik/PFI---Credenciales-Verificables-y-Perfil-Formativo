@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { hasInstitutionalTextualBacking } from '@/features/credentials/institutional-textual-backing';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import type {
   CredentialFeedback,
@@ -182,8 +183,9 @@ function DraftIssuanceContent({
           {!preparation.hasSupportEvidence ? (
             <div className="grid gap-3 rounded-control border border-status-warning/30 bg-surface p-4">
               <p className="text-sm leading-6 text-text-default">
-                No se generará análisis automático porque no hay evidencia de
-                respaldo cargada.
+                {preparation.isReusableType
+                  ? 'No se generará una interpretación asistida robusta porque hay poca información declarada.'
+                  : 'No se generará análisis automático porque no hay evidencia de respaldo cargada.'}
               </p>
               <div className="flex items-start gap-3">
                 <input
@@ -200,8 +202,9 @@ function DraftIssuanceContent({
                   htmlFor="confirm-issuance-without-evidence"
                   className="leading-6"
                 >
-                  Confirmo emitir esta credencial sin una fuente de respaldo
-                  cargada en Traza.
+                  {preparation.isReusableType
+                    ? 'Confirmo emitir esta credencial con información declarada insuficiente para la interpretación asistida.'
+                    : 'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Traza.'}
                 </Label>
               </div>
             </div>
@@ -275,10 +278,28 @@ function IssuancePreparation({
           textual queda pendiente para una iteración posterior.
         </FeedbackAlert>
       ) : null}
+      {/* C4x: para course/certification, informacion declarada suficiente
+          (descripcion/competencias/contenido adicional) cuenta como
+          respaldo textual institucional -- nunca se afirma "sin
+          respaldo" en ese caso. Ver hasInstitutionalTextualBacking. */}
+      {preparation.hasDeclarativeBacking && !preparation.hasUploadedEvidence ? (
+        <FeedbackAlert variant="information" title="Respaldo textual institucional">
+          Esta credencial usa información declarada por el emisor como base
+          textual para la interpretación asistida.
+        </FeedbackAlert>
+      ) : null}
       {!preparation.hasSupportEvidence ? (
-        <FeedbackAlert variant="warning" title="Sin fuente de respaldo">
-          Podés emitir solo después de confirmar explícitamente que la
-          credencial quedará sin fuente de respaldo cargada en Traza.
+        <FeedbackAlert
+          variant="warning"
+          title={
+            preparation.isReusableType
+              ? 'Información insuficiente para la interpretación asistida'
+              : 'Sin fuente de respaldo'
+          }
+        >
+          {preparation.isReusableType
+            ? 'Esta credencial tiene poca información declarada para la interpretación asistida. Podés completarla antes de emitir.'
+            : 'Podés emitir solo después de confirmar explícitamente que la credencial quedará sin fuente de respaldo cargada en Traza.'}
         </FeedbackAlert>
       ) : null}
     </div>
@@ -316,7 +337,26 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
   const hasPdf =
     document?.kind === 'pdf' && document.mimeType === 'application/pdf';
   const hasText = detail.textEvidence.currentText !== null;
-  const hasSupportEvidence = document !== null || hasText;
+  // C4x: "evidencia cargada" (documento/texto manual) es distinto de
+  // "respaldo declarativo institucional" (descripcion/competencias/
+  // contenido adicional para course/certification, ver
+  // hasInstitutionalTextualBacking). hasUploadedEvidence conserva el
+  // significado original de hasSupportEvidence -- se sigue usando para el
+  // analisis automatico (evidenceLabel/analysisLabel, "Analisis documental
+  // pendiente"), que solo tiene sentido si hay un documento/texto cargado.
+  const hasUploadedEvidence = document !== null || hasText;
+  const hasDeclarativeBacking = hasInstitutionalTextualBacking({
+    type: detail.type,
+    description: detail.description,
+    credentialSubject: detail.credentialSubject
+  });
+  const isReusableType =
+    detail.type === 'course' || detail.type === 'certification';
+  // El warning/checkbox de "emitir sin respaldo" se basa en esta bandera
+  // combinada: para course/certification, respaldo declarativo suficiente
+  // cuenta igual que evidencia cargada -- nunca se afirma "sin respaldo"
+  // cuando hay informacion declarada suficiente.
+  const hasSupportEvidence = hasUploadedEvidence || hasDeclarativeBacking;
   const recommendations: string[] = [];
 
   if (!detail.credentialSubject.completionDate) {
@@ -338,6 +378,9 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
   return {
     hasPdf,
     hasSupportEvidence,
+    hasUploadedEvidence,
+    hasDeclarativeBacking,
+    isReusableType,
     recommendations,
     evidenceLabel: hasPdf
       ? 'PDF vigente'
@@ -345,7 +388,9 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
         ? 'Evidencia documental vigente'
         : hasText
           ? 'Evidencia textual vigente'
-          : 'Pendiente de confirmación',
+          : hasDeclarativeBacking
+            ? 'Contenido declarado suficiente'
+            : 'Pendiente de confirmación',
     analysisLabel: hasPdf
       ? 'Se intentará al emitir'
       : 'No disponible automáticamente'

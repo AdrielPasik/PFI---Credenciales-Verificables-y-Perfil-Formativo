@@ -935,3 +935,211 @@ credenciales nuevas ni al perfil formativo (eso sigue siendo C4b).
   o usarla para reconstruir `FormativeProfile` (C4b); y un endpoint de
   revocacion/re-aprobacion (no implementado, mismo estado que documento
   C4a.1).
+
+## 20. C4x — Hardening de UX/dominio para course/certification
+
+C4x corrige inconsistencias de dominio y UX detectadas en pruebas manuales
+del Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend
+(`apps/web`) -- no se toco Prisma, migrations, `services/api`,
+`services/ai-service`, contracts, blockchain, canonicalizacion/hash ni
+`FormativeProfile`.
+
+- **`platformName` deja de ser un input libre para `course`**: antes el
+  editor del draft permitia escribir cualquier texto en "Plataforma"
+  (`credentialSubject.platform_name`), lo que permitia contradicciones con
+  el issuer real (ej. "Plataforma de Cursos Demo" emitiendo un curso
+  marcado como "Udemy"). Ahora la UI muestra **"Entidad emisora"**
+  (read-only, derivada de `issuer.displayName`, nunca texto libre) en su
+  lugar; `platformName` ya no es un campo editable de `course`
+  (`credentialDraftFieldsByType.course` en
+  `apps/web/src/features/credentials/credential-draft-editor.ts`), por lo
+  tanto nunca se renderiza como input ni se incluye en el `PATCH` desde el
+  editor. Un valor legacy de `platformName` (credenciales creadas antes de
+  este slice) se sigue mostrando, pero exclusivamente como nota de solo
+  lectura, nunca editable. El backend (`Credential.credentialSubject`,
+  columna JSON, y `IssuerCourseTemplate.platformName`) no se modifico --
+  el campo sigue existiendo y sigue siendo valido para datos historicos;
+  solo cambio que el frontend deja de ofrecerlo como input principal.
+- **No se afirma integracion oficial con plataformas externas**: no
+  aparece copy tipo "verificado por Udemy/Coursera/AWS" en ningun punto de
+  la UI de `course`/`certification`.
+- **La carga manual de "Contenido textual de respaldo" se oculta para
+  `course`/`certification`**: esa tarjeta (formulario manual de
+  `TextEvidence`) duplicaba informacion ya declarada
+  (`description`/`competencies`/`learningOutcomes`). Se reemplaza por un
+  aviso ("Base textual para la interpretacion asistida") que explica que
+  la informacion ya declarada alimenta la interpretacion asistida.
+  `academic_subject`/`degree` conservan la carga manual sin cambios -- el
+  soporte de `TextEvidence` en si NO se elimino, solo se deja de exigir/
+  mostrar la UI manual para estos dos tipos. No se llamo a la IA, no se
+  cambio el pipeline de analisis, no se creo ningun `TextEvidence` nuevo
+  desde este slice.
+- **"Resultados de aprendizaje" se renombra en la UI a "Contenido e
+  informacion adicional" para `course`**: el campo sigue siendo
+  `learningOutcomes`/`learning_outcomes` en el modelo y el backend, sin
+  ningun cambio de contrato -- es unicamente un cambio de label/help text
+  en la UI issuer-facing (`credential-draft-editor-form.tsx`). Para
+  `certification` (que nunca tuvo `learningOutcomes`, ver C1a-c/C3a.2) se
+  ajustaron los help text de `description`/`competencies`/`skills` para
+  aclarar que alimentan la interpretacion asistida, sin agregar ningun
+  campo nuevo al contrato. `degree` conserva el label academico original
+  sin cambios -- el renombre es especifico de `course`/`certification`.
+- **Helper `hasInstitutionalTextualBacking`**
+  (`apps/web/src/features/credentials/institutional-textual-backing.ts`):
+  unica fuente de verdad para decidir si `course`/`certification` tienen
+  suficiente informacion declarada como respaldo textual institucional.
+  Nunca aplica a `academic_subject`/`degree`. Criterio conservador: solo
+  el titulo nunca alcanza; una descripcion corta o generica (menos de 20
+  caracteres efectivos) tampoco; una descripcion sustancial, o al menos
+  una entrada real en `competencies`/`learningOutcomes`/`skills`, si
+  alcanza. Se usa tanto para decidir el copy de "Base textual para la
+  interpretacion asistida" como para el warning de emision (ver punto
+  siguiente).
+- **El warning de "emitir sin respaldo" ya no es incorrecto para
+  `course`/`certification` con datos declarados suficientes**: antes, ese
+  warning se basaba exclusivamente en si habia `DocumentEvidence`/
+  `TextEvidence` cargada, ignorando por completo la informacion declarada.
+  Ahora, para `course`/`certification`, contar con respaldo declarativo
+  suficiente (via `hasInstitutionalTextualBacking`) cuenta igual que
+  evidencia cargada: nunca se afirma "sin fuente de respaldo" en ese caso.
+  Cuando hay respaldo declarativo pero no evidencia cargada, se muestra un
+  aviso informativo (no bloqueante) explicando que la informacion
+  declarada se usa como base textual. Cuando no hay ni evidencia cargada
+  ni respaldo declarativo suficiente, se exige la misma confirmacion
+  explicita que ya existia (checkbox "Confirmo emitir..."), solo que con
+  copy ajustado a "informacion declarada insuficiente" en vez de "sin
+  fuente de respaldo" -- **no se agrego ningun bloqueo nuevo, ni se quito
+  el bloqueo que ya existia**. `academic_subject`/`degree` conservan el
+  copy y el comportamiento original sin cambios.
+- **Seleccion atomica de templates reutilizables**: al aplicar un template
+  en `/issuer/credentials/new`, `credentialType` y `achievementName`
+  quedan bloqueados (deshabilitados en la UI y, ademas, los handlers
+  correspondientes rechazan el cambio aunque se dispare el evento
+  igual -- defensa en profundidad). La accion para deseleccionar es
+  "Quitar contenido reutilizable" (antes "Cambiar seleccion"); solo al
+  quitarlo se desbloquean tipo y nombre. Esto cierra una inconsistencia de
+  C3c: antes se podia aplicar un template y despues escribir otro nombre,
+  o cambiar de `course` a `certification` con un template de `course` ya
+  aplicado, generando una seleccion no atomica/contradictoria. El resto
+  del flujo de C3c no cambia: sigue sin enviarse `templateId` en la
+  creacion del draft, el `PATCH` best-effort posterior sigue aplicando el
+  resto de los campos, y `?templateApply=failed` sigue funcionando. Nunca
+  se copia `SemanticAnalysis`, `lastSemanticAnalysisId` ni
+  `approvedSemanticSnapshot` del template en este flujo -- eso sigue
+  siendo exclusivo de C4a.1/C4a.2, y aplicarlo a una credencial nueva
+  sigue siendo C4b.
+- **Layout desktop del Portal Emisor**: se agrego una variable CSS nueva
+  (`--traza-issuer-reading-width`, mas ancha que
+  `--traza-reading-width`) usada unicamente por `IssuerShell`. La wallet
+  del titular (`WalletShell`/`ContextShell`) sigue usando
+  `--traza-reading-width` sin cambios -- este slice explicitamente no
+  rediseña la wallet.
+- Pendiente, explicitamente fuera de alcance de C4x: C4b (aplicar la
+  interpretacion aprobada a credenciales nuevas y al perfil formativo)
+  sigue sin implementarse.
+
+### 20.1 C4x fix — certification sin PDF gana analisis textual automatico; platformName se cierra tambien backend-side
+
+C4x (arriba) fue exclusivamente frontend y dejo dos riesgos funcionales
+documentados como deuda: (1) para `certification`, la UI ya afirmaba que
+los datos declarados sirven como "base textual para la interpretacion
+asistida", pero el backend nunca disparaba un analisis real desde esos
+datos cuando no habia PDF; (2) `platformName` dejo de ser un input en el
+editor de `course`, pero el backend seguia aceptando/persistiendo un
+valor arbitrario si se llamaba directamente a la API (creacion de
+borrador, PATCH, o templates reutilizables). Este fix cierra ambos
+riesgos, sin implementar C4b, sin copiar `approvedSemanticSnapshot`/
+`SemanticAnalysis` a credenciales nuevas, sin tocar
+`FormativeProfileService`, `services/ai-service`, `contracts`,
+blockchain, canonicalizacion/hash, ni Prisma/migrations.
+
+**Analisis textual automatico para `certification` sin PDF** (mismo
+mecanismo que C2b.3 para `course`, extendido a certification):
+
+- `AutomaticCourseTextAnalysisService` (el nombre quedo de C2b.3, cuando
+  solo cubria `course` -- se documenta aca que desde este fix cubre
+  ambos tipos; no se renombro la clase para no agrandar el diff de
+  DI/wiring en 4 archivos, solo se renombro su metodo publico a
+  `analyzeIssuedCredentialIfEligible`, igual convencion que
+  `AutomaticDocumentAnalysisService`) ahora tambien evalua
+  `certification` issued sin `DocumentEvidence` PDF `current`.
+- Texto analizable exclusivamente desde: `achievementName`/`title`,
+  `description`, `certificationCode`, `expirationDate`, `providerName`,
+  `level`, `skills`, `competencies`. **Nunca** `modality`,
+  `platformName`, `academicCourseReference`, `curriculumReference`,
+  `approvedSemanticSnapshot`/`approvedSemanticAnalysisId`/
+  `lastSemanticAnalysisId`, ninguna `SemanticAnalysis` existente, datos
+  de blockchain/canonical/hash, datos privados del holder ni `rawData`
+  completo. `learningOutcomes` no existe en el contrato de
+  `certification` (ver C1a-c/C3a.2) y nunca se envia para este tipo.
+- Regla de suficiencia conservadora, mismo espiritu que `course`: solo
+  el titulo nunca alcanza; una descripcion sustancial alcanza sola;
+  titulo + skills/competencies alcanza; skills/competencies sin
+  descripcion puede alcanzar si el texto resultante es coherente y hay
+  al menos una fuente formativa real. Si el texto es insuficiente, la
+  emision continua sin crear `TextEvidence` ni `AnalysisRun` -- nunca
+  falla.
+- Reusa `TextEvidenceService.
+  ensureSystemGeneratedCurrentTextEvidenceForCredential` (ahora recibe
+  un `label` explicito por tipo): si ya existe una `TextEvidence`
+  `current`, se reusa tal cual y nunca se reemplaza; si no existe, se
+  crea una con el label *"Texto generado para analisis desde datos
+  declarados de la certificacion"* (course conserva su label original,
+  *"...del curso"*), y `submittedByUserId` es el usuario real que
+  emitio, no un usuario de sistema inventado.
+- Mismo mecanismo de deduplicacion que `course`: cualquier `AnalysisRun`
+  `text` previo para la MISMA `TextEvidence.id`, en cualquier estado
+  (`pending`/`running`/`completed`/`failed`), bloquea un run nuevo --
+  evita reintentos infinitos en emisiones repetidas.
+- Mismo patron best-effort/nunca-revierte que `course`: cualquier error
+  (generacion de evidencia, creacion del run, ejecucion IA) se atrapa y
+  se loguea de forma segura; el caller
+  (`IssuerCredentialIssueService`) envuelve la llamada en su propio
+  `try/catch` como segunda red de seguridad.
+- Si el analisis automatico completa, el rebuild automatico de perfil de
+  C2b.4 (`AutomaticProfileRebuildService.rebuildAfterAutomaticAnalysis`)
+  se sigue disparando sin cambios -- no se agrego logica nueva de
+  perfil, no se toco `FormativeProfileService`.
+- `academic_subject`/`degree` siguen completamente fuera de este flujo,
+  sin cambios.
+
+**`platformName` se cierra tambien backend-side para `course`** (antes
+de este fix, el backend seguia aceptando el campo aunque el frontend ya
+no lo ofreciera como input):
+
+- **`PATCH` de borrador** (`issuer-credential-draft-subject.ts`):
+  `platformName` deja de ser un dato editable para cualquier tipo (antes
+  solo aplicaba a `course`) -- se rechaza explicitamente con `400` en
+  cuanto se envia, con o sin valor `null`, antes de evaluar aplicabilidad
+  por tipo. `platformName` se mantiene en el set "aplicable" de `course`
+  unicamente para que un `platform_name` legacy ya persistido sobreviva
+  sin cambios a un `PATCH` que edita otro campo -- nunca se borra como
+  efecto secundario de un patch no relacionado.
+- **Creacion de borrador** (`credentials.service.ts#createDraft`): el
+  `credentialSubject` de entrada es JSON crudo sin allowlist por campo
+  (a diferencia del `PATCH`) -- rechazar toda la creacion por una unica
+  clave desconocida seria desproporcionado. Se opto por **ignorar**
+  (descartar) `platform_name` si llega en el payload para `type=course`,
+  documentado como asimetria intencional respecto al `PATCH`.
+- **Templates reutilizables** (`issuer-course-templates.validator.ts`):
+  `platformName` deja de estar en el allowlist de campos de entrada para
+  `create`/`PATCH` de template (antes solo era exclusivo de `course`,
+  ahora se rechaza para cualquier `credentialType` con el mismo
+  mecanismo de "campo no permitido" que ya rechaza `issuerId`/
+  `createdByUserId`) -- **rechazo explicito con `400`**, no ignorado.
+  `createTemplateFromCredentialForIssuer` deja de copiar
+  `platform_name` hacia un template nuevo creado desde una credencial
+  `course`, aunque exista como dato legacy en `credentialSubject`.
+- **Compatibilidad de lectura preservada en los tres casos**: un
+  `platform_name`/`platformName` legacy ya persistido (en
+  `Credential.credentialSubject` o en `IssuerCourseTemplate.
+  platformName`) sigue leyendose y mostrandose sin cambios -- nunca se
+  borra, nunca se migra, nunca se toca Prisma. Solo deja de poder
+  escribirse/reenviarse como dato nuevo.
+- **Efecto colateral corregido en frontend**: cerrar `platformName` en el
+  `PATCH` de borrador expuso que `apps/web` (`new-credential-route.tsx`,
+  flujo de aplicar template en C3c) todavia lo enviaba en el `PATCH`
+  best-effort posterior a crear el draft. Al ser un unico body, el nuevo
+  `400` habria tumbado tambien el resto de los campos de ese request
+  (`modality`/`externalUrl`/`competencies`/`learningOutcomes`). Se quito
+  esa unica linea -- unico cambio de codigo frontend de este fix.

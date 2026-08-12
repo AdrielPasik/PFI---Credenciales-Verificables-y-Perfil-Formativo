@@ -132,6 +132,9 @@ flujos reales del navegador sobre la base F0.1:
   `revoked`, ni en la wallet del titular. Aplicar la interpretación
   aprobada a credenciales nuevas o al perfil formativo queda pendiente
   para C4b.
+- C4x: corrección de inconsistencias de dominio/UX detectadas en pruebas
+  manuales del Portal Emisor para `course`/`certification` -- ver sección
+  propia "C4x — Hardening de UX de course/certification" más abajo.
 
 El `BrandMark` actual es un wordmark textual temporal. No representa el logo
 definitivo.
@@ -282,6 +285,130 @@ adicional que emitirá sin respaldo cargado en Traza. Skills, competencias y
 campos de aprobación pueden generar advertencias, pero no reemplazan evidencia
 ni bloquean por sí solos. El análisis textual, `combined`, worker, queue y retry
 automático siguen pendientes.
+
+## C4x — Hardening de UX de course/certification
+
+C4x corrige inconsistencias de dominio/UX detectadas en pruebas manuales del
+Portal Emisor, sin avanzar a C4b. Es exclusivamente frontend -- no se tocó
+`services/api`, Prisma, `services/ai-service`, contracts ni blockchain.
+
+**Plataforma (`platformName`) deja de ser un input libre para `course`.**
+Antes, el editor del draft (`/issuer/credentials/[credentialId]`) mostraba
+"Plataforma" como un `TextField` editable, lo que permitía contradicciones
+(ej. el issuer es "Plataforma de Cursos Demo" pero el campo dice "Udemy").
+Ahora, para `course`, se muestra en su lugar **"Entidad emisora"**
+(read-only, derivada de `detail.issuer.displayName`) con el copy "El curso
+será emitido por la institución activa." `platformName` ya no forma parte
+de `credentialDraftFieldsByType.course`
+(`credential-draft-editor.ts`) -- nunca se renderiza como input, nunca se
+incluye en el `PATCH`. Un valor legacy de `platformName` (credenciales
+creadas antes de este slice) se sigue mostrando, pero solo como nota de
+solo lectura ("Plataforma declarada (dato legacy, solo lectura): ..."),
+tanto en el editor como en la tarjeta "Datos declarados del curso" del
+detalle no-draft. Nunca se afirma integración oficial con plataformas
+externas ni copy tipo "verificado por Udemy/Coursera/AWS".
+
+**Se eliminó la sección duplicada "Contenido textual de respaldo" para
+`course`/`certification`.** Antes, `/issuer/credentials/[credentialId]`
+mostraba siempre esa tarjeta (carga manual de `TextEvidence`) junto con
+`description`/`competencies`/`learningOutcomes`, duplicando la misma
+información declarada. Ahora, para `course`/`certification`, esa tarjeta
+se reemplaza por "Base textual para la interpretación asistida", que
+explica que la descripción, las competencias y el contenido adicional ya
+declarados alimentan la interpretación asistida -- sin pedir una carga
+manual aparte. `academic_subject`/`degree` conservan la tarjeta original
+sin cambios. No se eliminó el soporte de `TextEvidence` en sí (otros
+flujos y tipos lo siguen usando); solo se oculta la UI manual para estos
+dos tipos. No se llamó a la IA en ningún momento de este slice, no se
+tocó `services/ai-service` ni el pipeline de análisis.
+
+**"Resultados de aprendizaje" se renombra en la UI para `course`.** El
+campo sigue siendo `learningOutcomes` en el modelo/backend (sin cambios de
+contrato); la UI issuer-facing ahora muestra **"Contenido e información
+adicional"**, con el copy "Agregá contenidos, temario, herramientas,
+conocimientos abordados u otra información relevante del curso." Para
+`certification` (que no tiene `learningOutcomes`) se ajustaron los help
+text de `description`/`competencies`/`skills` para aclarar que alimentan
+la interpretación asistida, sin agregar ningún campo nuevo. `degree`
+conserva el label académico original ("Resultados de aprendizaje") sin
+cambios -- el renombre es específico de `course`/`certification`.
+
+**El warning de "emitir sin respaldo" ahora considera el respaldo
+declarativo.** Se agregó el helper puro
+`hasInstitutionalTextualBacking` (`institutional-textual-backing.ts`),
+que devuelve `true` para `course`/`certification` cuando hay una
+descripción sustancial (≥20 caracteres) o al menos una entrada real en
+`competencies`/`learningOutcomes`/`skills` -- nunca alcanza con solo el
+título. Se usa tanto en `credential-issuance-section.tsx` (para no
+mostrar "Sin fuente de respaldo" cuando hay respaldo declarativo
+suficiente) como en `credential-detail-route.tsx` (para decidir el copy
+de "Base textual para la interpretación asistida"). Cuando hay respaldo
+declarativo pero no evidencia cargada, se muestra el aviso informativo
+"Esta credencial usa información declarada por el emisor como base
+textual para la interpretación asistida."; cuando no hay ni evidencia
+cargada ni respaldo declarativo suficiente, se muestra "Esta credencial
+tiene poca información declarada para la interpretación asistida. Podés
+completarla antes de emitir." (en vez de "Vas a emitir sin respaldo").
+`academic_subject`/`degree` no se ven afectados -- conservan el copy y el
+comportamiento de bloqueo original ("Sin fuente de respaldo" +
+confirmación explícita). No se afirma que la IA certifica el contenido ni
+que blockchain valida la información declarada.
+
+**Selección atómica de templates reutilizables.** En
+`/issuer/credentials/new`, al aplicar un template (`ReusableTemplateSearchSection`),
+`credentialType` y el nombre del logro (`achievementName`) quedan
+bloqueados (`disabled` en el `<select>`/`TextField`, reforzado también en
+los handlers `changeCredentialType`/`onChange` para que un intento de
+cambio se ignore por completo, no solo visualmente). La acción para
+deseleccionar es **"Quitar contenido reutilizable"** (antes "Cambiar
+selección"); solo al quitarlo se desbloquean tipo y nombre para edición
+manual normal. El resto del flujo de C3c no cambia: sigue sin enviarse
+`templateId` en la creación del draft, sigue aplicándose el resto de
+campos mediante el `PATCH` best-effort posterior, y el aviso
+`?templateApply=failed` sigue funcionando sin cambios. Nunca se copia
+`SemanticAnalysis`, `lastSemanticAnalysisId` ni `approvedSemanticSnapshot`
+del template -- eso sigue siendo exclusivo de C4a.1/C4a.2/C4b.
+
+**Layout desktop más amplio para el Portal Emisor.** Se agregó la
+variable CSS `--traza-issuer-reading-width` (`90rem`, contra los `75rem`
+de `--traza-reading-width`) y `IssuerShell` (`components/layout/issuer-shell.tsx`)
+pasó a usarla como su `max-w-*`. **La wallet del titular
+(`WalletShell`/`ContextShell`) sigue usando `--traza-reading-width` sin
+cambios** -- este slice explícitamente no rediseña la wallet. El resto de
+la estructura (grids `lg:grid-cols-[...]` ya existentes en
+`credential-draft-form.tsx`/`credential-detail-route.tsx`) se beneficia
+del contenedor más ancho sin requerir cambios adicionales de layout.
+
+Pendiente para C4b: aplicar la interpretación semántica aprobada a
+credenciales nuevas creadas desde un template, y su relación con el
+perfil formativo.
+
+**C4x fix (mayormente backend, con un ajuste puntual de frontend):** el
+aviso "Base textual para la interpretación asistida" de arriba dejó de
+ser una afirmación sin respaldo real para `certification` sin PDF -- el
+backend ahora también genera/reutiliza `TextEvidence` y ejecuta un
+análisis textual automático desde los datos declarados de
+`certification`, igual que ya hacía para `course` (ver
+`services/api/README.md`, sección "C4x fix", y
+`docs/architecture/domain-rules-v0.md`, sección 20.1). `platformName`
+también se cerró backend-side (PATCH de borrador, creación de borrador y
+templates reutilizables), lo que expuso una inconsistencia real en esta
+hoja: `applyTemplateToNewDraft` (`new-credential-route.tsx`) todavía
+enviaba `platformName: template.platformName` en el `PATCH` best-effort
+posterior a aplicar un template de `course` en C3c. Como el backend ahora
+rechaza esa clave con `400` sin importar su valor, y el `PATCH` es un
+único body, ese `400` habría tumbado también `modality`/`externalUrl`/
+`competencies`/`learningOutcomes` -- es decir, aplicar un template de
+`course` habría dejado de precargar cualquier campo, no solo la
+plataforma. Se quitó esa única línea; el resto de la sección (selección
+atómica, `?templateApply=failed`, etc.) no cambió. Se re-corrió la suite
+completa de tests de `apps/web` (612/612, incluyendo el test actualizado
+que ahora verifica que `platformName` nunca se envía) y se confirmó
+manualmente que la sección de `TextEvidence` manual sigue oculta para
+`certification` sin contradicción, que el warning de respaldo declarativo
+sigue funcionando, que el editor de `course` sigue sin enviar
+`platformName`, y que ningún copy prohibido ("IA certificó", "blockchain
+valida", "verificado por Udemy/Coursera/AWS") aparece en la UI.
 
 ## Prerrequisitos
 

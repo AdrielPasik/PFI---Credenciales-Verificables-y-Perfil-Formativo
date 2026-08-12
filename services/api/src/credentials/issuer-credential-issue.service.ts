@@ -75,13 +75,14 @@ export class IssuerCredentialIssueService {
       // Automatic analysis is best-effort and must never roll back issuance.
     }
 
-    // C2b.3: analisis textual automatico solo para `course` sin PDF vigente.
-    // AutomaticCourseTextAnalysisService hace su propio chequeo de PDF
-    // vigente (nunca corre si el documental ya aplico) y ya atrapa/loguea
-    // sus propios errores; este try/catch es una segunda red de seguridad,
-    // no la unica -- nunca debe revertir la emision.
+    // C2b.3 / C4x fix: analisis textual automatico para `course` o
+    // `certification` sin PDF vigente. AutomaticCourseTextAnalysisService
+    // hace su propio chequeo de tipo/PDF vigente (nunca corre si el
+    // documental ya aplico, ni para academic_subject/degree) y ya atrapa/
+    // loguea sus propios errores; este try/catch es una segunda red de
+    // seguridad, no la unica -- nunca debe revertir la emision.
     try {
-      await this.automaticCourseTextAnalysisService.analyzeIssuedCourseIfEligible(
+      await this.automaticCourseTextAnalysisService.analyzeIssuedCredentialIfEligible(
         credentialId,
         currentUser.id
       );

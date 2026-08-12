@@ -37,7 +37,16 @@ const COMMON_FIELDS = [
   'competencies'
 ] as const;
 // Exclusivos de course.
-const COURSE_ONLY_FIELDS = ['modality', 'platformName', 'learningOutcomes'] as const;
+// C4x fix: `platformName` deja de aceptarse como dato de entrada, para
+// create Y patch -- el emisor activo es la fuente institucional, no un
+// texto libre. Al no estar en este set, rejectUnknownFields lo rechaza
+// con 400 si el cliente lo envia (mismo mecanismo que ya rechaza
+// issuerId/createdByUserId/etc). Un platformName legacy ya persistido en
+// un template (Prisma sigue teniendo la columna) sigue leyendose/
+// mostrandose sin cambios -- ver COURSE_TEMPLATE_RESPONSE_SELECT y
+// mapCourseTemplateResponse en issuer-course-templates.service.ts /
+// .mapper.ts.
+const COURSE_ONLY_FIELDS = ['modality', 'learningOutcomes'] as const;
 // Exclusivos de certification.
 const CERTIFICATION_ONLY_FIELDS = [
   'certificationCode',
@@ -123,9 +132,11 @@ export function validateCreateCourseTemplatePayload(
       : null,
     hours: hasOwn(body, 'hours') ? normalizeHours(body.hours) : null,
     modality: hasOwn(body, 'modality') ? normalizeModality(body.modality) : null,
-    platformName: hasOwn(body, 'platformName')
-      ? normalizeControlledString(body.platformName, 'platformName')
-      : null,
+    // C4x fix: platformName ya no es un campo de entrada (ver
+    // COURSE_ONLY_FIELDS) -- rejectUnknownFields ya rechazo el payload si
+    // el cliente lo envio, asi que un template nuevo siempre nace sin
+    // platformName.
+    platformName: null,
     externalUrl: hasOwn(body, 'externalUrl')
       ? normalizeExternalUrl(body.externalUrl)
       : null,
@@ -169,9 +180,12 @@ export function validatePatchCourseTemplatePayload(
     description: normalizeOptionalField(body, 'description', normalizeDescription),
     hours: normalizeOptionalField(body, 'hours', normalizeHours),
     modality: normalizeOptionalField(body, 'modality', normalizeModality),
-    platformName: normalizeOptionalField(body, 'platformName', (value) =>
-      normalizeControlledString(value, 'platformName')
-    ),
+    // C4x fix: platformName ya no es un campo de entrada (ver
+    // COURSE_ONLY_FIELDS) -- rejectUnknownFields ya rechazo el payload si
+    // el cliente lo envio, asi que un platformName legacy nunca se
+    // actualiza via PATCH (se preserva de solo lectura en
+    // patchTemplateForIssuer, que solo escribe si `provided` es true).
+    platformName: { provided: false },
     externalUrl: normalizeOptionalField(body, 'externalUrl', normalizeExternalUrl),
     certificationCode: normalizeOptionalField(body, 'certificationCode', (value) =>
       normalizeControlledString(value, 'certificationCode')

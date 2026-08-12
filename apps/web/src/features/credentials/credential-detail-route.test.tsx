@@ -263,7 +263,10 @@ describe('CredentialDetailController', () => {
     ).toBeTruthy();
     expect(screen.getByText('Borrador')).toBeTruthy();
     expect(screen.getAllByText('Curso').length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByText('Universidad Seleccionada')).toBeTruthy();
+    // C4x: "Universidad Seleccionada" ahora tambien aparece en el campo
+    // read-only "Entidad emisora" del editor (curso en borrador), ademas
+    // de la fila "Institución emisora" de arriba.
+    expect(screen.getAllByText('Universidad Seleccionada').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('did:example:issuer')).toBeTruthy();
     expect(screen.getAllByText('Demo Holder').length).toBeGreaterThanOrEqual(2);
     expect(
@@ -272,8 +275,16 @@ describe('CredentialDetailController', () => {
     expect(
       screen.getByRole('heading', { name: 'Evidencia de respaldo' })
     ).toBeTruthy();
+    // C4x: para course, "Contenido textual de respaldo" (carga manual)
+    // queda oculto -- se muestra en su lugar la nota de respaldo
+    // declarativo institucional.
     expect(
-      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeNull();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Base textual para la interpretación asistida'
+      })
     ).toBeTruthy();
     expect(
       screen.getByRole('heading', {
@@ -402,8 +413,8 @@ describe('CredentialDetailController', () => {
       screen.getByRole('heading', { name: 'Evidencia documental' })
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
-    ).toBeTruthy();
+      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeNull();
     expect(
       screen.queryByRole('button', { name: 'Analizar documento' })
     ).toBeNull();
@@ -487,10 +498,15 @@ describe('CredentialDetailController', () => {
     );
   });
 
+  // C4x: la carga manual de "Contenido textual de respaldo" queda oculta
+  // para course/certification (ver institutional-textual-backing.ts), asi
+  // que este flujo se sigue probando con un tipo que todavia la usa sin
+  // cambios (degree/academic_subject).
   it('submits one textual source and updates only its current snapshot', async () => {
     mockCredentialDetailApi({
       detail: {
         ...draftResponse,
+        type: 'degree',
         documentEvidence: { currentDocument: uploadResponse }
       },
       textEvidence: textEvidenceResponse
@@ -519,10 +535,10 @@ describe('CredentialDetailController', () => {
       screen.getByLabelText('Contenido de la fuente textual').textContent
     ).toBe(textEvidenceContent);
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
-    // template reutilizable existente, ademas del submit de evidencia.
+    // Sin +1 de C4a.2 aca: la busqueda automatica de template reutilizable
+    // solo se dispara para course/certification (este fixture es degree).
     await waitFor(() =>
-      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(4)
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
     );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference/evidence/texts',
@@ -546,10 +562,14 @@ describe('CredentialDetailController', () => {
     ).toBe(false);
   });
 
+  // C4x: mismo motivo que el test anterior -- "Fuente textual actual" solo
+  // se muestra para tipos que conservan la carga manual de TextEvidence
+  // (degree/academic_subject), ya no para course/certification.
   it('reconstructs current text and document evidence together from GET', async () => {
     mockCredentialDetailApi({
       detail: {
         ...draftResponse,
+        type: 'degree',
         documentEvidence: { currentDocument: uploadResponse },
         textEvidence: { currentText: textEvidenceResponse }
       }
@@ -568,10 +588,10 @@ describe('CredentialDetailController', () => {
     ).toBe(textEvidenceContent);
     expect(screen.getByText('Evidencia actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
-    // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
-    // template reutilizable existente.
+    // Sin +1 de C4a.2 aca: la busqueda automatica de template reutilizable
+    // solo se dispara para course/certification (este fixture es degree).
     await waitFor(() =>
-      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(3)
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(2)
     );
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
       '/issuers/issuer-selected-reference/credentials/credential-internal-reference'
@@ -719,6 +739,7 @@ describe('CredentialDetailController', () => {
       }
       return Promise.resolve({
         ...draftResponse,
+        type: 'degree',
         documentEvidence: { currentDocument: uploadResponse },
         textEvidence: { currentText: textEvidenceResponse }
       });
@@ -1092,7 +1113,14 @@ describe('CredentialDetailView read-only states', () => {
     );
 
     expect(screen.getByText('Datos declarados del curso')).toBeTruthy();
-    expect(screen.getByText('Campus Virtual Demo')).toBeTruthy();
+    // C4x: platformName ya no se muestra como campo "Plataforma" principal
+    // -- solo como nota legacy de solo lectura.
+    expect(screen.queryByText('Plataforma')).toBeNull();
+    expect(
+      screen.getByText(
+        'Plataforma declarada (dato legacy, solo lectura): Campus Virtual Demo'
+      )
+    ).toBeTruthy();
     expect(screen.getByText('Online asincrónica')).toBeTruthy();
     expect(screen.queryByText('Proveedor')).toBeNull();
     expect(screen.queryByText('Nivel')).toBeNull();
@@ -1814,5 +1842,131 @@ describe('CredentialDetailView semantic approval (C4a.2)', () => {
     expect(text).toMatch(/No modifica la credencial original\./);
     expect(text).toMatch(/No crea una nueva credencial\./);
     expect(text).toMatch(/No implica que la IA certifique el contenido\./);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// C4x: dedicated coverage for the domain/UX hardening items.
+// ---------------------------------------------------------------------------
+describe('CredentialDetailView C4x textual-backing UX', () => {
+  it('never shows "Contenido textual de respaldo" for course', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+      />
+    );
+
+    expect(
+      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeNull();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Base textual para la interpretación asistida'
+      })
+    ).toBeTruthy();
+  });
+
+  it('never shows "Contenido textual de respaldo" for certification', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'certification', status: 'draft' })}
+      />
+    );
+
+    expect(
+      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeNull();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Base textual para la interpretación asistida'
+      })
+    ).toBeTruthy();
+  });
+
+  it('still shows "Contenido textual de respaldo" for academic_subject (unaffected)', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'academic_subject', status: 'draft' })}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Base textual para la interpretación asistida'
+      })
+    ).toBeNull();
+  });
+
+  it('still shows "Contenido textual de respaldo" for degree (unaffected)', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'degree', status: 'draft' })}
+      />
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
+    ).toBeTruthy();
+  });
+
+  it('shows the "sufficient declared backing" informational message for a course with competencies', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'draft',
+          credentialSubject: { competencies: ['Programación en Python'] }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Respaldo textual institucional')).toBeTruthy();
+    expect(
+      screen.queryByText('Información insuficiente para la interpretación asistida')
+    ).toBeNull();
+  });
+
+  it('shows the "insufficient declared data" warning for a course with no declared data', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+      />
+    );
+
+    // Aparece tanto en la tarjeta de "Preparación para emitir" (siempre
+    // visible en un draft) como en la nota de base textual -- ambas
+    // seccions reflejan el mismo hecho, consistente en toda la pantalla.
+    expect(
+      screen.getAllByText('Información insuficiente para la interpretación asistida').length
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('never renders prohibited copy in the textual-backing notice', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'draft',
+          credentialSubject: { competencies: ['Programación en Python'] }
+        })}
+      />
+    );
+
+    const notice = screen.getByTestId('declared-data-textual-backing-notice');
+    const text = notice.textContent ?? '';
+    expect(text).not.toMatch(/IA certificó/i);
+    expect(text).not.toMatch(/blockchain valida/i);
+    expect(text).not.toMatch(/verificado por|udemy|coursera|aws/i);
+    expect(text).not.toMatch(/certificación de competencias por IA/i);
   });
 });

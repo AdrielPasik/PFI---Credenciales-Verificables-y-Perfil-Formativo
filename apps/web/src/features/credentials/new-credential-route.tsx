@@ -112,6 +112,11 @@ export function NewCredentialController({
   // C3c fix: devuelve si el PATCH tuvo exito o no (en vez de tragarse el
   // error en silencio) para que createDraft pueda avisarle al usuario en
   // el detalle sin bloquear ni revertir la creacion del draft.
+  //
+  // C4x fix: platformName ya no se envia -- el backend lo rechaza con 400
+  // para cualquier tipo (ver issuer-credential-draft-subject.ts), y al ser
+  // un unico body ese 400 tumbaria TODOS los campos de este PATCH (modality/
+  // externalUrl/competencies/learningOutcomes incluidos), no solo platformName.
   async function applyTemplateToNewDraft(
     credentialReference: string,
     expectedUpdatedAt: string,
@@ -127,7 +132,6 @@ export function NewCredentialController({
       template.credentialType === 'course'
         ? {
             modality: template.modality,
-            platformName: template.platformName,
             learningOutcomes: template.learningOutcomes
           }
         : {

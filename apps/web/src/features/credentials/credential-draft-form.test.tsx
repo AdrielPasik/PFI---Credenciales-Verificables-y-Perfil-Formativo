@@ -10,9 +10,11 @@ import { CredentialDraftForm } from '@/features/credentials/credential-draft-for
 import { ApiError } from '@/lib/errors/api-error';
 import type {
   AcademicProgramSearchItemVM,
+  CourseTemplateSummaryVM,
   CredentialDraftFormSubmission,
   CurriculumAcademicSubjectSearchItemVM,
-  HolderSummaryVM
+  HolderSummaryVM,
+  ReusableCredentialType
 } from '@/models/credentials';
 
 const holder = {
@@ -43,6 +45,40 @@ const subject: CurriculumAcademicSubjectSearchItemVM = {
   curriculumCode: program.curriculumCode
 };
 
+function courseTemplateFixture(
+  overrides: Partial<CourseTemplateSummaryVM> = {}
+): CourseTemplateSummaryVM {
+  return {
+    reference: 'template-1',
+    credentialType: 'course',
+    title: 'Curso de Python',
+    description: 'Introducción a Python',
+    hours: '22.00',
+    modality: 'Online',
+    platformName: null,
+    externalUrl: null,
+    certificationCode: null,
+    expirationDate: null,
+    providerName: null,
+    level: null,
+    skills: [],
+    competencies: ['Programación'],
+    learningOutcomes: ['Escribir scripts básicos'],
+    status: 'active',
+    createdFromCredentialId: 'credential-origin',
+    lastSemanticAnalysisId: 'analysis-origin',
+    approvedSemanticAnalysisId: null,
+    approvedSemanticApprovedAt: null,
+    approvedSemanticPipelineVersion: null,
+    approvedSemanticTaxonomyVersion: null,
+    approvedSemanticSourceCredentialId: null,
+    approvedSemanticSnapshotSummary: null,
+    createdAt: '2026-08-11T09:00:00.000Z',
+    updatedAt: '2026-08-11T09:00:00.000Z',
+    ...overrides
+  };
+}
+
 function renderForm(options?: {
   issuerDid?: string | null;
   onResolveHolder?: (email: string) => Promise<HolderSummaryVM>;
@@ -56,6 +92,11 @@ function renderForm(options?: {
     query: string,
     signal: AbortSignal
   ) => Promise<CurriculumAcademicSubjectSearchItemVM[]>;
+  searchReusableTemplates?: (
+    credentialType: ReusableCredentialType,
+    query: string,
+    signal: AbortSignal
+  ) => Promise<CourseTemplateSummaryVM[]>;
 }) {
   const onResolveHolder =
     options?.onResolveHolder ?? vi.fn().mockResolvedValue(holder);
@@ -74,10 +115,19 @@ function renderForm(options?: {
       searchSubjects={
         options?.searchSubjects ?? vi.fn().mockResolvedValue([subject])
       }
+      searchReusableTemplates={options?.searchReusableTemplates}
     />
   );
 
   return { onResolveHolder, onCreateDraft };
+}
+
+async function applyTemplateViaSearch(template: CourseTemplateSummaryVM) {
+  fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
+  fireEvent.click(await screen.findByRole('button', { name: template.title }));
+  fireEvent.click(
+    await screen.findByRole('button', { name: 'Usar este contenido' })
+  );
 }
 
 async function resolveVisibleHolder() {
@@ -420,6 +470,177 @@ describe('CredentialDraftForm', () => {
     ).toBeTruthy();
     expect(document.body.textContent).not.toContain('private detail');
     expect(document.body.textContent).not.toContain('Crear usuario');
+  });
+
+  // ---------------------------------------------------------------------
+  // C4x: reutilizacion atomica de templates -- tipo y nombre bloqueados
+  // mientras haya un template aplicado.
+  // ---------------------------------------------------------------------
+  describe('atomic reusable template application', () => {
+    it('locks credentialType after applying a course template', async () => {
+      const template = courseTemplateFixture();
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+
+      await applyTemplateViaSearch(template);
+
+      expect(
+        (screen.getByLabelText('Tipo de credencial') as HTMLSelectElement)
+          .disabled
+      ).toBe(true);
+    });
+
+    it('locks credentialType after applying a certification template', async () => {
+      const template = courseTemplateFixture({
+        reference: 'template-cert-1',
+        credentialType: 'certification',
+        title: 'Certificación AWS'
+      });
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'certification' }
+      });
+
+      await applyTemplateViaSearch(template);
+
+      expect(
+        (screen.getByLabelText('Tipo de credencial') as HTMLSelectElement)
+          .disabled
+      ).toBe(true);
+    });
+
+    it('locks achievementName after applying a template', async () => {
+      const template = courseTemplateFixture();
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+
+      await applyTemplateViaSearch(template);
+
+      const name = screen.getByLabelText(
+        'Nombre del logro'
+      ) as HTMLInputElement;
+      expect(name.disabled).toBe(true);
+      expect(name.value).toBe(template.title);
+    });
+
+    it('unlocks credentialType and achievementName after removing the applied template', async () => {
+      const template = courseTemplateFixture();
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+      await applyTemplateViaSearch(template);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+      );
+
+      expect(
+        (screen.getByLabelText('Tipo de credencial') as HTMLSelectElement)
+          .disabled
+      ).toBe(false);
+      expect(
+        (screen.getByLabelText('Nombre del logro') as HTMLInputElement)
+          .disabled
+      ).toBe(false);
+    });
+
+    it('does not allow changing course to certification while a template is applied', async () => {
+      const template = courseTemplateFixture();
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+      await applyTemplateViaSearch(template);
+
+      // Simula un intento de cambio (ej. un test o extension disparando el
+      // evento aunque el <select> este disabled) -- el handler debe
+      // rechazarlo igual, no solo el atributo disabled.
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'certification' }
+      });
+
+      expect(
+        (screen.getByLabelText('Tipo de credencial') as HTMLSelectElement)
+          .value
+      ).toBe('course');
+      // El template sigue aplicado (no se invalido por el intento fallido).
+      expect(screen.getByText(template.title)).toBeTruthy();
+    });
+
+    it('does not allow editing achievementName while a template is applied', async () => {
+      const template = courseTemplateFixture();
+      renderForm({
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+      await applyTemplateViaSearch(template);
+
+      fireEvent.change(screen.getByLabelText('Nombre del logro'), {
+        target: { value: 'Otro nombre distinto' }
+      });
+
+      expect(
+        (screen.getByLabelText('Nombre del logro') as HTMLInputElement).value
+      ).toBe(template.title);
+    });
+
+    it('creates the draft with the applied template and never sends a templateId', async () => {
+      const template = courseTemplateFixture();
+      const onCreateDraft = vi.fn().mockResolvedValue(undefined);
+      renderForm({
+        onCreateDraft,
+        searchReusableTemplates: vi.fn().mockResolvedValue([template])
+      });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+      await applyTemplateViaSearch(template);
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Crear borrador' })
+      );
+
+      await waitFor(() => {
+        expect(onCreateDraft).toHaveBeenCalledWith({
+          achievementName: template.title,
+          credentialType: 'course',
+          holder,
+          appliedTemplate: template
+        });
+      });
+
+      // La submission solo tiene estas 4 claves -- nunca un templateId
+      // suelto ni un campo de IA/SemanticAnalysis propio del draft nuevo
+      // (appliedTemplate es el VM completo del template, sin alterar).
+      expect(Object.keys(onCreateDraft.mock.calls[0][0]).sort()).toEqual(
+        ['achievementName', 'appliedTemplate', 'credentialType', 'holder'].sort()
+      );
+      expect(onCreateDraft.mock.calls[0][0]).not.toHaveProperty('templateId');
+    });
   });
 });
 

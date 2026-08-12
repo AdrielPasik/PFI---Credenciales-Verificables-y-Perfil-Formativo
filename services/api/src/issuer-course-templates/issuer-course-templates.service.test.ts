@@ -573,7 +573,7 @@ function certificationCredentialFixture(overrides?: Record<string, unknown>) {
   };
 }
 
-test('create from credential copies title, description, hours, platform, modality, externalUrl, competencies and learningOutcomes for a course', async () => {
+test('create from credential copies title, description, hours, modality, externalUrl, competencies and learningOutcomes for a course', async () => {
   const { service, calls } = createService({
     credential: courseCredentialFixture()
   });
@@ -591,7 +591,6 @@ test('create from credential copies title, description, hours, platform, modalit
   assert.equal(data.title, 'Curso de Python');
   assert.equal(data.description, 'Introduccion a Python');
   assert.equal((data.hours as { toString: () => string }).toString(), '22');
-  assert.equal(data.platformName, 'Plataforma de Cursos Demo');
   assert.equal(data.modality, 'Online');
   assert.equal(data.externalUrl, 'https://plataforma-demo.example.com/curso/python');
   assert.deepEqual(data.competencies, ['Programacion']);
@@ -599,6 +598,30 @@ test('create from credential copies title, description, hours, platform, modalit
   assert.equal(data.createdFromCredentialId, 'credential-1');
   assert.equal(data.lastSemanticAnalysisId, 'analysis-1');
   assert.equal(data.createdByUserId, 'issuer-user-1');
+});
+
+// C4x fix: platformName ya no se copia a un template nuevo creado desde
+// una credencial, aunque exista como dato legacy en credentialSubject --
+// el emisor activo es la fuente institucional, no un texto libre heredado.
+test('create from credential never copies platformName for a course, even when the source credential has legacy platform_name', async () => {
+  const { service, calls } = createService({
+    credential: courseCredentialFixture()
+  });
+
+  await service.createTemplateFromCredentialForIssuer(
+    'issuer-1',
+    'credential-1',
+    currentUser
+  );
+
+  const createCall = calls.find((call) => call.op === 'create');
+  const data = (createCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+
+  assert.equal('platformName' in data, false);
+  assert.equal(
+    JSON.stringify(data).includes('Plataforma de Cursos Demo'),
+    false
+  );
 });
 
 test('create from credential never copies skills, providerName or level for a course', async () => {

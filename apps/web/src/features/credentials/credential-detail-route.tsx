@@ -32,6 +32,7 @@ import { CredentialDraftEditorForm } from '@/features/credentials/credential-dra
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
+import { hasInstitutionalTextualBacking } from '@/features/credentials/institutional-textual-backing';
 import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
@@ -810,11 +811,15 @@ export function CredentialDetailView({
           onUpload={onUploadDocumentEvidence}
         />
 
-        <TextEvidenceSection
-          credentialStatus={detail.status}
-          currentText={detail.textEvidence.currentText}
-          onSubmit={onSubmitTextEvidence}
-        />
+        {detail.type === 'course' || detail.type === 'certification' ? (
+          <DeclaredDataAsTextualBackingNotice detail={detail} />
+        ) : (
+          <TextEvidenceSection
+            credentialStatus={detail.status}
+            currentText={detail.textEvidence.currentText}
+            onSubmit={onSubmitTextEvidence}
+          />
+        )}
 
         {documentAnalysis ? (
           <DocumentAnalysisSection
@@ -876,11 +881,15 @@ function CourseDeclaredDataCard({
   subject: IssuerCredentialDetailVM['credentialSubject'];
 }) {
   const hasDeclaredData =
-    subject.platformName !== null ||
     subject.modality !== null ||
     subject.externalUrl !== null ||
     subject.competencies.length > 0 ||
-    subject.learningOutcomes.length > 0;
+    subject.learningOutcomes.length > 0 ||
+    // C4x: platformName ya no es un dato declarado "principal" (ver
+    // institutional-textual-backing.ts y credential-draft-editor-form.tsx),
+    // pero un valor legacy sigue contando para decidir si esta tarjeta
+    // tiene algo que mostrar.
+    subject.platformName !== null;
 
   if (!hasDeclaredData) {
     return null;
@@ -901,9 +910,13 @@ function CourseDeclaredDataCard({
       </CardHeader>
       <CardContent className="grid gap-4 pt-5">
         <div className="grid gap-4 sm:grid-cols-2">
-          <OptionalDetailRow icon={Tags} label="Plataforma" value={subject.platformName} />
           <OptionalDetailRow icon={Tags} label="Modalidad" value={subject.modality} />
         </div>
+        {subject.platformName ? (
+          <p className="text-sm leading-5 text-text-muted">
+            Plataforma declarada (dato legacy, solo lectura): {subject.platformName}
+          </p>
+        ) : null}
         {subject.externalUrl ? (
           <div>
             <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
@@ -924,7 +937,56 @@ function CourseDeclaredDataCard({
           </div>
         ) : null}
         <TagList title="Competencias declaradas" items={subject.competencies} />
-        <TagList title="Resultados de aprendizaje declarados" items={subject.learningOutcomes} />
+        <TagList title="Contenido e información adicional declarado" items={subject.learningOutcomes} />
+      </CardContent>
+    </Card>
+  );
+}
+
+// C4x: para course/certification, la carga manual de "Contenido textual de
+// respaldo" (TextEvidence) queda oculta -- era una tarjeta duplicada
+// respecto a los datos declarados (descripcion/competencias/contenido
+// adicional) que ya alimentan la interpretacion asistida. No se elimina el
+// soporte de TextEvidence en si (academic_subject/degree lo siguen usando
+// sin cambios); solo se deja de exigir/mostrar para estos dos tipos. Ver
+// hasInstitutionalTextualBacking.
+function DeclaredDataAsTextualBackingNotice({
+  detail
+}: {
+  detail: IssuerCredentialDetailVM;
+}) {
+  const hasBacking = hasInstitutionalTextualBacking({
+    type: detail.type,
+    description: detail.description,
+    credentialSubject: detail.credentialSubject
+  });
+
+  return (
+    <Card className="border-border-strong shadow-none" data-testid="declared-data-textual-backing-notice">
+      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
+        <Link2 aria-hidden="true" className="size-5 text-teal-700" />
+        <div>
+          <h2 className="text-lg font-semibold text-text-strong">
+            Base textual para la interpretación asistida
+          </h2>
+          <p className="mt-1 text-sm text-text-muted">
+            No hace falta cargar una fuente textual aparte.
+          </p>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-5">
+        {hasBacking ? (
+          <FeedbackAlert variant="information">
+            Esta credencial usa información declarada por el emisor
+            (descripción, competencias y contenido adicional) como base
+            textual para la interpretación asistida.
+          </FeedbackAlert>
+        ) : (
+          <FeedbackAlert variant="warning" title="Información insuficiente para la interpretación asistida">
+            Esta credencial tiene poca información declarada para la
+            interpretación asistida. Podés completarla antes de emitir.
+          </FeedbackAlert>
+        )}
       </CardContent>
     </Card>
   );

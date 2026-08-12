@@ -113,6 +113,16 @@ export function CredentialDraftForm({
     selectedSubject !== null;
 
   function changeCredentialType(value: string) {
+    // C4x: reutilizacion atomica -- mientras haya un template aplicado, el
+    // tipo queda bloqueado para evitar mezclas incompatibles (ej. aplicar
+    // un template de course y despues cambiar a certification). Se
+    // refuerza aca ademas del atributo disabled del <select> porque un
+    // evento sintetico (test o extension) podria disparar onChange
+    // aunque el control este deshabilitado.
+    if (appliedTemplate) {
+      return;
+    }
+
     const nextType = availableCredentialTypes.includes(
       value as CredentialType
     )
@@ -435,6 +445,7 @@ export function CredentialDraftForm({
                         ref={credentialTypeRef}
                         id="credential-type"
                         value={credentialType}
+                        disabled={appliedTemplate !== null}
                         onChange={(event) =>
                           changeCredentialType(event.target.value)
                         }
@@ -467,7 +478,9 @@ export function CredentialDraftForm({
                       id="credential-type-description"
                       className="text-sm leading-5 text-text-muted"
                     >
-                      Elegí la categoría institucional que describe el logro.
+                      {appliedTemplate
+                        ? 'Bloqueado mientras haya contenido reutilizable aplicado.'
+                        : 'Elegí la categoría institucional que describe el logro.'}
                     </p>
                     {credentialTypeError ? (
                       <p
@@ -523,12 +536,24 @@ export function CredentialDraftForm({
                       id="achievement-name"
                       label="Nombre del logro"
                       value={achievementName}
+                      disabled={appliedTemplate !== null}
                       onChange={(event) => {
+                        // C4x: mientras haya un template aplicado, el
+                        // nombre queda bloqueado (precargado desde el
+                        // template) -- se refuerza aca ademas del
+                        // atributo disabled del input.
+                        if (appliedTemplate) {
+                          return;
+                        }
                         setAchievementName(event.target.value);
                         setAchievementError(undefined);
                         setDraftFeedback(null);
                       }}
-                      description="Usá el nombre institucional del curso o logro."
+                      description={
+                        appliedTemplate
+                          ? 'Precargado desde el contenido reutilizable aplicado. Quitalo para editarlo.'
+                          : 'Usá el nombre institucional del curso o logro.'
+                      }
                       error={achievementError}
                     />
                   ) : null}

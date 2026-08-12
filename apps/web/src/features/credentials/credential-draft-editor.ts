@@ -80,9 +80,14 @@ export const credentialDraftFieldsByType: Record<
     'skills',
     'competencies'
   ],
+  // C4x: platformName deja de ser un campo editable para course -- ver
+  // "Entidad emisora" (read-only, derivada del issuer activo) en
+  // credential-draft-editor-form.tsx. Se mantiene fuera de esta lista a
+  // proposito para que nunca se renderice como input libre ni se incluya
+  // en el PATCH; el valor legacy (si existe) solo se muestra de forma
+  // read-only, nunca editable.
   course: [
     'completionDate',
-    'platformName',
     'modality',
     'externalUrl',
     'competencies',

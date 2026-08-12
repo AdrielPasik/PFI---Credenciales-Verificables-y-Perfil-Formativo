@@ -244,11 +244,14 @@ export class IssuerCourseTemplatesService {
     // envian como null) para el tipo que no aplica, nunca se copian
     // cruzados (ej. course nunca copia certificationCode/providerName/
     // level/skills, y certification nunca copia modality/platformName).
+    // C4x fix: platformName tampoco se copia hacia el nuevo template de
+    // course, aunque exista como dato legacy en la credencial de origen --
+    // el emisor activo es la fuente institucional, no un texto libre
+    // heredado. El template nuevo nace siempre sin platformName.
     const typeSpecificData =
       credentialType === 'course'
         ? {
-            modality: readSubjectText(subject, 'modality'),
-            platformName: readSubjectText(subject, 'platform_name')
+            modality: readSubjectText(subject, 'modality')
           }
         : {
             certificationCode: readSubjectText(subject, 'certification_code'),

@@ -90,7 +90,10 @@ export class CredentialsService {
       : this.requireNonEmptyString(dto.title, 'title');
     const inputCredentialSubject = curricularSelection
       ? null
-      : this.assertJsonObject(dto.credentialSubject, 'credentialSubject');
+      : this.stripPlatformNameForCourse(
+          dto.type,
+          this.assertJsonObject(dto.credentialSubject, 'credentialSubject')
+        );
 
     const credential = await this.prisma.$transaction(
       async (transaction) => {
@@ -519,6 +522,26 @@ export class CredentialsService {
     if (!currentUser?.id) {
       throw new ForbiddenException('Usuario autenticado invalido.');
     }
+  }
+
+  // C4x fix: `credentialSubject` en createDraft es un JSON crudo sin
+  // allowlist por campo (a diferencia del PATCH de borrador, que valida
+  // campo por campo). `platformName`/`platform_name` deja de ser un dato
+  // libre para `course` -- el emisor activo es la fuente institucional --
+  // pero rechazar toda la creacion por esta unica clave seria
+  // desproporcionado dado que ningun otro campo se valida en este punto.
+  // Se ignora (se descarta) esa clave puntual si llega, en vez de
+  // rechazar la creacion completa.
+  private stripPlatformNameForCourse(
+    type: CredentialType,
+    credentialSubject: Record<string, unknown>
+  ): Record<string, unknown> {
+    if (type !== CredentialType.course || !('platform_name' in credentialSubject)) {
+      return credentialSubject;
+    }
+
+    const { platform_name: _platformName, ...rest } = credentialSubject;
+    return rest;
   }
 
   private assertJsonObject(value: unknown, fieldName: string): Record<string, unknown> {

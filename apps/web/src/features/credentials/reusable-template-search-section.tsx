@@ -143,6 +143,11 @@ export function ReusableTemplateSearchSection({
                 {appliedTemplate.title}
               </p>
             </div>
+            <p className="text-sm leading-6 text-text-muted">
+              El tipo de credencial y el nombre del logro quedan bloqueados
+              mientras este contenido esté aplicado. Quitalo para volver a
+              editarlos.
+            </p>
             <Button
               type="button"
               size="sm"
@@ -152,7 +157,7 @@ export function ReusableTemplateSearchSection({
               onClick={changeSelection}
             >
               <RotateCcw aria-hidden="true" />
-              Cambiar selección
+              Quitar contenido reutilizable
             </Button>
           </div>
         ) : previewTemplate ? (

@@ -201,9 +201,46 @@ describe('CredentialIssuanceSection', () => {
     expect(screen.queryByRole('button', { name: 'Emitir credencial' })).toBeNull();
   });
 
-  it('requires an additional explicit acknowledgement before issuing without evidence', () => {
+  // C4x: para course/certification, "sin fuente de respaldo" se reemplaza
+  // por un aviso de "informacion insuficiente" cuando no hay ni evidencia
+  // cargada ni respaldo declarativo (descripcion/competencias/contenido
+  // adicional/skills). El fixture por default (course, sin ningun dato
+  // declarado) es exactamente ese caso.
+  it('requires an additional explicit acknowledgement before issuing a course with insufficient declared data', () => {
     render(
       <CredentialIssuanceSection detail={detailFixture()} onIssue={vi.fn()} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(
+      screen.getByText('Información insuficiente para la interpretación asistida')
+    ).toBeTruthy();
+    expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
+    expect(
+      screen.getByText(
+        'No se generará una interpretación asistida robusta porque hay poca información declarada.'
+      )
+    ).toBeTruthy();
+    const confirm = screen.getByRole('button', {
+      name: 'Emitir credencial'
+    }) as HTMLButtonElement;
+    expect(confirm.disabled).toBe(true);
+
+    fireEvent.click(
+      screen.getByLabelText(
+        'Confirmo emitir esta credencial con información declarada insuficiente para la interpretación asistida.'
+      )
+    );
+    expect(confirm.disabled).toBe(false);
+  });
+
+  it('still shows the original "sin fuente de respaldo" copy for academic_subject/degree (unaffected by the course/certification textual-backing rule)', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({ type: 'academic_subject', typeLabel: 'Asignatura académica' })}
+        onIssue={vi.fn()}
+      />
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
@@ -214,17 +251,67 @@ describe('CredentialIssuanceSection', () => {
         'No se generará análisis automático porque no hay evidencia de respaldo cargada.'
       )
     ).toBeTruthy();
-    const confirm = screen.getByRole('button', {
-      name: 'Emitir credencial'
-    }) as HTMLButtonElement;
-    expect(confirm.disabled).toBe(true);
-
-    fireEvent.click(
+    expect(
       screen.getByLabelText(
         'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Traza.'
       )
+    ).toBeTruthy();
+  });
+
+  it('does not show the "sin respaldo"/insufficient-info warning for a course with sufficient declared competencies', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({
+          credentialSubject: {
+            ...detailFixture().credentialSubject,
+            competencies: ['Programación orientada a objetos']
+          }
+        })}
+        onIssue={vi.fn()}
+      />
     );
-    expect(confirm.disabled).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(
+      screen.queryByText('Información insuficiente para la interpretación asistida')
+    ).toBeNull();
+    expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
+    expect(screen.getByText('Respaldo textual institucional')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Esta credencial usa información declarada por el emisor como base textual para la interpretación asistida.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+        .getAttribute('disabled')
+    ).toBeNull();
+  });
+
+  it('does not show the "sin respaldo" warning for a certification with sufficient skills/competencies/description', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({
+          type: 'certification',
+          typeLabel: 'Certificación',
+          credentialSubject: {
+            ...detailFixture().credentialSubject,
+            skills: ['Cloud']
+          }
+        })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
+    expect(screen.getByText('Respaldo textual institucional')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+        .getAttribute('disabled')
+    ).toBeNull();
   });
 
   it('allows textual evidence without promising document analysis', () => {
@@ -358,5 +445,29 @@ describe('CredentialIssuanceSection', () => {
     expect(content).not.toMatch(
       /100% verificado|inmutable para siempre|verificación garantizada|blockchain certificó|IA certificó|privateKey|rpcUrl|storageKey|rawData/i
     );
+  });
+
+  // C4x: el nuevo copy de respaldo declarativo tampoco debe afirmar
+  // certificacion de IA ni validacion de blockchain sobre el contenido.
+  it('never claims AI certification or blockchain validation in the declarative-backing copy', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({
+          credentialSubject: {
+            ...detailFixture().credentialSubject,
+            competencies: ['Programación orientada a objetos']
+          }
+        })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    const content = document.body.textContent ?? '';
+    expect(content).not.toMatch(/IA certificó/i);
+    expect(content).not.toMatch(/blockchain valida/i);
+    expect(content).not.toMatch(/verificado por|udemy|coursera|aws/i);
+    expect(content).not.toMatch(/certificación de competencias por IA/i);
   });
 });

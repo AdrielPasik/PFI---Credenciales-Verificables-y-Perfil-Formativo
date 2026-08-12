@@ -25,8 +25,15 @@ const CREDENTIAL_NOT_FOUND_MESSAGE = 'No se encontro la credencial solicitada.';
 // datos declarados del course (achievementName/title, description,
 // competencies, learningOutcomes) -- nunca se dice "cargado por el emisor",
 // para no aparentar una accion manual que no ocurrio.
-export const SYSTEM_GENERATED_TEXT_EVIDENCE_LABEL =
+export const SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL =
   'Texto generado para análisis desde datos declarados del curso';
+
+// C4x fix: mismo criterio para certification (achievementName/title,
+// description, certificationCode, expirationDate, providerName, level,
+// skills, competencies) -- certification no tiene learningOutcomes, ver
+// buildCertificationTextAnalysisContent.
+export const SYSTEM_GENERATED_CERTIFICATION_TEXT_EVIDENCE_LABEL =
+  'Texto generado para análisis desde datos declarados de la certificación';
 
 export interface EnsuredSystemTextEvidence {
   id: string;
@@ -154,7 +161,8 @@ export class TextEvidenceService {
   async ensureSystemGeneratedCurrentTextEvidenceForCredential(
     credentialId: string,
     content: string,
-    submittedByUserId: string
+    submittedByUserId: string,
+    label: string
   ): Promise<EnsuredSystemTextEvidence> {
     return this.prisma.$transaction(
       async (transaction) => {
@@ -172,7 +180,7 @@ export class TextEvidenceService {
 
         const input = validateTextEvidenceBody({
           content,
-          label: SYSTEM_GENERATED_TEXT_EVIDENCE_LABEL
+          label
         });
 
         const created = await transaction.textEvidence.create({

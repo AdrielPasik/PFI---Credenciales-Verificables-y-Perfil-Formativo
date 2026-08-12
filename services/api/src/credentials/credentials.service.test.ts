@@ -594,6 +594,58 @@ test('CredentialsService preserves manual draft creation for every credential ty
   }
 });
 
+// C4x fix: platformName ya no es un dato libre para course, ni al
+// crear un borrador manual con credentialSubject crudo -- el emisor
+// activo es la fuente institucional. Se ignora la clave si llega en el
+// payload, sin rechazar la creacion completa (createDraft no valida
+// ningun otro campo del subject punto por punto).
+test('CredentialsService discards an arbitrary platform_name sent in a course credentialSubject at draft creation', async () => {
+  const { service, createCalls } = createDraftService();
+
+  await service.createDraft(
+    {
+      ...validDraftDto,
+      type: CredentialType.course,
+      title: 'Curso demo',
+      credentialSubject: {
+        achievement_name: 'Curso demo',
+        institution_name: 'Demo University',
+        platform_name: 'Plataforma arbitraria enviada por el cliente'
+      }
+    },
+    currentUser
+  );
+
+  const persistedSubject = (createCalls[0].data as Record<string, unknown>)
+    .credentialSubject as Record<string, unknown>;
+  assert.equal('platform_name' in persistedSubject, false);
+});
+
+test('CredentialsService keeps platform_name untouched for non-course credentialSubject', async () => {
+  const { service, createCalls } = createDraftService();
+
+  await service.createDraft(
+    {
+      ...validDraftDto,
+      type: CredentialType.certification,
+      title: 'Certificacion demo',
+      credentialSubject: {
+        achievement_name: 'Certificacion demo',
+        institution_name: 'Demo University',
+        platform_name: 'Dato legacy sin relacion con certification'
+      }
+    },
+    currentUser
+  );
+
+  const persistedSubject = (createCalls[0].data as Record<string, unknown>)
+    .credentialSubject as Record<string, unknown>;
+  assert.equal(
+    persistedSubject.platform_name,
+    'Dato legacy sin relacion con certification'
+  );
+});
+
 test('CredentialsService rejects academic credential types for non-UADE issuers', async () => {
   for (const type of [CredentialType.academic_subject, CredentialType.degree]) {
     const { service, createCalls } = createDraftService({

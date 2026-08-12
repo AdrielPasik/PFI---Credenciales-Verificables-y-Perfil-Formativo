@@ -729,7 +729,6 @@ test('service accepts every controlled field applicable to each CredentialType',
       type: CredentialType.course,
       payload: {
         completionDate: '2026-07-30',
-        platformName: 'Campus',
         modality: 'Online',
         externalUrl: 'https://plataforma-demo.example.com/curso/123',
         competencies: ['Diseno de sistemas'],
@@ -737,7 +736,6 @@ test('service accepts every controlled field applicable to each CredentialType',
       },
       expectedSubject: {
         completion_date: '2026-07-30',
-        platform_name: 'Campus',
         modality: 'Online',
         external_url: 'https://plataforma-demo.example.com/curso/123',
         competencies: ['Diseno de sistemas'],
@@ -1190,7 +1188,7 @@ test('service evaluates applicability against the requested final type', async (
       {
         expectedUpdatedAt: EXPECTED_UPDATED_AT,
         type: CredentialType.certification,
-        platformName: null
+        modality: null
       },
       currentUser
     ),
@@ -1277,7 +1275,7 @@ test('service applies null clearing semantics to applicable controlled fields', 
       credentialSubject: {
         achievement_name: 'Nombre anterior',
         institution_name: 'Institucion anterior',
-        platform_name: 'Campus',
+        modality: 'Virtual',
         legacy_key: 'preservada'
       }
     })
@@ -1288,7 +1286,7 @@ test('service applies null clearing semantics to applicable controlled fields', 
     'credential-1',
     {
       expectedUpdatedAt: EXPECTED_UPDATED_AT,
-      platformName: null,
+      modality: null,
       competencies: null
     },
     currentUser
@@ -1297,10 +1295,93 @@ test('service applies null clearing semantics to applicable controlled fields', 
   const subject = (updateManyCalls[0] as {
     data: { credentialSubject: Record<string, unknown> };
   }).data.credentialSubject;
-  assert.equal('platform_name' in subject, false);
+  assert.equal('modality' in subject, false);
   assert.deepEqual(subject.competencies, []);
   assert.equal('provider_name' in subject, false);
   assert.equal(subject.legacy_key, 'preservada');
+});
+
+// C4x fix: platformName ya no es editable via PATCH para ningun tipo,
+// aunque el credential.type final sea course (donde antes se aceptaba).
+// Un platform_name legacy ya persistido debe sobrevivir sin cambios a un
+// PATCH que no lo toca (no debe borrarse como un campo "no aplicable").
+test('service rejects platformName as new editable input for course, even with a null value', async () => {
+  {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({ type: CredentialType.course })
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          platformName: 'Campus nuevo'
+        },
+        currentUser
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof BadRequestException);
+        assert.equal(
+          error.message,
+          'platformName no es un dato editable. La entidad emisora es la fuente institucional de la plataforma.'
+        );
+        return true;
+      }
+    );
+    assert.deepEqual(updateManyCalls, []);
+  }
+
+  {
+    const { service, updateManyCalls } = createService({
+      credential: createCredentialRecord({ type: CredentialType.course })
+    });
+
+    await assert.rejects(
+      service.updateDraftForIssuer(
+        'issuer-1',
+        'credential-1',
+        {
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          platformName: null
+        },
+        currentUser
+      ),
+      BadRequestException
+    );
+    assert.deepEqual(updateManyCalls, []);
+  }
+});
+
+test('service preserves a legacy platform_name untouched when patching an unrelated field on a course draft', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({
+      type: CredentialType.course,
+      credentialSubject: {
+        achievement_name: 'Nombre anterior',
+        institution_name: 'Institucion anterior',
+        platform_name: 'Plataforma legacy',
+        legacy_key: 'preservada'
+      }
+    })
+  });
+
+  await service.updateDraftForIssuer(
+    'issuer-1',
+    'credential-1',
+    {
+      expectedUpdatedAt: EXPECTED_UPDATED_AT,
+      competencies: ['Diseno de sistemas']
+    },
+    currentUser
+  );
+
+  const subject = (updateManyCalls[0] as {
+    data: { credentialSubject: Record<string, unknown> };
+  }).data.credentialSubject;
+  assert.equal(subject.platform_name, 'Plataforma legacy');
+  assert.deepEqual(subject.competencies, ['Diseno de sistemas']);
 });
 
 test('service rejects an expiration date before the resulting completion date', async () => {

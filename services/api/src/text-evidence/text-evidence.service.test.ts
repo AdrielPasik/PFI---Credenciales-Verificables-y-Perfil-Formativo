@@ -14,7 +14,10 @@ import {
 } from '@prisma/client';
 
 import { textEvidenceResponseSelect } from './text-evidence.mapper';
-import { TextEvidenceService } from './text-evidence.service';
+import {
+  SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL,
+  TextEvidenceService
+} from './text-evidence.service';
 
 const CURRENT_USER = {
   id: 'issuer-user-1',
@@ -405,7 +408,8 @@ test('ensureSystemGeneratedCurrentTextEvidenceForCredential creates a current ro
   const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-1',
     'Nombre del curso:\nPython Bootcamp',
-    'issuer-user-1'
+    'issuer-user-1',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
 
   assert.deepEqual(calls.transactions, [
@@ -446,7 +450,8 @@ test('ensureSystemGeneratedCurrentTextEvidenceForCredential reuses an existing c
   const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-1',
     'Nombre del curso:\nPython Bootcamp',
-    'issuer-user-1'
+    'issuer-user-1',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
 
   assert.deepEqual(result, { ...existing, reused: true });
@@ -467,7 +472,8 @@ test('ensureSystemGeneratedCurrentTextEvidenceForCredential never replaces an ex
   const result = await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-1',
     'Contenido totalmente distinto generado por el sistema para este curso.',
-    'issuer-user-1'
+    'issuer-user-1',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
 
   assert.equal(result.id, existing.id);
@@ -483,12 +489,14 @@ test('ensureSystemGeneratedCurrentTextEvidenceForCredential computes a stable re
   const resultA = await first.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-1',
     'Contenido identico',
-    'issuer-user-1'
+    'issuer-user-1',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
   const resultB = await second.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-2',
     'Contenido identico',
-    'issuer-user-2'
+    'issuer-user-2',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
 
   assert.equal(resultA.sha256, resultB.sha256);
@@ -500,13 +508,33 @@ test('ensureSystemGeneratedCurrentTextEvidenceForCredential does not delete or a
   await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
     'credential-1',
     'Nombre del curso:\nPython Bootcamp',
-    'issuer-user-1'
+    'issuer-user-1',
+    SYSTEM_GENERATED_COURSE_TEXT_EVIDENCE_LABEL
   );
 
   // No updateMany/delete calls exist on the fake transaction's textEvidence
   // model at all -- if the implementation tried to call them, this test
   // setup would throw a "not a function" error instead of passing quietly.
   assert.equal(calls.creates.length, 1);
+});
+
+// C4x fix: el label ahora es un parametro explicito del caller (course vs
+// certification usan textos distintos) en vez de una constante unica fija.
+test('ensureSystemGeneratedCurrentTextEvidenceForCredential persists whatever label the caller passes', async () => {
+  const { service, calls } = setupEnsure({ existing: null });
+
+  await service.ensureSystemGeneratedCurrentTextEvidenceForCredential(
+    'credential-1',
+    'Nombre de la certificacion:\nAWS Cloud Practitioner',
+    'issuer-user-1',
+    'Texto generado para análisis desde datos declarados de la certificación'
+  );
+
+  const create = calls.creates[0] as { data: Record<string, unknown> };
+  assert.equal(
+    create.data.label,
+    'Texto generado para análisis desde datos declarados de la certificación'
+  );
 });
 
 function forbiddenWriter(name: string, calls: string[]) {

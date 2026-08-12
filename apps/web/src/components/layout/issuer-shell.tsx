@@ -31,7 +31,7 @@ export function IssuerShell({
       </a>
 
       <header className="border-b border-brand-700 bg-brand-900 text-white">
-        <div className="mx-auto w-full max-w-[var(--traza-reading-width)] px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[var(--traza-issuer-reading-width)] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <BrandMark tone="inverse" descriptor="Portal del emisor" />
             <AccountMenu
@@ -53,7 +53,7 @@ export function IssuerShell({
 
       <main
         id="issuer-main-content"
-        className="mx-auto w-full max-w-[var(--traza-reading-width)] flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
+        className="mx-auto w-full max-w-[var(--traza-issuer-reading-width)] flex-1 px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
       >
         {children}
       </main>

@@ -609,6 +609,76 @@ readiness, emision, IA ni blockchain, y no expone historial o submitter.
 
 `/me/*` toma siempre la identidad desde el JWT. No acepta `userId` externo, no expone `rawData`, `AuthCredential` ni `passwordHash`, y el holder solo puede consultar sus credenciales `issued` o `revoked`.
 
+### C4x fix — `certification` gana analisis textual automatico; `platformName` se cierra tambien backend-side
+
+C4x (ver `docs/architecture/domain-rules-v0.md`, seccion 20) fue
+exclusivamente frontend y dejo documentada deuda funcional: para
+`certification` sin PDF, la UI ya afirmaba que los datos declarados
+sirven de base textual, pero el backend nunca disparaba nada real desde
+ahi; y `platformName` dejo de ser un input en el editor de `course`, pero
+el backend seguia aceptando/persistiendo un valor arbitrario via API
+directa. Este fix (docs/architecture/domain-rules-v0.md, seccion 20.1)
+cierra ambos riesgos, sin implementar C4b, sin tocar
+`FormativeProfileService`, `services/ai-service`, `contracts`,
+blockchain, canonicalizacion/hash ni Prisma/migrations.
+
+- **`certification` sin PDF gana el mismo camino que C2b.3 (ver arriba)**:
+  `AutomaticCourseTextAnalysisService.analyzeIssuedCredentialIfEligible`
+  (metodo renombrado desde `analyzeIssuedCourseIfEligible` -- el nombre
+  de la clase quedo de cuando solo cubria `course`, no se renombro para
+  no agrandar el diff de DI/wiring en 4 archivos) ahora evalua tambien
+  `certification` `issued` sin `DocumentEvidence` PDF `current`.
+  `buildCertificationTextAnalysisContent`
+  (`services/api/src/credentials/course-text-analysis-content.ts`) usa
+  exclusivamente `achievementName`/`title`, `description`,
+  `certificationCode`, `expirationDate`, `providerName`, `level`,
+  `skills`, `competencies` -- nunca `modality`, `platformName`,
+  `academicCourseReference`/`curriculumReference`,
+  `approvedSemanticSnapshot`/`approvedSemanticAnalysisId`/
+  `lastSemanticAnalysisId`, ninguna `SemanticAnalysis` existente, datos
+  de blockchain/canonical/hash ni `rawData` completo.
+  `learningOutcomes` nunca se envia para `certification` (no existe en
+  su contrato). Misma regla de suficiencia conservadora, mismo
+  mecanismo de deduplicacion por `TextEvidence.id` exacta (incluye
+  `failed`), mismo patron best-effort/nunca-revierte, y mismo rebuild
+  automatico de perfil de C2b.4 sin cambios si el analisis completa.
+  `TextEvidenceService.ensureSystemGeneratedCurrentTextEvidenceForCredential`
+  ahora recibe un `label` explicito por tipo: course conserva *"Texto
+  generado para analisis desde datos declarados del curso"`,
+  certification usa *"Texto generado para analisis desde datos
+  declarados de la certificacion"*.
+- **`platformName` se cierra tambien backend-side para `course`**:
+  - `PATCH` de borrador (`issuer-credential-draft-subject.ts`): se
+    rechaza con `400` explicito en cuanto se envia (con o sin valor
+    `null`), para cualquier tipo. Se mantiene en el set "aplicable" de
+    `course` unicamente para que un `platform_name` legacy ya persistido
+    sobreviva sin cambios a un `PATCH` que edita otro campo -- nunca se
+    borra como efecto secundario de un patch no relacionado.
+  - Creacion de borrador (`credentials.service.ts#createDraft`): el
+    `credentialSubject` de entrada es JSON crudo sin allowlist por
+    campo (a diferencia del `PATCH`); se **ignora** (descarta)
+    `platform_name` si llega en el payload para `type=course`, en vez
+    de rechazar toda la creacion por esa unica clave -- asimetria
+    intencional y documentada respecto al `PATCH`.
+  - Templates reutilizables (`issuer-course-templates.validator.ts`):
+    `platformName` deja de estar en el allowlist de entrada de
+    `create`/`PATCH` -- se **rechaza con `400`** para cualquier
+    `credentialType`, mismo mecanismo que ya rechaza `issuerId`/
+    `createdByUserId`. `createTemplateFromCredentialForIssuer` deja de
+    copiar `platform_name` hacia un template nuevo creado desde una
+    credencial `course`.
+  - En los tres casos, un `platform_name`/`platformName` legacy ya
+    persistido sigue leyendose/mostrandose sin cambios -- nunca se
+    borra, nunca se migra, Prisma no se toco.
+  - **Ajuste puntual de frontend expuesto por este cierre backend**: el
+    `PATCH` best-effort que `apps/web` dispara tras aplicar un template
+    de `course` en C3c (`applyTemplateToNewDraft`, `new-credential-route.tsx`)
+    todavia enviaba `platformName`. Al ser un unico body, el nuevo `400`
+    del backend habria tumbado tambien `modality`/`externalUrl`/
+    `competencies`/`learningOutcomes` de ese mismo request. Se quito esa
+    unica linea del payload -- ver `apps/web/README.md`, seccion C4x, para
+    el detalle completo.
+
 ## Perfil formativo
 
 `POST /me/profile/rebuild` es un trigger local/dev explicito. Construye un snapshot `FormativeProfile` desde credenciales `issued` del holder y el ultimo `SemanticAnalysis` persistido por credencial.
