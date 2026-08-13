@@ -878,6 +878,23 @@ semantica de C4a.1, y un endpoint de solo lectura (`candidate`) para poder
 mostrar un resumen seguro ANTES de aprobar. No aplica la interpretacion a
 credenciales nuevas ni al perfil formativo (eso sigue siendo C4b).
 
+### C5 — Revisión humana antes de persistir un reusable
+
+- Un borrador `course`/`certification` puede registrar intención local de
+  reutilización, pero no crea un template. La persistencia exige que la
+  credencial esté `issued` y que el emisor apruebe explícitamente una revisión
+  de la interpretación disponible.
+- El endpoint de revisión acepta únicamente etiquetas allowlisted normalizadas
+  (NFC, trim, deduplicación case-insensitive, límites de cantidad y longitud);
+  el backend reconstruye un snapshot v2. No actualiza `SemanticAnalysis`, no
+  utiliza ids externos como autoridad y no acepta HTML ni JSON como labels.
+- Los `qualityFlags` se traducen a observaciones de usuario; códigos técnicos
+  desconocidos no se exponen. Los templates legacy conservan sus snapshots
+  v1 y pueden revisarse nuevamente para generar v2.
+- El perfil formativo conserva fuentes separadas: datos declarados del emisor,
+  inferencias de IA, horas oficiales y estimaciones. Su síntesis es
+  determinística y prudente; no certifica habilidades ni reemplaza C4b.
+
 - **La revision es obligatoria antes de aprobar**: la UI nunca muestra el
   boton "Aprobar interpretación para reutilización" hasta que el resumen
   candidato (endpoint `candidate` de solo lectura) cargo con exito. Si la

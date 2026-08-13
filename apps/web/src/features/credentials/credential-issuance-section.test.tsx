@@ -335,7 +335,7 @@ describe('CredentialIssuanceSection', () => {
     ).toBeNull();
   });
 
-  it('includes automatic analysis and optional-data warnings in a PDF confirmation', () => {
+  it('uses course-specific optional-data recommendations in a PDF confirmation', () => {
     render(
       <CredentialIssuanceSection
         detail={detailFixture({
@@ -351,10 +351,44 @@ describe('CredentialIssuanceSection', () => {
       screen.getByText(/intentará generar automáticamente un análisis documental/i)
     ).toBeTruthy();
     expect(screen.getByText('Datos recomendados pendientes')).toBeTruthy();
-    expect(
-      screen.getByText(/fecha de finalización, período académico, calificación/i)
-    ).toBeTruthy();
-    expect(screen.getByText(/habilidades o competencias/i)).toBeTruthy();
+    const warning = screen.getByText(/campos opcionales incompletos/i)
+      .parentElement?.textContent ?? '';
+    expect(warning).toMatch(
+      /descripción, horas oficiales declaradas, modalidad, competencias, contenido e información adicional, URL del curso/i
+    );
+    expect(warning).not.toMatch(/período académico|calificación|habilidades/i);
+  });
+
+  it('keeps academic recommendations scoped to academic subjects', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({ type: 'academic_subject' })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    const warning = screen.getByText(/campos opcionales incompletos/i)
+      .parentElement?.textContent ?? '';
+    expect(warning).toMatch(/período académico|calificación/i);
+    expect(warning).not.toMatch(/URL del curso|modalidad/i);
+  });
+
+  it('uses certification fields without academic or course-only recommendations', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={detailFixture({ type: 'certification' })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    const warning = screen.getByText(/campos opcionales incompletos/i)
+      .parentElement?.textContent ?? '';
+    expect(warning).toMatch(/código de certificación|proveedor de la certificación/i);
+    expect(warning).not.toMatch(/período académico|calificación|modalidad|platformName/i);
   });
 
   it('shows an honest issued state without blockchain evidence', () => {

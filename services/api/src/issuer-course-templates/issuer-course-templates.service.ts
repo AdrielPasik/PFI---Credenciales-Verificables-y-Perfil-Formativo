@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { CourseTemplateStatus, CredentialType, Prisma } from '@prisma/client';
+import {
+  CourseTemplateStatus,
+  CredentialStatus,
+  CredentialType,
+  Prisma
+} from '@prisma/client';
 
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
@@ -14,6 +19,8 @@ import { TemplateSemanticApprovalCandidateResponseDto } from './dto/template-sem
 import {
   assertSemanticAnalysisStatusIsUsable,
   buildApprovedTemplateSemanticSnapshot,
+  buildReviewedApprovedTemplateSemanticSnapshot,
+  humanSemanticNotes,
   normalizeTitleForComparison,
   readSubjectStringArray,
   readSubjectText,
@@ -183,6 +190,7 @@ export class IssuerCourseTemplatesService {
       },
       select: {
         id: true,
+        status: true,
         type: true,
         title: true,
         description: true,
@@ -198,6 +206,12 @@ export class IssuerCourseTemplatesService {
 
     if (!credential) {
       throw new NotFoundException(CREDENTIAL_NOT_FOUND_MESSAGE);
+    }
+
+    if (credential.status !== CredentialStatus.issued) {
+      throw new BadRequestException(
+        'La credencial debe estar emitida antes de guardarse como reutilizable.'
+      );
     }
 
     // C3a.2: academic_subject y degree se rechazan aca (400) -- solo
@@ -365,7 +379,8 @@ export class IssuerCourseTemplatesService {
     issuerId: string,
     templateId: string,
     semanticAnalysisId: string,
-    currentUser: AuthenticatedUser
+    currentUser: AuthenticatedUser,
+    reviewedInput?: unknown
   ): Promise<CourseTemplateResponseDto> {
     const { template, semanticAnalysis } =
       await this.resolveApprovableSemanticAnalysis(
@@ -375,7 +390,7 @@ export class IssuerCourseTemplatesService {
         currentUser
       );
 
-    const snapshot = buildApprovedTemplateSemanticSnapshot({
+    const snapshot = buildReviewedApprovedTemplateSemanticSnapshot(semanticAnalysis.id, {
       schemaVersion: semanticAnalysis.schemaVersion,
       status: semanticAnalysis.status,
       areas: semanticAnalysis.areas,
@@ -384,7 +399,7 @@ export class IssuerCourseTemplatesService {
       qualityFlags: semanticAnalysis.qualityFlags,
       confidence: semanticAnalysis.confidence,
       analysisJson: semanticAnalysis.analysisJson
-    });
+    }, reviewedInput);
 
     const updated = (await this.prisma.issuerCourseTemplate.update({
       where: { id: template.id },
@@ -438,6 +453,11 @@ export class IssuerCourseTemplatesService {
       pipelineVersion: semanticAnalysis.pipelineVersion,
       taxonomyVersion: semanticAnalysis.taxonomyVersion,
       sourceCredentialId: semanticAnalysis.credentialId,
+      areas: snapshot.areas.map(({ label, confidence }) => ({ label, confidence })),
+      skills: snapshot.skills.map(({ label, confidence }) => ({ label, confidence })),
+      concepts: snapshot.concepts.map(({ label, confidence }) => ({ label, confidence })),
+      warnings: humanSemanticNotes(snapshot.warnings),
+      qualityNotes: humanSemanticNotes(snapshot.qualityFlags),
       summary: {
         schema: snapshot.schema,
         status: snapshot.status,
@@ -449,6 +469,117 @@ export class IssuerCourseTemplatesService {
         qualityFlagCount: snapshot.qualityFlags.length
       }
     };
+  }
+
+  // C5: a candidate can be reviewed before a reusable template exists. This
+  // path is read-only; persistence starts only in the explicit approval POST.
+  async getCredentialSemanticApprovalCandidateForIssuer(
+    issuerId: string,
+    credentialId: string,
+    semanticAnalysisId: string,
+    currentUser: AuthenticatedUser
+  ): Promise<TemplateSemanticApprovalCandidateResponseDto> {
+    const { semanticAnalysis } = await this.resolveCredentialSemanticAnalysis(
+      issuerId,
+      credentialId,
+      semanticAnalysisId,
+      currentUser
+    );
+    return this.toApprovalCandidate(semanticAnalysis);
+  }
+
+  async approveCredentialSemanticAnalysisForIssuer(
+    issuerId: string,
+    credentialId: string,
+    semanticAnalysisId: string,
+    currentUser: AuthenticatedUser,
+    reviewedInput?: unknown
+  ): Promise<CourseTemplateResponseDto> {
+    const { credential, semanticAnalysis } =
+      await this.resolveCredentialSemanticAnalysis(
+        issuerId,
+        credentialId,
+        semanticAnalysisId,
+        currentUser
+      );
+    // Validate and construct before any template write. The raw analysis is
+    // never changed; this is the v2 reviewer-owned snapshot.
+    const snapshot = buildReviewedApprovedTemplateSemanticSnapshot(
+      semanticAnalysis.id,
+      semanticAnalysis,
+      reviewedInput
+    );
+    const existing = await this.prisma.issuerCourseTemplate.findFirst({
+      where: { issuerId, createdFromCredentialId: credential.id, status: CourseTemplateStatus.active },
+      select: { id: true }
+    });
+    const templateId = existing?.id ?? (
+      await this.createTemplateFromCredentialForIssuer(issuerId, credentialId, currentUser)
+    ).id;
+    const updated = (await this.prisma.issuerCourseTemplate.update({
+      where: { id: templateId },
+      data: {
+        approvedSemanticAnalysisId: semanticAnalysis.id,
+        approvedSemanticSnapshot: snapshot as unknown as Prisma.InputJsonValue,
+        approvedSemanticApprovedByUserId: currentUser.id,
+        approvedSemanticApprovedAt: new Date(),
+        approvedSemanticPipelineVersion: semanticAnalysis.pipelineVersion,
+        approvedSemanticTaxonomyVersion: semanticAnalysis.taxonomyVersion,
+        approvedSemanticSourceCredentialId: credential.id
+      },
+      select: COURSE_TEMPLATE_RESPONSE_SELECT
+    })) as CourseTemplateRecord;
+    return mapCourseTemplateResponse(updated);
+  }
+
+  private toApprovalCandidate(semanticAnalysis: {
+    id: string; credentialId: string; status: 'completed' | 'partial'; schemaVersion: string;
+    pipelineVersion: string; taxonomyVersion: string; areas: Prisma.JsonValue; skills: Prisma.JsonValue;
+    concepts: Prisma.JsonValue; qualityFlags: Prisma.JsonValue; confidence: unknown; analysisJson: Prisma.JsonValue | null;
+  }): TemplateSemanticApprovalCandidateResponseDto {
+    const snapshot = buildApprovedTemplateSemanticSnapshot(semanticAnalysis);
+    return {
+      semanticAnalysisId: semanticAnalysis.id, status: semanticAnalysis.status,
+      pipelineVersion: semanticAnalysis.pipelineVersion, taxonomyVersion: semanticAnalysis.taxonomyVersion,
+      sourceCredentialId: semanticAnalysis.credentialId,
+      areas: snapshot.areas.map(({ label, confidence }) => ({ label, confidence })),
+      skills: snapshot.skills.map(({ label, confidence }) => ({ label, confidence })),
+      concepts: snapshot.concepts.map(({ label, confidence }) => ({ label, confidence })),
+      warnings: humanSemanticNotes(snapshot.warnings), qualityNotes: humanSemanticNotes(snapshot.qualityFlags),
+      summary: { schema: snapshot.schema, status: snapshot.status, areaCount: snapshot.areas.length,
+        skillCount: snapshot.skills.length, conceptCount: snapshot.concepts.length,
+        hasHoursDistribution: snapshot.hoursDistribution.length > 0,
+        warningCount: snapshot.warnings.length, qualityFlagCount: snapshot.qualityFlags.length }
+    };
+  }
+
+  private async resolveCredentialSemanticAnalysis(
+    issuerId: string, credentialId: string, semanticAnalysisId: string, currentUser: AuthenticatedUser
+  ) {
+    await this.issuersService.assertUserCanManageCourseTemplatesForIssuer(currentUser.id, issuerId);
+    const credential = await this.prisma.credential.findFirst({
+      where: { id: credentialId, issuerId },
+      select: { id: true, status: true, type: true }
+    });
+    if (!credential) throw new NotFoundException(CREDENTIAL_NOT_FOUND_MESSAGE);
+    if (credential.status !== CredentialStatus.issued) {
+      throw new BadRequestException(
+        'La credencial debe estar emitida antes de guardarse como reutilizable.'
+      );
+    }
+    resolveReusableCredentialType(credential.type);
+    const semanticAnalysis = await this.prisma.semanticAnalysis.findFirst({
+      where: { id: semanticAnalysisId },
+      select: { id: true, credentialId: true, status: true, schemaVersion: true, pipelineVersion: true,
+        taxonomyVersion: true, areas: true, skills: true, concepts: true, qualityFlags: true,
+        confidence: true, analysisJson: true, credential: { select: { id: true, type: true, issuerId: true } } }
+    });
+    if (!semanticAnalysis || semanticAnalysis.credentialId !== credential.id || semanticAnalysis.credential.issuerId !== issuerId) {
+      throw new NotFoundException(SEMANTIC_ANALYSIS_NOT_FOUND_MESSAGE);
+    }
+    if (semanticAnalysis.credential.type !== credential.type) throw new BadRequestException(SEMANTIC_ANALYSIS_TYPE_MISMATCH_MESSAGE);
+    assertSemanticAnalysisStatusIsUsable(semanticAnalysis.status);
+    return { credential, semanticAnalysis };
   }
 
   // Validaciones compartidas por el POST de aprobacion (C4a.1) y el GET de

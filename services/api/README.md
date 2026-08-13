@@ -551,6 +551,17 @@ igual que ya ocurre con PDFs desde antes de C2b.
 
 ### C2b.4 — Reconstrucción automática del perfil holder tras análisis IA exitoso
 
+### C5 — Revisión semántica antes de reutilizar
+
+Una credencial `course` o `certification` solo puede convertirse en un
+template reutilizable cuando ya está `issued`. El emisor revisa labels
+allowlisted de áreas, habilidades y conceptos y el backend persiste un
+snapshot `approved_template_semantic_snapshot_v2`; no modifica el
+`SemanticAnalysis` original, la credencial ni el perfil. Los templates legacy
+con snapshot v1 siguen siendo compatibles y pueden revisarse nuevamente. C4b
+sigue pendiente: ningún snapshot aprobado se aplica a una credencial futura o
+al perfil.
+
 Después de que un análisis IA **automático** (`trigger=system`, documental
 o textual) termina `completed` y ya persistió un `SemanticAnalysis`, el
 backend reconstruye el `FormativeProfile` actual del holder de forma

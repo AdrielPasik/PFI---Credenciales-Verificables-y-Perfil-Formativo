@@ -98,6 +98,8 @@ export interface HolderProfileVM {
   /** "N credenciales todavía no tienen análisis semántico." Null cuando no
    * hay ninguna (o el contador no esta disponible en un perfil pre-C2c). */
   semanticCoverageNoticeLabel: string | null;
+  /** Síntesis prudente y determinística del perfil, no una certificación. */
+  narrative: string | null;
   areas: Array<{ label: string; estimatedHoursLabel: string | null }>;
   /** Inferido/agregado por análisis de IA. Ver emittedSkills para lo declarado por el emisor. */
   skills: Array<{ label: string; confidenceLabel: string | null }>;

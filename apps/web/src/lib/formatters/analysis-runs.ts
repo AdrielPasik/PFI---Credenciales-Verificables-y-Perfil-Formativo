@@ -35,7 +35,16 @@ const sourceLabels: Record<AnalysisRunSourceType, string> = {
 
 const knownQualityFlagLabels: Record<string, string> = {
   low_coverage: 'Cobertura limitada',
-  qualitative_only: 'Resultado principalmente cualitativo'
+  qualitative_only: 'Resultado principalmente cualitativo',
+  area_assignment_low_confidence:
+    'La asignación de área tiene confianza baja.',
+  semantic_quality_low: 'La cobertura semántica es limitada.',
+  skills_detection_reliability_medium:
+    'La detección de habilidades requiere revisión.',
+  hours_distribution_reliability_low_or_absent:
+    'La distribución horaria no está disponible o tiene baja confiabilidad.',
+  no_curricular_sections_detected:
+    'No se detectaron secciones curriculares estructuradas.'
 };
 
 export function formatAnalysisRunStatus(status: AnalysisRunStatus) {
@@ -65,7 +74,5 @@ export function formatQualityFlag(flag: string) {
     return known;
   }
 
-  const words = flag.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
-  return words.charAt(0).toLocaleUpperCase('es-AR') + words.slice(1);
+  return 'El análisis incluye observaciones técnicas que requieren revisión.';
 }
-

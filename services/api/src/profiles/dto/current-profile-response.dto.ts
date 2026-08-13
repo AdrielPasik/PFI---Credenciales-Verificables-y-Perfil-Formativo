@@ -30,6 +30,7 @@ export interface HolderCurrentProfileResponseDto {
     totalOfficialHours: number | null;
     credentialsWithoutHours: number | null;
     credentialsWithoutSemanticCoverage: number | null;
+    narrative: string | null;
     areas: Array<{ label: string; estimatedHours: number | null }>;
     // Inferido por IA a partir de SemanticAnalysis. Ver emittedSkills para
     // habilidades cargadas por el emisor (dato distinto, nunca certificado

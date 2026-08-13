@@ -8,6 +8,8 @@ import {
   assertSemanticAnalysisStatusIsUsable,
   buildApprovedSemanticSnapshotSummary,
   buildApprovedTemplateSemanticSnapshot,
+  buildReviewedApprovedTemplateSemanticSnapshot,
+  humanSemanticNotes,
   normalizeTitleForComparison,
   readSubjectStringArray,
   readSubjectText,
@@ -322,6 +324,32 @@ test('buildApprovedTemplateSemanticSnapshot never leaks raw/internal keys presen
       `El snapshot no debe contener la clave prohibida "${key}"`
     );
   }
+});
+
+test('C5 builds a v2 issuer-reviewed snapshot without mutating the source analysis', () => {
+  const source = baseSemanticAnalysis();
+  const snapshot = buildReviewedApprovedTemplateSemanticSnapshot('analysis-1', source, {
+    reviewedAreas: [{ label: '  Gestión de proyectos  ' }],
+    reviewedSkills: [{ label: 'Scrum' }, { label: 'scrum' }, { label: 'Kanban' }],
+    reviewedConcepts: [{ label: 'backlog' }],
+    reviewNote: '  Revisión institucional.  '
+  });
+  assert.equal(snapshot.schema, 'approved_template_semantic_snapshot_v2');
+  assert.deepEqual(snapshot.areas.map((item) => item.label), ['Gestión de proyectos']);
+  assert.deepEqual(snapshot.skills.map((item) => item.label), ['Scrum', 'Kanban']);
+  assert.equal(snapshot.review.note, 'Revisión institucional.');
+  assert.deepEqual(source.skills, [{ id: 'skill-1', label: 'Python', confidence: 0.8 }]);
+});
+
+test('C5 rejects unsafe reviewed labels and keeps human quality notes free of technical identifiers', () => {
+  assert.throws(
+    () => buildReviewedApprovedTemplateSemanticSnapshot('analysis-1', baseSemanticAnalysis(), { reviewedAreas: [{ label: '<script>' }] }),
+    BadRequestException
+  );
+  assert.deepEqual(humanSemanticNotes(['area_assignment_low_confidence', 'future_internal_flag']), [
+    'La asignación de área tiene confianza baja.',
+    'El análisis incluye observaciones técnicas que requieren revisión.'
+  ]);
 });
 
 test('buildApprovedSemanticSnapshotSummary computes counts from a valid snapshot', () => {

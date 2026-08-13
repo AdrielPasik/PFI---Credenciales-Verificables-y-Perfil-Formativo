@@ -82,6 +82,7 @@ interface FormativeProfileJson {
     credentialIds: string[];
     semanticAnalysisIds: string[];
   };
+  narrative: string | null;
   summary: {
     credentialsCount: number;
     analyzedCredentialsCount: number;
@@ -430,6 +431,15 @@ export class FormativeProfileService {
     }
 
     const areas = this.finalizeAreas(areaAccumulators);
+    const skills = this.finalizeSkills(skillAccumulators);
+    const concepts = this.finalizeConcepts(conceptAccumulators);
+    const emittedSkills = this.finalizeEmitted(emittedSkillAccumulators);
+    const emittedCompetencies = this.finalizeEmitted(
+      emittedCompetencyAccumulators
+    );
+    const emittedLearningOutcomes = this.finalizeEmitted(
+      emittedLearningOutcomeAccumulators
+    );
     const totalHours =
       knownHours.length > 0 ? this.round(this.sum(knownHours), 2) : null;
 
@@ -471,14 +481,22 @@ export class FormativeProfileService {
         credentialsWithoutHours,
         credentialsWithoutSemanticCoverage
       },
+      narrative: this.buildNarrative({
+        credentialsCount: credentials.length,
+        totalHours,
+        credentialsWithoutHours,
+        credentialsWithoutSemanticCoverage,
+        areas,
+        skills,
+        emittedCompetencies,
+        emittedLearningOutcomes
+      }),
       areas,
-      skills: this.finalizeSkills(skillAccumulators),
-      concepts: this.finalizeConcepts(conceptAccumulators),
-      emittedSkills: this.finalizeEmitted(emittedSkillAccumulators),
-      emittedCompetencies: this.finalizeEmitted(emittedCompetencyAccumulators),
-      emittedLearningOutcomes: this.finalizeEmitted(
-        emittedLearningOutcomeAccumulators
-      ),
+      skills,
+      concepts,
+      emittedSkills,
+      emittedCompetencies,
+      emittedLearningOutcomes,
       confidence: {
         score:
           globalConfidenceValues.length > 0
@@ -489,6 +507,59 @@ export class FormativeProfileService {
       },
       warnings: [...warnings].sort()
     };
+  }
+
+  private buildNarrative(input: {
+    credentialsCount: number;
+    totalHours: number | null;
+    credentialsWithoutHours: number;
+    credentialsWithoutSemanticCoverage: number;
+    areas: ProfileArea[];
+    skills: ProfileSkill[];
+    emittedCompetencies: ProfileEmittedEntry[];
+    emittedLearningOutcomes: ProfileEmittedEntry[];
+  }): string | null {
+    if (input.credentialsCount === 0) {
+      return null;
+    }
+
+    const fragments = ['Segun las credenciales emitidas y los analisis disponibles, la trayectoria muestra formacion'];
+    const areas = input.areas.slice(0, 3).map((area) => area.area);
+    const skills = input.skills.slice(0, 4).map((skill) => skill.skill);
+    const declared = [
+      ...input.emittedCompetencies.slice(0, 2).map((item) => item.label),
+      ...input.emittedLearningOutcomes.slice(0, 2).map((item) => item.label)
+    ];
+
+    if (areas.length > 0) {
+      fragments[0] += ` en ${this.naturalList(areas)}.`;
+    } else if (declared.length > 0) {
+      fragments[0] += ` en contenidos declarados por el emisor.`;
+    } else {
+      fragments[0] += ` en las credenciales registradas.`;
+    }
+
+    if (skills.length > 0) {
+      fragments.push(`Se observan contenidos relacionados con ${this.naturalList(skills)}.`);
+    }
+
+    if (input.totalHours !== null) {
+      fragments.push(`Las horas oficiales declaradas suman ${input.totalHours}.`);
+    }
+    if (input.credentialsWithoutHours > 0) {
+      fragments.push('La cobertura de horas es parcial porque algunas credenciales no las informan.');
+    }
+    if (input.credentialsWithoutSemanticCoverage > 0) {
+      fragments.push('La cobertura semantica todavia es parcial porque algunas credenciales no tienen analisis disponible.');
+    }
+
+    return fragments.join(' ');
+  }
+
+  private naturalList(labels: string[]): string {
+    if (labels.length <= 1) return labels[0] ?? '';
+    if (labels.length === 2) return `${labels[0]} y ${labels[1]}`;
+    return `${labels.slice(0, -1).join(', ')} y ${labels.at(-1)}`;
   }
 
   /**

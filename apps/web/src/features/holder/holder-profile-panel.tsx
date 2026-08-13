@@ -22,6 +22,7 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
           <div>
             <h2 id="holder-profile-summary-title" className="text-xl font-semibold">Resumen del perfil</h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
+            {profile.narrative ? <p className="mt-4 max-w-2xl text-sm leading-6 text-brand-100">{profile.narrative}</p> : null}
             {profile.totalOfficialHoursLabel ? <p className="mt-2 max-w-2xl text-xs leading-5 text-brand-100/70">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
           </div>
         </CardHeader>
@@ -55,7 +56,7 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
           <CardContent className="grid gap-5">
             {profile.emittedSkills.length > 0 ? <DeclaredBlock title="Habilidades declaradas" items={profile.emittedSkills} /> : null}
             {profile.emittedCompetencies.length > 0 ? <DeclaredBlock title="Competencias declaradas" items={profile.emittedCompetencies} /> : null}
-            {profile.emittedLearningOutcomes.length > 0 ? <DeclaredBlock title="Resultados de aprendizaje declarados" items={profile.emittedLearningOutcomes} /> : null}
+            {profile.emittedLearningOutcomes.length > 0 ? <DeclaredBlock title="Contenido adicional declarado" items={profile.emittedLearningOutcomes} /> : null}
           </CardContent>
         </Card>
       ) : null}

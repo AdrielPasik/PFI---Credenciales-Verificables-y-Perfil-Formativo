@@ -357,23 +357,7 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
   const hasSupportEvidence = hasUploadedEvidence || hasDeclarativeBacking;
   const hasReusableTextSource =
     isReusableType && (hasText || hasDeclarativeBacking);
-  const recommendations: string[] = [];
-
-  if (!detail.credentialSubject.completionDate) {
-    recommendations.push('fecha de finalización');
-  }
-  if (!detail.credentialSubject.academicPeriod) {
-    recommendations.push('período académico');
-  }
-  if (!detail.credentialSubject.grade) {
-    recommendations.push('calificación');
-  }
-  if (
-    detail.credentialSubject.skills.length === 0 &&
-    detail.credentialSubject.competencies.length === 0
-  ) {
-    recommendations.push('habilidades o competencias');
-  }
+  const recommendations = buildOptionalFieldRecommendations(detail);
 
   return {
     hasPdf,
@@ -397,6 +381,63 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
       ? 'Se intentará al emitir'
       : 'No disponible automáticamente'
   };
+}
+
+// These are preparation hints only. Each credential type owns its own list so
+// academic fields can never leak into course/certification issuance copy.
+function buildOptionalFieldRecommendations(
+  detail: IssuerCredentialDetailVM
+): string[] {
+  const subject = detail.credentialSubject;
+  const recommendations: string[] = [];
+  const addWhenMissing = (value: string | null, label: string) => {
+    if (!value) {
+      recommendations.push(label);
+    }
+  };
+  const addArrayWhenEmpty = (value: string[], label: string) => {
+    if (value.length === 0) {
+      recommendations.push(label);
+    }
+  };
+
+  switch (detail.type) {
+    case 'course':
+      addWhenMissing(detail.description, 'descripción');
+      addWhenMissing(detail.hours, 'horas oficiales declaradas');
+      addWhenMissing(subject.modality, 'modalidad');
+      addArrayWhenEmpty(subject.competencies, 'competencias');
+      addArrayWhenEmpty(
+        subject.learningOutcomes,
+        'contenido e información adicional'
+      );
+      addWhenMissing(subject.externalUrl, 'URL del curso');
+      break;
+    case 'certification':
+      addWhenMissing(detail.description, 'descripción');
+      addWhenMissing(detail.hours, 'horas oficiales declaradas');
+      addWhenMissing(subject.certificationCode, 'código de certificación');
+      addWhenMissing(subject.expirationDate, 'fecha de vencimiento');
+      addWhenMissing(subject.providerName, 'proveedor de la certificación');
+      addWhenMissing(subject.level, 'nivel');
+      addArrayWhenEmpty(subject.skills, 'habilidades');
+      addArrayWhenEmpty(subject.competencies, 'competencias');
+      break;
+    case 'academic_subject':
+      addWhenMissing(subject.completionDate, 'fecha de finalización');
+      addWhenMissing(subject.academicPeriod, 'período académico');
+      addWhenMissing(subject.grade, 'calificación');
+      if (subject.skills.length === 0 && subject.competencies.length === 0) {
+        recommendations.push('habilidades o competencias');
+      }
+      break;
+    case 'degree':
+      addWhenMissing(subject.completionDate, 'fecha de finalización');
+      addWhenMissing(subject.programName, 'programa académico');
+      break;
+  }
+
+  return recommendations;
 }
 
 function IssuedCredentialContent({

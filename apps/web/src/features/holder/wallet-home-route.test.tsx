@@ -11,6 +11,7 @@ const credential = {
 const profile = {
   profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalOfficialHoursLabel: '64 horas',
   hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null,
+  narrative: 'Según las credenciales emitidas y los análisis disponibles, la trayectoria muestra formación en Software.',
   areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA' }],
   skills: [{ label: 'Diseño', confidenceLabel: '80% de confianza' }], concepts: ['arquitectura'],
   emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
@@ -50,12 +51,18 @@ describe('WalletHomeView', () => {
     expect(screen.queryByText(/proviene de esta credencial/i)).toBeNull();
   });
 
+  it('shows the prudent formative narrative without claiming mastery or AI certification', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.getByText(profile.narrative)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/domina|experto|garantiza|certifica|apto para|nivel profesional/i);
+  });
+
   it('shows the declared-by-institutions section when emitted data is present', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
     expect(screen.getByRole('heading', { level: 2, name: 'Información declarada por instituciones' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Habilidades declaradas' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Competencias declaradas' })).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 3, name: 'Resultados de aprendizaje declarados' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Contenido adicional declarado' })).toBeTruthy();
     expect(screen.getByText('Excel')).toBeTruthy();
     expect(screen.getByText('Trabajo en equipo')).toBeTruthy();
     expect(screen.getByText('Redactar informes técnicos')).toBeTruthy();
@@ -71,7 +78,7 @@ describe('WalletHomeView', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: partial }} credentialsState={credentialsReady} />);
     expect(screen.getByRole('heading', { level: 3, name: 'Habilidades declaradas' })).toBeTruthy();
     expect(screen.queryByRole('heading', { level: 3, name: 'Competencias declaradas' })).toBeNull();
-    expect(screen.queryByRole('heading', { level: 3, name: 'Resultados de aprendizaje declarados' })).toBeNull();
+    expect(screen.queryByRole('heading', { level: 3, name: 'Contenido adicional declarado' })).toBeNull();
   });
 
   it('keeps profile skills and declared-by-institutions skills visually separate', () => {

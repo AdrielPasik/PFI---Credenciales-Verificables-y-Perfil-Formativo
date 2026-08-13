@@ -147,8 +147,11 @@ describe('analysis run adapters', () => {
 
     expect(result.semanticAnalysis?.qualityFlagLabels).toEqual([
       'Cobertura limitada',
-      'Future flag'
+      'El análisis incluye observaciones técnicas que requieren revisión.'
     ]);
+    expect(result.semanticAnalysis?.qualityFlagLabels.join(' ')).not.toContain(
+      'future_flag'
+    );
     expect(JSON.stringify(result)).not.toMatch(
       /analysisJson|textForEmbedding|evidenceMap|storageKey/
     );

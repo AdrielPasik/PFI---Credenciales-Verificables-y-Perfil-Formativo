@@ -395,6 +395,30 @@ export interface ApproveTemplateSemanticAnalysisCommand {
   issuerReference: string;
   templateReference: string;
   semanticAnalysisReference: string;
+  review?: ReviewedSemanticInterpretationCommand;
+}
+
+export interface ReviewedSemanticLabelCommand {
+  label: string;
+}
+
+export interface ReviewedSemanticInterpretationCommand {
+  reviewedAreas: ReviewedSemanticLabelCommand[];
+  reviewedSkills: ReviewedSemanticLabelCommand[];
+  reviewedConcepts: ReviewedSemanticLabelCommand[];
+  reviewNote?: string | null;
+}
+
+export interface GetCredentialSemanticApprovalCandidateCommand {
+  issuerReference: string;
+  credentialReference: string;
+  semanticAnalysisReference: string;
+  signal?: AbortSignal;
+}
+
+export interface ApproveCredentialSemanticAnalysisCommand
+  extends GetCredentialSemanticApprovalCandidateCommand {
+  review: ReviewedSemanticInterpretationCommand;
 }
 
 // C4a.2: resumen seguro de una SemanticAnalysis candidata, ANTES de
@@ -406,5 +430,15 @@ export interface TemplateSemanticApprovalCandidateVM {
   pipelineVersion: string | null;
   taxonomyVersion: string | null;
   sourceCredentialReference: string | null;
+  areas: SemanticApprovalCandidateItemVM[];
+  skills: SemanticApprovalCandidateItemVM[];
+  concepts: SemanticApprovalCandidateItemVM[];
+  warnings: string[];
+  qualityNotes: string[];
   summary: SemanticApprovalSnapshotSummaryVM;
+}
+
+export interface SemanticApprovalCandidateItemVM {
+  label: string;
+  confidence: number | null;
 }

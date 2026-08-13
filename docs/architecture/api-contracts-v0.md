@@ -1483,3 +1483,38 @@ tokens/secrets -- mismo allowlist que el summary de C4a.1
   este flujo. Aplicar la interpretacion aprobada a credenciales nuevas o
   al perfil formativo sigue pendiente para C4b. Un endpoint de
   revocacion/re-aprobacion tampoco se implemento en este slice.
+
+### C5: revision semantica reutilizable desde una credencial emitida
+
+Los dos endpoints son issuer-facing, requieren `AuthGuard` y membership
+activa `admin`/`operator` para un issuer `authorized`. Aplican unicamente a
+credenciales `issued` de tipo `course` o `certification`:
+
+```text
+GET  /issuers/:issuerId/course-templates/approval-candidate/from-credential/:credentialId/semantic-analysis/:semanticAnalysisId
+POST /issuers/:issuerId/course-templates/from-credential/:credentialId/approved-analysis/from-semantic-analysis/:semanticAnalysisId
+```
+
+El `GET` es de solo lectura y devuelve un candidato seguro editable con
+`areas`, `skills`, `concepts`, `warnings`, `qualityNotes` humanizados y un
+`summary`. Nunca devuelve `analysisJson` crudo, `sourceRefs`, `evidenceMap`,
+`textForEmbedding`, texto crudo, paths de almacenamiento, datos privados del
+holder, ni campos de blockchain/canon/hash.
+
+El `POST` acepta opcionalmente solo este body allowlisted:
+
+```json
+{
+  "reviewedAreas": [{ "label": "..." }],
+  "reviewedSkills": [{ "label": "..." }],
+  "reviewedConcepts": [{ "label": "..." }],
+  "reviewNote": "..."
+}
+```
+
+El backend normaliza los labels (trim y NFC), deduplica sin distinguir
+mayusculas/minusculas y aplica limites de cantidad, longitud y formato. Luego
+persiste `approved_template_semantic_snapshot_v2` en el template reutilizable.
+No muta la `SemanticAnalysis`, no modifica la credencial original y no crea
+una credencial nueva. El snapshot todavia no se aplica a credenciales futuras
+ni al perfil formativo: C4b sigue pendiente.

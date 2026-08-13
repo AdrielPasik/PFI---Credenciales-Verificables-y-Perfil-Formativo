@@ -141,6 +141,8 @@ export function resolveReusableCredentialType(
 
 export const APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA =
   'approved_template_semantic_snapshot_v1';
+export const REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA =
+  'approved_template_semantic_snapshot_v2';
 
 const USABLE_SEMANTIC_ANALYSIS_STATUSES: readonly SemanticAnalysisStatus[] = [
   SemanticAnalysisStatus.completed,
@@ -169,6 +171,29 @@ export interface ApprovedTemplateSemanticSnapshot {
   confidence: number | null;
   warnings: string[];
   qualityFlags: string[];
+}
+
+export interface ReviewedTemplateSemanticApprovalInput {
+  reviewedAreas?: unknown;
+  reviewedSkills?: unknown;
+  reviewedConcepts?: unknown;
+  reviewNote?: unknown;
+}
+
+export interface ReviewedApprovedTemplateSemanticSnapshot {
+  schema: typeof REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA;
+  semanticAnalysisSchema: string;
+  sourceSemanticAnalysisId: string;
+  status: 'completed' | 'partial';
+  originalSummary: ApprovedSemanticSnapshotSummary;
+  areas: ApprovedSemanticSnapshotDescriptor[];
+  skills: ApprovedSemanticSnapshotDescriptor[];
+  concepts: ApprovedSemanticSnapshotDescriptor[];
+  hoursDistribution: ApprovedSemanticSnapshotHoursDistributionEntry[];
+  confidence: number | null;
+  warnings: string[];
+  qualityFlags: string[];
+  review: { issuerReviewed: true; note: string | null };
 }
 
 export interface ApprovedSemanticSnapshotSummary {
@@ -388,6 +413,143 @@ export function buildApprovedTemplateSemanticSnapshot(
     warnings: readWarnings(semanticAnalysis.analysisJson),
     qualityFlags: readStringArray(semanticAnalysis.qualityFlags)
   };
+}
+
+const REVIEW_LIMITS = {
+  reviewedAreas: 10,
+  reviewedSkills: 30,
+  reviewedConcepts: 50
+} as const;
+
+function reviewedLabels(
+  value: unknown,
+  field: keyof typeof REVIEW_LIMITS
+): string[] | null {
+  if (value === undefined) return null;
+  if (!Array.isArray(value) || value.length > REVIEW_LIMITS[field]) {
+    throw new BadRequestException('La revisión semántica no tiene un formato válido.');
+  }
+
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of value) {
+    if (!isRecord(entry) || Object.keys(entry).length !== 1 || typeof entry.label !== 'string') {
+      throw new BadRequestException('La revisión semántica no tiene un formato válido.');
+    }
+    const label = entry.label.normalize('NFC').trim().replace(/\s+/g, ' ');
+    if (
+      !label ||
+      label.length > 120 ||
+      /[<>]/.test(label) ||
+      /^(\{|\[)/.test(label)
+    ) {
+      throw new BadRequestException('La revisión semántica contiene etiquetas no válidas.');
+    }
+    const key = label.toLocaleLowerCase('es-AR');
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(label);
+    }
+  }
+  return result;
+}
+
+function reviewedNote(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'string') {
+    throw new BadRequestException('La revisión semántica no tiene un formato válido.');
+  }
+  const note = value.normalize('NFC').trim().replace(/\s+/g, ' ');
+  if (!note) return null;
+  if (note.length > 500 || /[<>]/.test(note)) {
+    throw new BadRequestException('La revisión semántica contiene texto no válido.');
+  }
+  return note;
+}
+
+function reviewedDescriptors(
+  original: ApprovedSemanticSnapshotDescriptor[],
+  labels: string[] | null
+): ApprovedSemanticSnapshotDescriptor[] {
+  if (labels === null) return original;
+  const originalsByLabel = new Map(
+    original.map((entry) => [entry.label.toLocaleLowerCase('es-AR'), entry])
+  );
+  return labels.map((label) => {
+    const originalEntry = originalsByLabel.get(label.toLocaleLowerCase('es-AR'));
+    return originalEntry
+      ? { ...originalEntry, label }
+      : { id: label, label, confidence: null };
+  });
+}
+
+// C5: stores the issuer-reviewed interpretation separately from the raw AI
+// analysis. Only labels may be changed; source descriptors and all sensitive
+// artifact fields remain outside this snapshot.
+export function buildReviewedApprovedTemplateSemanticSnapshot(
+  semanticAnalysisId: string,
+  semanticAnalysis: SemanticAnalysisForApprovedSnapshot,
+  input: unknown
+): ReviewedApprovedTemplateSemanticSnapshot {
+  const original = buildApprovedTemplateSemanticSnapshot(semanticAnalysis);
+  if (input !== undefined && (!isRecord(input) || Array.isArray(input))) {
+    throw new BadRequestException('La revisión semántica no tiene un formato válido.');
+  }
+  const reviewed = (input ?? {}) as ReviewedTemplateSemanticApprovalInput;
+  const areas = reviewedDescriptors(
+    original.areas,
+    reviewedLabels(reviewed.reviewedAreas, 'reviewedAreas')
+  );
+  const skills = reviewedDescriptors(
+    original.skills,
+    reviewedLabels(reviewed.reviewedSkills, 'reviewedSkills')
+  );
+  const concepts = reviewedDescriptors(
+    original.concepts,
+    reviewedLabels(reviewed.reviewedConcepts, 'reviewedConcepts')
+  );
+
+  return {
+    schema: REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA,
+    semanticAnalysisSchema: original.semanticAnalysisSchema,
+    sourceSemanticAnalysisId: semanticAnalysisId,
+    status: original.status,
+    originalSummary: {
+      schema: original.schema,
+      status: original.status,
+      areaCount: original.areas.length,
+      skillCount: original.skills.length,
+      conceptCount: original.concepts.length,
+      hasHoursDistribution: original.hoursDistribution.length > 0,
+      warningCount: original.warnings.length,
+      qualityFlagCount: original.qualityFlags.length
+    },
+    areas,
+    skills,
+    concepts,
+    hoursDistribution: original.hoursDistribution,
+    confidence: original.confidence,
+    warnings: original.warnings,
+    qualityFlags: original.qualityFlags,
+    review: { issuerReviewed: true, note: reviewedNote(reviewed.reviewNote) }
+  };
+}
+
+export function humanSemanticNotes(flags: unknown): string[] {
+  const messages: Record<string, string> = {
+    area_assignment_low_confidence: 'La asignación de área tiene confianza baja.',
+    semantic_quality_low: 'La cobertura semántica es limitada.',
+    skills_detection_reliability_medium: 'La detección de habilidades requiere revisión.',
+    hours_distribution_reliability_low_or_absent:
+      'La distribución horaria no está disponible o tiene baja confiabilidad.',
+    no_curricular_sections_detected:
+      'No se detectaron secciones curriculares estructuradas.'
+  };
+  const normalized = readStringArray(flags);
+  const notes = normalized.map(
+    (flag) => messages[flag] ?? 'El análisis incluye observaciones técnicas que requieren revisión.'
+  );
+  return [...new Set(notes)];
 }
 
 // Resumen seguro para exponer en la respuesta del template -- nunca el

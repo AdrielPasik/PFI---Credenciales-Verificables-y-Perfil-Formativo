@@ -2,10 +2,10 @@ import { expect, it } from 'vitest';
 
 import { formatHolderQualityFlag } from '@/lib/formatters/holder-quality-flags';
 
-it('humanizes known and future holder quality flags without rendering raw objects', () => {
+it('humanizes known holder quality flags without rendering raw codes', () => {
   expect(formatHolderQualityFlag('partial_evidence')).toBe('Información parcial');
   expect(formatHolderQualityFlag('low_coverage')).toBe('Cobertura limitada');
-  expect(formatHolderQualityFlag('future_safe_flag')).toBe('Future safe flag');
+  expect(formatHolderQualityFlag('future_safe_flag')).toBe('El análisis incluye observaciones técnicas que requieren revisión.');
 });
 
 it('humanizes the IA-Q1 quality flags in clear Spanish', () => {
@@ -38,6 +38,6 @@ it('never phrases a coverage warning as a fatal error or as an AI certification/
 });
 
 it('falls back to a safe humanized label for unknown flags without rendering raw objects', () => {
-  expect(formatHolderQualityFlag('some_future_unmapped_flag')).toBe('Some future unmapped flag');
+  expect(formatHolderQualityFlag('some_future_unmapped_flag')).toBe('El análisis incluye observaciones técnicas que requieren revisión.');
   expect(typeof formatHolderQualityFlag('another_unknown_code')).toBe('string');
 });

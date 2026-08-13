@@ -286,6 +286,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       credentialsWithoutHours: number;
       credentialsWithoutSemanticCoverage: number;
     };
+    narrative: string | null;
     areas: Array<Record<string, unknown>>;
     skills: Array<Record<string, unknown>>;
     concepts: Array<Record<string, unknown>>;
@@ -309,6 +310,13 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     credentialsWithoutHours: 1,
     credentialsWithoutSemanticCoverage: 1
   });
+  assert.match(
+    profileJson.narrative as string,
+    /^Segun las credenciales emitidas y los analisis disponibles/
+  );
+  assert.match(profileJson.narrative as string, /Data Engineering/);
+  assert.match(profileJson.narrative as string, /cobertura semantica todavia es parcial/);
+  assert.doesNotMatch(profileJson.narrative as string, /domina|experto|garantiza|certifica|apto para|nivel profesional/i);
   assert.deepEqual(profileJson.areas, [
     {
       area: 'Data Engineering',
@@ -675,6 +683,7 @@ test('FormativeProfileService persists a valid empty snapshot when no issued cre
   const createData = createCalls[0].data as Record<string, unknown>;
   const profileJson = createData.profileJson as {
     summary: Record<string, unknown>;
+    narrative: string | null;
     warnings: string[];
   };
 
@@ -686,6 +695,7 @@ test('FormativeProfileService persists a valid empty snapshot when no issued cre
     credentialsWithoutHours: 0,
     credentialsWithoutSemanticCoverage: 0
   });
+  assert.equal(profileJson.narrative, null);
   assert.deepEqual(profileJson.warnings, [
     'confidence_not_available',
     'no_issued_credentials',

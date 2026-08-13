@@ -7,6 +7,7 @@ import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
 import { CreateCourseTemplateDto } from './dto/create-course-template.dto';
 import { PatchCourseTemplateDto } from './dto/patch-course-template.dto';
 import { TemplateSemanticApprovalCandidateResponseDto } from './dto/template-semantic-approval-candidate-response.dto';
+import { ReviewTemplateSemanticAnalysisDto } from './dto/review-template-semantic-analysis.dto';
 import { IssuerCourseTemplatesService } from './issuer-course-templates.service';
 
 @Controller('issuers/:issuerId/course-templates')
@@ -84,14 +85,35 @@ export class IssuerCourseTemplatesController {
     @Param('issuerId') issuerId: string,
     @Param('templateId') templateId: string,
     @Param('semanticAnalysisId') semanticAnalysisId: string,
-    @CurrentUser() currentUser: AuthenticatedUser
+    @CurrentUser() currentUser: AuthenticatedUser,
+    @Body() dto?: ReviewTemplateSemanticAnalysisDto
   ): Promise<CourseTemplateResponseDto> {
     return this.issuerCourseTemplatesService.approveTemplateSemanticAnalysisForIssuer(
       issuerId,
       templateId,
       semanticAnalysisId,
-      currentUser
+      currentUser,
+      dto
     );
+  }
+
+  @Get('approval-candidate/from-credential/:credentialId/semantic-analysis/:semanticAnalysisId')
+  @UseGuards(AuthGuard)
+  getCredentialSemanticApprovalCandidate(
+    @Param('issuerId') issuerId: string, @Param('credentialId') credentialId: string,
+    @Param('semanticAnalysisId') semanticAnalysisId: string, @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<TemplateSemanticApprovalCandidateResponseDto> {
+    return this.issuerCourseTemplatesService.getCredentialSemanticApprovalCandidateForIssuer(issuerId, credentialId, semanticAnalysisId, currentUser);
+  }
+
+  @Post('from-credential/:credentialId/approved-analysis/from-semantic-analysis/:semanticAnalysisId')
+  @UseGuards(AuthGuard)
+  approveCredentialSemanticAnalysis(
+    @Param('issuerId') issuerId: string, @Param('credentialId') credentialId: string,
+    @Param('semanticAnalysisId') semanticAnalysisId: string, @Body() dto: ReviewTemplateSemanticAnalysisDto | undefined,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<CourseTemplateResponseDto> {
+    return this.issuerCourseTemplatesService.approveCredentialSemanticAnalysisForIssuer(issuerId, credentialId, semanticAnalysisId, currentUser, dto);
   }
 
   // C4a.2: resumen seguro de solo lectura para revisar ANTES de aprobar.

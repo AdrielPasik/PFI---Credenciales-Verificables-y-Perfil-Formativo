@@ -31,6 +31,7 @@ export function mapHolderCurrentProfileResponse(
         profile.profileJson,
         'credentialsWithoutSemanticCoverage'
       ),
+      narrative: narrative(profile.profileJson),
       areas: areas(profile.areasSummary),
       skills: skills(profile.skillsSummary),
       concepts: concepts(profile.profileJson),
@@ -127,6 +128,13 @@ function summaryCounter(
 
 function summaryRecord(value: unknown): Record<string, unknown> | null {
   return isRecord(value) && isRecord(value.summary) ? value.summary : null;
+}
+
+function narrative(value: unknown): string | null {
+  const candidate = isRecord(value) ? value.narrative : undefined;
+  if (typeof candidate !== 'string') return null;
+  const normalized = normalize(candidate);
+  return normalized && normalized.length <= 1200 ? normalized : null;
 }
 
 function confidence(value: unknown) {

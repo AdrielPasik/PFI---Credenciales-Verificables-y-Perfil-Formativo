@@ -93,6 +93,22 @@ function requiredBoolean(value: unknown): boolean {
   return value;
 }
 
+function nullableConfidence(value: unknown): number | null {
+  if (value === null) return null;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
+    throw new IncompatiblePayloadError();
+  }
+  return value;
+}
+
+function semanticCandidateItems(value: unknown) {
+  if (!Array.isArray(value)) throw new IncompatiblePayloadError();
+  return value.map((entry) => {
+    const item = asRecord(entry);
+    return { label: requiredString(item.label), confidence: nullableConfidence(item.confidence) };
+  });
+}
+
 // C4a.1/C4a.2: allowlist estricto -- solo counts y flags, nunca el
 // snapshot/analysisJson completo. Cualquier forma incompatible (falta un
 // campo, un tipo incorrecto) se rechaza con IncompatiblePayloadError en vez
@@ -205,6 +221,11 @@ export function adaptTemplateSemanticApprovalCandidate(
     pipelineVersion: nullableString(candidate.pipelineVersion),
     taxonomyVersion: nullableString(candidate.taxonomyVersion),
     sourceCredentialReference: nullableString(candidate.sourceCredentialId),
+    areas: semanticCandidateItems(candidate.areas),
+    skills: semanticCandidateItems(candidate.skills),
+    concepts: semanticCandidateItems(candidate.concepts),
+    warnings: stringArray(candidate.warnings),
+    qualityNotes: stringArray(candidate.qualityNotes),
     summary: adaptSemanticApprovalSnapshotSummary(candidate.summary)
   };
 }

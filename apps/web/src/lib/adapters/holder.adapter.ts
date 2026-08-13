@@ -152,6 +152,7 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
     semanticCoverageNoticeLabel: credentialsWithoutSemanticCoverage !== null && credentialsWithoutSemanticCoverage > 0
       ? `${credentialsWithoutSemanticCoverage} ${pluralCredencial(credentialsWithoutSemanticCoverage)} todavía no ${credentialsWithoutSemanticCoverage === 1 ? 'tiene' : 'tienen'} análisis semántico.`
       : null,
+    narrative: nullableString(profile.narrative),
     areas: array(profile.areas).map((entry) => {
       const area = record(entry);
       const estimatedHours = nullableNumber(area.estimatedHours);

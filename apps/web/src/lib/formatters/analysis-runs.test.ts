@@ -26,11 +26,13 @@ describe('analysis run formatters', () => {
     );
   });
 
-  it('humanizes known and unknown safe flags', () => {
+  it('maps known flags and hides unknown technical codes', () => {
     expect(formatQualityFlag('low_coverage')).toBe('Cobertura limitada');
     expect(formatQualityFlag('future-quality_flag')).toBe(
-      'Future quality flag'
+      'El análisis incluye observaciones técnicas que requieren revisión.'
+    );
+    expect(formatQualityFlag('area_assignment_low_confidence')).toBe(
+      'La asignación de área tiene confianza baja.'
     );
   });
 });
-

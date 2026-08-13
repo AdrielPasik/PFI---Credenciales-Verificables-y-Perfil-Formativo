@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import {
   CourseTemplateStatus,
+  CredentialStatus,
   CredentialType,
   SemanticAnalysisStatus,
   UserStatus
@@ -125,10 +126,13 @@ function createService(options?: {
       },
       async findFirst(args: Record<string, unknown>) {
         calls.push({ op: 'findFirst', args });
-        return (options?.templates ?? []).find(
-          (template) =>
-            template.id ===
-            (args.where as Record<string, unknown>).id
+        const where = (args.where ?? {}) as Record<string, unknown>;
+        return (options?.templates ?? []).find((template) =>
+          (!('id' in where) || template.id === where.id) &&
+          (!('issuerId' in where) || where.issuerId === 'issuer-1') &&
+          (!('createdFromCredentialId' in where) ||
+            template.createdFromCredentialId === where.createdFromCredentialId) &&
+          (!('status' in where) || template.status === where.status)
         ) ?? null;
       },
       async create(args: Record<string, unknown>) {
@@ -525,6 +529,7 @@ test('create manual rejects modality and platformName on a certification templat
 function courseCredentialFixture(overrides?: Record<string, unknown>) {
   return {
     id: 'credential-1',
+    status: CredentialStatus.issued,
     type: CredentialType.course,
     title: 'Curso de Python (legacy)',
     description: 'Introduccion a Python',
@@ -550,6 +555,7 @@ function courseCredentialFixture(overrides?: Record<string, unknown>) {
 function certificationCredentialFixture(overrides?: Record<string, unknown>) {
   return {
     id: 'credential-2',
+    status: CredentialStatus.issued,
     type: CredentialType.certification,
     title: 'Certificacion AWS (legacy)',
     description: 'Certificacion de fundamentos de cloud',
@@ -598,6 +604,54 @@ test('create from credential copies title, description, hours, modality, externa
   assert.equal(data.createdFromCredentialId, 'credential-1');
   assert.equal(data.lastSemanticAnalysisId, 'analysis-1');
   assert.equal(data.createdByUserId, 'issuer-user-1');
+});
+
+test('create from credential rejects a draft before creating a reusable template', async () => {
+  const { service, calls } = createService({
+    credential: courseCredentialFixture({ status: CredentialStatus.draft })
+  });
+
+  await assert.rejects(
+    service.createTemplateFromCredentialForIssuer(
+      'issuer-1',
+      'credential-1',
+      currentUser
+    ),
+    (error: unknown) =>
+      error instanceof BadRequestException &&
+      error.message ===
+        'La credencial debe estar emitida antes de guardarse como reutilizable.'
+  );
+  assert.equal(calls.some((call) => call.op === 'create'), false);
+});
+
+test('C5 approves a reviewed issued credential into a v2 template snapshot without mutating SemanticAnalysis', async () => {
+  const semanticAnalysis = baseSemanticAnalysisRow();
+  const { service, calls } = createService({
+    credential: courseCredentialFixture(),
+    templates: [baseTemplateRow({ createdFromCredentialId: 'credential-1' })],
+    semanticAnalyses: [semanticAnalysis]
+  });
+
+  await service.approveCredentialSemanticAnalysisForIssuer(
+    'issuer-1',
+    'credential-1',
+    'analysis-1',
+    currentUser,
+    {
+      reviewedAreas: [{ label: 'Gestión de proyectos' }],
+      reviewedSkills: [{ label: 'Scrum' }],
+      reviewedConcepts: [{ label: 'backlog' }]
+    }
+  );
+
+  const updateCall = calls.find((call) => call.op === 'update');
+  const data = (updateCall?.args as Record<string, unknown>).data as Record<string, unknown>;
+  const snapshot = data.approvedSemanticSnapshot as Record<string, unknown>;
+  assert.equal(snapshot.schema, 'approved_template_semantic_snapshot_v2');
+  assert.deepEqual(snapshot.areas, [{ id: 'Gestión de proyectos', label: 'Gestión de proyectos', confidence: null }]);
+  assert.deepEqual(snapshot.skills, [{ id: 'Scrum', label: 'Scrum', confidence: null }]);
+  assert.equal(calls.some((call) => call.op === 'semanticAnalysis.update'), false);
 });
 
 // C4x fix: platformName ya no se copia a un template nuevo creado desde
@@ -764,7 +818,7 @@ test('create from credential rejects a credential belonging to another issuer (n
   );
 });
 
-test('create from credential allows draft and issued credentials (no status filter applied)', async () => {
+test('create from credential reads the scoped credential before enforcing its issued status', async () => {
   const { service, calls } = createService({
     credential: courseCredentialFixture()
   });
@@ -1176,7 +1230,7 @@ test('approve accepts a completed semantic analysis and persists the 7 approval 
   assert.equal(data.approvedSemanticSourceCredentialId, 'credential-1');
   assert.equal(
     (data.approvedSemanticSnapshot as { schema: string }).schema,
-    'approved_template_semantic_snapshot_v1'
+    'approved_template_semantic_snapshot_v2'
   );
   assert.equal((data.approvedSemanticSnapshot as { status: string }).status, 'completed');
 });

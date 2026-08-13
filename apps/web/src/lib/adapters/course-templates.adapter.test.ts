@@ -64,6 +64,11 @@ function templateSemanticApprovalCandidatePayload(
     pipelineVersion: 'pipeline-v1',
     taxonomyVersion: 'taxonomy-v1',
     sourceCredentialId: 'credential-1',
+    areas: [{ label: 'Software', confidence: 0.9 }],
+    skills: [{ label: 'Python', confidence: 0.8 }],
+    concepts: [{ label: 'programación', confidence: null }],
+    warnings: ['La cobertura semántica es limitada.'],
+    qualityNotes: ['La detección de habilidades requiere revisión.'],
     summary: semanticApprovalSnapshotSummaryPayload(),
     ...overrides
   };
@@ -284,6 +289,11 @@ describe('adaptTemplateSemanticApprovalCandidate', () => {
       pipelineVersion: 'pipeline-v1',
       taxonomyVersion: 'taxonomy-v1',
       sourceCredentialReference: 'credential-1',
+      areas: [{ label: 'Software', confidence: 0.9 }],
+      skills: [{ label: 'Python', confidence: 0.8 }],
+      concepts: [{ label: 'programación', confidence: null }],
+      warnings: ['La cobertura semántica es limitada.'],
+      qualityNotes: ['La detección de habilidades requiere revisión.'],
       summary: semanticApprovalSnapshotSummaryPayload()
     });
   });

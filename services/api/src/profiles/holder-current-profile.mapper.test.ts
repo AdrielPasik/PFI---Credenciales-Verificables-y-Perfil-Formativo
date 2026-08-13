@@ -13,6 +13,7 @@ test('maps a current profile through a holder-safe allowlist', () => {
       skillsSummary: [{ skill: 'Diseño', confidence: 0.8, analysisJson: { mustNotLeak: true } }],
       qualityFlags: ['partial_evidence'],
       profileJson: {
+        narrative: 'Según las credenciales emitidas y los análisis disponibles, la trayectoria muestra formación en Software.',
         summary: { totalOfficialHours: 80, credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 1 },
         concepts: [{ concept: 'arquitectura', sourceRefs: ['must-not-leak'] }], confidence: { score: 0.8 }, evidenceMap: { mustNotLeak: true }
       }
@@ -23,6 +24,7 @@ test('maps a current profile through a holder-safe allowlist', () => {
     currentProfile: {
       profileVersion: 'formative_profile_result_v0', credentialsCount: 2, totalHours: 80,
       totalOfficialHours: 80, credentialsWithoutHours: 0, credentialsWithoutSemanticCoverage: 1,
+      narrative: 'Según las credenciales emitidas y los análisis disponibles, la trayectoria muestra formación en Software.',
       areas: [{ label: 'Software', estimatedHours: 80 }], skills: [{ label: 'Diseño', confidence: 0.8 }],
       concepts: ['arquitectura'], emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],
       confidence: 0.8, qualityFlags: ['partial_evidence'], generatedAt: '2026-08-01T10:00:00Z'
@@ -105,6 +107,20 @@ test('maps emitted skills/competencies/learning outcomes to holder-safe labels w
   assert.deepEqual(response.currentProfile?.emittedCompetencies, ['Trabajo en equipo']);
   assert.deepEqual(response.currentProfile?.emittedLearningOutcomes, ['Redactar informes']);
   assert.equal(JSON.stringify(response).includes('must-not-leak'), false);
+});
+
+test('maps a bounded narrative through the holder-safe allowlist', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'backend_formative_profile_snapshot_v0', isCurrent: true,
+      credentialsCount: 1, totalHours: null, generatedAt: '2026-08-12T10:00:00.000Z',
+      areasSummary: [], skillsSummary: [], qualityFlags: [],
+      profileJson: { narrative: '  La trayectoria muestra formación en gestión de proyectos.  ', summary: {}, concepts: [], confidence: { score: null } }
+    }
+  });
+
+  assert.equal(response.currentProfile?.narrative, 'La trayectoria muestra formación en gestión de proyectos.');
 });
 
 test('maps an absent profile to a safe null response', () => {

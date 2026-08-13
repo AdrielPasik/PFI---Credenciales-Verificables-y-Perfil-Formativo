@@ -411,6 +411,16 @@ emisor y las inferencias de IA; si falla es best-effort y queda identificada
 por un código seguro. C4b sigue pendiente: ningún snapshot semántico aprobado
 de un template se copia a credenciales nuevas ni al perfil.
 
+**C5 — revisión semántica antes de reutilizar:** un borrador de
+`course`/`certification` conserva solo la intención local de reutilizar. El
+template se crea recién desde una credencial `issued`, después de que el
+emisor revisa y aprueba etiquetas de áreas, habilidades y conceptos. La UI no
+expone flags técnicos: los presenta como observaciones claras. La wallet
+muestra una síntesis formativa determinística y prudente, separada de las
+declaraciones institucionales y de las inferencias de IA. C4b continúa
+pendiente: el snapshot aprobado no se aplica a futuras credenciales ni al
+perfil.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;

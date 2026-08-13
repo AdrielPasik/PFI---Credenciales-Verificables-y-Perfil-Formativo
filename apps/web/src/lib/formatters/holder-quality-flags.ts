@@ -25,8 +25,5 @@ export function formatHolderQualityFlag(value: string) {
     return knownLabels[normalized];
   }
 
-  return normalized
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/^./, (character) => character.toUpperCase());
+  return 'El análisis incluye observaciones técnicas que requieren revisión.';
 }

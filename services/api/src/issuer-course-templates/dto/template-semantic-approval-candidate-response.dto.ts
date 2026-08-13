@@ -16,11 +16,21 @@ export class TemplateSemanticApprovalCandidateSummaryDto {
   qualityFlagCount!: number;
 }
 
+export class TemplateSemanticApprovalCandidateItemDto {
+  label!: string;
+  confidence!: number | null;
+}
+
 export class TemplateSemanticApprovalCandidateResponseDto {
   semanticAnalysisId!: string;
   status!: SemanticAnalysisStatus;
   pipelineVersion!: string;
   taxonomyVersion!: string;
   sourceCredentialId!: string;
+  areas!: TemplateSemanticApprovalCandidateItemDto[];
+  skills!: TemplateSemanticApprovalCandidateItemDto[];
+  concepts!: TemplateSemanticApprovalCandidateItemDto[];
+  warnings!: string[];
+  qualityNotes!: string[];
   summary!: TemplateSemanticApprovalCandidateSummaryDto;
 }

@@ -7,15 +7,16 @@ import {
 import { ApiError } from '@/lib/errors/api-error';
 import type {
   ApproveTemplateSemanticAnalysisCommand,
+  ApproveCredentialSemanticAnalysisCommand,
+  GetCredentialSemanticApprovalCandidateCommand,
   GetTemplateSemanticApprovalCandidateCommand,
   ListCourseTemplatesCommand,
   SaveCourseTemplateFromCredentialCommand
 } from '@/models/credentials';
 
-// C3b: guarda una credencial course o certification (nunca
-// academic_subject/degree, el backend rechaza esos con 400) como
-// IssuerCourseTemplate reutilizable del issuer actual. No manda body --
-// el backend deriva todos los campos de la credencial ya emitida/borrador.
+// C3b/C5: guarda una credencial issued course o certification (nunca
+// academic_subject/degree) como IssuerCourseTemplate reutilizable del issuer
+// actual. No manda body: el backend deriva los campos de la credencial.
 export async function saveCourseTemplateFromCredential(
   requestAuthenticated: AuthenticatedApiRequest,
   command: SaveCourseTemplateFromCredentialCommand
@@ -102,6 +103,30 @@ function requireApprovalReferences(command: {
   return { issuerReference, templateReference, semanticAnalysisReference };
 }
 
+function requireCredentialApprovalReferences(command: {
+  issuerReference: string;
+  credentialReference: string;
+  semanticAnalysisReference: string;
+}) {
+  const issuerReference = command.issuerReference.trim();
+  const credentialReference = command.credentialReference.trim();
+  const semanticAnalysisReference = command.semanticAnalysisReference.trim();
+  if (!issuerReference || !credentialReference || !semanticAnalysisReference) {
+    throw new ApiError('La referencia institucional del contenido reutilizable no es válida.', 'http', 400);
+  }
+  return { issuerReference, credentialReference, semanticAnalysisReference };
+}
+
+function reviewBody(command: { review?: ApproveTemplateSemanticAnalysisCommand['review'] }) {
+  if (!command.review) return undefined;
+  return {
+    reviewedAreas: command.review.reviewedAreas.map(({ label }) => ({ label })),
+    reviewedSkills: command.review.reviewedSkills.map(({ label }) => ({ label })),
+    reviewedConcepts: command.review.reviewedConcepts.map(({ label }) => ({ label })),
+    ...(command.review.reviewNote === undefined ? {} : { reviewNote: command.review.reviewNote })
+  };
+}
+
 // C4a.2: resumen seguro de una SemanticAnalysis candidata a ser aprobada,
 // ANTES de aprobarla. Es un GET puro -- nunca crea, guarda ni modifica
 // nada, y nunca expone el snapshot completo (ver adaptTemplateSemanticApprovalCandidate).
@@ -120,11 +145,9 @@ export async function getTemplateSemanticApprovalCandidate(
   return adaptTemplateSemanticApprovalCandidate(payload);
 }
 
-// C4a.2: aprueba explicitamente una SemanticAnalysis ya generada como
-// interpretacion reutilizable del template. No manda body -- el backend
-// deriva y persiste el snapshot allowlisted a partir del semanticAnalysisId.
-// No modifica la credencial original, no crea una credencial nueva, no
-// llama a la IA.
+// C4a.2/C5: aprueba una revision humana allowlisted. El body lleva solo
+// labels revisados; el backend reconstruye el snapshot v2 y nunca modifica
+// la SemanticAnalysis ni la credencial original.
 export async function approveTemplateSemanticAnalysis(
   requestAuthenticated: AuthenticatedApiRequest,
   command: ApproveTemplateSemanticAnalysisCommand
@@ -134,8 +157,32 @@ export async function approveTemplateSemanticAnalysis(
 
   const payload = await requestAuthenticated(
     `/issuers/${encodeURIComponent(issuerReference)}/course-templates/${encodeURIComponent(templateReference)}/approved-analysis/from-semantic-analysis/${encodeURIComponent(semanticAnalysisReference)}`,
-    { method: 'POST' }
+    { method: 'POST', ...(reviewBody(command) ? { body: reviewBody(command) } : {}) }
   );
 
+  return adaptCourseTemplateSummary(payload);
+}
+
+export async function getCredentialSemanticApprovalCandidate(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: GetCredentialSemanticApprovalCandidateCommand
+) {
+  const { issuerReference, credentialReference, semanticAnalysisReference } = requireCredentialApprovalReferences(command);
+  const payload = await requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/course-templates/approval-candidate/from-credential/${encodeURIComponent(credentialReference)}/semantic-analysis/${encodeURIComponent(semanticAnalysisReference)}`,
+    { signal: command.signal }
+  );
+  return adaptTemplateSemanticApprovalCandidate(payload);
+}
+
+export async function approveCredentialSemanticAnalysis(
+  requestAuthenticated: AuthenticatedApiRequest,
+  command: ApproveCredentialSemanticAnalysisCommand
+) {
+  const { issuerReference, credentialReference, semanticAnalysisReference } = requireCredentialApprovalReferences(command);
+  const payload = await requestAuthenticated(
+    `/issuers/${encodeURIComponent(issuerReference)}/course-templates/from-credential/${encodeURIComponent(credentialReference)}/approved-analysis/from-semantic-analysis/${encodeURIComponent(semanticAnalysisReference)}`,
+    { method: 'POST', body: reviewBody(command) }
+  );
   return adaptCourseTemplateSummary(payload);
 }

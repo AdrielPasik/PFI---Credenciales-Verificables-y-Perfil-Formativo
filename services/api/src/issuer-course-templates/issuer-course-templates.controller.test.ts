@@ -29,6 +29,8 @@ test('course template routes are protected by AuthGuard and issuer-scoped', () =
     ['listTemplates', '/', RequestMethod.GET],
     ['createTemplate', '/', RequestMethod.POST],
     ['createTemplateFromCredential', 'from-credential/:credentialId', RequestMethod.POST],
+    ['getCredentialSemanticApprovalCandidate', 'approval-candidate/from-credential/:credentialId/semantic-analysis/:semanticAnalysisId', RequestMethod.GET],
+    ['approveCredentialSemanticAnalysis', 'from-credential/:credentialId/approved-analysis/from-semantic-analysis/:semanticAnalysisId', RequestMethod.POST],
     ['patchTemplate', ':templateId', RequestMethod.PATCH],
     [
       'approveTemplateSemanticAnalysis',
@@ -186,4 +188,19 @@ test('controller delegates getTemplateSemanticApprovalCandidate with issuerId, t
       user: currentUser
     }
   ]);
+});
+
+test('controller delegates C5 credential semantic review with the scoped references and reviewed labels', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const controller = new IssuerCourseTemplatesController({
+    async approveCredentialSemanticAnalysisForIssuer(
+      issuerId: string, credentialId: string, semanticAnalysisId: string, user: Record<string, unknown>, dto: Record<string, unknown>
+    ) {
+      calls.push({ issuerId, credentialId, semanticAnalysisId, user, dto });
+      return {};
+    }
+  } as never);
+  const dto = { reviewedSkills: [{ label: 'Scrum' }] };
+  await controller.approveCredentialSemanticAnalysis('issuer-1', 'credential-1', 'analysis-1', dto as never, currentUser);
+  assert.deepEqual(calls, [{ issuerId: 'issuer-1', credentialId: 'credential-1', semanticAnalysisId: 'analysis-1', user: currentUser, dto }]);
 });
