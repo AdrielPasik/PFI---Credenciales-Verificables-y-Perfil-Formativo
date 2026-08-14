@@ -167,27 +167,44 @@ enum AnalysisRunSourceType {
   text_evidence
 }
 
+// C4b.1a: aplicacion congelada (snapshot) de una interpretacion semantica
+// aprobada (ver IssuerCourseTemplate.approvedSemantic*) sobre una credencial
+// concreta ya emitida. Ver docs/architecture/
+// approved-semantic-interpretation-application-v0.md (v0.2) para el diseno
+// completo -- active/superseded, provenance historica source*, y por que
+// "a lo sumo un active por credencial" se garantiza con un partial unique
+// index manual en la migracion (Prisma no expresa WHERE en @@index/@@unique).
+enum CredentialSemanticInterpretationStatus {
+  active
+  superseded
+}
+
+enum CredentialSemanticInterpretationSource {
+  issuer_reviewed_template_snapshot
+}
+
 model User {
-  id                        String                 @id @default(uuid())
-  did                       String?                @unique
-  email                     String?                @unique
-  firstName                 String?
-  lastName                  String?
-  displayName               String?
-  status                    UserStatus             @default(active)
-  createdAt                 DateTime               @default(now())
-  updatedAt                 DateTime               @updatedAt
-  issuerMemberships         IssuerMembership[]
-  subjectCredentials        Credential[]           @relation("CredentialSubject")
-  verifierEvents            VerificationEvent[]    @relation("VerifierUser")
-  profiles                  FormativeProfile[]
-  sharingGrants             SharingGrant[]         @relation("SharingGrantOwner")
-  createdSharingGrants      SharingGrant[]         @relation("SharingGrantCreator")
-  authCredential            AuthCredential?
-  uploadedDocumentEvidences DocumentEvidence[]     @relation("DocumentEvidenceUploader")
-  submittedTextEvidences    TextEvidence[]         @relation("TextEvidenceSubmitter")
-  requestedAnalysisRuns     AnalysisRun[]          @relation("AnalysisRunRequester")
-  createdCourseTemplates    IssuerCourseTemplate[] @relation("IssuerCourseTemplateCreator")
+  id                             String                                     @id @default(uuid())
+  did                            String?                                    @unique
+  email                          String?                                    @unique
+  firstName                      String?
+  lastName                       String?
+  displayName                    String?
+  status                         UserStatus                                 @default(active)
+  createdAt                      DateTime                                   @default(now())
+  updatedAt                      DateTime                                   @updatedAt
+  issuerMemberships              IssuerMembership[]
+  subjectCredentials             Credential[]                               @relation("CredentialSubject")
+  verifierEvents                 VerificationEvent[]                        @relation("VerifierUser")
+  profiles                       FormativeProfile[]
+  sharingGrants                  SharingGrant[]                             @relation("SharingGrantOwner")
+  createdSharingGrants           SharingGrant[]                             @relation("SharingGrantCreator")
+  authCredential                 AuthCredential?
+  uploadedDocumentEvidences      DocumentEvidence[]                         @relation("DocumentEvidenceUploader")
+  submittedTextEvidences         TextEvidence[]                             @relation("TextEvidenceSubmitter")
+  requestedAnalysisRuns          AnalysisRun[]                              @relation("AnalysisRunRequester")
+  createdCourseTemplates         IssuerCourseTemplate[]                     @relation("IssuerCourseTemplateCreator")
+  appliedSemanticInterpretations CredentialReusableSemanticInterpretation[] @relation("CredentialSemanticInterpretationApplier")
 }
 
 model AuthCredential {
@@ -238,41 +255,42 @@ model IssuerMembership {
 }
 
 model Credential {
-  id                      String               @id @default(uuid())
-  schemaVersion           String               @default("credential_v1")
-  type                    CredentialType
-  issuerId                String
-  subjectUserId           String
-  academicCourseId        String?
-  programCourseId         String?
-  externalCourseId        String?
-  title                   String
-  description             String?              @db.Text
-  sourceType              CredentialSourceType
-  status                  CredentialStatus     @default(draft)
-  hours                   Decimal?             @db.Decimal(10, 2)
-  createdAt               DateTime             @default(now())
-  updatedAt               DateTime             @updatedAt
-  issuedAt                DateTime?
-  revokedAt               DateTime?
-  revocationReason        String?              @db.Text
-  canonicalHash           String?
-  canonicalizationVersion String?
-  credentialSubject       Json
-  metadata                Json?
-  rawData                 Json?
-  issuer                  Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
-  subjectUser             User                 @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
-  academicCourse          AcademicCourse?      @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
-  programCourse           ProgramCourse?       @relation("ProgramCourseCredentials", fields: [programCourseId], references: [id], onDelete: SetNull)
-  externalCourse          ExternalCourse?      @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
-  semanticAnalyses        SemanticAnalysis[]
-  blockchainRecords       BlockchainRecord[]
-  verificationEvents      VerificationEvent[]
-  sharingGrants           SharingGrant[]
-  documentEvidences       DocumentEvidence[]
-  textEvidences           TextEvidence[]
-  analysisRuns            AnalysisRun[]
+  id                              String                                     @id @default(uuid())
+  schemaVersion                   String                                     @default("credential_v1")
+  type                            CredentialType
+  issuerId                        String
+  subjectUserId                   String
+  academicCourseId                String?
+  programCourseId                 String?
+  externalCourseId                String?
+  title                           String
+  description                     String?                                    @db.Text
+  sourceType                      CredentialSourceType
+  status                          CredentialStatus                           @default(draft)
+  hours                           Decimal?                                   @db.Decimal(10, 2)
+  createdAt                       DateTime                                   @default(now())
+  updatedAt                       DateTime                                   @updatedAt
+  issuedAt                        DateTime?
+  revokedAt                       DateTime?
+  revocationReason                String?                                    @db.Text
+  canonicalHash                   String?
+  canonicalizationVersion         String?
+  credentialSubject               Json
+  metadata                        Json?
+  rawData                         Json?
+  issuer                          Issuer                                     @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  subjectUser                     User                                       @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
+  academicCourse                  AcademicCourse?                            @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
+  programCourse                   ProgramCourse?                             @relation("ProgramCourseCredentials", fields: [programCourseId], references: [id], onDelete: SetNull)
+  externalCourse                  ExternalCourse?                            @relation("ExternalCourseCredentials", fields: [externalCourseId], references: [id], onDelete: SetNull)
+  semanticAnalyses                SemanticAnalysis[]
+  blockchainRecords               BlockchainRecord[]
+  verificationEvents              VerificationEvent[]
+  sharingGrants                   SharingGrant[]
+  documentEvidences               DocumentEvidence[]
+  textEvidences                   TextEvidence[]
+  analysisRuns                    AnalysisRun[]
+  reusableSemanticInterpretations CredentialReusableSemanticInterpretation[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -539,12 +557,12 @@ model ExternalCourse {
 // approvedSemanticSourceCredentialId son referencias informativas sin FK,
 // mismo patron que lastSemanticAnalysisId/createdFromCredentialId.
 model IssuerCourseTemplate {
-  id                                 String               @id @default(uuid())
+  id                                 String                                     @id @default(uuid())
   issuerId                           String
-  credentialType                     CredentialType       @default(course)
+  credentialType                     CredentialType                             @default(course)
   title                              String
-  description                        String?              @db.Text
-  hours                              Decimal?             @db.Decimal(10, 2)
+  description                        String?                                    @db.Text
+  hours                              Decimal?                                   @db.Decimal(10, 2)
   modality                           String?
   platformName                       String?
   externalUrl                        String?
@@ -555,7 +573,7 @@ model IssuerCourseTemplate {
   skills                             String[]
   competencies                       String[]
   learningOutcomes                   String[]
-  status                             CourseTemplateStatus @default(active)
+  status                             CourseTemplateStatus                       @default(active)
   createdFromCredentialId            String?
   lastSemanticAnalysisId             String?
   approvedSemanticAnalysisId         String?
@@ -566,15 +584,78 @@ model IssuerCourseTemplate {
   approvedSemanticTaxonomyVersion    String?
   approvedSemanticSourceCredentialId String?
   createdByUserId                    String
-  createdAt                          DateTime             @default(now())
-  updatedAt                          DateTime             @updatedAt
-  issuer                             Issuer               @relation(fields: [issuerId], references: [id], onDelete: Restrict)
-  createdByUser                      User                 @relation("IssuerCourseTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  createdAt                          DateTime                                   @default(now())
+  updatedAt                          DateTime                                   @updatedAt
+  issuer                             Issuer                                     @relation(fields: [issuerId], references: [id], onDelete: Restrict)
+  createdByUser                      User                                       @relation("IssuerCourseTemplateCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  reusableSemanticInterpretations    CredentialReusableSemanticInterpretation[]
 
   @@index([issuerId])
   @@index([issuerId, status])
   @@index([issuerId, title])
   @@index([issuerId, credentialType])
+}
+
+// C4b.1a: aplicacion congelada de una interpretacion semantica aprobada
+// (IssuerCourseTemplate.approvedSemantic*) sobre una credencial concreta ya
+// emitida. snapshot congelado en el momento de aplicar -- nunca se relee en
+// vivo el estado actual del template. A lo sumo una fila `active` por
+// credencial (garantizado por un partial unique index manual en la
+// migracion, ver docs/architecture/
+// approved-semantic-interpretation-application-v0.md seccion 8). Re-aplicar
+// nunca actualiza una fila existente: marca la anterior `superseded` e
+// inserta una fila `active` nueva -- preserva historial completo. Los
+// campos `source*` son provenance historica de la APROBACION fuente
+// (congelada, nunca se relee de IssuerCourseTemplate una vez escrita);
+// `appliedByUserId`/`appliedAt` son la APLICACION a esta credencial --
+// conceptos distintos, nunca mezclados. Sin candidate/apply/read todavia
+// (C4b.1b); esta migracion es solo la foundation de persistencia.
+model CredentialReusableSemanticInterpretation {
+  id String @id @default(uuid())
+
+  credentialId String
+  templateId   String
+
+  // Provenance historica de la APROBACION fuente -- referencias
+  // informativas sin FK, mismo patron ya usado por
+  // IssuerCourseTemplate.approvedSemanticSourceCredentialId/
+  // .approvedSemanticApprovedByUserId.
+  sourceSemanticAnalysisId String
+  sourceCredentialId       String
+  sourceApprovedByUserId   String
+  sourceApprovedAt         DateTime
+  sourcePipelineVersion    String
+  sourceTaxonomyVersion    String
+
+  // Snapshot congelado -- mismo shape allowlisted ya saneado
+  // approved_template_semantic_snapshot_v2 (issuer-course-templates.
+  // helpers.ts), nunca reinventado.
+  approvedSnapshot Json
+  snapshotVersion  String
+
+  provenance CredentialSemanticInterpretationSource @default(issuer_reviewed_template_snapshot)
+  status     CredentialSemanticInterpretationStatus @default(active)
+
+  // Provenance de la APLICACION a esta credencial -- distinta de la
+  // aprobacion fuente. Siempre una persona real, nunca `system`.
+  appliedByUserId String
+  appliedAt       DateTime @default(now())
+
+  supersededAt       DateTime?
+  supersededByUserId String?
+
+  credential Credential           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  template   IssuerCourseTemplate @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  appliedBy  User                 @relation("CredentialSemanticInterpretationApplier", fields: [appliedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([credentialId])
+  // Nombre explicito corto: el nombre autogenerado por Prisma para este
+  // modelo + estos dos campos excede el limite de 63 bytes de identifier de
+  // PostgreSQL (64 con el nombre por defecto) y quedaria truncado de forma
+  // impredecible.
+  @@index([credentialId, status], map: "crsi_credentialId_status_idx")
+  @@index([templateId])
+  @@index([appliedAt])
 }
 
 model Program {

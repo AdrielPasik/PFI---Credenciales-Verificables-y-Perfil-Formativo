@@ -191,6 +191,66 @@
   Ver `docs/architecture/domain-rules-v0.md` (seccion 18) para las reglas
   completas.
 
+## CredentialReusableSemanticInterpretation
+
+- Proposito: aplicacion **congelada** de una interpretacion semantica ya
+  aprobada (`IssuerCourseTemplate.approved_semantic_*`, ver arriba) sobre
+  una `Credential` concreta ya `issued` (C4b.1a — foundation de
+  persistencia; `candidate`/`apply`/`read` todavia no existen, ver
+  `docs/architecture/approved-semantic-interpretation-application-v0.md`
+  v0.2). Nunca es una referencia viva al template: una re-aprobacion
+  posterior del template no afecta filas ya insertadas.
+- Campos conceptuales: `id`, `credential_id`, `template_id`; provenance
+  historica de la aprobacion **fuente** (congelada al momento de
+  aplicar, nunca releida del estado actual del template):
+  `source_semantic_analysis_id`, `source_credential_id`,
+  `source_approved_by_user_id`, `source_approved_at`,
+  `source_pipeline_version`, `source_taxonomy_version`; snapshot
+  congelado: `approved_snapshot` (JSONB), `snapshot_version`;
+  `provenance` (`issuer_reviewed_template_snapshot`), `status`
+  (`active`/`superseded`); provenance de la **aplicacion** a esta
+  credencial (distinta de la aprobacion fuente): `applied_by_user_id`,
+  `applied_at`; historial: `superseded_at`, `superseded_by_user_id`. Sin
+  `created_at`/`updated_at` -- `applied_at` es el timestamp material de
+  creacion; una fila nunca se actualiza salvo la transicion
+  `active -> superseded`.
+- Relaciones: pertenece a `Credential` (`onDelete: Cascade` -- mismo
+  patron que `SemanticAnalysis`/`DocumentEvidence`/`TextEvidence`);
+  pertenece a `IssuerCourseTemplate` (`onDelete: Restrict` -- no existe
+  borrado de templates, solo archivado por `status`); pertenece a `User`
+  como quien aplico (`applied_by_user_id`, `onDelete: Restrict`, relacion
+  nombrada `CredentialSemanticInterpretationApplier` para evitar
+  ambiguedad, mismo patron que `DocumentEvidenceUploader`/
+  `TextEvidenceSubmitter`/`AnalysisRunRequester`). `source_semantic_
+  analysis_id`, `source_credential_id`, `source_approved_by_user_id` y
+  `superseded_by_user_id` son referencias informativas sin FK -- mismo
+  patron ya usado por `IssuerCourseTemplate.approved_semantic_source_
+  credential_id`/`.approved_semantic_approved_by_user_id`.
+- Invariante de integridad: a lo sumo una fila `status = active` por
+  `credential_id` (`Credential` -> `0..1 active`, `0..N superseded`).
+  Prisma no expresa un indice unico parcial (`WHERE`) en el DSL del
+  schema -- se agrega como SQL manual en la migracion, mismo patron ya
+  usado por `DocumentEvidence`/`TextEvidence` para "una fila `current`
+  por credencial". Nombre corto explicito
+  (`crsi_one_active_per_credential_uq`): el nombre autogenerado por
+  Prisma para este modelo excede el limite de 63 bytes de identifier de
+  PostgreSQL.
+- `approved_snapshot`: copia exacta del mismo shape allowlisted ya
+  saneado `approved_template_semantic_snapshot_v2` (ver
+  `IssuerCourseTemplate` arriba) -- nunca reinventado, nunca
+  `analysisJson` crudo, `evidenceMap`, `textForEmbedding`, storage paths
+  ni IDs de evidencia.
+- No on-chain: no participa en `canon_v1`, `canonicalHash` ni
+  `BlockchainRecord` -- capa semantica/off-chain estrictamente posterior
+  a la emision.
+- Migracion:
+  `20260814150000_add_credential_reusable_semantic_interpretation`.
+  Foundation de persistencia solamente (C4b.1a) -- sin controller, sin
+  endpoints, sin logica de `candidate`/`apply`/`read`/idempotencia/
+  supersede (eso es C4b.1b). Ver
+  `docs/architecture/approved-semantic-interpretation-application-v0.md`
+  para el diseno completo.
+
 ## Program
 
 - Proposito: representar una carrera, trayecto o programa formativo.
@@ -247,6 +307,9 @@
 - `AcademicCourse` 1..N `ProgramCourse`
 - `Issuer` 1..N `IssuerCourseTemplate`
 - `User` 1..N `IssuerCourseTemplate` como creador
+- `Credential` 1..N `CredentialReusableSemanticInterpretation` (0..1 `active`, 0..N `superseded`)
+- `IssuerCourseTemplate` 1..N `CredentialReusableSemanticInterpretation`
+- `User` 1..N `CredentialReusableSemanticInterpretation` como quien aplico
 
 ## Limites de modelado para la siguiente iteracion
 
