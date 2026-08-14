@@ -428,7 +428,8 @@ sesion. Acepta una referencia directa o un enlace con `?credential=...` y el
 navegador consulta exclusivamente `GET /verify/credentials/:credentialId` en
 NestJS, sin token y sin llamadas a FastAPI o blockchain. La vista no muestra
 email del titular, evidencias crudas ni analisis IA. QR y sharing avanzado
-siguen pendientes.
+siguen pendientes. Desde V3, el layout es desktop-first (ver seccion "V3 —
+layouts publicos" mas abajo).
 
 ## Prerrequisitos
 
@@ -570,3 +571,83 @@ Un holder con perfil current puede usar `Compartir perfil`. Ese flujo crea un
 token opaco y abre `/share/profile/[token]`, una vista pública resumida que no
 incluye email, evidencia cruda ni artefactos de IA. QR y sharing avanzado siguen
 pendientes.
+
+## V3 — layouts públicos desktop-first y hardening de UX post-emisión
+
+V3 no cambia contratos, canon/hash, emisión, IA ni blockchain: es
+exclusivamente frontend/docs. Regla de diseño explícita a partir de esta
+iteración:
+
+- Wallet privada del holder → sigue mobile-first (sin cambios en V3);
+- Perfil público compartido (`/share/profile/[token]`), verificador público
+  (`/verify`) e Issuer Portal → desktop-first responsive.
+
+**Perfil público compartido:** el contenedor pasó de `max-w-4xl` a `max-w-7xl`
+y las tres listas (áreas/habilidades/conceptos) usan `lg:grid-cols-3` en vez
+de apilarse en una sola columna angosta. Los chips de área/habilidad/concepto
+ya no dependían del ancho de la card: el `Badge` base usa `whitespace-nowrap`
+para las variantes cortas del resto de la UI, así que en esta vista se
+sobrescribe con `whitespace-normal break-words max-w-full` para que un chip
+largo haga wrap en vez de desbordar la card. Las credenciales de respaldo se
+muestran en grilla (`sm:grid-cols-2 xl:grid-cols-3`), no en una lista vertical
+única. Se agregó un resumen breve (cantidad de credenciales incluidas, horas
+oficiales declaradas si existen) en el header. El aviso de alcance público
+("no incluye email ni evidencias crudas") se mantiene, ahora en el header.
+
+**Verificador público (`/verify`):** mismo cambio de ancho (`max-w-7xl`). El
+resultado separa "Datos de la credencial" (título, tipo, emisor, titular,
+fecha) de un bloque secundario "Evidencia técnica de integridad" (huella
+canónica, versión de canonicalización, red, chain id, transacción, estado y
+fecha de registro) — la información técnica sigue expuesta, solo con menor
+jerarquía visual. Se agregó copy explícito para que la huella canónica no se
+confunda con el código que se comparte para verificar, y para explicar
+`networkLabel` ("Entorno técnico/demo" para `anvil`, "Testnet" para redes de
+prueba) sin exponer el nombre crudo de la red. El input inicial ahora aclara
+explícitamente que no debe pegarse la huella canónica.
+
+**Issuer detail — hueco post-emisión:** el detalle usaba un grid de dos
+columnas (`items-start`, contenido principal + sidebar de acciones) y
+renderizaba evidencia documental/análisis en una `<section>` aparte, después
+de cerrar ese grid. Como las dos columnas del grid no comparten track de
+fila, cuando la sidebar (acciones de emisión + revisión semántica) terminaba
+siendo más alta que la columna principal en estado `issued` — típicamente
+porque el editor de borrador ya no se muestra —, quedaba un hueco visual
+debajo de "Datos declarados del curso" hasta que la sidebar terminaba y recién
+ahí arrancaba evidencia documental. V3 mueve `DocumentEvidenceSection`,
+`TextEvidenceSection` y `DocumentAnalysisSection` dentro de la misma columna
+principal (después de los datos declarados/editor), en vez de en una sección
+separada debajo de todo el grid. Esto funciona igual para `draft` e `issued`.
+
+**Issuer detail — sin "Verificación pública":** se quitó el link/botón
+`Verificación pública` del detalle del emisor (`issued`, `revoked` y
+`draft`). El actor que comparte una credencial pública es el holder (wallet,
+`Compartir credencial`) y el actor que consulta es el verificador (`/verify`)
+o el perfil público (`Ver credencial`); el emisor no necesitaba ese atajo
+operativo. No se tocó `/verify`, el endpoint público, el sharing de wallet ni
+los links de credenciales dentro del perfil público.
+
+**Issuer detail — análisis en lenguaje de producto:** se quitó el botón
+`Consultar último análisis` y su copy ("La actualización es manual…"). El
+estado inicial ya se carga solo al montar la vista y se refresca
+automáticamente después de emitir; ya no depende de un refresh manual visible.
+`DocumentAnalysisSection` ahora habla en términos de producto —
+"Interpretación asistida pendiente", "Analizando…", "Interpretación lista
+para revisar" (con `SemanticApprovalSection` cuando corresponde) — sin
+mencionar `AnalysisRun` como concepto. Para un análisis manual fallido
+mientras la credencial sigue en `draft` (el único caso en que el endpoint
+`POST .../analysis-runs/document` permite reintentar, según el contrato
+`draft`-only ya documentado), se agregó un botón `Reintentar análisis` que
+reutiliza el `trigger()` ya existente del hook `useIssuerDocumentAnalysis` —
+no se agregó ningún endpoint nuevo. Para un análisis automático fallido tras
+la emisión (`trigger: "system"`, `issued`/`revoked`), donde el backend no
+permite reintento manual, se mantiene únicamente el aviso seguro sin acción
+inventada.
+
+**Evidencia documental:** se confirmó que la jerarquía ya simplificada en V2
+sigue sin duplicar títulos equivalentes ("Fuentes institucionales",
+"Evidencia de respaldo", "Respaldo institucional" no coexisten como bloques
+separados junto a "Evidencia documental"); V3 no modificó esa sección más
+allá de reubicarla dentro de la columna principal.
+
+QR y C4b/C5b (aplicar un snapshot semántico aprobado a credenciales nuevas o
+al perfil formativo) siguen pendientes.

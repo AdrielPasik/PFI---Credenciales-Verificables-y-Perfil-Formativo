@@ -25,7 +25,7 @@ interface DocumentAnalysisSectionProps {
   credentialType?: CredentialType;
   currentDocument: DocumentEvidenceVM | null;
   state: DocumentAnalysisState;
-  onRefresh(): Promise<void>;
+  onRetry?(): Promise<void>;
 }
 
 export function DocumentAnalysisSection({
@@ -33,7 +33,7 @@ export function DocumentAnalysisSection({
   credentialType = 'academic_subject',
   currentDocument,
   state,
-  onRefresh
+  onRetry
 }: DocumentAnalysisSectionProps) {
   const hasPdf =
     currentDocument?.kind === 'pdf' &&
@@ -106,11 +106,17 @@ export function DocumentAnalysisSection({
           ) : null}
 
           {state.currentRun ? (
-            <AnalysisRunSummary run={state.currentRun} />
+            <AnalysisRunSummary
+              run={state.currentRun}
+              credentialStatus={credentialStatus}
+              onRetry={onRetry}
+              retrying={state.triggering}
+              retryError={state.actionError}
+            />
           ) : state.latestStatus === 'ready' ? (
             <div className="rounded-card border border-dashed border-border-strong bg-surface-muted p-5">
               <p className="font-semibold text-text-strong">
-                Todavía no hay análisis registrados.
+                Interpretación asistida pendiente
               </p>
               <p className="mt-1 text-sm leading-6 text-text-muted">
                 {credentialStatus === 'draft'
@@ -119,7 +125,7 @@ export function DocumentAnalysisSection({
                     : usesDeclaredData
                       ? 'El análisis asistido puede utilizar la información declarada de la credencial al emitir.'
                       : 'Adjuntá una evidencia PDF para habilitar el análisis automático al emitir.'
-                  : 'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'}
+                  : 'Todavía no hay una interpretación asistida disponible para revisar.'}
               </p>
             </div>
           ) : null}
@@ -129,38 +135,28 @@ export function DocumentAnalysisSection({
             credentialType={credentialType}
             currentDocument={currentDocument}
           />
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={
-                state.refreshing ||
-                state.latestStatus === 'loading'
-              }
-              onClick={() => void onRefresh()}
-            >
-              <RefreshCw
-                aria-hidden="true"
-                className={state.refreshing ? 'animate-spin' : undefined}
-              />
-              {state.refreshing
-                ? 'Actualizando estado'
-                : 'Consultar último análisis'}
-            </Button>
-            <p className="text-sm text-text-muted">
-              La actualización es manual; Traza no consulta el estado en
-              segundo plano.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </section>
   );
 }
 
-function AnalysisRunSummary({ run }: { run: IssuerAnalysisRunVM }) {
+function AnalysisRunSummary({
+  run,
+  credentialStatus,
+  onRetry,
+  retrying = false,
+  retryError = null
+}: {
+  run: IssuerAnalysisRunVM;
+  credentialStatus: CredentialStatus;
+  onRetry?(): Promise<void>;
+  retrying?: boolean;
+  retryError?: string | null;
+}) {
   const semantic = run.semanticAnalysis;
+  const canRetry =
+    credentialStatus === 'draft' && run.trigger !== 'system' && Boolean(onRetry);
 
   return (
     <div className="grid gap-6">
@@ -185,11 +181,39 @@ function AnalysisRunSummary({ run }: { run: IssuerAnalysisRunVM }) {
             La credencial sigue emitida y puede consultarse nuevamente más
             adelante.
           </FeedbackAlert>
-        ) : run.errorMessage ? (
-          <FeedbackAlert variant="error" title="Ejecución no completada">
-            {run.errorMessage}
-          </FeedbackAlert>
-        ) : null
+        ) : (
+          <div className="grid gap-3">
+            <FeedbackAlert
+              variant="error"
+              title="No se pudo generar la interpretación asistida"
+            >
+              {canRetry
+                ? (run.errorMessage ??
+                  'Revisá los datos cargados e intentá nuevamente.')
+                : 'Revisá los datos cargados o intentá emitir una nueva versión cuando corresponda.'}
+            </FeedbackAlert>
+            {retryError ? (
+              <FeedbackAlert variant="error" title="No pudimos reintentar el análisis">
+                {retryError}
+              </FeedbackAlert>
+            ) : null}
+            {canRetry ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-fit"
+                disabled={retrying}
+                onClick={() => void onRetry?.()}
+              >
+                <RefreshCw
+                  aria-hidden="true"
+                  className={retrying ? 'animate-spin' : undefined}
+                />
+                {retrying ? 'Reintentando análisis' : 'Reintentar análisis'}
+              </Button>
+            ) : null}
+          </div>
+        )
       ) : null}
 
       {run.status === 'completed' && semantic?.status === 'partial' ? (

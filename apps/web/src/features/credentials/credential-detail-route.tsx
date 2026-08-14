@@ -424,7 +424,7 @@ export function CredentialDetailController({
       detail={detail}
       documentAnalysis={{
         state: documentAnalysis.state,
-        onRefresh: documentAnalysis.refresh
+        onRetry: documentAnalysis.trigger
       }}
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
@@ -467,7 +467,7 @@ export function CredentialDetailView({
   detail: IssuerCredentialDetailVM;
   documentAnalysis?: {
     state: DocumentAnalysisState;
-    onRefresh(): Promise<void>;
+    onRetry(): Promise<void>;
   };
   onUploadDocumentEvidence(file: File): Promise<DocumentEvidenceVM>;
   onIssue?(): Promise<IssuerCredentialDetailVM>;
@@ -746,6 +746,31 @@ export function CredentialDetailView({
           {!isDraft && detail.type === 'course' ? (
             <CourseDeclaredDataCard subject={detail.credentialSubject} />
           ) : null}
+
+          <DocumentEvidenceSection
+            credentialStatus={detail.status}
+            credentialType={detail.type}
+            currentDocument={detail.documentEvidence.currentDocument}
+            onUpload={onUploadDocumentEvidence}
+          />
+
+          {detail.type !== 'course' && detail.type !== 'certification' ? (
+            <TextEvidenceSection
+              credentialStatus={detail.status}
+              currentText={detail.textEvidence.currentText}
+              onSubmit={onSubmitTextEvidence}
+            />
+          ) : null}
+
+          {documentAnalysis ? (
+            <DocumentAnalysisSection
+              credentialStatus={detail.status}
+              credentialType={detail.type}
+              currentDocument={detail.documentEvidence.currentDocument}
+              state={documentAnalysis.state}
+              onRetry={documentAnalysis.onRetry}
+            />
+          ) : null}
         </div>
 
         <aside aria-labelledby="draft-actions-title" className="grid gap-5">
@@ -772,18 +797,6 @@ export function CredentialDetailView({
               <Button asChild variant="secondary">
                 <Link href="/issuer">Volver al portal</Link>
               </Button>
-              {detail.status === 'issued' || detail.status === 'revoked' ? (
-                <Button asChild variant="secondary">
-                  <Link
-                    href={`/verify?credential=${encodeURIComponent(
-                      detail.credentialReference
-                    )}`}
-                  >
-                    <Link2 aria-hidden="true" />
-                    Verificación pública
-                  </Link>
-                </Button>
-              ) : null}
             </CardContent>
           </Card>
           <CredentialIssuanceSection detail={detail} onIssue={onIssue} />
@@ -810,33 +823,6 @@ export function CredentialDetailView({
           ) : null}
         </aside>
       </div>
-
-      <section className="grid gap-8">
-        <DocumentEvidenceSection
-          credentialStatus={detail.status}
-          credentialType={detail.type}
-          currentDocument={detail.documentEvidence.currentDocument}
-          onUpload={onUploadDocumentEvidence}
-        />
-
-        {detail.type !== 'course' && detail.type !== 'certification' ? (
-          <TextEvidenceSection
-            credentialStatus={detail.status}
-            currentText={detail.textEvidence.currentText}
-            onSubmit={onSubmitTextEvidence}
-          />
-        ) : null}
-
-        {documentAnalysis ? (
-          <DocumentAnalysisSection
-            credentialStatus={detail.status}
-            credentialType={detail.type}
-            currentDocument={detail.documentEvidence.currentDocument}
-            state={documentAnalysis.state}
-            onRefresh={documentAnalysis.onRefresh}
-          />
-        ) : null}
-      </section>
     </div>
   );
 }

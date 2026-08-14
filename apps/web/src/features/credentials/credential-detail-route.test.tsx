@@ -296,6 +296,9 @@ describe('CredentialDetailController', () => {
     expect(document.body.textContent).not.toContain('Blockchain');
     expect(document.body.textContent).not.toContain('Análisis IA');
     expect(document.body.textContent).not.toContain('Subir PDF');
+    expect(screen.queryByText('Consultar último análisis')).toBeNull();
+    expect(screen.queryByText('Verificación pública')).toBeNull();
+    expect(document.body.textContent).not.toContain('AnalysisRun');
     expect(document.body.textContent).not.toMatch(
       /guardar en base|crear curso reutilizable|agregar al catálogo|IA certificó|IA verificó/i
     );
@@ -413,6 +416,8 @@ describe('CredentialDetailController', () => {
     expect(
       screen.queryByRole('button', { name: 'Analizar documento' })
     ).toBeNull();
+    expect(screen.queryByText('Verificación pública')).toBeNull();
+    expect(screen.queryByText('Consultar último análisis')).toBeNull();
   });
 
   it('uploads one multipart document and updates only the current evidence snapshot', async () => {
@@ -1247,7 +1252,7 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
           qualityFlags: [], qualityFlagLabels: [], analyzedAt: '2026-08-12T10:01:00.000Z', analyzedAtLabel: '12 ago 2026' }
       }
     },
-    onRefresh: vi.fn(async () => undefined)
+    onRetry: vi.fn(async () => undefined)
   };
 
   it('keeps draft reusable intent local and does not render a persistence button', () => {
@@ -1275,12 +1280,17 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     expect(await screen.findByText('Interpretación aprobada para reutilización.')).toBeTruthy();
   });
 
-  it('places issuance and semantic review before secondary evidence on desktop composition', async () => {
+  it('keeps evidence and analysis inside the primary flow, right after declared data, instead of trailing the whole sidebar', async () => {
     const onLoadCredentialSemanticApprovalCandidate = vi.fn().mockResolvedValue(semanticApprovalCandidateFixture());
     render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'course', status: 'issued' })} documentAnalysis={documentAnalysis} onLoadCredentialSemanticApprovalCandidate={onLoadCredentialSemanticApprovalCandidate} />);
-    const issuance = screen.getByRole('heading', { name: 'Emisión de credencial' });
+    const mainData = screen.getByRole('heading', { name: 'Registro del logro' });
     const evidence = screen.getByRole('heading', { name: 'Evidencia documental' });
-    expect(issuance.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const issuance = screen.getByRole('heading', { name: 'Emisión de credencial' });
+    // La evidencia sigue en el flujo principal, inmediatamente despues de
+    // los datos principales -- nunca despues de toda la sidebar (acciones de
+    // emision), que ahora es una columna independiente en el grid.
+    expect(mainData.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(evidence.compareDocumentPosition(issuance) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(await screen.findByTestId('semantic-approval-section')).toBeTruthy();
   });
 
@@ -1289,17 +1299,23 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     expect(screen.queryByTestId('semantic-approval-section')).toBeNull();
   });
 
-  it('links issued issuer credentials to the public verifier but never exposes the action for drafts', () => {
+  it('never shows a "Verificación pública" action in issuer detail regardless of status', () => {
     const { rerender } = render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
         detail={detailFixture({ status: 'issued' })}
       />
     );
+    expect(screen.queryByRole('link', { name: 'Verificación pública' })).toBeNull();
+    expect(screen.queryByText('Verificación pública')).toBeNull();
 
-    expect(
-      (screen.getByRole('link', { name: 'Verificación pública' }) as HTMLAnchorElement).getAttribute('href')
-    ).toBe('/verify?credential=credential-internal-reference');
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ status: 'revoked' })}
+      />
+    );
+    expect(screen.queryByRole('link', { name: 'Verificación pública' })).toBeNull();
 
     rerender(
       <CredentialDetailView

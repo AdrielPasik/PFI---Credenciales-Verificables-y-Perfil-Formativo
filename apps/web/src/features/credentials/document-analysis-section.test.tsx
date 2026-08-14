@@ -85,22 +85,22 @@ function renderSection({
   credentialStatus = 'draft',
   currentDocument = pdf as DocumentEvidenceVM | null,
   currentState = state(),
-  onRefresh = vi.fn(async () => undefined)
+  onRetry = vi.fn(async () => undefined)
 }: {
   credentialStatus?: CredentialStatus;
   currentDocument?: DocumentEvidenceVM | null;
   currentState?: DocumentAnalysisState;
-  onRefresh?: () => Promise<void>;
+  onRetry?: () => Promise<void>;
 } = {}) {
   render(
     <DocumentAnalysisSection
       credentialStatus={credentialStatus}
       currentDocument={currentDocument}
       state={currentState}
-      onRefresh={onRefresh}
+      onRetry={onRetry}
     />
   );
-  return { onRefresh };
+  return { onRetry };
 }
 
 describe('DocumentAnalysisSection', () => {
@@ -110,14 +110,13 @@ describe('DocumentAnalysisSection', () => {
         credentialStatus="draft"
         currentDocument={pdf}
         state={state({ latestStatus: 'loading' })}
-        onRefresh={vi.fn()}
       />
     );
     expect(screen.getByText('Consultando último análisis…')).toBeTruthy();
     unmount();
 
     renderSection();
-    expect(screen.getByText('Todavía no hay análisis registrados.')).toBeTruthy();
+    expect(screen.getByText('Interpretación asistida pendiente')).toBeTruthy();
     expect(
       screen.getByText(
         'Traza generará el análisis automáticamente al emitir la credencial.'
@@ -189,8 +188,10 @@ describe('DocumentAnalysisSection', () => {
     }
   });
 
-  it('renders failed safe detail without a manual retry action for a draft PDF', () => {
+  it('offers a safe retry action for a failed manual run while still a draft', () => {
+    const onRetry = vi.fn(async () => undefined);
     renderSection({
+      onRetry,
       currentState: state({
         currentRun: runFixture({
           status: 'failed',
@@ -205,8 +206,38 @@ describe('DocumentAnalysisSection', () => {
         })
       })
     });
+
     expect(screen.getByText('No se pudo completar el análisis.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /reintentar|volver a analizar/i })).toBeNull();
+    const retry = screen.getByRole('button', { name: 'Reintentar análisis' });
+    fireEvent.click(retry);
+    expect(onRetry).toHaveBeenCalledOnce();
+    expect(document.body.textContent).not.toContain('AnalysisRun');
+  });
+
+  it('does not offer retry once a failed run is no longer a draft', () => {
+    renderSection({
+      credentialStatus: 'issued',
+      currentState: state({
+        currentRun: runFixture({
+          status: 'failed',
+          statusLabel: 'No se pudo completar el análisis',
+          completedAt: null,
+          completedAtLabel: null,
+          failedAt: '2026-08-05T12:00:08.000Z',
+          failedAtLabel: '5 ago 2026, 09:00',
+          errorCode: 'analysis_failed',
+          errorMessage: 'No se pudo completar el análisis.',
+          semanticAnalysis: null
+        })
+      })
+    });
+
+    expect(
+      screen.getByText(
+        'Revisá los datos cargados o intentá emitir una nueva versión cuando corresponda.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /reintentar/i })).toBeNull();
   });
 
   it('handles completed without semantic summary', () => {
@@ -224,7 +255,6 @@ describe('DocumentAnalysisSection', () => {
         credentialStatus="draft"
         currentDocument={null}
         state={state()}
-        onRefresh={vi.fn()}
       />
     );
     expect(
@@ -251,7 +281,6 @@ describe('DocumentAnalysisSection', () => {
           credentialType={credentialType}
           currentDocument={null}
           state={state()}
-          onRefresh={vi.fn()}
         />
       );
 
@@ -282,7 +311,6 @@ describe('DocumentAnalysisSection', () => {
             completedAtLabel: null
           })
         })}
-        onRefresh={vi.fn()}
       />
     );
 
@@ -313,14 +341,11 @@ describe('DocumentAnalysisSection', () => {
     renderSection({ credentialStatus: 'issued' });
 
     expect(
-      screen.getByText(
-        'El análisis automático puede tardar unos segundos. Actualizá el estado para consultar la última ejecución.'
-      )
+      screen.getByText('Todavía no hay una interpretación asistida disponible para revisar.')
     ).toBeTruthy();
-    expect(
-      screen.getByRole('button', { name: 'Consultar último análisis' })
-    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Consultar último análisis' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
+    expect(document.body.textContent).not.toContain('La actualización es manual');
   });
 
   it('presents a failed system run as secondary warning without a retry control', () => {
@@ -354,10 +379,8 @@ describe('DocumentAnalysisSection', () => {
     expect(screen.queryByRole('button', { name: /analizar|reintentar/i })).toBeNull();
   });
 
-  it('supports manual refresh and keeps visible output with an error', () => {
-    const onRefresh = vi.fn(async () => undefined);
+  it('never shows the removed manual refresh control or its copy', () => {
     renderSection({
-      onRefresh,
       currentState: state({
         currentRun: runFixture(),
         latestStatus: 'error',
@@ -366,7 +389,35 @@ describe('DocumentAnalysisSection', () => {
     });
     expect(screen.getByText('Habilidades detectadas')).toBeTruthy();
     expect(screen.getByText(/No pudimos conectarnos/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Consultar último análisis' }));
-    expect(onRefresh).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('button', { name: 'Consultar último análisis' })).toBeNull();
+    expect(document.body.textContent).not.toContain('La actualización es manual');
+  });
+
+  it('disables the retry button and reports a retry error without losing visible context', () => {
+    const onRetry = vi.fn(async () => undefined);
+    renderSection({
+      onRetry,
+      currentState: state({
+        triggering: true,
+        actionError: 'No pudimos reintentar el análisis en este momento.',
+        currentRun: runFixture({
+          status: 'failed',
+          statusLabel: 'No se pudo completar el análisis',
+          completedAt: null,
+          completedAtLabel: null,
+          failedAt: '2026-08-05T12:00:08.000Z',
+          failedAtLabel: '5 ago 2026, 09:00',
+          errorCode: 'analysis_failed',
+          errorMessage: null,
+          semanticAnalysis: null
+        })
+      })
+    });
+
+    const retry = screen.getByRole('button', { name: 'Reintentando análisis' });
+    expect(retry.hasAttribute('disabled')).toBe(true);
+    expect(
+      screen.getByText('No pudimos reintentar el análisis en este momento.')
+    ).toBeTruthy();
   });
 });

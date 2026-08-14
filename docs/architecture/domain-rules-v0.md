@@ -1196,3 +1196,36 @@ humanidades. El rebuild automático, posterior a un análisis persistido,
 mantiene separado lo declarado por el emisor de las inferencias IA y comunica
 fallos best-effort mediante `formative_profile_rebuild_failed`. C4b sigue
 pendiente: no se aplican snapshots aprobados a nuevas credenciales ni perfiles.
+
+## 21. V3 — layouts públicos desktop-first y hardening de UX post-emisión (frontend/docs-only)
+
+V3 es exclusivamente frontend/docs: no cambia `schema.prisma`, migraciones,
+contratos, canon/hash, reglas de emisión, taxonomía IA ni contratos de
+blockchain. No aplica `approvedSemanticSnapshot` a credenciales ni perfiles
+nuevos (C4b/C5b siguen pendientes, sin cambios respecto a la sección 20/C5).
+
+- **Layouts públicos desktop-first:** `/share/profile/[token]` y `/verify`
+  pasan de un contenedor angosto (`max-w-4xl`) a `max-w-7xl`, con grillas de
+  varias columnas en desktop. La Wallet privada del holder se mantiene
+  mobile-first sin cambios (sección "Holder wallet v1").
+- **Issuer detail sin "Verificación pública":** se retira el link operativo
+  hacia `/verify` del detalle del emisor (`draft`/`issued`/`revoked`). No se
+  modifica el endpoint público de verificación (`GET
+  /verify/credentials/:credentialId`, ver `api-contracts-v0.md`), el sharing
+  de wallet (`SharingGrant`, sección 7) ni el link `Ver credencial` del
+  perfil público.
+- **Issuer detail — hueco de layout en `issued`:** causa raíz frontend pura
+  (grid de dos columnas donde la evidencia se renderizaba en una sección
+  aparte, debajo de ambas columnas, sin compartir tracks de fila con la
+  sidebar de acciones). Se reubica evidencia documental/análisis dentro de la
+  columna principal, sin tocar qué datos expone cada tipo de credencial.
+- **Análisis asistido — retry acotado a `draft`:** la UI ya no muestra un
+  botón de refresh manual (`Consultar último análisis`). Se agrega un botón
+  `Reintentar análisis` limitado exactamente al caso ya permitido por el
+  contrato existente: `AnalysisRun` `status=failed`, `trigger!=system`, y
+  credencial todavía `draft` — el mismo alcance `draft`-only ya documentado
+  para `POST /issuers/:issuerId/credentials/:credentialId/analysis-runs/
+  document` (sección 7 de `api-contracts-v0.md`). No se agrega ningún
+  endpoint, no se relaja el alcance `draft`-only, y para un run `failed` con
+  `trigger=system` (post-emisión) no se ofrece ninguna acción de reintento,
+  igual que antes.

@@ -38,6 +38,15 @@ describe('PublicVerificationRoute', () => {
     ).toBe('/login');
   });
 
+  it('warns against pasting the canonical hash before any lookup happens', () => {
+    render(<PublicVerificationRoute />);
+
+    expect(screen.getByText('Pegá el enlace público o el código compartido desde Traza.')).toBeTruthy();
+    expect(
+      screen.getByText(/No pegues la huella canónica: esa huella se muestra después como evidencia técnica de integridad\./)
+    ).toBeTruthy();
+  });
+
   it('extracts a query/link reference, calls only the public endpoint and renders issued data without private extras', async () => {
     apiMocks.getPublicCredentialVerificationRequest.mockResolvedValue(issuedVerification);
     render(<PublicVerificationRoute />);
@@ -51,11 +60,35 @@ describe('PublicVerificationRoute', () => {
     expect(navigationMocks.replace).toHaveBeenCalledWith('/verify?credential=credential-1');
     expect(await screen.findByRole('heading', { name: 'Credencial emitida' })).toBeTruthy();
     expect(screen.getByText('Titular demo')).toBeTruthy();
-    expect(screen.getByText(/No es la huella canónica/i)).toBeTruthy();
+    expect(screen.getByText(/No es el código que se comparte para verificar/i)).toBeTruthy();
     expect(screen.getByText('Entorno técnico/demo')).toBeTruthy();
+    expect(screen.getByText('Este registro corresponde a un entorno técnico de demostración.')).toBeTruthy();
     expect(screen.getByText('31337')).toBeTruthy();
+    expect(
+      screen.getByText(/La huella canónica es un identificador criptográfico calculado por Traza/)
+    ).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/holder@example|rawData|analysisJson|sourceRefs|evidenceMap|textForEmbedding|storageKey/i);
     expect(document.body.textContent).not.toMatch(/100% verificada|blockchain valida el contenido|IA certifica/i);
+  });
+
+  it('explains a testnet registration distinctly from the demo environment', async () => {
+    apiMocks.getPublicCredentialVerificationRequest.mockResolvedValue({
+      ...issuedVerification,
+      integrity: {
+        ...issuedVerification.integrity,
+        latestBlockchainRecord: {
+          ...issuedVerification.integrity.latestBlockchainRecord,
+          networkLabel: 'Testnet'
+        }
+      }
+    });
+    render(<PublicVerificationRoute />);
+
+    fireEvent.change(screen.getByLabelText('Código o enlace de credencial'), { target: { value: 'credential-1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar credencial' }));
+
+    expect(await screen.findByText('Testnet')).toBeTruthy();
+    expect(screen.getByText('Este registro corresponde a una red de pruebas.')).toBeTruthy();
   });
 
   it('loads a verifier query parameter and renders the revoked state', async () => {
