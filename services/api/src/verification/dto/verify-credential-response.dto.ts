@@ -1,51 +1,55 @@
-export type CredentialVerificationStatus =
-  | 'valid'
-  | 'revoked'
-  | 'draft'
-  | 'incomplete';
+import { BlockchainNetwork, BlockchainRecordStatus, CredentialType } from '@prisma/client';
 
-export interface VerificationCredentialDto {
-  id: string;
+export type PublicCredentialVerificationResult =
+  | 'valid_issued'
+  | 'revoked'
+  | 'not_verifiable';
+
+export interface PublicVerificationIssuerDto {
+  displayName: string;
+  did: string | null;
+}
+
+export interface PublicVerificationHolderDto {
+  displayLabel: string | null;
+  did: string | null;
+}
+
+export interface PublicVerificationBlockchainRecordDto {
+  network: BlockchainNetwork;
+  networkLabel: string;
+  chainId: number;
+  txHash: string | null;
+  txHashShort: string | null;
+  status: BlockchainRecordStatus;
+  statusLabel: string;
+  registeredAt: string | null;
+}
+
+export interface VerifyCredentialResponseDto {
+  credentialReference: string;
+  exists: true;
+  status: 'issued' | 'revoked';
+  statusLabel: string;
   title: string;
-  status: string;
+  type: CredentialType;
+  typeLabel: string;
+  issuer: PublicVerificationIssuerDto;
+  holder: PublicVerificationHolderDto;
   issuedAt: string | null;
   revokedAt: string | null;
   revocationReason: string | null;
   canonicalHash: string | null;
+  canonicalHashShort: string | null;
   canonicalizationVersion: string | null;
-}
-
-export interface VerificationBlockchainRecordDto {
-  id: string;
-  network: string;
-  chainId: number;
-  transactionHash: string;
-  recordedAt: string;
-  status: string;
-}
-
-export interface VerificationLatestSemanticAnalysisDto {
-  id: string;
-  schemaVersion: string;
-  status: string;
-  pipelineVersion: string;
-  taxonomyVersion: string;
-  confidence: number | null;
-  areas: unknown[];
-  skills: unknown[];
-  concepts: unknown[];
-  qualityFlags: string[];
-  analyzedAt: string;
-}
-
-export interface VerifyCredentialResponseDto {
-  credentialId: string;
-  verificationStatus: CredentialVerificationStatus;
-  credential: VerificationCredentialDto;
-  blockchain: {
-    records: VerificationBlockchainRecordDto[];
+  integrity: {
+    canonicalHashPresent: boolean;
+    blockchainRecordsCount: number;
+    latestBlockchainRecord: PublicVerificationBlockchainRecordDto | null;
   };
-  semanticAnalysis: {
-    latest: VerificationLatestSemanticAnalysisDto | null;
+  verification: {
+    result: PublicCredentialVerificationResult;
+    summary: string;
+    checkedAt: string;
   };
 }

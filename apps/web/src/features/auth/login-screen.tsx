@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -76,6 +77,12 @@ export function LoginScreen() {
             isSubmitting={isSubmitting}
             onSubmit={login}
           />
+          <p className="mt-6 text-center text-sm text-text-muted">
+            ¿Necesitás consultar una credencial?{' '}
+            <Link href="/verify" className="font-semibold text-brand-700 underline underline-offset-4">
+              Verificar una credencial
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </AuthShell>

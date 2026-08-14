@@ -1,280 +1,207 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException
+} from '@nestjs/common';
 
 import { VerificationService } from './verification.service';
 
-function createVerificationServiceTestContext(options?: {
-  credentialResult?: Record<string, unknown> | null;
-  latestSemanticAnalysisResponse?: Record<string, unknown>;
-}) {
-  const calls = {
-    credentialFindUnique: [] as Array<Record<string, unknown>>,
-    semanticGetLatestForCredential: [] as string[],
-    credentialUpdate: 0,
-    blockchainRecordCreate: 0
-  };
-
-  const prisma = {
-    credential: {
-      findUnique: async (args: Record<string, unknown>) => {
-        calls.credentialFindUnique.push(args);
-        if (options && 'credentialResult' in options) {
-          return options.credentialResult;
-        }
-
-        return {
-          id: 'cred-123',
-          title: 'Bases de Datos I',
-          status: 'issued',
-          issuedAt: new Date('2026-07-14T12:00:00.000Z'),
-          revokedAt: null,
-          revocationReason: null,
-          canonicalHash: '0xabc',
-          canonicalizationVersion: 'canon_v1',
-          blockchainRecords: [
-            {
-              id: 'blockchain-123',
-              network: 'anvil',
-              chainId: 31337,
-              txHash: '0xtxhash',
-              registeredAt: new Date('2026-07-14T12:10:00.000Z'),
-              status: 'registered'
-            }
-          ]
-        };
-      },
-      update: async () => {
-        calls.credentialUpdate += 1;
-        return null;
-      }
-    },
-    blockchainRecord: {
-      create: async () => {
-        calls.blockchainRecordCreate += 1;
-        return null;
-      }
-    }
-  };
-
-  const semanticService = {
-    async getLatestForCredential(credentialId: string) {
-      calls.semanticGetLatestForCredential.push(credentialId);
-      return (
-        options?.latestSemanticAnalysisResponse ?? {
-          credentialId,
-          latestSemanticAnalysis: null
-        }
-      );
-    }
-  };
-
+function credentialFixture(overrides: Record<string, unknown> = {}) {
   return {
-    service: new VerificationService(prisma as never, semanticService as never),
-    calls
+    id: 'credential-public-1',
+    status: 'issued',
+    type: 'course',
+    title: 'Curso de gestión de proyectos',
+    issuedAt: new Date('2026-08-14T12:00:00.000Z'),
+    revokedAt: null,
+    revocationReason: null,
+    canonicalHash: `0x${'a'.repeat(64)}`,
+    canonicalizationVersion: 'canon_v1',
+    issuer: {
+      name: 'Institución Demo',
+      did: 'did:example:issuer'
+    },
+    subjectUser: {
+      displayName: 'Titular Demo',
+      firstName: 'Titular',
+      lastName: 'Demo',
+      did: 'did:example:holder'
+    },
+    _count: { blockchainRecords: 1 },
+    blockchainRecords: [
+      {
+        network: 'anvil',
+        chainId: 31337,
+        txHash: `0x${'b'.repeat(64)}`,
+        status: 'registered',
+        registeredAt: new Date('2026-08-14T12:01:00.000Z')
+      }
+    ],
+    ...overrides
   };
 }
 
-test('credential inexistente throws NotFoundException', async () => {
-  const { service, calls } = createVerificationServiceTestContext({
-    credentialResult: null
-  });
-
-  await assert.rejects(
-    () => service.getCredentialVerification('cred-missing'),
-    NotFoundException
-  );
-
-  assert.deepEqual(calls.semanticGetLatestForCredential, []);
-});
-
-test('credential issued with hash and blockchain record returns verificationStatus valid', async () => {
-  const { service } = createVerificationServiceTestContext({
-    latestSemanticAnalysisResponse: {
-      credentialId: 'cred-123',
-      latestSemanticAnalysis: {
-        id: 'semantic-123',
-        schemaVersion: 'semantic_analysis_v1',
-        status: 'completed',
-        pipelineVersion: 'unversioned_current',
-        taxonomyVersion: 'unversioned_current',
-        confidence: 0.98,
-        areas: [],
-        skills: [],
-        concepts: [],
-        qualityFlags: ['semantic_quality_high'],
-        evidenceMap: {},
-        textForEmbedding: 'text',
-        analysisJson: { foo: 'bar' },
-        analyzedAt: '2026-07-14T12:20:00.000Z'
+function createContext(credential: Record<string, unknown> | null = credentialFixture()) {
+  const calls = {
+    findUnique: [] as Array<Record<string, unknown>>,
+    updates: 0,
+    creates: 0
+  };
+  const prisma = {
+    credential: {
+      async findUnique(args: Record<string, unknown>) {
+        calls.findUnique.push(args);
+        return credential;
+      },
+      async update() {
+        calls.updates += 1;
+      }
+    },
+    blockchainRecord: {
+      async create() {
+        calls.creates += 1;
       }
     }
-  });
+  };
 
-  const response = await service.getCredentialVerification('cred-123');
+  return { service: new VerificationService(prisma as never), calls };
+}
 
-  assert.equal(response.verificationStatus, 'valid');
-  assert.equal(response.credential.canonicalHash, '0xabc');
-  assert.equal(response.credential.canonicalizationVersion, 'canon_v1');
-  assert.deepEqual(response.blockchain.records, [
-    {
-      id: 'blockchain-123',
-      network: 'anvil',
-      chainId: 31337,
-      transactionHash: '0xtxhash',
-      recordedAt: '2026-07-14T12:10:00Z',
-      status: 'registered'
-    }
-  ]);
-  assert.deepEqual(response.semanticAnalysis.latest, {
-    id: 'semantic-123',
-    schemaVersion: 'semantic_analysis_v1',
-    status: 'completed',
-    pipelineVersion: 'unversioned_current',
-    taxonomyVersion: 'unversioned_current',
-    confidence: 0.98,
-    areas: [],
-    skills: [],
-    concepts: [],
-    qualityFlags: ['semantic_quality_high'],
-    analyzedAt: '2026-07-14T12:20:00.000Z'
-  });
+test('public verification is read-only, allowlisted and never queries semantic analysis', async () => {
+  const { service, calls } = createContext();
+
+  const response = await service.getCredentialVerification('credential-public-1');
+  const serialized = JSON.stringify(response);
+
+  assert.equal(response.verification.result, 'valid_issued');
+  assert.equal(response.holder.displayLabel, 'Titular Demo');
+  assert.equal(response.integrity.latestBlockchainRecord?.networkLabel, 'Entorno técnico/demo');
+  assert.equal(calls.updates, 0);
+  assert.equal(calls.creates, 0);
+  assert.equal(calls.findUnique.length, 1);
+  assert.deepEqual(calls.findUnique[0]?.where, { id: 'credential-public-1' });
+  assert.equal('semanticAnalyses' in ((calls.findUnique[0]?.select as Record<string, unknown>) ?? {}), false);
+  for (const forbidden of [
+    'email',
+    'rawData',
+    'metadata',
+    'credentialSubject',
+    'analysisJson',
+    'sourceRefs',
+    'evidenceMap',
+    'textForEmbedding',
+    'storageKey',
+    'passwordHash',
+    'walletAddress',
+    'issuerAddress',
+    'contractAddress'
+  ]) {
+    assert.equal(serialized.includes(forbidden), false, `${forbidden} must not leak`);
+  }
 });
 
-test('credential issued with hash and canon but without blockchain record returns verificationStatus incomplete', async () => {
-  const { service } = createVerificationServiceTestContext({
-    credentialResult: {
-      id: 'cred-issued-no-chain',
-      title: 'Materia emitida sin blockchain',
-      status: 'issued',
-      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
-      revokedAt: null,
-      revocationReason: null,
-      canonicalHash: '0xabc',
-      canonicalizationVersion: 'canon_v1',
-      blockchainRecords: []
-    }
-  });
-
-  const response = await service.getCredentialVerification(
-    'cred-issued-no-chain'
+test('draft credentials are indistinguishable from an unknown public reference', async () => {
+  const { service } = createContext(
+    credentialFixture({
+      status: 'draft',
+      title: 'Borrador confidencial',
+      canonicalHash: null,
+      canonicalizationVersion: null
+    })
   );
 
-  assert.equal(response.verificationStatus, 'incomplete');
+  await assert.rejects(
+    () => service.getCredentialVerification('credential-draft'),
+    (error: unknown) =>
+      error instanceof NotFoundException &&
+      error.message === 'No se encontro una credencial verificable con esa referencia.'
+  );
 });
 
-test('credential draft returns verificationStatus draft', async () => {
-  const { service } = createVerificationServiceTestContext({
-    credentialResult: {
-      id: 'cred-draft',
-      title: 'Materia draft',
-      status: 'draft',
-      issuedAt: null,
-      revokedAt: null,
-      revocationReason: null,
-      canonicalHash: null,
-      canonicalizationVersion: null,
-      blockchainRecords: []
-    }
-  });
+test('an unknown public reference returns the same safe not-found response', async () => {
+  const { service } = createContext(null);
 
-  const response = await service.getCredentialVerification('cred-draft');
-
-  assert.equal(response.verificationStatus, 'draft');
+  await assert.rejects(
+    () => service.getCredentialVerification('credential-missing'),
+    (error: unknown) =>
+      error instanceof NotFoundException &&
+      error.message === 'No se encontro una credencial verificable con esa referencia.'
+  );
 });
 
-test('credential revoked returns verificationStatus revoked', async () => {
-  const { service } = createVerificationServiceTestContext({
-    credentialResult: {
-      id: 'cred-revoked',
-      title: 'Materia revocada',
+test('revoked credentials retain only safe historical verification evidence', async () => {
+  const { service } = createContext(
+    credentialFixture({
       status: 'revoked',
-      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
-      revokedAt: new Date('2026-07-15T10:00:00.000Z'),
-      revocationReason: 'error',
-      canonicalHash: '0xabc',
-      canonicalizationVersion: 'canon_v1',
-      blockchainRecords: []
-    }
-  });
-
-  const response = await service.getCredentialVerification('cred-revoked');
-
-  assert.equal(response.verificationStatus, 'revoked');
-});
-
-test('credential issued without hash or canonicalizationVersion returns verificationStatus incomplete', async () => {
-  const { service } = createVerificationServiceTestContext({
-    credentialResult: {
-      id: 'cred-incomplete',
-      title: 'Materia incompleta',
-      status: 'issued',
-      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
-      revokedAt: null,
-      revocationReason: null,
-      canonicalHash: null,
-      canonicalizationVersion: null,
-      blockchainRecords: []
-    }
-  });
-
-  const response = await service.getCredentialVerification('cred-incomplete');
-
-  assert.equal(response.verificationStatus, 'incomplete');
-});
-
-test('credential issued with non-registered blockchain records returns verificationStatus incomplete', async () => {
-  const { service } = createVerificationServiceTestContext({
-    credentialResult: {
-      id: 'cred-issued-revoked-chain',
-      title: 'Materia con evidencia no valida',
-      status: 'issued',
-      issuedAt: new Date('2026-07-14T12:00:00.000Z'),
-      revokedAt: null,
-      revocationReason: null,
-      canonicalHash: '0xabc',
-      canonicalizationVersion: 'canon_v1',
+      revokedAt: new Date('2026-08-15T12:00:00.000Z'),
+      revocationReason: 'Información corregida',
       blockchainRecords: [
         {
-          id: 'blockchain-revoked',
-          network: 'anvil',
-          chainId: 31337,
-          txHash: '0xtxhashrevoked',
-          registeredAt: new Date('2026-07-14T12:10:00.000Z'),
-          status: 'revoked'
+          network: 'base_sepolia',
+          chainId: 84532,
+          txHash: `0x${'c'.repeat(64)}`,
+          status: 'revoked',
+          registeredAt: new Date('2026-08-14T12:01:00.000Z')
         }
       ]
-    }
-  });
-
-  const response = await service.getCredentialVerification(
-    'cred-issued-revoked-chain'
+    })
   );
 
-  assert.equal(response.verificationStatus, 'incomplete');
+  const response = await service.getCredentialVerification('credential-revoked');
+
+  assert.equal(response.status, 'revoked');
+  assert.equal(response.statusLabel, 'Revocada');
+  assert.equal(response.verification.result, 'revoked');
+  assert.equal(response.integrity.latestBlockchainRecord?.networkLabel, 'Testnet');
+  assert.equal(response.revocationReason, 'Información corregida');
 });
 
-test('when there is no semantic analysis latest returns null', async () => {
-  const { service } = createVerificationServiceTestContext({
-    latestSemanticAnalysisResponse: {
-      credentialId: 'cred-123',
-      latestSemanticAnalysis: null
-    }
-  });
+test('issued credentials without canonical evidence remain public but are not verifiable', async () => {
+  const { service } = createContext(
+    credentialFixture({
+      canonicalHash: null,
+      canonicalizationVersion: null,
+      _count: { blockchainRecords: 0 },
+      blockchainRecords: []
+    })
+  );
 
-  const response = await service.getCredentialVerification('cred-123');
+  const response = await service.getCredentialVerification('credential-incomplete');
 
-  assert.equal(response.semanticAnalysis.latest, null);
+  assert.equal(response.verification.result, 'not_verifiable');
+  assert.equal(response.integrity.canonicalHashPresent, false);
+  assert.equal(response.integrity.latestBlockchainRecord, null);
 });
 
-test('service does not modify credential, create blockchain record or recalculate hash', async () => {
-  const { service, calls } = createVerificationServiceTestContext();
+test('public verification rejects a blank or oversized reference before querying', async () => {
+  const { service, calls } = createContext();
 
-  const response = await service.getCredentialVerification('cred-123');
+  await assert.rejects(() => service.getCredentialVerification('  '), BadRequestException);
+  await assert.rejects(
+    () => service.getCredentialVerification('a'.repeat(201)),
+    BadRequestException
+  );
+  assert.equal(calls.findUnique.length, 0);
+});
 
-  assert.equal(calls.credentialUpdate, 0);
-  assert.equal(calls.blockchainRecordCreate, 0);
-  assert.equal(response.credential.canonicalHash, '0xabc');
-  assert.equal(response.credential.canonicalizationVersion, 'canon_v1');
+test('public holder label never falls back to private email or an internal id', async () => {
+  const { service } = createContext(
+    credentialFixture({
+      subjectUser: {
+        displayName: ' ',
+        firstName: null,
+        lastName: null,
+        did: null,
+        email: 'must-not-leak@example.com',
+        id: 'must-not-leak'
+      }
+    })
+  );
+
+  const response = await service.getCredentialVerification('credential-anonymous-holder');
+
+  assert.equal(response.holder.displayLabel, null);
+  assert.equal(JSON.stringify(response).includes('must-not-leak'), false);
 });

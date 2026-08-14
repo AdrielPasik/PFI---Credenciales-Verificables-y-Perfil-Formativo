@@ -754,6 +754,18 @@ export function CredentialDetailView({
               <Button asChild variant="secondary">
                 <Link href="/issuer">Volver al portal</Link>
               </Button>
+              {detail.status === 'issued' || detail.status === 'revoked' ? (
+                <Button asChild variant="secondary">
+                  <Link
+                    href={`/verify?credential=${encodeURIComponent(
+                      detail.credentialReference
+                    )}`}
+                  >
+                    <Link2 aria-hidden="true" />
+                    Verificación pública
+                  </Link>
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
           <CredentialIssuanceSection detail={detail} onIssue={onIssue} />

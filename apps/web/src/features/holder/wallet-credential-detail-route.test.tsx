@@ -119,3 +119,12 @@ it('never shows issuer-facing semantic approval copy in the holder wallet', () =
     /aprobar interpretación para reutilización/i
   );
 });
+
+it('links an issued or revoked holder credential to the public verifier without exposing extra data', () => {
+  render(<WalletCredentialDetailView detail={detail} />);
+
+  const link = screen.getByRole('link', { name: 'Abrir verificación pública' });
+  expect((link as HTMLAnchorElement).getAttribute('href')).toBe(
+    '/verify?credential=credential-reference'
+  );
+});

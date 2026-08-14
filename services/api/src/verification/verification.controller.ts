@@ -7,9 +7,9 @@ import { VerificationService } from './verification.service';
 export class VerificationController {
   constructor(private readonly verificationService: VerificationService) {}
 
-  @Get(':id')
+  @Get(':credentialId')
   getCredentialVerification(
-    @Param('id') credentialId: string
+    @Param('credentialId') credentialId: string
   ): Promise<VerifyCredentialResponseDto> {
     return this.verificationService.getCredentialVerification(credentialId);
   }

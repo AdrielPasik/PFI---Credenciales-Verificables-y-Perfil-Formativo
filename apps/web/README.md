@@ -421,6 +421,15 @@ declaraciones institucionales y de las inferencias de IA. C4b continúa
 pendiente: el snapshot aprobado no se aplica a futuras credenciales ni al
 perfil.
 
+## Verificacion publica
+
+`/verify` permite consultar una credencial emitida o revocada sin iniciar
+sesion. Acepta una referencia directa o un enlace con `?credential=...` y el
+navegador consulta exclusivamente `GET /verify/credentials/:credentialId` en
+NestJS, sin token y sin llamadas a FastAPI o blockchain. La vista no muestra
+email del titular, evidencias crudas ni analisis IA. QR y sharing avanzado
+siguen pendientes.
+
 ## Prerrequisitos
 
 - Node.js `^20.19.0 || ^22.13.0 || >=24.0.0`;

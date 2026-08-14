@@ -80,6 +80,16 @@ email String? @unique
 - la obligatoriedad por estado debe validarse en servicio;
 - la discusion de unicidad queda abierta para una revision posterior del schema.
 
+### Verificacion publica V1
+
+- La referencia publica identifica una `Credential` por su id; `canonicalHash`
+  no se usa como identificador porque no es unico.
+- Solo `issued` y `revoked` se exponen mediante el read model publico. Un
+  `draft` no confirma existencia, titulo, emisor, titular ni estado.
+- El verificador muestra una allowlist minima y no consulta blockchain en vivo.
+  El registro persistido es evidencia tecnica de integridad y no validacion
+  academica; `SemanticAnalysis` no participa en la verificacion.
+
 ## 6. FormativeProfile.isCurrent
 
 - `FormativeProfile.isCurrent` se mantiene.

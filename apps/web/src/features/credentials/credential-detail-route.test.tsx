@@ -1288,6 +1288,27 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'academic_subject', status: 'issued' })} documentAnalysis={documentAnalysis} />);
     expect(screen.queryByTestId('semantic-approval-section')).toBeNull();
   });
+
+  it('links issued issuer credentials to the public verifier but never exposes the action for drafts', () => {
+    const { rerender } = render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ status: 'issued' })}
+      />
+    );
+
+    expect(
+      (screen.getByRole('link', { name: 'Verificación pública' }) as HTMLAnchorElement).getAttribute('href')
+    ).toBe('/verify?credential=credential-internal-reference');
+
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ status: 'draft' })}
+      />
+    );
+    expect(screen.queryByRole('link', { name: 'Verificación pública' })).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

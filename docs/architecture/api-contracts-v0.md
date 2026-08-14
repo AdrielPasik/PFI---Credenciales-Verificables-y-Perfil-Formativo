@@ -718,14 +718,21 @@ ni afirma que un draft este listo para emitir.
 - Errores esperados: `400`, `404`, `409`.
 - Estado: `v1_candidate`.
 
-### `GET /verification/credentials/:credentialId`
+### `GET /verify/credentials/:credentialId`
 
-- Proposito: consultar un resultado de verificacion por credential id.
-- Actor: `verifier`, `system_admin`.
-- Request conceptual: path `credentialId`.
-- Response conceptual: resumen verificable.
-- Errores esperados: `401`, `403`, `404`.
-- Estado: `mock`.
+- Proposito: consultar publicamente una credencial emitida o revocada, sin
+  sesion y sin efectos secundarios.
+- Actor: publico; no usa `AuthGuard`.
+- Request: path `credentialId`; no acepta canonical hash como identificador.
+- Response: DTO allowlisted con titulo/tipo, emisor y DID, titular minimo y
+  DID, fechas, hash corto/version y ultimo registro tecnico seguro.
+- Privacidad: `draft` se comporta como inexistente (`404` generico). Nunca
+  expone email, `credentialSubject`, `rawData`, metadata, evidencia, analisis
+  IA, rutas de storage, secretos ni datos de membership.
+- Blockchain: no consulta RPC ni red en vivo; la evidencia es tecnica y no
+  valida el contenido academico.
+- Errores esperados: `400`, `404`, `5xx` sanitizado.
+- Estado: implementado en V1.
 
 ### `POST /verification/shared-link/:token`
 

@@ -12,7 +12,7 @@ POST /auth/login
 GET  /credentials/:id
 GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
-GET  /verify/credentials/:id
+GET  /verify/credentials/:credentialId
 ```
 
 Protegidos por JWT:
@@ -711,6 +711,19 @@ Después de persistir el análisis, el rebuild del perfil crea un nuevo snapshot
 y conceptos inferidos. Si el rebuild falla, el análisis y la emisión se
 conservan; se registra el código seguro `formative_profile_rebuild_failed`.
 No se aplica `approvedSemanticSnapshot`: C4b permanece pendiente.
+
+## V1: verificacion publica de credenciales
+
+`GET /verify/credentials/:credentialId` es un read model publico, sin JWT y
+sin efectos secundarios. Solo devuelve credenciales `issued` o `revoked`; un
+`draft` responde igual que una referencia inexistente. La respuesta usa una
+allowlist con titulo, tipo, emisor/DID, titular minimo/DID, fechas, hash corto
+y evidencia tecnica de blockchain. No devuelve email del titular, datos de
+membership, `credentialSubject`, `rawData`, metadata, evidencia documental o
+textual, analisis IA, rutas de storage, secretos ni datos internos.
+
+No consulta RPC ni blockchain en vivo: presenta solo el ultimo registro ya
+persistido. Esa evidencia tecnica no reemplaza la validez academica del emisor.
 
 ## Perfil formativo
 
