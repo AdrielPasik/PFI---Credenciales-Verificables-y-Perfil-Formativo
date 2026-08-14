@@ -13,6 +13,7 @@ import { IssuersModule } from './issuers/issuers.module';
 import { MeModule } from './me/me.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
+import { ProfileSharingModule } from './profile-sharing/profile-sharing.module';
 import { SemanticModule } from './semantic/semantic.module';
 import { TextEvidenceModule } from './text-evidence/text-evidence.module';
 import { VerificationModule } from './verification/verification.module';
@@ -25,6 +26,7 @@ import { VerificationModule } from './verification/verification.module';
     AuthModule,
     MeModule,
     ProfilesModule,
+    ProfileSharingModule,
     IssuersModule,
     BlockchainModule,
     CatalogModule,

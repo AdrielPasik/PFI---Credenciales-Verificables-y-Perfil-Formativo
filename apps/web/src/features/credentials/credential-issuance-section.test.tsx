@@ -278,7 +278,7 @@ describe('CredentialIssuanceSection', () => {
     ).toBeNull();
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
     expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
-    expect(screen.getByText('Se intentará al emitir')).toBeTruthy();
+    expect(screen.getByText('Se ejecutará al emitir con datos declarados')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')
@@ -304,7 +304,7 @@ describe('CredentialIssuanceSection', () => {
 
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
     expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
-    expect(screen.getByText('Se intentará al emitir')).toBeTruthy();
+    expect(screen.getByText('Se ejecutará al emitir con datos declarados')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')

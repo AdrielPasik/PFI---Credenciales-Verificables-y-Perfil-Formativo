@@ -1525,3 +1525,25 @@ persiste `approved_template_semantic_snapshot_v2` en el template reutilizable.
 No muta la `SemanticAnalysis`, no modifica la credencial original y no crea
 una credencial nueva. El snapshot todavia no se aplica a credenciales futuras
 ni al perfil formativo: C4b sigue pendiente.
+- El identificador de consulta es una referencia de credencial o el parámetro
+  `credential` de un enlace `/verify`; `canonicalHash` no se usa como input.
+- La respuesta expone la huella solo como evidencia técnica y no realiza RPC o
+  verificación blockchain en vivo.
+
+### `POST /me/profile/share`
+
+- Requiere `AuthGuard` y usa exclusivamente el usuario autenticado.
+- Requiere un `FormativeProfile` current y crea un token opaco; persiste solo
+  `tokenHash` dentro de `SharingGrant` con scope `profile`.
+- Devuelve `sharePath` relativo. El navegador compone la URL absoluta con su
+  propio origen, sin dominios hardcodeados ni variables públicas nuevas.
+
+### `GET /share/profile/:token`
+
+- Público, read-only y sin `AuthGuard`.
+- Acepta solamente un token opaco activo, no un ID de usuario, perfil, holder,
+  email o DID.
+- Devuelve una vista allowlisted y limitada: narrativa prudente, hasta 6 áreas,
+  12 habilidades, 20 conceptos y 10 credenciales `issued` con enlace a V1.
+- Excluye email, DID, rawData, perfiles completos, análisis raw, evidencia,
+  storage paths y datos de membresía.

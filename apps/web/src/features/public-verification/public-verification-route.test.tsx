@@ -29,7 +29,7 @@ describe('PublicVerificationRoute', () => {
   it('renders without a session and validates an empty input locally', () => {
     render(<PublicVerificationRoute />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Verificar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar credencial' }));
 
     expect(screen.getByText('Revisá el código o enlace ingresado.')).toBeTruthy();
     expect(apiMocks.getPublicCredentialVerificationRequest).not.toHaveBeenCalled();
@@ -45,12 +45,15 @@ describe('PublicVerificationRoute', () => {
     fireEvent.change(screen.getByLabelText('Código o enlace de credencial'), {
       target: { value: 'https://traza.example/verify?credential=credential-1' }
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Verificar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar credencial' }));
 
     await waitFor(() => expect(apiMocks.getPublicCredentialVerificationRequest).toHaveBeenCalledWith('credential-1'));
     expect(navigationMocks.replace).toHaveBeenCalledWith('/verify?credential=credential-1');
     expect(await screen.findByRole('heading', { name: 'Credencial emitida' })).toBeTruthy();
     expect(screen.getByText('Titular demo')).toBeTruthy();
+    expect(screen.getByText(/No es la huella canónica/i)).toBeTruthy();
+    expect(screen.getByText('Entorno técnico/demo')).toBeTruthy();
+    expect(screen.getByText('31337')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/holder@example|rawData|analysisJson|sourceRefs|evidenceMap|textForEmbedding|storageKey/i);
     expect(document.body.textContent).not.toMatch(/100% verificada|blockchain valida el contenido|IA certifica/i);
   });
@@ -78,7 +81,7 @@ describe('PublicVerificationRoute', () => {
     render(<PublicVerificationRoute />);
 
     fireEvent.change(screen.getByLabelText('Código o enlace de credencial'), { target: { value: 'credential-404' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Verificar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar credencial' }));
 
     expect(await screen.findByText('No pudimos completar la verificación en este momento. Probá nuevamente.')).toBeTruthy();
     expect(document.body.textContent).not.toContain('raw server details');

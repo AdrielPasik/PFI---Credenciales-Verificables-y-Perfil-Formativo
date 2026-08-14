@@ -105,6 +105,17 @@ email String? @unique
 ## 7. SharingGrant
 
 - Todo `SharingGrant` debe apuntar al menos a `credentialId` o `profileId`.
+
+### V2: perfil público controlado
+
+- Un share de perfil usa `SharingGrant.scope = profile`, `profileId` y un token
+  opaco cuyo hash SHA-256 es el único valor persistido.
+- El token no puede derivarse de identidad del holder ni reutilizar la
+  referencia de una credencial o su hash canónico.
+- La vista pública incluye solo un resumen limitado; las credenciales de
+  respaldo se restringen a `issued` y enlazan al verificador V1.
+- Un `GET` puede usar un fallback narrativo determinístico para perfiles legacy,
+  pero no debe mutar `FormativeProfile`.
 - `scope = credential` requiere `credentialId`.
 - `scope = profile` requiere `profileId`.
 - `scope = credential_and_profile` requiere `credentialId` y `profileId`.

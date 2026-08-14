@@ -689,7 +689,8 @@ export function CredentialDetailView({
       ) : null}
 
       <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <Card className="overflow-hidden border-border-strong">
+        <div className="grid gap-8">
+          <Card className="overflow-hidden border-border-strong">
           <div aria-hidden="true" className="h-1 bg-brand-700" />
           <CardHeader className="gap-2 sm:p-8 sm:pb-6">
             <p className="text-sm font-semibold text-brand-700">
@@ -728,7 +729,24 @@ export function CredentialDetailView({
               value={createdAt}
             />
           </CardContent>
-        </Card>
+          </Card>
+
+          {isDraft && draftEditor ? (
+            <CredentialDraftEditorForm
+              detail={detail}
+              issuerReference={draftEditor.issuerReference}
+              onSave={draftEditor.onSave}
+              onReloadLatest={draftEditor.onReloadLatest}
+              searchPrograms={draftEditor.searchPrograms}
+              searchSubjects={draftEditor.searchSubjects}
+              onTerminalError={draftEditor.onTerminalError}
+            />
+          ) : null}
+
+          {!isDraft && detail.type === 'course' ? (
+            <CourseDeclaredDataCard subject={detail.credentialSubject} />
+          ) : null}
+        </div>
 
         <aside aria-labelledby="draft-actions-title" className="grid gap-5">
           <Card className="border-border-strong bg-surface-muted shadow-none">
@@ -793,38 +811,10 @@ export function CredentialDetailView({
         </aside>
       </div>
 
-      {isDraft && draftEditor ? (
-        <CredentialDraftEditorForm
-          detail={detail}
-          issuerReference={draftEditor.issuerReference}
-          onSave={draftEditor.onSave}
-          onReloadLatest={draftEditor.onReloadLatest}
-          searchPrograms={draftEditor.searchPrograms}
-          searchSubjects={draftEditor.searchSubjects}
-          onTerminalError={draftEditor.onTerminalError}
-        />
-      ) : null}
-
-      {!isDraft && detail.type === 'course' ? (
-        <CourseDeclaredDataCard subject={detail.credentialSubject} />
-      ) : null}
-
-      <section aria-labelledby="supporting-evidence-title" className="grid gap-8">
-        <div className="max-w-3xl border-t border-border-default pt-8">
-          <p className="text-sm font-semibold text-teal-700">Fuentes institucionales</p>
-          <h2
-            id="supporting-evidence-title"
-            className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
-          >
-            Evidencia de respaldo
-          </h2>
-          <p className="mt-2 leading-7 text-text-muted">
-            Reuní las fuentes que respaldan el contenido de la credencial y consultá su análisis asistido.
-          </p>
-        </div>
-
+      <section className="grid gap-8">
         <DocumentEvidenceSection
           credentialStatus={detail.status}
+          credentialType={detail.type}
           currentDocument={detail.documentEvidence.currentDocument}
           onUpload={onUploadDocumentEvidence}
         />

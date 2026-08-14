@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { expect, it } from 'vitest';
 
 import { WalletCredentialDetailView } from '@/features/holder/wallet-credential-detail-route';
@@ -120,11 +120,14 @@ it('never shows issuer-facing semantic approval copy in the holder wallet', () =
   );
 });
 
-it('links an issued or revoked holder credential to the public verifier without exposing extra data', () => {
+it('shares an issued or revoked holder credential through the public verifier without exposing extra data', () => {
   render(<WalletCredentialDetailView detail={detail} />);
 
-  const link = screen.getByRole('link', { name: 'Abrir verificación pública' });
+  fireEvent.click(screen.getByRole('button', { name: 'Compartir credencial' }));
+  const link = screen.getByRole('link', { name: 'Ver vista pública' });
   expect((link as HTMLAnchorElement).getAttribute('href')).toBe(
     '/verify?credential=credential-reference'
   );
+  expect(screen.getByDisplayValue('credential-reference')).toBeTruthy();
+  expect(screen.getByText(/No es la huella canónica/i)).toBeTruthy();
 });

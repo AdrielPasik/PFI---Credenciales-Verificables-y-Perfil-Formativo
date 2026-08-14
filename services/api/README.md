@@ -1141,3 +1141,13 @@ Firebase/cloud storage, mobile, MetaMask, Base Sepolia, sharing/link/QR,
 revocacion completa ni hardening productivo blockchain. El modo
 `credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo
 el comportamiento por default.
+## V2: perfil compartido
+
+- `POST /me/profile/share` requiere sesión y crea un `SharingGrant` de scope
+  `profile` con token opaco: en la base solo se persiste su SHA-256.
+- `GET /share/profile/:token` es público y devuelve una vista allowlisted,
+  limitada a áreas, habilidades, conceptos y hasta diez credenciales emitidas.
+- El token nunca representa un userId, holderId, email, DID o profileId. Un
+  grant revocado, vencido o inválido responde como perfil no disponible.
+- La lectura puede construir una narrativa prudente para perfiles previos que
+  no la hubieran persistido; no modifica el perfil durante un `GET`.

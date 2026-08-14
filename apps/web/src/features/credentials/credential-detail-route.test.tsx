@@ -273,7 +273,7 @@ describe('CredentialDetailController', () => {
       screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
+      screen.getByRole('heading', { name: 'Evidencia documental' })
     ).toBeTruthy();
     // C4y: course no muestra ni carga manual ni explicación técnica
     // permanente sobre evidencia textual.
@@ -1279,7 +1279,7 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     const onLoadCredentialSemanticApprovalCandidate = vi.fn().mockResolvedValue(semanticApprovalCandidateFixture());
     render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'course', status: 'issued' })} documentAnalysis={documentAnalysis} onLoadCredentialSemanticApprovalCandidate={onLoadCredentialSemanticApprovalCandidate} />);
     const issuance = screen.getByRole('heading', { name: 'Emisión de credencial' });
-    const evidence = screen.getByRole('heading', { name: 'Evidencia de respaldo' });
+    const evidence = screen.getByRole('heading', { name: 'Evidencia documental' });
     expect(issuance.compareDocumentPosition(evidence) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(await screen.findByTestId('semantic-approval-section')).toBeTruthy();
   });

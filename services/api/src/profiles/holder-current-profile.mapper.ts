@@ -17,12 +17,17 @@ export function mapHolderCurrentProfileResponse(
     return { currentProfile: null };
   }
 
+  const mappedAreas = areas(profile.areasSummary);
+  const mappedSkills = skills(profile.skillsSummary);
+  const mappedConcepts = concepts(profile.profileJson);
+  const officialHours = totalOfficialHours(profile);
+
   return {
     currentProfile: {
       profileVersion: profile.profileVersion,
       credentialsCount: profile.credentialsCount,
       totalHours: profile.totalHours,
-      totalOfficialHours: totalOfficialHours(profile),
+      totalOfficialHours: officialHours,
       credentialsWithoutHours: summaryCounter(
         profile.profileJson,
         'credentialsWithoutHours'
@@ -31,10 +36,17 @@ export function mapHolderCurrentProfileResponse(
         profile.profileJson,
         'credentialsWithoutSemanticCoverage'
       ),
-      narrative: narrative(profile.profileJson),
-      areas: areas(profile.areasSummary),
-      skills: skills(profile.skillsSummary),
-      concepts: concepts(profile.profileJson),
+      narrative:
+        narrative(profile.profileJson) ??
+        narrativeFallback({
+          areas: mappedAreas,
+          skills: mappedSkills,
+          concepts: mappedConcepts,
+          totalOfficialHours: officialHours
+        }),
+      areas: mappedAreas,
+      skills: mappedSkills,
+      concepts: mappedConcepts,
       emittedSkills: emittedLabels(profile.profileJson, 'emittedSkills'),
       emittedCompetencies: emittedLabels(
         profile.profileJson,
@@ -135,6 +147,36 @@ function narrative(value: unknown): string | null {
   if (typeof candidate !== 'string') return null;
   const normalized = normalize(candidate);
   return normalized && normalized.length <= 1200 ? normalized : null;
+}
+
+// Legacy profiles can predate the persisted C5 narrative. Reading them must
+// still be useful, but a GET must never rewrite the historical snapshot.
+function narrativeFallback(input: {
+  areas: Array<{ label: string }>;
+  skills: Array<{ label: string }>;
+  concepts: string[];
+  totalOfficialHours: number | null;
+}): string | null {
+  const areas = input.areas.slice(0, 3).map((area) => area.label);
+  const topics = [...input.skills.slice(0, 3).map((skill) => skill.label), ...input.concepts.slice(0, 2)]
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .slice(0, 3);
+
+  if (areas.length === 0 && topics.length === 0 && input.totalOfficialHours === null) {
+    return null;
+  }
+
+  const sentences: string[] = [];
+  if (areas.length > 0) {
+    sentences.push(`La trayectoria formativa muestra credenciales vinculadas con ${areas.join(', ')}.`);
+  }
+  if (topics.length > 0) {
+    sentences.push(`Se observan contenidos relacionados con ${topics.join(', ')}.`);
+  }
+  if (input.totalOfficialHours !== null) {
+    sentences.push(`Las horas oficiales declaradas suman ${input.totalOfficialHours}.`);
+  }
+  return sentences.join(' ');
 }
 
 function confidence(value: unknown) {

@@ -558,3 +558,15 @@ habilitados automaticamente por la politica CORS de un unico origin.
 
 El procedimiento completo y el smoke Vercel -> Render -> Neon/S3 estan en
 [`vercel-frontend-deployment-runbook-v0.md`](../../docs/architecture/vercel-frontend-deployment-runbook-v0.md).
+V2 mantiene `/verify` sin sesión: se puede pegar un enlace público o una
+referencia de credencial. La huella canónica se muestra como evidencia técnica
+del resultado, pero no se acepta como código de consulta.
+
+Desde una credencial de wallet, `Compartir credencial` construye el enlace con
+el origen actual del navegador y permite copiar enlace o referencia con
+fallback manual. No se genera un token nuevo para compartir una credencial.
+
+Un holder con perfil current puede usar `Compartir perfil`. Ese flujo crea un
+token opaco y abre `/share/profile/[token]`, una vista pública resumida que no
+incluye email, evidencia cruda ni artefactos de IA. QR y sharing avanzado siguen
+pendientes.

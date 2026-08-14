@@ -33,11 +33,13 @@ import { formatDocumentSize } from '@/lib/formatters/document-evidence';
 import type {
   CredentialFeedback,
   CredentialStatus,
+  CredentialType,
   DocumentEvidenceVM
 } from '@/models/credentials';
 
 interface DocumentEvidenceSectionProps {
   credentialStatus: CredentialStatus;
+  credentialType?: CredentialType;
   currentDocument: DocumentEvidenceVM | null;
   onUpload(file: File): Promise<DocumentEvidenceVM>;
 }
@@ -49,6 +51,7 @@ type UploadFeedback =
 
 export function DocumentEvidenceSection({
   credentialStatus,
+  credentialType = 'academic_subject',
   currentDocument,
   onUpload
 }: DocumentEvidenceSectionProps) {
@@ -62,6 +65,8 @@ export function DocumentEvidenceSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadInFlight = useRef(false);
   const isDraft = credentialStatus === 'draft';
+  const supportsDeclaredTextAnalysis =
+    credentialType === 'course' || credentialType === 'certification';
   const uploadVisible =
     isDraft && (currentDocument === null || replacementMode);
 
@@ -143,9 +148,6 @@ export function DocumentEvidenceSection({
       className="grid gap-6"
     >
       <div className="max-w-3xl">
-        <p className="text-sm font-semibold text-teal-700">
-          Respaldo institucional
-        </p>
         <h2
           id="document-evidence-title"
           className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
@@ -154,7 +156,9 @@ export function DocumentEvidenceSection({
         </h2>
         <p className="mt-2 leading-7 text-text-muted">
           {isDraft
-            ? 'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
+            ? supportsDeclaredTextAnalysis
+              ? 'Adjuntá un PDF institucional si esta formación cuenta con documentación de respaldo. Para cursos y certificaciones es opcional cuando ya completaste descripción, competencias o contenido adicional.'
+              : 'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
             : 'Esta evidencia quedó asociada a la credencial emitida.'}
         </p>
       </div>

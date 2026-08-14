@@ -123,6 +123,37 @@ test('maps a bounded narrative through the holder-safe allowlist', () => {
   assert.equal(response.currentProfile?.narrative, 'La trayectoria muestra formación en gestión de proyectos.');
 });
 
+test('builds a prudent read-only narrative fallback for a legacy profile without one', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'legacy', isCurrent: true,
+      credentialsCount: 1, totalHours: 16, generatedAt: '2026-08-12T10:00:00.000Z',
+      areasSummary: [{ area: 'Gestión de proyectos', estimatedHours: 16 }],
+      skillsSummary: [{ skill: 'Scrum', confidence: 0.7 }], qualityFlags: [],
+      profileJson: { concepts: ['Kanban'], summary: {}, confidence: { score: null } }
+    }
+  });
+
+  assert.match(response.currentProfile?.narrative ?? '', /trayectoria formativa muestra credenciales/i);
+  assert.match(response.currentProfile?.narrative ?? '', /Scrum/);
+  assert.doesNotMatch(response.currentProfile?.narrative ?? '', /domina|experto|certifica|garantiza/i);
+});
+
+test('does not fabricate a narrative when a legacy profile has no useful information', () => {
+  const response = mapHolderCurrentProfileResponse({
+    userId: 'holder',
+    currentProfile: {
+      id: 'profile-id', profileVersion: 'legacy', isCurrent: true,
+      credentialsCount: 0, totalHours: null, generatedAt: '2026-08-12T10:00:00.000Z',
+      areasSummary: [], skillsSummary: [], qualityFlags: [],
+      profileJson: { concepts: [], summary: {}, confidence: { score: null } }
+    }
+  });
+
+  assert.equal(response.currentProfile?.narrative, null);
+});
+
 test('maps an absent profile to a safe null response', () => {
   assert.deepEqual(mapHolderCurrentProfileResponse({ userId: 'holder', currentProfile: null }), { currentProfile: null });
 });

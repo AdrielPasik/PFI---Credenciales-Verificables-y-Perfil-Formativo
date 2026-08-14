@@ -377,9 +377,15 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
           : hasDeclarativeBacking
             ? 'Contenido declarado suficiente'
             : 'Pendiente de confirmación',
-    analysisLabel: hasPdf || hasReusableTextSource
-      ? 'Se intentará al emitir'
-      : 'No disponible automáticamente'
+    analysisLabel: isReusableType
+      ? hasPdf
+        ? 'Se analizará el PDF al emitir'
+        : hasReusableTextSource
+          ? 'Se ejecutará al emitir con datos declarados'
+          : 'Pendiente de información suficiente'
+      : hasPdf
+        ? 'Se intentará al emitir'
+        : 'No disponible automáticamente'
   };
 }
 
