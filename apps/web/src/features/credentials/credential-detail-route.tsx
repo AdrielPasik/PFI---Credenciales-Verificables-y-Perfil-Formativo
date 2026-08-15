@@ -784,8 +784,8 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <div className="grid gap-8">
+      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
+        <div className="grid gap-10">
           <Card className="overflow-hidden border-border-strong">
           <div aria-hidden="true" className="h-1 bg-brand-700" />
           <CardHeader className="gap-2 sm:p-8 sm:pb-6">
@@ -890,7 +890,7 @@ export function CredentialDetailView({
           ) : null}
         </div>
 
-        <aside aria-labelledby="draft-actions-title" className="grid gap-5">
+        <aside aria-labelledby="draft-actions-title" className="grid gap-5 lg:sticky lg:top-8 lg:self-start">
           <Card className="border-border-strong bg-surface-muted shadow-none">
             <CardHeader>
               <h2

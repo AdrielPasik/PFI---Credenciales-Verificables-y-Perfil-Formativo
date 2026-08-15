@@ -288,7 +288,7 @@ export function CredentialDraftForm({
         </p>
       </header>
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
+      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
         <div className="grid gap-6">
           <Card className="overflow-hidden border-border-strong">
             <div aria-hidden="true" className="h-1 bg-teal-700" />
@@ -398,7 +398,7 @@ export function CredentialDraftForm({
             className={
               holder
                 ? 'overflow-hidden border-border-strong'
-                : 'overflow-hidden bg-surface-muted opacity-70'
+                : 'overflow-hidden border-dashed border-border-strong bg-surface-muted'
             }
           >
             <CardHeader className="gap-4 sm:p-8 sm:pb-6">
@@ -414,7 +414,7 @@ export function CredentialDraftForm({
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-brand-700">
-                    Crear borrador
+                    Siguiente paso
                   </p>
                   <h2 className="text-xl font-semibold text-text-strong">
                     Datos del logro
@@ -663,8 +663,8 @@ export function CredentialDraftForm({
           </Card>
         </div>
 
-        <aside aria-labelledby="issuer-context-title" className="lg:sticky lg:top-8">
-          <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
+        <aside aria-labelledby="issuer-context-title" className="lg:sticky lg:top-8 lg:self-start">
+          <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-md">
             <CardHeader className="gap-4">
               <span
                 aria-hidden="true"
@@ -673,6 +673,9 @@ export function CredentialDraftForm({
                 <Building2 className="size-5" />
               </span>
               <div>
+                <p className="text-xs font-semibold tracking-wider text-teal-100 uppercase">
+                  Contexto de trabajo
+                </p>
                 <Badge variant="secondary">Definida por tu sesión</Badge>
                 <h2
                   id="issuer-context-title"

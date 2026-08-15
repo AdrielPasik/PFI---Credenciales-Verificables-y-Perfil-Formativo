@@ -19,7 +19,7 @@ export function IssuerHome({
   membership: IssuerMembershipSummaryVM;
 }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
       <section aria-labelledby="issuer-home-title">
         <p className="text-sm font-semibold text-teal-700">
           Portal del emisor
@@ -28,11 +28,10 @@ export function IssuerHome({
           id="issuer-home-title"
           className="mt-2 max-w-3xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl"
         >
-          Operá con el contexto de {membership.issuerName}
+          {'Gestion\u00e1 las credenciales de '}{membership.issuerName}
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-text-muted">
-          Tu identidad y autorización institucional fueron validadas. Ya podés
-          resolver titulares y guardar borradores desde este contexto.
+          {'Cre\u00e1, complet\u00e1 y emit\u00ed credenciales desde la instituci\u00f3n activa.'}
         </p>
 
         <Card className="mt-8 overflow-hidden border-border-strong">
@@ -46,12 +45,12 @@ export function IssuerHome({
               <Badge variant="outline">{membership.roleLabel}</Badge>
             </div>
             <h2 className="text-xl font-semibold text-text-strong">
-              Contexto institucional activo
+              {'Instituci\u00f3n activa'}
             </h2>
           </CardHeader>
           <CardContent className="grid gap-5 sm:px-8 sm:pb-8">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-control bg-surface-muted p-4">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <div className="rounded-control bg-surface-muted p-5">
                 <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
                   <Landmark aria-hidden="true" className="size-4" />
                   Institución
@@ -60,12 +59,12 @@ export function IssuerHome({
                   {membership.issuerName}
                 </p>
               </div>
-              <div className="rounded-control bg-surface-muted p-4">
-                <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
+              <div className="rounded-control border border-border-default bg-surface p-5">
+                <span className="flex items-center gap-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
                   <Fingerprint aria-hidden="true" className="size-4" />
                   Identificador institucional
                 </span>
-                <p className="mt-2 break-words font-mono text-sm text-text-strong">
+                <p className="mt-2 break-words font-mono text-xs leading-5 text-text-muted">
                   {membership.issuerDid ?? 'DID no disponible'}
                 </p>
               </div>
@@ -75,7 +74,7 @@ export function IssuerHome({
       </section>
 
       <aside aria-labelledby="next-capability-title">
-        <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
+        <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-md lg:mt-2">
           <CardHeader className="gap-4">
             <span
               aria-hidden="true"
@@ -98,8 +97,7 @@ export function IssuerHome({
           <Separator className="bg-white/10" />
           <CardContent className="pt-5">
             <p className="text-sm leading-6 text-brand-100/80">
-              Resolvé un titular existente y guardá el primer borrador
-              institucional de la credencial.
+              {'Inici\u00e1 una credencial para registrar la formaci\u00f3n emitida por tu instituci\u00f3n.'}
             </p>
             <Button asChild variant="secondary" className="mt-6 w-full">
               <Link href="/issuer/credentials/new">

@@ -13,8 +13,7 @@ export function BrandMark({
 }: BrandMarkProps) {
   return (
     <div
-      aria-label="Traza, identidad temporal"
-      data-brand-status="temporary"
+      aria-label="Traza"
       className={cn('flex min-w-0 items-baseline gap-3', className)}
     >
       <span

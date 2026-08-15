@@ -22,7 +22,7 @@ const productPrinciples = [
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(23rem,0.88fr)_minmax(32rem,1.12fr)]">
+    <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(23rem,0.9fr)_minmax(34rem,1.1fr)]">
       <aside className="relative overflow-hidden bg-surface text-text-strong">
         <div
           aria-hidden="true"
@@ -47,20 +47,20 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="relative mx-auto flex h-full max-w-xl flex-col px-5 py-5 sm:px-8 sm:py-7 lg:min-h-svh lg:px-12 lg:py-10">
           <Image
             alt="Traza"
-            className="h-auto w-52"
+            className="h-auto w-40 sm:w-48 lg:w-56"
             height={1254}
             priority
             src="/brand/LOGO%20TRAZA%20SIN%20FONDO.png"
             width={1254}
           />
 
-          <div className="py-8 lg:my-auto lg:py-16">
+          <div className="py-8 sm:py-10 lg:my-auto lg:py-12">
             <p className="text-sm font-semibold tracking-widest text-teal-700 uppercase">
               Credenciales y trayectoria
             </p>
             <h1
               aria-label="Credenciales verificables. Trayectorias que se entienden."
-              className="mt-4 max-w-xl text-3xl leading-[1.12] font-bold tracking-tight text-balance text-text-strong sm:text-4xl lg:text-[2.75rem]"
+              className="mt-4 max-w-xl text-3xl leading-[1.12] font-bold tracking-tight text-balance text-text-strong sm:text-4xl lg:text-5xl"
             >
               <span className="block">Credenciales verificables.</span>
               <span className="block">Trayectorias que se entienden.</span>
@@ -69,7 +69,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               Traza reúne credenciales, evidencia y análisis formativo para
               construir perfiles más claros, confiables y verificables.
             </p>
-            <ul className="mt-10 hidden gap-5 lg:grid">
+            <ul className="mt-8 hidden gap-5 lg:grid">
               {productPrinciples.map((principle) => {
                 const Icon = principle.icon;
 

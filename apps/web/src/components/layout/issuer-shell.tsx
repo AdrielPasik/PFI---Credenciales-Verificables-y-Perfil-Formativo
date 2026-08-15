@@ -42,9 +42,9 @@ export function IssuerShell({
               inverse
             />
           </div>
-          <div className="mt-4 flex items-center gap-3 border-t border-white/10 pt-4">
-            <Badge variant="secondary">Contexto institucional</Badge>
-            <span className="min-w-0 truncate text-sm font-semibold">
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-white/10 pt-4">
+            <Badge variant="secondary">{'Instituci\u00f3n activa'}</Badge>
+            <span className="min-w-0 text-sm font-semibold sm:truncate">
               {issuerName}
             </span>
           </div>

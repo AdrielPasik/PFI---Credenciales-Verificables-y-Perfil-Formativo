@@ -7,9 +7,9 @@ import type { HolderCredentialListItemVM } from '@/models/holder';
 
 export function HolderCredentialCard({ credential }: { credential: HolderCredentialListItemVM }) {
   return (
-    <Card className="group overflow-hidden transition-colors hover:border-brand-600">
+    <Card className="group overflow-hidden transition-colors hover:border-brand-600 hover:shadow-sm">
       <div className={credential.status === 'revoked' ? 'h-1 bg-status-error' : 'h-1 bg-teal-700'} />
-      <CardHeader className="gap-3">
+      <CardHeader className="gap-3 sm:p-6 sm:pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Badge variant={credential.status === 'revoked' ? 'outline' : 'secondary'}>
             {credential.statusLabel}
@@ -21,7 +21,7 @@ export function HolderCredentialCard({ credential }: { credential: HolderCredent
           <p className="mt-1 text-sm text-text-muted">Emitida por {credential.issuerName}</p>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4">
+      <CardContent className="grid gap-4 sm:px-6 sm:pb-6">
         <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-text-muted">
           {credential.issuedAtLabel ? <span>{credential.issuedAtLabel}</span> : null}
           {credential.hasIntegrityEvidence ? <span className="inline-flex items-center gap-1.5"><ShieldCheck aria-hidden="true" className="size-4 text-teal-700" />Evidencia de integridad</span> : null}

@@ -18,9 +18,9 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
     profile.skills.some((skill) => skill.provenance);
 
   return (
-    <section aria-labelledby="holder-profile-summary-title" className="grid gap-5">
+    <section aria-labelledby="holder-profile-summary-title" className="grid gap-6">
       <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
-        <CardHeader className="gap-4 sm:p-8">
+          <CardHeader className="gap-5 sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"><Sparkles aria-hidden="true" className="size-5" /></span>
             <Badge variant="secondary">Perfil disponible</Badge>
@@ -118,7 +118,7 @@ interface ProfileListItem {
 // Se muestra como un indicador chico dentro del mismo Badge -- nunca una
 // tarjeta propia por item, para que no domine cuando hay muchas skills.
 function ProfileList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; empty: string }) {
-  return <Card><CardHeader className="flex-row items-center gap-3 pb-4"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent>{items.length > 0 ? <ul className="flex flex-wrap gap-2">{items.map((item) => <li key={item.key}><Badge variant="outline">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+  return <Card><CardHeader className="flex-row items-center gap-3 pb-3"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent>{items.length > 0 ? <ul className="flex flex-wrap gap-2.5">{items.map((item) => <li key={item.key}><Badge variant="outline" className="px-3 py-1.5">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
 }
 
 // C5b.2-R: la procedencia debe poder comprenderse SIN hover/tooltip (mobile/
