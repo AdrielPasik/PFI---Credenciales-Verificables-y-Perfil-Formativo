@@ -19,24 +19,26 @@ export function IssuerHome({
   membership: IssuerMembershipSummaryVM;
 }) {
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
-      <section aria-labelledby="issuer-home-title">
-        <p className="text-sm font-semibold text-teal-700">
-          Portal del emisor
-        </p>
+    <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.6fr)] lg:gap-10">
+      <section
+        aria-labelledby="issuer-home-title"
+        className="relative overflow-hidden rounded-card border border-border-default bg-surface p-6 shadow-sm sm:p-8"
+      >
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-teal-700" />
+        <p className="text-sm font-semibold text-teal-700">Portal del emisor</p>
         <h1
           id="issuer-home-title"
           className="mt-2 max-w-3xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl"
         >
-          {'Gestion\u00e1 las credenciales de '}{membership.issuerName}
+          {'Gestion\u00e1 las credenciales de '}
+          {membership.issuerName}
         </h1>
         <p className="mt-4 max-w-2xl leading-7 text-text-muted">
           {'Cre\u00e1, complet\u00e1 y emit\u00ed credenciales desde la instituci\u00f3n activa.'}
         </p>
 
-        <Card className="mt-8 overflow-hidden border-border-strong">
-          <div aria-hidden="true" className="h-1 bg-teal-700" />
-          <CardHeader className="gap-4 sm:p-8">
+        <Card className="mt-8 overflow-hidden border-border-strong bg-surface-muted shadow-xs">
+          <CardHeader className="gap-4 sm:p-7 sm:pb-5">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">
                 <ShieldCheck aria-hidden="true" />
@@ -44,27 +46,24 @@ export function IssuerHome({
               </Badge>
               <Badge variant="outline">{membership.roleLabel}</Badge>
             </div>
-            <h2 className="text-xl font-semibold text-text-strong">
-              {'Instituci\u00f3n activa'}
-            </h2>
+            <div>
+              <span className="flex items-center gap-2 text-sm font-semibold text-teal-700">
+                <Landmark aria-hidden="true" className="size-4" />
+                {'Instituci\u00f3n activa'}
+              </span>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-text-strong">
+                {membership.issuerName}
+              </h2>
+            </div>
           </CardHeader>
-          <CardContent className="grid gap-5 sm:px-8 sm:pb-8">
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <div className="rounded-control bg-surface-muted p-5">
-                <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
-                  <Landmark aria-hidden="true" className="size-4" />
-                  Institución
-                </span>
-                <p className="mt-2 font-semibold text-text-strong">
-                  {membership.issuerName}
-                </p>
-              </div>
-              <div className="rounded-control border border-border-default bg-surface p-5">
-                <span className="flex items-center gap-2 text-xs font-semibold tracking-wide text-text-muted uppercase">
-                  <Fingerprint aria-hidden="true" className="size-4" />
+          <CardContent className="border-t border-border-default pt-5 sm:px-7 sm:pb-6">
+            <div className="flex min-w-0 items-start gap-3 text-text-muted">
+              <Fingerprint aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold tracking-wide uppercase">
                   Identificador institucional
-                </span>
-                <p className="mt-2 break-words font-mono text-xs leading-5 text-text-muted">
+                </p>
+                <p className="mt-1 break-words font-mono text-xs leading-5">
                   {membership.issuerDid ?? 'DID no disponible'}
                 </p>
               </div>
@@ -73,8 +72,9 @@ export function IssuerHome({
         </Card>
       </section>
 
-      <aside aria-labelledby="next-capability-title">
-        <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-md lg:mt-2">
+      <aside aria-labelledby="next-capability-title" className="flex">
+        <Card className="flex w-full flex-col overflow-hidden border-0 bg-brand-900 text-white shadow-md">
+          <div aria-hidden="true" className="h-1 bg-teal-600" />
           <CardHeader className="gap-4">
             <span
               aria-hidden="true"
@@ -95,11 +95,11 @@ export function IssuerHome({
             </div>
           </CardHeader>
           <Separator className="bg-white/10" />
-          <CardContent className="pt-5">
+          <CardContent className="flex flex-1 flex-col pt-5">
             <p className="text-sm leading-6 text-brand-100/80">
               {'Inici\u00e1 una credencial para registrar la formaci\u00f3n emitida por tu instituci\u00f3n.'}
             </p>
-            <Button asChild variant="secondary" className="mt-6 w-full">
+            <Button asChild variant="secondary" className="mt-8 w-full">
               <Link href="/issuer/credentials/new">
                 <FilePlus2 aria-hidden="true" />
                 Crear credencial

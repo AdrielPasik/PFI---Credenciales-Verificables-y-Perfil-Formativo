@@ -20,7 +20,8 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
   return (
     <section aria-labelledby="holder-profile-summary-title" className="grid gap-6">
       <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
-          <CardHeader className="gap-5 sm:p-8">
+        <div aria-hidden="true" className="h-1 bg-teal-600" />
+        <CardHeader className="gap-5 sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"><Sparkles aria-hidden="true" className="size-5" /></span>
             <Badge variant="secondary">Perfil disponible</Badge>
@@ -51,7 +52,8 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
           icon={<BookOpenCheck aria-hidden="true" className="size-5" />}
           items={profile.areas.map((area) => ({
             key: area.label,
-            label: area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label,
+            label: area.label,
+            metadata: area.estimatedHoursLabel,
             provenance: area.provenance ?? null
           }))}
           empty="Sin estimación horaria por área todavía."
@@ -110,6 +112,7 @@ export function HolderProfileEmptyPanel() {
 interface ProfileListItem {
   key: string;
   label: string;
+  metadata?: string | null;
   provenance: HolderProfileProvenanceVM | null;
 }
 
@@ -118,7 +121,7 @@ interface ProfileListItem {
 // Se muestra como un indicador chico dentro del mismo Badge -- nunca una
 // tarjeta propia por item, para que no domine cuando hay muchas skills.
 function ProfileList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; empty: string }) {
-  return <Card><CardHeader className="flex-row items-center gap-3 pb-3"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent>{items.length > 0 ? <ul className="flex flex-wrap gap-2.5">{items.map((item) => <li key={item.key}><Badge variant="outline" className="px-3 py-1.5">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+  return <Card className="shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent className="pt-5">{items.length > 0 ? <ul className="flex flex-wrap items-center gap-x-3 gap-y-3">{items.map((item) => <li key={item.key} className="flex min-w-0 flex-wrap items-center gap-2"><Badge variant="outline" className="px-3 py-1.5">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
 }
 
 // C5b.2-R: la procedencia debe poder comprenderse SIN hover/tooltip (mobile/
@@ -156,5 +159,5 @@ function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenan
 }
 
 function DeclaredBlock({ title, items }: { title: string; items: string[] }) {
-  return <div><h3 className="text-sm font-semibold text-text-strong">{title}</h3><ul className="mt-2 flex flex-wrap gap-2">{items.map((item) => <li key={item}><Badge variant="outline">{item}</Badge></li>)}</ul></div>;
+  return <section className="grid gap-3 border-t border-border-default pt-5 first:border-t-0 first:pt-0"><h3 className="text-sm font-semibold text-text-strong">{title}</h3><ul className="flex flex-wrap gap-2.5">{items.map((item) => <li key={item}><Badge variant="outline" className="px-3 py-1.5">{item}</Badge></li>)}</ul></section>;
 }

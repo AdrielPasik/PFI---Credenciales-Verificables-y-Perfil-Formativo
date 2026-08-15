@@ -7,7 +7,7 @@ import type { HolderCredentialListItemVM } from '@/models/holder';
 
 export function HolderCredentialCard({ credential }: { credential: HolderCredentialListItemVM }) {
   return (
-    <Card className="group overflow-hidden transition-colors hover:border-brand-600 hover:shadow-sm">
+    <Card className="group overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-md motion-reduce:transform-none">
       <div className={credential.status === 'revoked' ? 'h-1 bg-status-error' : 'h-1 bg-teal-700'} />
       <CardHeader className="gap-3 sm:p-6 sm:pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -21,8 +21,8 @@ export function HolderCredentialCard({ credential }: { credential: HolderCredent
           <p className="mt-1 text-sm text-text-muted">Emitida por {credential.issuerName}</p>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-4 sm:px-6 sm:pb-6">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-text-muted">
+      <CardContent className="grid gap-5 border-t border-border-default pt-4 sm:px-6 sm:pb-6">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm leading-6 text-text-muted">
           {credential.issuedAtLabel ? <span>{credential.issuedAtLabel}</span> : null}
           {credential.hasIntegrityEvidence ? <span className="inline-flex items-center gap-1.5"><ShieldCheck aria-hidden="true" className="size-4 text-teal-700" />Evidencia de integridad</span> : null}
           {credential.hasAnalysis ? <span className="inline-flex items-center gap-1.5"><BrainCircuit aria-hidden="true" className="size-4 text-teal-700" />Análisis disponible</span> : null}

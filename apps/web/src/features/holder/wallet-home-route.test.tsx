@@ -110,9 +110,10 @@ describe('WalletHomeView', () => {
     expect(screen.getByText(/Suma de horas informadas por las credenciales emitidas\. No representa una distribución por área\./)).toBeTruthy();
   });
 
-  it('C2c: labels area hours as an AI estimate, never as official hours', () => {
+  it('C2c: separates the area label from its AI hours estimate, never presenting it as official hours', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
-    expect(screen.getByText('Software · 64 horas estimadas por IA')).toBeTruthy();
+    expect(screen.getByText('Software')).toBeTruthy();
+    expect(screen.getByText('64 horas estimadas por IA')).toBeTruthy();
   });
 
   it('C2c: never renders "0h" for an area without an AI hours estimate', () => {
