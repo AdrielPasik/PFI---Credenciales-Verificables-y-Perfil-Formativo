@@ -56,3 +56,14 @@ it('presents the definitive Traza identity while preserving the login form', () 
     screen.queryByText(/blockchain|IA avanzada|100 % verificado/i)
   ).toBeNull();
 });
+
+it('A1: shows a discreet CTA to create a new account, linking to /register', () => {
+  render(<LoginScreen />);
+
+  expect(screen.getByText('¿Sos nuevo en Traza?')).toBeTruthy();
+  expect(
+    (
+      screen.getByRole('link', { name: 'Crear una cuenta' }) as HTMLAnchorElement
+    ).getAttribute('href')
+  ).toBe('/register');
+});

@@ -13,6 +13,7 @@ import { CurrentUser } from './current-user.decorator';
 import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
 import { AuthMeResponseDto } from './dto/auth-me-response.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { AuthGuard } from './auth.guard';
 import { type AuthenticatedUser } from './auth.types';
 
@@ -24,6 +25,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto): Promise<AuthLoginResponseDto> {
     return this.authService.login(dto);
+  }
+
+  // A1: publico a proposito -- NO lleva @UseGuards(AuthGuard). Crea
+  // unicamente un User + AuthCredential (nunca Issuer/IssuerMembership) y
+  // devuelve el mismo shape que login para auto-login inmediato.
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  register(@Body() dto: RegisterDto): Promise<AuthLoginResponseDto> {
+    return this.authService.register(dto);
   }
 
   @UseGuards(AuthGuard)

@@ -1,17 +1,35 @@
 import {
+  BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { IssuerMembershipStatus, UserStatus } from '@prisma/client';
+import { IssuerMembershipStatus, Prisma, UserStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
 import { AuthMeResponseDto } from './dto/auth-me-response.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { getJwtExpiresIn, getJwtSecretOrThrow } from './jwt-config';
 import { type AuthenticatedUser, type JwtPayload } from './auth.types';
-import { verifyPasswordHash } from './password-hashing';
+import { hashPassword, verifyPasswordHash } from './password-hashing';
+
+// A1: mismo patron de regex ya usado en issuer-holder-resolution.service.ts
+// y analysis-run-backfill.service.ts (repo no centraliza esta constante).
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// A1: politica minima (seccion 10 del diseno) -- sin reglas de complejidad
+// inventadas (mayuscula/simbolo/numero). 8 es un piso razonable, 128 evita
+// inputs abusivos sin limitar casos de uso reales.
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
+const EMAIL_ALREADY_REGISTERED_MESSAGE =
+  'Ya existe una cuenta con ese correo.';
+// Codigo Prisma de violacion de unique constraint -- en el create() de
+// User de este metodo, la unica constraint que puede dispararlo en la
+// carrera de dos registros concurrentes es User.email.
+const UNIQUE_CONSTRAINT_ERROR_CODE = 'P2002';
 
 @Injectable()
 export class AuthService {
@@ -49,6 +67,83 @@ export class AuthService {
 
     if (!passwordMatches) {
       throw new UnauthorizedException('Credenciales invalidas.');
+    }
+
+    const accessToken = await this.jwtService.signAsync(
+      {
+        sub: user.id
+      } satisfies JwtPayload,
+      {
+        secret,
+        expiresIn: getJwtExpiresIn() as never
+      }
+    );
+
+    return {
+      accessToken,
+      user: this.toAuthUserResponse(user)
+    };
+  }
+
+  // A1: crea unicamente User + AuthCredential (nunca Issuer,
+  // IssuerMembership, Credential, FormativeProfile ni ningun otro dato) --
+  // registro publico nunca es onboarding institucional. Devuelve
+  // EXACTAMENTE el mismo shape que login (AuthLoginResponseDto) y firma el
+  // JWT con la misma funcion/parametros -- nunca un segundo mecanismo de
+  // sesion. did queda null: seccion "Pregunta critica: User.did" del
+  // diseno -- el unico requisito real de DID en el repo es al EMITIR una
+  // Credential (CredentialsService.issue), nunca al crear el draft ni al
+  // registrarse; no existe ningun mecanismo canonico de provisioning (los
+  // DID actuales son literales hardcodeados en seeds), asi que A1
+  // deliberadamente NO inventa uno. Ver auth-and-permissions-v0.md.
+  async register(dto: RegisterDto): Promise<AuthLoginResponseDto> {
+    const email = this.normalizeAndValidateRegistrationEmail(dto.email);
+    const password = this.assertValidRegistrationPassword(dto.password);
+    const secret = getJwtSecretOrThrow();
+
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    });
+
+    if (existing) {
+      throw new ConflictException(EMAIL_ALREADY_REGISTERED_MESSAGE);
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    let user: { id: string; email: string | null; did: string | null; status: UserStatus };
+
+    try {
+      user = await this.prisma.$transaction(async (transaction) => {
+        const createdUser = await transaction.user.create({
+          data: {
+            email,
+            status: UserStatus.active
+          },
+          select: {
+            id: true,
+            email: true,
+            did: true,
+            status: true
+          }
+        });
+
+        await transaction.authCredential.create({
+          data: {
+            userId: createdUser.id,
+            passwordHash
+          }
+        });
+
+        return createdUser;
+      });
+    } catch (error) {
+      if (isUniqueConstraintViolation(error)) {
+        throw new ConflictException(EMAIL_ALREADY_REGISTERED_MESSAGE);
+      }
+
+      throw error;
     }
 
     const accessToken = await this.jwtService.signAsync(
@@ -204,6 +299,43 @@ export class AuthService {
     return value;
   }
 
+  // A1: misma normalizacion que login (trim + lowercase, ver
+  // normalizeEmail arriba) MAS validacion de formato -- login nunca valida
+  // formato (un email invalido simplemente no matchea ningun usuario);
+  // register si necesita rechazar un email con forma invalida antes de
+  // crear la cuenta. Nunca dos reglas de normalizacion distintas: el
+  // trim+lowercase es identico al de login.
+  private normalizeAndValidateRegistrationEmail(value: unknown): string {
+    if (typeof value !== 'string') {
+      throw new BadRequestException('email es requerido.');
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (!normalized || !EMAIL_PATTERN.test(normalized)) {
+      throw new BadRequestException('email debe tener un formato valido.');
+    }
+
+    return normalized;
+  }
+
+  private assertValidRegistrationPassword(value: unknown): string {
+    if (typeof value !== 'string') {
+      throw new BadRequestException('password es requerido.');
+    }
+
+    if (
+      value.length < MIN_PASSWORD_LENGTH ||
+      value.length > MAX_PASSWORD_LENGTH
+    ) {
+      throw new BadRequestException(
+        `password debe tener entre ${MIN_PASSWORD_LENGTH} y ${MAX_PASSWORD_LENGTH} caracteres.`
+      );
+    }
+
+    return value;
+  }
+
   private toAuthUserResponse(user: {
     id: string;
     email: string | null;
@@ -221,4 +353,11 @@ export class AuthService {
       status: user.status
     };
   }
+}
+
+function isUniqueConstraintViolation(error: unknown): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === UNIQUE_CONSTRAINT_ERROR_CODE
+  );
 }

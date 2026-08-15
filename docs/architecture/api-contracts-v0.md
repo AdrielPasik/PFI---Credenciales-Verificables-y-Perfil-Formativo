@@ -10,6 +10,33 @@
 
 ## 1. Identity / Users
 
+### `POST /auth/register`
+
+- Proposito: que una persona nueva cree su propia cuenta holder
+  (email+password) y quede autenticada de inmediato -- A1.
+- Actor: publico (sin `AuthGuard`).
+- Request: `{ email: string; password: string }`. `confirmPassword` nunca se
+  envia (validacion exclusivamente client-side). Cualquier otro campo
+  (`role`, `issuerId`, `did`, `status`, `isAdmin`, etc.) es ignorado -- el
+  backend nunca los lee.
+- Response conceptual: identico shape que `POST /auth/login`
+  (`{ accessToken, user: { id, email, did, status } }`), firmado con el
+  mismo mecanismo JWT (mismo secret/expiration/claims). El frontend lo usa
+  para auto-login inmediato, reutilizando exactamente el flujo de sesion de
+  login (nunca un segundo mecanismo de auth).
+- Crea unicamente `User` (`status: active`) + `AuthCredential`
+  (`passwordHash`, nunca password plana) en una unica transaccion. `did`
+  queda `null` -- ver `auth-and-permissions-v0.md` seccion "Registro
+  publico y DID" para la razon completa. Nunca crea `Issuer`,
+  `IssuerMembership`, `Credential`, `FormativeProfile` ni ningun otro dato.
+- Password: politica minima (8-128 caracteres, cualquier caracter
+  permitido, sin reglas de complejidad inventadas).
+- Errores esperados: `400` (email/password invalidos), `409` (el email ya
+  esta registrado -- cubre tambien la carrera de dos registros
+  concurrentes vía la unique constraint de `User.email`, nunca filtra
+  `P2002`/detalle de Prisma).
+- Estado: implementado.
+
 ### `GET /auth/me`
 
 - Proposito: devolver identidad y contexto basico del usuario autenticado.

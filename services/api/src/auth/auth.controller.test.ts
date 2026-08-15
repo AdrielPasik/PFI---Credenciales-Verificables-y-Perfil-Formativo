@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { HttpStatus } from '@nestjs/common';
-import { HTTP_CODE_METADATA } from '@nestjs/common/constants';
+import { GUARDS_METADATA, HTTP_CODE_METADATA } from '@nestjs/common/constants';
 import { UserStatus } from '@prisma/client';
 
 import { AuthController } from './auth.controller';
@@ -89,5 +89,67 @@ test('AuthController delegates /auth/me lookup using current user id', async () 
   });
 
   assert.deepEqual(calls, ['user-123']);
+  assert.deepEqual(response, expectedResponse);
+});
+
+test('AuthController register responds with explicit HTTP 201 Created', () => {
+  const statusCode = Reflect.getMetadata(
+    HTTP_CODE_METADATA,
+    AuthController.prototype.register
+  );
+
+  assert.equal(statusCode, HttpStatus.CREATED);
+});
+
+// A1/seccion 17 del diseno: POST /auth/register debe ser publico -- nunca
+// @UseGuards(AuthGuard). login() tampoco lo lleva (sirve de referencia:
+// ambos deben quedar sin metadata de guards).
+test('AuthController register and login are both public (no AuthGuard metadata)', () => {
+  assert.equal(
+    Reflect.getMetadata(GUARDS_METADATA, AuthController.prototype.register),
+    undefined
+  );
+  assert.equal(
+    Reflect.getMetadata(GUARDS_METADATA, AuthController.prototype.login),
+    undefined
+  );
+});
+
+test('AuthController delegates register to the service', async () => {
+  const calls: Array<Record<string, unknown>> = [];
+  const expectedResponse = {
+    accessToken: 'signed-token',
+    user: {
+      id: 'holder-1',
+      email: 'nueva.persona@example.com',
+      did: null,
+      status: UserStatus.active
+    }
+  };
+
+  const controller = new AuthController({
+    async login() {
+      throw new Error('should not be called');
+    },
+    async getCurrentUserProfile() {
+      throw new Error('should not be called');
+    },
+    async register(dto: Record<string, unknown>) {
+      calls.push(dto);
+      return expectedResponse;
+    }
+  } as never);
+
+  const response = await controller.register({
+    email: 'nueva.persona@example.com',
+    password: 'CorrectHorse123'
+  });
+
+  assert.deepEqual(calls, [
+    {
+      email: 'nueva.persona@example.com',
+      password: 'CorrectHorse123'
+    }
+  ]);
   assert.deepEqual(response, expectedResponse);
 });

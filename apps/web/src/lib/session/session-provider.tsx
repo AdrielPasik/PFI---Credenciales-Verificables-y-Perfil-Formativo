@@ -11,7 +11,9 @@ import {
 import {
   currentUserRequest,
   loginRequest,
-  type LoginCommand
+  registerRequest,
+  type LoginCommand,
+  type RegisterCommand
 } from '@/lib/api/auth-api';
 import {
   createApiClient,
@@ -36,6 +38,7 @@ import { deriveIssuerContext } from '@/models/issuer-context';
 interface SessionContextValue {
   state: AuthSessionState;
   login(command: LoginCommand): Promise<AuthFeedback | null>;
+  register(command: RegisterCommand): Promise<AuthFeedback | null>;
   requestAuthenticated: AuthenticatedApiRequest;
   retry(): Promise<void>;
   logout(): void;
@@ -149,6 +152,30 @@ export function SessionProvider({
     }
   }
 
+  // A1: auto-login tras crear la cuenta -- reutiliza exactamente el mismo
+  // mecanismo de sesion que login() (mismo adapter, mismo store, mismo
+  // resolveSession via /auth/me). Nunca un segundo tipo de sesion/token, y
+  // nunca una segunda llamada a POST /auth/login con la password: el
+  // backend ya devuelve el mismo shape de auth response que login.
+  async function register(command: RegisterCommand) {
+    setState({ status: 'authenticating' });
+
+    try {
+      const response = await registerRequest(command);
+      const adapted = adaptLoginResponse(response);
+
+      store.clear();
+      store.setAccessToken(adapted.accessToken);
+      await resolveSession(adapted.accessToken);
+      return null;
+    } catch (error) {
+      const feedback = mapAuthError(error, 'register');
+      store.clear();
+      setState({ status: 'unauthenticated' });
+      return feedback;
+    }
+  }
+
   async function requestAuthenticated(
     path: `/${string}`,
     options: Parameters<AuthenticatedApiRequest>[1] = {}
@@ -243,6 +270,7 @@ export function SessionProvider({
       value={{
         state,
         login,
+        register,
         requestAuthenticated,
         retry,
         logout,

@@ -15,7 +15,8 @@ import type { SessionStore } from '@/lib/session/session-store';
 
 const authApiMocks = vi.hoisted(() => ({
   currentUserRequest: vi.fn(),
-  loginRequest: vi.fn()
+  loginRequest: vi.fn(),
+  registerRequest: vi.fn()
 }));
 
 const apiClientMocks = vi.hoisted(() => ({
@@ -100,6 +101,17 @@ function SessionObserver() {
       >
         Login
       </button>
+      <button
+        type="button"
+        onClick={() =>
+          void session.register({
+            email: 'nueva.persona@example.com',
+            password: '[REDACTED]'
+          })
+        }
+      >
+        Register
+      </button>
       <button type="button" onClick={session.logout}>
         Logout
       </button>
@@ -161,6 +173,7 @@ describe('SessionProvider', () => {
   beforeEach(() => {
     authApiMocks.currentUserRequest.mockReset();
     authApiMocks.loginRequest.mockReset();
+    authApiMocks.registerRequest.mockReset();
     apiClientMocks.request.mockReset();
   });
 
@@ -221,6 +234,72 @@ describe('SessionProvider', () => {
     expect(authApiMocks.currentUserRequest).toHaveBeenCalledWith(
       '[REDACTED]'
     );
+  });
+
+  // A1: register debe reutilizar EXACTAMENTE el mismo mecanismo de sesion
+  // que login (mismo adaptLoginResponse, mismo store, mismo /auth/me) --
+  // nunca un segundo tipo de sesion ni una segunda llamada a login.
+  it('A1: stores a successful register token and validates it through /auth/me, same as login', async () => {
+    const store = new MemorySessionStore();
+    authApiMocks.registerRequest.mockResolvedValue({
+      accessToken: '[REDACTED]',
+      user: {
+        id: 'holder-registered-1',
+        email: 'nueva.persona@example.com',
+        did: null,
+        status: 'active'
+      }
+    });
+    authApiMocks.currentUserRequest.mockResolvedValue({
+      ...currentUserResponse,
+      email: 'nueva.persona@example.com',
+      issuerMemberships: []
+    });
+
+    renderProvider(store);
+    await waitFor(() =>
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'unauthenticated'
+      )
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Register' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'authenticated'
+      );
+    });
+    expect(store.getAccessToken()).toBe('[REDACTED]');
+    expect(authApiMocks.registerRequest).toHaveBeenCalledWith({
+      email: 'nueva.persona@example.com',
+      password: '[REDACTED]'
+    });
+    expect(authApiMocks.loginRequest).not.toHaveBeenCalled();
+    expect(authApiMocks.currentUserRequest).toHaveBeenCalledWith(
+      '[REDACTED]'
+    );
+  });
+
+  it('A1: a duplicate-email register failure never stores a token and returns product-language feedback', async () => {
+    const store = new MemorySessionStore();
+    authApiMocks.registerRequest.mockRejectedValue(
+      new ApiError('conflict', 'http', 409)
+    );
+
+    renderProvider(store);
+    await waitFor(() =>
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'unauthenticated'
+      )
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Register' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('session-status').textContent).toBe(
+        'unauthenticated'
+      );
+    });
+    expect(store.getAccessToken()).toBeNull();
   });
 
   it('clears token and issuer selection when /auth/me returns 401', async () => {

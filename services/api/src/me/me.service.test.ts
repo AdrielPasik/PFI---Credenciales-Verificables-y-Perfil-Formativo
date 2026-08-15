@@ -41,6 +41,24 @@ test('MeService lists only holder issued/revoked credentials through a minimized
   }]);
 });
 
+// A1: un holder recien registrado (sin ninguna Credential emitida todavia)
+// nunca debe recibir un error -- la wallet vacia es el contrato real, no
+// un caso especial. findMany sin filas coincidentes ya devuelve [] por
+// diseno de Prisma; este test lo deja explicito para el flujo de A1.
+test('A1: MeService returns an empty list (never an error) for a freshly registered holder with no credentials', async () => {
+  const service = new MeService({
+    credential: {
+      async findMany() {
+        return [];
+      }
+    }
+  } as never);
+
+  const response = await service.listCredentialsForUser('holder-registered-1');
+
+  assert.deepEqual(response, []);
+});
+
 test('MeService returns a holder-safe detail without raw data, storage keys, metadata or blockchain addresses', async () => {
   const calls: Array<Record<string, unknown>> = [];
   const service = new MeService({

@@ -8,13 +8,13 @@ import { SessionErrorState } from '@/components/feedback/session-error-state';
 import { SessionLoadingState } from '@/components/feedback/session-loading-state';
 import { AuthShell } from '@/components/layout/auth-shell';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { LoginForm } from '@/features/auth/login-form';
+import { RegisterForm } from '@/features/auth/register-form';
 import { useSession } from '@/lib/session/session-provider';
 
-export function LoginScreen() {
+export function RegisterScreen() {
   const router = useRouter();
   const {
-    login,
+    register,
     logout,
     retry,
     state
@@ -51,8 +51,6 @@ export function LoginScreen() {
   }
 
   const isSubmitting = state.status === 'authenticating';
-  const initialFeedback =
-    state.status === 'expired' ? state.error : null;
 
   return (
     <AuthShell>
@@ -60,33 +58,21 @@ export function LoginScreen() {
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
           <p className="text-sm font-semibold text-teal-700">
-            Acceso a Traza
+            Creá tu cuenta en Traza
           </p>
           <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
-            Iniciá sesión
+            Crear cuenta
           </h2>
           <p className="text-sm leading-6 text-text-muted">
-            Ingresá con tu cuenta para validar el contexto institucional
-            disponible.
+            Empezá a construir tu trayectoria formativa en un solo lugar.
           </p>
         </CardHeader>
         <CardContent className="pt-2 sm:px-8 sm:pb-8">
-          <LoginForm
-            key={initialFeedback?.code ?? 'login'}
-            initialFeedback={initialFeedback}
-            isSubmitting={isSubmitting}
-            onSubmit={login}
-          />
+          <RegisterForm isSubmitting={isSubmitting} onSubmit={register} />
           <p className="mt-6 text-center text-sm text-text-muted">
-            ¿Necesitás consultar una credencial?{' '}
-            <Link href="/verify" className="font-semibold text-brand-700 underline underline-offset-4">
-              Verificar una credencial
-            </Link>
-          </p>
-          <p className="mt-3 text-center text-sm text-text-muted">
-            ¿Sos nuevo en Traza?{' '}
-            <Link href="/register" className="font-semibold text-brand-700 underline underline-offset-4">
-              Crear una cuenta
+            ¿Ya tenés una cuenta?{' '}
+            <Link href="/login" className="font-semibold text-brand-700 underline underline-offset-4">
+              Ingresar
             </Link>
           </p>
         </CardContent>

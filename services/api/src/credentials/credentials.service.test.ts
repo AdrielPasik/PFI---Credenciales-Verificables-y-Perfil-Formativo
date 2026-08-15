@@ -897,6 +897,56 @@ test('CredentialsService allows an active issuer admin and preserves hashing/blo
   assert.equal(response.latestBlockchainRecord?.status, 'registered');
 });
 
+// A1: readiness real de un holder auto-registrado (User.did === null,
+// exactamente lo que AuthService.register produce -- ver auth.service.ts y
+// auth-and-permissions-v0.md). Documenta, sin inventar ningun mecanismo de
+// DID nuevo, el estado REAL del repo: getSubjectUserOrThrow (createDraft)
+// nunca lee/exige did -- un holder auto-registrado puede ser destinatario
+// de un draft de inmediato. issueCredential SI exige
+// credential.subjectUser.did (linea ~268 de credentials.service.ts) y
+// falla con el mismo BadRequestException ya existente -- A1
+// deliberadamente no lo evita ni lo parchea: no existe ningun servicio de
+// provisioning de DID reutilizable en el repo (los unicos DID existentes
+// son literales hardcodeados en los seeds), asi que resolver esto queda
+// fuera de A1 (ver seccion "Pregunta critica: User.did" / regla de STOP).
+test('A1: a self-registered holder (User.did === null) can be the subject of a draft, but issuance stays blocked by the existing DID requirement until DID provisioning is designed', async () => {
+  const registeredHolderId = 'holder-registered-1';
+  const draft = createDraftService({
+    subjectUser: { id: registeredHolderId }
+  });
+
+  const draftResponse = await draft.service.createDraft(
+    { ...validDraftDto, subjectUserId: registeredHolderId },
+    currentUser
+  );
+
+  assert.equal(draftResponse.status, 'draft');
+  assert.deepEqual(draft.subjectLookupCalls[0]?.select, { id: true });
+
+  const issuance = createService({
+    credential: createCredentialFixture({
+      subjectUserId: registeredHolderId,
+      subjectUser: { id: registeredHolderId, did: null }
+    })
+  });
+
+  await assert.rejects(
+    issuance.service.issueCredential(
+      'cred-123',
+      { issuerId: 'issuer-1' },
+      currentUser
+    ),
+    (error: unknown) => {
+      assert.ok(error instanceof BadRequestException);
+      const response = (error as BadRequestException).getResponse() as { message: string };
+      assert.match(response.message, new RegExp(`${registeredHolderId} no tiene DID configurado`));
+      return true;
+    }
+  );
+  assert.equal(issuance.hashCalls.length, 0);
+  assert.equal(issuance.blockchainCalls.length, 0);
+});
+
 test('CredentialsService preserves issuer authorization and configuration requirements', async () => {
   const { service, hashCalls, blockchainCalls } = createService({
     assertIssuerCanIssue() {

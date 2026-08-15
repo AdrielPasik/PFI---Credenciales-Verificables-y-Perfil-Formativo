@@ -11,6 +11,7 @@ export type CurrentUserVM = AuthUserVM;
 export type AuthFeedbackCode =
   | 'invalid_input'
   | 'invalid_credentials'
+  | 'email_taken'
   | 'forbidden'
   | 'service_unavailable'
   | 'network'

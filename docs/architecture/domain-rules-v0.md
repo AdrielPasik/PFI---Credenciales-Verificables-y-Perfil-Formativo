@@ -1578,3 +1578,73 @@ persistidos por C5b.1 (`profileJson.areas[].provenanceSummary`,
   (por ejemplo un dashboard dedicado); cualquier cambio a `/verify`
   (decision cerrada, no cambia); `Credential.sourceTemplateId` (sigue
   diferido desde C4b.0.1).
+
+## 25. A1 — Registro de titular: crear cuenta con email + contraseña + auto-login
+
+A1 agrega `POST /auth/register` para que una persona nueva cree su propia
+cuenta holder. Sin migracion -- `AuthCredential.passwordHash` y
+`User.did`/`User.email` nullable-unique ya existian en `schema.prisma`
+antes de A1 (no se toco el schema).
+
+- **Registro publico crea unicamente `User` comun**: `status: active`,
+  nunca `Issuer`, `IssuerMembership`, `Credential`, `FormativeProfile` ni
+  ningun otro dato. No existe seleccion de rol/issuer en el registro --
+  toda cuenta nueva empieza como holder sin membership institucional
+  alguna (verificado: `register()` nunca toca la tabla
+  `IssuerMembership`).
+- **No hay verificacion de email en esta version**: el `User` queda
+  `active` de inmediato, igual que los usuarios seed -- ningun OTP, magic
+  link, ni envio de correo.
+- **Password**: reutiliza integramente `hashPassword`/`verifyPasswordHash`
+  ya existentes (`auth/password-hashing.ts`, scrypt) -- A1 no crea un
+  segundo mecanismo de hashing. Politica minima nueva (no existia
+  ninguna): 8-128 caracteres, sin reglas de complejidad inventadas.
+  Backend es la autoridad final; frontend valida temprano con la misma
+  politica.
+- **Email**: misma normalizacion que login (trim + lowercase) mas
+  validacion de formato (login no la necesita porque un email invalido
+  simplemente no matchea ningun usuario existente; register si debe
+  rechazar un formato invalido antes de crear la cuenta).
+- **Email duplicado**: `409` seguro, nunca crea un segundo `User`, nunca
+  filtra `P2002`/detalle de Prisma. Cubre tanto el caso comun (pre-check
+  antes de hashear password) como la carrera real de dos registros
+  concurrentes con el mismo email (constraint de DB como autoridad final,
+  mapeada de forma segura).
+- **Creacion atomica**: `User.create` + `AuthCredential.create` en una
+  sola `$transaction` -- nunca un `User` sin `AuthCredential` ni viceversa.
+- **Auto-login reutilizando el mecanismo real, nunca uno paralelo**:
+  `register()` devuelve exactamente el mismo shape (`AuthLoginResponseDto`)
+  que `login()`, firmado con el mismo `JwtService`/secret/expiration/
+  claims. El frontend (`SessionProvider.register`) reutiliza integramente
+  el flujo de `login` (mismo adapter, mismo `SessionStore`, mismo
+  `resolveSession` via `GET /auth/me`) -- nunca hace una segunda llamada a
+  `POST /auth/login` con la password, nunca un segundo tipo de sesion.
+- **`User.did` queda `null` al registrarse -- decision consciente, no un
+  descuido**: auditoria completa en `auth-and-permissions-v0.md` seccion
+  2.3. Resumen: `createDraft` nunca exige `did`; `issueCredential` si lo
+  exige (unico punto real del repo); no existe ningun mecanismo canonico
+  de provisioning de DID -- los DID existentes son literales hardcodeados
+  en seeds. A1 NO inventa un esquema `did:...` nuevo. Un holder
+  auto-registrado puede: autenticarse, ver su wallet/perfil vacios sin
+  error, y ser destinatario de un draft de credencial. Queda bloqueado
+  unicamente en el paso final de emision (`issueCredential`) hasta que se
+  diseñe conscientemente un mecanismo de DID -- decision pendiente
+  documentada, no oculta dentro de auth.
+- **Wallet/perfil inicial**: una wallet sin `Credential` y un perfil
+  inexistente son el contrato real ya existente (`findMany`/
+  `findFirst` con cero coincidencias), no un caso especial que A1 deba
+  construir -- nunca se crea un `FormativeProfile` artificial al
+  registrarse.
+- **DTO de request allowlisted por lectura de campos, no por decorators**:
+  igual que `LoginDto`, `RegisterDto` no usa `class-validator` (no hay
+  `ValidationPipe` global en el repo) -- `AuthService.register` lee
+  unicamente `dto.email`/`dto.password` campo a campo, nunca hace spread
+  del body. Cualquier campo extra (`role`, `issuerId`, `did`, `isAdmin`,
+  etc.) que un cliente mande queda ignorado sin excepcion ni efecto sobre
+  privilegios.
+- **`POST /auth/register` es publico**: sin `@UseGuards(AuthGuard)`, igual
+  que `login`. Ningun otro endpoint pierde proteccion por esta feature.
+- Pendiente, explicitamente fuera de alcance de A1: verificacion de email,
+  recuperacion/cambio de password, MFA, OAuth, CAPTCHA, seleccion de rol
+  durante el registro, onboarding institucional, edicion de perfil,
+  provisioning de DID (ver arriba), refresh tokens.

@@ -4,7 +4,7 @@ import {
 } from '@/lib/errors/api-error';
 import type { AuthFeedback } from '@/models/auth-session';
 
-type AuthOperation = 'login' | 'session';
+type AuthOperation = 'login' | 'session' | 'register';
 
 export function mapAuthError(
   error: unknown,
@@ -72,6 +72,14 @@ export function mapAuthError(
       code: 'forbidden',
       message: 'La cuenta no tiene acceso a esta experiencia.',
       recoverable: false
+    };
+  }
+
+  if (error.status === 409 && operation === 'register') {
+    return {
+      code: 'email_taken',
+      message: 'Ya existe una cuenta con ese correo.',
+      recoverable: true
     };
   }
 

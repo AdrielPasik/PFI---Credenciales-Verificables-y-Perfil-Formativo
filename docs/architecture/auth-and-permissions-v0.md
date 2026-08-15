@@ -73,6 +73,7 @@ El backend ya implementa autenticacion local/demo para `User`:
 - `AuthCredential` separado de `User`;
 - password hash con `scrypt`;
 - `POST /auth/login` por email y password;
+- `POST /auth/register` por email y password (A1, publico, ver mas abajo);
 - JWT minimo con `sub = userId`;
 - `GET /auth/me`;
 - `AuthGuard` reusable y decorador `CurrentUser`.
@@ -86,6 +87,48 @@ no es operativa. Para operar se requiere ademas rol `admin` u `operator` e
 issuer `authorized`.
 
 No hay refresh tokens, recuperacion de password, MFA, OAuth ni proveedor externo. El esquema actual es suficiente para la demo local, no para custodia o identidad productiva.
+
+## 2.3 Registro publico de holder (A1)
+
+`POST /auth/register` permite que cualquier persona cree su propia cuenta
+holder con email+password y quede autenticada de inmediato (auto-login,
+mismo mecanismo de sesion que `POST /auth/login` -- mismo shape de
+respuesta, mismo JWT). Crea exclusivamente `User` (`status: active`) +
+`AuthCredential`; nunca `Issuer`, `IssuerMembership` ni ningun dato de
+credenciales/perfil. No hay verificacion de email en esta version -- el
+`User` queda `active` inmediatamente, igual que los usuarios seed. La
+unicidad de `email` sigue protegida por la constraint de base real; una
+carrera de dos registros concurrentes con el mismo email nunca produce dos
+`User`, se resuelve como `409` seguro.
+
+**Registro publico y DID (auditoria A1):** un `User` creado por register
+queda con `did: null`. Esto es deliberado, no un descuido -- la auditoria
+de A1 encontro que:
+
+- `User.did` ya es nullable en el schema (`String? @unique`);
+- `CredentialsService.createDraft` (`getSubjectUserOrThrow`) nunca lee ni
+  exige `did` -- un holder auto-registrado puede ser destinatario de un
+  draft de inmediato, resuelto por email igual que cualquier otro titular
+  (`IssuerHolderResolutionService.resolveHolder`, que tampoco exige `did`);
+- `CredentialsService.issueCredential` SI exige
+  `credential.subjectUser.did` no nulo (rechaza con
+  `El titular ... no tiene DID configurado.` si falta) -- este es el UNICO
+  punto real del repo donde el DID del holder es obligatorio;
+- no existe en `services/api/src` ningun servicio, helper o convencion de
+  provisioning de DID para holders. Los unicos DID existentes
+  (`did:example:holder-demo`, `did:example:issuer-demo`, etc.) son
+  literales hardcodeados en los seeds (`prisma/seed.ts`,
+  `prisma/seed-course-platform-user.ts`), sin ninguna funcion que los
+  genere o derive.
+
+Por eso A1 explicitamente NO inventa un esquema de DID nuevo durante el
+registro (seria una decision arquitectonica encubierta dentro de auth). Un
+holder auto-registrado queda completamente operativo para: iniciar/cerrar
+sesion, ver su wallet/perfil (vacios, sin error), y ser destinatario de un
+draft de credencial. Queda BLOQUEADO unicamente en el ultimo paso real de
+emision (`issueCredential`) hasta que se resuelva un mecanismo real y
+consciente de provisioning de DID -- decision pendiente, fuera de alcance
+de A1 (ver seccion 10 "Decisiones pendientes").
 
 La emision ya aplica esta identidad:
 
@@ -276,3 +319,7 @@ usando signers institucionales registrados.
 - endpoint issuer-facing para lectura institucional y controles de privacidad asociados;
 - estrategia de autorizacion de rebuild administrativo de perfiles;
 - constraint de DB o estrategia de reintento para reforzar la unicidad de `FormativeProfile.isCurrent`.
+- mecanismo real y canonico de provisioning de DID para holders
+  auto-registrados (A1) -- sin esto, un holder registrado via
+  `POST /auth/register` no puede recibir una credencial `issued`, solo
+  `draft`. Ver seccion 2.3.
