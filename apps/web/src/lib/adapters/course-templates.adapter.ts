@@ -113,7 +113,10 @@ function semanticCandidateItems(value: unknown) {
 // snapshot/analysisJson completo. Cualquier forma incompatible (falta un
 // campo, un tipo incorrecto) se rechaza con IncompatiblePayloadError en vez
 // de mostrar datos a medias.
-function adaptSemanticApprovalSnapshotSummary(
+// Exportada (no solo local): C4b.2 reutiliza esta misma logica para el
+// snapshotSummary de candidate/apply/read de reusable-semantic-interpretation
+// -- es exactamente el mismo shape allowlisted, nunca se duplica.
+export function adaptSemanticApprovalSnapshotSummary(
   value: unknown
 ): SemanticApprovalSnapshotSummaryVM {
   const record = asRecord(value);

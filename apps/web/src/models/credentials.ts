@@ -442,3 +442,100 @@ export interface SemanticApprovalCandidateItemVM {
   label: string;
   confidence: number | null;
 }
+
+// C4b.2: aplicar a una credencial issued una interpretacion semantica
+// reutilizable que el emisor ya reviso/aprobo para un template (C4a.1/C4a.2).
+// Distinto de SemanticApprovalSection (C5, revisar/aprobar una interpretacion
+// para volverla reutilizable) -- este flujo APLICA una interpretacion que YA
+// fue revisada. sourceTemplateId sigue diferido: el emisor elige
+// explicitamente el template contra el que consulta candidate.
+export type ApprovalDriftStatus =
+  | 'none_applied'
+  | 'up_to_date'
+  | 'different_approval_available';
+
+export type TemplateContentDriftStatus =
+  | 'matches_approved_source'
+  | 'differs_from_approved_source'
+  | 'unknown';
+
+export type DestinationCompatibilityStatus =
+  | 'compatible'
+  | 'modified'
+  | 'unknown';
+
+// Allowlist de campos que el backend puede reportar en changedFields --
+// nunca valores viejo/nuevo, solo nombres de campo (ver
+// api-contracts-v0.md, seccion C4b.1a/C4b.1b).
+export type ComparableCredentialField =
+  | 'title'
+  | 'description'
+  | 'competencies'
+  | 'learningOutcomes'
+  | 'skills'
+  | 'hours';
+
+// Resumen de una interpretacion ya aplicada a una credencial -- compartido
+// por GET .../reusable-semantic-interpretation, candidate.currentApplication
+// y apply().application. Siempre comparado contra la fuente CONGELADA de esa
+// aplicacion (ver C4b.1b-R) -- nunca contra la fuente actual del template.
+export interface AppliedReusableSemanticInterpretationVM {
+  templateReference: string;
+  templateTitle: string;
+  snapshotSummary: SemanticApprovalSnapshotSummaryVM;
+  appliedAt: string;
+  appliedAtLabel: string;
+  appliedByDisplayLabel: string;
+  approvalDriftStatus: ApprovalDriftStatus;
+  templateContentStatus: TemplateContentDriftStatus;
+  destinationCompatibility: DestinationCompatibilityStatus;
+  changedFields: ComparableCredentialField[];
+}
+
+export interface GetReusableSemanticInterpretationCommand {
+  issuerReference: string;
+  credentialReference: string;
+  signal?: AbortSignal;
+}
+
+export interface GetReusableSemanticInterpretationCandidateCommand {
+  issuerReference: string;
+  credentialReference: string;
+  templateReference: string;
+  signal?: AbortSignal;
+}
+
+// Candidate top-level: la aprobacion que se evaluaria SI el emisor aplica
+// ahora -- siempre comparada contra la fuente ACTUAL del template, nunca
+// contra la fuente congelada de una aplicacion previa (currentApplication,
+// si existe, describe esa aplicacion previa por separado). approvalRevision
+// es una precondicion tecnica opaca (proteccion TOCTOU) -- nunca se
+// renderiza, solo se reenvia tal cual a apply().
+export interface ReusableSemanticInterpretationCandidateVM {
+  templateReference: string;
+  templateTitle: string;
+  snapshotSummary: SemanticApprovalSnapshotSummaryVM;
+  approvedAt: string;
+  approvedAtLabel: string;
+  approvedByDisplayLabel: string;
+  approvalRevision: string;
+  approvalDriftStatus: ApprovalDriftStatus;
+  templateContentStatus: TemplateContentDriftStatus;
+  destinationCompatibility: DestinationCompatibilityStatus;
+  changedFields: ComparableCredentialField[];
+  currentApplication: AppliedReusableSemanticInterpretationVM | null;
+}
+
+export interface ApplyReusableSemanticInterpretationCommand {
+  issuerReference: string;
+  credentialReference: string;
+  templateReference: string;
+  approvalRevision: string;
+  acknowledgeDestinationDrift?: boolean;
+}
+
+export interface ApplyReusableSemanticInterpretationResultVM {
+  changed: boolean;
+  supersededPreviousApplication: boolean;
+  application: AppliedReusableSemanticInterpretationVM;
+}

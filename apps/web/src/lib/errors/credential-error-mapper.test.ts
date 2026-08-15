@@ -253,4 +253,118 @@ describe('mapCredentialError', () => {
       ).code
     ).toBe('network');
   });
+
+  // C4b.2
+  it.each([
+    [
+      403,
+      'forbidden',
+      'No tenés permisos para aplicar interpretaciones semánticas reutilizables en esta institución.'
+    ],
+    [
+      404,
+      'not_found',
+      'No encontramos la credencial o el contenido reutilizable solicitados.'
+    ],
+    [
+      400,
+      'invalid_input',
+      'Esta credencial o este contenido reutilizable no admiten interpretaciones aplicadas.'
+    ],
+    [
+      422,
+      'invalid_input',
+      'Este contenido reutilizable todavía no tiene una interpretación revisada disponible para aplicar.'
+    ],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps reusable-interpretation-candidate HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'reusable-interpretation-candidate'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it.each([
+    [
+      403,
+      'forbidden',
+      'No tenés permisos para aplicar interpretaciones semánticas reutilizables en esta institución.'
+    ],
+    [
+      404,
+      'not_found',
+      'No encontramos la credencial o el contenido reutilizable solicitados.'
+    ],
+    [
+      400,
+      'invalid_input',
+      'Esta credencial o este contenido reutilizable no admiten interpretaciones aplicadas.'
+    ],
+    // TOCTOU: 409 tiene copy especifico, nunca el generico de otros flujos.
+    [
+      409,
+      'conflict',
+      'La interpretación aprobada cambió mientras la estabas revisando. Actualizamos la información para que puedas revisarla nuevamente.'
+    ],
+    [
+      422,
+      'invalid_input',
+      'No pudimos aplicar esta interpretación a la credencial. Revisá la compatibilidad antes de reintentar.'
+    ],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps reusable-interpretation-apply HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'reusable-interpretation-apply'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it.each([
+    [
+      403,
+      'forbidden',
+      'No tenés permisos para aplicar interpretaciones semánticas reutilizables en esta institución.'
+    ],
+    [
+      404,
+      'not_found',
+      'No encontramos la credencial o el contenido reutilizable solicitados.'
+    ],
+    [503, 'service_unavailable', 'El servicio no está disponible temporalmente. Intentá nuevamente más tarde.']
+  ])('maps reusable-interpretation-read HTTP %i safely to %s', (status, code, message) => {
+    const result = mapCredentialError(
+      new ApiError('private backend detail', 'http', status),
+      'reusable-interpretation-read'
+    );
+
+    expect(result).toEqual({ code, message });
+    expect(result.message).not.toContain('private');
+  });
+
+  it('never exposes P2002/P2034/Serializable/unique index/constraint/transaction/approvalRevision in any reusable-interpretation feedback', () => {
+    const operations = [
+      'reusable-interpretation-read',
+      'reusable-interpretation-candidate',
+      'reusable-interpretation-apply'
+    ] as const;
+    const statuses = [400, 403, 404, 409, 422, 500];
+
+    for (const operation of operations) {
+      for (const status of statuses) {
+        const result = mapCredentialError(
+          new ApiError('P2002 unique constraint crsi_one_active_per_credential_uq', 'http', status),
+          operation
+        );
+        expect(result.message).not.toMatch(
+          /P2002|P2034|Serializable|unique index|constraint|transaction|approvalRevision/i
+        );
+      }
+    }
+  });
 });

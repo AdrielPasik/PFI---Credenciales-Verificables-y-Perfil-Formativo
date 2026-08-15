@@ -18,7 +18,10 @@ type CredentialOperation =
   | 'save-reusable-template'
   | 'template-search'
   | 'semantic-approval-candidate'
-  | 'approve-reusable-template-analysis';
+  | 'approve-reusable-template-analysis'
+  | 'reusable-interpretation-read'
+  | 'reusable-interpretation-candidate'
+  | 'reusable-interpretation-apply';
 
 function feedback(
   code: CredentialFeedbackCode,
@@ -114,6 +117,17 @@ export function mapCredentialError(
       );
     }
 
+    if (
+      operation === 'reusable-interpretation-read' ||
+      operation === 'reusable-interpretation-candidate' ||
+      operation === 'reusable-interpretation-apply'
+    ) {
+      return feedback(
+        'forbidden',
+        'No tenés permisos para aplicar interpretaciones semánticas reutilizables en esta institución.'
+      );
+    }
+
     return feedback(
       'forbidden',
       operation === 'document-evidence-upload'
@@ -158,6 +172,17 @@ export function mapCredentialError(
       return feedback(
         'not_found',
         'No encontramos la interpretación semántica o el contenido reutilizable solicitados.'
+      );
+    }
+
+    if (
+      operation === 'reusable-interpretation-read' ||
+      operation === 'reusable-interpretation-candidate' ||
+      operation === 'reusable-interpretation-apply'
+    ) {
+      return feedback(
+        'not_found',
+        'No encontramos la credencial o el contenido reutilizable solicitados.'
       );
     }
 
@@ -253,6 +278,47 @@ export function mapCredentialError(
       return feedback(
         'conflict',
         'El estado de este contenido reutilizable cambió. Actualizá la página e intentá nuevamente.'
+      );
+    }
+  }
+
+  if (operation === 'reusable-interpretation-candidate') {
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'Esta credencial o este contenido reutilizable no admiten interpretaciones aplicadas.'
+      );
+    }
+
+    if (error.status === 422) {
+      return feedback(
+        'invalid_input',
+        'Este contenido reutilizable todavía no tiene una interpretación revisada disponible para aplicar.'
+      );
+    }
+  }
+
+  if (operation === 'reusable-interpretation-apply') {
+    if (error.status === 400) {
+      return feedback(
+        'invalid_input',
+        'Esta credencial o este contenido reutilizable no admiten interpretaciones aplicadas.'
+      );
+    }
+
+    // TOCTOU: la aprobacion cambio entre candidate y apply -- nunca se
+    // reintenta apply automaticamente, el usuario debe volver a revisar.
+    if (error.status === 409) {
+      return feedback(
+        'conflict',
+        'La interpretación aprobada cambió mientras la estabas revisando. Actualizamos la información para que puedas revisarla nuevamente.'
+      );
+    }
+
+    if (error.status === 422) {
+      return feedback(
+        'invalid_input',
+        'No pudimos aplicar esta interpretación a la credencial. Revisá la compatibilidad antes de reintentar.'
       );
     }
   }

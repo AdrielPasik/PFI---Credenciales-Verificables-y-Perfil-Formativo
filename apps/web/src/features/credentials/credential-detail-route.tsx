@@ -32,6 +32,7 @@ import { CredentialDraftEditorForm } from '@/features/credentials/credential-dra
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
+import { ReusableSemanticInterpretationSection } from '@/features/credentials/reusable-semantic-interpretation-section';
 import { ReusableTemplateIntentSection } from '@/features/credentials/reusable-template-intent-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
@@ -63,15 +64,23 @@ import {
   getTemplateSemanticApprovalCandidate,
   listCourseTemplates
 } from '@/lib/api/course-templates-api';
+import {
+  applyReusableSemanticInterpretation,
+  getReusableSemanticInterpretation,
+  getReusableSemanticInterpretationCandidate
+} from '@/lib/api/reusable-semantic-interpretation-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
 import type {
   CredentialFeedback,
   AcademicProgramSearchItemVM,
+  ApplyReusableSemanticInterpretationResultVM,
+  AppliedReusableSemanticInterpretationVM,
   CourseTemplateSummaryVM,
   CurriculumAcademicSubjectSearchItemVM,
   DocumentEvidenceVM,
   IssuerCredentialDetailVM,
+  ReusableSemanticInterpretationCandidateVM,
   TemplateSemanticApprovalCandidateVM,
   ReviewedSemanticInterpretationCommand,
   TextEvidenceVM,
@@ -260,6 +269,68 @@ export function CredentialDetailController({
     [requestAuthenticated, membership.issuerReference, credentialReference]
   );
 
+  // C4b.2: aplicar a esta credencial una interpretacion semantica ya
+  // revisada por el emisor (C4a.1/C4a.2) sobre un contenido reutilizable
+  // que el emisor elige explicitamente (sourceTemplateId sigue diferido).
+  // Reutiliza listCourseTemplates de C3c/C4a.2 para el selector -- nunca
+  // duplica la busqueda de templates.
+  const loadReusableInterpretation = useCallback(
+    (): Promise<AppliedReusableSemanticInterpretationVM | null> =>
+      getReusableSemanticInterpretation(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialReference
+      }),
+    [requestAuthenticated, membership.issuerReference, credentialReference]
+  );
+
+  const searchReusableTemplatesForInterpretation = useCallback(
+    (
+      query: string,
+      signal: AbortSignal
+    ): Promise<CourseTemplateSummaryVM[]> => {
+      const credentialType = detail?.type;
+
+      if (credentialType !== 'course' && credentialType !== 'certification') {
+        return Promise.resolve([]);
+      }
+
+      return listCourseTemplates(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialType,
+        search: query,
+        status: 'active',
+        signal
+      });
+    },
+    [requestAuthenticated, membership.issuerReference, detail?.type]
+  );
+
+  const loadReusableInterpretationCandidate = useCallback(
+    (
+      templateReference: string
+    ): Promise<ReusableSemanticInterpretationCandidateVM> =>
+      getReusableSemanticInterpretationCandidate(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialReference,
+        templateReference
+      }),
+    [requestAuthenticated, membership.issuerReference, credentialReference]
+  );
+
+  const applyReusableInterpretation = useCallback(
+    (command: {
+      templateReference: string;
+      approvalRevision: string;
+      acknowledgeDestinationDrift?: boolean;
+    }): Promise<ApplyReusableSemanticInterpretationResultVM> =>
+      applyReusableSemanticInterpretation(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialReference,
+        ...command
+      }),
+    [requestAuthenticated, membership.issuerReference, credentialReference]
+  );
+
   if (loading) {
     return <SessionLoadingState label="Cargando borrador" />;
   }
@@ -434,6 +505,10 @@ export function CredentialDetailController({
       onApproveTemplateSemanticAnalysis={approveSemanticAnalysisForTemplate}
       onLoadCredentialSemanticApprovalCandidate={loadCredentialSemanticApprovalCandidate}
       onApproveCredentialSemanticAnalysis={approveCredentialSemanticReview}
+      onLoadReusableInterpretation={loadReusableInterpretation}
+      searchReusableTemplatesForInterpretation={searchReusableTemplatesForInterpretation}
+      onLoadReusableInterpretationCandidate={loadReusableInterpretationCandidate}
+      onApplyReusableInterpretation={applyReusableInterpretation}
       templateApplyFailed={templateApplyFailed}
       draftEditor={{
         issuerReference: membership.issuerReference,
@@ -461,6 +536,10 @@ export function CredentialDetailView({
   onApproveTemplateSemanticAnalysis = unavailableApproveTemplateSemanticAnalysis,
   onLoadCredentialSemanticApprovalCandidate = unavailableSemanticApprovalCandidate,
   onApproveCredentialSemanticAnalysis = unavailableApproveCredentialSemanticAnalysis,
+  onLoadReusableInterpretation = unavailableReusableInterpretationRead,
+  searchReusableTemplatesForInterpretation = unavailableReusableTemplateSearch,
+  onLoadReusableInterpretationCandidate = unavailableReusableInterpretationCandidate,
+  onApplyReusableInterpretation = unavailableApplyReusableInterpretation,
   templateApplyFailed = false,
   onUploadDocumentEvidence
 }: {
@@ -500,6 +579,23 @@ export function CredentialDetailView({
     semanticAnalysisReference: string,
     review: ReviewedSemanticInterpretationCommand
   ): Promise<CourseTemplateSummaryVM>;
+  // C4b.2: aplicar una interpretacion semantica reutilizable ya revisada a
+  // esta credencial. Distinto de C5 (revisar/aprobar): este flujo APLICA
+  // una interpretacion que ya fue revisada. El template se elige
+  // explicitamente (sourceTemplateId sigue diferido).
+  onLoadReusableInterpretation?(): Promise<AppliedReusableSemanticInterpretationVM | null>;
+  searchReusableTemplatesForInterpretation?(
+    query: string,
+    signal: AbortSignal
+  ): Promise<CourseTemplateSummaryVM[]>;
+  onLoadReusableInterpretationCandidate?(
+    templateReference: string
+  ): Promise<ReusableSemanticInterpretationCandidateVM>;
+  onApplyReusableInterpretation?(command: {
+    templateReference: string;
+    approvalRevision: string;
+    acknowledgeDestinationDrift?: boolean;
+  }): Promise<ApplyReusableSemanticInterpretationResultVM>;
   // C3c fix: true cuando el draft se creo con exito pero el PATCH
   // best-effort que aplico los campos de un template reutilizable fallo.
   // Nunca bloquea nada -- solo dispara un aviso no-danger.
@@ -771,6 +867,27 @@ export function CredentialDetailView({
               onRetry={documentAnalysis.onRetry}
             />
           ) : null}
+
+          {(detail.type === 'course' || detail.type === 'certification') &&
+          (detail.status === 'issued' || detail.status === 'revoked') ? (
+            // C4b.2: convive con el analisis semantico y el contenido
+            // reutilizable, en el flujo principal -- nunca en la sidebar
+            // tecnica de emision/integridad (canonical hash, blockchain).
+            // `revoked` sigue el mismo criterio permisivo que el backend
+            // (GET .../reusable-semantic-interpretation): la aplicacion
+            // historica sigue siendo legible, pero candidate/apply exigen
+            // `issued` -- readOnly oculta esa accion sin ocultar el
+            // historial.
+            <ReusableSemanticInterpretationSection
+              key={detail.credentialReference}
+              credentialType={detail.type}
+              readOnly={detail.status === 'revoked'}
+              onLoadActiveApplication={onLoadReusableInterpretation}
+              searchTemplates={searchReusableTemplatesForInterpretation}
+              onLoadCandidate={onLoadReusableInterpretationCandidate}
+              onApply={onApplyReusableInterpretation}
+            />
+          ) : null}
         </div>
 
         <aside aria-labelledby="draft-actions-title" className="grid gap-5">
@@ -829,6 +946,30 @@ export function CredentialDetailView({
 
 async function unavailableTextEvidenceSubmission(): Promise<TextEvidenceVM> {
   throw new Error('Text evidence submission is not available in this view.');
+}
+
+async function unavailableReusableInterpretationRead(): Promise<AppliedReusableSemanticInterpretationVM | null> {
+  throw new Error(
+    'Loading the applied reusable semantic interpretation is not available in this view.'
+  );
+}
+
+async function unavailableReusableTemplateSearch(): Promise<CourseTemplateSummaryVM[]> {
+  throw new Error(
+    'Searching reusable templates for interpretation is not available in this view.'
+  );
+}
+
+async function unavailableReusableInterpretationCandidate(): Promise<ReusableSemanticInterpretationCandidateVM> {
+  throw new Error(
+    'Loading a reusable semantic interpretation candidate is not available in this view.'
+  );
+}
+
+async function unavailableApplyReusableInterpretation(): Promise<ApplyReusableSemanticInterpretationResultVM> {
+  throw new Error(
+    'Applying a reusable semantic interpretation is not available in this view.'
+  );
 }
 
 async function unavailableCredentialIssuance(): Promise<IssuerCredentialDetailVM> {

@@ -1327,6 +1327,299 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
   });
 });
 
+function reusableInterpretationCandidateFixture(
+  overrides: Record<string, unknown> = {}
+) {
+  return {
+    templateReference: 'template-1',
+    templateTitle: 'Curso de Python',
+    snapshotSummary: {
+      schema: 'approved_template_semantic_snapshot_v2',
+      status: 'completed',
+      areaCount: 0,
+      skillCount: 0,
+      conceptCount: 0,
+      hasHoursDistribution: false,
+      warningCount: 0,
+      qualityFlagCount: 0
+    },
+    approvedAt: '2026-08-14T10:00:00.000Z',
+    approvedAtLabel: '14 ago 2026, 07:00',
+    approvedByDisplayLabel: 'Ana Aprobadora',
+    approvalRevision: '2026-08-14T10:00:00.000Z',
+    approvalDriftStatus: 'none_applied',
+    templateContentStatus: 'matches_approved_source',
+    destinationCompatibility: 'compatible',
+    changedFields: [],
+    currentApplication: null,
+    ...overrides
+  };
+}
+
+describe('CredentialDetailView C4b.2 reusable semantic interpretation', () => {
+  const documentAnalysis = {
+    state: {
+      latestStatus: 'ready' as const,
+      latestError: null,
+      triggering: false,
+      refreshing: false,
+      actionError: null,
+      successMessage: null,
+      currentRun: null
+    },
+    onRetry: vi.fn(async () => undefined)
+  };
+
+  function reusableInterpretationProps(
+    overrides: Record<string, unknown> = {}
+  ) {
+    return {
+      onLoadReusableInterpretation: vi.fn().mockResolvedValue(null),
+      searchReusableTemplatesForInterpretation: vi.fn().mockResolvedValue([]),
+      onLoadReusableInterpretationCandidate: vi
+        .fn()
+        .mockResolvedValue(reusableInterpretationCandidateFixture()),
+      onApplyReusableInterpretation: vi.fn(),
+      ...overrides
+    };
+  }
+
+  it('shows the section for an issued course credential', async () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps()}
+      />
+    );
+
+    expect(
+      await screen.findByTestId('reusable-semantic-interpretation-section')
+    ).toBeTruthy();
+  });
+
+  it('shows the section for an issued certification credential', async () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'certification', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps()}
+      />
+    );
+
+    expect(
+      await screen.findByTestId('reusable-semantic-interpretation-section')
+    ).toBeTruthy();
+  });
+
+  it('does not show the section for a draft credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+        {...reusableInterpretationProps()}
+      />
+    );
+
+    expect(
+      screen.queryByTestId('reusable-semantic-interpretation-section')
+    ).toBeNull();
+  });
+
+  it('does not show the section for academic_subject or degree, regardless of status', () => {
+    const { rerender } = render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'academic_subject', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps()}
+      />
+    );
+    expect(
+      screen.queryByTestId('reusable-semantic-interpretation-section')
+    ).toBeNull();
+
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'degree', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps()}
+      />
+    );
+    expect(
+      screen.queryByTestId('reusable-semantic-interpretation-section')
+    ).toBeNull();
+  });
+
+  it('shows the section in read-only mode for a revoked credential (historical read, no apply action)', async () => {
+    const onLoadReusableInterpretation = vi.fn().mockResolvedValue(null);
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'revoked' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps({ onLoadReusableInterpretation })}
+      />
+    );
+
+    await waitFor(() => expect(onLoadReusableInterpretation).toHaveBeenCalled());
+    expect(
+      await screen.findByText('Historial en modo lectura')
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Buscar' })).toBeNull();
+  });
+
+  it('lives in the main content flow, after semantic analysis, never inside the technical issuance sidebar', async () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps()}
+      />
+    );
+
+    const analysisHeading = screen.getByRole('heading', {
+      name: 'Análisis inteligente de la credencial'
+    });
+    const interpretationSection = await screen.findByTestId(
+      'reusable-semantic-interpretation-section'
+    );
+    const issuanceHeading = screen.getByRole('heading', {
+      name: 'Emisión de credencial'
+    });
+
+    expect(
+      analysisHeading.compareDocumentPosition(interpretationSection) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    // Nunca dentro de la sidebar tecnica (emision/integridad) -- ninguno de
+    // los dos se contiene al otro.
+    expect(
+      issuanceHeading.compareDocumentPosition(interpretationSection) &
+        Node.DOCUMENT_POSITION_CONTAINED_BY
+    ).toBeFalsy();
+    expect(
+      interpretationSection.compareDocumentPosition(issuanceHeading) &
+        Node.DOCUMENT_POSITION_CONTAINED_BY
+    ).toBeFalsy();
+  });
+
+  it('calls onLoadReusableInterpretation on mount and renders the empty state when there is no active application', async () => {
+    const onLoadReusableInterpretation = vi.fn().mockResolvedValue(null);
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        documentAnalysis={documentAnalysis}
+        {...reusableInterpretationProps({ onLoadReusableInterpretation })}
+      />
+    );
+
+    await waitFor(() => expect(onLoadReusableInterpretation).toHaveBeenCalled());
+    expect(
+      await screen.findByText(
+        'No hay una interpretación revisada aplicada a esta credencial.'
+      )
+    ).toBeTruthy();
+  });
+});
+
+describe('CredentialDetailController C4b.2 reusable semantic interpretation wiring', () => {
+  beforeEach(() => {
+    sessionMocks.requestAuthenticated.mockReset();
+    navigationMocks.searchParams = new URLSearchParams();
+  });
+
+  it('loads the applied interpretation through the issuer-scoped read endpoint on an issued course credential', async () => {
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.includes('/reusable-semantic-interpretation')) {
+        return Promise.resolve(null);
+      }
+      if (path.endsWith('/analysis-runs/latest')) {
+        return Promise.resolve(null);
+      }
+      if (path.includes('/course-templates')) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve({
+        ...draftResponse,
+        status: 'issued',
+        type: 'course',
+        issuedAt: '2026-08-05T12:00:00.000Z'
+      });
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+        '/issuers/issuer-selected-reference/credentials/credential-internal-reference/reusable-semantic-interpretation',
+        expect.anything()
+      )
+    );
+    expect(
+      await screen.findByText(
+        'No hay una interpretación revisada aplicada a esta credencial.'
+      )
+    ).toBeTruthy();
+  });
+
+  // C4b.2-R, caso D de la elegibilidad del selector: el filtro de
+  // credentialType vive aca (searchReusableTemplatesForInterpretation),
+  // no en ReusableSemanticInterpretationSection -- confirma que una
+  // credencial course nunca pide templates de certification.
+  it("D: filters the template search by the credential's own type", async () => {
+    sessionMocks.requestAuthenticated.mockImplementation((path: string) => {
+      if (path.includes('/reusable-semantic-interpretation')) {
+        return Promise.resolve(null);
+      }
+      if (path.endsWith('/analysis-runs/latest')) {
+        return Promise.resolve(null);
+      }
+      if (path.includes('/course-templates')) {
+        return Promise.resolve([]);
+      }
+      return Promise.resolve({
+        ...draftResponse,
+        status: 'issued',
+        type: 'course',
+        issuedAt: '2026-08-05T12:00:00.000Z'
+      });
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Buscar' })
+    );
+
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+        expect.stringMatching(/\/course-templates\?.*credentialType=course/),
+        expect.anything()
+      )
+    );
+    expect(sessionMocks.requestAuthenticated).not.toHaveBeenCalledWith(
+      expect.stringMatching(/credentialType=certification/),
+      expect.anything()
+    );
+  });
+});
+
 // ---------------------------------------------------------------------------
 // C4x: dedicated coverage for the domain/UX hardening items.
 // ---------------------------------------------------------------------------

@@ -649,5 +649,66 @@ sigue sin duplicar títulos equivalentes ("Fuentes institucionales",
 separados junto a "Evidencia documental"); V3 no modificó esa sección más
 allá de reubicarla dentro de la columna principal.
 
-QR y C4b/C5b (aplicar un snapshot semántico aprobado a credenciales nuevas o
-al perfil formativo) siguen pendientes.
+QR y C5b (consumir la interpretación aplicada en el perfil formativo del
+titular) siguen pendientes. C4b.2 (aplicar un snapshot semántico ya aprobado
+a una credencial `issued` puntual) está implementado -- ver sección propia
+más abajo.
+
+## C4b.2 — Issuer UX para aplicar una interpretación semántica revisada
+
+Backend ya implementado y validado (C4b.1a/C4b.1b, ver
+`docs/architecture/api-contracts-v0.md`). C4b.2 es exclusivamente frontend:
+agrega la experiencia issuer-facing para usar los tres endpoints
+`GET .../reusable-semantic-interpretation[/candidate]` /
+`POST .../reusable-semantic-interpretation/apply`. No reabre diseño backend,
+no toca `schema.prisma`, no implementa `Credential.sourceTemplateId` (sigue
+diferido) ni el command atómico de C3c -- el emisor elige explícitamente el
+contenido reutilizable contra el que consulta `candidate`.
+
+**Nueva sección, en el flujo principal (no en la sidebar técnica):**
+`ReusableSemanticInterpretationSection`
+(`src/features/credentials/reusable-semantic-interpretation-section.tsx`) se
+agrega al detalle issuer-facing de una `Credential` `issued`/`revoked` de
+tipo `course`/`certification`, inmediatamente después de
+`DocumentAnalysisSection` en la columna principal -- deliberadamente no en
+el `<aside>` donde vive `CredentialIssuanceSection`
+(canonical hash/blockchain) ni junto a `SemanticApprovalSection` (C5, que
+sigue en la sidebar sin cambios: revisar/aprobar una interpretación para
+volverla reutilizable es una acción distinta de aplicar una ya aprobada).
+Para `revoked`, la sección se muestra en modo lectura (`readOnly`): la
+aplicación histórica sigue siendo consultable (mismo criterio permisivo que
+el backend), pero no se ofrece seleccionar template ni aplicar, porque
+`candidate`/`apply` exigen `issued`. Para `draft`, `academic_subject` y
+`degree`, la sección no se renderiza.
+
+**Arquitectura reutilizada, sin duplicar:** API client nuevo
+(`lib/api/reusable-semantic-interpretation-api.ts`) → adapter nuevo
+(`lib/adapters/reusable-semantic-interpretation.adapter.ts`, que reexporta y
+reutiliza `adaptSemanticApprovalSnapshotSummary` de
+`course-templates.adapter.ts` en vez de duplicar el allowlist del summary) →
+formatters nuevos (`lib/formatters/reusable-semantic-interpretation.ts`,
+único lugar que traduce `approvalDriftStatus`/`templateContentStatus`/
+`destinationCompatibility`/`changedFields` a copy de producto -- los
+identifiers técnicos nunca aparecen sueltos en JSX) → componente. La
+búsqueda de contenido reutilizable reutiliza `listCourseTemplates` de C3c/C4a.2
+(filtrada por `credentialType`, `status: 'active'`) en vez de una segunda
+implementación de búsqueda.
+
+**Fuente actual vs. fuente congelada (UX, ver C4b.1b-R):** el candidate
+top-level (lo que se aplicaría si el emisor aplica ahora) y
+`currentApplication`/el `GET` de solo lectura (lo que ya está aplicado)
+pueden mostrar simultáneamente estados distintos sin mezclarse -- "Actualmente
+aplicada" y "Interpretación disponible para aplicar" son bloques visualmente
+separados.
+
+**Copy de producto, nunca enums técnicos:** los tres estados backend se
+traducen siempre a lenguaje de producto ("La interpretación aprobada para
+este contenido cambió...", nunca `different_approval_available`
+literal). `destinationCompatibility: 'modified'` exige un checkbox de
+confirmación explícita antes de habilitar Aplicar
+(`acknowledgeDestinationDrift: true` recién se manda tras marcarlo);
+`'unknown'` deshabilita Aplicar sin ningún override posible. Un `409` (TOCTOU)
+nunca reintenta `apply` automáticamente -- vuelve a pedir `candidate` y exige
+que el emisor confirme de nuevo conscientemente. La sección nunca afirma que
+el perfil formativo del titular ya fue actualizado (eso es C5b.1, fuera de
+alcance).
