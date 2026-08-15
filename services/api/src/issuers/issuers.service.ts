@@ -115,6 +115,21 @@ export class IssuersService {
     );
   }
 
+  // C4b.1b: mismo permiso para candidate/apply/read de la interpretacion
+  // semantica reutilizable aplicada a una credencial -- mismo criterio que
+  // C4a.1/C4a.2 (una sola operacion cubre lectura y escritura de esta
+  // funcionalidad).
+  async assertUserCanApplyReusableSemanticInterpretationForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    return this.assertUserCanOperateAuthorizedIssuer(
+      userId,
+      issuerId,
+      'aplicar interpretaciones semanticas reutilizables'
+    );
+  }
+
   private async assertUserCanOperateAuthorizedIssuer(
     userId: string,
     issuerId: string,

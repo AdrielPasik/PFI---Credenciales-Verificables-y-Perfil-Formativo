@@ -14,6 +14,7 @@ import { MeModule } from './me/me.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { ProfileSharingModule } from './profile-sharing/profile-sharing.module';
+import { ReusableSemanticInterpretationModule } from './reusable-semantic-interpretation/reusable-semantic-interpretation.module';
 import { SemanticModule } from './semantic/semantic.module';
 import { TextEvidenceModule } from './text-evidence/text-evidence.module';
 import { VerificationModule } from './verification/verification.module';
@@ -35,6 +36,7 @@ import { VerificationModule } from './verification/verification.module';
     TextEvidenceModule,
     CredentialsModule,
     IssuerCourseTemplatesModule,
+    ReusableSemanticInterpretationModule,
     VerificationModule
   ],
   controllers: [HealthController]

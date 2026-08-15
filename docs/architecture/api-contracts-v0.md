@@ -1530,6 +1530,253 @@ ni al perfil formativo: C4b sigue pendiente.
 - La respuesta expone la huella solo como evidencia técnica y no realiza RPC o
   verificación blockchain en vivo.
 
+### C4b.1a/C4b.1b: aplicar una interpretacion semantica reutilizable aprobada a una credencial
+
+C4b.1a agrego la persistencia (`CredentialReusableSemanticInterpretation`,
+migracion validada contra Postgres real -- ver bundle C4b.1a-V). C4b.1b
+agrega los tres endpoints issuer-facing que la usan. Los tres son
+issuer-scoped, protegidos por `AuthGuard`, y requieren el mismo permiso que
+C4a.1/C4a.2/C5 (`assertUserCanApplyReusableSemanticInterpretationForIssuer`
+-> `assertUserCanOperateAuthorizedIssuer`: membership `admin`/`operator`
+activa, issuer `authorized`). Aplican unicamente a credenciales `issued` de
+tipo `course` o `certification`; un template de tipo distinto al de la
+credencial destino responde `400`.
+
+```text
+GET  /issuers/:issuerId/credentials/:credentialId/reusable-semantic-interpretation/candidate?templateId=...
+POST /issuers/:issuerId/credentials/:credentialId/reusable-semantic-interpretation/apply
+GET  /issuers/:issuerId/credentials/:credentialId/reusable-semantic-interpretation
+```
+
+**Post-emision, siempre explicita**: nunca se aplica automaticamente al
+emitir ni al aprobar un template. El emisor decide cuando aplicar, revisando
+antes un candidato. El snapshot copiado queda **congelado** en el momento de
+`apply` -- si el template se vuelve a aprobar despues, la interpretacion ya
+aplicada no cambia sola.
+
+**`GET .../candidate?templateId=...`** -- solo lectura, nunca escribe.
+Resuelve la credencial destino y el template (ambos scoped al issuer de la
+ruta), revalida que el template tenga una aprobacion completa (los 7 campos
+`approvedSemantic*`, nunca solo el snapshot), y calcula tres senales para
+el **nivel superior** de la response (`approvalDriftStatus`/
+`templateContentStatus`/`destinationCompatibility` top-level, NO
+`currentApplication`) comparando siempre contra la **credencial fuente
+actual del template** (`template.approvedSemanticSourceCredentialId`,
+releida en cada llamada), nunca contra el estado del template en si mismo.
+**Esta fuente actual es distinta de la fuente congelada que describe una
+aplicacion ya persistida** -- ver el parrafo de `currentApplication` mas
+abajo y la seccion "Fuente actual vs. fuente congelada" al final de esta
+subseccion:
+
+```json
+{
+  "templateId": "...",
+  "templateTitle": "...",
+  "snapshotSummary": { "schema": "...", "status": "completed", "areaCount": 0, "skillCount": 0, "conceptCount": 0, "hasHoursDistribution": false, "warningCount": 0, "qualityFlagCount": 0 },
+  "approvedAt": "2026-08-14T10:00:00.000Z",
+  "approvedByDisplayLabel": "...",
+  "approvalRevision": "2026-08-14T10:00:00.000Z",
+  "approvalDriftStatus": "none_applied",
+  "templateContentStatus": "matches_approved_source",
+  "destinationCompatibility": "compatible",
+  "changedFields": [],
+  "currentApplication": null
+}
+```
+
+- `approvalDriftStatus` (`none_applied` | `up_to_date` | `different_approval_available`):
+  compara la identidad de la aprobacion ya aplicada (si existe) contra la
+  aprobacion actual del template, por igualdad exacta de
+  `(sourceSemanticAnalysisId, sourceApprovedAt)` -- nunca `>`, nunca afirma
+  posterioridad, solo que difiere.
+- `templateContentStatus` (`matches_approved_source` | `differs_from_approved_source` | `unknown`):
+  compara el template **actual** contra la credencial fuente real. Puramente
+  informativo -- **nunca bloquea** `apply`.
+- `destinationCompatibility` (`compatible` | `modified` | `unknown`): compara
+  la credencial **destino** contra la credencial fuente real. Es el unico
+  control que gatea `apply`. `unknown` (fuente no resoluble) es un bloqueo
+  duro, sin acknowledgment posible.
+- `changedFields` es siempre un subconjunto allowlisted de
+  `title`/`description`/`competencies`/`learningOutcomes`(solo `course`)/
+  `skills`(solo `certification`)/`hours` -- nunca valores viejo/nuevo, solo
+  nombres de campo. `hours` es una senal blanda: una diferencia solo en
+  `hours` nunca cambia `compatible`/`matches` a `modified`/`differs` por si
+  sola. `modality`/`certificationCode`/`providerName`/`level`/
+  `platformName`/`externalUrl` quedan fuera de la comparacion.
+- La comparacion es puramente textual/de conjuntos en memoria (trim +
+  colapso de espacios + case-insensitive + arrays como sets sin orden) --
+  nunca fuzzy matching, nunca embeddings, nunca IA, nunca un hash nuevo.
+- `approvalRevision` es la precondicion opaca para `apply` (ver TOCTOU mas
+  abajo): el ISO string de `approvedSemanticApprovedAt`. Nunca se expone
+  `sourceSemanticAnalysisId`.
+- `currentApplication`, si ya existe una aplicacion `active` para esta
+  credencial, es el mismo resumen allowlisted que devuelve el `GET` de
+  solo-lectura (ver abajo); si no existe, es `null`. **A diferencia de las
+  tres senales top-level de arriba, `currentApplication` compara siempre
+  contra `active.sourceCredentialId` -- la fuente CONGELADA en el momento
+  de aplicar esa fila, nunca la fuente actual del template.** Si el template
+  fue re-aprobado con una fuente distinta desde que se aplico, el
+  `templateContentStatus`/`destinationCompatibility` de `currentApplication`
+  y los del nivel superior de `candidate` pueden diferir legitimamente
+  entre si -- uno describe "que pasaria si aplico ahora", el otro "que esta
+  aplicado hoy". Ninguno sustituye al otro.
+- Nunca expone: `sourceCredentialId`, `sourceSemanticAnalysisId`,
+  `sourceApprovedByUserId`, `appliedByUserId` crudo, `approvedSnapshot`
+  completo, `pipelineVersion`/`taxonomyVersion` crudos, `analysisJson`,
+  `evidenceMap`, `textForEmbedding`, storage paths, datos privados del
+  holder.
+- Errores: `404` credencial o template inexistente/de otro issuer (mismo
+  codigo para ambos casos, nunca filtra existencia); `400` credencial no
+  `issued`, tipo no reutilizable, o tipo de template distinto al de la
+  credencial; `422` template sin aprobacion o con aprobacion incompleta (le
+  falta cualquiera de los 7 campos `approvedSemantic*`) -- nunca se fabrica
+  un valor por defecto.
+
+**`POST .../apply`** -- unico endpoint de escritura. Body:
+
+```json
+{
+  "templateId": "...",
+  "approvalRevision": "2026-08-14T10:00:00.000Z",
+  "acknowledgeDestinationDrift": false
+}
+```
+
+Responde siempre `200` (no `201`), incluso en la primera insercion: el
+repo no tiene precedente de un controller que varie el status code segun el
+resultado en runtime (`@Res` nunca se usa en ningun endpoint existente), asi
+que el resultado se comunica exclusivamente por el body:
+
+```json
+{
+  "changed": true,
+  "supersededPreviousApplication": false,
+  "application": {
+    "templateId": "...",
+    "templateTitle": "...",
+    "snapshotSummary": { "...": "..." },
+    "appliedAt": "2026-08-14T11:00:00.000Z",
+    "appliedByDisplayLabel": "...",
+    "approvalDriftStatus": "up_to_date",
+    "templateContentStatus": "matches_approved_source",
+    "destinationCompatibility": "compatible",
+    "changedFields": []
+  }
+}
+```
+
+Antes de escribir, revalida todo de cero **dentro de la transaccion**
+(nunca confia en nada leido en un `candidate` previo, ni siquiera en
+`destinationCompatibility` o `approvedSnapshot` si el cliente los mandara):
+issuer y membership, credencial destino (`issued`, tipo reutilizable),
+template (mismo issuer, mismo tipo, aprobacion completa), y la credencial
+fuente real.
+
+- **TOCTOU**: `approvalRevision` debe coincidir exactamente (no `>=`) con
+  `approvedSemanticApprovedAt` del template releido dentro de la
+  transaccion. Si el template fue re-aprobado desde que el cliente llamo a
+  `candidate`, responde `409 Conflict` **sin persistir nada** y obliga a
+  volver a pedir `candidate`. Nunca aplica la aprobacion nueva
+  silenciosamente.
+- `destinationCompatibility === 'unknown'` (fuente no resoluble): siempre
+  `422`, nunca hay `acknowledgeDestinationDrift` que lo destrabe.
+- `destinationCompatibility === 'modified'` sin `acknowledgeDestinationDrift: true`:
+  `422`. Con el flag en `true`: procede.
+- `templateContentStatus`: nunca bloquea `apply` por si solo, en ningun
+  caso.
+- **Idempotencia** (identidad = `(sourceSemanticAnalysisId, sourceApprovedAt)`,
+  nunca `templateId` solo): si ya existe una fila `active` con la misma
+  identidad, no se escribe nada -- se devuelve `changed: false`,
+  `supersededPreviousApplication: false`, preservando el `appliedAt`/
+  `appliedByUserId` originales.
+- **Supersede**: si existe una fila `active` con identidad **distinta**, en
+  la misma transaccion se marca esa fila `superseded` (`supersededAt`,
+  `supersededByUserId`) y se inserta la nueva `active`. Nunca se muta
+  `approvedSnapshot`/`source*`/`appliedAt`/`appliedByUserId` de la fila
+  superseded -- queda como historial intacto.
+- **Snapshot congelado**: los campos `source*`/`approvedSnapshot`/
+  `snapshotVersion` de la fila nueva se copian tal cual del `IssuerCourseTemplate`
+  ya aprobado (`approvedSemantic*`) -- nunca se reconstruyen desde
+  `SemanticAnalysis`.
+- **Transaccion y concurrencia**: aislamiento `Serializable`, maximo un
+  reintento automatico (2 intentos totales) ante un conflicto real de
+  escritura/serializacion, nunca un loop. Validado empiricamente contra
+  Postgres 16.8 real (contenedor Docker desechable, `127.0.0.1` only) bajo
+  Prisma 6.19.3: un conflicto de serializacion genuino se reporta como
+  `P2034`, y una violacion de la unique constraint parcial
+  (`crsi_one_active_per_credential_uq`, foundation de C4b.1a) se reporta
+  como `P2002` -- ambos codigos confirmados con carreras reales de dos
+  transacciones concurrentes, nunca asumidos solo de la documentacion. Tras
+  agotar el reintento, responde `409` seguro sin filtrar el error de
+  Postgres/Prisma. Ante un `P2002` real de esa constraint (dos `apply`
+  concurrentes ganando la carrera del insert), se relee el estado
+  post-commit sin abrir una transaccion nueva: si la fila `active`
+  resultante coincide con la aprobacion que este request queria aplicar, se
+  devuelve como resultado idempotente (`200`); si no, `409` seguro. El
+  indice unico parcial es la garantia fisica final: dos `apply` concurrentes
+  nunca dejan 2 filas `active` para la misma credencial (confirmado con la
+  misma corrida real).
+- Errores: mismos `404`/`400`/`422` que `candidate` para credencial/
+  template/tipo/aprobacion; `409` para TOCTOU y para conflicto de
+  concurrencia no reconciliable.
+
+**`GET .../reusable-semantic-interpretation`** -- solo lectura, historial no
+incluido. Sigue el mismo criterio ya establecido por
+`IssuerAnalysisRunReadService.getLatestForCredential`: `200` con `null` si
+la credencial existe pero no tiene una aplicacion `active`; `404` solo si la
+credencial no existe o es de otro issuer. La lectura es **permisiva** (no
+exige `issued` ni tipo reutilizable) -- una aplicacion ya hecha sigue siendo
+legible aunque la credencial cambie de estado despues (revoked), mismo
+criterio que el historial de analisis. Responde el mismo resumen allowlisted
+que `apply`/`currentApplication` de `candidate` -- comparado, igual que
+`currentApplication`, contra la fuente **congelada** (`active.sourceCredentialId`),
+nunca contra la fuente actual del template.
+
+**Fuente actual vs. fuente congelada (distincion central de C4b.1a/C4b.1b)**:
+hay dos nociones de "fuente" que nunca se mezclan.
+- **Fuente actual del template** (`template.approvedSemanticSourceCredentialId`,
+  releida en cada llamada): usada UNICAMENTE por las tres senales del
+  **nivel superior** de `candidate` -- responde "¿que se aplicaria si el
+  emisor aplica esta aprobacion ahora?".
+- **Fuente congelada de una aplicacion** (`active.sourceCredentialId`,
+  copiada una sola vez al momento de `apply`, inmutable despues): usada por
+  `currentApplication` (dentro de `candidate`) y por el `GET` de
+  solo-lectura -- responde "¿contra que se evalua la interpretacion que
+  sigue aplicada hoy?". Una re-aprobacion posterior del template (con una
+  fuente distinta) nunca cambia retroactivamente esta comparacion. Si la
+  fuente congelada ya no puede resolverse (por ejemplo, fue eliminada --
+  aunque hoy nada la elimina, dado el `onDelete: Restrict` de la relacion),
+  `destinationCompatibility`/`templateContentStatus` de esa aplicacion
+  quedan en `unknown`; la aplicacion nunca desaparece de la respuesta ni
+  responde `404` por esto, y nunca se sustituye silenciosamente por la
+  fuente actual del template.
+
+**Nunca expuesto en ninguno de los tres endpoints**: `sourceCredentialId`,
+`sourceSemanticAnalysisId`, `sourceApprovedByUserId`, `appliedByUserId`
+crudo, `supersededByUserId`, `approvedSnapshot` completo,
+`pipelineVersion`/`taxonomyVersion` crudos, `analysisJson`, `evidenceMap`,
+`textForEmbedding`, storage paths, datos privados del holder. Ninguno de los
+tres es publico ni aparece en la wallet del titular ni en `/verify`. La
+distincion fuente actual/congelada de arriba es interna al backend --
+ningun endpoint expone `sourceCredentialId` ni
+`approvedSemanticSourceCredentialId` para resolverla desde el cliente.
+
+**Una fuente revocada sigue siendo fuente valida**: `resolveSourceCredential`
+nunca filtra por `status` -- revocar una credencial solo agrega
+`revokedAt`/`revocationReason`, nunca modifica `title`/`description`/
+`credentialSubject`, asi que su contenido declarativo permanece intacto como
+referencia semantica. Aplica igual para la fuente actual del candidate
+top-level y para la fuente congelada de una aplicacion ya persistida.
+
+Pendiente, fuera de alcance de C4b.1a/C4b.1b: frontend issuer-facing para
+estos tres endpoints (C4b.2); consumo de la interpretacion aplicada por
+`FormativeProfileService`/`AutomaticProfileRebuildService` (C5b.1);
+exposicion al holder (C5b.2, si se decide implementar) -- **nunca en
+`/verify` publico**, que es una decision ya cerrada y no cambia por
+C4b/C5b: sigue enfocado en estado/integridad verificable, sin mostrar
+perfil ni interpretacion semantica; y `Credential.sourceTemplateId`
+(diferido desde C4b.0.1, sin implementar).
+
 ### `POST /me/profile/share`
 
 - Requiere `AuthGuard` y usa exclusivamente el usuario autenticado.

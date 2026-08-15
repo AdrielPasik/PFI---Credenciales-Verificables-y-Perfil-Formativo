@@ -1229,3 +1229,107 @@ nuevos (C4b/C5b siguen pendientes, sin cambios respecto a la sección 20/C5).
   endpoint, no se relaja el alcance `draft`-only, y para un run `failed` con
   `trigger=system` (post-emisión) no se ofrece ninguna acción de reintento,
   igual que antes.
+
+## 22. C4b.1a/C4b.1b — Aplicar una interpretacion semantica reutilizable aprobada a una credencial
+
+C4b.1a agrego la persistencia foundation (modelo
+`CredentialReusableSemanticInterpretation`, migracion
+`20260814150000_add_credential_reusable_semantic_interpretation`, validada
+contra Postgres real -- bundle C4b.1a-V) sin ningun endpoint. C4b.1b agrega
+los tres endpoints issuer-facing (`candidate`/`apply`/lectura, ver
+`api-contracts-v0.md`) que aplican la aprobacion ya persistida por C4a.1 a
+una credencial `issued` concreta. Sigue sin tocar frontend ni perfil.
+
+- **Aplicacion siempre post-emision, nunca automatica**: la interpretacion
+  aprobada de un template **nunca** se aplica sola al emitir una credencial
+  ni al aprobar el template. Es siempre una accion explicita posterior del
+  emisor (`apply`), decidida credencial por credencial.
+- **Snapshot congelado en el momento de aplicar**: los campos copiados a la
+  fila `active` (`source*`, `approvedSnapshot`, `snapshotVersion`) son una
+  foto de la aprobacion del template en ese instante. Si el template se
+  vuelve a aprobar despues, la fila ya aplicada **no cambia sola** -- queda
+  desactualizada (`approvalDriftStatus: different_approval_available`)
+  hasta que el emisor decida volver a aplicar.
+- **Tres senales de drift, deliberadamente distintas** (correccion de diseno
+  de C4b.0.2, ver bundle de esa sesion): la version original del diseno
+  comparaba la credencial destino contra el **template actual**, lo cual
+  permitia que una interpretacion semanticamente incorrecta se aplicara si
+  el template se editaba sin re-aprobar. La correccion separa tres
+  conceptos que nunca se mezclan:
+  - `approvalDriftStatus`: identidad de la aprobacion ya aplicada vs. la
+    aprobacion actual del template.
+  - `templateContentStatus`: template actual vs. la credencial fuente real
+    -- advertencia editorial pura, **nunca bloquea**.
+  - `destinationCompatibility`: credencial destino vs. la credencial fuente
+    real -- el unico control que gatea `apply`. `unknown` es un bloqueo
+    duro sin acknowledgment posible; `modified` requiere
+    `acknowledgeDestinationDrift: true` explicito.
+- **La fuente real es la credencial, nunca el template -- pero "la fuente
+  real" significa cosas distintas segun el contexto, y nunca se mezclan**:
+  `destinationCompatibility` y `templateContentStatus` nunca comparan
+  contra el estado mutable del template en si mismo, siempre contra una
+  credencial fuente (revalidada server-side en cada llamada, nunca confiada
+  del frontend) -- pero CUAL credencial fuente depende de que se esta
+  describiendo:
+  - Para el nivel superior de `candidate` (lo que se aplicaria SI el
+    emisor aplica ahora): la fuente ACTUAL del template,
+    `template.approvedSemanticSourceCredentialId`, releida en cada
+    llamada -- puede cambiar si el template se re-aprueba.
+  - Para `currentApplication` (dentro de `candidate`) y para el `GET` de
+    solo lectura (lo que YA esta aplicado): la fuente CONGELADA de la fila
+    `active`, `active.sourceCredentialId`, copiada una unica vez al
+    momento de `apply` -- una re-aprobacion posterior del template con una
+    fuente distinta **nunca** cambia retroactivamente esta comparacion.
+    Si esa fuente congelada ya no puede resolverse, el resultado es
+    `unknown` -- nunca se sustituye silenciosamente por la fuente actual
+    del template, y la aplicacion nunca deja de ser legible por esto.
+  Confirmado con tests dedicados (`reusable-semantic-interpretation.service.test.ts`,
+  seccion "frozen source") que fuerzan un escenario de re-aprobacion con una
+  segunda credencial fuente de contenido completamente distinto, y verifican
+  que `candidate` top-level y `currentApplication`/`GET` puedan diferir
+  legitimamente entre si en la misma respuesta sin contaminarse.
+- **Una fuente revocada sigue siendo fuente valida**: revocar una credencial
+  solo agrega `revokedAt`/`revocationReason`; nunca muta `title`/
+  `description`/`credentialSubject`. La resolucion de la fuente
+  (`resolveSourceCredential`) nunca filtra por `status` -- una fuente
+  `revoked` sigue siendo una referencia semantica historica valida.
+- **Idempotencia por identidad de aprobacion, nunca por `templateId`**: la
+  identidad que decide si una aplicacion es "la misma" es
+  `(sourceSemanticAnalysisId, sourceApprovedAt)`. Re-aplicar la misma
+  aprobacion no escribe nada; aplicar una aprobacion distinta del mismo
+  template supersede la anterior en la misma transaccion, preservando el
+  historial (`superseded`, nunca borrado).
+- **Invariante fisico**: `Credential -> 0..1 active, 0..N superseded`,
+  garantizado por el indice unico parcial
+  `crsi_one_active_per_credential_uq` de C4b.1a. C4b.1b nunca duplica esa
+  garantia en aplicacion -- la usa como ultima linea de defensa ante una
+  carrera real entre dos `apply` concurrentes, confirmada empiricamente
+  contra Postgres real (ver bundle C4b.1b): el `P2002` resultante se
+  reconcilia leyendo el estado post-commit, nunca reintentando la escritura
+  a ciegas.
+- **TOCTOU explicito**: `candidate` devuelve una precondicion opaca
+  (`approvalRevision`, el ISO string de `approvedSemanticApprovedAt`) que
+  identifica exactamente la aprobacion que el emisor revisó. `apply` la
+  revalida dentro de la transaccion contra el estado actual del template; si
+  no coincide exactamente, rechaza con `409` sin persistir nada y obliga a
+  volver a `candidate`. Deliberadamente no se expone
+  `sourceSemanticAnalysisId` al frontend para esto -- `approvedSemanticApprovedAt`
+  alcanza porque las 7 columnas `approvedSemantic*` del template siempre se
+  escriben juntas y atomicamente (mismo `update()` que ya usa C4a.1).
+- **Aislamiento por issuer, igual que el resto del modulo**: mismo permiso
+  que C4a.1/C4a.2/C5
+  (`IssuersService.assertUserCanApplyReusableSemanticInterpretationForIssuer`),
+  y mismo criterio de no filtrar existencia entre issuers (`404`, nunca
+  `403`, para credencial o template de otro issuer).
+- **Nunca toca**: `Credential.canonicalHash`/`canonicalizationVersion`,
+  blockchain, `FormativeProfile`, ninguna ruta de holder o `/verify`
+  publica. No se llama a la IA en ningun punto de este flujo.
+- Pendiente, explicitamente fuera de alcance de C4b.1a/C4b.1b: frontend
+  issuer-facing para estos tres endpoints (C4b.2); consumo de la
+  interpretacion aplicada al reconstruir `FormativeProfile` (C5b.1);
+  exposicion al holder (C5b.2, si se decide implementar) -- **nunca en
+  `/verify` publico**, decision ya cerrada que no cambia por C4b/C5b:
+  `/verify` sigue enfocado en estado/integridad verificable, sin mostrar
+  perfil ni interpretacion semantica; y `Credential.sourceTemplateId`,
+  diferido desde C4b.0.1 (nunca agregado a `schema.prisma` en ningun slice
+  de C4b).
