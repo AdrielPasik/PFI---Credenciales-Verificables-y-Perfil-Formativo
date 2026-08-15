@@ -1,11 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
+  CredentialSemanticInterpretationStatus,
   CredentialStatus,
   CredentialType,
   Prisma,
   type FormativeProfile
 } from '@prisma/client';
 
+import {
+  REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA,
+  type ApprovedSemanticSnapshotDescriptor,
+  type ApprovedSemanticSnapshotHoursDistributionEntry,
+  type ReviewedApprovedTemplateSemanticSnapshot
+} from '../issuer-course-templates/issuer-course-templates.helpers';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   type CurrentProfileResponseDto,
@@ -28,25 +35,67 @@ const LABEL_FIELDS = {
 // (issuer-credential-draft-subject.ts). Estos campos NUNCA vienen de IA: son
 // dato certificado por el emisor, igual que Credential.hours. Se agregan al
 // perfil como una fuente separada ("emitted*"), nunca mezclada con los
-// arrays inferidos por SemanticAnalysis ("areas"/"skills"/"concepts").
+// arrays inferidos ("areas"/"skills"/"concepts").
 const CREDENTIAL_SUBJECT_EMITTED_FIELDS = {
   skill: 'skills',
   competency: 'competencies',
   learningOutcome: 'learning_outcomes'
 } as const;
 
+// ---------------------------------------------------------------------------
+// C5b.1: cada Credential issued elige, como maximo, UNA fuente semantica:
+//
+//   1. CredentialReusableSemanticInterpretation status=active de esa
+//      Credential -> provenance 'issuer_reviewed' (nunca superseded).
+//   2. si no existe: el ultimo SemanticAnalysis propio de esa Credential
+//      -> provenance 'ai_inferred'.
+//   3. si no existe ninguno: sin fuente semantica (solo declared/emitted).
+//
+// Nunca se combinan ambas fuentes para la MISMA Credential. Entre
+// Credentials distintas, sus contribuciones a la misma area/skill/concept
+// SI se acumulan, conservando provenance por contribucion (ver
+// ProfileEvidenceSource) -- la prioridad es por-Credential, no global.
+// ---------------------------------------------------------------------------
+
+type SemanticSourceProvenance = 'issuer_reviewed' | 'ai_inferred';
+
+interface ProfileEvidenceSource {
+  credentialId: string;
+  provenance: SemanticSourceProvenance;
+  // Exactamente uno de los dos, segun provenance -- nunca ambos, nunca el
+  // otro presente con valor null (simplemente ausente).
+  reusableInterpretationId?: string;
+  semanticAnalysisId?: string;
+}
+
+interface ProfileEvidenceProvenanceSummary {
+  issuerReviewedCount: number;
+  aiInferredCount: number;
+}
+
 interface EvidenceAccumulator {
   labels: Set<string>;
-  credentialIds: Set<string>;
-  semanticAnalysisIds: Set<string>;
+  // Una entrada por Credential contribuyente (nunca duplica una misma
+  // Credential aunque aporte la misma etiqueta mas de una vez dentro de su
+  // propio snapshot/analisis).
+  sources: Map<string, ProfileEvidenceSource>;
   confidenceValues: number[];
   estimatedHours: number[];
 }
 
 interface ProfileEvidence {
   credentialIds: string[];
+  // Compat: solo ids de SemanticAnalysis efectivamente consumidos como
+  // ai_inferred -- nunca sourceSemanticAnalysisId de una interpretacion
+  // aplicada (esa referencia es provenance historica del template, no la
+  // fuente que el perfil consume).
   semanticAnalysisIds: string[];
+  // Ahora es la cantidad de Credentials/sources contribuyentes distintas,
+  // no la cantidad de SemanticAnalysis distintos (coinciden cuando todo es
+  // ai_inferred, que era el unico caso posible antes de C5b.1).
   evidenceCount: number;
+  sources: ProfileEvidenceSource[];
+  provenanceSummary: ProfileEvidenceProvenanceSummary;
 }
 
 interface ProfileArea extends ProfileEvidence {
@@ -81,28 +130,41 @@ interface FormativeProfileJson {
   generatedFrom: {
     credentialIds: string[];
     semanticAnalysisIds: string[];
+    // C5b.1: filas active efectivamente consumidas como issuer_reviewed --
+    // nunca superseded, nunca inferido a partir de sourceSemanticAnalysisId.
+    reusableSemanticInterpretationIds: string[];
   };
   narrative: string | null;
   summary: {
     credentialsCount: number;
+    // Credenciales con una fuente semantica UTILIZADA (issuer_reviewed o
+    // ai_inferred), sin importar cual.
     analyzedCredentialsCount: number;
     // Suma de Credential.hours (dato oficial/declarado por el emisor, nunca
     // IA) entre las credenciales issued del holder. totalOfficialHours es
     // el mismo valor con un nombre inequivoco -- totalHours se conserva
-    // por compatibilidad con consumidores existentes (C2c).
+    // por compatibilidad con consumidores existentes (C2c). Nunca cambia
+    // de significado ni de fuente por C5b.1: una interpretacion aplicada
+    // nunca reemplaza ni recalcula las horas oficiales.
     totalHours: number | null;
     totalOfficialHours: number | null;
     // Credenciales issued sin Credential.hours declarado. Nunca se infiere
     // ni se completa con IA -- simplemente se cuenta.
     credentialsWithoutHours: number;
-    // Credenciales issued sin ningun SemanticAnalysis persistido (el mismo
-    // criterio que ya dispara el warning credential_without_semantic_analysis
-    // por credencial, contado aca a nivel de perfil).
+    // Credenciales issued sin ninguna fuente semantica UTILIZADA -- ni
+    // interpretacion aplicada consumible, ni SemanticAnalysis. Incluye el
+    // caso "existe una fila active pero su snapshot es invalido/no
+    // soportado" (nunca cae a ai_inferred en ese caso, ver
+    // resolveSemanticSourceForCredential).
     credentialsWithoutSemanticCoverage: number;
+    // C5b.1: cuantas de las Credentials analizadas usaron la interpretacion
+    // revisada por el emisor (issuer_reviewed) como fuente elegida.
+    credentialsWithReviewedInterpretation: number;
   };
   areas: ProfileArea[];
-  // Inferido por IA a partir de SemanticAnalysis. Nunca certifica ni
-  // reemplaza credentialSubject.skills — ver emittedSkills.
+  // Inferido a partir de una interpretacion revisada (issuer_reviewed) o de
+  // SemanticAnalysis (ai_inferred) -- nunca certifica ni reemplaza
+  // credentialSubject.skills -- ver emittedSkills.
   skills: ProfileSkill[];
   concepts: ProfileConcept[];
   // Dato emitido por el issuer (credentialSubject.skills/.competencies/
@@ -121,6 +183,27 @@ interface FormativeProfileJson {
 
 type SemanticEntryKind = keyof typeof LABEL_FIELDS;
 type EmittedEntryKind = keyof typeof CREDENTIAL_SUBJECT_EMITTED_FIELDS;
+
+// Resultado de resolver, para una Credential, cual fuente semantica (si
+// alguna) participa del perfil. 'none': ni interpretacion aplicada ni
+// SemanticAnalysis. 'unsupported_reusable_interpretation': existe una fila
+// active pero su snapshot no es consumible (version desconocida/corrupta)
+// -- nunca cae a ai_inferred en este caso (seria una mezcla invisible de
+// fuentes: una interpretacion humana aplicada no se ignora en silencio
+// para volver a la IA cruda).
+type ResolvedSemanticSource =
+  | { kind: 'none' }
+  | { kind: 'unsupported_reusable_interpretation' }
+  | {
+      kind: SemanticSourceProvenance;
+      source: ProfileEvidenceSource;
+      areas: unknown;
+      skills: unknown;
+      concepts: unknown;
+      hoursDistributionEntries: unknown[];
+      confidence: unknown;
+      analysisJson: unknown;
+    };
 
 @Injectable()
 export class FormativeProfileService {
@@ -179,6 +262,20 @@ export class FormativeProfileService {
             skills: true,
             concepts: true,
             analysisJson: true
+          }
+        },
+        // C5b.1: como maximo una fila active por Credential (garantizado
+        // por el partial unique index de C4b.1a) -- nunca se lee
+        // superseded como fuente del perfil.
+        reusableSemanticInterpretations: {
+          where: {
+            status: CredentialSemanticInterpretationStatus.active
+          },
+          take: 1,
+          select: {
+            id: true,
+            approvedSnapshot: true,
+            snapshotVersion: true
           }
         }
       },
@@ -318,6 +415,11 @@ export class FormativeProfileService {
         concepts: unknown;
         analysisJson: unknown;
       }>;
+      reusableSemanticInterpretations?: Array<{
+        id: string;
+        approvedSnapshot: unknown;
+        snapshotVersion: string;
+      }>;
     }>,
     generatedAt: Date
   ): FormativeProfileJson {
@@ -337,6 +439,7 @@ export class FormativeProfileService {
       EmittedEvidenceAccumulator
     >();
     const semanticAnalysisIds: string[] = [];
+    const reusableSemanticInterpretationIds: string[] = [];
     const globalConfidenceValues: number[] = [];
     const warnings = new Set<string>();
     const knownHours: number[] = [];
@@ -346,6 +449,8 @@ export class FormativeProfileService {
     // que el loop ya recorre.
     let credentialsWithoutHours = 0;
     let credentialsWithoutSemanticCoverage = 0;
+    // C5b.1
+    let credentialsWithReviewedInterpretation = 0;
 
     if (credentials.length === 0) {
       warnings.add('no_issued_credentials');
@@ -368,8 +473,16 @@ export class FormativeProfileService {
         emittedLearningOutcomeAccumulators
       );
 
-      const semanticAnalysis = credential.semanticAnalyses[0];
-      if (!semanticAnalysis) {
+      const resolved = this.resolveSemanticSourceForCredential(credential);
+
+      if (resolved.kind === 'none' || resolved.kind === 'unsupported_reusable_interpretation') {
+        if (resolved.kind === 'unsupported_reusable_interpretation') {
+          // Fail-safe (seccion 5 del diseno): una interpretacion humana
+          // aplicada nunca se ignora en silencio para volver a la IA
+          // cruda -- esta Credential queda sin cobertura semantica, nunca
+          // cae a su propio SemanticAnalysis.
+          warnings.add('reusable_interpretation_snapshot_unsupported');
+        }
         warnings.add('credential_without_semantic_analysis');
         credentialsWithoutSemanticCoverage += 1;
         if (hadEmittedSignal) {
@@ -378,45 +491,41 @@ export class FormativeProfileService {
         continue;
       }
 
-      semanticAnalysisIds.push(semanticAnalysis.id);
-      const globalConfidence = this.toNullableNumber(
-        semanticAnalysis.confidence
-      );
+      const { source } = resolved;
+      if (source.provenance === 'issuer_reviewed') {
+        reusableSemanticInterpretationIds.push(
+          source.reusableInterpretationId as string
+        );
+        credentialsWithReviewedInterpretation += 1;
+      } else {
+        semanticAnalysisIds.push(source.semanticAnalysisId as string);
+      }
+
+      const globalConfidence = this.toNullableNumber(resolved.confidence);
       if (globalConfidence !== null) {
         globalConfidenceValues.push(globalConfidence);
       }
 
-      this.aggregateEntries(
-        areaAccumulators,
-        semanticAnalysis.areas,
-        'area',
-        credential.id,
-        semanticAnalysis.id
-      );
-      this.aggregateEntries(
-        skillAccumulators,
-        semanticAnalysis.skills,
-        'skill',
-        credential.id,
-        semanticAnalysis.id
-      );
+      this.aggregateEntries(areaAccumulators, resolved.areas, 'area', source);
+      this.aggregateEntries(skillAccumulators, resolved.skills, 'skill', source);
       this.aggregateEntries(
         conceptAccumulators,
-        semanticAnalysis.concepts,
+        resolved.concepts,
         'concept',
-        credential.id,
-        semanticAnalysis.id
+        source
       );
       this.addAreaHours(
         areaAccumulators,
-        semanticAnalysis.analysisJson,
-        credential.id,
-        semanticAnalysis.id
+        resolved.hoursDistributionEntries,
+        source
       );
 
+      // analysisJson (y por lo tanto sourceType) solo existe para
+      // ai_inferred -- el snapshot aplicado nunca lo copia (no es un dato
+      // semantico allowlisted, ver issuer-course-templates.helpers.ts).
       if (
-        this.readSourceType(semanticAnalysis.analysisJson) ===
-        'online_course_catalog'
+        source.provenance === 'ai_inferred' &&
+        this.readSourceType(resolved.analysisJson) === 'online_course_catalog'
       ) {
         warnings.add('online_course_catalog_not_completion_evidence');
       }
@@ -442,6 +551,8 @@ export class FormativeProfileService {
     );
     const totalHours =
       knownHours.length > 0 ? this.round(this.sum(knownHours), 2) : null;
+    const analyzedCredentialsCount =
+      semanticAnalysisIds.length + reusableSemanticInterpretationIds.length;
 
     if (credentials.length > 0) {
       if (credentialsWithoutAnalysisButWithEmittedData > 0) {
@@ -454,7 +565,7 @@ export class FormativeProfileService {
       ) {
         warnings.add('no_emitted_skills_available');
       }
-      if (semanticAnalysisIds.length < credentials.length) {
+      if (analyzedCredentialsCount < credentials.length) {
         warnings.add('profile_partially_built');
       }
       if (totalHours === null) {
@@ -471,15 +582,17 @@ export class FormativeProfileService {
       userId,
       generatedFrom: {
         credentialIds: credentials.map((credential) => credential.id).sort(),
-        semanticAnalysisIds: semanticAnalysisIds.sort()
+        semanticAnalysisIds: semanticAnalysisIds.sort(),
+        reusableSemanticInterpretationIds: reusableSemanticInterpretationIds.sort()
       },
       summary: {
         credentialsCount: credentials.length,
-        analyzedCredentialsCount: semanticAnalysisIds.length,
+        analyzedCredentialsCount,
         totalHours,
         totalOfficialHours: totalHours,
         credentialsWithoutHours,
-        credentialsWithoutSemanticCoverage
+        credentialsWithoutSemanticCoverage,
+        credentialsWithReviewedInterpretation
       },
       narrative: this.buildNarrative({
         credentialsCount: credentials.length,
@@ -507,6 +620,251 @@ export class FormativeProfileService {
       },
       warnings: [...warnings].sort()
     };
+  }
+
+  // Resuelve, para UNA Credential, cual fuente semantica participa del
+  // perfil -- issuer_reviewed > ai_inferred > ninguna. Nunca combina ambas
+  // para la misma Credential (la prioridad es estrictamente por-Credential,
+  // nunca global entre Credentials distintas -- ver seccion 11 del diseno).
+  private resolveSemanticSourceForCredential(credential: {
+    id: string;
+    semanticAnalyses: Array<{
+      id: string;
+      confidence: unknown;
+      areas: unknown;
+      skills: unknown;
+      concepts: unknown;
+      analysisJson: unknown;
+    }>;
+    reusableSemanticInterpretations?: Array<{
+      id: string;
+      approvedSnapshot: unknown;
+      snapshotVersion: string;
+    }>;
+  }): ResolvedSemanticSource {
+    const active = credential.reusableSemanticInterpretations?.[0];
+
+    if (active) {
+      const parsed = this.parseAppliedReusableSnapshot(
+        active.approvedSnapshot,
+        active.snapshotVersion
+      );
+
+      if (!parsed) {
+        return { kind: 'unsupported_reusable_interpretation' };
+      }
+
+      return {
+        kind: 'issuer_reviewed',
+        source: {
+          credentialId: credential.id,
+          provenance: 'issuer_reviewed',
+          reusableInterpretationId: active.id
+        },
+        areas: parsed.areas,
+        skills: parsed.skills,
+        concepts: parsed.concepts,
+        hoursDistributionEntries: parsed.hoursDistribution,
+        confidence: parsed.confidence,
+        analysisJson: null
+      };
+    }
+
+    const semanticAnalysis = credential.semanticAnalyses[0];
+    if (!semanticAnalysis) {
+      return { kind: 'none' };
+    }
+
+    return {
+      kind: 'ai_inferred',
+      source: {
+        credentialId: credential.id,
+        provenance: 'ai_inferred',
+        semanticAnalysisId: semanticAnalysis.id
+      },
+      areas: semanticAnalysis.areas,
+      skills: semanticAnalysis.skills,
+      concepts: semanticAnalysis.concepts,
+      hoursDistributionEntries: this.readHoursDistribution(
+        semanticAnalysis.analysisJson
+      ),
+      confidence: semanticAnalysis.confidence,
+      analysisJson: semanticAnalysis.analysisJson
+    };
+  }
+
+  // C5b.1/seccion 4-5 del diseno: el perfil consume EXCLUSIVAMENTE
+  // active.approvedSnapshot, ya congelado -- nunca vuelve a leer
+  // IssuerCourseTemplate.approvedSemanticSnapshot, nunca reconstruye desde
+  // el SemanticAnalysis fuente, nunca lee la aprobacion viva actual del
+  // template. Solo se soporta la version que C4b.1b realmente puede
+  // persistir en una fila aplicada -- confirmado por auditoria de
+  // issuer-course-templates.service.ts: unicamente
+  // buildReviewedApprovedTemplateSemanticSnapshot (schema v2) llega a
+  // escribirse en IssuerCourseTemplate.approvedSemanticSnapshot, y C4b.1b
+  // copia ese valor tal cual. Cualquier otra version/snapshot invalido es
+  // tratado como no consumible (fail-safe), nunca como "IA cruda".
+  //
+  // C5b.1-R: `snapshotVersion` debe coincidir con el schema real del v2 Y
+  // el propio `approvedSnapshot.schema` debe coincidir tambien -- ambos se
+  // exigen (no alcanza con que uno de los dos diga v2). El contenido se
+  // valida con `parseReviewedApprovedTemplateSemanticSnapshot`
+  // (validacion ESTRICTA, ver mas abajo), nunca con
+  // `buildApprovedSemanticSnapshotSummary` (helper tolerante de
+  // `issuer-course-templates.helpers.ts`, disenado para construir un
+  // resumen seguro de UI para C4a/C4b -- nunca se toca ese helper ni su
+  // contrato tolerante, que otros consumers siguen necesitando tal cual).
+  private parseAppliedReusableSnapshot(
+    approvedSnapshot: unknown,
+    snapshotVersion: string
+  ): {
+    areas: ApprovedSemanticSnapshotDescriptor[];
+    skills: ApprovedSemanticSnapshotDescriptor[];
+    concepts: ApprovedSemanticSnapshotDescriptor[];
+    hoursDistribution: ApprovedSemanticSnapshotHoursDistributionEntry[];
+    confidence: number | null;
+  } | null {
+    if (snapshotVersion !== REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA) {
+      return null;
+    }
+
+    const snapshot =
+      this.parseReviewedApprovedTemplateSemanticSnapshot(approvedSnapshot);
+    if (!snapshot) {
+      return null;
+    }
+
+    return {
+      areas: snapshot.areas,
+      skills: snapshot.skills,
+      concepts: snapshot.concepts,
+      hoursDistribution: snapshot.hoursDistribution,
+      confidence: snapshot.confidence
+    };
+  }
+
+  // C5b.1-R: validacion ESTRICTA especifica para consumo interno del
+  // snapshot aplicado. Deliberadamente separada de
+  // `buildApprovedSemanticSnapshotSummary` (que exige solo `schema`
+  // no-vacio + `status` valido, y usa `Array.isArray(x) ? x : []` para
+  // areas/skills/concepts/hoursDistribution SOLO para contarlos en un
+  // resumen -- nunca valida el shape de cada elemento). Esta funcion, en
+  // cambio, afirma que el Json es REALMENTE un
+  // `ReviewedApprovedTemplateSemanticSnapshot` (tipo real exportado por
+  // issuer-course-templates.helpers.ts, producido unicamente por
+  // `buildReviewedApprovedTemplateSemanticSnapshot`) antes de dejarlo
+  // alimentar areas/skills/concepts/hoursDistribution/confidence del
+  // perfil. Todo o nada -- nunca hace "partial salvage" de un array con
+  // elementos invalidos: si UN elemento no cumple el shape real, el
+  // snapshot COMPLETO se rechaza (unsupported_reusable_interpretation),
+  // nunca se descarta silenciosamente solo ese elemento.
+  //
+  // No exige `semanticAnalysisSchema`/`sourceSemanticAnalysisId`/
+  // `originalSummary`/`warnings`/`qualityFlags`/`review.note`: el perfil
+  // nunca los consume, y su ausencia/forma no afecta la correccion de lo
+  // que si se consume. Si exige `review.issuerReviewed === true` (marca
+  // literal que el builder real siempre escribe) porque es la unica
+  // invariante que distingue genuinamente un snapshot "revisado por el
+  // emisor" de un Json arbitrario con `schema`/`status` copiados.
+  private parseReviewedApprovedTemplateSemanticSnapshot(
+    value: unknown
+  ): ReviewedApprovedTemplateSemanticSnapshot | null {
+    if (!this.isRecord(value)) {
+      return null;
+    }
+    if (value.schema !== REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA) {
+      return null;
+    }
+    if (value.status !== 'completed' && value.status !== 'partial') {
+      return null;
+    }
+    if (!this.isRecord(value.review) || value.review.issuerReviewed !== true) {
+      return null;
+    }
+    if (
+      !Array.isArray(value.areas) ||
+      !value.areas.every((entry) => this.isValidSemanticDescriptor(entry))
+    ) {
+      return null;
+    }
+    if (
+      !Array.isArray(value.skills) ||
+      !value.skills.every((entry) => this.isValidSemanticDescriptor(entry))
+    ) {
+      return null;
+    }
+    if (
+      !Array.isArray(value.concepts) ||
+      !value.concepts.every((entry) => this.isValidSemanticDescriptor(entry))
+    ) {
+      return null;
+    }
+    if (
+      !Array.isArray(value.hoursDistribution) ||
+      !value.hoursDistribution.every((entry) =>
+        this.isValidHoursDistributionEntry(entry)
+      )
+    ) {
+      return null;
+    }
+    if (!this.isValidTopLevelSnapshotConfidence(value.confidence)) {
+      return null;
+    }
+
+    return value as unknown as ReviewedApprovedTemplateSemanticSnapshot;
+  }
+
+  // Mismo contrato real que `readDescriptorArray`
+  // (issuer-course-templates.helpers.ts): `id`/`label` no vacios,
+  // `confidence` un numero finito o null -- SIN el clamp [0,1], que ese
+  // builder solo aplica a la confidence de nivel superior del snapshot
+  // (`readConfidenceValue`), nunca a cada descriptor individual.
+  private isValidSemanticDescriptor(
+    value: unknown
+  ): value is ApprovedSemanticSnapshotDescriptor {
+    if (!this.isRecord(value)) {
+      return false;
+    }
+    if (typeof value.id !== 'string' || value.id.trim().length === 0) {
+      return false;
+    }
+    if (typeof value.label !== 'string' || value.label.trim().length === 0) {
+      return false;
+    }
+    return value.confidence === null || this.isFiniteNumber(value.confidence);
+  }
+
+  // Mismo contrato real que `readHoursDistribution`
+  // (issuer-course-templates.helpers.ts): `areaId` string no vacio,
+  // `hours` un numero finito (sin restriccion de rango adicional -- el
+  // builder real tampoco la aplica).
+  private isValidHoursDistributionEntry(
+    value: unknown
+  ): value is ApprovedSemanticSnapshotHoursDistributionEntry {
+    if (!this.isRecord(value)) {
+      return false;
+    }
+    if (typeof value.areaId !== 'string' || value.areaId.trim().length === 0) {
+      return false;
+    }
+    return this.isFiniteNumber(value.hours);
+  }
+
+  // Mismo contrato real que `readConfidenceValue`
+  // (issuer-course-templates.helpers.ts): unicamente la confidence de
+  // NIVEL SUPERIOR del snapshot exige el clamp [0,1] -- nunca NaN,
+  // Infinity, string ni object.
+  private isValidTopLevelSnapshotConfidence(
+    value: unknown
+  ): value is number | null {
+    return (
+      value === null ||
+      (this.isFiniteNumber(value) && value >= 0 && value <= 1)
+    );
+  }
+
+  private isFiniteNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
   }
 
   private buildNarrative(input: {
@@ -683,8 +1041,7 @@ export class FormativeProfileService {
     accumulators: Map<string, EvidenceAccumulator>,
     value: unknown,
     kind: SemanticEntryKind,
-    credentialId: string,
-    semanticAnalysisId: string
+    source: ProfileEvidenceSource
   ) {
     if (!Array.isArray(value)) {
       return;
@@ -714,8 +1071,10 @@ export class FormativeProfileService {
       }
 
       accumulator.labels.add(label);
-      accumulator.credentialIds.add(credentialId);
-      accumulator.semanticAnalysisIds.add(semanticAnalysisId);
+      // Una entrada por Credential -- nunca duplica esta misma Credential
+      // aunque la etiqueta aparezca varias veces en su propio snapshot/
+      // analisis (dedup antes de sumar provenance, seccion 10 del diseno).
+      accumulator.sources.set(source.credentialId, source);
 
       const confidence = this.readObjectNumber(entry, 'confidence');
       if (confidence !== null) {
@@ -726,12 +1085,10 @@ export class FormativeProfileService {
 
   private addAreaHours(
     accumulators: Map<string, EvidenceAccumulator>,
-    analysisJson: unknown,
-    credentialId: string,
-    semanticAnalysisId: string
+    hoursDistributionEntries: unknown[],
+    source: ProfileEvidenceSource
   ) {
-    const hoursDistribution = this.readHoursDistribution(analysisJson);
-    for (const entry of hoursDistribution) {
+    for (const entry of hoursDistributionEntries) {
       if (!this.isRecord(entry)) {
         continue;
       }
@@ -750,8 +1107,7 @@ export class FormativeProfileService {
 
       const accumulator = this.getAccumulator(accumulators, label);
       accumulator.labels.add(label);
-      accumulator.credentialIds.add(credentialId);
-      accumulator.semanticAnalysisIds.add(semanticAnalysisId);
+      accumulator.sources.set(source.credentialId, source);
       accumulator.estimatedHours.push(hours);
     }
   }
@@ -792,10 +1148,30 @@ export class FormativeProfileService {
   }
 
   private toEvidence(accumulator: EvidenceAccumulator): ProfileEvidence {
+    // Determinismo (seccion 16 del diseno): siempre ordenado por
+    // credentialId, sin importar el orden en que la query devolvio las
+    // Credentials ni el orden de sus arrays internos.
+    const sources = [...accumulator.sources.values()].sort((left, right) =>
+      this.compareStrings(left.credentialId, right.credentialId)
+    );
+    const semanticAnalysisIds = sources
+      .filter((entry) => entry.provenance === 'ai_inferred')
+      .map((entry) => entry.semanticAnalysisId as string)
+      .sort();
+
     return {
-      credentialIds: [...accumulator.credentialIds].sort(),
-      semanticAnalysisIds: [...accumulator.semanticAnalysisIds].sort(),
-      evidenceCount: accumulator.semanticAnalysisIds.size
+      credentialIds: sources.map((entry) => entry.credentialId),
+      semanticAnalysisIds,
+      evidenceCount: sources.length,
+      sources,
+      provenanceSummary: {
+        issuerReviewedCount: sources.filter(
+          (entry) => entry.provenance === 'issuer_reviewed'
+        ).length,
+        aiInferredCount: sources.filter(
+          (entry) => entry.provenance === 'ai_inferred'
+        ).length
+      }
     };
   }
 
@@ -828,8 +1204,7 @@ export class FormativeProfileService {
 
     const accumulator: EvidenceAccumulator = {
       labels: new Set(),
-      credentialIds: new Set(),
-      semanticAnalysisIds: new Set(),
+      sources: new Map(),
       confidenceValues: [],
       estimatedHours: []
     };

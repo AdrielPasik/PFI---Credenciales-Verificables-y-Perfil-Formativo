@@ -1322,14 +1322,177 @@ una credencial `issued` concreta. Sigue sin tocar frontend ni perfil.
   y mismo criterio de no filtrar existencia entre issuers (`404`, nunca
   `403`, para credencial o template de otro issuer).
 - **Nunca toca**: `Credential.canonicalHash`/`canonicalizationVersion`,
-  blockchain, `FormativeProfile`, ninguna ruta de holder o `/verify`
-  publica. No se llama a la IA en ningun punto de este flujo.
+  blockchain, ninguna ruta de holder o `/verify` publica. No se llama a la
+  IA en ningun punto de este flujo. (`FormativeProfile` -- cierto en
+  C4b.1a/C4b.1b tal como se implementaron aca; C5b.1, seccion 23, agrega
+  DESPUES un rebuild best-effort post-`apply`, siempre fuera de la
+  transaccion de este slice, nunca modificando su contrato.)
 - Pendiente, explicitamente fuera de alcance de C4b.1a/C4b.1b: frontend
-  issuer-facing para estos tres endpoints (C4b.2); consumo de la
-  interpretacion aplicada al reconstruir `FormativeProfile` (C5b.1);
-  exposicion al holder (C5b.2, si se decide implementar) -- **nunca en
-  `/verify` publico**, decision ya cerrada que no cambia por C4b/C5b:
-  `/verify` sigue enfocado en estado/integridad verificable, sin mostrar
-  perfil ni interpretacion semantica; y `Credential.sourceTemplateId`,
-  diferido desde C4b.0.1 (nunca agregado a `schema.prisma` en ningun slice
+  issuer-facing para estos tres endpoints (resuelto en C4b.2); consumo de la
+  interpretacion aplicada al reconstruir `FormativeProfile` (resuelto en
+  C5b.1, seccion 23); exposicion al holder de esa distincion (C5b.2, si se
+  decide implementar) -- **nunca en `/verify` publico**, decision ya
+  cerrada que no cambia por C4b/C5b: `/verify` sigue enfocado en
+  estado/integridad verificable, sin mostrar perfil ni interpretacion
+  semantica; y `Credential.sourceTemplateId`, diferido desde C4b.0.1 (nunca
+  agregado a `schema.prisma` en ningun slice
   de C4b).
+
+## 23. C5b.1 — Consumir una interpretacion aplicada en el perfil formativo
+
+C5b.1 hace que `FormativeProfileService.rebuildForUser` consuma
+`CredentialReusableSemanticInterpretation` (C4b.1a/C4b.1b) como fuente
+semantica preferida de una `Credential`, y dispara el mismo rebuild
+best-effort ya existente despues de un `apply` exitoso (C4b.1b). Sin
+migracion, sin cambio de `schema.prisma` -- el cambio es aditivo dentro del
+JSON existente (`profileJson`, `areasSummary`, `skillsSummary`).
+
+- **Prioridad estrictamente por-Credential, nunca global**: para cada
+  `Credential` `issued` del holder, se resuelve como maximo UNA fuente
+  semantica: (1) su fila `CredentialReusableSemanticInterpretation`
+  `status=active` (`issuer_reviewed`); si no existe, (2) su ultimo
+  `SemanticAnalysis` propio (`ai_inferred`); si ninguna existe, la
+  `Credential` queda sin fuente semantica (solo declared/emitted). Nunca se
+  combinan ambas fuentes para la MISMA `Credential`. La prioridad nunca es
+  global entre `Credential`s distintas: una skill `issuer_reviewed` de la
+  `Credential` A nunca elimina ni reemplaza la contribucion `ai_inferred`
+  de la misma skill aportada por la `Credential` B -- ambas se acumulan en
+  el mismo agregado, con su propia `source` (ver mas abajo).
+- **Solo `active`, nunca `superseded`**: la query anidada
+  (`Credential.reusableSemanticInterpretations`) usa
+  `where: { status: 'active' }, take: 1` -- garantizado por el indice unico
+  parcial de C4b.1a. Nunca se relee ni se reconsidera una fila superseded.
+- **El perfil consume el snapshot congelado, nunca reinterpreta el
+  template**: la fuente semantica de una `Credential` con interpretacion
+  aplicada es exclusivamente
+  `CredentialReusableSemanticInterpretation.approvedSnapshot`, ya congelado
+  al momento de `apply` (C4b.1b). El perfil **nunca** vuelve a leer
+  `IssuerCourseTemplate.approvedSemanticSnapshot`, nunca reconstruye desde
+  el `SemanticAnalysis` fuente, nunca consulta la aprobacion viva actual
+  del template ni `sourceCredentialId` para reconstruir contenido -- de
+  hecho, `FormativeProfileService` nunca consulta `IssuerCourseTemplate` en
+  absoluto. Una re-aprobacion posterior del template (con contenido
+  distinto) **no** cambia retroactivamente que interpretacion consume el
+  perfil de una `Credential` que sigue con una version anterior aplicada.
+- **Version de snapshot soportada, confirmada por auditoria de codigo**:
+  unicamente `approved_template_semantic_snapshot_v2`
+  (`REVIEWED_APPROVED_TEMPLATE_SEMANTIC_SNAPSHOT_SCHEMA`). Confirmado
+  releyendo `issuer-course-templates.service.ts`: los dos unicos paths que
+  persisten `IssuerCourseTemplate.approvedSemanticSnapshot`
+  (`approveTemplateSemanticAnalysisForIssuer`/
+  `approveCredentialSemanticAnalysisForIssuer`) usan exclusivamente
+  `buildReviewedApprovedTemplateSemanticSnapshot` (v2) -- la version v1
+  (`buildApprovedTemplateSemanticSnapshot`) solo se usa en los endpoints de
+  candidate de solo lectura, nunca se persiste. No se asumio esto desde la
+  documentacion: se confirmo leyendo el codigo real antes de implementar.
+- **Fail-safe ante snapshot no soportado/corrupto -- nunca un fallback
+  silencioso a la IA cruda**: si una `Credential` tiene una fila `active`
+  pero su `snapshotVersion` no es la soportada, o su `approvedSnapshot` no
+  pasa la validacion defensiva ya existente
+  (`buildApprovedSemanticSnapshotSummary`, reutilizada sin duplicar), esa
+  `Credential` queda **sin fuente semantica utilizada** (mismo bucket que
+  "sin cobertura"), agregando el warning
+  `reusable_interpretation_snapshot_unsupported` ademas del ya existente
+  `credential_without_semantic_analysis`. **Nunca** cae a su propio
+  `SemanticAnalysis` en este caso: una interpretacion humana aplicada no se
+  ignora en silencio para volver a la IA cruda -- ese comportamiento esta
+  testeado explicitamente (casos P/P2 de la suite de C5b.1).
+- **Provenance por contribucion, nunca un escalar unico sobre el
+  agregado**: cada `ProfileArea`/`ProfileSkill`/`ProfileConcept` agrega
+  `sources: ProfileEvidenceSource[]` (nuevo, aditivo) --
+  `{ credentialId, provenance: 'issuer_reviewed' | 'ai_inferred',
+  reusableInterpretationId? | semanticAnalysisId? }`, exactamente uno de
+  los dos ultimos campos presente segun `provenance` (el otro literalmente
+  ausente, no `null`). Una misma `Credential` nunca aporta mas de una
+  `source` a la misma etiqueta, aunque la aporte varias veces dentro de su
+  propio snapshot/analisis (dedup por `credentialId` antes de contar
+  provenance). `provenanceSummary: { issuerReviewedCount, aiInferredCount }`
+  se deriva de `sources` (conteo de `Credential`s/fuentes contribuyentes
+  distintas, nunca ocurrencias duplicadas). `evidenceCount` ahora significa
+  `sources.length` (antes, cantidad de `SemanticAnalysis` distintos --
+  coincide numericamente en el caso 100% `ai_inferred`, unico caso posible
+  antes de C5b.1). `credentialIds`/`semanticAnalysisIds` se preservan por
+  compatibilidad; `semanticAnalysisIds` contiene **unicamente** ids
+  efectivamente consumidos como `ai_inferred` -- nunca el
+  `sourceSemanticAnalysisId` historico de una interpretacion aplicada (esa
+  referencia es provenance de la aprobacion fuente del template, no la
+  fuente que el perfil consume para esta `Credential`; testeado
+  explicitamente, caso G).
+- **`generatedFrom` extendido**: agrega
+  `reusableSemanticInterpretationIds: string[]` (solo filas `active`
+  efectivamente consumidas como `issuer_reviewed`, nunca `superseded`,
+  nunca inferido desde `sourceSemanticAnalysisId`). `semanticAnalysisIds`
+  sigue existiendo, ahora acotado a lo efectivamente consumido como
+  `ai_inferred`.
+- **Contadores**: `summary.analyzedCredentialsCount` ahora es
+  `issuer_reviewed + ai_inferred` (antes, solo `ai_inferred`). Nuevo
+  `summary.credentialsWithReviewedInterpretation` (cuantas `Credential`s
+  eligieron `issuer_reviewed`). `credentialsWithoutSemanticCoverage` sigue
+  siendo exhaustivo junto con `analyzedCredentialsCount`
+  (`credentialsCount = analyzedCredentialsCount + credentialsWithoutSemanticCoverage`),
+  ahora incluyendo tambien el caso de snapshot no soportado.
+- **Horas oficiales nunca cambian de fuente**: `Credential.hours`/
+  `totalOfficialHours`/`credentialsWithoutHours` siguen viniendo
+  exclusivamente de `Credential.hours` declarado por el emisor -- una
+  interpretacion aplicada nunca los reemplaza ni recalcula. Lo unico que
+  puede aportar una interpretacion aplicada es `estimatedHours` por area,
+  leido de `approvedSnapshot.hoursDistribution` (mismo campo/semantica que
+  ya usaba `SemanticAnalysis.analysisJson.hoursDistribution` para
+  `ai_inferred` -- ambos alimentan el mismo acumulador de horas
+  *estimadas*, nunca oficiales).
+- **Confidence sin cambiar de significado**: `approvedSnapshot.confidence`
+  participa en el mismo algoritmo de agregacion derivada que ya usaba
+  `SemanticAnalysis.confidence` para `ai_inferred` (promedio, redondeado).
+  Semanticamente sigue siendo la confianza del analisis de IA original que
+  origino esa interpretacion -- **nunca** se reinterpreta como "confianza
+  de la revision humana", y ningun copy nuevo debe sugerir eso (C5b.1 no
+  toca ningun mapper visible al usuario).
+- **Determinismo preservado**: mismo conjunto de `Credential`s + mismas
+  filas `active` + mismos `SemanticAnalysis` elegidos -> mismo `profileJson`
+  semantico, sin importar el orden de la query. `sources[]` siempre se
+  ordena por `credentialId` antes de derivar `credentialIds`/
+  `semanticAnalysisIds`/`provenanceSummary`.
+- **Rebuild post-`apply`, reutilizando el mecanismo existente**:
+  `ReusableSemanticInterpretationModule` ahora importa `AnalysisRunModule`
+  (que exporta `AutomaticProfileRebuildService` ademas de a sus dos
+  consumidores existentes) en vez de duplicar logica de rebuild/try-catch/
+  logging. Tras construir la respuesta de `apply` (siempre DESPUES de que
+  la transaccion de escritura ya commiteo, nunca dentro de ella), se llama
+  `rebuildAfterAutomaticAnalysis({ credentialId, holderUserId })` --
+  `holderUserId` viene de un nuevo campo `subjectUserId` agregado al select
+  de la credencial destino (nunca expuesto en ningun DTO, todos siguen
+  construyendose campo a campo). Se intenta para **todo** resultado
+  exitoso de `apply`, incluido `changed:false` (idempotente) y el path
+  reconciliado tras un `P2002` -- un apply idempotente puede servir de
+  reintento si un rebuild anterior fallo, sin crear ninguna fila de
+  interpretacion nueva por eso. Si el rebuild falla,
+  `AutomaticProfileRebuildService` ya lo atrapa y loguea de forma segura
+  (mismo contrato usado por el resto del repo) -- nunca revierte ni
+  invalida el `apply`, nunca lo reintenta. No se agrego cola, cron ni event
+  bus nuevo.
+- **`profileRebuildStatus` evaluado y descartado para este slice**: el
+  contrato de `POST .../apply` (C4b.1b) no cambia -- se decidio no exponer
+  el resultado del rebuild en la response, tratandolo como efecto interno
+  best-effort (mismo criterio que ya aplica el resto del repo para el
+  rebuild automatico tras un analisis). Evita romper el contrato ya
+  consumido por C4b.2 (frontend) sin necesidad real detectada.
+- **Auditoria de privacidad, sin leak activo**: se releyeron
+  `holder-current-profile.mapper.ts` y `profile-sharing.service.ts`
+  completos antes de este cambio. Ambos construyen sus DTOs campo a campo
+  (`{label, estimatedHours}`/`{label, confidence}`/`string[]`) leyendo
+  `profileJson`/`areasSummary`/`skillsSummary`, sin spread ni passthrough
+  de los objetos internos -- `sources[]`/`provenanceSummary` nuevos quedan
+  inertes para ambos consumidores. `profile-sharing.service.ts` sigue
+  reutilizando la salida YA MAPEADA (segura) del holder mapper con
+  `.slice()`, nunca `profileJson` crudo -- el riesgo latente ya documentado
+  (si C5b.2 agrega `provenanceSummary` directo al mapper del holder, ese
+  `.slice()` lo heredaria automaticamente hacia el share publico) sigue
+  **latente, no activo**: C5b.1 no toca ninguno de los dos mappers.
+  `/verify` no referencia `FormativeProfile` en ningun punto (confirmado
+  por busqueda en el codigo).
+- Pendiente, explicitamente fuera de alcance de C5b.1: exponer
+  `provenanceSummary`/la distincion `issuer_reviewed` vs `ai_inferred` al
+  holder o al perfil publico compartido (C5b.2, con su propia allowlist
+  explicita a definir en ese slice); cualquier cambio a `/verify` (decision
+  cerrada, no cambia); `Credential.sourceTemplateId` (sigue diferido desde
+  C4b.0.1).

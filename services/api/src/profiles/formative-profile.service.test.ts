@@ -251,6 +251,17 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
             concepts: true,
             analysisJson: true
           }
+        },
+        reusableSemanticInterpretations: {
+          where: {
+            status: 'active'
+          },
+          take: 1,
+          select: {
+            id: true,
+            approvedSnapshot: true,
+            snapshotVersion: true
+          }
         }
       },
       orderBy: {
@@ -277,6 +288,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     generatedFrom: {
       credentialIds: string[];
       semanticAnalysisIds: string[];
+      reusableSemanticInterpretationIds: string[];
     };
     summary: {
       credentialsCount: number;
@@ -285,6 +297,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       totalOfficialHours: number | null;
       credentialsWithoutHours: number;
       credentialsWithoutSemanticCoverage: number;
+      credentialsWithReviewedInterpretation: number;
     };
     narrative: string | null;
     areas: Array<Record<string, unknown>>;
@@ -299,7 +312,8 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
 
   assert.deepEqual(profileJson.generatedFrom, {
     credentialIds: ['credential-1', 'credential-2', 'credential-3'],
-    semanticAnalysisIds: ['analysis-1', 'analysis-2']
+    semanticAnalysisIds: ['analysis-1', 'analysis-2'],
+    reusableSemanticInterpretationIds: []
   });
   assert.deepEqual(profileJson.summary, {
     credentialsCount: 3,
@@ -308,7 +322,8 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     totalOfficialHours: 60,
     // credential-3 no tiene hours declaradas y no tiene SemanticAnalysis.
     credentialsWithoutHours: 1,
-    credentialsWithoutSemanticCoverage: 1
+    credentialsWithoutSemanticCoverage: 1,
+    credentialsWithReviewedInterpretation: 0
   });
   assert.match(
     profileJson.narrative as string,
@@ -317,12 +332,30 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
   assert.match(profileJson.narrative as string, /Data Engineering/);
   assert.match(profileJson.narrative as string, /cobertura semantica todavia es parcial/);
   assert.doesNotMatch(profileJson.narrative as string, /domina|experto|garantiza|certifica|apto para|nivel profesional/i);
+  const expectedAiSources = [
+    {
+      credentialId: 'credential-1',
+      provenance: 'ai_inferred',
+      semanticAnalysisId: 'analysis-1'
+    },
+    {
+      credentialId: 'credential-2',
+      provenance: 'ai_inferred',
+      semanticAnalysisId: 'analysis-2'
+    }
+  ];
+  const expectedAiProvenanceSummary = {
+    issuerReviewedCount: 0,
+    aiInferredCount: 2
+  };
   assert.deepEqual(profileJson.areas, [
     {
       area: 'Data Engineering',
       credentialIds: ['credential-1', 'credential-2'],
       semanticAnalysisIds: ['analysis-1', 'analysis-2'],
       evidenceCount: 2,
+      sources: expectedAiSources,
+      provenanceSummary: expectedAiProvenanceSummary,
       estimatedHours: 30
     }
   ]);
@@ -332,6 +365,8 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       credentialIds: ['credential-1', 'credential-2'],
       semanticAnalysisIds: ['analysis-1', 'analysis-2'],
       evidenceCount: 2,
+      sources: expectedAiSources,
+      provenanceSummary: expectedAiProvenanceSummary,
       confidence: 0.9
     }
   ]);
@@ -340,7 +375,9 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
       concept: 'Normalization',
       credentialIds: ['credential-1', 'credential-2'],
       semanticAnalysisIds: ['analysis-1', 'analysis-2'],
-      evidenceCount: 2
+      evidenceCount: 2,
+      sources: expectedAiSources,
+      provenanceSummary: expectedAiProvenanceSummary
     }
   ]);
   assert.deepEqual(profileJson.confidence, {
@@ -573,6 +610,14 @@ test('FormativeProfileService ignores legacy course skills while preserving decl
       credentialIds: ['course-legacy-1'],
       semanticAnalysisIds: ['analysis-course-1'],
       evidenceCount: 1,
+      sources: [
+        {
+          credentialId: 'course-legacy-1',
+          provenance: 'ai_inferred',
+          semanticAnalysisId: 'analysis-course-1'
+        }
+      ],
+      provenanceSummary: { issuerReviewedCount: 0, aiInferredCount: 1 },
       confidence: 0.8
     }
   ]);
@@ -693,7 +738,8 @@ test('FormativeProfileService persists a valid empty snapshot when no issued cre
     totalHours: null,
     totalOfficialHours: null,
     credentialsWithoutHours: 0,
-    credentialsWithoutSemanticCoverage: 0
+    credentialsWithoutSemanticCoverage: 0,
+    credentialsWithReviewedInterpretation: 0
   });
   assert.equal(profileJson.narrative, null);
   assert.deepEqual(profileJson.warnings, [
@@ -889,7 +935,8 @@ test('C2c: a course analyzed from text conserves official hours separately from 
     totalHours: 22,
     totalOfficialHours: 22,
     credentialsWithoutHours: 0,
-    credentialsWithoutSemanticCoverage: 0
+    credentialsWithoutSemanticCoverage: 0,
+    credentialsWithReviewedInterpretation: 0
   });
   // Sin hoursDistribution en el artifact, no hay areas con estimatedHours --
   // nunca se inventa una distribucion a partir de las 22 horas oficiales.

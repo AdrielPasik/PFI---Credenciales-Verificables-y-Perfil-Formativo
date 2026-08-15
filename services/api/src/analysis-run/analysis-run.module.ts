@@ -37,9 +37,11 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
     AnalysisRunExecutionService,
     AutomaticDocumentAnalysisService,
     AutomaticCourseTextAnalysisService,
-    // C2b.4: helper interno, sin controller ni export -- solo lo usan
-    // AutomaticDocumentAnalysisService/AutomaticCourseTextAnalysisService,
-    // ambos en este mismo modulo.
+    // C2b.4: usado dentro de este modulo por
+    // AutomaticDocumentAnalysisService/AutomaticCourseTextAnalysisService.
+    // C5b.1 lo exporta ademas para que
+    // ReusableSemanticInterpretationModule dispare el mismo rebuild
+    // best-effort tras un apply -- ver comentario en `exports` abajo.
     AutomaticProfileRebuildService,
     // IA-Q1c: herramienta interna de backfill/reanalysis, sin controller
     // asociado -- no crea ningun endpoint HTTP nuevo.
@@ -52,7 +54,12 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
     AnalysisRunExecutionService,
     AutomaticDocumentAnalysisService,
     AutomaticCourseTextAnalysisService,
-    AnalysisRunBackfillService
+    AnalysisRunBackfillService,
+    // C5b.1: segundo consumidor fuera de este modulo --
+    // ReusableSemanticInterpretationService reutiliza el mismo mecanismo
+    // best-effort ya usado por el analisis automatico, en vez de duplicar
+    // logica de rebuild/try-catch/logging.
+    AutomaticProfileRebuildService
   ]
 })
 export class AnalysisRunModule {}

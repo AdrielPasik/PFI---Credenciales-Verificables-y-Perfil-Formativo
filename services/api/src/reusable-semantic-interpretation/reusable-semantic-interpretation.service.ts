@@ -12,6 +12,7 @@ import {
   Prisma
 } from '@prisma/client';
 
+import { AutomaticProfileRebuildService } from '../analysis-run/automatic-profile-rebuild.service';
 import { type AuthenticatedUser } from '../auth/auth.types';
 import {
   buildApprovedSemanticSnapshotSummary,
@@ -78,7 +79,11 @@ const DESTINATION_CREDENTIAL_SELECT = {
   title: true,
   description: true,
   hours: true,
-  credentialSubject: true
+  credentialSubject: true,
+  // C5b.1: nunca expuesto en ningun DTO (todos se construyen campo a
+  // campo) -- solo se usa internamente para disparar el rebuild
+  // best-effort del perfil del holder despues de un apply exitoso.
+  subjectUserId: true
 } satisfies Prisma.CredentialSelect;
 
 type DestinationCredentialRecord = Prisma.CredentialGetPayload<{
@@ -140,7 +145,8 @@ interface ApplyOutcome {
 export class ReusableSemanticInterpretationService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly issuersService: IssuersService
+    private readonly issuersService: IssuersService,
+    private readonly profileRebuildService: AutomaticProfileRebuildService
   ) {}
 
   async getCandidateForIssuer(
@@ -488,6 +494,20 @@ export class ReusableSemanticInterpretationService {
       outcome.destination,
       issuerId
     );
+
+    // C5b.1: rebuild best-effort del perfil del holder DESPUES de que el
+    // apply ya quedo persistido (nunca dentro de la transaccion de
+    // arriba). Se intenta para TODO resultado exitoso, incluido
+    // changed:false (idempotente) -- un apply idempotente puede servir
+    // como reintento del rebuild si el anterior fallo, y nunca crea una
+    // fila de interpretacion nueva por esto. Nunca revierte ni invalida el
+    // apply si el rebuild falla -- mismo contrato best-effort ya usado por
+    // AutomaticProfileRebuildService en el resto del repo (nunca lanza).
+    await this.profileRebuildService.rebuildAfterAutomaticAnalysis({
+      credentialId: outcome.row.credentialId,
+      holderUserId: outcome.destination.subjectUserId
+    });
+
     return {
       changed: outcome.changed,
       supersededPreviousApplication: outcome.superseded,

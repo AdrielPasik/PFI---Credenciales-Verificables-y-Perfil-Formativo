@@ -83,7 +83,10 @@
 
 - Proposito: representar el resumen agregado del perfil formativo de un usuario.
 - Campos conceptuales: `id`, `user_id`, `schema_version`, `generated_at`, `credentials_count`, `total_hours`, `profile_status`.
-- Relaciones: pertenece a `User`, consume muchas `Credential` y `SemanticAnalysis`.
+- Relaciones: pertenece a `User`, consume muchas `Credential` y, para cada una,
+  como maximo UNA fuente semantica: una `CredentialReusableSemanticInterpretation`
+  `active` (C5b.1, prioridad `issuer_reviewed`) o, si no existe, su ultima
+  `SemanticAnalysis` (`ai_inferred`) -- nunca ambas para la misma `Credential`.
 - Relacional: ids, generated_at, contadores, estado del perfil.
 - JSONB: `areas_summary`, `skills_summary`, `evidence_by_area`, `quality_flags`.
 - No on-chain: resumen formativo, evidencia agregada, flags de calidad.
@@ -338,7 +341,20 @@ Permanecen futuros:
   y sus hashes;
 - `CredentialEnrichmentProposal`: propuesta IA separada de claims oficiales;
 - decision de revision humana por campo, posiblemente en tabla propia;
-- `FormativeProfileSource`: evolucion para trazar perfiles a analisis concretos.
+- `FormativeProfileSource`: evolucion para trazar perfiles a analisis concretos
+  en una tabla relacional propia -- sigue sin implementarse (C5b.1 no agrega
+  ninguna tabla ni migracion).
+
+C5b.1 cubre parte de esa necesidad dentro del JSON existente, sin tabla
+nueva: cada entrada de `profileJson.areas`/`.skills`/`.concepts` ahora
+incluye `sources[]` (provenance por Credential contribuyente --
+`issuer_reviewed` con `reusableInterpretationId`, o `ai_inferred` con
+`semanticAnalysisId`, nunca ambos) y `provenanceSummary`. Ver
+`domain-rules-v0.md` seccion 23 para el detalle completo. `FormativeProfile`
+ahora tambien puede consumir, ademas de `SemanticAnalysis`, como maximo una
+fila `active` de `CredentialReusableSemanticInterpretation` por
+`Credential` -- su `approvedSnapshot` ya congelado, nunca
+`IssuerCourseTemplate.approvedSemanticSnapshot` releido en vivo.
 
 `semantic_analysis_v1` y `formative_profile_result_v0` siguen siendo artifacts
 JSON oficiales validados. Los joins relacionales prueban asociacion/ownership;

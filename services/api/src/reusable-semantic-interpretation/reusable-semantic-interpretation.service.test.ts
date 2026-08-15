@@ -51,6 +51,9 @@ function credentialRow(overrides: Record<string, unknown> = {}) {
     description: 'Descripción original de UX',
     hours: 20,
     credentialSubject: baseSubject(),
+    // C5b.1: usado unicamente para disparar el rebuild best-effort del
+    // perfil tras un apply exitoso -- nunca expuesto en ningun DTO.
+    subjectUserId: 'holder-1',
     ...overrides
   };
 }
@@ -112,6 +115,9 @@ interface SetupOptions {
   permissionError?: Error;
   transactionErrors?: Array<Error>;
   simulateUniqueViolationOnCreate?: boolean;
+  // C5b.1: simula que el rebuild best-effort del perfil falla -- nunca
+  // debe hacer que apply() falle ni relance.
+  rebuildFails?: boolean;
 }
 
 function setup(options: SetupOptions = {}) {
@@ -136,7 +142,8 @@ function setup(options: SetupOptions = {}) {
     permissions: [] as unknown[],
     transactions: [] as unknown[],
     creates: [] as unknown[],
-    updateMany: [] as unknown[]
+    updateMany: [] as unknown[],
+    profileRebuilds: [] as Array<{ credentialId: string; holderUserId: string }>
   };
 
   let nextId = interpretations.length + 1;
@@ -236,10 +243,30 @@ function setup(options: SetupOptions = {}) {
     }
   };
 
+  // C5b.1: mismo contrato real de AutomaticProfileRebuildService -- nunca
+  // lanza, siempre devuelve {status:'rebuilt'} o
+  // {status:'failed', errorCode}.
+  const profileRebuildService = {
+    async rebuildAfterAutomaticAnalysis(input: {
+      credentialId: string;
+      holderUserId: string;
+    }) {
+      calls.profileRebuilds.push(input);
+      if (options.rebuildFails) {
+        return {
+          status: 'failed' as const,
+          errorCode: 'formative_profile_rebuild_failed' as const
+        };
+      }
+      return { status: 'rebuilt' as const };
+    }
+  };
+
   return {
     service: new ReusableSemanticInterpretationService(
       prisma as never,
-      issuersService as never
+      issuersService as never,
+      profileRebuildService as never
     ),
     calls,
     interpretations
@@ -861,6 +888,118 @@ test('apply: a business rejection (404/400/409/422) is never retried', async () 
     NotFoundException
   );
   assert.equal(calls.transactions.length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// C5b.1: rebuild best-effort del perfil del holder despues de un apply
+// exitoso. Reutiliza AutomaticProfileRebuildService (mismo contrato que ya
+// usa el resto del repo -- nunca lanza). Siempre DESPUES de que apply ya
+// persistio, nunca dentro de la transaccion.
+// ---------------------------------------------------------------------------
+
+test('R: a first successful apply (changed=true) triggers a profile rebuild for the credential subject, after persistence completes', async () => {
+  const { service, calls } = setup();
+
+  const result = await service.applyForIssuer(ISSUER_ID, CREDENTIAL_ID, CURRENT_USER, {
+    templateId: TEMPLATE_ID,
+    approvalRevision: APPROVED_AT.toISOString()
+  });
+
+  assert.equal(result.changed, true);
+  assert.deepEqual(calls.profileRebuilds, [
+    { credentialId: CREDENTIAL_ID, holderUserId: 'holder-1' }
+  ]);
+});
+
+test('S: an idempotent apply (changed=false) can still retry the rebuild -- never treated as an error, never creates a new interpretation row', async () => {
+  const active = {
+    id: 'interp-existing',
+    credentialId: CREDENTIAL_ID,
+    templateId: TEMPLATE_ID,
+    sourceSemanticAnalysisId: 'semantic-1',
+    sourceCredentialId: SOURCE_CREDENTIAL_ID,
+    sourceApprovedByUserId: 'user-approver',
+    sourceApprovedAt: APPROVED_AT,
+    sourcePipelineVersion: 'pipeline-v1',
+    sourceTaxonomyVersion: 'taxonomy-v1',
+    approvedSnapshot: { schema: 'approved_template_semantic_snapshot_v2', status: 'completed', areas: [], skills: [], concepts: [], hoursDistribution: [], warnings: [], qualityFlags: [] },
+    snapshotVersion: 'approved_template_semantic_snapshot_v2',
+    appliedByUserId: 'issuer-user-1',
+    appliedAt: new Date('2026-08-14T11:00:00.000Z'),
+    status: 'active'
+  };
+  const { service, calls, interpretations } = setup({ interpretations: [active] });
+
+  const result = await service.applyForIssuer(ISSUER_ID, CREDENTIAL_ID, CURRENT_USER, {
+    templateId: TEMPLATE_ID,
+    approvalRevision: APPROVED_AT.toISOString()
+  });
+
+  assert.equal(result.changed, false);
+  assert.equal(interpretations.length, 1, 'idempotent apply never creates a new row');
+  assert.deepEqual(calls.profileRebuilds, [
+    { credentialId: CREDENTIAL_ID, holderUserId: 'holder-1' }
+  ]);
+});
+
+test('T: apply stays a success even if the profile rebuild fails -- never retries apply, never surfaces the rebuild failure as an apply error', async () => {
+  const { service, calls } = setup({ rebuildFails: true });
+
+  const result = await service.applyForIssuer(ISSUER_ID, CREDENTIAL_ID, CURRENT_USER, {
+    templateId: TEMPLATE_ID,
+    approvalRevision: APPROVED_AT.toISOString()
+  });
+
+  assert.equal(result.changed, true);
+  assert.equal(calls.profileRebuilds.length, 1);
+  assert.equal(calls.transactions.length, 1, 'a failed rebuild must never trigger an apply retry');
+});
+
+test('rebuild is triggered on the P2002-reconciled idempotent path too', async () => {
+  const { service, calls } = setup({
+    interpretations: [
+      {
+        id: 'interp-winner',
+        credentialId: CREDENTIAL_ID,
+        templateId: TEMPLATE_ID,
+        sourceSemanticAnalysisId: 'semantic-1',
+        sourceCredentialId: SOURCE_CREDENTIAL_ID,
+        sourceApprovedByUserId: 'user-approver',
+        sourceApprovedAt: APPROVED_AT,
+        sourcePipelineVersion: 'pipeline-v1',
+        sourceTaxonomyVersion: 'taxonomy-v1',
+        approvedSnapshot: { schema: 'approved_template_semantic_snapshot_v2', status: 'completed', areas: [], skills: [], concepts: [], hoursDistribution: [], warnings: [], qualityFlags: [] },
+        snapshotVersion: 'approved_template_semantic_snapshot_v2',
+        appliedByUserId: 'other-user',
+        appliedAt: new Date('2026-08-14T11:00:00.000Z'),
+        status: 'active'
+      }
+    ],
+    simulateUniqueViolationOnCreate: true
+  });
+
+  const result = await service.applyForIssuer(ISSUER_ID, CREDENTIAL_ID, CURRENT_USER, {
+    templateId: TEMPLATE_ID,
+    approvalRevision: APPROVED_AT.toISOString()
+  });
+
+  assert.equal(result.changed, false);
+  assert.deepEqual(calls.profileRebuilds, [
+    { credentialId: CREDENTIAL_ID, holderUserId: 'holder-1' }
+  ]);
+});
+
+test('rebuild is never triggered for a business rejection (no application was ever produced)', async () => {
+  const { service, calls } = setup({ credentials: [] });
+
+  await assert.rejects(
+    service.applyForIssuer(ISSUER_ID, CREDENTIAL_ID, CURRENT_USER, {
+      templateId: TEMPLATE_ID,
+      approvalRevision: APPROVED_AT.toISOString()
+    }),
+    NotFoundException
+  );
+  assert.equal(calls.profileRebuilds.length, 0);
 });
 
 // ---------------------------------------------------------------------------

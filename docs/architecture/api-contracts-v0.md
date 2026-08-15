@@ -1768,12 +1768,18 @@ nunca filtra por `status` -- revocar una credencial solo agrega
 referencia semantica. Aplica igual para la fuente actual del candidate
 top-level y para la fuente congelada de una aplicacion ya persistida.
 
-Pendiente, fuera de alcance de C4b.1a/C4b.1b: frontend issuer-facing para
-estos tres endpoints (C4b.2); consumo de la interpretacion aplicada por
-`FormativeProfileService`/`AutomaticProfileRebuildService` (C5b.1);
-exposicion al holder (C5b.2, si se decide implementar) -- **nunca en
-`/verify` publico**, que es una decision ya cerrada y no cambia por
-C4b/C5b: sigue enfocado en estado/integridad verificable, sin mostrar
+Fuera de alcance de C4b.1a/C4b.1b en su momento, resuelto desde: frontend
+issuer-facing para estos tres endpoints (C4b.2, implementado); consumo de
+la interpretacion aplicada por `FormativeProfileService`/
+`AutomaticProfileRebuildService` (C5b.1, implementado -- ver
+`domain-rules-v0.md` seccion 23; no agrega ni modifica ningun endpoint de
+`FormativeProfile`, solo enriquece `profileJson` internamente y dispara el
+mismo rebuild best-effort ya existente despues de un `apply` exitoso).
+
+Pendiente todavia: exposicion al holder de `provenanceSummary`/distincion
+`issuer_reviewed` vs `ai_inferred` (C5b.2, si se decide implementar) --
+**nunca en `/verify` publico**, que es una decision ya cerrada y no cambia
+por C4b/C5b: sigue enfocado en estado/integridad verificable, sin mostrar
 perfil ni interpretacion semantica; y `Credential.sourceTemplateId`
 (diferido desde C4b.0.1, sin implementar).
 
