@@ -47,7 +47,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="relative mx-auto flex h-full max-w-xl flex-col px-5 py-5 sm:px-8 sm:py-7 lg:min-h-svh lg:px-12 lg:py-10">
           <Image
             alt="Traza"
-            className="h-auto w-36"
+            className="h-auto w-44"
             height={1254}
             priority
             src="/brand/traza-logo.png"
@@ -80,7 +80,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex size-10 items-center justify-center rounded-control border border-border-default bg-canvas text-brand-accent"
+                      className="flex size-10 items-center justify-center rounded-control border border-brand-accent/25 bg-brand-accent/10 text-brand-accent shadow-xs"
                     >
                       <Icon className="size-5" />
                     </span>
@@ -96,7 +96,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             </ul>
           </div>
 
-          <p className="text-xs leading-5 text-text-subtle">
+          <p className="text-xs leading-5 font-medium text-brand-accent">
             Credenciales verificables para trayectorias formativas confiables.
           </p>
         </div>

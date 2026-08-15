@@ -31,6 +31,11 @@ it('presents the definitive Traza identity while preserving the login form', () 
   expect(screen.getByText('Credenciales confiables')).toBeTruthy();
   expect(screen.getByText('Perfil formativo')).toBeTruthy();
   expect(screen.getByText('Verificación simple')).toBeTruthy();
+  expect(
+    screen.getByText(
+      'Credenciales verificables para trayectorias formativas confiables.'
+    )
+  ).toBeTruthy();
   expect(screen.getByLabelText('Correo electrónico')).toBeTruthy();
   expect(screen.getByLabelText('Contraseña').getAttribute('type')).toBe(
     'password'
