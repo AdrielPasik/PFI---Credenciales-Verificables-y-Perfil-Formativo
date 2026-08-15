@@ -1,79 +1,94 @@
-import { KeyRound, Route, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { BadgeCheck, Route, SearchCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { BrandMark } from '@/components/brand/brand-mark';
-
-const trustPrinciples = [
+const productPrinciples = [
   {
-    icon: ShieldCheck,
-    title: 'Autoridad institucional',
-    description: 'Cada operación depende de permisos y contexto verificados.'
+    icon: BadgeCheck,
+    title: 'Credenciales confiables',
+    description: 'Información emitida por instituciones y respaldada por evidencia.'
   },
   {
     icon: Route,
-    title: 'Trayectoria comprensible',
-    description: 'La evidencia técnica se traduce en información clara.'
+    title: 'Perfil formativo',
+    description: 'Áreas, habilidades y conceptos organizados a partir de la trayectoria.'
   },
   {
-    icon: KeyRound,
-    title: 'Acceso controlado',
-    description: 'La sesión define qué experiencia corresponde a cada cuenta.'
+    icon: SearchCheck,
+    title: 'Verificación simple',
+    description: 'Información clara para titulares, emisores y verificadores.'
   }
 ];
 
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(22rem,0.9fr)_minmax(30rem,1.1fr)]">
+    <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(23rem,0.88fr)_minmax(32rem,1.12fr)]">
       <aside className="relative overflow-hidden bg-brand-900 text-white">
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-linear-to-br from-brand-900 via-brand-900 to-brand-700"
+          className="absolute inset-0 bg-brand-900"
         />
         <div
           aria-hidden="true"
-          className="absolute -right-24 -bottom-24 size-80 rounded-pill border border-teal-600/30"
+          className="absolute -right-28 -bottom-32 size-96 rounded-pill border border-brand-accent/20"
         />
-        <div
+        <svg
           aria-hidden="true"
-          className="absolute right-14 bottom-20 size-3 rounded-pill bg-amber-600"
-        />
+          className="pointer-events-none absolute -right-24 bottom-8 h-72 w-[32rem] text-brand-accent opacity-20"
+          fill="none"
+          viewBox="0 0 512 288"
+        >
+          <path d="M8 248C104 214 99 80 222 97c80 11 69 122 176 78 35-14 62-51 106-63" stroke="currentColor" strokeWidth="2" />
+          <circle cx="102" cy="184" r="8" fill="currentColor" />
+          <circle cx="222" cy="97" r="10" fill="currentColor" />
+          <circle cx="398" cy="175" r="8" fill="currentColor" />
+        </svg>
 
-        <div className="relative mx-auto flex h-full max-w-2xl flex-col px-5 py-6 sm:px-8 lg:min-h-svh lg:px-12 lg:py-10">
-          <BrandMark
-            tone="inverse"
-            descriptor="Identidad temporal"
-          />
+        <div className="relative mx-auto flex h-full max-w-xl flex-col px-5 py-5 sm:px-8 sm:py-7 lg:min-h-svh lg:px-12 lg:py-10">
+          <div className="inline-flex w-fit items-center rounded-control bg-white px-2 py-1.5 shadow-xs">
+            <Image
+              alt="Traza"
+              className="h-auto w-28"
+              height={1254}
+              priority
+              src="/brand/traza-logo.png"
+              width={1254}
+            />
+          </div>
 
-          <div className="my-auto hidden py-16 lg:block">
+          <div className="py-8 lg:my-auto lg:py-16">
             <p className="text-sm font-semibold tracking-widest text-teal-100 uppercase">
               Credenciales y trayectoria
             </p>
-            <h2 className="mt-5 max-w-xl text-4xl leading-tight font-bold tracking-tight text-balance">
-              Confianza institucional, expresada con claridad.
-            </h2>
+            <h1
+              aria-label="Credenciales verificables. Trayectorias que se entienden."
+              className="mt-4 max-w-xl text-3xl leading-[1.12] font-bold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem]"
+            >
+              <span className="block">Credenciales verificables.</span>
+              <span className="block">Trayectorias que se entienden.</span>
+            </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-brand-100/80">
-              Traza conecta emisión, evidencia y perfil formativo sin trasladar
-              la complejidad técnica a las personas.
+              Traza reúne credenciales, evidencia y análisis formativo para
+              construir perfiles más claros, confiables y verificables.
             </p>
-
-            <ul className="mt-12 grid gap-6">
-              {trustPrinciples.map((principle) => {
+            <ul className="mt-10 hidden gap-5 lg:grid">
+              {productPrinciples.map((principle) => {
                 const Icon = principle.icon;
 
                 return (
                   <li
                     key={principle.title}
-                    className="grid grid-cols-[2.75rem_minmax(0,1fr)] gap-4"
+                    className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3"
                   >
                     <span
                       aria-hidden="true"
-                      className="flex size-11 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"
+                      className="flex size-10 items-center justify-center rounded-control border border-white/15 bg-white/5 text-brand-accent"
                     >
                       <Icon className="size-5" />
                     </span>
                     <div>
-                      <h3 className="font-semibold">{principle.title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-brand-100/75">
+                      <p className="font-semibold">{principle.title}</p>
+                      <p className="mt-0.5 text-sm leading-6 text-brand-100/75">
                         {principle.description}
                       </p>
                     </div>
@@ -83,14 +98,14 @@ export function AuthShell({ children }: { children: ReactNode }) {
             </ul>
           </div>
 
-          <p className="hidden text-xs leading-5 text-brand-100/60 lg:block">
+          <p className="text-xs leading-5 text-brand-100/60">
             Credenciales verificables para trayectorias formativas confiables.
           </p>
         </div>
       </aside>
 
-      <main className="flex min-h-[calc(100svh-5.5rem)] items-center justify-center px-4 py-10 sm:px-8 lg:min-h-svh lg:px-12">
-        <div className="w-full max-w-md">{children}</div>
+      <main className="flex min-h-[calc(100svh-18.5rem)] items-center justify-center bg-surface-muted px-4 py-8 sm:min-h-[calc(100svh-21rem)] sm:px-8 sm:py-10 lg:min-h-svh lg:px-12">
+        <div className="w-full max-w-lg">{children}</div>
       </main>
     </div>
   );

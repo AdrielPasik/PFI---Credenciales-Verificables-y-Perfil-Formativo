@@ -10,6 +10,7 @@
   --traza-teal-700: #197278;
   --traza-teal-600: #23838a;
   --traza-teal-100: #e5f4f3;
+  --traza-brand-accent: #2097a1;
   --traza-amber-800: #7a4d08;
   --traza-amber-600: #c68a2d;
   --traza-amber-100: #fff3d9;
@@ -95,6 +96,7 @@
   --color-teal-700: var(--traza-teal-700);
   --color-teal-600: var(--traza-teal-600);
   --color-teal-100: var(--traza-teal-100);
+  --color-brand-accent: var(--traza-brand-accent);
   --color-amber-800: var(--traza-amber-800);
   --color-amber-600: var(--traza-amber-600);
   --color-amber-100: var(--traza-amber-100);

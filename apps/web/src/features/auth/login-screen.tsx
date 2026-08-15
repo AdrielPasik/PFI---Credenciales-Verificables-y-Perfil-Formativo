@@ -56,15 +56,15 @@ export function LoginScreen() {
 
   return (
     <AuthShell>
-      <Card className="overflow-hidden border-border-strong shadow-md">
-        <div aria-hidden="true" className="h-1 bg-teal-700" />
+      <Card className="overflow-hidden border-border-strong bg-surface shadow-md">
+        <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
           <p className="text-sm font-semibold text-teal-700">
             Acceso a Traza
           </p>
-          <h1 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
+          <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
             Iniciá sesión
-          </h1>
+          </h2>
           <p className="text-sm leading-6 text-text-muted">
             Ingresá con tu cuenta para validar el contexto institucional
             disponible.
