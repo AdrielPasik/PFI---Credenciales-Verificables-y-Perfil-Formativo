@@ -10,7 +10,7 @@ const credential = {
 };
 const profile = {
   profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalOfficialHoursLabel: '64 horas',
-  hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null,
+  hoursCoverageNoticeLabel: null, semanticCoverageNoticeLabel: null, reviewedInterpretationNoticeLabel: null,
   narrative: 'Según las credenciales emitidas y los análisis disponibles, la trayectoria muestra formación en Software.',
   areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA' }],
   skills: [{ label: 'Diseño', confidenceLabel: '80% de confianza' }], concepts: ['arquitectura'],
@@ -143,5 +143,89 @@ describe('WalletHomeView', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
     expect(screen.queryByText(/la ia certificó/i)).toBeNull();
     expect(screen.queryByText(/blockchain valida/i)).toBeNull();
+  });
+
+  // C5b.2-R -- seccion 11 del diseno: la procedencia debe poder
+  // comprenderse SIN hover/tooltip. Los tests verifican TEXTO VISIBLE
+  // persistente en el DOM (nunca solo title/aria-label), acompañado de la
+  // leyenda que define "Emisor"/"IA" de forma inequivoca.
+  it('C5b.2-R (A): reviewed-only shows visible "Emisor" text plus a visible legend defining it, without relying on hover', () => {
+    const profileReviewedOnly = {
+      ...profile,
+      areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA', provenance: { issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: null } }]
+    };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileReviewedOnly }} credentialsState={credentialsReady} />);
+    // Texto visible dentro del indicador (no title/aria-label): confirmado
+    // buscando el nodo de texto real en el DOM, no un atributo.
+    expect(screen.getByText('Emisor', { selector: 'span' })).toBeTruthy();
+    expect(screen.queryByText('IA', { selector: 'span' })).toBeNull();
+    // Leyenda visible y persistente que define "Emisor" sin ambiguedad.
+    expect(screen.getByText(/interpretación revisada por el emisor/)).toBeTruthy();
+  });
+
+  it('C5b.2-R (B): AI-only shows visible "IA" text plus a visible legend defining it, without relying on hover', () => {
+    const profileAiOnly = {
+      ...profile,
+      skills: [{ label: 'Diseño', confidenceLabel: '80% de confianza', provenance: { issuerReviewedLabel: null, aiInferredLabel: 'Interpretado con IA' } }]
+    };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileAiOnly }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('IA', { selector: 'span' })).toBeTruthy();
+    expect(screen.queryByText('Emisor', { selector: 'span' })).toBeNull();
+    expect(screen.getByText(/interpretación realizada con inteligencia artificial/)).toBeTruthy();
+  });
+
+  it('C5b.2-R (C): mixed shows both "Emisor" and "IA" visible for the same item, without one hiding the other', () => {
+    const profileMixed = {
+      ...profile,
+      areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA', provenance: { issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: 'Interpretado con IA' } }]
+    };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileMixed }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('Emisor', { selector: 'span' })).toBeTruthy();
+    expect(screen.getByText('IA', { selector: 'span' })).toBeTruthy();
+  });
+
+  it('C5b.2-R (D): a long skills list keeps the compact badge structure -- no per-item card, no new heading per skill', () => {
+    const manySkills = Array.from({ length: 20 }, (_, index) => ({
+      label: `Habilidad ${index}`,
+      confidenceLabel: null,
+      provenance: index % 2 === 0 ? { issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: null } : { issuerReviewedLabel: null, aiInferredLabel: 'Interpretado con IA' }
+    }));
+    const profileManySkills = { ...profile, skills: manySkills };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileManySkills }} credentialsState={credentialsReady} />);
+    // Una sola tarjeta/heading para toda la lista, no una por skill.
+    expect(screen.getAllByRole('heading', { level: 2, name: 'Habilidades del perfil' })).toHaveLength(1);
+    expect(screen.getAllByText('Habilidad 0', { exact: false }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Emisor', { selector: 'span' }).length).toBe(10);
+    expect(screen.getAllByText('IA', { selector: 'span' }).length).toBe(10);
+  });
+
+  it('C5b.2-R (E): a legacy profile without provenance data shows no indicator and no legend', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.queryByText('Emisor', { selector: 'span' })).toBeNull();
+    expect(screen.queryByText('IA', { selector: 'span' })).toBeNull();
+    expect(screen.queryByText(/interpretación revisada por el emisor/)).toBeNull();
+    expect(screen.queryByText(/interpretación realizada con inteligencia artificial/)).toBeNull();
+  });
+
+  it('C5b.2-R (F): never renders technical provenance enums or the word "verificado" for this semantics', () => {
+    const profileMixed = {
+      ...profile,
+      areas: [{ label: 'Software', estimatedHoursLabel: '64 horas estimadas por IA', provenance: { issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: 'Interpretado con IA' } }],
+      reviewedInterpretationNoticeLabel: '1 credencial cuenta con una interpretación revisada por el emisor.'
+    };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileMixed }} credentialsState={credentialsReady} />);
+    expect(document.body.textContent).not.toMatch(/issuer_reviewed|ai_inferred|provenanceSummary|SemanticAnalysis|snapshot/i);
+    expect(document.body.textContent).not.toMatch(/habilidad verificada|competencia certificada|nivel verificado/i);
+  });
+
+  it('C5b.2: shows the optional global reviewed-interpretation notice when present', () => {
+    const profileWithNotice = { ...profile, reviewedInterpretationNoticeLabel: '3 credenciales cuentan con una interpretación revisada por el emisor.' };
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithNotice }} credentialsState={credentialsReady} />);
+    expect(screen.getByText('3 credenciales cuentan con una interpretación revisada por el emisor.')).toBeTruthy();
+  });
+
+  it('C5b.2: hides the global reviewed-interpretation notice when absent (legacy profile)', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
+    expect(screen.queryByText(/interpretación revisada por el emisor/)).toBeNull();
   });
 });

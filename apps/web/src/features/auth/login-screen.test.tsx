@@ -18,8 +18,11 @@ it('presents the definitive Traza identity while preserving the login form', () 
 
   const logo = screen.getByRole('img', { name: 'Traza' });
   const logoSource = logo.getAttribute('src') ?? '';
+  const logoAssetPath = decodeURIComponent(
+    new URL(logoSource, 'http://localhost').searchParams.get('url') ?? ''
+  );
 
-  expect(decodeURIComponent(logoSource)).toContain('/brand/traza-logo.png');
+  expect(logoAssetPath).toBe('/brand/LOGO TRAZA SIN FONDO.png');
   expect(logoSource).not.toMatch(/^https?:\/\//);
   expect(screen.queryByText('Identidad temporal')).toBeNull();
   expect(

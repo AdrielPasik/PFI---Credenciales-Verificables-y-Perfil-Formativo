@@ -63,6 +63,64 @@ test('public profile sharing is allowlisted, bounded and excludes email and raw 
   assert.equal(serialized.includes('sourceRefs'), false);
 });
 
+// C5b.2: regresion critica (seccion 13/19 del diseno). El perfil interno
+// puede traer provenanceSummary/sources por area/skill (C5b.1) -- el
+// remapeo publico (allowlist explicita, ver profile-sharing.service.ts)
+// nunca debe propagarlos, incluso si el holder mapper los agrega. Corre el
+// pipeline REAL (mapHolderCurrentProfileResponse incluido), no un mock del
+// mapper, para que este test detecte una regresion futura de verdad.
+test('C5b.2: public profile never leaks provenanceSummary, sources or internal interpretation ids', async () => {
+  const token = 'b'.repeat(43);
+  const profileWithProvenance = {
+    ...currentProfile,
+    areasSummary: [
+      {
+        area: 'Gestión de proyectos',
+        estimatedHours: 12,
+        sources: [
+          { credentialId: 'credential-must-not-leak', provenance: 'issuer_reviewed', reusableInterpretationId: 'rsi-must-not-leak' },
+          { credentialId: 'credential-2-must-not-leak', provenance: 'ai_inferred', semanticAnalysisId: 'sa-must-not-leak' }
+        ],
+        provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 1 }
+      }
+    ],
+    skillsSummary: [
+      {
+        skill: 'Scrum',
+        confidence: 0.8,
+        sources: [{ credentialId: 'credential-must-not-leak', provenance: 'issuer_reviewed', reusableInterpretationId: 'rsi-must-not-leak' }],
+        provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 0 }
+      }
+    ]
+  };
+  const service = new ProfileSharingService(
+    {
+      sharingGrant: {
+        findUnique: async () => ({
+          scope: 'profile', expiresAt: null, revokedAt: null, userId: 'holder-1',
+          user: { displayName: 'Holder Demo', firstName: null, lastName: null },
+          profile: { ...profileWithProvenance, userId: 'holder-1', totalHours: { toString: () => '12' }, generatedAt: new Date(currentProfile.generatedAt) }
+        })
+      },
+      credential: { findMany: async () => [] }
+    } as never,
+    {} as never
+  );
+
+  const response = await service.getPublicProfile(token);
+  const serialized = JSON.stringify(response);
+
+  assert.deepEqual(response.profile.areas, [{ label: 'Gestión de proyectos', estimatedHours: 12 }]);
+  assert.deepEqual(response.profile.skills, [{ label: 'Scrum', confidence: 0.8 }]);
+  for (const forbidden of [
+    'provenanceSummary', 'issuerReviewedCount', 'aiInferredCount', 'sources',
+    'reusableInterpretationId', 'semanticAnalysisId', 'credential-must-not-leak',
+    'credential-2-must-not-leak', 'rsi-must-not-leak', 'sa-must-not-leak', 'issuer_reviewed', 'ai_inferred'
+  ]) {
+    assert.equal(serialized.includes(forbidden), false, `public response must not contain "${forbidden}"`);
+  }
+});
+
 test('revoked, expired or malformed profile share tokens return the same safe not-found error', async () => {
   const service = new ProfileSharingService(
     { sharingGrant: { findUnique: async () => ({ scope: 'profile', expiresAt: null, revokedAt: new Date(), user: null, profile: null }) } } as never,

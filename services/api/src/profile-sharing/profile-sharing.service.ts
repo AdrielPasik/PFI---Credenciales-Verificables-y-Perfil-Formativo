@@ -139,10 +139,21 @@ export class ProfileSharingService {
 
     return {
       holder: { displayLabel: displayLabel(grant.user) },
+      // C5b.2: remapeo explicito campo-por-campo, nunca spread/slice del
+      // objeto holder. El holder mapper puede agregar campos nuevos
+      // (provenanceSummary, ids internos, lo que sea) sin que este remapeo
+      // los propague de forma automatica/silenciosa al perfil publico --
+      // cada campo publico se elige a mano.
       profile: {
         narrative: mapped.narrative,
-        areas: mapped.areas.slice(0, 6),
-        skills: mapped.skills.slice(0, 12),
+        areas: mapped.areas.slice(0, 6).map(({ label, estimatedHours }) => ({
+          label,
+          estimatedHours
+        })),
+        skills: mapped.skills.slice(0, 12).map(({ label, confidence }) => ({
+          label,
+          confidence
+        })),
         concepts: mapped.concepts.slice(0, 20),
         totalOfficialHours: mapped.totalOfficialHours,
         credentialsCount: mapped.credentialsCount

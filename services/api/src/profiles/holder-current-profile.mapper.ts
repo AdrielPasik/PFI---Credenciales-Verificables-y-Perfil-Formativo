@@ -1,6 +1,7 @@
 import type {
   CurrentProfileResponseDto,
-  HolderCurrentProfileResponseDto
+  HolderCurrentProfileResponseDto,
+  HolderProfileProvenanceSummaryDto
 } from './dto/current-profile-response.dto';
 
 const LABEL_FIELDS = {
@@ -36,6 +37,10 @@ export function mapHolderCurrentProfileResponse(
         profile.profileJson,
         'credentialsWithoutSemanticCoverage'
       ),
+      credentialsWithReviewedInterpretation: summaryCounter(
+        profile.profileJson,
+        'credentialsWithReviewedInterpretation'
+      ),
       narrative:
         narrative(profile.profileJson) ??
         narrativeFallback({
@@ -69,7 +74,13 @@ function areas(value: unknown) {
     if (!isRecord(entry)) return [];
     const label = labelFrom(entry, LABEL_FIELDS.area);
     if (!label) return [];
-    return [{ label, estimatedHours: number(entry.estimatedHours) }];
+    return [
+      {
+        label,
+        estimatedHours: number(entry.estimatedHours),
+        provenanceSummary: provenanceSummary(entry)
+      }
+    ];
   });
 }
 
@@ -79,8 +90,40 @@ function skills(value: unknown) {
     if (!isRecord(entry)) return [];
     const label = labelFrom(entry, LABEL_FIELDS.skill);
     if (!label) return [];
-    return [{ label, confidence: confidenceNumber(entry.confidence) }];
+    return [
+      {
+        label,
+        confidence: confidenceNumber(entry.confidence),
+        provenanceSummary: provenanceSummary(entry)
+      }
+    ];
   });
+}
+
+// C5b.2: proyeccion holder-safe y agregada de
+// ProfileEvidenceProvenanceSummary (formative-profile.service.ts). Solo
+// expone los DOS contadores agregados -- nunca sources[], credentialId,
+// reusableInterpretationId ni semanticAnalysisId (esos siguen siendo
+// internos de profileJson, nunca alcanzan este mapper). Un perfil legacy
+// (pre-C5b.1) no tiene esta forma en absoluto -- su ausencia nunca se
+// interpreta como "0 revisados" ni se completa a partir de otro campo
+// (evidenceCount, credentialIds, etc.): "no sabemos" es null, nunca un
+// valor fabricado.
+function provenanceSummary(
+  entry: Record<string, unknown>
+): HolderProfileProvenanceSummaryDto | null {
+  const candidate = entry.provenanceSummary;
+  if (!isRecord(candidate)) return null;
+  const issuerReviewedCount = nonNegativeInteger(candidate.issuerReviewedCount);
+  const aiInferredCount = nonNegativeInteger(candidate.aiInferredCount);
+  if (issuerReviewedCount === null || aiInferredCount === null) return null;
+  return { issuerReviewedCount, aiInferredCount };
+}
+
+function nonNegativeInteger(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0
+    ? value
+    : null;
 }
 
 function concepts(value: unknown) {
@@ -126,7 +169,10 @@ function totalOfficialHours(profile: {
 // "no sabemos" es distinto de "cero credenciales sin cobertura".
 function summaryCounter(
   profileJsonValue: unknown,
-  field: 'credentialsWithoutHours' | 'credentialsWithoutSemanticCoverage'
+  field:
+    | 'credentialsWithoutHours'
+    | 'credentialsWithoutSemanticCoverage'
+    | 'credentialsWithReviewedInterpretation'
 ) {
   const summary = summaryRecord(profileJsonValue);
   if (!summary || !(field in summary)) return null;

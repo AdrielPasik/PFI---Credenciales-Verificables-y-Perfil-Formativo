@@ -84,6 +84,7 @@ test('ProfilesController rebuilds profile using current user id', async () => {
       // distinto de "cero credenciales sin cobertura").
       totalHours: 64, totalOfficialHours: 64,
       credentialsWithoutHours: null, credentialsWithoutSemanticCoverage: null,
+      credentialsWithReviewedInterpretation: null,
       narrative: 'Las horas oficiales declaradas suman 64.',
       areas: [], skills: [], concepts: [],
       emittedSkills: [], emittedCompetencies: [], emittedLearningOutcomes: [],

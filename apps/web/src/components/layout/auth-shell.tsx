@@ -47,10 +47,10 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <div className="relative mx-auto flex h-full max-w-xl flex-col px-5 py-5 sm:px-8 sm:py-7 lg:min-h-svh lg:px-12 lg:py-10">
           <Image
             alt="Traza"
-            className="h-auto w-44"
+            className="h-auto w-52"
             height={1254}
             priority
-            src="/brand/traza-logo.png"
+            src="/brand/LOGO%20TRAZA%20SIN%20FONDO.png"
             width={1254}
           />
 

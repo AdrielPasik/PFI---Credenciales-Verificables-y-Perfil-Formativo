@@ -1492,7 +1492,89 @@ JSON existente (`profileJson`, `areasSummary`, `skillsSummary`).
   por busqueda en el codigo).
 - Pendiente, explicitamente fuera de alcance de C5b.1: exponer
   `provenanceSummary`/la distincion `issuer_reviewed` vs `ai_inferred` al
-  holder o al perfil publico compartido (C5b.2, con su propia allowlist
-  explicita a definir en ese slice); cualquier cambio a `/verify` (decision
-  cerrada, no cambia); `Credential.sourceTemplateId` (sigue diferido desde
-  C4b.0.1).
+  holder o al perfil publico compartido (resuelto en C5b.2, seccion 24);
+  cualquier cambio a `/verify` (decision cerrada, no cambia);
+  `Credential.sourceTemplateId` (sigue diferido desde C4b.0.1).
+
+## 24. C5b.2 — Provenance del holder y hardening de privacidad del perfil publico
+
+C5b.2 cierra el riesgo latente documentado en la seccion 23: expone
+`provenanceSummary` agregada al holder autenticado y endurece
+`profile-sharing.service.ts` con un remapeo explicito, en ese orden dentro
+del mismo slice (primero el hardening, recien despues el campo nuevo en el
+mapper). Sin migracion, sin cambio de `schema.prisma` -- consume campos ya
+persistidos por C5b.1 (`profileJson.areas[].provenanceSummary`,
+`profileJson.skills[].provenanceSummary`,
+`profileJson.summary.credentialsWithReviewedInterpretation`).
+
+- **El holder puede conocer provenance agregada de sus propios elementos,
+  nunca la traza tecnica interna**: `GET /me/profile/current`/
+  `POST /me/profile/rebuild` exponen, por area/skill,
+  `provenanceSummary: {issuerReviewedCount, aiInferredCount} | null` y, a
+  nivel de perfil, `credentialsWithReviewedInterpretation: number | null`.
+  Nunca se expone `sources[]`, `credentialId` de una entrada de provenance,
+  `reusableInterpretationId`, `semanticAnalysisId`, ni los enums
+  `issuer_reviewed`/`ai_inferred` como tales -- el holder recibe solo los
+  dos contadores agregados, nunca la lista de Credentials/analisis que los
+  componen.
+- **`concepts` no gana provenance en C5b.2**: sigue siendo `string[]`
+  (contrato holder sin cambios); C5b.1 persiste `provenanceSummary` tambien
+  por concept internamente, pero exponerlo hubiera requerido romper el
+  shape actual del campo (`string` -> objeto) sin necesidad directa para el
+  objetivo de producto de este slice (que habla de "habilidad", no de
+  "concepto"). Queda disponible para un slice futuro si se decide
+  necesario.
+- **Perfil publico compartido: contrato inalterado**. `GET /share/profile/:token`
+  nunca recibe `provenanceSummary`, `sources` ni
+  `credentialsWithReviewedInterpretation` -- ni antes ni despues de C5b.2.
+- **Orden obligatorio dentro del slice, para que el riesgo de la seccion 23
+  nunca se active ni transitoriamente**: primero se cambio
+  `profile-sharing.service.ts` para construir `areas`/`skills` publicos con
+  un remapeo explicito campo-por-campo
+  (`.map(({label, estimatedHours}) => ({label, estimatedHours}))`/
+  `.map(({label, confidence}) => ({label, confidence}))`), reemplazando el
+  `.slice()` que antes reenviaba el objeto holder completo. Recien despues
+  se agrego `provenanceSummary` a `areas()`/`skills()` en
+  `holder-current-profile.mapper.ts`. Con el remapeo explicito ya en su
+  lugar, agregar el campo nuevo al mapper del holder nunca lo propaga al
+  share publico -- verificado con un test end-to-end que corre el pipeline
+  real (`mapHolderCurrentProfileResponse` incluido, no mockeado) con un
+  `profileJson` que trae `sources[]`/`provenanceSummary` y confirma su
+  ausencia total (incluida via `JSON.stringify`) en la respuesta publica.
+- **Defensive parsing, nunca fabricar provenance**: un `provenanceSummary`
+  valido exige `issuerReviewedCount`/`aiInferredCount` enteros finitos
+  `>= 0`; cualquier otra forma (string, negativo, no-entero, objeto,
+  ausente) se trata como `null` -- "no sabemos", nunca "cero" ni un valor
+  inferido de otro campo (`evidenceCount`, `credentialIds`, etc.). Un
+  `FormativeProfile` legado (generado antes de C5b.1) no tiene esta forma
+  en absoluto: su ausencia nunca se completa a partir de `evidenceCount`
+  (que en un perfil legado siempre fue 100% `ai_inferred`, pero inferir eso
+  igual cuenta como fabricar provenance historica que el dato no afirma
+  explicitamente) -- se sirve `provenanceSummary: null` y el frontend no
+  muestra ningun indicador de procedencia para ese item.
+- **Copy de producto, nunca lenguaje tecnico**: el frontend (adapter +
+  `HolderProfilePanel`) traduce los dos contadores a texto de producto
+  ("Revisado por el emisor" / "N aportes revisados por el emisor",
+  "Interpretado con IA" / "N aportes interpretados con IA"); nunca muestra
+  `issuer_reviewed`/`ai_inferred`/`provenanceSummary`/`sources`/`snapshot`/
+  `SemanticAnalysis`, y nunca usa "verificado" para esta semantica (esa
+  palabra ya significa autenticidad/integridad de credencial en Traza,
+  concepto distinto). Cuando ambos contadores son positivos se muestran
+  ambos sin sugerir que uno invalida al otro.
+- **Integracion visual discreta**: la provenance se renderiza como un
+  indicador chico (dos iconos, texto completo solo en el `title`/
+  `aria-label` nativo) dentro del mismo `Badge` de cada area/skill, nunca
+  como una tarjeta propia por item -- con perfiles de muchas skills, la
+  provenance no debe dominar la pantalla. Un contador en cero no genera
+  badge para esa fuente (nunca "0 aportes revisados"); ausencia total de
+  provenance no genera ninguna fila vacia.
+- **Adapter frontend degrada, nunca lanza, ante un `provenanceSummary`
+  malformado**: a diferencia del resto de `holder.adapter.ts` (que rechaza
+  el payload completo ante un campo invalido, `IncompatiblePayloadError`),
+  `provenanceSummary` es secundario -- un shape invalido nunca tira abajo
+  el perfil holder completo, solo omite el indicador para ese item.
+- Pendiente, fuera de alcance de C5b.2: provenance para `concepts`; mostrar
+  `credentialsWithReviewedInterpretation` fuera del resumen ya existente
+  (por ejemplo un dashboard dedicado); cualquier cambio a `/verify`
+  (decision cerrada, no cambia); `Credential.sourceTemplateId` (sigue
+  diferido desde C4b.0.1).

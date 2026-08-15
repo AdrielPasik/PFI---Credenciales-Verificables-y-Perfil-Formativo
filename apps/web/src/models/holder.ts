@@ -85,6 +85,19 @@ export interface HolderCredentialDetailVM
   } | null;
 }
 
+/**
+ * C5b.2: proyeccion de producto (no tecnica) de provenance agregada por
+ * area/skill -- nunca ids internos, nunca enums (issuer_reviewed/
+ * ai_inferred), nunca "sources". Cada label es null cuando ese aporte no
+ * existe (nunca "0 aportes"). `provenance` en si es null cuando el backend
+ * no tiene informacion (perfil legacy o malformado) -- el componente no
+ * debe renderizar nada en ese caso, nunca un "sin datos" ruidoso.
+ */
+export interface HolderProfileProvenanceVM {
+  issuerReviewedLabel: string | null;
+  aiInferredLabel: string | null;
+}
+
 export interface HolderProfileVM {
   profileVersion: string;
   credentialsCount: number;
@@ -98,11 +111,25 @@ export interface HolderProfileVM {
   /** "N credenciales todavía no tienen análisis semántico." Null cuando no
    * hay ninguna (o el contador no esta disponible en un perfil pre-C2c). */
   semanticCoverageNoticeLabel: string | null;
+  /** "N credenciales cuentan con una interpretación revisada por el emisor."
+   * Null cuando no hay ninguna o el contador no esta disponible (perfil
+   * pre-C5b.1). C5b.2. */
+  reviewedInterpretationNoticeLabel: string | null;
   /** Síntesis prudente y determinística del perfil, no una certificación. */
   narrative: string | null;
-  areas: Array<{ label: string; estimatedHoursLabel: string | null }>;
+  areas: Array<{
+    label: string;
+    estimatedHoursLabel: string | null;
+    /** Opcional: los VM de fixtures/tests preexistentes no necesitan
+     * declararlo explicitamente -- ausente se trata igual que null. */
+    provenance?: HolderProfileProvenanceVM | null;
+  }>;
   /** Inferido/agregado por análisis de IA. Ver emittedSkills para lo declarado por el emisor. */
-  skills: Array<{ label: string; confidenceLabel: string | null }>;
+  skills: Array<{
+    label: string;
+    confidenceLabel: string | null;
+    provenance?: HolderProfileProvenanceVM | null;
+  }>;
   concepts: string[];
   /** Declarado por la institución emisora en la credencial. Nunca es una inferencia de IA. */
   emittedSkills: string[];

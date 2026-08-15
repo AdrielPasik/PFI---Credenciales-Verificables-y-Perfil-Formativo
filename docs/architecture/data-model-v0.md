@@ -356,6 +356,16 @@ fila `active` de `CredentialReusableSemanticInterpretation` por
 `Credential` -- su `approvedSnapshot` ya congelado, nunca
 `IssuerCourseTemplate.approvedSemanticSnapshot` releido en vivo.
 
+C5b.2 no agrega tabla ni migracion tampoco: proyecta `provenanceSummary`
+(agregado, nunca `sources[]` completo) al holder autenticado via
+`GET /me/profile/current`/`POST /me/profile/rebuild`, y endurece
+`profile-sharing.service.ts` para que el perfil publico compartido siga sin
+recibir `provenanceSummary`/`sources`/ningun id interno nuevo. Ver
+`domain-rules-v0.md` seccion 24 y `api-contracts-v0.md` para el contrato
+exacto. `sources[]`/`provenanceSummary` por `concept` siguen siendo
+internos de `profileJson` -- C5b.2 no los expone (el contrato holder de
+`concepts` sigue siendo `string[]`).
+
 `semantic_analysis_v1` y `formative_profile_result_v0` siguen siendo artifacts
 JSON oficiales validados. Los joins relacionales prueban asociacion/ownership;
 no se delega esa autoridad a `sourceRefs` del artifact.

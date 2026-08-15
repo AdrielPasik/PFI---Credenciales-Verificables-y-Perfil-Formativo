@@ -150,7 +150,7 @@ describe('holder adapters', () => {
       areas: [{ label: 'Software', estimatedHours: null }],
       skills: [], concepts: [], confidence: null, qualityFlags: []
     } });
-    expect(result?.areas[0]).toEqual({ label: 'Software', estimatedHoursLabel: null });
+    expect(result?.areas[0]).toEqual({ label: 'Software', estimatedHoursLabel: null, provenance: null });
   });
 
   it('C2c: falls back totalOfficialHours to totalHours when the backend has not deployed it yet', () => {
@@ -233,6 +233,79 @@ describe('holder adapters', () => {
       profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalHours: null,
       areas: [], skills: [], concepts: [], confidence: 1.2, qualityFlags: [], generatedAt: '2026-08-01T10:00:00.000Z'
     } })).toThrow(IncompatiblePayloadError);
+  });
+
+  it('C5b.2: builds product-language provenance labels for issuer-reviewed-only contributions', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 1, totalHours: 12, generatedAt: '2026-08-14T00:00:00.000Z',
+      credentialsWithReviewedInterpretation: 1,
+      areas: [{ label: 'Gestión de proyectos', estimatedHours: 12, provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 0 } }],
+      skills: [{ label: 'Scrum', confidence: 0.8, provenanceSummary: { issuerReviewedCount: 2, aiInferredCount: 0 } }],
+      concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    expect(result?.areas[0]?.provenance).toEqual({ issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: null });
+    expect(result?.skills[0]?.provenance).toEqual({ issuerReviewedLabel: '2 aportes revisados por el emisor', aiInferredLabel: null });
+    expect(result?.reviewedInterpretationNoticeLabel).toBe('1 credencial cuenta con una interpretación revisada por el emisor.');
+  });
+
+  it('C5b.2: builds product-language provenance labels for AI-inferred-only contributions', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 1, totalHours: 12, generatedAt: '2026-08-14T00:00:00.000Z',
+      areas: [{ label: 'Software', estimatedHours: 20, provenanceSummary: { issuerReviewedCount: 0, aiInferredCount: 1 } }],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    expect(result?.areas[0]?.provenance).toEqual({ issuerReviewedLabel: null, aiInferredLabel: 'Interpretado con IA' });
+  });
+
+  it('C5b.2: builds both labels for a mixed provenance contribution without implying one invalidates the other', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 2, totalHours: 24, generatedAt: '2026-08-14T00:00:00.000Z',
+      areas: [{ label: 'Gestión de proyectos', estimatedHours: 24, provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 1 } }],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    expect(result?.areas[0]?.provenance).toEqual({ issuerReviewedLabel: 'Revisado por el emisor', aiInferredLabel: 'Interpretado con IA' });
+  });
+
+  it('C5b.2: a legacy area/skill without provenanceSummary shows no provenance, never a fabricated one', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'legacy', credentialsCount: 1, totalHours: 16, generatedAt: '2026-08-01T10:00:00.000Z',
+      areas: [{ label: 'Gestión de proyectos', estimatedHours: 16 }],
+      skills: [{ label: 'Scrum', confidence: 0.7 }], concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    expect(result?.areas[0]?.provenance).toBeNull();
+    expect(result?.skills[0]?.provenance).toBeNull();
+    expect(result?.reviewedInterpretationNoticeLabel).toBeNull();
+  });
+
+  it('C5b.2: degrades a malformed provenanceSummary to no provenance instead of throwing or fabricating a count', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 1, totalHours: 12, generatedAt: '2026-08-14T00:00:00.000Z',
+      areas: [
+        { label: 'Negative', estimatedHours: 1, provenanceSummary: { issuerReviewedCount: -1, aiInferredCount: 0 } },
+        { label: 'StringCount', estimatedHours: 1, provenanceSummary: { issuerReviewedCount: '1', aiInferredCount: 0 } },
+        { label: 'NotAnObject', estimatedHours: 1, provenanceSummary: 'issuer_reviewed' }
+      ],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    expect(result?.areas.every((area) => area.provenance === null)).toBe(true);
+  });
+
+  it('C5b.2: does not surface technical enums/ids anywhere in the mapped profile', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 1, totalHours: 12, generatedAt: '2026-08-14T00:00:00.000Z',
+      areas: [{ label: 'Gestión de proyectos', estimatedHours: 12, provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 1 } }],
+      skills: [], concepts: [], confidence: null, qualityFlags: []
+    } });
+
+    const serialized = JSON.stringify(result);
+    for (const forbidden of ['issuer_reviewed', 'ai_inferred', 'provenanceSummary', 'sources', 'semanticAnalysisId', 'reusableInterpretationId']) {
+      expect(serialized.includes(forbidden)).toBe(false);
+    }
   });
 
   it('rejects emitted arrays that are present but not safe string arrays', () => {

@@ -10,6 +10,7 @@ import { formatHolderQualityFlag } from '@/lib/formatters/holder-quality-flags';
 import type {
   HolderCredentialDetailVM,
   HolderCredentialListItemVM,
+  HolderProfileProvenanceVM,
   HolderProfileVM
 } from '@/models/holder';
 
@@ -139,6 +140,7 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
     : nullableNumber(profile.totalOfficialHours);
   const credentialsWithoutHours = optionalNonNegativeInteger(profile.credentialsWithoutHours);
   const credentialsWithoutSemanticCoverage = optionalNonNegativeInteger(profile.credentialsWithoutSemanticCoverage);
+  const credentialsWithReviewedInterpretation = optionalNonNegativeInteger(profile.credentialsWithReviewedInterpretation);
 
   return {
     profileVersion: requiredString(profile.profileVersion),
@@ -152,6 +154,9 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
     semanticCoverageNoticeLabel: credentialsWithoutSemanticCoverage !== null && credentialsWithoutSemanticCoverage > 0
       ? `${credentialsWithoutSemanticCoverage} ${pluralCredencial(credentialsWithoutSemanticCoverage)} todavía no ${credentialsWithoutSemanticCoverage === 1 ? 'tiene' : 'tienen'} análisis semántico.`
       : null,
+    reviewedInterpretationNoticeLabel: credentialsWithReviewedInterpretation !== null && credentialsWithReviewedInterpretation > 0
+      ? `${credentialsWithReviewedInterpretation} ${pluralCredencial(credentialsWithReviewedInterpretation)} ${credentialsWithReviewedInterpretation === 1 ? 'cuenta' : 'cuentan'} con una interpretación revisada por el emisor.`
+      : null,
     narrative: nullableString(profile.narrative),
     areas: array(profile.areas).map((entry) => {
       const area = record(entry);
@@ -160,7 +165,8 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
         label: requiredString(area.label),
         estimatedHoursLabel: estimatedHours === null
           ? null
-          : `${formatDisplayValue(estimatedHours)} horas estimadas por IA`
+          : `${formatDisplayValue(estimatedHours)} horas estimadas por IA`,
+        provenance: provenanceVM(area.provenanceSummary)
       };
     }),
     skills: array(profile.skills).map((entry) => {
@@ -170,7 +176,8 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
         label: requiredString(skill.label),
         confidenceLabel: confidence === null
           ? null
-          : `${Math.round(confidence * 100)}% de confianza`
+          : `${Math.round(confidence * 100)}% de confianza`,
+        provenance: provenanceVM(skill.provenanceSummary)
       };
     }),
     concepts: stringArray(profile.concepts),
@@ -231,6 +238,37 @@ function nullableNumber(value: unknown): number | null { if (value === null || v
 // igual criterio que el resto de los campos numericos de este adapter.
 function optionalNonNegativeInteger(value: unknown): number | null { if (value === undefined || value === null) return null; return nonNegativeInteger(value); }
 function pluralCredencial(count: number): string { return count === 1 ? 'credencial' : 'credenciales'; }
+// C5b.2: a diferencia del resto de este adapter (que rechaza el payload
+// completo ante un campo invalido), provenanceSummary es un dato secundario
+// -- un shape malformado (deploy skew, bug de backend) nunca debe tirar
+// abajo el perfil entero. Degrada a "sin provenance para mostrar" (null),
+// nunca fabrica un conteo ni lanza IncompatiblePayloadError. Labels en
+// lenguaje de producto, nunca enums tecnicos (issuer_reviewed/ai_inferred/
+// provenance/source/snapshot/SemanticAnalysis) ni la palabra "verificado"
+// (ya tiene otro significado en Traza: autenticidad/integridad).
+function provenanceVM(value: unknown): HolderProfileProvenanceVM | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const summary = value as Record<string, unknown>;
+  const issuerReviewedCount = nonNegativeIntegerOrNull(summary.issuerReviewedCount);
+  const aiInferredCount = nonNegativeIntegerOrNull(summary.aiInferredCount);
+  if (issuerReviewedCount === null || aiInferredCount === null) return null;
+  if (issuerReviewedCount === 0 && aiInferredCount === 0) return null;
+  return {
+    issuerReviewedLabel: issuerReviewedCount === 0
+      ? null
+      : issuerReviewedCount === 1
+        ? 'Revisado por el emisor'
+        : `${issuerReviewedCount} aportes revisados por el emisor`,
+    aiInferredLabel: aiInferredCount === 0
+      ? null
+      : aiInferredCount === 1
+        ? 'Interpretado con IA'
+        : `${aiInferredCount} aportes interpretados con IA`
+  };
+}
+function nonNegativeIntegerOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+}
 function nullableConfidence(value: unknown): number | null { const confidence = nullableNumber(value); if (confidence !== null && (confidence < 0 || confidence > 1)) invalid(); return confidence; }
 function requiredBoolean(value: unknown): boolean { if (typeof value !== 'boolean') invalid(); return value; }
 function enumValue<T extends readonly string[]>(value: unknown, allowed: T): T[number] { const normalized = requiredString(value); if (!allowed.includes(normalized)) invalid(); return normalized as T[number]; }

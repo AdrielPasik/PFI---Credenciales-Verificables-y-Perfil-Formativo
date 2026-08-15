@@ -1059,6 +1059,42 @@ funcionando igual, y los perfiles persistidos antes de C2c (sin
 cambian: siguen dependiendo exclusivamente de `SemanticAnalysis.hoursDistribution`
 cuando existe.
 
+### C5b.2: provenance agregada del holder y frontera con el perfil publico
+
+`GET /me/profile/current` y `POST /me/profile/rebuild` agregan, sin nuevo
+endpoint, dos campos mas al `currentProfile` ya existente -- proyeccion
+allowlisted de `ProfileEvidenceProvenanceSummary`/
+`credentialsWithReviewedInterpretation` de `profileJson` (C5b.1):
+
+- `credentialsWithReviewedInterpretation: number | null` -- mismo criterio
+  `null` vs `0` que `credentialsWithoutHours`/`credentialsWithoutSemanticCoverage`:
+  `null` cuando el perfil se genero antes de C5b.1 y el contador no esta
+  disponible (nunca "cero").
+- Cada entrada de `areas`/`skills` gana `provenanceSummary:
+  { issuerReviewedCount: number; aiInferredCount: number } | null` --
+  agregado de cuantas Credentials contribuyentes eligieron cada fuente para
+  ese area/skill. `null` cuando el aggregate no tiene provenance persistida
+  (perfil legacy pre-C5b.1) o el shape persistido es invalido; nunca se
+  fabrica un valor a partir de `evidenceCount`/`credentialIds` u otro campo
+  legacy. `concepts` queda sin cambios (`string[]`) -- C5b.2 no le agrega
+  provenance para no romper su contrato actual (`Mantener todos los campos
+  holder actuales`); la provenance por concept sigue siendo interna de
+  `profileJson`.
+
+**Nunca expuesto por `GET /me/profile/current`/`POST /me/profile/rebuild`**:
+`sources[]`, `credentialId` de una entrada de provenance, `reusableInterpretationId`,
+`semanticAnalysisId`, ni los enums tecnicos `issuer_reviewed`/`ai_inferred`
+(la proyeccion holder solo expone los dos contadores agregados).
+
+**`GET /share/profile/:token` (perfil publico compartido) nunca recibe
+`provenanceSummary`, `sources` ni `credentialsWithReviewedInterpretation`**
+-- contrato inalterado por C5b.2. `profile-sharing.service.ts` construye la
+respuesta publica con un remapeo allowlisted explicito campo-por-campo
+(`{label, estimatedHours}`/`{label, confidence}`), nunca `slice()`/spread
+del objeto holder -- asi un campo nuevo que el holder mapper agregue en el
+futuro no se propaga automaticamente al perfil publico. `/verify` publico
+no cambia por C5b.2 (no consume `FormativeProfile`, decision ya cerrada).
+
 ## C3a/C3a.2: catalogo reusable de cursos y certificaciones por issuer
 
 Cuatro endpoints, todos protegidos por `AuthGuard` y issuer-scoped
@@ -1776,12 +1812,14 @@ la interpretacion aplicada por `FormativeProfileService`/
 `FormativeProfile`, solo enriquece `profileJson` internamente y dispara el
 mismo rebuild best-effort ya existente despues de un `apply` exitoso).
 
-Pendiente todavia: exposicion al holder de `provenanceSummary`/distincion
-`issuer_reviewed` vs `ai_inferred` (C5b.2, si se decide implementar) --
-**nunca en `/verify` publico**, que es una decision ya cerrada y no cambia
-por C4b/C5b: sigue enfocado en estado/integridad verificable, sin mostrar
-perfil ni interpretacion semantica; y `Credential.sourceTemplateId`
-(diferido desde C4b.0.1, sin implementar).
+Exposicion al holder de `provenanceSummary` agregada (nunca `sources[]`,
+nunca la distincion `issuer_reviewed`/`ai_inferred` como enum tecnico):
+**C5b.2, implementado** -- ver seccion "C5b.2: provenance agregada del
+holder y frontera con el perfil publico" arriba y `domain-rules-v0.md`
+seccion 24. `/verify` publico sigue sin cambios, decision ya cerrada y
+reconfirmada por C5b.2: sigue enfocado en estado/integridad verificable,
+sin mostrar perfil ni interpretacion semantica. Pendiente todavia:
+`Credential.sourceTemplateId` (diferido desde C4b.0.1, sin implementar).
 
 ### `POST /me/profile/share`
 

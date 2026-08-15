@@ -3,13 +3,19 @@ import type { ReactNode } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import type { HolderProfileVM } from '@/models/holder';
+import type { HolderProfileProvenanceVM, HolderProfileVM } from '@/models/holder';
 
 export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
   const hasDeclaredInstitutionalInfo =
     profile.emittedSkills.length > 0 ||
     profile.emittedCompetencies.length > 0 ||
     profile.emittedLearningOutcomes.length > 0;
+  // C5b.2-R: la leyenda solo se muestra cuando hay al menos un indicador de
+  // procedencia visible -- nunca "sin procedencia" para un perfil sin
+  // provenance (seccion 8 del diseno).
+  const hasVisibleProvenance =
+    profile.areas.some((area) => area.provenance) ||
+    profile.skills.some((skill) => skill.provenance);
 
   return (
     <section aria-labelledby="holder-profile-summary-title" className="grid gap-5">
@@ -40,10 +46,34 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <ProfileList title="Áreas principales" icon={<BookOpenCheck aria-hidden="true" className="size-5" />} items={profile.areas.map((area) => area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label)} empty="Sin estimación horaria por área todavía." />
-        <ProfileList title="Habilidades del perfil" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={profile.skills.map((skill) => skill.label)} empty="Todavía no hay habilidades disponibles." />
+        <ProfileList
+          title="Áreas principales"
+          icon={<BookOpenCheck aria-hidden="true" className="size-5" />}
+          items={profile.areas.map((area) => ({
+            key: area.label,
+            label: area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label,
+            provenance: area.provenance ?? null
+          }))}
+          empty="Sin estimación horaria por área todavía."
+        />
+        <ProfileList
+          title="Habilidades del perfil"
+          icon={<BrainCircuit aria-hidden="true" className="size-5" />}
+          items={profile.skills.map((skill) => ({ key: skill.label, label: skill.label, provenance: skill.provenance ?? null }))}
+          empty="Todavía no hay habilidades disponibles."
+        />
       </div>
-      <ProfileList title="Conceptos relevantes" icon={<Sparkles aria-hidden="true" className="size-5" />} items={profile.concepts} empty="Todavía no hay conceptos disponibles." />
+      {hasVisibleProvenance ? (
+        <p className="-mt-2 text-xs leading-5 text-text-muted">
+          En las áreas y habilidades, <strong className="font-semibold text-text-strong">Emisor</strong> indica una interpretación revisada por el emisor, e <strong className="font-semibold text-text-strong">IA</strong> indica una interpretación realizada con inteligencia artificial.
+        </p>
+      ) : null}
+      <ProfileList
+        title="Conceptos relevantes"
+        icon={<Sparkles aria-hidden="true" className="size-5" />}
+        items={profile.concepts.map((concept) => ({ key: concept, label: concept, provenance: null }))}
+        empty="Todavía no hay conceptos disponibles."
+      />
       {hasDeclaredInstitutionalInfo ? (
         <Card>
           <CardHeader className="flex-row items-center gap-3 pb-4">
@@ -63,6 +93,7 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
       <Card>
         <CardContent className="pt-5 text-sm leading-6 text-text-muted sm:pt-6">
           <p><strong className="text-text-strong">Cómo se construye este perfil.</strong> Resume áreas, habilidades y conceptos presentes en la información utilizada para construir el perfil.</p>
+          {profile.reviewedInterpretationNoticeLabel ? <p className="mt-3">{profile.reviewedInterpretationNoticeLabel}</p> : null}
           {profile.confidenceLabel ? <p className="mt-3">Confianza del análisis: {profile.confidenceLabel}.</p> : null}
           {profile.qualityFlags.length > 0 ? <p className="mt-3">Observaciones: {profile.qualityFlags.join(', ')}.</p> : null}
           <p className="mt-3 text-text-subtle">Actualizado el {profile.generatedAtLabel}.</p>
@@ -76,8 +107,52 @@ export function HolderProfileEmptyPanel() {
   return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">A medida que tus credenciales cuenten con información formativa analizable, Traza podrá organizar un resumen de áreas, habilidades y conceptos.</p></div></CardHeader></Card>;
 }
 
-function ProfileList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: string[]; empty: string }) {
-  return <Card><CardHeader className="flex-row items-center gap-3 pb-4"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent>{items.length > 0 ? <ul className="flex flex-wrap gap-2">{items.map((item) => <li key={item}><Badge variant="outline">{item}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+interface ProfileListItem {
+  key: string;
+  label: string;
+  provenance: HolderProfileProvenanceVM | null;
+}
+
+// C5b.2/seccion 9 del diseno: la provenance es secundaria en la jerarquia
+// visual (1. label; 2. dato principal ya incluido en label; 3. provenance).
+// Se muestra como un indicador chico dentro del mismo Badge -- nunca una
+// tarjeta propia por item, para que no domine cuando hay muchas skills.
+function ProfileList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; empty: string }) {
+  return <Card><CardHeader className="flex-row items-center gap-3 pb-4"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent>{items.length > 0 ? <ul className="flex flex-wrap gap-2">{items.map((item) => <li key={item.key}><Badge variant="outline">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+}
+
+// C5b.2-R: la procedencia debe poder comprenderse SIN hover/tooltip (mobile/
+// touch no tiene hover). Cada pill lleva texto visible ("Emisor"/"IA") en el
+// DOM, no solo un icono aria-hidden -- el icono es un refuerzo visual, nunca
+// la unica pista. El detalle completo (con conteo, ej. "2 aportes revisados
+// por el emisor") queda en `title` como complemento opcional para desktop,
+// nunca como la unica explicacion (la leyenda de HolderProfilePanel ya
+// define "Emisor"/"IA" de forma visible y persistente). No usa "verificado"
+// -- esa palabra ya significa autenticidad/integridad de credencial en
+// Traza.
+function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenanceVM }) {
+  return (
+    <>
+      {provenance.issuerReviewedLabel ? (
+        <span
+          className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-brand-700/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700"
+          title={provenance.issuerReviewedLabel}
+        >
+          <Landmark aria-hidden="true" className="size-2.5" />
+          Emisor
+        </span>
+      ) : null}
+      {provenance.aiInferredLabel ? (
+        <span
+          className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-teal-700/10 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700"
+          title={provenance.aiInferredLabel}
+        >
+          <BrainCircuit aria-hidden="true" className="size-2.5" />
+          IA
+        </span>
+      ) : null}
+    </>
+  );
 }
 
 function DeclaredBlock({ title, items }: { title: string; items: string[] }) {
