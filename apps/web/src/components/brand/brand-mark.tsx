@@ -6,6 +6,7 @@ interface BrandMarkProps {
   authenticatedDark?: boolean;
   className?: string;
   descriptor?: string;
+  lightLogo?: boolean;
   tone?: 'default' | 'inverse';
 }
 
@@ -13,9 +14,11 @@ export function BrandMark({
   authenticatedDark = false,
   className,
   descriptor,
+  lightLogo = false,
   tone = 'default'
 }: BrandMarkProps) {
   const usesAuthenticatedAsset = authenticatedDark && tone === 'inverse';
+  const usesLightAsset = lightLogo && tone === 'default';
 
   return (
     <div
@@ -30,6 +33,16 @@ export function BrandMark({
           height={1254}
           priority
           src="/brand/LOGO-TRAZA-FONDO-AZUL.png"
+          width={1254}
+        />
+      ) : usesLightAsset ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="size-14 shrink-0 object-contain sm:size-16"
+          height={1254}
+          priority
+          src="/brand/LOGO%20TRAZA%20SIN%20FONDO.png"
           width={1254}
         />
       ) : (

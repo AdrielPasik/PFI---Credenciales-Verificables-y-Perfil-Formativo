@@ -39,4 +39,15 @@ describe('BrandMark', () => {
     );
     expect(logo?.className).toContain('object-contain');
   });
+
+  it('uses the original transparent Traza logo when requested on a light surface', () => {
+    render(<BrandMark lightLogo descriptor="Public verification" />);
+
+    const logo = document.querySelector('img');
+
+    expect(
+      decodeURIComponent(decodeURIComponent(logo?.getAttribute('src') ?? ''))
+    ).toContain('LOGO TRAZA SIN FONDO.png');
+    expect(logo?.className).toContain('object-contain');
+  });
 });
