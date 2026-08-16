@@ -20,7 +20,11 @@ export function WalletShell({ children, label, onLogout }: WalletShellProps) {
       </a>
       <header className="border-b border-brand-700 bg-brand-900 text-white">
         <div className="mx-auto flex min-h-20 w-full max-w-[var(--traza-reading-width)] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <BrandMark tone="inverse" descriptor="Espacio personal" />
+          <BrandMark
+            authenticatedDark
+            tone="inverse"
+            descriptor="Espacio personal"
+          />
           <AccountMenu label={label} onLogout={onLogout} inverse />
         </div>
       </header>

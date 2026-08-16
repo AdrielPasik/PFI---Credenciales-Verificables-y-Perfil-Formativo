@@ -13,12 +13,30 @@ describe('BrandMark', () => {
     expect(document.querySelector('img')).toBeNull();
   });
 
-  it('keeps the inverse wordmark legible without filters or image crops', () => {
+  it('keeps the public inverse wordmark independent from the authenticated asset', () => {
     render(<BrandMark tone="inverse" descriptor="Portal del emisor" />);
 
     expect(screen.getByLabelText('Traza')).toBeTruthy();
     expect(screen.getByText('Traza')).toBeTruthy();
     expect(screen.getByText('Portal del emisor')).toBeTruthy();
     expect(document.querySelector('img')).toBeNull();
+  });
+
+  it('uses the dedicated blue-background asset for authenticated dark shells', () => {
+    render(
+      <BrandMark
+        authenticatedDark
+        tone="inverse"
+        descriptor="Portal del emisor"
+      />
+    );
+
+    const logo = document.querySelector('img');
+
+    expect(screen.getByLabelText('Traza')).toBeTruthy();
+    expect(logo?.getAttribute('src')).toContain(
+      'LOGO-TRAZA-FONDO-AZUL.png'
+    );
+    expect(logo?.className).toContain('object-contain');
   });
 });

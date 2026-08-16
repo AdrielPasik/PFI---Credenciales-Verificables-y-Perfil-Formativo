@@ -269,7 +269,7 @@ export function CredentialDraftForm({
 
   return (
     <div className="grid gap-8">
-      <header className="max-w-3xl">
+      <header className="max-w-5xl">
         <Link
           href="/issuer"
           className="text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
@@ -282,14 +282,14 @@ export function CredentialDraftForm({
         <h1 className="mt-2 text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl">
           Creá un borrador institucional
         </h1>
-        <p className="mt-4 max-w-2xl leading-7 text-text-muted">
+        <p className="mt-4 max-w-4xl leading-7 text-text-muted">
           Confirmá al titular y elegí el tipo de credencial. Las asignaturas
           académicas se crean directamente desde la currícula institucional.
         </p>
       </header>
 
-      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
-        <div className="grid gap-6">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-10">
+        <div className="grid gap-8 xl:gap-10">
           <Card className="overflow-hidden border-border-strong">
             <div aria-hidden="true" className="h-1 bg-teal-700" />
             <CardHeader className="gap-4 sm:p-8 sm:pb-6">

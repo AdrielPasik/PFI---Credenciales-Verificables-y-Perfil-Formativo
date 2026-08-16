@@ -33,7 +33,11 @@ export function IssuerShell({
       <header className="border-b border-brand-700 bg-brand-900 text-white">
         <div className="mx-auto w-full max-w-[var(--traza-issuer-reading-width)] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <BrandMark tone="inverse" descriptor="Portal del emisor" />
+            <BrandMark
+              authenticatedDark
+              tone="inverse"
+              descriptor="Portal del emisor"
+            />
             <AccountMenu
               label={label}
               canChangeIssuer={canChangeIssuer}

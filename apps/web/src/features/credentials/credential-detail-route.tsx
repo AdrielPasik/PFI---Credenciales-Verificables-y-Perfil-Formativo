@@ -784,7 +784,7 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.5fr)] xl:grid-cols-[minmax(0,1.65fr)_minmax(22rem,0.55fr)] xl:gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-10">
         <div className="grid gap-8 xl:gap-10">
           <Card className="overflow-hidden border-border-strong">
           <div aria-hidden="true" className="h-1 bg-brand-700" />

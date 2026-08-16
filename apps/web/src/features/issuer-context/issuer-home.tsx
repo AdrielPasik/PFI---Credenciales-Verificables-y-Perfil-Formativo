@@ -19,7 +19,7 @@ export function IssuerHome({
   membership: IssuerMembershipSummaryVM;
 }) {
   return (
-    <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(20rem,0.6fr)] lg:gap-10">
+    <div className="grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-10">
       <section
         aria-labelledby="issuer-home-title"
         className="relative overflow-hidden rounded-card border border-border-default bg-surface p-6 shadow-sm sm:p-8"
@@ -28,12 +28,12 @@ export function IssuerHome({
         <p className="text-sm font-semibold text-teal-700">Portal del emisor</p>
         <h1
           id="issuer-home-title"
-          className="mt-2 max-w-3xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl"
+          className="mt-2 max-w-5xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl"
         >
           {'Gestion\u00e1 las credenciales de '}
           {membership.issuerName}
         </h1>
-        <p className="mt-4 max-w-2xl leading-7 text-text-muted">
+        <p className="mt-4 max-w-4xl leading-7 text-text-muted">
           {'Cre\u00e1, complet\u00e1 y emit\u00ed credenciales desde la instituci\u00f3n activa.'}
         </p>
 

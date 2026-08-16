@@ -134,7 +134,7 @@ export function TextEvidenceSection({
 
   return (
     <section aria-labelledby="text-evidence-title" className="grid gap-6">
-      <div className="max-w-3xl">
+      <div className="max-w-5xl">
         <p className="text-sm font-semibold text-teal-700">
           Fuente institucional
         </p>
