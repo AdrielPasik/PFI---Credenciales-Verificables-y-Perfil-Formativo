@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { IssuerMembershipStatus, Prisma, UserStatus } from '@prisma/client';
 
+import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
 import { AuthMeResponseDto } from './dto/auth-me-response.dto';
@@ -24,6 +25,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // inputs abusivos sin limitar casos de uso reales.
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 128;
+// A1.1: solo longitud maxima razonable -- nunca restriccion de charset
+// (nombres como "José", "María José", "O'Connor", "Jean-Pierre" deben
+// poder representarse tal cual).
+const MAX_NAME_LENGTH = 100;
 const EMAIL_ALREADY_REGISTERED_MESSAGE =
   'Ya existe una cuenta con ese correo.';
 // Codigo Prisma de violacion de unique constraint -- en el create() de
@@ -96,9 +101,26 @@ export class AuthService {
   // registrarse; no existe ningun mecanismo canonico de provisioning (los
   // DID actuales son literales hardcodeados en seeds), asi que A1
   // deliberadamente NO inventa uno. Ver auth-and-permissions-v0.md.
+  //
+  // A1.1: ademas persiste identidad humana (firstName/lastName) en los
+  // campos que User YA tenia modelados antes de A1/A1.1 (nunca se agrego
+  // columna nueva) -- ver docs/architecture/data-model-v0.md. displayName
+  // NUNCA se escribe desde register (queda como venia: solo lo setean
+  // seeds/futuras herramientas), asi que buildHolderDisplayLabel combina
+  // naturalmente firstName+lastName para toda cuenta creada por A1.1.
   async register(dto: RegisterDto): Promise<AuthLoginResponseDto> {
     const email = this.normalizeAndValidateRegistrationEmail(dto.email);
     const password = this.assertValidRegistrationPassword(dto.password);
+    const firstName = this.assertValidRegistrationName(
+      dto.firstName,
+      'Ingresá tu nombre.',
+      `El nombre no puede superar los ${MAX_NAME_LENGTH} caracteres.`
+    );
+    const lastName = this.assertValidRegistrationName(
+      dto.lastName,
+      'Ingresá tu apellido.',
+      `El apellido no puede superar los ${MAX_NAME_LENGTH} caracteres.`
+    );
     const secret = getJwtSecretOrThrow();
 
     const existing = await this.prisma.user.findUnique({
@@ -112,20 +134,33 @@ export class AuthService {
 
     const passwordHash = await hashPassword(password);
 
-    let user: { id: string; email: string | null; did: string | null; status: UserStatus };
+    let user: {
+      id: string;
+      email: string | null;
+      did: string | null;
+      status: UserStatus;
+      displayName: string | null;
+      firstName: string | null;
+      lastName: string | null;
+    };
 
     try {
       user = await this.prisma.$transaction(async (transaction) => {
         const createdUser = await transaction.user.create({
           data: {
             email,
-            status: UserStatus.active
+            status: UserStatus.active,
+            firstName,
+            lastName
           },
           select: {
             id: true,
             email: true,
             did: true,
-            status: true
+            status: true,
+            displayName: true,
+            firstName: true,
+            lastName: true
           }
         });
 
@@ -172,6 +207,9 @@ export class AuthService {
         email: true,
         did: true,
         status: true,
+        displayName: true,
+        firstName: true,
+        lastName: true,
         issuerMemberships: {
           where: {
             status: IssuerMembershipStatus.active
@@ -230,6 +268,12 @@ export class AuthService {
       email: user.email,
       did: user.did,
       status: user.status,
+      displayLabel: buildHolderDisplayLabel(
+        user.displayName,
+        user.firstName,
+        user.lastName,
+        user.email
+      ),
       issuerMemberships
     };
   }
@@ -336,11 +380,39 @@ export class AuthService {
     return value;
   }
 
+  // A1.1: unicamente string no vacio (tras trim + colapso de espacios) y
+  // longitud maxima -- nunca charset restringido. "José", "María José",
+  // "O'Connor", "Jean-Pierre" deben validar sin problema.
+  private assertValidRegistrationName(
+    value: unknown,
+    emptyMessage: string,
+    tooLongMessage: string
+  ): string {
+    if (typeof value !== 'string') {
+      throw new BadRequestException(emptyMessage);
+    }
+
+    const normalized = value.trim().replace(/\s+/g, ' ');
+
+    if (!normalized) {
+      throw new BadRequestException(emptyMessage);
+    }
+
+    if (normalized.length > MAX_NAME_LENGTH) {
+      throw new BadRequestException(tooLongMessage);
+    }
+
+    return normalized;
+  }
+
   private toAuthUserResponse(user: {
     id: string;
     email: string | null;
     did: string | null;
     status: UserStatus;
+    displayName: string | null;
+    firstName: string | null;
+    lastName: string | null;
   }) {
     if (!user.email) {
       throw new UnauthorizedException('Usuario autenticado no valido.');
@@ -350,7 +422,13 @@ export class AuthService {
       id: user.id,
       email: user.email,
       did: user.did,
-      status: user.status
+      status: user.status,
+      displayLabel: buildHolderDisplayLabel(
+        user.displayName,
+        user.firstName,
+        user.lastName,
+        user.email
+      )
     };
   }
 }

@@ -58,7 +58,10 @@ export function adaptMyCredential(payload: unknown): HolderCredentialDetailVM {
       ? null
       : `${formatDisplayValue(nullableNumber(credential.hours))} horas`,
     issuerDid: nullableString(issuer.did),
-    holderLabel: nullableString(subject.displayName),
+    // A1.1: displayLabel ya combina displayName/firstName/lastName con
+    // fallback a email (mismo helper que issuer-credential-read.mapper.ts
+    // usa para la vista del issuer de esta misma credencial).
+    holderLabel: nullableString(subject.displayLabel),
     holderEmail: nullableString(subject.email)?.toLowerCase() ?? null,
     holderDid: nullableString(subject.did),
     revokedAtLabel: nullableDateLabel(credential.revokedAt),

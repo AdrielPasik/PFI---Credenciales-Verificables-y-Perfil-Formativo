@@ -123,7 +123,8 @@ test('AuthController delegates register to the service', async () => {
       id: 'holder-1',
       email: 'nueva.persona@example.com',
       did: null,
-      status: UserStatus.active
+      status: UserStatus.active,
+      displayLabel: 'Ada Lovelace'
     }
   };
 
@@ -142,13 +143,17 @@ test('AuthController delegates register to the service', async () => {
 
   const response = await controller.register({
     email: 'nueva.persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   assert.deepEqual(calls, [
     {
       email: 'nueva.persona@example.com',
-      password: 'CorrectHorse123'
+      password: 'CorrectHorse123',
+      firstName: 'Ada',
+      lastName: 'Lovelace'
     }
   ]);
   assert.deepEqual(response, expectedResponse);

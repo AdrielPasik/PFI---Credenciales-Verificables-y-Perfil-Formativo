@@ -46,7 +46,7 @@ export function WalletRouteBoundary({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WalletShell email={state.currentUser.email} onLogout={handleLogout}>
+    <WalletShell label={state.currentUser.displayLabel} onLogout={handleLogout}>
       {children}
     </WalletShell>
   );

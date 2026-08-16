@@ -18,6 +18,17 @@
 - JSONB: preferencias de wallet o sharing settings futuras.
 - No on-chain: datos personales, email, documentos, preferencias.
 - Nota: `did` puede existir aun si el mecanismo definitivo de identidad no esta cerrado.
+- Estado real (A1.1): `firstName`/`lastName`/`displayName` (los tres
+  `String?`) ya existen en `schema.prisma` tal como este documento conceptual
+  anticipaba -- A1.1 audito que ya estaban y los reutilizo sin migracion.
+  `POST /auth/register` (A1) ahora los pide y persiste (`firstName`/
+  `lastName` obligatorios; `displayName` sigue sin ser escrito por
+  register, solo por seeds/herramientas futuras). `document_reference`
+  (DNI/documento) NUNCA se implemento y sigue explicitamente fuera de
+  alcance -- A1.1 solo resuelve identidad de PRESENTACION humana, nunca
+  identidad legal/verificada. Proyeccion segura via
+  `issuers/holder-display-label.ts` (`buildHolderDisplayLabel`), nunca los
+  campos crudos salvo en superficies ya autenticadas y self-scoped.
 
 ## Issuer
 

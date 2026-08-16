@@ -5,11 +5,11 @@ import { AccountMenu } from '@/components/navigation/account-menu';
 
 interface WalletShellProps {
   children: ReactNode;
-  email: string;
+  label: string;
   onLogout: () => void;
 }
 
-export function WalletShell({ children, email, onLogout }: WalletShellProps) {
+export function WalletShell({ children, label, onLogout }: WalletShellProps) {
   return (
     <div className="flex min-h-svh flex-col bg-canvas">
       <a
@@ -21,7 +21,7 @@ export function WalletShell({ children, email, onLogout }: WalletShellProps) {
       <header className="border-b border-brand-700 bg-brand-900 text-white">
         <div className="mx-auto flex min-h-20 w-full max-w-[var(--traza-reading-width)] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <BrandMark tone="inverse" descriptor="Espacio personal" />
-          <AccountMenu email={email} onLogout={onLogout} inverse />
+          <AccountMenu label={label} onLogout={onLogout} inverse />
         </div>
       </header>
       <main

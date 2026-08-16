@@ -60,6 +60,33 @@ describe('holder adapters', () => {
     expect(JSON.stringify(result)).not.toContain('analysisJson');
   });
 
+  it('A1.1: holderLabel reflects the backend-computed subject.displayLabel (combined name)', () => {
+    const result = adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Institución demo', did: null },
+      subject: { displayName: null, displayLabel: 'Ada Lovelace', email: 'ada@example.com', did: null },
+      credentialSubject: { achievementName: 'Arquitectura de software', institutionName: 'Institución demo', completionDate: null, academicPeriod: null, programName: null, grade: null, skills: [], competencies: [], learningOutcomes: [] },
+      documentEvidence: null, textEvidence: null, blockchainRecords: [], latestSemanticAnalysis: null
+    });
+
+    expect(result.holderLabel).toBe('Ada Lovelace');
+  });
+
+  it('A1.1: holderLabel falls back to null (never fabricated) when the backend omits displayLabel (legacy shape)', () => {
+    const result = adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Institución demo', did: null },
+      subject: { displayName: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: { achievementName: 'Arquitectura de software', institutionName: 'Institución demo', completionDate: null, academicPeriod: null, programName: null, grade: null, skills: [], competencies: [], learningOutcomes: [] },
+      documentEvidence: null, textEvidence: null, blockchainRecords: [], latestSemanticAnalysis: null
+    });
+
+    expect(result.holderLabel).toBe(null);
+    expect(result.holderEmail).toBe('holder@example.com');
+  });
+
   it('accepts declared course fields (providerName/platformName/modality/level/externalUrl)', () => {
     const result = adaptMyCredential({
       ...listPayload()[0], description: null, hours: null,

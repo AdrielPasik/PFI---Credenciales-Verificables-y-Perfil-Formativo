@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface IssuerShellProps {
   children: ReactNode;
-  email: string;
+  label: string;
   issuerName: string;
   canChangeIssuer: boolean;
   onChangeIssuer: () => void;
@@ -16,7 +16,7 @@ interface IssuerShellProps {
 export function IssuerShell({
   canChangeIssuer,
   children,
-  email,
+  label,
   issuerName,
   onChangeIssuer,
   onLogout
@@ -35,7 +35,7 @@ export function IssuerShell({
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <BrandMark tone="inverse" descriptor="Portal del emisor" />
             <AccountMenu
-              email={email}
+              label={label}
               canChangeIssuer={canChangeIssuer}
               onChangeIssuer={onChangeIssuer}
               onLogout={onLogout}

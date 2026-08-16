@@ -54,7 +54,7 @@ export function ContextRouter() {
 
   if (state.status === 'recoverable-error') {
     return (
-      <ContextShell email="Sesión sin validar" onLogout={handleLogout}>
+      <ContextShell label="Sesión sin validar" onLogout={handleLogout}>
         <SessionErrorState
           feedback={state.error}
           onRetry={() => void retry()}
@@ -67,7 +67,7 @@ export function ContextRouter() {
   const context = state.issuerContext;
 
   return (
-    <ContextShell email={state.currentUser.email} onLogout={handleLogout}>
+    <ContextShell label={state.currentUser.displayLabel} onLogout={handleLogout}>
       {context.kind === 'none' ? <SessionLoadingState label="Abriendo tu espacio personal" /> : null}
       {context.kind === 'selection-required' ? (
         <IssuerSelector

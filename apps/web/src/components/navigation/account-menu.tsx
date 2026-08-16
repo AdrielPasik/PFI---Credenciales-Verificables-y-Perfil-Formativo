@@ -3,7 +3,10 @@ import { LogOut, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface AccountMenuProps {
-  email: string;
+  // A1.1: displayLabel (nombre humano si esta disponible, con fallback a
+  // email) -- nunca un identificador tecnico. Renombrado desde `email`
+  // porque este slot ahora puede mostrar el nombre del titular.
+  label: string;
   canChangeIssuer?: boolean;
   onChangeIssuer?: () => void;
   onLogout: () => void;
@@ -12,7 +15,7 @@ interface AccountMenuProps {
 
 export function AccountMenu({
   canChangeIssuer = false,
-  email,
+  label,
   inverse = false,
   onChangeIssuer,
   onLogout
@@ -26,7 +29,7 @@ export function AccountMenu({
             : 'min-w-0 flex-1 truncate text-sm text-text-muted sm:max-w-64 sm:flex-none'
         }
       >
-        {email}
+        {label}
       </span>
       {canChangeIssuer ? (
         <Button

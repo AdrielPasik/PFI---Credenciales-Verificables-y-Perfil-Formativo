@@ -1648,3 +1648,95 @@ antes de A1 (no se toco el schema).
   recuperacion/cambio de password, MFA, OAuth, CAPTCHA, seleccion de rol
   durante el registro, onboarding institucional, edicion de perfil,
   provisioning de DID (ver arriba), refresh tokens.
+
+## 26. A1.1 — Identidad humana del titular: nombre en registro + holder + presentacion de credenciales
+
+A1 dejo `POST /auth/register` sin ningun dato de identidad humana --
+CASO A confirmado por auditoria: `User.firstName`/`lastName`/`displayName`
+YA EXISTIAN en `schema.prisma` (nunca hizo falta elegir entre `User` y un
+modelo `Person`/`Profile` separado, ni migracion nueva).
+
+- **Fuente canonica unica**: `User.firstName`/`User.lastName` (obligatorios
+  desde `register`) + `User.displayName` (nunca escrito por register,
+  reservado para seeds/herramientas futuras). Proyeccion de presentacion
+  SIEMPRE via el helper YA EXISTENTE `buildHolderDisplayLabel` (`services/api/src/issuers/holder-display-label.ts`)
+  -- prioridad `displayName` > `firstName+lastName` > solo uno de los dos >
+  `email` > fallback fijo. Nunca una segunda implementacion de
+  concatenacion de nombre con reglas propias en ningun lugar nuevo que A1.1
+  toco (`AuthService`, `MeService`).
+- **Validacion de nombre sin restriccion cultural**: string no vacio (tras
+  trim + colapso de espacios), longitud maxima 100 -- sin exigir ASCII,
+  mayuscula inicial, ni prohibir acentos/apostrofes/guiones. "José",
+  "María José", "O'Connor", "Jean-Pierre" son validos por diseño, tanto en
+  el backend (`AuthService.assertValidRegistrationName`) como en la
+  validacion temprana del frontend (mismos limites).
+- **`POST /auth/register` pide nombre + apellido**: `RegisterDto` gana
+  `firstName`/`lastName` obligatorios. Igual que `email`/`password`, el
+  backend los lee campo a campo (nunca spread del body) -- `displayName`,
+  `role`, `issuerId`, `did`, `status`, `isAdmin` etc. enviados por un
+  cliente siguen sin tener ningun efecto.
+- **`displayLabel` en la respuesta de auth, nunca los campos crudos**:
+  `AuthUserResponseDto` (compartido por login/register/`/auth/me`) gana
+  `displayLabel: string` -- siempre presente (cae a email si no hay
+  nombre), nunca `firstName`/`lastName` sueltos en esa respuesta.
+- **El nombre nunca es identificador tecnico**: la asociacion
+  Credential↔holder sigue siendo exclusivamente
+  `Credential.subjectUserId` -- confirmado que ni `credentialSubject` ni
+  ningun campo de `Credential` almacena nombre humano. Dos `User`
+  homonimos siguen siendo perfectamente distinguibles porque ninguna
+  resolucion real (login, `IssuerHolderResolutionService.resolveHolder`,
+  creacion de draft) pasa por el nombre -- `email` es el unico canal de
+  busqueda humano-amigable, `userId`/`subjectUserId` el vinculo interno
+  estable, `did` la identidad tecnica pendiente de A2. Nunca se usa el
+  nombre para generar IDs ni para derivar DID.
+- **Sin snapshot historico de nombre en Credential**: auditado --
+  `Credential`/`credentialSubject` nunca copian el nombre del titular al
+  emitir. Toda vista que muestra "Titular: ..." (issuer, holder, `/verify`,
+  perfil publico) resuelve el nombre EN VIVO desde el `User` actual via
+  `subjectUserId`. Si el `User` cambiara de nombre en el futuro (edicion de
+  perfil, fuera de alcance de A1.1), todas esas vistas reflejarian el
+  cambio de inmediato -- no existe (ni A1.1 introduce) ninguna semantica de
+  "nombre congelado al momento de emision".
+- **Correccion de asimetria holder vs. issuer**: `MeService.getCredentialForUser`
+  (el holder viendo su PROPIA credencial) no combinaba `firstName`/
+  `lastName` -- solo pasaba `displayName` crudo, a diferencia de
+  `issuer-credential-read.mapper.ts` (la vista del issuer de la misma
+  credencial), que ya usaba `buildHolderDisplayLabel`. A1.1 corrige esa
+  asimetria reusando el mismo helper -- self-view, sin riesgo de privacidad
+  nuevo.
+- **Header de identidad compartido**: `AccountMenu`/`WalletShell`/
+  `ContextShell`/`IssuerShell` mostraban el email crudo del usuario
+  autenticado en toda pantalla protegida (holder e issuer por igual).
+  Ahora muestran `currentUser.displayLabel` -- mismo componente
+  compartido, mejora identica para ambos roles, sin rediseño.
+- **Privacidad publica: sin ampliacion, con hallazgo documentado**:
+  `GET /verify/credentials/:credentialId` y `GET /share/profile/:token` YA
+  exponian un `holder.displayLabel` (nombre, sin fallback a email) ANTES
+  de A1/A1.1 -- A1.1 audito ambos casos y NO los toco (contrato intacto).
+  Lo que cambia en la practica es que, al no existir antes ningun flujo
+  que pidiera nombre a un holder self-registrado, ese campo publico casi
+  siempre devolvia `null`; desde A1.1 puede devolver un nombre real. Ver
+  `auth-and-permissions-v0.md` seccion 2.4 para el detalle completo -- es
+  una activacion de exposicion ya diseñada, no una ampliacion de
+  superficie nueva, pero queda documentada para revision consciente de
+  producto.
+- **`FormativeProfile` no se toca**: `profileJson`/areas/skills/concepts/
+  provenance semantica nunca incorporan `firstName`/`lastName` -- la
+  identidad humana vive exclusivamente en la proyeccion holder/auth
+  correspondiente.
+- **Legacy sin romper**: un `User` con `firstName`/`lastName`/`displayName`
+  `null` (cualquier cuenta creada antes de A1.1, incluidos los usuarios
+  seed y los registrados via A1 antes de este slice) sigue autenticando y
+  operando con normalidad -- `buildHolderDisplayLabel` cae a `email` sin
+  fabricar ningun nombre falso. Ningun backfill masivo de nombres.
+- Pendiente, explicitamente fuera de alcance de A1.1: provisioning de DID
+  (A2); edicion de nombre/perfil; verificacion legal de identidad (DNI,
+  fecha de nacimiento, telefono, direccion, genero, avatar, username
+  publico -- ninguno se agrego); consentimiento/copy adicional en
+  `/register` sobre la exposicion publica preexistente via `/verify`/
+  `/share` (hallazgo documentado, decision de producto pendiente); unificar
+  las 3 implementaciones de "combinar nombre" que hoy coexisten
+  (`holder-display-label.ts` compartido, y las mini-versiones privadas en
+  `verification.service.ts` y `profile-sharing.service.ts`, cada una con
+  su propia regla de fallback a email por razones de privacidad
+  deliberadas -- unificarlas exigiria una decision de diseño aparte).

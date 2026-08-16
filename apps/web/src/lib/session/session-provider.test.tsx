@@ -76,6 +76,7 @@ const currentUserResponse = {
   email: 'persona@example.com',
   did: null,
   status: 'active',
+  displayLabel: 'Persona Demo',
   issuerMemberships: [operationalMembership]
 };
 
@@ -105,6 +106,8 @@ function SessionObserver() {
         type="button"
         onClick={() =>
           void session.register({
+            firstName: 'Nueva',
+            lastName: 'Persona',
             email: 'nueva.persona@example.com',
             password: '[REDACTED]'
           })
@@ -212,7 +215,8 @@ describe('SessionProvider', () => {
         id: 'user-reference',
         email: 'persona@example.com',
         did: null,
-        status: 'active'
+        status: 'active',
+        displayLabel: 'Persona Demo'
       }
     });
     authApiMocks.currentUserRequest.mockResolvedValue(currentUserResponse);
@@ -247,7 +251,8 @@ describe('SessionProvider', () => {
         id: 'holder-registered-1',
         email: 'nueva.persona@example.com',
         did: null,
-        status: 'active'
+        status: 'active',
+        displayLabel: 'Nueva Persona'
       }
     });
     authApiMocks.currentUserRequest.mockResolvedValue({
@@ -271,6 +276,8 @@ describe('SessionProvider', () => {
     });
     expect(store.getAccessToken()).toBe('[REDACTED]');
     expect(authApiMocks.registerRequest).toHaveBeenCalledWith({
+      firstName: 'Nueva',
+      lastName: 'Persona',
       email: 'nueva.persona@example.com',
       password: '[REDACTED]'
     });

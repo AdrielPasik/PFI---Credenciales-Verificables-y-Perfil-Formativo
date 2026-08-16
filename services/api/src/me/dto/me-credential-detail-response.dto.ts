@@ -13,6 +13,11 @@ export interface MeCredentialDetailResponseDto {
     did: string | null;
     email: string | null;
     displayName: string | null;
+    // A1.1: proyeccion segura combinando displayName/firstName/lastName
+    // con fallback a email -- mismo helper compartido que el resto del
+    // repo (buildHolderDisplayLabel). Nunca null: siempre hay al menos un
+    // email para un usuario activo.
+    displayLabel: string;
   };
   issuedAt: string | null;
   revokedAt: string | null;

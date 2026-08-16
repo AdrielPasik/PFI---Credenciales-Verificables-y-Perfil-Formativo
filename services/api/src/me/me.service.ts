@@ -8,6 +8,7 @@ import {
   TextEvidenceStatus
 } from '@prisma/client';
 
+import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
 import { PrismaService } from '../prisma/prisma.service';
 import { MeCredentialDetailResponseDto } from './dto/me-credential-detail-response.dto';
 import { MeCredentialSummaryResponseDto } from './dto/me-credential-summary-response.dto';
@@ -118,7 +119,9 @@ export class MeService {
           select: {
             did: true,
             email: true,
-            displayName: true
+            displayName: true,
+            firstName: true,
+            lastName: true
           }
         },
         blockchainRecords: {
@@ -193,7 +196,18 @@ export class MeService {
       subject: {
         did: credential.subjectUser.did,
         email: credential.subjectUser.email,
-        displayName: credential.subjectUser.displayName
+        displayName: credential.subjectUser.displayName,
+        // A1.1: mismo helper compartido que issuer-credential-read.mapper.ts
+        // -- antes esta vista (el holder mirando su PROPIA credencial)
+        // nunca combinaba firstName/lastName, a diferencia de la vista del
+        // issuer para la misma credencial. Self-view: sin riesgo de
+        // privacidad nuevo, es el propio dato del holder autenticado.
+        displayLabel: buildHolderDisplayLabel(
+          credential.subjectUser.displayName,
+          credential.subjectUser.firstName,
+          credential.subjectUser.lastName,
+          credential.subjectUser.email
+        )
       },
       issuedAt: credential.issuedAt ? this.serializeDateTime(credential.issuedAt) : null,
       revokedAt: credential.revokedAt

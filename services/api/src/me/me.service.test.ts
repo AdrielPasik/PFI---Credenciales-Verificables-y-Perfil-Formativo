@@ -102,6 +102,56 @@ test('MeService returns a holder-safe detail without raw data, storage keys, met
   assert.deepEqual(response.latestSemanticAnalysis?.areas, ['Software']);
 });
 
+// A1.1: antes de esta correccion, esta vista (el holder mirando su PROPIA
+// credencial) nunca combinaba firstName/lastName -- solo pasaba
+// subjectUser.displayName crudo, a diferencia de la vista del issuer para
+// la misma credencial (issuer-credential-read.mapper.ts, que ya usaba
+// buildHolderDisplayLabel). Mismo helper compartido, ahora en ambos
+// lugares.
+test('A1.1/K: MeService combines firstName/lastName into subject.displayLabel using the shared helper', async () => {
+  const service = new MeService({
+    credential: {
+      async findFirst() {
+        return {
+          id: 'cred-1', type: 'academic_subject', title: 'Arquitectura de software', description: null, hours: null, status: 'issued',
+          issuedAt: new Date('2026-08-01T10:00:00Z'), revokedAt: null, revocationReason: null,
+          canonicalHash: null, canonicalizationVersion: null,
+          credentialSubject: { achievement_name: 'Arquitectura de software', institution_name: 'Institución demo', skills: [], competencies: [], learning_outcomes: [] },
+          issuer: { id: 'issuer-1', name: 'Institución demo', did: 'did:example:issuer' },
+          subjectUser: { did: null, email: 'ada@example.com', displayName: null, firstName: 'Ada', lastName: 'Lovelace' },
+          blockchainRecords: [], semanticAnalyses: [], documentEvidences: [], textEvidences: []
+        };
+      }
+    }
+  } as never);
+
+  const response = await service.getCredentialForUser('holder-1', 'cred-1');
+
+  assert.equal(response.subject.displayLabel, 'Ada Lovelace');
+});
+
+test('A1.1/L: MeService falls back to email for subject.displayLabel when no name field is set (legacy holder)', async () => {
+  const service = new MeService({
+    credential: {
+      async findFirst() {
+        return {
+          id: 'cred-1', type: 'academic_subject', title: 'Arquitectura de software', description: null, hours: null, status: 'issued',
+          issuedAt: new Date('2026-08-01T10:00:00Z'), revokedAt: null, revocationReason: null,
+          canonicalHash: null, canonicalizationVersion: null,
+          credentialSubject: { achievement_name: 'Arquitectura de software', institution_name: 'Institución demo', skills: [], competencies: [], learning_outcomes: [] },
+          issuer: { id: 'issuer-1', name: 'Institución demo', did: 'did:example:issuer' },
+          subjectUser: { did: null, email: 'legacy.holder@example.com', displayName: null, firstName: null, lastName: null },
+          blockchainRecords: [], semanticAnalyses: [], documentEvidences: [], textEvidences: []
+        };
+      }
+    }
+  } as never);
+
+  const response = await service.getCredentialForUser('holder-1', 'cred-1');
+
+  assert.equal(response.subject.displayLabel, 'legacy.holder@example.com');
+});
+
 test('MeService returns 404 when a credential is not owned by the holder', async () => {
   const service = new MeService({ credential: { async findFirst() { return null; } } } as never);
   await assert.rejects(() => service.getCredentialForUser('holder-1', 'other'), NotFoundException);

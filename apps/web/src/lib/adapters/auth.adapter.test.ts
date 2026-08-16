@@ -10,7 +10,8 @@ const activeUser = {
   id: 'user-internal-reference',
   email: 'persona@example.com',
   did: null,
-  status: 'active'
+  status: 'active',
+  displayLabel: 'Persona Demo'
 };
 
 describe('auth adapters', () => {
@@ -30,9 +31,20 @@ describe('auth adapters', () => {
       user: {
         userReference: 'user-internal-reference',
         email: 'persona@example.com',
-        did: null
+        did: null,
+        displayLabel: 'Persona Demo'
       }
     });
+  });
+
+  it('A1.1: rejects a login response missing displayLabel', () => {
+    const { displayLabel: _displayLabel, ...userWithoutDisplayLabel } = activeUser;
+    expect(() =>
+      adaptLoginResponse({
+        accessToken: '[REDACTED]',
+        user: userWithoutDisplayLabel
+      })
+    ).toThrow(IncompatiblePayloadError);
   });
 
   it('rejects a login response without an access token', () => {
@@ -72,7 +84,8 @@ describe('auth adapters', () => {
       currentUser: {
         userReference: 'user-internal-reference',
         email: 'persona@example.com',
-        did: null
+        did: null,
+        displayLabel: 'Persona Demo'
       },
       issuerMemberships: [
         {

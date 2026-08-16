@@ -4,6 +4,11 @@ export interface AuthUserVM {
   userReference: string;
   email: string;
   did: string | null;
+  // A1.1: proyeccion de presentacion segura (nunca firstName/lastName
+  // crudos) calculada por el backend con el mismo helper que ya usan
+  // issuer-holder-resolution/issuer-credential-read/verification. Nunca
+  // vacio: cae a email si no hay nombre.
+  displayLabel: string;
 }
 
 export type CurrentUserVM = AuthUserVM;

@@ -77,7 +77,7 @@ export function IssuerRouteBoundary({
 
   return (
     <IssuerShell
-      email={state.currentUser.email}
+      label={state.currentUser.displayLabel}
       issuerName={membership.issuerName}
       canChangeIssuer={
         state.issuerContext.operationalIssuerContexts.length > 1

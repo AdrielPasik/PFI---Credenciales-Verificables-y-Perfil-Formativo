@@ -31,14 +31,24 @@ function prismaUniqueConstraintError(): Prisma.PrismaClientKnownRequestError {
 // credentials.service.test.ts), asi que create() dentro de la transaccion
 // muta la misma tabla que findUnique lee despues.
 function createRegisterPrismaDouble() {
-  const users: Array<{ id: string; email: string; did: string | null; status: UserStatus }> = [];
+  const users: Array<{
+    id: string;
+    email: string;
+    did: string | null;
+    status: UserStatus;
+    displayName: string | null;
+    firstName: string | null;
+    lastName: string | null;
+  }> = [];
   const authCredentials: Array<{ userId: string; passwordHash: string }> = [];
   const issuerMembershipCreateCalls: unknown[] = [];
   let nextId = 1;
 
   const transactionClient = {
     user: {
-      async create(args: { data: { email: string; status: UserStatus } }) {
+      async create(args: {
+        data: { email: string; status: UserStatus; firstName: string; lastName: string };
+      }) {
         if (users.some((user) => user.email === args.data.email)) {
           throw prismaUniqueConstraintError();
         }
@@ -47,7 +57,10 @@ function createRegisterPrismaDouble() {
           id: `user-${nextId++}`,
           email: args.data.email,
           did: null,
-          status: args.data.status
+          status: args.data.status,
+          displayName: null,
+          firstName: args.data.firstName,
+          lastName: args.data.lastName
         };
         users.push(created);
         return created;
@@ -109,6 +122,9 @@ test('AuthService.login succeeds with valid credentials and does not expose pass
           email: 'issuer.admin@example.com',
           did: 'did:example:issuer-admin-demo',
           status: UserStatus.active,
+          displayName: null,
+          firstName: 'Ada',
+          lastName: 'Lovelace',
           authCredential: {
             passwordHash: await hashPassword('DemoIssuer123!')
           }
@@ -128,7 +144,8 @@ test('AuthService.login succeeds with valid credentials and does not expose pass
     id: 'user-123',
     email: 'issuer.admin@example.com',
     did: 'did:example:issuer-admin-demo',
-    status: UserStatus.active
+    status: UserStatus.active,
+    displayLabel: 'Ada Lovelace'
   });
   assert.equal('passwordHash' in response.user, false);
   assert.deepEqual(jwtService.signAsyncCalls, [
@@ -241,12 +258,16 @@ test('A: register creates a User with the submitted email and active status', as
 
   const response = await service.register({
     email: '  Persona@Example.com  ',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   assert.equal(users.length, 1);
   assert.equal(users[0].email, 'persona@example.com');
   assert.equal(users[0].status, UserStatus.active);
+  assert.equal(users[0].firstName, 'Ada');
+  assert.equal(users[0].lastName, 'Lovelace');
   assert.equal(response.user.email, 'persona@example.com');
   assert.equal(response.user.did, null);
 });
@@ -258,7 +279,9 @@ test('B: the persisted password hash never equals the submitted plaintext passwo
 
   await service.register({
     email: 'persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   assert.equal(authCredentials.length, 1);
@@ -277,7 +300,9 @@ test('C: the register response never contains password or passwordHash', async (
 
   const response = await service.register({
     email: 'persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   const serialized = JSON.stringify(response);
@@ -293,11 +318,13 @@ test('D: register returns exactly the same response shape as login (accessToken 
 
   const response = await service.register({
     email: 'persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   assert.deepEqual(Object.keys(response).sort(), ['accessToken', 'user']);
-  assert.deepEqual(Object.keys(response.user).sort(), ['did', 'email', 'id', 'status']);
+  assert.deepEqual(Object.keys(response.user).sort(), ['did', 'displayLabel', 'email', 'id', 'status']);
   assert.equal(typeof response.accessToken, 'string');
 });
 
@@ -310,7 +337,9 @@ test('E: register signs the JWT with the exact same secret/expiration/claims mec
 
   await service.register({
     email: 'persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   assert.deepEqual(jwtService.signAsyncCalls, [
@@ -326,10 +355,10 @@ test('F: register rejects an already-registered email without creating a second 
   const { prisma, users } = createRegisterPrismaDouble();
   const service = new AuthService(prisma as never, createJwtServiceStub() as never);
 
-  await service.register({ email: 'persona@example.com', password: 'CorrectHorse123' });
+  await service.register({ email: 'persona@example.com', password: 'CorrectHorse123', firstName: 'Ada', lastName: 'Lovelace' });
 
   await assert.rejects(
-    service.register({ email: 'PERSONA@example.com', password: 'AnotherPass123' }),
+    service.register({ email: 'PERSONA@example.com', password: 'AnotherPass123', firstName: 'Grace', lastName: 'Hopper' }),
     ConflictException
   );
   assert.equal(users.length, 1);
@@ -352,7 +381,7 @@ test('G: a concurrent unique-constraint race (P2002) maps to the same safe produ
   const service = new AuthService(prisma as never, createJwtServiceStub() as never);
 
   await assert.rejects(
-    service.register({ email: 'persona@example.com', password: 'CorrectHorse123' }),
+    service.register({ email: 'persona@example.com', password: 'CorrectHorse123', firstName: 'Ada', lastName: 'Lovelace' }),
     (error: unknown) => {
       assert.ok(error instanceof ConflictException);
       const response = (error as ConflictException).getResponse() as { message: string };
@@ -370,7 +399,7 @@ test('H: register rejects an invalid email format', async () => {
   const service = new AuthService(prisma as never, createJwtServiceStub() as never);
 
   await assert.rejects(
-    service.register({ email: 'not-an-email', password: 'CorrectHorse123' }),
+    service.register({ email: 'not-an-email', password: 'CorrectHorse123', firstName: 'Ada', lastName: 'Lovelace' }),
     BadRequestException
   );
   assert.equal(users.length, 0);
@@ -381,14 +410,14 @@ test('I: register rejects a password shorter than the minimum or longer than the
   const short = createRegisterPrismaDouble();
   const serviceShort = new AuthService(short.prisma as never, createJwtServiceStub() as never);
   await assert.rejects(
-    serviceShort.register({ email: 'persona@example.com', password: 'short1' }),
+    serviceShort.register({ email: 'persona@example.com', password: 'short1', firstName: 'Ada', lastName: 'Lovelace' }),
     BadRequestException
   );
 
   const long = createRegisterPrismaDouble();
   const serviceLong = new AuthService(long.prisma as never, createJwtServiceStub() as never);
   await assert.rejects(
-    serviceLong.register({ email: 'persona@example.com', password: 'a'.repeat(129) }),
+    serviceLong.register({ email: 'persona@example.com', password: 'a'.repeat(129), firstName: 'Ada', lastName: 'Lovelace' }),
     BadRequestException
   );
 
@@ -404,12 +433,15 @@ test('J: extra fields like issuerId/role/did/status sent by the client are ignor
   const response = await service.register({
     email: 'persona@example.com',
     password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
     // Campos que un cliente podria intentar mandar -- RegisterDto no los
     // declara, pero un body crudo igual podria incluirlos.
     issuerId: 'issuer-1',
     role: 'admin',
     did: 'did:example:spoofed',
-    isAdmin: true
+    isAdmin: true,
+    displayName: 'Spoofed Display Name'
   } as never);
 
   assert.equal(users[0].did, null);
@@ -422,9 +454,173 @@ test('M/R: a User created via register never receives an IssuerMembership (issue
   const { prisma, issuerMembershipCreateCalls } = createRegisterPrismaDouble();
   const service = new AuthService(prisma as never, createJwtServiceStub() as never);
 
-  await service.register({ email: 'persona@example.com', password: 'CorrectHorse123' });
+  await service.register({ email: 'persona@example.com', password: 'CorrectHorse123', firstName: 'Ada', lastName: 'Lovelace' });
 
   assert.deepEqual(issuerMembershipCreateCalls, []);
+});
+
+// ---------------------------------------------------------------------------
+// A1.1: identidad humana del titular (firstName/lastName YA existian en
+// User -- ver schema.prisma; no hizo falta migration). buildHolderDisplayLabel
+// reutilizado de issuers/holder-display-label.ts, la misma funcion que ya
+// usan issuer-holder-resolution.service.ts e issuer-credential-read.mapper.ts.
+// ---------------------------------------------------------------------------
+
+test('A1.1/A: register persists trimmed firstName/lastName and exposes a combined displayLabel', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.register({
+    email: 'persona@example.com',
+    password: 'CorrectHorse123',
+    firstName: '  Ada  ',
+    lastName: '  Lovelace  '
+  });
+
+  assert.equal(users[0].firstName, 'Ada');
+  assert.equal(users[0].lastName, 'Lovelace');
+  assert.equal(response.user.displayLabel, 'Ada Lovelace');
+});
+
+test('A1.1/C: register rejects an empty or whitespace-only firstName/lastName', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const missingFirst = createRegisterPrismaDouble();
+  await assert.rejects(
+    new AuthService(missingFirst.prisma as never, createJwtServiceStub() as never).register({
+      email: 'persona@example.com', password: 'CorrectHorse123', firstName: '   ', lastName: 'Lovelace'
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof BadRequestException);
+      const response = (error as BadRequestException).getResponse() as { message: string };
+      assert.equal(response.message, 'Ingresá tu nombre.');
+      return true;
+    }
+  );
+  assert.equal(missingFirst.users.length, 0);
+
+  const missingLast = createRegisterPrismaDouble();
+  await assert.rejects(
+    new AuthService(missingLast.prisma as never, createJwtServiceStub() as never).register({
+      email: 'persona@example.com', password: 'CorrectHorse123', firstName: 'Ada', lastName: ''
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof BadRequestException);
+      const response = (error as BadRequestException).getResponse() as { message: string };
+      assert.equal(response.message, 'Ingresá tu apellido.');
+      return true;
+    }
+  );
+  assert.equal(missingLast.users.length, 0);
+});
+
+test('A1.1/C2: register rejects a firstName/lastName longer than the maximum', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await assert.rejects(
+    service.register({
+      email: 'persona@example.com', password: 'CorrectHorse123',
+      firstName: 'a'.repeat(101), lastName: 'Lovelace'
+    }),
+    BadRequestException
+  );
+  assert.equal(users.length, 0);
+});
+
+test('A1.1/D: register accepts unicode names with accents, apostrophes and hyphens without extra restrictions', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.register({
+    email: 'persona@example.com',
+    password: 'CorrectHorse123',
+    firstName: 'José María',
+    lastName: "O'Connor-Jean-Pierre"
+  });
+
+  assert.equal(users[0].firstName, 'José María');
+  assert.equal(users[0].lastName, "O'Connor-Jean-Pierre");
+  assert.equal(response.user.displayLabel, "José María O'Connor-Jean-Pierre");
+});
+
+test('A1.1/E: extra privilege fields never control identity/name fields either', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await service.register({
+    email: 'persona@example.com',
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace',
+    displayName: 'Spoofed Admin Name'
+  } as never);
+
+  assert.equal(users[0].displayName, null);
+});
+
+test('A1.1/H: /auth/me exposes displayLabel derived from firstName/lastName for the authenticated user', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-123',
+            email: 'persona@example.com',
+            did: null,
+            status: UserStatus.active,
+            displayName: null,
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            issuerMemberships: []
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.equal(response.displayLabel, 'Ada Lovelace');
+});
+
+test('A1.1/I: a legacy User with null firstName/lastName/displayName still authenticates, falling back to email', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-legacy-1',
+            email: 'holder.demo@example.com',
+            did: 'did:example:holder-demo',
+            status: UserStatus.active,
+            displayName: null,
+            firstName: null,
+            lastName: null,
+            authCredential: {
+              passwordHash: await hashPassword('DemoHolder123!')
+            }
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.login({
+    email: 'holder.demo@example.com',
+    password: 'DemoHolder123!'
+  });
+
+  assert.equal(response.user.displayLabel, 'holder.demo@example.com');
 });
 
 test('K: a User created via register can immediately log in with the same email/password', async () => {
@@ -440,12 +636,15 @@ test('K: a User created via register can immediately log in with the same email/
       async $transaction(callback: (tx: unknown) => Promise<unknown>) {
         return callback({
           user: {
-            async create(args: { data: { email: string; status: UserStatus } }) {
+            async create(args: { data: { email: string; status: UserStatus; firstName: string; lastName: string } }) {
               const created = {
                 id: 'holder-registered-1',
                 email: args.data.email,
                 did: null,
-                status: args.data.status
+                status: args.data.status,
+                displayName: null,
+                firstName: args.data.firstName,
+                lastName: args.data.lastName
               };
               users.push(created);
               return created;
@@ -465,7 +664,9 @@ test('K: a User created via register can immediately log in with the same email/
 
   await registerService.register({
     email: 'nueva.persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   const loginService = new AuthService(
@@ -488,6 +689,7 @@ test('K: a User created via register can immediately log in with the same email/
   });
 
   assert.equal(loginResponse.user.email, 'nueva.persona@example.com');
+  assert.equal(loginResponse.user.displayLabel, 'Ada Lovelace');
   assert.equal(typeof loginResponse.accessToken, 'string');
 });
 
@@ -504,12 +706,15 @@ test('L: a User created via register fails to log in with an incorrect password'
       async $transaction(callback: (tx: unknown) => Promise<unknown>) {
         return callback({
           user: {
-            async create(args: { data: { email: string; status: UserStatus } }) {
+            async create(args: { data: { email: string; status: UserStatus; firstName: string; lastName: string } }) {
               const created = {
                 id: 'holder-registered-2',
                 email: args.data.email,
                 did: null,
-                status: args.data.status
+                status: args.data.status,
+                displayName: null,
+                firstName: args.data.firstName,
+                lastName: args.data.lastName
               };
               users.push(created);
               return created;
@@ -529,7 +734,9 @@ test('L: a User created via register fails to log in with an incorrect password'
 
   await registerService.register({
     email: 'nueva.persona@example.com',
-    password: 'CorrectHorse123'
+    password: 'CorrectHorse123',
+    firstName: 'Ada',
+    lastName: 'Lovelace'
   });
 
   const loginService = new AuthService(
@@ -643,6 +850,9 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
             email: 'issuer.admin@example.com',
             did: 'did:example:issuer-admin-demo',
             status: UserStatus.active,
+            displayName: null,
+            firstName: 'Ada',
+            lastName: 'Lovelace',
             issuerMemberships: [
               {
                 issuerId: 'issuer-1',
@@ -669,6 +879,7 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
     email: 'issuer.admin@example.com',
     did: 'did:example:issuer-admin-demo',
     status: UserStatus.active,
+    displayLabel: 'Ada Lovelace',
     issuerMemberships: [
       {
         issuerId: 'issuer-1',
@@ -699,6 +910,9 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
         email: true,
         did: true,
         status: true,
+        displayName: true,
+        firstName: true,
+        lastName: true,
         issuerMemberships: {
           where: {
             status: IssuerMembershipStatus.active

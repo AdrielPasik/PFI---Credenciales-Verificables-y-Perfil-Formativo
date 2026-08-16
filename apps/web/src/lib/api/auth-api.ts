@@ -8,6 +8,8 @@ export interface LoginCommand {
 export interface RegisterCommand {
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
 }
 
 export async function loginRequest(command: LoginCommand) {

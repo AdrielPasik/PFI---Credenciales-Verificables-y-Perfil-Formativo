@@ -130,6 +130,86 @@ emision (`issueCredential`) hasta que se resuelva un mecanismo real y
 consciente de provisioning de DID -- decision pendiente, fuera de alcance
 de A1 (ver seccion 10 "Decisiones pendientes").
 
+## 2.4 Identidad humana del titular (A1.1)
+
+A1 dejo un gap de producto real: un holder auto-registrado no cargaba
+ningun nombre -- solo email+password. A1.1 lo resuelve reutilizando
+modelado que YA EXISTIA, sin migracion:
+
+- `User.firstName`/`User.lastName`/`User.displayName` (los tres `String?`)
+  ya estaban en `schema.prisma` antes de A1/A1.1 -- CASO A de la auditoria,
+  nunca hizo falta decidir entre `User` y un modelo `Person`/`Profile`
+  separado;
+- ya existia un helper canonico de proyeccion,
+  `services/api/src/issuers/holder-display-label.ts`
+  (`buildHolderDisplayLabel(displayName, firstName, lastName, email)`),
+  reusado ya por `issuer-holder-resolution.service.ts` (resolucion de
+  titular por email para el issuer) e
+  `issuer-credential-read.mapper.ts` (vista del issuer de una credencial
+  emitida). A1.1 reutiliza EXACTAMENTE esa misma funcion en
+  `AuthService`/`MeService` -- nunca una segunda implementacion de
+  "nombre + apellido" con reglas propias.
+- `POST /auth/register` ahora pide `firstName`+`lastName` (obligatorios,
+  solo trim + longitud maxima 100, sin restriccion de charset -- "José",
+  "María José", "O'Connor", "Jean-Pierre" son validos) y los persiste en
+  esos mismos campos. `displayName` NUNCA se escribe desde register --
+  sigue siendo un campo separado (hoy solo poblado por seeds/herramientas
+  futuras), asi que `buildHolderDisplayLabel` combina naturalmente
+  `firstName`+`lastName` para toda cuenta creada por A1.1.
+- `AuthUserResponseDto` (compartido por `POST /auth/login`,
+  `POST /auth/register` y `GET /auth/me`) gana `displayLabel: string` --
+  proyeccion segura, nunca `firstName`/`lastName` crudos en la respuesta
+  de auth. El frontend usa ese campo donde antes mostraba el email crudo
+  (cabecera de `WalletShell`/`ContextShell`/`IssuerShell`, via
+  `AccountMenu`) -- mismo componente compartido por holder e issuer,
+  mejora identica para ambos.
+- `MeService.getCredentialForUser` (el holder mirando su PROPIA
+  credencial) tenia una asimetria real: nunca combinaba
+  `firstName`/`lastName`, a diferencia de la vista del issuer para la
+  misma credencial. Corregida reusando el mismo helper -- self-view, sin
+  riesgo de privacidad nuevo (es el propio dato del holder autenticado).
+
+**El nombre nunca es un identificador tecnico.** La asociacion
+Credential↔holder sigue siendo exclusivamente `Credential.subjectUserId`
+(foreign key a `User.id`) -- confirmado por auditoria completa de
+`credentials.service.ts`, `credential-hashing.service.ts` y el shape de
+`credentialSubject` (JSON): ninguno almacena ni usa nombre humano. Dos
+`User` pueden compartir nombre y apellido sin ambiguedad porque la
+resolucion real (login, holder lookup del issuer, `subjectUserId`) nunca
+pasa por el nombre. `email` sigue siendo el unico canal de busqueda
+humano-amigable (`IssuerHolderResolutionService.resolveHolder`); `did`
+sigue siendo la identidad tecnica pendiente de A2.
+
+**`Credential` nunca snapshotea el nombre del titular.** No existe ningun
+campo en `Credential`/`credentialSubject` que copie
+`displayName`/`firstName`/`lastName` al emitir -- confirmado por
+auditoria. Por lo tanto, todo lugar que muestra el nombre de un titular
+para una credencial (vista issuer, vista holder, `/verify`, perfil
+publico) lo resuelve EN VIVO desde el `User` actual via `subjectUserId`,
+nunca desde un snapshot congelado. Si un `User` cambiara su nombre
+(edicion de perfil, fuera de alcance de A1.1), todas esas vistas
+mostrarian el nombre nuevo de inmediato -- no hay semantica historica que
+preservar ni que A1.1 pueda romper, porque nunca existio un snapshot.
+
+**Hallazgo de auditoria -- privacidad publica preexistente:**
+`GET /verify/credentials/:credentialId` y `GET /share/profile/:token` YA
+exponian `holder.displayLabel` (nombre combinado, sin fallback a email)
+ANTES de A1/A1.1 (`verification.service.ts`, `profile-sharing.service.ts`
+-- cada uno con su propia mini-implementacion del mismo concepto, nunca
+unificada con `holder-display-label.ts`; A1.1 audito la diferencia mas no
+la toco, ver razon en `api-contracts-v0.md`). A1.1 no cambia ese contrato
+ni agrega el campo -- ya estaba. Lo que SI cambia en la practica es que,
+antes de A1.1, casi ningun holder self-registrado tenia nombre cargado
+(A1 no lo pedia), asi que ese campo publico casi siempre devolvia `null`;
+a partir de A1.1, cualquier persona que complete su nombre en `/register`
+vera ese nombre reflejado en esas dos superficies publicas la primera vez
+que comparta una credencial o su perfil. Esto es una activacion de
+exposicion publica ya diseñada, no una ampliacion de superficie nueva --
+mantenida por decision explicita del diseño de A1.1 ("mantener el
+contrato actual"), pero documentada aca para que el equipo de producto la
+revise conscientemente si decide que amerita copy/consentimiento
+adicional en `/register` en un slice futuro.
+
 La emision ya aplica esta identidad:
 
 ```text

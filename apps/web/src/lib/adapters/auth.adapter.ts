@@ -52,7 +52,8 @@ function adaptUser(payload: unknown): AuthUserVM {
   return {
     userReference: requiredString(user.id),
     email: requiredString(user.email),
-    did: nullableString(user.did)
+    did: nullableString(user.did),
+    displayLabel: requiredString(user.displayLabel)
   };
 }
 

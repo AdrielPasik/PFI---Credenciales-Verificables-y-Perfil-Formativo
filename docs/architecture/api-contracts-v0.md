@@ -13,28 +13,34 @@
 ### `POST /auth/register`
 
 - Proposito: que una persona nueva cree su propia cuenta holder
-  (email+password) y quede autenticada de inmediato -- A1.
+  (nombre+apellido+email+password) y quede autenticada de inmediato --
+  A1/A1.1.
 - Actor: publico (sin `AuthGuard`).
-- Request: `{ email: string; password: string }`. `confirmPassword` nunca se
-  envia (validacion exclusivamente client-side). Cualquier otro campo
-  (`role`, `issuerId`, `did`, `status`, `isAdmin`, etc.) es ignorado -- el
-  backend nunca los lee.
+- Request: `{ firstName: string; lastName: string; email: string; password: string }`.
+  `confirmPassword` nunca se envia (validacion exclusivamente client-side).
+  Cualquier otro campo (`role`, `issuerId`, `did`, `status`, `isAdmin`,
+  `displayName`, etc.) es ignorado -- el backend nunca los lee. `firstName`/
+  `lastName` solo se validan como string no vacio (tras trim) con longitud
+  maxima de 100 caracteres -- sin restriccion de charset (nombres con
+  acentos, apostrofes o guiones son validos).
 - Response conceptual: identico shape que `POST /auth/login`
-  (`{ accessToken, user: { id, email, did, status } }`), firmado con el
-  mismo mecanismo JWT (mismo secret/expiration/claims). El frontend lo usa
-  para auto-login inmediato, reutilizando exactamente el flujo de sesion de
-  login (nunca un segundo mecanismo de auth).
-- Crea unicamente `User` (`status: active`) + `AuthCredential`
-  (`passwordHash`, nunca password plana) en una unica transaccion. `did`
-  queda `null` -- ver `auth-and-permissions-v0.md` seccion "Registro
+  (`{ accessToken, user: { id, email, did, status, displayLabel } }`),
+  firmado con el mismo mecanismo JWT (mismo secret/expiration/claims). El
+  frontend lo usa para auto-login inmediato, reutilizando exactamente el
+  flujo de sesion de login (nunca un segundo mecanismo de auth).
+- Crea unicamente `User` (`status: active`, `firstName`, `lastName`) +
+  `AuthCredential` (`passwordHash`, nunca password plana) en una unica
+  transaccion. `displayName` NUNCA se escribe desde register -- sigue
+  siendo un campo separado que solo pueblan seeds/herramientas futuras.
+  `did` queda `null` -- ver `auth-and-permissions-v0.md` seccion "Registro
   publico y DID" para la razon completa. Nunca crea `Issuer`,
   `IssuerMembership`, `Credential`, `FormativeProfile` ni ningun otro dato.
 - Password: politica minima (8-128 caracteres, cualquier caracter
   permitido, sin reglas de complejidad inventadas).
-- Errores esperados: `400` (email/password invalidos), `409` (el email ya
-  esta registrado -- cubre tambien la carrera de dos registros
-  concurrentes vía la unique constraint de `User.email`, nunca filtra
-  `P2002`/detalle de Prisma).
+- Errores esperados: `400` (nombre/apellido/email/password invalidos),
+  `409` (el email ya esta registrado -- cubre tambien la carrera de dos
+  registros concurrentes vía la unique constraint de `User.email`, nunca
+  filtra `P2002`/detalle de Prisma).
 - Estado: implementado.
 
 ### `GET /auth/me`
@@ -42,7 +48,8 @@
 - Proposito: devolver identidad y contexto basico del usuario autenticado.
 - Actor: `holder`, `issuer_admin`, `system_admin`.
 - Request conceptual: token de sesion o auth bearer.
-- Response conceptual: usuario autenticado y memberships activas. Cada
+- Response conceptual: usuario autenticado (incluye `displayLabel`, A1.1 --
+  ver mas abajo) y memberships activas. Cada
   membership incluye `issuerId`, `issuerName`, `issuerDid`,
   `issuerAuthorizationStatus`, `role` y `status`.
 - Errores esperados: `401 unauthorized`.
@@ -753,6 +760,10 @@ ni afirma que un draft este listo para emitir.
 - Request: path `credentialId`; no acepta canonical hash como identificador.
 - Response: DTO allowlisted con titulo/tipo, emisor y DID, titular minimo y
   DID, fechas, hash corto/version y ultimo registro tecnico seguro.
+  `holder.displayLabel` (nombre humano combinado, o `null` si el titular no
+  cargo nombre) es ese "titular minimo" -- campo YA existente antes de
+  A1/A1.1 (`verification.service.ts`), sin cambios de contrato. Nunca cae a
+  email en esta ruta (a diferencia de la proyeccion holder-safe interna).
 - Privacidad: `draft` se comporta como inexistente (`404` generico). Nunca
   expone email, `credentialSubject`, `rawData`, metadata, evidencia, analisis
   IA, rutas de storage, secretos ni datos de membership.
@@ -1062,6 +1073,18 @@ responder: reconstruir no habilita la exposición del snapshot interno.
 La Wallet carga el perfil y la biblioteca de credenciales como recursos
 independientes. Mientras no exista un mapeo seguro de procedencia, el contrato
 no afirma que una credencial individual haya sido fuente de un perfil concreto.
+
+### A1.1: identidad humana en `subject.displayLabel`
+
+`GET /me/credentials/:id` agrega `subject.displayLabel` (string, nunca
+`null` para un usuario activo) -- proyeccion combinada de
+`displayName`/`firstName`/`lastName` con fallback a `email`, calculada con
+el mismo helper (`buildHolderDisplayLabel`) que ya usaban
+`issuer-holder-resolution`/`issuer-credential-read`/`verification`. Antes
+de A1.1 esta vista (el holder mirando su propia credencial) solo exponia
+`subject.displayName` crudo, sin combinar `firstName`/`lastName` -- esa
+asimetria con la vista del issuer para la misma credencial quedo
+corregida. `subject.displayName` se conserva sin cambios (compatibilidad).
 
 ### C2c: horas oficiales y cobertura semantica
 
@@ -1865,3 +1888,11 @@ sin mostrar perfil ni interpretacion semantica. Pendiente todavia:
   12 habilidades, 20 conceptos y 10 credenciales `issued` con enlace a V1.
 - Excluye email, DID, rawData, perfiles completos, análisis raw, evidencia,
   storage paths y datos de membresía.
+- `holder.displayLabel` (nombre humano combinado si el titular lo cargó, o
+  `null` si no) es publico -- este campo YA existia antes de A1/A1.1
+  (`profile-sharing.service.ts`, gap de documentacion corregido aca, no un
+  cambio de contrato). A1.1 no lo modifica ni lo amplia; auditado y
+  documentado porque, al permitir que los usuarios carguen su nombre por
+  primera vez, este campo pasa de estar casi siempre vacío a mostrar datos
+  reales con mas frecuencia. Nunca cae a email (a diferencia de
+  `holder-display-label.ts`, usado solo en superficies autenticadas).

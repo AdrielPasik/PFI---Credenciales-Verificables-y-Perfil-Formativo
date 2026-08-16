@@ -20,6 +20,8 @@ interface RegisterFormProps {
 }
 
 interface FieldErrors {
+  firstName?: string;
+  lastName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
@@ -30,12 +32,18 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // -- feedback temprano en frontend, backend sigue siendo la autoridad real.
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 128;
+// A1.1: misma politica minima que el backend -- solo longitud maxima, sin
+// restriccion de charset (nombres con acentos, apostrofes o guiones deben
+// poder representarse tal cual).
+const MAX_NAME_LENGTH = 100;
 
 export function RegisterForm({
   initialFeedback = null,
   isSubmitting,
   onSubmit
 }: RegisterFormProps) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,6 +52,8 @@ export function RegisterForm({
   const [feedback, setFeedback] = useState<AuthFeedback | null>(
     initialFeedback
   );
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
@@ -51,7 +61,21 @@ export function RegisterForm({
 
   function validate() {
     const nextErrors: FieldErrors = {};
+    const normalizedFirstName = firstName.trim().replace(/\s+/g, ' ');
+    const normalizedLastName = lastName.trim().replace(/\s+/g, ' ');
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedFirstName) {
+      nextErrors.firstName = 'Ingresá tu nombre.';
+    } else if (normalizedFirstName.length > MAX_NAME_LENGTH) {
+      nextErrors.firstName = `El nombre no puede superar los ${MAX_NAME_LENGTH} caracteres.`;
+    }
+
+    if (!normalizedLastName) {
+      nextErrors.lastName = 'Ingresá tu apellido.';
+    } else if (normalizedLastName.length > MAX_NAME_LENGTH) {
+      nextErrors.lastName = `El apellido no puede superar los ${MAX_NAME_LENGTH} caracteres.`;
+    }
 
     if (!normalizedEmail) {
       nextErrors.email = 'Ingresá tu correo electrónico.';
@@ -76,7 +100,11 @@ export function RegisterForm({
 
     setFieldErrors(nextErrors);
 
-    if (nextErrors.email) {
+    if (nextErrors.firstName) {
+      firstNameRef.current?.focus();
+    } else if (nextErrors.lastName) {
+      lastNameRef.current?.focus();
+    } else if (nextErrors.email) {
       emailRef.current?.focus();
     } else if (nextErrors.password) {
       passwordRef.current?.focus();
@@ -86,6 +114,8 @@ export function RegisterForm({
 
     return {
       valid: Object.keys(nextErrors).length === 0,
+      normalizedFirstName,
+      normalizedLastName,
       normalizedEmail
     };
   }
@@ -100,9 +130,12 @@ export function RegisterForm({
       return;
     }
 
-    // A1: unicamente email/password llegan al backend -- confirmPassword
-    // nunca se envia ni se persiste fuera del state local de este form.
+    // A1/A1.1: unicamente nombre/apellido/email/password llegan al backend
+    // -- confirmPassword nunca se envia ni se persiste fuera del state
+    // local de este form.
     const nextFeedback = await onSubmit({
+      firstName: validation.normalizedFirstName,
+      lastName: validation.normalizedLastName,
       email: validation.normalizedEmail,
       password
     });
@@ -131,6 +164,38 @@ export function RegisterForm({
         </div>
       ) : null}
 
+      <div className="grid gap-6 sm:grid-cols-2">
+        <TextField
+          ref={firstNameRef}
+          id="register-first-name"
+          label="Nombre"
+          type="text"
+          autoComplete="given-name"
+          value={firstName}
+          onChange={(event) => {
+            setFirstName(event.target.value);
+            setFieldErrors((current) => ({ ...current, firstName: undefined }));
+          }}
+          error={fieldErrors.firstName}
+          disabled={isSubmitting}
+          autoFocus
+        />
+        <TextField
+          ref={lastNameRef}
+          id="register-last-name"
+          label="Apellido"
+          type="text"
+          autoComplete="family-name"
+          value={lastName}
+          onChange={(event) => {
+            setLastName(event.target.value);
+            setFieldErrors((current) => ({ ...current, lastName: undefined }));
+          }}
+          error={fieldErrors.lastName}
+          disabled={isSubmitting}
+        />
+      </div>
+
       <TextField
         ref={emailRef}
         id="register-email"
@@ -145,7 +210,6 @@ export function RegisterForm({
         }}
         error={fieldErrors.email}
         disabled={isSubmitting}
-        autoFocus
       />
 
       <div className="relative">
