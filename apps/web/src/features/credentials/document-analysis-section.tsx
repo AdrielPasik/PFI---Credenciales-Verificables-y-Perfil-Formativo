@@ -50,7 +50,7 @@ export function DocumentAnalysisSection({
       <Card className="overflow-hidden border-border-strong shadow-none">
         <div aria-hidden="true" className="h-1 bg-status-analysis" />
         <CardHeader className="gap-5 border-b border-border-default sm:flex-row sm:items-start sm:justify-between sm:p-8 sm:pb-6">
-          <div className="max-w-3xl">
+          <div className="max-w-5xl">
             <p className="flex items-center gap-2 text-sm font-semibold text-teal-700">
               <BrainCircuit aria-hidden="true" className="size-4" />
               Análisis formativo asistido

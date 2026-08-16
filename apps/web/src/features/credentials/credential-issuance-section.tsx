@@ -261,7 +261,7 @@ function IssuancePreparation({
           Revisá el estado actual antes de confirmar la emisión.
         </p>
       </div>
-      <dl className="grid gap-3 text-sm sm:grid-cols-2">
+      <dl className="grid gap-3 text-sm">
         <PreparationItem label="Estado" value="Borrador listo para revisar" />
         <PreparationItem label="Tipo" value={detail.typeLabel} />
         <PreparationItem label="Titular" value={detail.holder.displayLabel} />

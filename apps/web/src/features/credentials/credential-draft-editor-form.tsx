@@ -288,7 +288,7 @@ export function CredentialDraftEditorForm({
 
   return (
     <section aria-labelledby="draft-editor-title" className="grid gap-6">
-      <div className="max-w-3xl">
+      <div className="max-w-5xl">
         <p className="text-sm font-semibold text-teal-700">
           Completar borrador
         </p>

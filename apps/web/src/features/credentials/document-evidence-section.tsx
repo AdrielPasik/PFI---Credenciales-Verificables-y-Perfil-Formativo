@@ -147,7 +147,7 @@ export function DocumentEvidenceSection({
       aria-labelledby="document-evidence-title"
       className="grid gap-6"
     >
-      <div className="max-w-3xl">
+      <div className="max-w-5xl">
         <h2
           id="document-evidence-title"
           className="mt-2 text-2xl font-bold tracking-tight text-text-strong"

@@ -691,8 +691,8 @@ export function CredentialDetailView({
   );
 
   return (
-    <div className="grid gap-8">
-      <header className="max-w-4xl">
+    <div className="grid gap-10">
+      <header className="max-w-5xl">
         <Link
           href="/issuer"
           className="text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
@@ -714,10 +714,10 @@ export function CredentialDetailView({
             Registro institucional
           </span>
         </div>
-        <h1 className="mt-4 max-w-3xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl">
+        <h1 className="mt-4 max-w-5xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl">
           {detail.title}
         </h1>
-        <p className="mt-4 max-w-2xl leading-7 text-text-muted">
+        <p className="mt-4 max-w-4xl leading-7 text-text-muted">
           {isDraft
             ? 'Este borrador conserva los datos iniciales y todavía no fue emitido.'
             : 'Esta credencial ya no está en estado borrador. Las operaciones posteriores quedan fuera de este flujo.'}
@@ -784,8 +784,8 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.55fr)]">
-        <div className="grid gap-10">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(20rem,0.5fr)] xl:grid-cols-[minmax(0,1.65fr)_minmax(22rem,0.55fr)] xl:gap-10">
+        <div className="grid gap-8 xl:gap-10">
           <Card className="overflow-hidden border-border-strong">
           <div aria-hidden="true" className="h-1 bg-brand-700" />
           <CardHeader className="gap-2 sm:p-8 sm:pb-6">

@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 import { cn } from '@/lib/utils';
 
 interface BrandMarkProps {
@@ -18,19 +16,13 @@ export function BrandMark({
       aria-label="Traza"
       className={cn('flex min-w-0 items-center gap-3', className)}
     >
-      <span aria-hidden="true" className="relative block size-9 shrink-0 overflow-hidden">
-        <Image
-          alt=""
-          className={cn(
-            'absolute top-[-0.2rem] left-[-0.65rem] max-w-none w-14',
-            tone === 'inverse' && 'brightness-0 invert'
-          )}
-          height={56}
-          priority
-          src="/brand/LOGO TRAZA SIN FONDO.png"
-          width={56}
-        />
-      </span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          'size-2 shrink-0 rounded-pill bg-brand-accent ring-4',
+          tone === 'inverse' ? 'ring-white/10' : 'ring-brand-accent/10'
+        )}
+      />
       <span
         className={cn(
           'text-xl font-bold tracking-tight',

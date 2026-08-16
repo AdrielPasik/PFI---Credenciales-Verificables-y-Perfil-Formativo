@@ -80,7 +80,7 @@
      wallet del titular). Un ancho mayor especifico del portal emisor
      evita el efecto "mobile en desktop" en /issuer/credentials/new y
      /issuer/credentials/[credentialId] sin afectar otras pantallas. */
-  --traza-issuer-reading-width: 90rem;
+  --traza-issuer-reading-width: 96rem;
   --traza-font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
