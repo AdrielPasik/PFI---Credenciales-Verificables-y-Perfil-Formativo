@@ -89,9 +89,14 @@ Quedan prohibidos:
 
 ## 7. Marca
 
-`BrandMark` es actualmente un wordmark textual temporal. El logo definitivo se
-integrará como una decisión separada. Ningún layout debe depender del asset
-provisional.
+`BrandMark` integra la marca aprobada según la superficie. Usa
+`LOGO TRAZA SIN FONDO.png` en superficies claras que solicitan el logo normal
+y `LOGO-TRAZA-FONDO-AZUL.png` en shells autenticados navy. El wordmark textual
+permanece como fallback accesible para contextos que no soliciten asset.
+
+Los layouts no deben depender de recortes, offsets negativos, filtros de
+inversión ni de dimensiones intrínsecas del PNG: las variantes se renderizan
+completas con `object-contain`.
 
 ## 8. Dirección artística de Traza
 

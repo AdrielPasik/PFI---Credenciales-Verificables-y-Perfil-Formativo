@@ -108,25 +108,29 @@ Razones:
 - conecta trayectoria y trazabilidad;
 - no limita el producto solo a credenciales.
 
-### Logo y wordmark provisional
+### Logo y wordmark
 
-No existe todavía un logo gráfico final aprobado.
+Traza cuenta con assets gráficos aprobados para la implementación frontend,
+ubicados en `apps/web/public/brand`:
 
-Para v0:
+- `LOGO TRAZA SIN FONDO.png`: logo transparente para superficies claras, como
+  Login y Verificación pública;
+- `LOGO-TRAZA-FONDO-AZUL.png`: variante preparada para headers navy de áreas
+  autenticadas, como Portal del emisor y Wallet;
+- `traza-logo.png`: asset histórico de referencia; no reemplaza las variantes
+  de superficie ya integradas.
 
-- usar `Traza` como wordmark tipográfico con Inter `700`;
-- usar el wordmark textual en encabezados, login y navegación mientras no
-  exista un asset aprobado;
-- no inventar isotipos complejos, escudos, NFT, certificados, cadenas,
-  hexágonos o logos blockchain;
-- no generar un SVG de marca definitivo durante la implementación de una
-  pantalla;
-- tratar cualquier símbolo futuro como una decisión separada que requiere
-  aprobación.
+Reglas de uso:
 
-Un símbolo futuro puede explorar un trazo continuo, dos nodos conectados o un
-recorrido. Esta dirección es exploratoria y no autoriza a Codex a crear un
-logo definitivo.
+- preservar siempre la proporción completa con `object-contain`;
+- no recortar el símbolo, aplicar offsets negativos ni filtros de inversión;
+- usar la variante de superficie correcta, sin reutilizar la versión clara en
+  un header navy;
+- `BrandMark` puede conservar el wordmark textual `Traza` como fallback
+  accesible en contextos donde no se solicite un asset, pero no representa una
+  ausencia de logo;
+- no inventar isotipos, SVGs, escudos, NFT, certificados, cadenas, hexágonos
+  ni logos blockchain adicionales durante la implementación.
 
 ### Descriptor
 
@@ -1762,7 +1766,8 @@ Defaults obligatorios:
 - wallet holder mobile-first;
 - verificador público mobile-first, responsive y focal;
 - locale inicial `es-AR`;
-- wordmark textual `Traza` con Inter `700` hasta aprobar un logo;
+- assets de logo Traza según superficie, con wordmark textual accesible como
+  fallback de `BrandMark`;
 - sin dark mode en MVP;
 - sin MetaMask para holder;
 - sin gradientes dominantes;
@@ -1791,7 +1796,8 @@ Toda pantalla o componente nuevo debe pasar este checklist:
 - usa Traza correctamente;
 - respeta tagline y tono;
 - no introduce identidad alternativa;
-- usa el wordmark textual mientras no exista un logo aprobado.
+- usa el asset Traza aprobado para la superficie correspondiente o el fallback
+  textual accesible de `BrandMark` cuando el contexto no requiera imagen.
 
 ### Color
 

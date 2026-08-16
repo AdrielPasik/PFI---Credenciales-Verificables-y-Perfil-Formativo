@@ -537,7 +537,7 @@ seguro.
 |---|---|---|---|---|
 | Portal del Emisor | `/issuer` | Inicio; Credenciales solo cuando exista listado | Identidad, contexto institucional y cerrar sesión | Crear credencial |
 | Wallet y Perfil | `/wallet/credentials` | Mis credenciales; Perfil formativo | Cuenta y cerrar sesión | Abrir credencial o construir perfil |
-| Verificador Público | `/verify` o deep link | Sin navegación de aplicación | Wordmark y volver a verificar | Verificar un ID |
+| Verificador Público | `/verify` o deep link | Sin navegación de aplicación | Logo Traza para superficie clara y volver a verificar | Verificar un ID |
 
 En el MVP parcial del emisor, `Credenciales` no debe aparecer como lista
 funcional hasta que exista su endpoint. El detalle se alcanza desde el draft
@@ -1058,7 +1058,7 @@ No inferir invalidez cuando falta evidencia.
 
 ### Elementos compartidos
 
-- wordmark Traza;
+- marca Traza mediante asset de superficie o fallback textual accesible;
 - sistema visual;
 - acceso al contexto actual;
 - identidad de sesión en áreas autenticadas;
@@ -1087,7 +1087,7 @@ Perfil formativo
 
 ### Verificador
 
-Sin navegación de aplicación. Mantiene wordmark, volver a verificar y contexto
+Sin navegación de aplicación. Mantiene la marca Traza, volver a verificar y contexto
 del resultado.
 
 ### Cambio de contexto futuro
@@ -1106,7 +1106,7 @@ No implementarlo hasta disponer de:
 
 ### Elementos que permanecen
 
-- wordmark;
+- marca Traza;
 - paleta y tipografía;
 - terminología visible;
 - cards de credencial;

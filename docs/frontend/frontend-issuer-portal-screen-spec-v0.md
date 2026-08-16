@@ -256,7 +256,7 @@ segura.
 | Entrada | Navegación directa, redirect de ruta protegida o sesión expirada |
 | Salida | `/issuer` o `/wallet/credentials` |
 | Modelos | `LoginFormModel`, `LoginCommand`, `SessionVM`, `FeedbackErrorVM`, `AsyncActionStateVM` |
-| Componentes | `AuthLayout`, wordmark textual, `LoginForm`, `FormField`, `TextInput`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
+| Componentes | `AuthLayout`, logo Traza para superficie clara, `LoginForm`, `FormField`, `TextInput`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
 
 No requiere un `ProductHeader` completo. `AuthLayout` ofrece una composición
 focal y mínima.
@@ -265,7 +265,7 @@ focal y mínima.
 
 | Orden | Región | Componente o contenido | Responsabilidad |
 |---:|---|---|---|
-| 1 | Marca | Wordmark textual `Traza` | Identificar el producto |
+| 1 | Marca | Logo Traza para superficie clara | Identificar el producto |
 | 2 | Mensaje | Tagline institucional | Explicar propósito |
 | 3 | Encabezado | Título de acceso | Nombrar la tarea |
 | 4 | Formulario | `LoginForm` | Capturar email y password |
@@ -356,7 +356,7 @@ asume un usuario con exactamente una membership operativa.
 
 - columna focal;
 - campos y CTA con target táctil;
-- wordmark y tagline legibles;
+- logo Traza y tagline legibles;
 - sin header sobredimensionado;
 - sin contenido decorativo que desplace el formulario;
 - ancho de lectura contenido en desktop.
@@ -400,7 +400,7 @@ todavía no están implementados.
 
 ### Contenido permitido
 
-- wordmark;
+- marca Traza para header navy;
 - identidad de sesión;
 - rol operativo cuando aporte claridad;
 - contexto institucional seguro;
@@ -1180,7 +1180,7 @@ Los action states no reemplazan el estado general de la página.
 
 - columna focal;
 - campos y CTA táctiles;
-- wordmark y tagline legibles;
+- logo Traza y tagline legibles;
 - sin header sobredimensionado.
 
 ### `/issuer`
