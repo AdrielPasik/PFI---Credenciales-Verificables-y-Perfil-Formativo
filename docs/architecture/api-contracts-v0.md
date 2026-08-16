@@ -32,9 +32,16 @@
   `AuthCredential` (`passwordHash`, nunca password plana) en una unica
   transaccion. `displayName` NUNCA se escribe desde register -- sigue
   siendo un campo separado que solo pueblan seeds/herramientas futuras.
-  `did` queda `null` -- ver `auth-and-permissions-v0.md` seccion "Registro
-  publico y DID" para la razon completa. Nunca crea `Issuer`,
-  `IssuerMembership`, `Credential`, `FormativeProfile` ni ningun otro dato.
+  Nunca crea `Issuer`, `IssuerMembership`, `Credential`,
+  `FormativeProfile` ni ningun otro dato.
+- **A2.1**: `did` queda `null` si `PUBLIC_DID_BASE_URL` no esta
+  configurada (comportamiento identico a A1/A1.1 -- ver
+  `auth-and-permissions-v0.md` seccion "Registro publico y DID"); si esta
+  configurada, se provisiona automaticamente un `did:web` dentro de la
+  misma transaccion y `did` viene en la response. Nunca controlado por el
+  cliente -- cualquier `did` enviado en el body es ignorado, igual que
+  `role`/`issuerId`/`status`. Ver seccion 2.5 de `auth-and-permissions-v0.md`
+  y `docs/decisions/0015-holder-did-method.md`.
 - Password: politica minima (8-128 caracteres, cualquier caracter
   permitido, sin reglas de complejidad inventadas).
 - Errores esperados: `400` (nombre/apellido/email/password invalidos),
@@ -54,6 +61,30 @@
   `issuerAuthorizationStatus`, `role` y `status`.
 - Errores esperados: `401 unauthorized`.
 - Estado: implementado, demo-grade.
+
+### `GET /did/users/:userId/did.json` (A2.1)
+
+- Proposito: resolver el DID Document de un holder con `did:web`
+  provisionado -- endpoint de resolucion DID estandar, no una API de
+  perfil de usuario. Namespace deliberadamente distinto de
+  `GET /users/:id` (ver abajo, `future`) -- nunca expone un `User`
+  completo.
+- Actor: publico (sin `AuthGuard` -- resolucion `did:web` es por
+  definicion publica).
+- Request conceptual: path `userId` (el `User.id` interno).
+- Response conceptual (solo si `User.did` existe y corresponde
+  exactamente a `userId`):
+  `{ "@context": "https://www.w3.org/ns/did/v1", "id": "<User.did>" }`.
+  Sin `verificationMethod` (ver `docs/decisions/0015-holder-did-method.md`
+  para el chequeo normativo). Nunca incluye email, nombre, apellido,
+  displayName, status ni credenciales.
+- Errores esperados: `404` -- usuario inexistente, `User.did` nulo, o el
+  DID persistido no es exactamente un `did:web` para ese `userId` (por
+  ejemplo un `did:example:*` de seed). Nunca transforma o inventa un
+  documento; nunca provisiona (solo lee `User.did` ya persistido -- el
+  provisioning ocurre en `POST /auth/register` o de forma perezosa en la
+  emision, ver seccion 2.5 de `auth-and-permissions-v0.md`).
+- Estado: implementado.
 
 ### `GET /users/:id`
 
@@ -344,7 +375,11 @@
   issuer devuelve el mismo `404`.
 - Dominio: reutiliza `CredentialsService.issueCredential`; conserva los
   requisitos de estado `draft`, DID del holder, DID/wallet del issuer,
-  canonizacion y registro de evidencia configurado.
+  canonizacion y registro de evidencia configurado. **A2.1**: si el
+  titular no tiene DID (`did = null`), se intenta provisionar uno de forma
+  perezosa (`ensureDidForUser`) DESPUES de superar autenticacion/
+  membership/estado del issuer -- si `PUBLIC_DID_BASE_URL` no esta
+  configurada, la emision falla exactamente igual que antes de A2.1.
 - Response `200 OK`: el mismo read model issuer-facing de GET, ya con estado,
   fecha, hash canonico, version y evidencia tecnica cuando la transaccion se
   completa.

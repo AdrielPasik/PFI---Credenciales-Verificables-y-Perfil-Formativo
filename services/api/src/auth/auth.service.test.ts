@@ -44,6 +44,9 @@ function createRegisterPrismaDouble() {
   const issuerMembershipCreateCalls: unknown[] = [];
   let nextId = 1;
 
+  const userFindUniqueByIdCalls: Array<Record<string, unknown>> = [];
+  const userUpdateManyCalls: Array<Record<string, unknown>> = [];
+
   const transactionClient = {
     user: {
       async create(args: {
@@ -54,7 +57,10 @@ function createRegisterPrismaDouble() {
         }
 
         const created = {
-          id: `user-${nextId++}`,
+          // A2.1: buildDidForUser exige un userId con forma de UUID (como
+          // los que genera Prisma en produccion) -- el fake tambien debe
+          // producir un id valido para ejercitar el path de provisioning.
+          id: `11111111-1111-4111-8111-${String(nextId++).padStart(12, '0')}`,
           email: args.data.email,
           did: null,
           status: args.data.status,
@@ -64,6 +70,28 @@ function createRegisterPrismaDouble() {
         };
         users.push(created);
         return created;
+      },
+      // A2.1: usados por ensureDidForUser dentro de la misma transaccion
+      // de register (ver ensure-did-for-user.ts).
+      async findUnique(args: { where: { id: string } }) {
+        userFindUniqueByIdCalls.push(args);
+        return users.find((user) => user.id === args.where.id) ?? null;
+      },
+      async updateMany(args: {
+        where: { id: string; did: null };
+        data: { did: string };
+      }) {
+        userUpdateManyCalls.push(args);
+        const target = users.find(
+          (user) => user.id === args.where.id && user.did === null
+        );
+
+        if (!target) {
+          return { count: 0 };
+        }
+
+        target.did = args.data.did;
+        return { count: 1 };
       }
     },
     authCredential: {
@@ -87,11 +115,32 @@ function createRegisterPrismaDouble() {
       }
     },
     async $transaction(callback: (tx: typeof transactionClient) => Promise<unknown>) {
-      return callback(transactionClient);
+      // Simula rollback real de Postgres: si el callback lanza (por
+      // ejemplo, ensureDidForUser rechazando una PUBLIC_DID_BASE_URL
+      // invalida), las filas que ya se habian "insertado" en este fake
+      // dentro de la transaccion se deshacen -- nunca queda un User o un
+      // AuthCredential huerfano (ver seccion 14/"atomicidad" del diseno).
+      const usersSnapshot = users.length;
+      const authCredentialsSnapshot = authCredentials.length;
+
+      try {
+        return await callback(transactionClient);
+      } catch (error) {
+        users.length = usersSnapshot;
+        authCredentials.length = authCredentialsSnapshot;
+        throw error;
+      }
     }
   };
 
-  return { prisma, users, authCredentials, issuerMembershipCreateCalls };
+  return {
+    prisma,
+    users,
+    authCredentials,
+    issuerMembershipCreateCalls,
+    userFindUniqueByIdCalls,
+    userUpdateManyCalls
+  };
 }
 
 function createJwtServiceStub() {
@@ -648,6 +697,20 @@ test('K: a User created via register can immediately log in with the same email/
               };
               users.push(created);
               return created;
+            },
+            async findUnique(args: { where: { id: string } }) {
+              return users.find((user) => user.id === args.where.id) ?? null;
+            },
+            async updateMany(args: {
+              where: { id: string; did: null };
+              data: { did: string };
+            }) {
+              const target = users.find(
+                (user) => user.id === args.where.id && user.did === null
+              );
+              if (!target) return { count: 0 };
+              target.did = args.data.did;
+              return { count: 1 };
             }
           },
           authCredential: {
@@ -718,6 +781,20 @@ test('L: a User created via register fails to log in with an incorrect password'
               };
               users.push(created);
               return created;
+            },
+            async findUnique(args: { where: { id: string } }) {
+              return users.find((user) => user.id === args.where.id) ?? null;
+            },
+            async updateMany(args: {
+              where: { id: string; did: null };
+              data: { did: string };
+            }) {
+              const target = users.find(
+                (user) => user.id === args.where.id && user.did === null
+              );
+              if (!target) return { count: 0 };
+              target.did = args.data.did;
+              return { count: 1 };
             }
           },
           authCredential: {
@@ -1131,4 +1208,105 @@ test('AuthService.getCurrentUserProfile excludes pending and revoked memberships
       status: IssuerMembershipStatus.active
     }
   ]);
+});
+
+// ---------------------------------------------------------------------------
+// A2.1: provisioning automatico de did:web dentro de la misma transaccion de
+// register (ver ensure-did-for-user.ts). Reutiliza createRegisterPrismaDouble,
+// ya extendido con user.findUnique(by id)/updateMany para soportar
+// ensureDidForUser.
+// ---------------------------------------------------------------------------
+
+function withDidBaseUrl<T>(value: string | undefined, run: () => Promise<T>) {
+  const original = process.env.PUBLIC_DID_BASE_URL;
+
+  if (value === undefined) {
+    delete process.env.PUBLIC_DID_BASE_URL;
+  } else {
+    process.env.PUBLIC_DID_BASE_URL = value;
+  }
+
+  return run().finally(() => {
+    if (original === undefined) {
+      delete process.env.PUBLIC_DID_BASE_URL;
+    } else {
+      process.env.PUBLIC_DID_BASE_URL = original;
+    }
+  });
+}
+
+test('A2.1/A: register provisions a did:web and returns it in the auth response when PUBLIC_DID_BASE_URL is configured', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    const response = await service.register({
+      email: 'persona@example.com',
+      password: 'CorrectHorse123',
+      firstName: 'Ada',
+      lastName: 'Lovelace'
+    });
+
+    assert.equal(users.length, 1);
+    assert.equal(users[0].did, `did:web:api.traza.example:did:users:${users[0].id}`);
+    assert.equal(response.user.did, users[0].did);
+  });
+});
+
+test('A2.1/B: register keeps did=null when PUBLIC_DID_BASE_URL is not configured, exactly as before A2.1', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await withDidBaseUrl(undefined, async () => {
+    const response = await service.register({
+      email: 'persona@example.com',
+      password: 'CorrectHorse123',
+      firstName: 'Ada',
+      lastName: 'Lovelace'
+    });
+
+    assert.equal(users[0].did, null);
+    assert.equal(response.user.did, null);
+  });
+});
+
+test('A2.1/D: a client-supplied did is still ignored even when provisioning is active -- the server always derives it from the new userId', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    const response = await service.register({
+      email: 'persona@example.com',
+      password: 'CorrectHorse123',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      did: 'did:example:spoofed-by-client'
+    } as never);
+
+    assert.notEqual(response.user.did, 'did:example:spoofed-by-client');
+    assert.equal(response.user.did, `did:web:api.traza.example:did:users:${users[0].id}`);
+  });
+});
+
+test('A2.1/E: an invalid PUBLIC_DID_BASE_URL fails the whole registration -- no User/AuthCredential left behind', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, users, authCredentials } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await withDidBaseUrl('http://not-https.example', async () => {
+    await assert.rejects(
+      service.register({
+        email: 'persona@example.com',
+        password: 'CorrectHorse123',
+        firstName: 'Ada',
+        lastName: 'Lovelace'
+      })
+    );
+  });
+
+  assert.equal(users.length, 0);
+  assert.equal(authCredentials.length, 0);
 });

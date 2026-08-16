@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { IssuerMembershipStatus, Prisma, UserStatus } from '@prisma/client';
 
+import { ensureDidForUser } from '../identity/ensure-did-for-user';
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
@@ -171,7 +172,16 @@ export class AuthService {
           }
         });
 
-        return createdUser;
+        // A2.1: provisioning automatico y atomico dentro de la misma
+        // transaccion -- si PUBLIC_DID_BASE_URL esta configurada, el
+        // holder queda con did:web listo para recibir una Credential sin
+        // necesidad de conocer/operar su DID. Si no esta configurada,
+        // ensureDidForUser devuelve null y el registro sigue funcionando
+        // con did=null exactamente como en A1/A1.1 -- nunca un DID
+        // inventado. Ver ensure-did-for-user.ts.
+        const did = await ensureDidForUser(transaction, createdUser.id);
+
+        return { ...createdUser, did };
       });
     } catch (error) {
       if (isUniqueConstraintViolation(error)) {

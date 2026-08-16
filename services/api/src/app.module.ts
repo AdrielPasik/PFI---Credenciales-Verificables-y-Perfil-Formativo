@@ -8,6 +8,7 @@ import { CatalogModule } from './catalog/catalog.module';
 import { CredentialsModule } from './credentials/credentials.module';
 import { DocumentEvidenceModule } from './document-evidence/document-evidence.module';
 import { HealthController } from './health/health.controller';
+import { IdentityModule } from './identity/identity.module';
 import { IssuerCourseTemplatesModule } from './issuer-course-templates/issuer-course-templates.module';
 import { IssuersModule } from './issuers/issuers.module';
 import { MeModule } from './me/me.module';
@@ -25,6 +26,7 @@ import { VerificationModule } from './verification/verification.module';
     AnalysisRunModule,
     AiModule,
     AuthModule,
+    IdentityModule,
     MeModule,
     ProfilesModule,
     ProfileSharingModule,

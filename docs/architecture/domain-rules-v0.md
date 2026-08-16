@@ -39,6 +39,8 @@ email String? @unique
 
 - la obligatoriedad se resolvera por logica de emision, no por constraint general del usuario;
 - los DTOs y servicios de emision deberan validar identidad verificable del titular antes de emitir.
+- **A2.1**: la estrategia de provisioning quedo resuelta (`did:web`
+  platform-managed, condicional a `PUBLIC_DID_BASE_URL`) -- ver seccion 27.
 
 ## 3. Issuer.did
 
@@ -1740,3 +1742,73 @@ modelo `Person`/`Profile` separado, ni migracion nueva).
   `verification.service.ts` y `profile-sharing.service.ts`, cada una con
   su propia regla de fallback a email por razones de privacidad
   deliberadas -- unificarlas exigiria una decision de diseño aparte).
+
+## 27. A2.1 — Provisioning canonico de DID para holders (did:web)
+
+Decision arquitectonica cerrada en A2.0
+(`docs/decisions/0015-holder-did-method.md`), implementada en A2.1.
+
+- **Metodo**: `did:web`, platform-managed. El holder nunca posee ni opera
+  una clave privada; Traza es el unico controlador. Nunca se usa lenguaje
+  de "identidad autosoberana" -- seria falso dado que no hay ninguna clave
+  del holder involucrada.
+- **Forma**: `did:web:<host>:did:users:<userId>`, resoluble en
+  `https://<host>/did/users/<userId>/did.json`. `<host>` proviene
+  exclusivamente de `PUBLIC_DID_BASE_URL` (nunca del `Host` header, nunca
+  de `NEXT_PUBLIC_API_URL`, nunca inferido en tiempo de lectura).
+  `<userId>` es siempre `User.id` -- nunca `firstName`/`lastName`/
+  `displayName`/`email`. Cambiar nombre o email de un `User` nunca cambia
+  su DID.
+- **Write-once**: `User.did` no-null nunca se recalcula ni se
+  sobreescribe. Ni un cambio de `PUBLIC_DID_BASE_URL`, ni un retry, ni una
+  emision posterior, ni una condicion de carrera pueden reemplazar un DID
+  ya persistido. Concurrencia resuelta mediante UPDATE condicional
+  (`WHERE did IS NULL`) + relectura del valor realmente persistido por
+  quien pierde la carrera -- nunca dos DIDs logicos para el mismo `User`,
+  nunca overwrite.
+- **Cuando se provisiona**: automaticamente en `POST /auth/register`
+  (dentro de la misma transaccion atomica que crea `User`+
+  `AuthCredential` -- si el provisioning falla por configuracion invalida,
+  toda la transaccion se revierte, nunca queda una cuenta a medio crear) y
+  de forma perezosa en `issueCredential` para holders legacy con
+  `did = null`. En ambos casos, unica implementacion compartida:
+  `ensureDidForUser` (`services/api/src/identity/ensure-did-for-user.ts`).
+- **Orden de side effects en emision**: el provisioning perezoso ocurre
+  DESPUES de superar autenticacion, membership del issuer, rol y estado
+  `authorized` del issuer -- nunca antes. Una emision que de todas formas
+  iba a ser rechazada nunca tiene el side effect de tocar `User.did`.
+- **Sin PUBLIC_DID_BASE_URL configurada**: comportamiento identico a
+  A1/A1.1 en todo -- `register` sigue creando el `User` con `did: null`,
+  `issueCredential` sigue rechazando con el mismo
+  `BadRequestException` ya existente. Nunca se inventa un DID falso ni se
+  trata una configuracion ausente distinto de una configuracion invalida
+  (invalida = falla clara, nunca silenciosa).
+- **DID Document minimo**: `{ "@context": "https://www.w3.org/ns/did/v1", "id": "..." }`,
+  sin `verificationMethod` -- respaldado por chequeo normativo contra W3C
+  DID Core 1.0 (`verificationMethod` es `OPTIONAL`; la unica propiedad
+  requerida del modelo de datos es `id`) documentado en ADR 0015. Sin PII:
+  nunca email/nombre/apellido/displayName/status/credenciales.
+- **Resolver publico**: `GET /did/users/:userId/did.json`, sin
+  `@UseGuards`, exclusivamente de lectura -- nunca provisiona, nunca muta
+  `User`. `User.did` es la unica autoridad: el resolver nunca recalcula
+  contra la configuracion actual ni transforma silenciosamente un
+  `did:example` de seed, un `did` nulo, o un DID de otro `userId` en un
+  documento inventado -- responde `404` en esos casos.
+- **`Credential` no snapshotea el DID de emision**: dado el invariante
+  write-once, el DID leido hoy de `User` es, por construccion, el mismo
+  que participo en el `canonicalHash` de cualquier Credential ya emitida
+  a ese holder. No se agrega `subjectDidAtIssuance` ni ningun otro campo
+  nuevo a `Credential`. Si en el futuro se permite rotar el DID de un
+  holder, esta garantia deja de sostenerse y debera reconsiderarse.
+- **`canon_v1` sin cambios**: A2.1 solo garantiza que
+  `subjectUser.did` tenga un valor antes de canonizar -- el DID sigue
+  participando en el hash exactamente donde ya participaba (no se agrega
+  ningun campo nuevo al proyecto canonico por A2.1).
+- **`Issuer.did` fuera de alcance**: issuer y holder pueden evolucionar
+  con metodos DID distintos; A2.1 no toca `Issuer.did` ni el flujo de
+  autorizacion institucional.
+- **Migracion de host**: un DID provisionado bajo un host queda fijo a ese
+  host para siempre, aunque `PUBLIC_DID_BASE_URL` cambie despues. Si en el
+  futuro se migra de dominio, la resolucion de DIDs historicos es
+  responsabilidad de infraestructura (mantener el host anterior resolviendo)
+  o de una migracion explicita en un slice futuro -- A2.1 no la resuelve.

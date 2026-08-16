@@ -38,6 +38,17 @@ Alcance actual:
   crudos. Ver `docs/architecture/auth-and-permissions-v0.md` seccion 2.4
   para el detalle completo (incluye un hallazgo de auditoria sobre
   `/verify`/`/share` publico, sin cambios de contrato);
+- **A2.1**: `POST /auth/register` provisiona automaticamente un
+  `did:web` platform-managed (dentro de la misma transaccion que crea
+  `User`+`AuthCredential`) cuando la variable de entorno
+  `PUBLIC_DID_BASE_URL` esta configurada -- ver
+  `../identity/ensure-did-for-user.ts` y
+  `docs/decisions/0015-holder-did-method.md`. Sin esa variable, `did`
+  sigue `null` exactamente como en A1/A1.1. El DID nunca es controlado por
+  el cliente (cualquier `did` enviado en el body se ignora) ni se deriva
+  de `firstName`/`lastName`/`email` -- solo de `User.id`, de forma
+  determinista y write-once. Ver
+  `docs/architecture/auth-and-permissions-v0.md` seccion 2.5;
 - `GET /auth/me` devuelve membresias activas del usuario autenticado con
   `issuerId`, nombre, DID nullable, estado de autorizacion institucional, rol
   y estado de membership;
@@ -55,7 +66,8 @@ Fuera de alcance en este slice:
 - refresh tokens;
 - auth institucional avanzada;
 - MetaMask o wallets externas;
-- provisioning de DID durante el registro (ver arriba);
+- rotacion/cambio de DID ya provisionado (write-once, ver A2.1 arriba y
+  `docs/decisions/0015-holder-did-method.md`);
 - edicion de nombre/perfil una vez creada la cuenta (A1.1 solo cubre
   registro);
 - documento/DNI, fecha de nacimiento, telefono, direccion, genero, avatar,

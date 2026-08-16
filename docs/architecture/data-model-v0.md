@@ -29,6 +29,13 @@
   identidad legal/verificada. Proyeccion segura via
   `issuers/holder-display-label.ts` (`buildHolderDisplayLabel`), nunca los
   campos crudos salvo en superficies ya autenticadas y self-scoped.
+- Estado real (A2.1): `did` se provisiona automaticamente como `did:web`
+  platform-managed cuando `PUBLIC_DID_BASE_URL` esta configurada --
+  determinista a partir de `id` (nunca de `first_name`/`last_name`/
+  `email`), write-once (nunca se recalcula ni sobreescribe). Sin esa
+  configuracion, sigue `null` como en A1/A1.1. Ver
+  `docs/decisions/0015-holder-did-method.md` y
+  `auth-and-permissions-v0.md` seccion 2.5.
 
 ## Issuer
 

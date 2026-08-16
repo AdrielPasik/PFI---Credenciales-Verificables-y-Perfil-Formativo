@@ -127,8 +127,9 @@ holder auto-registrado queda completamente operativo para: iniciar/cerrar
 sesion, ver su wallet/perfil (vacios, sin error), y ser destinatario de un
 draft de credencial. Queda BLOQUEADO unicamente en el ultimo paso real de
 emision (`issueCredential`) hasta que se resuelva un mecanismo real y
-consciente de provisioning de DID -- decision pendiente, fuera de alcance
-de A1 (ver seccion 10 "Decisiones pendientes").
+consciente de provisioning de DID -- decision pendiente al cierre de A1,
+fuera de su alcance. **Resuelto en A2.1** (condicional a configuracion de
+`PUBLIC_DID_BASE_URL`) -- ver seccion 2.5.
 
 ## 2.4 Identidad humana del titular (A1.1)
 
@@ -245,6 +246,72 @@ El lookup ocurre despues de autorizar el contexto institucional. Devuelve solo
 para titulares inexistentes o inactivos y no tiene efectos secundarios. No
 exige DID porque resolver un titular y autorizar la emision son operaciones
 distintas.
+
+## 2.5 Provisioning de DID para holders (A2.1)
+
+A2.0 audito y decidio (ver `docs/decisions/0015-holder-did-method.md`) el
+metodo canonico para resolver el gap dejado abierto en 2.3. A2.1 lo
+implementa: `did:web` platform-managed, derivado deterministicamente de
+`User.id`, provisionado automaticamente -- el holder nunca conoce ni opera
+su DID.
+
+**Configuracion:** `PUBLIC_DID_BASE_URL` (nueva, opcional). Debe ser un
+origen HTTPS real (`https://<host>[:puerto]`, sin path/query/fragment/
+usuario, nunca `localhost` ni una IP) -- resuelto por
+`services/api/src/config/did-config.ts`. Ausente: el provisioning queda
+deshabilitado y el comportamiento es identico al de A1/A1.1
+(`did: null`). Presente pero invalida: falla de forma clara
+(`InternalServerErrorException`), nunca tratada silenciosamente como
+ausente.
+
+**Forma del DID:**
+
+```text
+did:web:<host>:did:users:<userId>
+```
+
+resoluble en:
+
+```text
+GET https://<host>/did/users/<userId>/did.json
+-> { "@context": "https://www.w3.org/ns/did/v1", "id": "<mismo DID>" }
+```
+
+Publico, sin `@UseGuards`, de solo lectura (nunca provisiona, nunca muta
+`User`). Responde `404` -- nunca inventa un documento -- cuando el usuario
+no existe, `User.did` es `null`, o el valor persistido no es exactamente
+un `did:web` para ese `userId` (por ejemplo, un `did:example:*` de seed).
+El documento nunca incluye `verificationMethod` -- ver ADR 0015 para el
+chequeo normativo que respalda esa omision -- ni ningun dato personal
+(email, nombre, apellido, displayName, status, credenciales).
+
+**Cuando se provisiona:** `ensureDidForUser`
+(`services/api/src/identity/ensure-did-for-user.ts`) es la unica
+implementacion, reusada en dos puntos:
+
+- `AuthService.register`, dentro de la misma transaccion que crea
+  `User`+`AuthCredential` -- si `PUBLIC_DID_BASE_URL` esta configurada, el
+  holder ya nace con DID;
+- `CredentialsService.issueCredential`, de forma perezosa, para holders
+  legacy con `did = null` -- pero solo DESPUES de superar autenticacion,
+  membership, rol y estado del issuer (nunca antes: un intento de emision
+  que de todas formas iba a ser rechazado no debe tener el side effect de
+  tocar `User.did`). El valor usado para canonizar es exactamente el que
+  devuelve `ensureDidForUser`, nunca un valor leido antes del
+  provisioning.
+
+**Invariante write-once:** un `User.did` no-null nunca se recalcula ni se
+sobreescribe -- ni por un cambio de `PUBLIC_DID_BASE_URL`, ni por retry, ni
+por concurrencia (el UPDATE que persiste el DID es condicional,
+`WHERE did IS NULL`; si dos intentos concurrentes compiten, el que pierde
+relee el valor realmente persistido en vez de asumir el suyo). Un DID
+provisionado bajo un host anterior se conserva para siempre aunque la
+configuracion apunte hoy a otro host.
+
+Con esto, el bloqueo documentado en 2.3 queda resuelto de forma condicional
+a la configuracion: con `PUBLIC_DID_BASE_URL` configurada, un holder
+auto-registrado (nuevo o legacy) puede alcanzar `issued`. Sin ella, el
+comportamiento sigue siendo exactamente el de A1/A1.1.
 
 ## 3. Acciones por rol
 
@@ -399,7 +466,12 @@ usando signers institucionales registrados.
 - endpoint issuer-facing para lectura institucional y controles de privacidad asociados;
 - estrategia de autorizacion de rebuild administrativo de perfiles;
 - constraint de DB o estrategia de reintento para reforzar la unicidad de `FormativeProfile.isCurrent`.
-- mecanismo real y canonico de provisioning de DID para holders
-  auto-registrados (A1) -- sin esto, un holder registrado via
-  `POST /auth/register` no puede recibir una credencial `issued`, solo
-  `draft`. Ver seccion 2.3.
+- provisioning de DID para holders auto-registrados: RESUELTO en A2.1 via
+  `did:web` platform-managed, condicional a que el operador configure
+  `PUBLIC_DID_BASE_URL` en el ambiente de deployment -- ver seccion 2.5 y
+  `docs/decisions/0015-holder-did-method.md`;
+- migracion de DIDs historicos si en el futuro cambia el host canonico de
+  `PUBLIC_DID_BASE_URL` (los DIDs ya provisionados conservan su host
+  original -- A2.1 no resuelve como reconciliar resolucion cross-host);
+- provisioning de DID para `Issuer` (metodo distinto, fuera de alcance de
+  A2.1 -- sigue usando literales `did:example:*` de seed).

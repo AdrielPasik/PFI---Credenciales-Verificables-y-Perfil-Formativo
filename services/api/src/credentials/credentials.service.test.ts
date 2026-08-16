@@ -421,11 +421,40 @@ function createService(options?: {
   const issuerEligibilityCalls: Array<Record<string, unknown>> = [];
   const hashCalls: Array<Record<string, unknown>> = [];
   const blockchainCalls: Array<Record<string, unknown>> = [];
+  const userFindUniqueCalls: Array<Record<string, unknown>> = [];
+  const userUpdateManyCalls: Array<Record<string, unknown>> = [];
+  // A2.1: estado mutable en memoria del holder para ensureDidForUser --
+  // arranca desde el fixture credential.subjectUser (mismo shape que ya
+  // usaban los tests de A1/A1.1) y se actualiza si issueCredential
+  // provisiona un DID nuevo durante el test.
+  let subjectUserState = { ...credential.subjectUser };
 
   const prisma = {
     credential: {
       async findUnique() {
         return credential;
+      }
+    },
+    user: {
+      async findUnique(args: { where: { id: string }; select?: unknown }) {
+        userFindUniqueCalls.push(args);
+        return args.where.id === subjectUserState.id
+          ? { ...subjectUserState }
+          : null;
+      },
+      async updateMany(args: {
+        where: { id: string; did: null };
+        data: { did: string };
+      }) {
+        userUpdateManyCalls.push(args);
+        if (
+          args.where.id === subjectUserState.id &&
+          subjectUserState.did === null
+        ) {
+          subjectUserState = { ...subjectUserState, did: args.data.did };
+          return { count: 1 };
+        }
+        return { count: 0 };
       }
     },
     $transaction: async (
@@ -511,7 +540,10 @@ function createService(options?: {
     issueMembershipCalls,
     issuerEligibilityCalls,
     hashCalls,
-    blockchainCalls
+    blockchainCalls,
+    userFindUniqueCalls,
+    userUpdateManyCalls,
+    getSubjectUserState: () => subjectUserState
   };
 }
 
@@ -897,19 +929,18 @@ test('CredentialsService allows an active issuer admin and preserves hashing/blo
   assert.equal(response.latestBlockchainRecord?.status, 'registered');
 });
 
-// A1: readiness real de un holder auto-registrado (User.did === null,
-// exactamente lo que AuthService.register produce -- ver auth.service.ts y
-// auth-and-permissions-v0.md). Documenta, sin inventar ningun mecanismo de
-// DID nuevo, el estado REAL del repo: getSubjectUserOrThrow (createDraft)
-// nunca lee/exige did -- un holder auto-registrado puede ser destinatario
-// de un draft de inmediato. issueCredential SI exige
-// credential.subjectUser.did (linea ~268 de credentials.service.ts) y
-// falla con el mismo BadRequestException ya existente -- A1
-// deliberadamente no lo evita ni lo parchea: no existe ningun servicio de
-// provisioning de DID reutilizable en el repo (los unicos DID existentes
-// son literales hardcodeados en los seeds), asi que resolver esto queda
-// fuera de A1 (ver seccion "Pregunta critica: User.did" / regla de STOP).
-test('A1: a self-registered holder (User.did === null) can be the subject of a draft, but issuance stays blocked by the existing DID requirement until DID provisioning is designed', async () => {
+// A1/A2.1: readiness real de un holder auto-registrado (User.did === null,
+// exactamente lo que AuthService.register produce cuando PUBLIC_DID_BASE_URL
+// no esta configurada -- ver auth.service.ts y auth-and-permissions-v0.md).
+// getSubjectUserOrThrow (createDraft) nunca lee/exige did -- un holder
+// auto-registrado puede ser destinatario de un draft de inmediato.
+// issueCredential SI exige un DID resuelto via ensureDidForUser: sin
+// PUBLIC_DID_BASE_URL configurada (caso de este test), el provisioning
+// perezoso no tiene forma de generar uno y falla con el mismo
+// BadRequestException que ya existia antes de A2.1 (ver seccion "SEMANTICA
+// EXACTA DE PUBLIC_DID_BASE_URL" del diseno: config ausente = feature
+// deshabilitada, nunca un DID inventado).
+test('A1/A2.1: a self-registered holder (User.did === null) can be the subject of a draft, but issuance stays blocked without PUBLIC_DID_BASE_URL configured', async () => {
   const registeredHolderId = 'holder-registered-1';
   const draft = createDraftService({
     subjectUser: { id: registeredHolderId }
@@ -945,6 +976,147 @@ test('A1: a self-registered holder (User.did === null) can be the subject of a d
   );
   assert.equal(issuance.hashCalls.length, 0);
   assert.equal(issuance.blockchainCalls.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// A2.1: provisioning perezoso de did:web dentro de issueCredential (ver
+// ensure-did-for-user.ts). createService() ya modela un delegate `user` en
+// memoria inicializado desde el fixture credential.subjectUser.
+// ---------------------------------------------------------------------------
+
+function withDidBaseUrl<T>(value: string | undefined, run: () => Promise<T>) {
+  const original = process.env.PUBLIC_DID_BASE_URL;
+
+  if (value === undefined) {
+    delete process.env.PUBLIC_DID_BASE_URL;
+  } else {
+    process.env.PUBLIC_DID_BASE_URL = value;
+  }
+
+  return run().finally(() => {
+    if (original === undefined) {
+      delete process.env.PUBLIC_DID_BASE_URL;
+    } else {
+      process.env.PUBLIC_DID_BASE_URL = original;
+    }
+  });
+}
+
+// A: holder con did existente -> no provisioning/update, se usa tal cual.
+test('A2.1/A: issuing for a holder that already has a DID never writes and uses that exact DID for canonicalization', async () => {
+  const { service, hashCalls, userUpdateManyCalls } = createService();
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    await service.issueCredential(
+      'cred-123',
+      { issuerId: 'issuer-1', issuedAt: '2026-07-22T18:00:00Z' },
+      currentUser
+    );
+
+    assert.equal(userUpdateManyCalls.length, 0);
+    assert.equal(hashCalls[0].subjectDid, 'did:example:holder-demo');
+  });
+});
+
+// B: holder legacy did=null + config valida -> provisiona, canonicalization
+// usa el DID persistido, la emision continua.
+test('A2.1/B: issuing for a legacy did=null holder provisions a did:web and uses it for canonicalization', async () => {
+  const holderId = '33333333-3333-4333-8333-333333333333';
+  const { service, hashCalls, blockchainCalls, userUpdateManyCalls, getSubjectUserState } =
+    createService({
+      credential: createCredentialFixture({
+        subjectUserId: holderId,
+        subjectUser: { id: holderId, did: null }
+      })
+    });
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    const response = await service.issueCredential(
+      'cred-123',
+      { issuerId: 'issuer-1', issuedAt: '2026-07-22T18:00:00Z' },
+      currentUser
+    );
+
+    const expectedDid = `did:web:api.traza.example:did:users:${holderId}`;
+    assert.equal(userUpdateManyCalls.length, 1);
+    assert.equal(getSubjectUserState().did, expectedDid);
+    assert.equal(hashCalls[0].subjectDid, expectedDid);
+    assert.equal(response.status, 'issued');
+    assert.equal(blockchainCalls.length, 1);
+  });
+});
+
+// D/I: dos issueCredential concurrentes para el mismo holder legacy nunca
+// producen dos DIDs distintos ni corrompen el fake -- ambos terminan usando
+// el mismo valor reconciliado (ver ensure-did-for-user.ts, "I" en su propio
+// test suite para la prueba dedicada de la condicion de carrera). Este test
+// documenta que issueCredential nunca sigue usando un valor propio
+// calculado antes de la reconciliacion.
+test('A2.1/stale-read: issueCredential never falls back to a value read before provisioning', async () => {
+  const holderId = '44444444-4444-4444-8444-444444444444';
+  const { service, hashCalls } = createService({
+    credential: createCredentialFixture({
+      subjectUserId: holderId,
+      subjectUser: { id: holderId, did: null }
+    })
+  });
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    await service.issueCredential(
+      'cred-123',
+      { issuerId: 'issuer-1', issuedAt: '2026-07-22T18:00:00Z' },
+      currentUser
+    );
+
+    // Si issueCredential todavia usara credential.subjectUser.did (que ya
+    // no existe: el include se elimino), esto seria undefined/null en vez
+    // del DID recien provisionado.
+    assert.equal(hashCalls[0].subjectDid, `did:web:api.traza.example:did:users:${holderId}`);
+  });
+});
+
+// Orden de side effects: un intento de emision que de todos modos va a ser
+// rechazado por autorizacion NUNCA debe intentar provisionar un DID.
+test('A2.1/order: an unauthorized issuance attempt never calls ensureDidForUser', async () => {
+  const { service, userFindUniqueCalls, userUpdateManyCalls } = createService({
+    async assertUserCanIssueForIssuer() {
+      throw new ForbiddenException(
+        'El usuario issuer-user-1 no tiene membresia para emitir sobre el issuer issuer-1.'
+      );
+    }
+  });
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    await assert.rejects(
+      service.issueCredential(
+        'cred-123',
+        { issuerId: 'issuer-1', issuedAt: '2026-07-22T18:00:00Z' },
+        currentUser
+      ),
+      ForbiddenException
+    );
+
+    assert.equal(userFindUniqueCalls.length, 0);
+    assert.equal(userUpdateManyCalls.length, 0);
+  });
+});
+
+test('A2.1/order: an unauthorized issuer state never calls ensureDidForUser', async () => {
+  const { service, userFindUniqueCalls, userUpdateManyCalls } = createService({
+    assertIssuerCanIssue() {
+      throw new BadRequestException('El issuer no esta autorizado para emitir.');
+    }
+  });
+
+  await withDidBaseUrl('https://api.traza.example', async () => {
+    await assert.rejects(
+      service.issueCredential('cred-123', { issuerId: 'issuer-1' }, currentUser),
+      BadRequestException
+    );
+
+    assert.equal(userFindUniqueCalls.length, 0);
+    assert.equal(userUpdateManyCalls.length, 0);
+  });
 });
 
 test('CredentialsService preserves issuer authorization and configuration requirements', async () => {

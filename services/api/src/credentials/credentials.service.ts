@@ -17,6 +17,7 @@ import {
 } from '@prisma/client';
 
 import { BlockchainEvidenceService } from '../blockchain/blockchain-evidence.service';
+import { ensureDidForUser } from '../identity/ensure-did-for-user';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { type AuthenticatedUser } from '../auth/auth.types';
@@ -238,8 +239,7 @@ export class CredentialsService {
         id: credentialId
       },
       include: {
-        issuer: true,
-        subjectUser: true
+        issuer: true
       }
     });
 
@@ -265,7 +265,20 @@ export class CredentialsService {
     );
     this.issuersService.assertIssuerCanIssue(credential.issuer);
 
-    if (!credential.subjectUser.did) {
+    // A2.1: provisioning perezoso -- recien se intenta DESPUES de superar
+    // autenticacion/autorizacion/estado del issuer, nunca antes (una
+    // emision que de todos modos iba a ser rechazada nunca debe tener el
+    // side effect de tocar User.did). Si el holder ya tiene DID,
+    // ensureDidForUser lo devuelve sin escribir nada (write-once). Se usa
+    // EXACTAMENTE el valor devuelto para canonicalization -- nunca
+    // credential.subjectUser.did, que pudo haber sido leido ANTES de que
+    // el provisioning escribiera en la base (stale read).
+    const subjectDid = await ensureDidForUser(
+      this.prisma,
+      credential.subjectUserId
+    );
+
+    if (!subjectDid) {
       throw new BadRequestException(
         `El titular ${credential.subjectUserId} no tiene DID configurado.`
       );
@@ -294,7 +307,7 @@ export class CredentialsService {
       schemaVersion: credential.schemaVersion,
       type: credential.type,
       issuerDid: credential.issuer.did!,
-      subjectDid: credential.subjectUser.did!,
+      subjectDid,
       title: credential.title,
       description: credential.description,
       issuedAt,
