@@ -33,7 +33,7 @@ import { CredentialIssuanceSection } from '@/features/credentials/credential-iss
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { ReusableSemanticInterpretationSection } from '@/features/credentials/reusable-semantic-interpretation-section';
-import { ReusableTemplateIntentSection } from '@/features/credentials/reusable-template-intent-section';
+import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
 import { TextEvidenceSection } from '@/features/credentials/text-evidence-section';
 import {
@@ -62,7 +62,8 @@ import {
   approveCredentialSemanticAnalysis,
   getCredentialSemanticApprovalCandidate,
   getTemplateSemanticApprovalCandidate,
-  listCourseTemplates
+  listCourseTemplates,
+  saveCourseTemplateFromCredential
 } from '@/lib/api/course-templates-api';
 import {
   applyReusableSemanticInterpretation,
@@ -246,6 +247,19 @@ export function CredentialDetailController({
         review
       }),
     [requestAuthenticated, membership.issuerReference]
+  );
+
+  // C3b (R1.1): guarda esta Credential issued (course/certification) como
+  // IssuerCourseTemplate reutilizable a partir de su contenido declarado --
+  // nunca requiere que exista una SemanticAnalysis. El backend deriva todos
+  // los campos de la Credential; el frontend no manda body.
+  const saveReusableTemplate = useCallback(
+    (): Promise<CourseTemplateSummaryVM> =>
+      saveCourseTemplateFromCredential(requestAuthenticated, {
+        issuerReference: membership.issuerReference,
+        credentialReference
+      }),
+    [requestAuthenticated, membership.issuerReference, credentialReference]
   );
 
   const loadCredentialSemanticApprovalCandidate = useCallback(
@@ -500,6 +514,7 @@ export function CredentialDetailController({
       onUploadDocumentEvidence={uploadDocumentEvidence}
       onSubmitTextEvidence={submitTextEvidence}
       onIssue={issueCredential}
+      onSaveReusableTemplate={saveReusableTemplate}
       onFindReusableTemplate={findReusableTemplateForCredential}
       onLoadSemanticApprovalCandidate={loadSemanticApprovalCandidate}
       onApproveTemplateSemanticAnalysis={approveSemanticAnalysisForTemplate}
@@ -531,6 +546,7 @@ export function CredentialDetailView({
   draftEditor,
   onIssue = unavailableCredentialIssuance,
   onSubmitTextEvidence = unavailableTextEvidenceSubmission,
+  onSaveReusableTemplate = unavailableSaveReusableTemplate,
   onFindReusableTemplate,
   onLoadSemanticApprovalCandidate = unavailableSemanticApprovalCandidate,
   onApproveTemplateSemanticAnalysis = unavailableApproveTemplateSemanticAnalysis,
@@ -554,9 +570,9 @@ export function CredentialDetailView({
     label: string | null;
     content: string;
   }): Promise<TextEvidenceVM>;
-  // Deprecated C3b injection point. Kept inert for test and integration
-  // compatibility; C5 never invokes it because templates are persisted only
-  // after semantic review approval.
+  // C3b (R1.1): guarda la Credential issued (course/certification) como
+  // IssuerCourseTemplate reutilizable a partir de su contenido declarado --
+  // nunca requiere SemanticAnalysis. Ver SaveReusableTemplateSection.
   onSaveReusableTemplate?(): Promise<CourseTemplateSummaryVM>;
   // C4a.2: busqueda segura de un template ya existente para esta
   // credencial (relee al montar/recargar). Si se omite, o si resuelve
@@ -619,6 +635,15 @@ export function CredentialDetailView({
   };
 }) {
   const isDraft = detail.status === 'draft';
+  // R1.1: unica condicion de visibilidad para "guardar como reutilizable" --
+  // exclusivamente issued (nunca draft, nunca revoked) y course/certification
+  // (nunca academic_subject/degree). Coincide exactamente con lo que exige
+  // el backend (createTemplateFromCredentialForIssuer). Nunca depende de
+  // SemanticAnalysis/approvedSemanticSnapshot/analysis status -- esa es la
+  // condicion, deliberadamente distinta, de SemanticApprovalSection.
+  const isReusableTemplateEligible =
+    detail.status === 'issued' &&
+    (detail.type === 'course' || detail.type === 'certification');
   // C4a.2: unica fuente de verdad para el template reutilizable conocido
   // de esta credencial -- se puebla por (1) guardado exitoso via C3b, (2)
   // busqueda automatica al montar/recargar, o (3) recuperacion tras un 409
@@ -666,6 +691,18 @@ export function CredentialDetailView({
       active = false;
     };
   }, [detail.type, detail.status, onFindReusableTemplate]);
+
+  // R1.1: guarda esta Credential como IssuerCourseTemplate reutilizable.
+  // Actualiza reusableTemplate con el resultado, igual patron que
+  // handleApproveTemplateSemanticAnalysis/onFindReusableTemplate mas abajo
+  // -- asi SemanticApprovalSection reconoce inmediatamente el template
+  // recien creado (resuelve por reference, sin depender de un segundo
+  // round-trip al backend) si el issuer decide enriquecerlo despues.
+  async function handleSaveReusableTemplate(): Promise<CourseTemplateSummaryVM> {
+    const created = await onSaveReusableTemplate();
+    setReusableTemplate(created);
+    return created;
+  }
 
   async function handleApproveTemplateSemanticAnalysis(
     templateReference: string,
@@ -723,8 +760,6 @@ export function CredentialDetailView({
             : 'Esta credencial ya no está en estado borrador. Las operaciones posteriores quedan fuera de este flujo.'}
         </p>
       </header>
-
-      {isDraft && (detail.type === 'course' || detail.type === 'certification') ? <ReusableTemplateIntentSection /> : null}
 
       {templateApplyFailed ? (
         <FeedbackAlert
@@ -917,7 +952,17 @@ export function CredentialDetailView({
             </CardContent>
           </Card>
           <CredentialIssuanceSection detail={detail} onIssue={onIssue} />
-          {(detail.type === 'course' || detail.type === 'certification') && detail.status === 'issued' ? (
+          {isReusableTemplateEligible ? (
+            // R1.1: accion primaria, simple, nunca depende de IA -- se
+            // renderiza ANTES de SemanticApprovalSection (jerarquia
+            // conceptual: guardar es la accion base; revisar/aprobar
+            // semantica es el enriquecimiento opcional posterior).
+            <SaveReusableTemplateSection
+              credentialType={detail.type as 'course' | 'certification'}
+              onSave={handleSaveReusableTemplate}
+            />
+          ) : null}
+          {isReusableTemplateEligible ? (
             <SemanticApprovalSection
               semanticAnalysisReference={documentAnalysis?.state.currentRun?.semanticAnalysis?.semanticAnalysisReference ?? reusableTemplate?.lastSemanticAnalysisId ?? null}
               approved={reusableTemplate?.approvedSemanticAnalysisId !== null && reusableTemplate?.approvedSemanticAnalysisId !== undefined}
@@ -974,6 +1019,10 @@ async function unavailableApplyReusableInterpretation(): Promise<ApplyReusableSe
 
 async function unavailableCredentialIssuance(): Promise<IssuerCredentialDetailVM> {
   throw new Error('Credential issuance is not available in this view.');
+}
+
+async function unavailableSaveReusableTemplate(): Promise<CourseTemplateSummaryVM> {
+  throw new Error('Saving a reusable template is not available in this view.');
 }
 
 async function unavailableSemanticApprovalCandidate(): Promise<TemplateSemanticApprovalCandidateVM> {

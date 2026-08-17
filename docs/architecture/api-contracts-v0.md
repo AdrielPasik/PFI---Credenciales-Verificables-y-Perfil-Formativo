@@ -1384,10 +1384,15 @@ selector en creacion de credencial (eso sigue siendo C3c):
 - El boton ("Guardar como curso reutilizable" / "Guardar como
   certificación reutilizable") solo se muestra en
   `/issuer/credentials/[credentialId]` cuando
-  `detail.type === 'course' || detail.type === 'certification'` y
-  `detail.status !== 'revoked'`. Nunca aparece para `academic_subject`,
-  `degree`, en la wallet holder, en verifier/public ni en pantallas de
-  creacion.
+  `detail.type === 'course' || detail.type === 'certification'` **Y**
+  `detail.status === 'issued'` (nunca `draft` -- el backend exige
+  emitida antes de guardar, 400 si no; nunca `revoked` tampoco). Nunca
+  depende de si existe `SemanticAnalysis`/`approvedSemanticSnapshot`.
+  Nunca aparece para `academic_subject`, `degree`, en la wallet holder,
+  en verifier/public ni en pantallas de creacion. (R1.1: corrige una
+  version anterior de esta nota que afirmaba visibilidad tambien en
+  `draft` -- el componente real nunca llego a montarse hasta R1.1; ver
+  `domain-rules-v0.md` seccion C3b.)
 
 ### C3c: filtro `credentialType` en list + selector en la creacion de credenciales
 

@@ -723,21 +723,56 @@ del tipo de issuer.
 ### C3b — Guardar como reutilizable desde el detalle issuer-facing
 
 `/issuer/credentials/[credentialId]` agrega una accion "Guardar como
-curso/certificación reutilizable" que llama al endpoint de C3a/C3a.2
-descripto arriba. Reglas de UX:
+curso/certificación reutilizable" (`SaveReusableTemplateSection`) que
+llama al endpoint de C3a/C3a.2 descripto arriba
+(`POST .../course-templates/from-credential/:credentialId`). Reglas de
+UX:
 
-- Visible unicamente cuando `credential.type` es `course` o
-  `certification`, la credencial esta en `draft` o `issued` (nunca
-  `revoked`), y el usuario opera dentro de un contexto de issuer valido
-  (el mismo `IssuerRouteBoundary` que ya protege el resto del portal
-  emisor). Nunca visible para `academic_subject`, `degree`, en la wallet
-  holder, en paginas de verifier/publico ni en pantallas de creacion de
-  credencial.
+- Visible **unicamente** cuando `credential.type` es `course` o
+  `certification` Y `credential.status === 'issued'` (nunca `draft`,
+  nunca `revoked`), dentro del mismo `IssuerRouteBoundary` que ya
+  protege el resto del portal emisor. Nunca visible para
+  `academic_subject`, `degree`, en la wallet holder, en paginas de
+  verifier/publico ni en pantallas de creacion de credencial.
+- **`draft` explicitamente excluido**: el backend exige
+  `credential.status === issued` (400 si no) -- la accion solo puede
+  ejecutarse con exito despues de emitir, asi que la UI nunca la ofrece
+  antes.
+- **Nunca depende de `SemanticAnalysis`/`approvedSemanticSnapshot`**: la
+  condicion de visibilidad usa exclusivamente `type`/`status`, ya
+  disponibles en el detalle -- nunca dispara un request adicional solo
+  para decidir si mostrar el boton. Esto es deliberadamente distinto de
+  `SemanticApprovalSection` (revisar/aprobar interpretacion semantica,
+  seccion "C4a.1/C4a.2" abajo), que si exige una `SemanticAnalysis`
+  usable. Ambas acciones coexisten en la misma vista: "guardar como
+  reutilizable" es la accion primaria, simple, siempre disponible tras
+  emitir; "revisar/aprobar interpretacion" es el enriquecimiento
+  opcional posterior, nunca una condicion para la primera.
 - La accion **no modifica la credencial visible** ni **crea una
   credencial nueva** -- solo agrega un registro aparte en el catalogo
-  reutilizable del issuer. El copy lo aclara explicitamente en la UI.
+  reutilizable del issuer. El copy lo aclara explicitamente en la UI
+  ("Reutilizá estos datos en futuras credenciales.").
+- Duplicados: un segundo intento sobre la misma Credential devuelve
+  `409` (`IssuerCourseTemplatesService.createTemplateFromCredentialForIssuer`,
+  deteccion por `createdFromCredentialId` + titulo normalizado) --
+  `SaveReusableTemplateSection` lo muestra como aviso distinto de un
+  error generico ("Este curso/Esta certificación ya fue guardado/a como
+  reutilizable"), nunca lo esconde ni lo confunde con un fallo.
 - No hay pantalla de gestion del catalogo ni selector en la creacion de
   credenciales en C3b -- eso queda para un slice futuro (analogo a C3c).
+
+**R1.1 (correccion post-auditoria)**: entre C3b y este slice, el
+componente `SaveReusableTemplateSection` fue construido y probado
+(incluido su API client, `saveCourseTemplateFromCredential`) pero **nunca
+llego a montarse** en `credential-detail-route.tsx` -- el trabajo
+posterior de C4/C5 (revision semantica) introdujo en su lugar un
+checkbox de intencion puramente local (`ReusableTemplateIntentSection`,
+visible solo en `draft`, sin ningun efecto de persistencia) sin terminar
+de reemplazarlo por la accion real. La auditoria
+`final-r1-save-as-reusable-audit-review-bundle.txt` documenta el gap
+completo. R1.1 elimina el checkbox (componente y copy) y conecta el
+boton real -- esta seccion ya describe el comportamiento final,
+correcto.
 
 ### C3c — Usar templates reutilizables al crear course/certification
 

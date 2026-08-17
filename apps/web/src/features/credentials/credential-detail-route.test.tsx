@@ -1255,13 +1255,6 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     onRetry: vi.fn(async () => undefined)
   };
 
-  it('keeps draft reusable intent local and does not render a persistence button', () => {
-    render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'course', status: 'draft' })} />);
-    expect(screen.getByTestId('reusable-template-intent')).toBeTruthy();
-    expect(screen.getByRole('checkbox', { name: /guardar como reutilizable/i })).toBeTruthy();
-    expect(screen.queryByRole('button', { name: /guardar como .*reutilizable/i })).toBeNull();
-  });
-
   it('shows reviewed values and only persists when the issuer explicitly approves', async () => {
     const onLoadCredentialSemanticApprovalCandidate = vi.fn().mockResolvedValue(semanticApprovalCandidateFixture());
     const onApproveCredentialSemanticAnalysis = vi.fn().mockResolvedValue(reusableTemplateFixture({ approvedSemanticAnalysisId: 'analysis-1' }));
@@ -1324,6 +1317,245 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
       />
     );
     expect(screen.queryByRole('link', { name: 'Verificación pública' })).toBeNull();
+  });
+});
+
+// ─── R1.1: "Guardar como reutilizable" -- fix del wiring huerfano ───────────
+
+describe('CredentialDetailView R1.1 save as reusable template', () => {
+  // A: caso central del fix -- una Credential issued course SIN ninguna
+  // SemanticAnalysis (semanticAnalysisReference null, sin documentAnalysis
+  // ni reusableTemplate previo) debe mostrar igual el boton, y un click debe
+  // llamar onSaveReusableTemplate exactamente una vez. Este test hubiera
+  // fallado ANTES del fix (el boton no existia en ningun lado del arbol).
+  it('shows "Guardar como curso reutilizable" for an issued course without any SemanticAnalysis, and calls onSaveReusableTemplate on click', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+      />
+    );
+
+    const button = screen.getByRole('button', {
+      name: 'Guardar como curso reutilizable'
+    });
+    fireEvent.click(button);
+
+    await waitFor(() =>
+      expect(onSaveReusableTemplate).toHaveBeenCalledTimes(1)
+    );
+    expect(onSaveReusableTemplate).toHaveBeenCalledWith();
+    expect(
+      await screen.findByText('Curso guardado como reutilizable.')
+    ).toBeTruthy();
+  });
+
+  it('shows "Guardar como certificación reutilizable" for an issued certification and calls onSaveReusableTemplate on click', async () => {
+    const onSaveReusableTemplate = vi.fn().mockResolvedValue(
+      reusableTemplateFixture({ credentialType: 'certification' })
+    );
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'certification', status: 'issued' })}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Guardar como certificación reutilizable'
+      })
+    );
+
+    await waitFor(() =>
+      expect(onSaveReusableTemplate).toHaveBeenCalledTimes(1)
+    );
+    expect(
+      await screen.findByText('Certificación guardada como reutilizable.')
+    ).toBeTruthy();
+  });
+
+  it('never shows the button for a draft credential, regardless of type (backend requires issued)', () => {
+    const { rerender } = render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /guardar como .*reutilizable/i })
+    ).toBeNull();
+    // La UI vieja (checkbox de intencion local) fue eliminada por completo --
+    // nunca debe reaparecer ningun rastro de ella.
+    expect(screen.queryByTestId('reusable-template-intent')).toBeNull();
+    expect(
+      screen.queryByRole('checkbox', { name: /guardar como reutilizable/i })
+    ).toBeNull();
+
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'certification', status: 'draft' })}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /guardar como .*reutilizable/i })
+    ).toBeNull();
+  });
+
+  it('never shows the button for a revoked credential', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'revoked' })}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /guardar como .*reutilizable/i })
+    ).toBeNull();
+  });
+
+  it('never shows the button for issued academic_subject or degree credentials', () => {
+    const { rerender } = render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'academic_subject', status: 'issued' })}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /guardar como .*reutilizable/i })
+    ).toBeNull();
+
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'degree', status: 'issued' })}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: /guardar como .*reutilizable/i })
+    ).toBeNull();
+  });
+
+  // Regresion de contenido: el wiring frontend nunca manda body -- el
+  // backend deriva el contenido del template desde la Credential. Confirma
+  // que el callback se invoca sin argumentos (nunca credential id/holder/
+  // canonicalHash/blockchain armados a mano en el frontend).
+  it('never sends a request body -- the backend derives template content from the Credential', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockResolvedValue(reusableTemplateFixture());
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    await waitFor(() =>
+      expect(onSaveReusableTemplate.mock.calls[0]).toEqual([])
+    );
+  });
+
+  it('shows the existing duplicate feedback on a 409 conflict, never a generic error', async () => {
+    const onSaveReusableTemplate = vi
+      .fn()
+      .mockRejectedValue(new ApiError('conflict', 'http', 409));
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        onSaveReusableTemplate={onSaveReusableTemplate}
+      />
+    );
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    );
+
+    expect(
+      await screen.findByText('Este curso ya fue guardado como reutilizable.')
+    ).toBeTruthy();
+  });
+
+  it('the primary "Guardar como reutilizable" action is never subordinate to SemanticAnalysis availability -- both sections coexist for an eligible course with an analysis present', async () => {
+    const onLoadCredentialSemanticApprovalCandidate = vi
+      .fn()
+      .mockResolvedValue(semanticApprovalCandidateFixture());
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'issued' })}
+        documentAnalysis={{
+          state: {
+            latestStatus: 'ready' as const,
+            latestError: null,
+            triggering: false,
+            refreshing: false,
+            actionError: null,
+            successMessage: null,
+            currentRun: {
+              analysisRunReference: 'run-1',
+              credentialReference: 'credential-internal-reference',
+              status: 'completed' as const,
+              statusLabel: 'Completado',
+              inputMode: 'text' as const,
+              inputModeLabel: 'Texto',
+              trigger: 'system' as const,
+              requestedPipelineVersion: 'pipeline-v1',
+              requestedTaxonomyVersion: 'taxonomy-v1',
+              sourceCount: 1,
+              sourceTypes: ['text_evidence' as const],
+              sourceLabels: ['Información declarada'],
+              createdAt: '2026-08-12T10:00:00.000Z',
+              createdAtLabel: '12 ago 2026',
+              startedAt: null,
+              startedAtLabel: null,
+              completedAt: '2026-08-12T10:01:00.000Z',
+              completedAtLabel: '12 ago 2026',
+              failedAt: null,
+              failedAtLabel: null,
+              errorCode: null,
+              errorMessage: null,
+              semanticAnalysis: {
+                semanticAnalysisReference: 'analysis-1',
+                status: 'partial' as const,
+                pipelineVersion: 'pipeline-v1',
+                taxonomyVersion: 'taxonomy-v1',
+                confidence: 0.8,
+                confidenceLabel: '80% de confianza',
+                areasCount: 1,
+                skillsCount: 1,
+                conceptsCount: 1,
+                qualityFlags: [],
+                qualityFlagLabels: [],
+                analyzedAt: '2026-08-12T10:01:00.000Z',
+                analyzedAtLabel: '12 ago 2026'
+              }
+            }
+          },
+          onRetry: vi.fn(async () => undefined)
+        }}
+        onLoadCredentialSemanticApprovalCandidate={
+          onLoadCredentialSemanticApprovalCandidate
+        }
+      />
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Guardar como curso reutilizable' })
+    ).toBeTruthy();
+    expect(await screen.findByTestId('semantic-approval-section')).toBeTruthy();
   });
 });
 
