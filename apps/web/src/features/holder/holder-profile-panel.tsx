@@ -105,8 +105,22 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
   );
 }
 
-export function HolderProfileEmptyPanel() {
-  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">A medida que tus credenciales cuenten con información formativa analizable, Traza podrá organizar un resumen de áreas, habilidades y conceptos.</p></div></CardHeader></Card>;
+// P1.1: el copy anterior implicaba que el perfil esperaba "informacion
+// analizable" para existir -- la auditoria P1 confirmo que eso es
+// enganoso: una credencial emitida sin analisis YA puede formar parte de
+// un perfil (ver domain-rules-v0.md seccion 27/28). El nuevo copy explica
+// el mecanismo real: credenciales emitidas primero, analisis semantico
+// como enriquecimiento posterior -- sin prometer que la IA siempre este
+// disponible ni que el perfil quede "completo".
+export function HolderProfileEmptyPanel({
+  action
+}: {
+  // P1.1/seccion 24: solo se pasa cuando el holder YA tiene credenciales
+  // issued (recuperacion del fallback manual) -- un holder sin ninguna
+  // credencial no recibe accion, el empty state alcanza.
+  action?: ReactNode;
+}) {
+  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">Traza construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible.</p>{action ? <div className="mt-4">{action}</div> : null}</div></CardHeader></Card>;
 }
 
 interface ProfileListItem {

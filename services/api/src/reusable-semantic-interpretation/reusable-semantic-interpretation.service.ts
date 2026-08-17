@@ -503,7 +503,7 @@ export class ReusableSemanticInterpretationService {
     // fila de interpretacion nueva por esto. Nunca revierte ni invalida el
     // apply si el rebuild falla -- mismo contrato best-effort ya usado por
     // AutomaticProfileRebuildService en el resto del repo (nunca lanza).
-    await this.profileRebuildService.rebuildAfterAutomaticAnalysis({
+    await this.profileRebuildService.rebuildAfterReviewedInterpretationApply({
       credentialId: outcome.row.credentialId,
       holderUserId: outcome.destination.subjectUserId
     });

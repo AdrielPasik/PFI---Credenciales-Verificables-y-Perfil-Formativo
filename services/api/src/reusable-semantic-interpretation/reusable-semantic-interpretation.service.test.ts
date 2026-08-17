@@ -247,7 +247,7 @@ function setup(options: SetupOptions = {}) {
   // lanza, siempre devuelve {status:'rebuilt'} o
   // {status:'failed', errorCode}.
   const profileRebuildService = {
-    async rebuildAfterAutomaticAnalysis(input: {
+    async rebuildAfterReviewedInterpretationApply(input: {
       credentialId: string;
       holderUserId: string;
     }) {

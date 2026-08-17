@@ -1,7 +1,25 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
+import type { HolderProfileVM } from '@/models/holder';
+
+// P1.1: ProfileRebuildAction (montado solo cuando showProfileShare +
+// onProfileRebuilt) usa useSession() y rebuildMyProfileRequest -- se
+// mockean ambos para poder ejercitar el boton "Actualizar perfil" sin un
+// SessionProvider real ni un fetch real.
+vi.mock('@/lib/session/session-provider', () => ({
+  useSession: () => ({ requestAuthenticated: vi.fn() })
+}));
+
+const holderApiMocks = vi.hoisted(() => ({
+  rebuildMyProfileRequest: vi.fn()
+}));
+
+vi.mock('@/lib/api/holder-api', () => ({
+  rebuildMyProfileRequest: holderApiMocks.rebuildMyProfileRequest
+}));
 
 const credential = {
   credentialReference: 'credential-reference', title: 'Arquitectura de software', type: 'course' as const, typeLabel: 'Curso',
@@ -228,5 +246,175 @@ describe('WalletHomeView', () => {
   it('C5b.2: hides the global reviewed-interpretation notice when absent (legacy profile)', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
     expect(screen.queryByText(/interpretación revisada por el emisor/)).toBeNull();
+  });
+});
+
+// ─── P1.1: manual rebuild fallback ───────────────────────────────────────────
+
+describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
+  beforeEach(() => {
+    holderApiMocks.rebuildMyProfileRequest.mockReset();
+  });
+
+  const noCredentials: HolderCredentialsLoadState = { status: 'ready', credentials: [] };
+
+  // A
+  it('A: shows "Actualizar perfil" next to the share action when a current profile is visible, and clicking it calls the endpoint', async () => {
+    holderApiMocks.rebuildMyProfileRequest.mockResolvedValue(profile);
+    render(
+      <WalletHomeView
+        profileState={{ status: 'ready', profile }}
+        credentialsState={credentialsReady}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: 'Actualizar perfil' });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(holderApiMocks.rebuildMyProfileRequest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // B
+  it('B: shows the recovery action inside the empty state when the profile is null but the holder has issued credentials', () => {
+    render(
+      <WalletHomeView
+        profileState={{ status: 'empty' }}
+        credentialsState={credentialsReady}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    expect(screen.getByText('Tu perfil todavía no está disponible')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+
+  // C
+  it('C: never shows the recovery action when the holder has zero credentials -- the plain empty state is enough', () => {
+    render(
+      <WalletHomeView
+        profileState={{ status: 'empty' }}
+        credentialsState={noCredentials}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    expect(screen.getByText('Tu perfil todavía no está disponible')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Actualizar perfil' })).toBeNull();
+  });
+
+  it('never shows the recovery action without showProfileShare (not a self-view context)', () => {
+    render(
+      <WalletHomeView
+        profileState={{ status: 'empty' }}
+        credentialsState={credentialsReady}
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: 'Actualizar perfil' })).toBeNull();
+  });
+
+  // D
+  it('D: disables the button while the request is in flight, preventing a double click', async () => {
+    let resolveRequest: (value: typeof profile) => void = () => {};
+    holderApiMocks.rebuildMyProfileRequest.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve;
+      })
+    );
+    render(
+      <WalletHomeView
+        profileState={{ status: 'ready', profile }}
+        credentialsState={credentialsReady}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    const button = screen.getByRole('button', { name: 'Actualizar perfil' });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Actualizando…' })).toBeTruthy();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Actualizando…' }));
+    expect(holderApiMocks.rebuildMyProfileRequest).toHaveBeenCalledTimes(1);
+
+    resolveRequest(profile);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+    });
+  });
+
+  // E
+  it('E: reflects the rebuilt profile in the UI without a manual reload, via the onProfileRebuilt callback', async () => {
+    const updatedProfile = { ...profile, credentialsCount: 3 };
+    holderApiMocks.rebuildMyProfileRequest.mockResolvedValue(updatedProfile);
+
+    function Harness() {
+      const [state, setState] = useState<HolderProfileLoadState>({ status: 'empty' });
+      return (
+        <WalletHomeView
+          profileState={state}
+          credentialsState={credentialsReady}
+          showProfileShare
+          onProfileRebuilt={(rebuilt: HolderProfileVM | null) => {
+            setState(rebuilt ? { status: 'ready', profile: rebuilt } : { status: 'empty' });
+          }}
+        />
+      );
+    }
+
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Actualizar perfil' }));
+
+    await waitFor(() => {
+      // credentialsCount pasa de ausente (empty) a 3 (updatedProfile) sin
+      // que el usuario haya recargado la pagina.
+      expect(screen.getByText(/3 credenciales y 64 horas\./)).toBeTruthy();
+    });
+  });
+
+  // F
+  it('F: shows a recoverable error and keeps the previously visible profile when the manual rebuild fails', async () => {
+    holderApiMocks.rebuildMyProfileRequest.mockRejectedValue(new Error('network down'));
+    render(
+      <WalletHomeView
+        profileState={{ status: 'ready', profile }}
+        credentialsState={credentialsReady}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actualizar perfil' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('No pudimos actualizar tu perfil')).toBeTruthy();
+    });
+    // El perfil ya visible nunca desaparece por un fallo del rebuild manual.
+    expect(screen.getByText(profile.narrative)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+
+  // G
+  it('G: the share action keeps working unaffected by the new rebuild action sitting next to it', () => {
+    render(
+      <WalletHomeView
+        profileState={{ status: 'ready', profile }}
+        credentialsState={credentialsReady}
+        showProfileShare
+        onProfileRebuilt={() => {}}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Compartir perfil' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
   });
 });

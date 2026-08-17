@@ -308,7 +308,12 @@ patron que el flujo documental automatico ya existente. Reglas clave:
 Antes de C2b.4, ni el flujo documental automatico ni el textual automatico
 (C2b.3) reconstruian `FormativeProfile` -- dependia de
 `POST /me/profile/rebuild` manual. C2b.4 cierra ese gap para los dos
-caminos **automaticos** (`trigger=system`):
+caminos **automaticos** (`trigger=system`). **P1.1 (seccion 28) agrega
+ademas un rebuild baseline inmediatamente tras la emision, independiente
+de que este camino IA-exitoso llegue a ocurrir** -- el gap de que la
+existencia del perfil dependiera del exito/elegibilidad de IA queda
+cerrado; este rebuild "enriquecido" descripto aca sigue funcionando igual,
+como una segunda generacion que reemplaza el baseline cuando corresponde.
 
 - `AutomaticProfileRebuildService` (nuevo, `services/api/src/analysis-run/`)
   llama `FormativeProfileService.rebuildForUser(holderUserId)` -- sin
@@ -1812,3 +1817,104 @@ Decision arquitectonica cerrada en A2.0
   futuro se migra de dominio, la resolucion de DIDs historicos es
   responsabilidad de infraestructura (mantener el host anterior resolviendo)
   o de una migracion explicita en un slice futuro -- A2.1 no la resuelve.
+
+## 28. P1.1 — Lifecycle automatico de FormativeProfile (baseline post-issuance + fallback holder)
+
+Auditoria previa (P1, `p1-formative-profile-lifecycle-audit-review-bundle.txt`,
+gitignored) confirmo CASO B -- gap de lifecycle: `issueCredential` nunca
+disparaba ningun rebuild de perfil; el unico rebuild automatico dependia
+del exito de un analisis de IA (documental o textual), estructuralmente
+excluido para `academic_subject` sin PDF. P1.1 cierra ese gap.
+
+- **Baseline post-issuance**: `IssuerCredentialIssueService.issueForIssuer`
+  llama `AutomaticProfileRebuildService.rebuildAfterIssuance({ credentialId,
+  holderUserId })` inmediatamente despues de que
+  `CredentialsService.issueCredential` commitea, AWAITED, ANTES de
+  intentar `AutomaticDocumentAnalysisService`/
+  `AutomaticCourseTextAnalysisService` -- nunca en paralelo con esos dos
+  pasos, para que un rebuild enriquecido posterior (si un analisis
+  automatico completa) nunca corra una carrera contra el baseline y
+  termine dejando `isCurrent` una generacion mas vieja.
+  `FormativeProfileService.rebuildForUser` ya seleccionaba TODAS las
+  Credential `issued` del holder sin exigir `SemanticAnalysis` (ver
+  seccion 6, `FormativeProfile.isCurrent`) -- P1.1 no cambia esa logica,
+  solo agrega el trigger que faltaba.
+- **holderUserId siempre es `Credential.subjectUserId`**, tomado
+  directamente de la respuesta de `issueCredential` (`CredentialSummaryResponseDto.subjectUserId`,
+  sin lectura extra) -- NUNCA `currentUser.id` (el issuer admin/operator
+  que ejecuta la emision). Confirmado por test dedicado que usa un actor y
+  un holder deliberadamente distintos.
+- **Best-effort, nunca bloqueante**: si el baseline falla, la emision
+  sigue `issued`, la respuesta HTTP sigue exitosa, y los pasos de analisis
+  automatico posteriores igual se intentan (son independientes). El
+  rebuild NUNCA ocurre dentro de la transaccion de `issueCredential` --
+  esa transaccion sigue conteniendo unicamente el update de `Credential`
+  y el `create` de `BlockchainRecord`, sin IA ni I/O de red.
+  `CredentialsService` sigue sin conocer `FormativeProfileService` --
+  la orquestacion post-issuance vive exclusivamente en
+  `IssuerCredentialIssueService`, igual que los 2 pasos de analisis
+  automatico preexistentes.
+- **`AutomaticProfileRebuildService` refactorizado, sin romper
+  call-sites**: `rebuildBestEffort({ holderUserId, credentialId?, reason,
+  analysisRunId? })` es ahora la unica implementacion (try/catch, log
+  seguro). Tres wrappers explicitos delegan en ella sin duplicar logica:
+  `rebuildAfterIssuance` (P1.1, reason `post_issuance`),
+  `rebuildAfterAutomaticAnalysis` (C2b.4, sin cambios de firma/
+  comportamiento para sus call-sites existentes, reason
+  `post_automatic_analysis`), y `rebuildAfterReviewedInterpretationApply`
+  (C5b.1 -- `ReusableSemanticInterpretationService` ahora llama este
+  wrapper en vez de `rebuildAfterAutomaticAnalysis`, porque un apply de
+  interpretacion revisada nunca fue realmente "un analisis automatico";
+  el `reason` solo sirve para observabilidad/logs, nunca cambia
+  comportamiento ni persistencia). El log de fallo
+  (`automatic_profile_rebuild_failed`) ahora incluye `reason`.
+- **Doble rebuild es esperado y correcto** para una Credential elegible
+  para IA: el baseline crea una generacion, y si el analisis automatico
+  completa despues, el rebuild enriquecido crea una generacion nueva que
+  reemplaza `isCurrent` -- nunca se intenta "optimizar" evitando el
+  segundo rebuild. `rebuildForUser` sigue garantizando exactamente un
+  `isCurrent=true` por holder (ver seccion 6).
+- **`academic_subject` sin PDF y `course` sin contenido analizable YA
+  obtienen un `FormativeProfile`** inmediatamente tras la emision -- el
+  baseline nunca depende de elegibilidad de tipo, disponibilidad de PDF,
+  contenido declarado suficiente, ni de que el servicio de IA responda.
+  Esto cierra directamente el caso observado en la auditoria P1 (holder
+  con 2 `academic_subject` + 1 `course` sin `currentProfile`).
+- **`POST /me/profile/share` sin cambios**: sigue exigiendo unicamente
+  que exista un `currentProfile` -- nunca un minimo de credenciales,
+  skills, horas ni analisis. Con el baseline, la primera Credential
+  emitida ya habilita compartir, como consecuencia natural, no por logica
+  nueva en `ProfileSharingService`.
+- **Revocacion -- NO implementado, gap distinto documentado
+  explicitamente**: P1.1 audito `services/api/src` completo buscando el
+  call-path real de revocacion de una `Credential` y confirmo que NO
+  EXISTE ningun endpoint, controller ni service que transicione una
+  Credential a `CredentialStatus.revoked` hoy. El unico archivo
+  relacionado, `blockchain/scripts/revoke-credential-on-registry.ts`, es
+  un script CLI que solo llama al contrato on-chain (`CredentialRegistryWriteClient.revokeCredential`)
+  y nunca escribe Prisma. `CredentialStatus.revoked` solo aparece como
+  fixture en tests, nunca como resultado real de un flujo de produccion.
+  Por lo tanto P1.1 NO agrega un rebuild post-revocacion (no hay ningun
+  call-site real donde engancharlo) y NO inventa un endpoint de
+  revocacion nuevo -- seria un slice completo aparte (autorizacion,
+  orquestacion on-chain/off-chain, DTOs, contrato HTTP), fuera del
+  alcance explicito de este slice. Cuando ese feature exista, debera
+  llamar `AutomaticProfileRebuildService.rebuildBestEffort({ holderUserId,
+  credentialId, reason: <nuevo valor de ProfileRebuildReason> })`
+  siguiendo exactamente el mismo patron best-effort documentado aca --
+  nunca dentro de la transaccion de revocacion, siempre con el
+  `subjectUserId` de la Credential revocada, nunca el actor.
+  `rebuildForUser` ya excluye credenciales no-`issued` de forma natural
+  (seccion 6) -- ese feature futuro no necesitaria logica especial de
+  "restar" nada.
+- **Fallback manual conectado, nunca la via principal**:
+  `POST /me/profile/rebuild` (ya existente, sin cambios de contrato) ahora
+  tiene un consumidor real en `apps/web` -- una accion "Actualizar
+  perfil" (`ProfileRebuildAction`), discreta junto a "Compartir perfil"
+  cuando ya existe un `currentProfile`, y como accion de recuperacion
+  dentro del empty state cuando el holder tiene Credentials `issued` pero
+  `currentProfile === null` (holder legacy afectado por el gap historico,
+  o baseline que fallo). Nunca se ofrece si el holder no tiene ninguna
+  Credential -- el empty state simple alcanza en ese caso. El copy del
+  empty state se corrigio: ya no implica que el perfil espera
+  "informacion analizable" para existir.

@@ -1,6 +1,11 @@
 import { expect, it, vi } from 'vitest';
 
-import { getMyCredentialRequest, getMyCredentialsRequest, getMyCurrentProfileRequest } from '@/lib/api/holder-api';
+import {
+  getMyCredentialRequest,
+  getMyCredentialsRequest,
+  getMyCurrentProfileRequest,
+  rebuildMyProfileRequest
+} from '@/lib/api/holder-api';
 
 it('uses only /me scoped holder endpoints', async () => {
   const request = vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce({ currentProfile: null });
@@ -8,6 +13,13 @@ it('uses only /me scoped holder endpoints', async () => {
   await getMyCurrentProfileRequest(request);
   expect(request).toHaveBeenNthCalledWith(1, '/me/credentials');
   expect(request).toHaveBeenNthCalledWith(2, '/me/profile/current');
+});
+
+// P1.1
+it('rebuildMyProfileRequest POSTs to /me/profile/rebuild and adapts the same shape as current profile', async () => {
+  const request = vi.fn().mockResolvedValue({ currentProfile: null });
+  await rebuildMyProfileRequest(request);
+  expect(request).toHaveBeenCalledWith('/me/profile/rebuild', { method: 'POST' });
 });
 
 it('loads one holder credential from the /me scoped route', async () => {

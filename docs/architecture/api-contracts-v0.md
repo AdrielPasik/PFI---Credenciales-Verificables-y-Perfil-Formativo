@@ -1063,6 +1063,36 @@ a P6b y a C2b.3:
 - no llama IA de nuevo, no toca canon/hash/blockchain, no cambia la logica
   semantica del perfil (horas/skills/areas/concepts siguen igual -- C2c).
 
+P1.1 agrega, tambien sin exponer ningun endpoint nuevo, un paso interno
+adicional ANTES de los dos automaticos de arriba:
+
+- inmediatamente despues de que `CredentialsService.issueCredential`
+  commitea (`status: issued`), `IssuerCredentialIssueService.issueForIssuer`
+  llama `AutomaticProfileRebuildService.rebuildAfterIssuance({ credentialId,
+  holderUserId: Credential.subjectUserId })`, AWAITED, antes de intentar
+  el documental/textual automatico -- nunca en paralelo con ellos;
+- best-effort identico a los pasos existentes: un fallo se loguea de
+  forma segura y la respuesta de emision sigue exitosa; el documental y
+  el textual automatico igual se intentan despues;
+- `FormativeProfileService.rebuildForUser` no cambia -- ya seleccionaba
+  toda credencial `issued` del holder sin exigir `SemanticAnalysis`; lo
+  nuevo es unicamente que ahora SIEMPRE se invoca tras una emision, en
+  vez de depender de que un analisis automatico complete con exito;
+- si despues el documental o el textual automatico completa y persiste
+  `SemanticAnalysis`, el rebuild enriquecido de C2b.4 (arriba) crea una
+  generacion nueva que reemplaza la baseline como `isCurrent` -- doble
+  rebuild esperado y correcto para una credencial elegible, nunca
+  evitado como "optimizacion";
+- `POST /me/profile/rebuild` (`Holder wallet v1`, mas abajo) ahora tiene
+  un consumidor real en `apps/web` (accion "Actualizar perfil") como
+  fallback secundario -- nunca la via principal;
+- revocacion: P1.1 audito el repo y confirmo que NO existe hoy ningun
+  endpoint/service que transicione una `Credential` a `revoked` en
+  `services/api/src` (unicamente un script CLI que solo interactua con el
+  contrato on-chain) -- por lo tanto no hay ningun rebuild post-revocacion
+  que agregar en este slice; ver `domain-rules-v0.md` seccion 28 para el
+  detalle completo de esta decision.
+
 Permanece candidato futuro:
 
 ```text
@@ -1108,6 +1138,16 @@ responder: reconstruir no habilita la exposición del snapshot interno.
 La Wallet carga el perfil y la biblioteca de credenciales como recursos
 independientes. Mientras no exista un mapeo seguro de procedencia, el contrato
 no afirma que una credencial individual haya sido fuente de un perfil concreto.
+
+**P1.1**: `POST /me/profile/rebuild` (sin cambios de contrato) ahora tiene
+un consumidor real en `apps/web` -- `ProfileRebuildAction` ("Actualizar
+perfil"), mostrado junto a "Compartir perfil" cuando ya hay un
+`currentProfile`, y dentro del empty state como accion de recuperacion
+cuando el holder tiene Credentials `issued` pero `currentProfile === null`.
+Nunca se ofrece si el holder no tiene ninguna Credential. Es
+deliberadamente un fallback secundario -- el perfil se mantiene
+automaticamente desde la emision (ver seccion de P1.1 mas arriba); el
+boton nunca es la unica via para que un holder obtenga su primer perfil.
 
 ### A1.1: identidad humana en `subject.displayLabel`
 

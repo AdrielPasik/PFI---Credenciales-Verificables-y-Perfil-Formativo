@@ -8,9 +8,11 @@ import {
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { AutomaticCourseTextAnalysisService } from '../analysis-run/automatic-course-text-analysis.service';
 import { AutomaticDocumentAnalysisService } from '../analysis-run/automatic-document-analysis.service';
+import { AutomaticProfileRebuildService } from '../analysis-run/automatic-profile-rebuild.service';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CredentialsService } from './credentials.service';
+import { CredentialSummaryResponseDto } from './dto/credential-summary-response.dto';
 import { IssuerCredentialDetailResponseDto } from './dto/issuer-credential-detail-response.dto';
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
@@ -26,7 +28,8 @@ export class IssuerCredentialIssueService {
     private readonly credentialsService: CredentialsService,
     private readonly issuerCredentialReadService: IssuerCredentialReadService,
     private readonly automaticDocumentAnalysisService: AutomaticDocumentAnalysisService,
-    private readonly automaticCourseTextAnalysisService: AutomaticCourseTextAnalysisService
+    private readonly automaticCourseTextAnalysisService: AutomaticCourseTextAnalysisService,
+    private readonly automaticProfileRebuildService: AutomaticProfileRebuildService
   ) {}
 
   async issueForIssuer(
@@ -53,8 +56,10 @@ export class IssuerCredentialIssueService {
       throw new NotFoundException(CREDENTIAL_NOT_FOUND_MESSAGE);
     }
 
+    let issuedCredential: CredentialSummaryResponseDto;
+
     try {
-      await this.credentialsService.issueCredential(
+      issuedCredential = await this.credentialsService.issueCredential(
         credentialId,
         { issuerId },
         currentUser
@@ -65,6 +70,29 @@ export class IssuerCredentialIssueService {
       }
 
       throw new BadGatewayException(ISSUANCE_FAILED_MESSAGE);
+    }
+
+    // P1.1: rebuild baseline best-effort, AWAITED antes de intentar
+    // cualquier analisis automatico -- la existencia del perfil del
+    // holder no debe depender de elegibilidad de tipo, disponibilidad de
+    // evidencia ni exito de IA. El holder de la Credential es
+    // `issuedCredential.subjectUserId` (ya devuelto por
+    // CredentialsService.issueCredential, sin lectura extra) -- NUNCA
+    // `currentUser.id`, que es el issuer admin/operator que ejecuta la
+    // emision, no el titular. Si el rebuild de IA completa despues (ver
+    // los dos pasos siguientes), su propio rebuild enriquecido reemplaza
+    // esta generacion baseline -- por eso este paso debe terminar ANTES
+    // de que arranquen esos dos pasos, nunca en paralelo con ellos.
+    try {
+      await this.automaticProfileRebuildService.rebuildAfterIssuance({
+        credentialId,
+        holderUserId: issuedCredential.subjectUserId
+      });
+    } catch {
+      // Defensive only: rebuildAfterIssuance ya atrapa y loguea sus
+      // propios errores (nunca lanza) -- este catch nunca deberia
+      // ejecutarse, pero preserva el mismo contrato best-effort que los
+      // pasos de analisis automatico de abajo.
     }
 
     try {

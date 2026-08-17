@@ -23,3 +23,13 @@ export async function getMyCredentialRequest(
 export async function getMyCurrentProfileRequest(request: AuthenticatedApiRequest) {
   return adaptMyCurrentProfile(await request('/me/profile/current'));
 }
+
+// P1.1: fallback manual -- reconstruye el perfil formativo del holder a
+// partir de sus credenciales emitidas y de la semantica ya disponible
+// (nunca ejecuta IA). Mismo shape de respuesta que getMyCurrentProfileRequest
+// (`{ currentProfile }`), asi que se reusa el mismo adapter.
+export async function rebuildMyProfileRequest(request: AuthenticatedApiRequest) {
+  return adaptMyCurrentProfile(
+    await request('/me/profile/rebuild', { method: 'POST' })
+  );
+}
