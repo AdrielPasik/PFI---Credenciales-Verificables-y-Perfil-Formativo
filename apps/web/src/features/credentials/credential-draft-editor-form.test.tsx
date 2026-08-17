@@ -4,9 +4,13 @@ import {
   screen,
   waitFor
 } from '@testing-library/react';
+import { createRef, type RefObject } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
+import {
+  CredentialDraftEditorForm,
+  type CredentialDraftEditorFormHandle
+} from '@/features/credentials/credential-draft-editor-form';
 import { ApiError } from '@/lib/errors/api-error';
 import type {
   AcademicProgramSearchItemVM,
@@ -117,6 +121,7 @@ function renderEditor(options?: {
   onTerminalError?: HandleTerminalError;
   searchPrograms?: SearchPrograms;
   searchSubjects?: SearchSubjects;
+  ref?: RefObject<CredentialDraftEditorFormHandle | null>;
 }) {
   const detail = options?.detail ?? detailFixture();
   const onSave =
@@ -135,6 +140,7 @@ function renderEditor(options?: {
 
   render(
     <CredentialDraftEditorForm
+      ref={options?.ref}
       detail={detail}
       issuerReference="issuer-internal-reference"
       onSave={onSave}
@@ -705,6 +711,91 @@ describe('CredentialDraftEditorForm', () => {
     expect(
       (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
     ).toBe('Descripción local');
+  });
+
+  // ─── R2: imperative flush() -- save-before-issue ───────────────────────────
+
+  it('R2 flush(): a no-op when there are no pending changes -- never calls onSave', async () => {
+    const onSave = vi.fn();
+    const ref = createRef<CredentialDraftEditorFormHandle>();
+    renderEditor({ onSave, ref });
+
+    const result = await ref.current!.flush();
+
+    expect(result).toEqual({ ok: true });
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('R2 flush(): saves pending edits using the exact same command as "Guardar cambios"', async () => {
+    const detail = detailFixture();
+    const saved = {
+      ...detail,
+      credentialSubject: {
+        ...detail.credentialSubject,
+        competencies: ['Motor', 'Diagnóstico']
+      }
+    };
+    const onSave = vi.fn().mockResolvedValue(saved);
+    const ref = createRef<CredentialDraftEditorFormHandle>();
+    renderEditor({ detail, onSave, ref });
+
+    fireEvent.change(screen.getByLabelText('Competencias'), {
+      target: { value: 'Motor\nDiagnóstico' }
+    });
+
+    expect(ref.current!.hasPendingChanges()).toBe(true);
+
+    const result = await ref.current!.flush();
+
+    expect(result).toEqual({ ok: true });
+    expect(onSave).toHaveBeenCalledOnce();
+    expect(onSave).toHaveBeenCalledWith({
+      issuerReference: 'issuer-internal-reference',
+      credentialReference: 'credential-internal-reference',
+      expectedUpdatedAt: detail.updatedAt,
+      competencies: ['Motor', 'Diagnóstico']
+    });
+    expect(await screen.findByText('Cambios guardados')).toBeTruthy();
+  });
+
+  it('R2 flush(): returns ok:false and never rethrows when the save fails -- the caller decides what to do', async () => {
+    const onSave = vi
+      .fn()
+      .mockRejectedValue(new ApiError('upstream detail', 'http', 400));
+    const ref = createRef<CredentialDraftEditorFormHandle>();
+    renderEditor({ onSave, ref });
+
+    fireEvent.change(screen.getByLabelText('Descripción'), {
+      target: { value: 'Descripción local' }
+    });
+
+    const result = await ref.current!.flush();
+
+    expect(result.ok).toBe(false);
+    expect(
+      await screen.findByText('Revisá los datos del borrador e intentá nuevamente.')
+    ).toBeTruthy();
+    // El input editado nunca se pierde -- mismo contrato que "Guardar
+    // cambios" fallido.
+    expect(
+      (screen.getByLabelText('Descripción') as HTMLTextAreaElement).value
+    ).toBe('Descripción local');
+  });
+
+  it('R2 flush(): reports invalid local fields instead of saving stale/invalid data', async () => {
+    const onSave = vi.fn();
+    const ref = createRef<CredentialDraftEditorFormHandle>();
+    renderEditor({ onSave, ref });
+
+    fireEvent.change(screen.getByLabelText('Nombre del logro'), {
+      target: { value: '' }
+    });
+
+    const result = await ref.current!.flush();
+
+    expect(result.ok).toBe(false);
+    expect(onSave).not.toHaveBeenCalled();
+    expect(await screen.findByText('Ingresá el nombre del logro.')).toBeTruthy();
   });
 
   it('preserves local changes on 409 and reloads only after explicit confirmation', async () => {

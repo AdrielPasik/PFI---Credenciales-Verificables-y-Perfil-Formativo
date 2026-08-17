@@ -52,7 +52,19 @@ const MAX_HOURS = new Prisma.Decimal('99999999.99');
 export const CONTROLLED_STRING_MAX_LENGTH = 255;
 export const EXTERNAL_URL_MAX_LENGTH = 2_048;
 export const CONTROLLED_ARRAY_MAX_ITEMS = 30;
-export const CONTROLLED_ARRAY_ITEM_MAX_LENGTH = 80;
+// R2: 80 fue calibrado pensando en tags cortos (skills/competencies de
+// academic_subject, ej. "TypeScript", "modelado de datos"). El mismo
+// campo tecnico (learningOutcomes) se reutiliza para "Contenido e
+// información adicional" en course -- la UI invita explicitamente
+// contenido/temario mas largo por linea ("Agregá contenidos, temario,
+// herramientas, conocimientos abordados u otra información relevante
+// del curso"), que supera 80 caracteres con cualquier oracion realista.
+// 500 sigue acotado (rechaza pegar un documento entero en una sola
+// linea) pero admite una linea de temario/competencia realista para
+// cualquier tipo. Se mantiene un unico limite compartido por los tres
+// campos (skills/competencies/learningOutcomes) -- nunca uno distinto
+// por CredentialType, para no introducir una regla nueva de scoping.
+export const CONTROLLED_ARRAY_ITEM_MAX_LENGTH = 500;
 
 export interface FieldUpdate<T> {
   provided: boolean;

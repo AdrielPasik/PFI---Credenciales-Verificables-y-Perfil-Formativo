@@ -478,3 +478,35 @@ test('validator normalizes, removes empty entries and deduplicates string arrays
     );
   }
 });
+
+// R2: reproduce el bug real reportado en la demo -- un course draft con
+// competencias cortas (tags realistas, muy por debajo del limite) y
+// "Contenido e información adicional" (learningOutcomes) con lineas de
+// contenido/temario realistas para un curso. El campo se presenta en la UI
+// como texto libre por linea ("Agregá contenidos, temario, herramientas,
+// conocimientos abordados u otra información relevante del curso"), no
+// como tags cortos -- una linea de temario realista supera holgadamente
+// el limite compartido de 80 caracteres que hoy aplica por igual a
+// skills/competencies/learningOutcomes sin distincion de campo/tipo.
+test('R2: a realistic course "Contenido e información adicional" line must not be rejected as if it were a short tag', () => {
+  const realisticCompetencies = ['Motor', 'Diagnóstico', 'Frenos'];
+  const realisticAdditionalContent = [
+    'Introducción a los sistemas de diagnóstico electrónico y su aplicación en vehículos modernos',
+    'Herramientas de escaneo OBD-II, protocolos de comunicación vehicular y lectura de códigos de falla'
+  ];
+
+  const result = validateIssuerCredentialDraftUpdate({
+    expectedUpdatedAt: EXPECTED_UPDATED_AT,
+    competencies: realisticCompetencies,
+    learningOutcomes: realisticAdditionalContent
+  });
+
+  assert.deepEqual(result.competencies, {
+    provided: true,
+    value: realisticCompetencies
+  });
+  assert.deepEqual(result.learningOutcomes, {
+    provided: true,
+    value: realisticAdditionalContent
+  });
+});

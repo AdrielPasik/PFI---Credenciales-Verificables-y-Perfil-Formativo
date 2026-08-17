@@ -28,7 +28,10 @@ import {
   CardHeader
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { CredentialDraftEditorForm } from '@/features/credentials/credential-draft-editor-form';
+import {
+  CredentialDraftEditorForm,
+  type CredentialDraftEditorFormHandle
+} from '@/features/credentials/credential-draft-editor-form';
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
@@ -657,6 +660,11 @@ export function CredentialDetailView({
   const [reusableTemplate, setReusableTemplate] =
     useState<CourseTemplateSummaryVM | null>(null);
   const lookupAttempted = useRef(false);
+  // R2: "Emitir credencial" nunca debe emitir una version stale del
+  // borrador. draftEditorRef solo queda montado mientras isDraft (ver mas
+  // abajo) -- exactamente la misma condicion bajo la que
+  // "Emitir credencial" es clickeable.
+  const draftEditorRef = useRef<CredentialDraftEditorFormHandle>(null);
 
   useEffect(() => {
     if (detail.type !== 'course' && detail.type !== 'certification') {
@@ -702,6 +710,28 @@ export function CredentialDetailView({
     const created = await onSaveReusableTemplate();
     setReusableTemplate(created);
     return created;
+  }
+
+  // R2: save-before-issue. Si el editor de borrador tiene cambios
+  // pendientes (o campos invalidos), los persiste PRIMERO reusando
+  // exactamente la misma logica de "Guardar cambios" (nunca un segundo
+  // mapper/payload) -- solo si ese guardado tiene exito continua con la
+  // emision real. Si el guardado falla (validacion local o error de
+  // backend), NUNCA llama a onIssue -- el usuario ve el motivo especifico
+  // en el propio editor de borrador (feedback ya seteado por flush()) y
+  // puede reintentar sin haber perdido nada.
+  async function handleIssue(): Promise<IssuerCredentialDetailVM> {
+    if (isDraft && draftEditorRef.current) {
+      const flushed = await draftEditorRef.current.flush();
+
+      if (!flushed.ok) {
+        throw new Error(
+          'No pudimos guardar los cambios pendientes del borrador antes de emitir.'
+        );
+      }
+    }
+
+    return onIssue();
   }
 
   async function handleApproveTemplateSemanticAnalysis(
@@ -864,6 +894,7 @@ export function CredentialDetailView({
 
           {isDraft && draftEditor ? (
             <CredentialDraftEditorForm
+              ref={draftEditorRef}
               detail={detail}
               issuerReference={draftEditor.issuerReference}
               onSave={draftEditor.onSave}
@@ -951,7 +982,7 @@ export function CredentialDetailView({
               </Button>
             </CardContent>
           </Card>
-          <CredentialIssuanceSection detail={detail} onIssue={onIssue} />
+          <CredentialIssuanceSection detail={detail} onIssue={handleIssue} />
           {isReusableTemplateEligible ? (
             // R1.1: accion primaria, simple, nunca depende de IA -- se
             // renderiza ANTES de SemanticApprovalSection (jerarquia

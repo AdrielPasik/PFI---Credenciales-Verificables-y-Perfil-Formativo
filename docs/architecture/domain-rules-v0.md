@@ -218,7 +218,10 @@ Reglas transversales:
   PATCH ni salir por el read model issuer-facing;
 - strings controlados usan maximo 255 caracteres;
 - `external_url` usa HTTP/HTTPS y maximo 2048 caracteres;
-- arrays controlados usan hasta 30 strings de hasta 80 caracteres;
+- arrays controlados usan hasta 30 strings de hasta 500 caracteres (R2:
+  antes 80 -- incompatible con `learningOutcomes` de `course`, relabeled
+  en la UI como "Contenido e información adicional" e invitando
+  explicitamente contenido/temario mas largo por linea que un tag corto);
 - `completion_date` y `expiration_date` son fechas reales `YYYY-MM-DD`, y la
   expiracion no puede ser anterior a la finalizacion;
 - toda actualizacion sigue siendo exclusiva de `draft` y participa del CAS
@@ -1953,3 +1956,63 @@ excluido para `academic_subject` sin PDF. P1.1 cierra ese gap.
   Credential -- el empty state simple alcanza en ese caso. El copy del
   empty state se corrigio: ya no implica que el perfil espera
   "informacion analizable" para existir.
+
+## 29. R2 — Course draft no guardaba competencias/contenido + save-before-issue
+
+Bug real reportado en demo: un `course` draft con "Competencias" y
+"Contenido e información adicional" (`learningOutcomes`, relabeled en la
+UI para `course`) completos con texto realista fallaba al guardar con
+`400`. Auditoria (`final-r2-course-draft-save-fix-review-bundle.txt`,
+gitignored) confirmo la causa exacta:
+
+- **Root cause**: `CONTROLLED_ARRAY_ITEM_MAX_LENGTH` (compartido por
+  `skills`/`competencies`/`learningOutcomes` en
+  `issuer-credential-draft-update.validator.ts`, reusado tambien por
+  `issuer-course-templates.validator.ts`) era `80` caracteres por
+  elemento -- calibrado para tags cortos (`skills`/`competencies` de
+  `academic_subject`, ej. "TypeScript", "modelado de datos"), pero
+  incompatible con `learningOutcomes` de `course`, cuya UI invita
+  explicitamente contenido/temario mas largo por linea ("Agregá
+  contenidos, temario, herramientas, conocimientos abordados u otra
+  información relevante del curso"). Cualquier oracion realista supera
+  80 caracteres, disparando `BadRequestException` (400) en TODO el PATCH
+  -- no solo se perdia ese campo, se perdian TODOS los campos editados
+  en el mismo request. **Fix**: subido a `500` caracteres por elemento
+  (un unico limite compartido, sin distincion por tipo/campo -- ver
+  seccion 11 arriba, actualizada). `CONTROLLED_ARRAY_MAX_ITEMS` (30) no
+  cambio -- sin evidencia de que fuera un problema real.
+- **NO era un bug de mapper/DTO/service** -- el frontend (`linesToStringArray`/
+  `buildDraftUpdateCommand`) y el backend (persistencia en
+  `credentialSubject`, merge de campos) ya funcionaban correctamente; el
+  unico punto de falla era el limite de longitud en el validador.
+
+**R2 tambien simplifica la UX de guardado — save-before-issue**:
+
+- "Guardar cambios" (persistir el draft sin emitir) y "Emitir credencial"
+  (transicionar a `issued`) siguen siendo DOS acciones distintas y
+  deliberadamente separadas -- no son "casi lo mismo" (una persiste
+  progreso sin comprometer la credencial, la otra es irreversible). Se
+  evaluo eliminar "Guardar cambios" (seccion 13 del diseno aprobado) y se
+  decidio conservarlo: sigue siendo la unica forma de guardar progreso
+  sin emitir todavia.
+- Lo que SI cambio: `CredentialDraftEditorForm` expone un handle
+  imperativo (`CredentialDraftEditorFormHandle.flush()`) que
+  `CredentialDetailView` invoca automaticamente ANTES de ejecutar
+  `onIssue` real -- si el usuario tiene ediciones sin guardar (o campos
+  localmente invalidos) y presiona "Emitir credencial" directamente
+  (sin haber presionado antes "Guardar cambios"), esas ediciones se
+  persisten primero, usando EXACTAMENTE la misma funcion de guardado
+  (`performSave`) que "Guardar cambios" -- nunca un segundo mapper/
+  payload. Si no hay cambios pendientes, `flush()` es un no-op (no
+  dispara ningun request).
+- **Invariante fuerte**: si ese guardado automatico falla (validacion
+  local o error de backend), `onIssue` NUNCA se llama -- la emision
+  jamas procede con una version stale o invalida del borrador. El error
+  se muestra en el propio editor de borrador (mismo feedback que un
+  "Guardar cambios" fallido); el usuario puede corregir y reintentar sin
+  haber perdido nada.
+- **Nunca autosave por tecla** -- `flush()` solo se dispara por una
+  accion explicita del usuario (presionar "Guardar cambios" o "Emitir
+  credencial"), nunca por un debounce en cada cambio de input.
+- Sin cambios de contrato HTTP: `flush()` reusa el mismo
+  `PATCH .../draft` que ya existia; no se agrego ningun endpoint nuevo.

@@ -420,6 +420,215 @@ describe('CredentialDetailController', () => {
     expect(screen.queryByText('Consultar último análisis')).toBeNull();
   });
 
+  // ─── R2: course draft no guardaba competencias/contenido adicional ────────
+
+  it('R2: saves multiline competencies and a realistic long "Contenido e información adicional" line through "Guardar cambios"', async () => {
+    const competencies = ['Motor', 'Diagnóstico', 'Frenos'];
+    const additionalContent =
+      'Introducción a los sistemas de diagnóstico electrónico y su aplicación en vehículos modernos';
+    mockCredentialDetailApi({
+      patch: {
+        ...draftResponse,
+        credentialSubject: {
+          ...draftResponse.credentialSubject,
+          competencies,
+          learning_outcomes: [additionalContent]
+        },
+        updatedAt: '2026-07-30T13:00:00.000Z'
+      }
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const competenciesField = await screen.findByLabelText('Competencias');
+    fireEvent.change(competenciesField, {
+      target: { value: competencies.join('\n') }
+    });
+    fireEvent.change(
+      screen.getByLabelText('Contenido e información adicional'),
+      { target: { value: additionalContent } }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+        '/issuers/issuer-selected-reference/credentials/credential-internal-reference/draft',
+        {
+          method: 'PATCH',
+          body: {
+            expectedUpdatedAt: '2026-07-30T12:00:00.000Z',
+            competencies,
+            learningOutcomes: [additionalContent]
+          }
+        }
+      )
+    );
+
+    expect(await screen.findByText('Cambios guardados')).toBeTruthy();
+    expect(
+      (screen.getByLabelText('Competencias') as HTMLTextAreaElement).value
+    ).toBe(competencies.join('\n'));
+    expect(
+      (
+        screen.getByLabelText(
+          'Contenido e información adicional'
+        ) as HTMLTextAreaElement
+      ).value
+    ).toBe(additionalContent);
+  });
+
+  it('R2: saves pending draft edits automatically before issuing, reusing the same PATCH payload as "Guardar cambios" -- never presses it explicitly', async () => {
+    const competencies = ['Motor', 'Diagnóstico', 'Frenos'];
+    const additionalContent =
+      'Introducción a los sistemas de diagnóstico electrónico y su aplicación en vehículos modernos';
+    mockCredentialDetailApi({
+      // Respaldo declarativo ya existente (independiente de la edicion
+      // pendiente) para que el panel de confirmacion de emision no exija
+      // el checkbox adicional de "emitir sin evidencia" -- lo que se
+      // prueba aca es el save-before-issue, no ese flujo aparte.
+      detail: {
+        ...draftResponse,
+        description: 'Descripción institucional ya cargada previamente.'
+      },
+      patch: {
+        ...draftResponse,
+        description: 'Descripción institucional ya cargada previamente.',
+        credentialSubject: {
+          ...draftResponse.credentialSubject,
+          competencies,
+          learning_outcomes: [additionalContent]
+        },
+        updatedAt: '2026-07-30T13:00:00.000Z'
+      },
+      issue: {
+        ...draftResponse,
+        status: 'issued',
+        issuedAt: '2026-08-06T12:00:00.000Z',
+        canonicalHash: `0x${'a'.repeat(64)}`,
+        canonicalizationVersion: 'canon_v1',
+        blockchainEvidence: null,
+        credentialSubject: {
+          ...draftResponse.credentialSubject,
+          competencies,
+          learning_outcomes: [additionalContent]
+        }
+      }
+    });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const competenciesField = await screen.findByLabelText('Competencias');
+    fireEvent.change(competenciesField, {
+      target: { value: competencies.join('\n') }
+    });
+    fireEvent.change(
+      screen.getByLabelText('Contenido e información adicional'),
+      { target: { value: additionalContent } }
+    );
+
+    // Nunca se presiona "Guardar cambios" -- exactamente el escenario
+    // reportado: editar y emitir directamente.
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+
+    await waitFor(() =>
+      expect(sessionMocks.requestAuthenticated).toHaveBeenCalledWith(
+        '/issuers/issuer-selected-reference/credentials/credential-internal-reference/draft',
+        {
+          method: 'PATCH',
+          body: {
+            expectedUpdatedAt: '2026-07-30T12:00:00.000Z',
+            competencies,
+            learningOutcomes: [additionalContent]
+          }
+        }
+      )
+    );
+    expect(await screen.findByText('Credencial emitida')).toBeTruthy();
+
+    // El PATCH automatico debe completarse (ser invocado) ANTES del POST
+    // /issue -- nunca despues, nunca en paralelo.
+    const patchCallIndex =
+      sessionMocks.requestAuthenticated.mock.calls.findIndex(([path]) =>
+        String(path).endsWith('/draft')
+      );
+    const issueCallIndex =
+      sessionMocks.requestAuthenticated.mock.calls.findIndex(([path]) =>
+        String(path).endsWith('/issue')
+      );
+    expect(patchCallIndex).toBeGreaterThanOrEqual(0);
+    expect(issueCallIndex).toBeGreaterThan(patchCallIndex);
+  });
+
+  it('R2: never issues when the automatic pre-issue draft save fails -- keeps the edited values visible and shows an error', async () => {
+    let issueCalled = false;
+    sessionMocks.requestAuthenticated.mockImplementation(
+      (path: string, options?: { method?: string }) => {
+        if (path.endsWith('/analysis-runs/latest')) {
+          return Promise.resolve(null);
+        }
+        if (path.includes('/course-templates')) {
+          return Promise.resolve([]);
+        }
+        if (path.endsWith('/draft') && options?.method === 'PATCH') {
+          return Promise.reject(new ApiError('Bad Request', 'http', 400));
+        }
+        if (path.endsWith('/issue')) {
+          issueCalled = true;
+          return Promise.resolve({ ...draftResponse, status: 'issued' });
+        }
+        return Promise.resolve({
+          ...draftResponse,
+          // Respaldo declarativo ya existente (independiente de la edicion
+          // pendiente) para que el panel de confirmacion de emision no
+          // exija el checkbox adicional de "emitir sin evidencia" -- lo
+          // que se prueba aca es el save-before-issue, no ese flujo.
+          description: 'Descripción institucional ya cargada previamente.'
+        });
+      }
+    );
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    const competenciesField = await screen.findByLabelText('Competencias');
+    fireEvent.change(competenciesField, {
+      target: { value: 'Motor\nDiagnóstico\nFrenos' }
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Emitir credencial' })
+    );
+
+    expect(await screen.findByText('No pudimos guardar los cambios')).toBeTruthy();
+    expect(screen.queryByText('Credencial emitida')).toBeNull();
+    expect(issueCalled).toBe(false);
+    expect(
+      (screen.getByLabelText('Competencias') as HTMLTextAreaElement).value
+    ).toBe('Motor\nDiagnóstico\nFrenos');
+  });
+
   it('uploads one multipart document and updates only the current evidence snapshot', async () => {
     mockCredentialDetailApi({ documentUpload: uploadResponse });
 

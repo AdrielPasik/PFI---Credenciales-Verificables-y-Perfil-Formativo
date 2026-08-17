@@ -6,6 +6,8 @@ import {
   Save
 } from 'lucide-react';
 import {
+  forwardRef,
+  useImperativeHandle,
   useRef,
   useState,
   type FormEvent,
@@ -70,15 +72,35 @@ type EditorFeedback =
   | { kind: 'error'; feedback: CredentialFeedback }
   | null;
 
-export function CredentialDraftEditorForm({
-  detail,
-  issuerReference,
-  onReloadLatest,
-  onSave,
-  onTerminalError,
-  searchPrograms,
-  searchSubjects
-}: CredentialDraftEditorFormProps) {
+// R2: permite que un caller externo (CredentialDetailView, antes de
+// emitir) fuerce el guardado de cualquier edicion pendiente del
+// formulario usando EXACTAMENTE la misma logica/validacion/mapper que
+// "Guardar cambios" -- nunca un segundo camino de serializacion. Si no
+// hay cambios pendientes, flush() no dispara ningun request (no-op
+// exitoso). Si hay cambios invalidos o el guardado falla, devuelve
+// ok:false -- el caller nunca debe proceder a emitir en ese caso.
+export interface CredentialDraftEditorFormHandle {
+  flush(): Promise<
+    { ok: true } | { ok: false; feedback: CredentialFeedback }
+  >;
+  hasPendingChanges(): boolean;
+}
+
+export const CredentialDraftEditorForm = forwardRef<
+  CredentialDraftEditorFormHandle,
+  CredentialDraftEditorFormProps
+>(function CredentialDraftEditorForm(
+  {
+    detail,
+    issuerReference,
+    onReloadLatest,
+    onSave,
+    onTerminalError,
+    searchPrograms,
+    searchSubjects
+  },
+  ref
+) {
   const [state, setState] = useState(() =>
     detailToDraftEditorState(detail)
   );
@@ -187,39 +209,12 @@ export function CredentialDraftEditorForm({
     setFeedback(null);
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (saving || pendingType || academicSelectionRequired) {
-      return;
-    }
-
-    const nextErrors = validateDraftEditorState(state);
-    setErrors(nextErrors);
-
-    if (Object.keys(nextErrors).length > 0) {
-      focusFirstInvalidField(nextErrors, {
-        achievementName: achievementNameRef.current,
-        hours: hoursRef.current,
-        externalUrl: externalUrlRef.current,
-        academicPeriod: academicYearRef.current,
-        grade: gradeRef.current
-      });
-      return;
-    }
-
-    const nextCommand = buildDraftUpdateCommand({
-      issuerReference,
-      credentialReference: baselineDetail.credentialReference,
-      detail: baselineDetail,
-      state,
-      pendingAcademicSelection
-    });
-
-    if (!nextCommand) {
-      return;
-    }
-
+  // R2: unica funcion que ejecuta el PATCH real -- "Guardar cambios"
+  // (submit) y flush() (llamado externamente antes de emitir) comparten
+  // esta misma implementacion, nunca dos caminos de guardado distintos.
+  async function performSave(
+    nextCommand: NonNullable<ReturnType<typeof buildDraftUpdateCommand>>
+  ): Promise<{ ok: true } | { ok: false; feedback: CredentialFeedback }> {
     setSaving(true);
     setFeedback(null);
 
@@ -235,6 +230,7 @@ export function CredentialDraftEditorForm({
         kind: 'success',
         message: 'Los cambios del borrador se guardaron correctamente.'
       });
+      return { ok: true };
     } catch (caught) {
       const mapped = mapCredentialError(caught, 'draft-update');
 
@@ -244,14 +240,114 @@ export function CredentialDraftEditorForm({
         mapped.code === 'session_expired'
       ) {
         onTerminalError(mapped);
-        return;
+        return { ok: false, feedback: mapped };
       }
 
       setFeedback({ kind: 'error', feedback: mapped });
+      return { ok: false, feedback: mapped };
     } finally {
       setSaving(false);
     }
   }
+
+  function focusInvalidFields(nextErrors: CredentialDraftEditorErrors) {
+    focusFirstInvalidField(nextErrors, {
+      achievementName: achievementNameRef.current,
+      hours: hoursRef.current,
+      externalUrl: externalUrlRef.current,
+      academicPeriod: academicYearRef.current,
+      grade: gradeRef.current
+    });
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (saving || pendingType || academicSelectionRequired) {
+      return;
+    }
+
+    const nextErrors = validateDraftEditorState(state);
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      focusInvalidFields(nextErrors);
+      return;
+    }
+
+    const nextCommand = buildDraftUpdateCommand({
+      issuerReference,
+      credentialReference: baselineDetail.credentialReference,
+      detail: baselineDetail,
+      state,
+      pendingAcademicSelection
+    });
+
+    if (!nextCommand) {
+      return;
+    }
+
+    await performSave(nextCommand);
+  }
+
+  useImperativeHandle(ref, () => ({
+    hasPendingChanges: () => command !== null,
+    async flush() {
+      if (saving) {
+        return {
+          ok: false as const,
+          feedback: {
+            code: 'invalid_input' as const,
+            message: 'Ya hay un guardado del borrador en curso.'
+          }
+        };
+      }
+
+      if (pendingType || academicSelectionRequired) {
+        return {
+          ok: false as const,
+          feedback: {
+            code: 'invalid_input' as const,
+            message: pendingType
+              ? 'Confirmá o cancelá el cambio de tipo de credencial antes de emitir.'
+              : 'Seleccioná una carrera y una materia oficial antes de emitir.'
+          }
+        };
+      }
+
+      const nextErrors = validateDraftEditorState(state);
+      setErrors(nextErrors);
+
+      if (Object.keys(nextErrors).length > 0) {
+        focusInvalidFields(nextErrors);
+        return {
+          ok: false as const,
+          feedback: {
+            code: 'invalid_input' as const,
+            message: 'Revisá los datos del borrador antes de continuar.'
+          }
+        };
+      }
+
+      const nextCommand = buildDraftUpdateCommand({
+        issuerReference,
+        credentialReference: baselineDetail.credentialReference,
+        detail: baselineDetail,
+        state,
+        pendingAcademicSelection
+      });
+
+      if (!nextCommand) {
+        return { ok: true as const };
+      }
+
+      return performSave(nextCommand);
+    }
+    // Sin deps array a proposito: flush()/hasPendingChanges() deben leer
+    // siempre el state/baselineDetail/pendingAcademicSelection/saving mas
+    // recientes (nunca un closure stale) -- el costo de recrear el handle
+    // en cada render es insignificante para un formulario de edicion.
+  }));
 
   async function reloadLatestVersion() {
     if (reloading) {
@@ -541,7 +637,9 @@ export function CredentialDraftEditorForm({
       </form>
     </section>
   );
-}
+});
+
+CredentialDraftEditorForm.displayName = 'CredentialDraftEditorForm';
 
 function DraftFieldsCard({
   academicYearRef,

@@ -559,7 +559,10 @@
   acepta solo HTTP/HTTPS y hasta 2048 caracteres, sin requests externos.
 - Arrays: `string[] | null`; `null` limpia a `[]`, se eliminan vacios, se
   deduplica case-insensitive conservando el primer casing, maximo 30 elementos
-  y 80 caracteres por elemento.
+  y 500 caracteres por elemento (R2: antes 80 -- incompatible con
+  `learningOutcomes` de `course`, expuesto en la UI como "Contenido e
+  información adicional" e invitando explicitamente contenido/temario mas
+  largo por linea que un tag corto de `skills`/`competencies`).
 - Horas: decimal string positiva con precision compatible con
   `Decimal(10,2)` o `null`; la response la serializa como `string | null`.
 - Aplicabilidad por tipo:
