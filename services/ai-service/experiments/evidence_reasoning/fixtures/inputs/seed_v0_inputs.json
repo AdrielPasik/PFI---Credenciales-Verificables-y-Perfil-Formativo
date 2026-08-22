@@ -1,0 +1,169 @@
+{
+  "datasetVersion": "seed_gold_set_v0_frozen",
+  "splitVersion": "seed_split_v1",
+  "cases": [
+    {
+      "caseId": "case_01",
+      "split": "dev",
+      "domain": "Ingeniería Informática",
+      "objective": "Puesto de Desarrollador Backend Junior. Requisito formativo: diseño e implementación de APIs REST.",
+      "sources": [
+        {"sourceId": "src_01_a", "credentialId": "cred_01", "evidenceType": "TEXT_EVIDENCE", "content": "Descripción oficial del curso: Diseño e implementación de APIs RESTful utilizando Node.js y Express.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_02",
+      "split": "holdout",
+      "domain": "Biotecnología",
+      "objective": "Admisión a un posgrado con orientación de laboratorio molecular. Requisito formativo: técnicas de laboratorio de biología molecular.",
+      "sources": [
+        {"sourceId": "src_02_a", "credentialId": "cred_02", "evidenceType": "TEXT_EVIDENCE", "content": "Contenido oficial de la materia: Amplificación por PCR, electroforesis en gel de agarosa y análisis de ácidos nucleicos.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_03",
+      "split": "dev",
+      "domain": "Ingeniería Mecánica",
+      "objective": "Pasantía en simulación de ingeniería. Requisito formativo: simulación CFD de flujos turbulentos.",
+      "sources": [
+        {"sourceId": "src_03_a", "credentialId": "cred_03", "evidenceType": "TEXT_EVIDENCE", "content": "Materia Mecánica de Fluidos: Ecuaciones de conservación, flujo interno y externo, regímenes laminar y turbulento.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_04",
+      "split": "holdout",
+      "domain": "Química",
+      "objective": "Rol de laboratorio en química analítica. Requisito formativo: cromatografía líquida de alta resolución (HPLC).",
+      "sources": [
+        {"sourceId": "src_04_a", "credentialId": "cred_04", "evidenceType": "TEXT_EVIDENCE", "content": "Materia Química Analítica: Titulaciones ácido-base, análisis gravimétrico y espectrofotometría UV-visible.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_05",
+      "split": "dev",
+      "domain": "Ingeniería Informática",
+      "objective": "Puesto de Ingeniería de Plataforma. Requisito formativo: Kubernetes.",
+      "sources": [
+        {"sourceId": "src_05_a", "credentialId": "cred_05", "evidenceType": "TEXT_EVIDENCE", "content": "Contenido del curso: Imágenes Docker, Dockerfiles, redes de contenedores y Docker Compose.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_06",
+      "split": "dev",
+      "domain": "Biotecnología",
+      "objective": "Puesto trainee en bioprocesos industriales. Requisito formativo: microbiología industrial.",
+      "sources": [
+        {"sourceId": "src_06_a", "credentialId": "cred_06", "evidenceType": "TEXT_EVIDENCE", "content": "Materia Microbiología General: Clasificación microbiana, crecimiento, metabolismo, técnicas de cultivo y fundamentos de laboratorio.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_07",
+      "split": "dev",
+      "domain": "Ingeniería Civil",
+      "objective": "Especialización avanzada en ingeniería estructural. Requisito formativo: diseño estructural sismorresistente avanzado.",
+      "sources": [
+        {"sourceId": "src_07_a", "credentialId": "cred_07", "evidenceType": "TEXT_EVIDENCE", "content": "Curso Introducción al Diseño Sísmico: Acciones sísmicas básicas, espectros de respuesta introductorios y criterios estructurales conceptuales.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_08",
+      "split": "dev",
+      "domain": "Química / Ingeniería de Procesos",
+      "objective": "Admisión a un posgrado de Ingeniería de Procesos. Requisito formativo: fundamentos del análisis de procesos térmicos.",
+      "sources": [
+        {"sourceId": "src_08_a", "credentialId": "cred_08_a", "evidenceType": "TEXT_EVIDENCE", "content": "Termodinámica: Primera ley, propiedades termodinámicas y balances de energía.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_08_b", "credentialId": "cred_08_b", "evidenceType": "TEXT_EVIDENCE", "content": "Transferencia de Calor: Conducción, convección, radiación e intercambiadores de calor.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_08_c", "credentialId": "cred_08_c", "evidenceType": "TEXT_EVIDENCE", "content": "Operaciones Unitarias: Operaciones térmicas y equipos de intercambio de calor en sistemas de proceso.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_09",
+      "split": "dev",
+      "domain": "Ingeniería Civil",
+      "objective": "Especialización en ingeniería estructural. Requisito formativo: diseño estructural sismorresistente.",
+      "sources": [
+        {"sourceId": "src_09_a", "credentialId": "cred_09_a", "evidenceType": "TEXT_EVIDENCE", "content": "Resistencia de Materiales: Esfuerzo, deformación y comportamiento de vigas.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_09_b", "credentialId": "cred_09_b", "evidenceType": "TEXT_EVIDENCE", "content": "CAD: Dibujo técnico y modelado 3D.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_09_c", "credentialId": "cred_09_c", "evidenceType": "TEXT_EVIDENCE", "content": "Gestión de Proyectos: Planificación, costos y cronogramas.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_10",
+      "split": "holdout",
+      "domain": "Ingeniería Industrial",
+      "objective": "Rol de Analista de Calidad de Procesos. Requisito formativo: control estadístico avanzado de procesos.",
+      "sources": [
+        {"sourceId": "src_10_a", "credentialId": "cred_10_a", "evidenceType": "TEXT_EVIDENCE", "content": "Curso A: Gráficos de control básicos, media/rango y conceptos introductorios de capacidad de proceso.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED", "lineageId": "spc_intro_template_v1"},
+        {"sourceId": "src_10_b", "credentialId": "cred_10_b", "evidenceType": "TEXT_EVIDENCE", "content": "Curso B: Gráficos de control básicos, media/rango y conceptos introductorios de capacidad de proceso.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED", "lineageId": "spc_intro_template_v1"},
+        {"sourceId": "src_10_c", "credentialId": "cred_10_c", "evidenceType": "TEXT_EVIDENCE", "content": "Certificación C: Gráficos de control básicos, media/rango y conceptos introductorios de capacidad de proceso.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED", "lineageId": "spc_intro_template_v1"}
+      ]
+    },
+    {
+      "caseId": "case_11",
+      "split": "dev",
+      "domain": "Biotecnología / Ingeniería de Procesos",
+      "objective": "Especialización en Ingeniería de Bioprocesos. Requisito formativo: diseño de biorreactores con control de parámetros operativos.",
+      "sources": [
+        {"sourceId": "src_11_a", "credentialId": "cred_11_a", "evidenceType": "TEXT_EVIDENCE", "content": "Bioprocesos: Cinética de crecimiento y relaciones sustrato-producto.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_11_b", "credentialId": "cred_11_b", "evidenceType": "TEXT_EVIDENCE", "content": "Biorreactores: Configuraciones de reactores, transferencia de masa y fundamentos de escalado.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_12",
+      "split": "dev",
+      "domain": "Ingeniería Electrónica",
+      "objective": "Pasantía en Sistemas Embebidos. Requisito formativo: desarrollo de sistemas embebidos con microcontroladores ARM.",
+      "sources": [
+        {"sourceId": "src_12_a", "credentialId": "cred_12", "evidenceType": "TEXT_EVIDENCE", "content": "Sistemas Embebidos: Programación de microcontroladores, interrupciones e interfaces periféricas utilizando arquitectura AVR.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_13",
+      "split": "dev",
+      "domain": "Ingeniería Civil",
+      "objective": "Puesto de Ingeniero de Obra. Requisito: tres años de experiencia profesional supervisando obras.",
+      "sources": [
+        {"sourceId": "src_13_a", "credentialId": "cred_13_a", "evidenceType": "TEXT_EVIDENCE", "content": "Materia Gestión de la Construcción.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_13_b", "credentialId": "cred_13_b", "evidenceType": "TEXT_EVIDENCE", "content": "Materia Hormigón Armado.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"},
+        {"sourceId": "src_13_c", "credentialId": "cred_13_c", "evidenceType": "TEXT_EVIDENCE", "content": "Curso de Seguridad e Higiene.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_14",
+      "split": "holdout",
+      "domain": "Ingeniería Industrial",
+      "objective": "Puesto de Supervisor de Operaciones. Requisito: experiencia liderando equipos multidisciplinarios.",
+      "sources": [
+        {"sourceId": "src_14_a", "credentialId": "cred_14", "evidenceType": "TEXT_EVIDENCE", "content": "Curso de Liderazgo y Comportamiento Organizacional.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_15",
+      "split": "dev",
+      "domain": "Ingeniería Electrónica",
+      "objective": "Pasantía en Diseño Electrónico. Requisito formativo: diseño práctico de PCB.",
+      "sources": [
+        {"sourceId": "src_15_a", "credentialId": "cred_15", "evidenceType": "TEXT_EVIDENCE", "content": "diseño de PCB … [texto faltante] … laboratorio …", "coverageStatus": "PARTIAL", "sourceProvenance": "INSTITUTIONALLY_DECLARED", "diagnostics": ["fixture_source_damaged_or_badly_parsed", "material_text_missing"]}
+      ]
+    },
+    {
+      "caseId": "case_16",
+      "split": "holdout",
+      "domain": "Ingeniería en Alimentos",
+      "objective": "Admisión a un posgrado en Inocuidad Alimentaria. Requisito formativo: principios HACCP.",
+      "sources": [
+        {"sourceId": "src_16_a", "credentialId": "cred_16", "evidenceType": "TEXT_EVIDENCE", "content": "Fuente oficial: Análisis de peligros y puntos críticos de control (HACCP): principios y aplicación.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED"}
+      ]
+    },
+    {
+      "caseId": "case_17",
+      "split": "holdout",
+      "domain": "Ingeniería Informática",
+      "objective": "Puesto de Infraestructura Cloud. Requisito formativo: administración avanzada de clusters Kubernetes.",
+      "sources": [
+        {"sourceId": "src_17_a", "credentialId": "cred_17", "evidenceType": "TEXT_EVIDENCE", "content": "Contenido de la credencial: Introducción a Kubernetes: pods, deployments y services.", "coverageStatus": "FULL", "sourceProvenance": "INSTITUTIONALLY_DECLARED", "technicallyVerified": true}
+      ]
+    }
+  ]
+}
+

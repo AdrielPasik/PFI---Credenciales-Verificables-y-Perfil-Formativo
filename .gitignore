@@ -114,3 +114,6 @@ services/ai-service/*.xlsx
 services/ai-service/*.xls
 services/ai-service/*.pem
 services/ai-service/*.key
+
+# Local post-50% engineering handoff bundles
+mejoras post 50%/
