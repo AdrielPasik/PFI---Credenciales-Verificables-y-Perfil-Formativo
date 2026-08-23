@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from .fixtures import assert_input_gold_isolation, load_cases
+from .local_env import load_local_env
 from .providers import ProviderUnavailable, provider_from_name
 from .runtime import run_cases
 from .schemas import SCHEMAS
@@ -50,6 +51,23 @@ def build_parser() -> argparse.ArgumentParser:
     report.add_argument("--output", type=Path, required=True)
     schemas = sub.add_parser("schemas")
     schemas.add_argument("--output", type=Path, required=True)
+    b2 = sub.add_parser("b2")
+    b2.add_argument("--provider", choices=["openai", "anthropic"], required=True)
+    b2.add_argument("--output", type=Path, required=True)
+    b2.add_argument("--cases", required=True, help="Comma-separated Development case IDs")
+    b2.add_argument("--repeats", type=int, default=5)
+    evaluate_b2 = sub.add_parser("evaluate-b2")
+    evaluate_b2.add_argument("--runs", type=Path, required=True)
+    evaluate_b2.add_argument("--output", type=Path, required=True)
+    compare_b2 = sub.add_parser("compare-b2")
+    compare_b2.add_argument("--b1a", type=Path, required=True)
+    compare_b2.add_argument("--b1b", type=Path, required=True)
+    compare_b2.add_argument("--b2", type=Path, required=True)
+    compare_b2.add_argument("--output", type=Path, required=True)
+    b2_schemas = sub.add_parser("b2-schemas")
+    b2_schemas.add_argument("--output", type=Path, required=True)
+    b2_fingerprint = sub.add_parser("b2-fingerprint")
+    b2_fingerprint.add_argument("--output", type=Path, required=True)
     sub.add_parser("inventory")
     return parser
 
@@ -58,6 +76,8 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     assert_input_gold_isolation()
     try:
+        if args.command in {"b1a", "b1b", "compare", "b2"}:
+            load_local_env()
         if args.command in {"b0", "b1a", "b1b"}:
             provider = provider_from_name(args.provider) if args.command != "b0" else None
             payload = run_cases(
@@ -90,6 +110,32 @@ def main(argv: list[str] | None = None) -> int:
             args.output.write_text(build_report(b0_path=args.b0, b1a_path=args.b1a, b1b_path=args.b1b), encoding="utf-8")
         elif args.command == "schemas":
             _write(args.output, SCHEMAS)
+        elif args.command == "b2":
+            from .b2_runtime import run_b2_cases
+
+            ids = _case_ids(args.cases) or set()
+            development_ids = {case.case_id for case in load_cases(split="dev")}
+            invalid = ids - development_ids
+            if invalid:
+                raise ValueError(f"b2_non_development_cases_forbidden:{sorted(invalid)}")
+            provider = provider_from_name(args.provider)
+            _write(args.output, run_b2_cases(split="dev", case_ids=ids, repeats=args.repeats, provider=provider))
+        elif args.command == "evaluate-b2":
+            from .b2_evaluation import evaluate_b2_file
+
+            _write(args.output, evaluate_b2_file(args.runs))
+        elif args.command == "compare-b2":
+            from .b2_evaluation import compare_b1_b2
+
+            _write(args.output, compare_b1_b2(args.b1a, args.b1b, args.b2))
+        elif args.command == "b2-schemas":
+            from .b2_schemas import B2_SCHEMAS
+
+            _write(args.output, B2_SCHEMAS)
+        elif args.command == "b2-fingerprint":
+            from .b2_fingerprint import b2_behavior_fingerprint
+
+            _write(args.output, b2_behavior_fingerprint())
         elif args.command == "inventory":
             from .gold import load_gold
 
