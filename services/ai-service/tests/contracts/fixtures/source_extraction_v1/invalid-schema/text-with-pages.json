@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-008",
+    "sourceSha256": "9cf65c74a67f4e745482199354a2a728b6e74091be06ae2621c6089fb6b67df6"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "x",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 1,
+      "pageObservationStatus": "EXTRACTED"
+    }
+  ],
+  "documentCanonicalText": "Curso de introduccion a Kubernetes.\n\nCubre pods, deployments y services.",
+  "segments": [
+    {
+      "segmentId": "d:0-35",
+      "pageIndex": null,
+      "charStart": 0,
+      "charEnd": 35,
+      "exactExcerpt": "Curso de introduccion a Kubernetes."
+    },
+    {
+      "segmentId": "d:37-72",
+      "pageIndex": null,
+      "charStart": 37,
+      "charEnd": 72,
+      "exactExcerpt": "Cubre pods, deployments y services."
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "7804f4750ea638b12f7dc913ad31076f98eea1dff39cbb1976246b405de1523f"
+}

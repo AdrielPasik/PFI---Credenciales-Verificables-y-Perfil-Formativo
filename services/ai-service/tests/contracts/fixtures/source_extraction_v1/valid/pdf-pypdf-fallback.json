@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-fallback-007",
+    "sourceSha256": "df8ff3677228366446a11f5c88c9a64cd4edfc71908115016b9695652456bc7c",
+    "storageKey": "documents/doc-fallback-007.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PYPDF",
+    "dependencyFingerprint": "edec374aa0435140628ef8f243209c1773b84cb13a1ec1868d394ca8e0409834"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "Programa recuperado por el parser secundario.",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 45,
+      "pageObservationStatus": "EXTRACTED"
+    }
+  ],
+  "documentCanonicalText": "Programa recuperado por el parser secundario.",
+  "segments": [
+    {
+      "segmentId": "p0:0-45",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 45,
+      "exactExcerpt": "Programa recuperado por el parser secundario."
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "PRIMARY_PARSER_FAILED_FELL_BACK",
+      "severity": "WARNING",
+      "scope": "SOURCE",
+      "pageIndex": null,
+      "affectsCoverage": false,
+      "detail": "pdfplumber raised; fell back to pypdf"
+    }
+  ],
+  "artifactContentFingerprint": "adf6ec9de914e8a9c4cfa7d87e9a3c14de449062157d3fb71251c7b0da3e332a"
+}

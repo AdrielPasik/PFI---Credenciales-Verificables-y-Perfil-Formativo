@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/source_extraction_v1.schema.json",
+  "title": "source_extraction_v1",
+  "description": "Artifact de extraccion source-addressable: texto canonico direccionable de una fuente productiva (DocumentEvidence PDF o TextEvidence), con identidad de extraccion, coverage de observacion, segmentos direccionables y diagnosticos estructurados. Es deliberadamente NO semantico: no contiene EvidenceUnit, area, skill, concept, confidence, Requirement, relacion ni estado de razonamiento. Contrato congelado por evidence-reasoning-f0-source-addressability-design.md (F0_EPISTEMIC_CONTRACT: FROZEN_FOR_IMPLEMENTATION).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sourceType",
+    "source",
+    "extractionIdentity",
+    "sourceNormalizationApplied",
+    "offsetUnit",
+    "coverageStatus",
+    "pages",
+    "documentCanonicalText",
+    "segments",
+    "diagnostics",
+    "artifactContentFingerprint"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "source_extraction_v1"
+    },
+    "sourceType": {
+      "type": "string",
+      "enum": ["PDF_DOCUMENT", "TEXT"]
+    },
+    "source": {
+      "type": "object"
+    },
+    "extractionIdentity": {
+      "type": "object"
+    },
+    "sourceNormalizationApplied": {
+      "description": "Que normalizacion sufrio el contenido ANTES de que F0 lo viera. PDF_DOCUMENT: NONE (F0 solo normaliza fines de linea, ver canonicalText). TEXT: PRODUCT_NFC_LINEENDINGS_TRIM, porque text-evidence.validator.ts aplica NFC + fines de linea + trim antes de persistir y el sha256 almacenado cubre esa forma normalizada. Nunca presentar el texto canonico de TEXT como entrada cruda del usuario.",
+      "type": "string",
+      "enum": ["NONE", "PRODUCT_NFC_LINEENDINGS_TRIM"]
+    },
+    "offsetUnit": {
+      "description": "Unidad de todos los offsets del artifact. Code point Unicode (indice de str de Python / UTF-32), NO bytes UTF-8 y NO code units UTF-16. Declarado explicitamente para que ningun consumidor tenga que inferirlo.",
+      "const": "UNICODE_CODE_POINT"
+    },
+    "coverageStatus": {
+      "description": "Mide COMPLETITUD DE OBSERVACION, no cuanto texto salio. FULL: cada pagina es EXTRACTED u OBSERVED_EMPTY. PARTIAL: se observo algo de contenido sustantivo pero al menos una pagina es UNOBSERVED_OR_UNEXTRACTABLE o FAILED. FAILED: no se observo contenido sustantivo y queda material potencialmente relevante sin observar, o la extraccion a nivel de fuente fallo.",
+      "type": "string",
+      "enum": ["FULL", "PARTIAL", "FAILED"]
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/page"
+      }
+    },
+    "documentCanonicalText": {
+      "description": "PDF_DOCUMENT: derivado, igual a '\\n\\n'.join(pages[].canonicalText). TEXT: el texto canonico completo. Campo derivado: su consistencia con pages[] es un invariante que un validador debe hacer cumplir (ver §11B del diseño).",
+      "type": "string"
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/segment"
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/diagnostic"
+      }
+    },
+    "artifactContentFingerprint": {
+      "description": "SHA-256 en hex minuscula sobre los bytes UTF-8 de la serializacion canonica de la material projection. Excluido de su propio preimage. Ver el bloque FINGERPRINT del README de schemas.",
+      "$ref": "#/$defs/sha256Hex"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "sourceType": {
+            "const": "PDF_DOCUMENT"
+          }
+        },
+        "required": ["sourceType"]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "$ref": "#/$defs/pdfSourceRef"
+          },
+          "extractionIdentity": {
+            "$ref": "#/$defs/pdfExtractionIdentity"
+          },
+          "sourceNormalizationApplied": {
+            "const": "NONE"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/$defs/pdfSegment"
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceType": {
+            "const": "TEXT"
+          }
+        },
+        "required": ["sourceType"]
+      },
+      "then": {
+        "properties": {
+          "source": {
+            "$ref": "#/$defs/textSourceRef"
+          },
+          "extractionIdentity": {
+            "$ref": "#/$defs/textExtractionIdentity"
+          },
+          "sourceNormalizationApplied": {
+            "const": "PRODUCT_NFC_LINEENDINGS_TRIM"
+          },
+          "pages": {
+            "description": "TEXT no tiene semantica de pagina. Array vacio, nunca una pagina sintetica.",
+            "maxItems": 0
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/$defs/textSegment"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256Hex": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pdfSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["documentEvidenceId", "sourceSha256", "storageKey"],
+      "properties": {
+        "documentEvidenceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceSha256": {
+          "$ref": "#/$defs/sha256Hex"
+        },
+        "storageKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "textSourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["textEvidenceId", "sourceSha256"],
+      "properties": {
+        "textEvidenceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceSha256": {
+          "$ref": "#/$defs/sha256Hex"
+        }
+      }
+    },
+    "pdfExtractionIdentity": {
+      "description": "Identidad compuesta para PDF. dependencyFingerprint es REQUERIDO: una dependencia fijada por rango puede cambiar el texto extraido sin cambio de codigo ni de implementationVersion.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "implementationVersion",
+        "parserProfile",
+        "dependencyFingerprint"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": "source_extraction_v1"
+        },
+        "implementationVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parserProfile": {
+          "type": "string",
+          "enum": ["PDFPLUMBER", "PYPDF"]
+        },
+        "dependencyFingerprint": {
+          "$ref": "#/$defs/sha256Hex"
+        }
+      }
+    },
+    "textExtractionIdentity": {
+      "description": "Identidad para TEXT. dependencyFingerprint esta ESTRUCTURALMENTE PROHIBIDO (additionalProperties: false y no declarado), no puesto en null: no hay dependencia de parser de PDF que pueda alterar el texto, y un campo nullable no distinguiria 'no aplica' de 'me olvide de calcularlo'.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "implementationVersion", "parserProfile"],
+      "properties": {
+        "schemaVersion": {
+          "const": "source_extraction_v1"
+        },
+        "implementationVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parserProfile": {
+          "const": "TEXT_DIRECT"
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageIndex",
+        "pageNumber",
+        "canonicalText",
+        "pageOffsetStart",
+        "pageOffsetEnd",
+        "pageObservationStatus"
+      ],
+      "properties": {
+        "pageIndex": {
+          "description": "Base 0. Posicion en el array, clave de union.",
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "pageNumber": {
+          "description": "Base 1. Lo que una persona ve en un visor de PDF. Invariante derivado: pageNumber == pageIndex + 1.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonicalText": {
+          "type": "string"
+        },
+        "pageOffsetStart": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "pageOffsetEnd": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "pageObservationStatus": {
+          "description": "EXTRACTED: contenido sustantivo observado, no degrada coverage. OBSERVED_EMPTY: ausencia establecida responsablemente, no degrada coverage; exige justificacion deterministica positiva y hoy es inalcanzable desde el extractor (INITIAL_OBSERVED_EMPTY_SIGNAL: DEFERRED). UNOBSERVED_OR_UNEXTRACTABLE: puede haber material y la extraccion textual no lo observa, degrada coverage; es el default conservador. FAILED: el parser fallo en esta pagina, degrada coverage.",
+          "type": "string",
+          "enum": [
+            "EXTRACTED",
+            "OBSERVED_EMPTY",
+            "UNOBSERVED_OR_UNEXTRACTABLE",
+            "FAILED"
+          ]
+        }
+      }
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segmentId", "pageIndex", "charStart", "charEnd", "exactExcerpt"],
+      "properties": {
+        "segmentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pageIndex": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "charStart": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "charEnd": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "exactExcerpt": {
+          "type": "string"
+        }
+      }
+    },
+    "pdfSegment": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/segment"
+        },
+        {
+          "properties": {
+            "segmentId": {
+              "description": "Derivado de la direccion, nunca ordinal. Un ordinal seg-N re-apunta en silencio si cambia la segmentacion.",
+              "pattern": "^p(0|[1-9][0-9]*):(0|[1-9][0-9]*)-(0|[1-9][0-9]*)$"
+            },
+            "pageIndex": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            }
+          }
+        }
+      ]
+    },
+    "textSegment": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/segment"
+        },
+        {
+          "properties": {
+            "segmentId": {
+              "pattern": "^d:(0|[1-9][0-9]*)-(0|[1-9][0-9]*)$"
+            },
+            "pageIndex": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "scope", "pageIndex", "affectsCoverage"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "enum": [
+            "PAGE_OBSERVED_EMPTY",
+            "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+            "PAGE_EXTRACTION_FAILED",
+            "SOURCE_NO_EXTRACTABLE_TEXT",
+            "ENCRYPTED_PDF",
+            "UNSUPPORTED_SOURCE",
+            "SOURCE_UNREADABLE",
+            "PRIMARY_PARSER_FAILED_FELL_BACK",
+            "EMPTY_SOURCE_TEXT"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["INFO", "WARNING", "ERROR"]
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["SOURCE", "PAGE"]
+        },
+        "pageIndex": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "affectsCoverage": {
+          "type": "boolean"
+        },
+        "detail": {
+          "description": "Texto diagnostico acotado y NO sensible. Nunca contenido del documento: ni excerpt, ni linea, ni fragmento.",
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "scope": {
+              "const": "PAGE"
+            },
+            "pageIndex": {
+              "$ref": "#/$defs/nonNegativeInteger"
+            }
+          }
+        },
+        {
+          "properties": {
+            "scope": {
+              "const": "SOURCE"
+            },
+            "pageIndex": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

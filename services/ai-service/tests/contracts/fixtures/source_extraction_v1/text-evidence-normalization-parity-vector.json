@@ -1,0 +1,885 @@
+{
+  "fixture": "TEXT_EVIDENCE_NORMALIZATION_PARITY_VECTOR",
+  "token": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "frozenSemantics": [
+    "Unicode NFC",
+    "CRLF / CR -> LF",
+    "ECMAScript String.prototype.trim"
+  ],
+  "order": "NFC -> lineEndings -> trim",
+  "productiveImplementation": "services/api/src/text-evidence/text-evidence.validator.ts::normalizeContent",
+  "generatedBy": "ejecucion del normalizador productivo real en Node, contrastada caso por caso contra validateTextEvidenceBody",
+  "note": "Los strings se congelan como arrays de code points para que ningun paso de encoding entre runtimes pueda alterarlos en silencio. `acceptedByProductValidator` es false cuando normalizeContent rechaza la entrada (vacia, solo whitespace, controles no permitidos): el contrato F0 igual necesita conocer cual seria su forma normalizada, porque de eso depende si un content dado es o no punto fijo.",
+  "nodeVersion": "v24.11.1",
+  "caseCount": 32,
+  "cases": [
+    {
+      "name": "plain",
+      "why": "texto simple ya normalizado",
+      "rawCodePoints": [
+        67,
+        117,
+        114,
+        115,
+        111,
+        32,
+        100,
+        101,
+        32,
+        75,
+        117,
+        98,
+        101,
+        114,
+        110,
+        101,
+        116,
+        101,
+        115,
+        46
+      ],
+      "expectedCodePoints": [
+        67,
+        117,
+        114,
+        115,
+        111,
+        32,
+        100,
+        101,
+        32,
+        75,
+        117,
+        98,
+        101,
+        114,
+        110,
+        101,
+        116,
+        101,
+        115,
+        46
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "aa30700e3c8a9e01456a47e07e6a88be1fc6c2aca6a2eccd74b40762f0c3acb0"
+    },
+    {
+      "name": "paragraphs",
+      "why": "dos bloques separados por linea en blanco",
+      "rawCodePoints": [
+        80,
+        114,
+        105,
+        109,
+        101,
+        114,
+        32,
+        98,
+        108,
+        111,
+        113,
+        117,
+        101,
+        46,
+        10,
+        10,
+        83,
+        101,
+        103,
+        117,
+        110,
+        100,
+        111,
+        32,
+        98,
+        108,
+        111,
+        113,
+        117,
+        101,
+        46
+      ],
+      "expectedCodePoints": [
+        80,
+        114,
+        105,
+        109,
+        101,
+        114,
+        32,
+        98,
+        108,
+        111,
+        113,
+        117,
+        101,
+        46,
+        10,
+        10,
+        83,
+        101,
+        103,
+        117,
+        110,
+        100,
+        111,
+        32,
+        98,
+        108,
+        111,
+        113,
+        117,
+        101,
+        46
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "8d493ea4188dc1c294c9a805ba9b09111888631fb645892650403656ec227300"
+    },
+    {
+      "name": "decomposed-nfc",
+      "why": "NFD compone a NFC",
+      "rawCodePoints": [
+        80,
+        114,
+        111,
+        103,
+        114,
+        97,
+        109,
+        97,
+        99,
+        105,
+        111,
+        769,
+        110,
+        32,
+        97,
+        118,
+        97,
+        110,
+        122,
+        97,
+        100,
+        97
+      ],
+      "expectedCodePoints": [
+        80,
+        114,
+        111,
+        103,
+        114,
+        97,
+        109,
+        97,
+        99,
+        105,
+        243,
+        110,
+        32,
+        97,
+        118,
+        97,
+        110,
+        122,
+        97,
+        100,
+        97
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "462f64bd3ceca939b412f88d4bfc306c4cf6adbef05bb56fb97af2108b4c2b47"
+    },
+    {
+      "name": "already-nfc",
+      "why": "NFC es punto fijo",
+      "rawCodePoints": [
+        80,
+        114,
+        111,
+        103,
+        114,
+        97,
+        109,
+        97,
+        99,
+        105,
+        243,
+        110,
+        32,
+        97,
+        118,
+        97,
+        110,
+        122,
+        97,
+        100,
+        97
+      ],
+      "expectedCodePoints": [
+        80,
+        114,
+        111,
+        103,
+        114,
+        97,
+        109,
+        97,
+        99,
+        105,
+        243,
+        110,
+        32,
+        97,
+        118,
+        97,
+        110,
+        122,
+        97,
+        100,
+        97
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "462f64bd3ceca939b412f88d4bfc306c4cf6adbef05bb56fb97af2108b4c2b47"
+    },
+    {
+      "name": "crlf",
+      "why": "CRLF colapsa a LF",
+      "rawCodePoints": [
+        85,
+        110,
+        111,
+        13,
+        10,
+        68,
+        111,
+        115
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111,
+        10,
+        68,
+        111,
+        115
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "dc98858cab51f9f4e253edbe5ce40b21eb950663b5b945b81ff51bac7fed0f9e"
+    },
+    {
+      "name": "lone-cr",
+      "why": "CR suelto colapsa a LF",
+      "rawCodePoints": [
+        85,
+        110,
+        111,
+        13,
+        68,
+        111,
+        115
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111,
+        10,
+        68,
+        111,
+        115
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "dc98858cab51f9f4e253edbe5ce40b21eb950663b5b945b81ff51bac7fed0f9e"
+    },
+    {
+      "name": "cr-at-end",
+      "why": "CR final: primero pasa a LF y despues lo saca el trim",
+      "rawCodePoints": [
+        85,
+        110,
+        111,
+        13
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "ascii-leading-trailing",
+      "why": "espacios ASCII en los bordes",
+      "rawCodePoints": [
+        32,
+        32,
+        32,
+        85,
+        110,
+        111,
+        32,
+        32,
+        32
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "tab-boundary",
+      "why": "TAB en los bordes",
+      "rawCodePoints": [
+        9,
+        85,
+        110,
+        111,
+        9
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "lf-boundary",
+      "why": "LF en los bordes",
+      "rawCodePoints": [
+        10,
+        85,
+        110,
+        111,
+        10
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "vertical-tab-boundary",
+      "why": "U+000B es WhiteSpace en ECMAScript",
+      "rawCodePoints": [
+        11,
+        85,
+        110,
+        111,
+        11
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "form-feed-boundary",
+      "why": "U+000C es WhiteSpace en ECMAScript",
+      "rawCodePoints": [
+        12,
+        85,
+        110,
+        111,
+        12
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "nbsp-boundary",
+      "why": "U+00A0 es Zs, ECMAScript SI lo recorta",
+      "rawCodePoints": [
+        160,
+        85,
+        110,
+        111,
+        160
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "nbsp-internal",
+      "why": "U+00A0 interno se preserva",
+      "rawCodePoints": [
+        67,
+        97,
+        114,
+        103,
+        97,
+        58,
+        32,
+        52,
+        48,
+        160,
+        104,
+        111,
+        114,
+        97,
+        115
+      ],
+      "expectedCodePoints": [
+        67,
+        97,
+        114,
+        103,
+        97,
+        58,
+        32,
+        52,
+        48,
+        160,
+        104,
+        111,
+        114,
+        97,
+        115
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "2235e22c01faf4358130cc191b317158064da93d26ea6b3b0076e5f74c1e1cd9"
+    },
+    {
+      "name": "bom-boundary",
+      "why": "U+FEFF es WhiteSpace en ECMAScript pero NO es space en Python",
+      "rawCodePoints": [
+        65279,
+        85,
+        110,
+        111,
+        65279
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "zwsp-boundary",
+      "why": "U+200B es Cf y NO Zs: ECMAScript NO lo recorta",
+      "rawCodePoints": [
+        8203,
+        85,
+        110,
+        111,
+        8203
+      ],
+      "expectedCodePoints": [
+        8203,
+        85,
+        110,
+        111,
+        8203
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "284ff39e05f809f7b9e78fe253a9c850a0e650d037d28ab7810e30d6b3d04812"
+    },
+    {
+      "name": "line-separator-boundary",
+      "why": "U+2028 es LineTerminator",
+      "rawCodePoints": [
+        8232,
+        85,
+        110,
+        111,
+        8232
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "paragraph-separator-boundary",
+      "why": "U+2029 es LineTerminator",
+      "rawCodePoints": [
+        8233,
+        85,
+        110,
+        111,
+        8233
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "ideographic-space-boundary",
+      "why": "U+3000 es Zs",
+      "rawCodePoints": [
+        12288,
+        85,
+        110,
+        111,
+        12288
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "ogham-space-boundary",
+      "why": "U+1680 es Zs",
+      "rawCodePoints": [
+        5760,
+        85,
+        110,
+        111,
+        5760
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "narrow-nbsp-boundary",
+      "why": "U+202F es Zs",
+      "rawCodePoints": [
+        8239,
+        85,
+        110,
+        111,
+        8239
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "medium-math-space-boundary",
+      "why": "U+205F es Zs",
+      "rawCodePoints": [
+        8287,
+        85,
+        110,
+        111,
+        8287
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "en-quad-boundary",
+      "why": "U+2000 es Zs",
+      "rawCodePoints": [
+        8192,
+        85,
+        110,
+        111,
+        8192
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "hair-space-boundary",
+      "why": "U+200A es Zs",
+      "rawCodePoints": [
+        8202,
+        85,
+        110,
+        111,
+        8202
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111
+      ],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "17bcc6fa36e1f8768160b83ec0200da903a89f26b218a9e8cd316fe51f1e7052"
+    },
+    {
+      "name": "nel-boundary",
+      "why": "U+0085 NEL: Python lo recorta, ECMAScript NO",
+      "rawCodePoints": [
+        133,
+        85,
+        110,
+        111,
+        133
+      ],
+      "expectedCodePoints": [
+        133,
+        85,
+        110,
+        111,
+        133
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "75048da19dce38536bee3a56e22b7b5a1db74a3f5982351ac225c5ce2ed7a3c3"
+    },
+    {
+      "name": "file-separator-boundary",
+      "why": "U+001C: Python lo recorta, ECMAScript NO",
+      "rawCodePoints": [
+        28,
+        85,
+        110,
+        111,
+        28
+      ],
+      "expectedCodePoints": [
+        28,
+        85,
+        110,
+        111,
+        28
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": false,
+      "sha256OfExpected": "406c6ab4c529607b85571688936cd0cc20dcd7f76fc012967423234ec26affc5"
+    },
+    {
+      "name": "internal-whitespace",
+      "why": "whitespace interno se preserva entero",
+      "rawCodePoints": [
+        85,
+        110,
+        111,
+        9,
+        9,
+        100,
+        111,
+        115,
+        32,
+        32,
+        32,
+        116,
+        114,
+        101,
+        115
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111,
+        9,
+        9,
+        100,
+        111,
+        115,
+        32,
+        32,
+        32,
+        116,
+        114,
+        101,
+        115
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "db418abb2e2408fcacadc81911da70b5c3c51fa5835a31ffbeda0c143a5ca164"
+    },
+    {
+      "name": "multiple-blank-lines",
+      "why": "saltos multiples internos se preservan",
+      "rawCodePoints": [
+        85,
+        110,
+        111,
+        10,
+        10,
+        10,
+        10,
+        68,
+        111,
+        115
+      ],
+      "expectedCodePoints": [
+        85,
+        110,
+        111,
+        10,
+        10,
+        10,
+        10,
+        68,
+        111,
+        115
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "7fb4b98949618ac645c6cf96d473e591b3c9e7b561791dcc1490854d5f6fc419"
+    },
+    {
+      "name": "astral",
+      "why": "emoji del plano astral",
+      "rawCodePoints": [
+        69,
+        110,
+        115,
+        97,
+        121,
+        111,
+        32,
+        129514,
+        32,
+        100,
+        101,
+        32,
+        108,
+        97,
+        98,
+        111,
+        114,
+        97,
+        116,
+        111,
+        114,
+        105,
+        111
+      ],
+      "expectedCodePoints": [
+        69,
+        110,
+        115,
+        97,
+        121,
+        111,
+        32,
+        129514,
+        32,
+        100,
+        101,
+        32,
+        108,
+        97,
+        98,
+        111,
+        114,
+        97,
+        116,
+        111,
+        114,
+        105,
+        111
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "583111a01daadb1bd7f0128a3b998eab2b5417ceeab51448f5f76487c6a6394f"
+    },
+    {
+      "name": "astral-boundary",
+      "why": "emoji en el borde no se recorta",
+      "rawCodePoints": [
+        129514,
+        85,
+        110,
+        111,
+        129514
+      ],
+      "expectedCodePoints": [
+        129514,
+        85,
+        110,
+        111,
+        129514
+      ],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": true,
+      "sha256OfExpected": "90f988aaab25970c268dc2cf02ac84797697a811901196d8cea2c7df1599a0b1"
+    },
+    {
+      "name": "empty",
+      "why": "vacio: el validador productivo lo rechaza, el contrato F0 lo permite representar",
+      "rawCodePoints": [],
+      "expectedCodePoints": [],
+      "isNormalizedFixedPoint": true,
+      "acceptedByProductValidator": false,
+      "sha256OfExpected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "whitespace-only",
+      "why": "solo whitespace colapsa a vacio y el validador lo rechaza",
+      "rawCodePoints": [
+        32,
+        32,
+        32,
+        10,
+        32,
+        32
+      ],
+      "expectedCodePoints": [],
+      "isNormalizedFixedPoint": false,
+      "acceptedByProductValidator": false,
+      "sha256OfExpected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

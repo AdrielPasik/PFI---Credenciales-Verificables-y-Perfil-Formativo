@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-normal-multipage",
+    "sourceSha256": "b6dfee1275f1c45a348f577bfb90ef85a0214956cda20375cd062001bee73aee",
+    "storageKey": "documents/normal-multipage.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "Programa de la materia Bases de Datos.\nContenidos: modelo relacional, normalizacion, SQL.",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 89,
+      "pageObservationStatus": "EXTRACTED"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "Bibliografia obligatoria.\nEvaluacion final integradora.",
+      "pageOffsetStart": 91,
+      "pageOffsetEnd": 146,
+      "pageObservationStatus": "EXTRACTED"
+    }
+  ],
+  "documentCanonicalText": "Programa de la materia Bases de Datos.\nContenidos: modelo relacional, normalizacion, SQL.\n\nBibliografia obligatoria.\nEvaluacion final integradora.",
+  "segments": [
+    {
+      "segmentId": "p0:0-89",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 89,
+      "exactExcerpt": "Programa de la materia Bases de Datos.\nContenidos: modelo relacional, normalizacion, SQL."
+    },
+    {
+      "segmentId": "p1:0-55",
+      "pageIndex": 1,
+      "charStart": 0,
+      "charEnd": 55,
+      "exactExcerpt": "Bibliografia obligatoria.\nEvaluacion final integradora."
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "431b5be478cdb2535b262b074a6f7e8a87c1b968870364e8cf2a7d93585852d9"
+}

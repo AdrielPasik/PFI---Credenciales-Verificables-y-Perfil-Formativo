@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-repeated-005",
+    "sourceSha256": "bc6984fa4747ea847accbd46b367b626b35d6fb53c8bd3ec27386ad994905384"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [],
+  "documentCanonicalText": "repetido\n\nrepetido\n\nrepetido",
+  "segments": [
+    {
+      "segmentId": "d:0-8",
+      "pageIndex": null,
+      "charStart": 0,
+      "charEnd": 8,
+      "exactExcerpt": "repetido"
+    },
+    {
+      "segmentId": "d:10-18",
+      "pageIndex": null,
+      "charStart": 10,
+      "charEnd": 18,
+      "exactExcerpt": "repetido"
+    },
+    {
+      "segmentId": "d:20-28",
+      "pageIndex": null,
+      "charStart": 20,
+      "charEnd": 28,
+      "exactExcerpt": "repetido"
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "c1489f20b70c880eec4aab06dd359996bff6addb9eee02727620034646d3c2db"
+}

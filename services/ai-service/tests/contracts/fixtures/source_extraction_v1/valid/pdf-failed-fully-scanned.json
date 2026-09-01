@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-scanned-004",
+    "sourceSha256": "ccd095cf89ef157a9b9a3073d3fde009e49e816ba21126329654d50af73b1fe1",
+    "storageKey": "documents/doc-scanned-004.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "edec374aa0435140628ef8f243209c1773b84cb13a1ec1868d394ca8e0409834"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FAILED",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 0,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "",
+      "pageOffsetStart": 2,
+      "pageOffsetEnd": 2,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    }
+  ],
+  "documentCanonicalText": "\n\n",
+  "segments": [],
+  "diagnostics": [
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 0,
+      "affectsCoverage": true
+    },
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 1,
+      "affectsCoverage": true
+    },
+    {
+      "code": "SOURCE_NO_EXTRACTABLE_TEXT",
+      "severity": "ERROR",
+      "scope": "SOURCE",
+      "pageIndex": null,
+      "affectsCoverage": true
+    }
+  ],
+  "artifactContentFingerprint": "8cc3f9e06eeecfae4af8f9cda03098ef25da745dd98ebc78c3f91f877515e861"
+}

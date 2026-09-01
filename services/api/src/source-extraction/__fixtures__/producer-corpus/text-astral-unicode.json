@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-astral-003",
+    "sourceSha256": "331d17eb098a3dade8e4b4608cf3fbd5a575f42d350319cfb4efeba0a4479128"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [],
+  "documentCanonicalText": "Ensayo 🧪 de laboratorio.\n\nCarga horaria: 40 horas.",
+  "segments": [
+    {
+      "segmentId": "d:0-24",
+      "pageIndex": null,
+      "charStart": 0,
+      "charEnd": 24,
+      "exactExcerpt": "Ensayo 🧪 de laboratorio."
+    },
+    {
+      "segmentId": "d:26-50",
+      "pageIndex": null,
+      "charStart": 26,
+      "charEnd": 50,
+      "exactExcerpt": "Carga horaria: 40 horas."
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "c255abebcb43d6cc34cc91e08fc217162f82d18b1cac370a7819839bbffde3a8"
+}

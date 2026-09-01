@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-partial-002",
+    "sourceSha256": "8485293dfcc136c0b5cd98093b54b33d35cbb8d94f6d0d10443cc726ddea93d2",
+    "storageKey": "documents/doc-partial-002.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "edec374aa0435140628ef8f243209c1773b84cb13a1ec1868d394ca8e0409834"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "PARTIAL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "Programa de la materia.\n\nContenidos: quimica analitica.",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 55,
+      "pageObservationStatus": "EXTRACTED"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "",
+      "pageOffsetStart": 57,
+      "pageOffsetEnd": 57,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    }
+  ],
+  "documentCanonicalText": "Programa de la materia.\n\nContenidos: quimica analitica.\n\n",
+  "segments": [
+    {
+      "segmentId": "p0:0-23",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 23,
+      "exactExcerpt": "Programa de la materia."
+    },
+    {
+      "segmentId": "p0:25-55",
+      "pageIndex": 0,
+      "charStart": 25,
+      "charEnd": 55,
+      "exactExcerpt": "Contenidos: quimica analitica."
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 1,
+      "affectsCoverage": true
+    }
+  ],
+  "artifactContentFingerprint": "5819d15a7ab2857cae0001cbe83d773c46399239ef1fe31a21abe8e60cda22bb"
+}

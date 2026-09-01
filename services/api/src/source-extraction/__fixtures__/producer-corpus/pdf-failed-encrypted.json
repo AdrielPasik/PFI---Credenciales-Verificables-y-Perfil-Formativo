@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-encrypted",
+    "sourceSha256": "ba72f04890a7373397b2bd3d7ffaf86f8262dfec49a1f3619d276903a99ad9ee",
+    "storageKey": "documents/encrypted.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FAILED",
+  "pages": [],
+  "documentCanonicalText": "",
+  "segments": [],
+  "diagnostics": [
+    {
+      "code": "ENCRYPTED_PDF",
+      "severity": "ERROR",
+      "scope": "SOURCE",
+      "pageIndex": null,
+      "affectsCoverage": true,
+      "detail": "PdfminerException/PDFPasswordIncorrect"
+    }
+  ],
+  "artifactContentFingerprint": "9d1ad7a28f7e1fe22f85d14f55a45ba0bd885f2898497507ff169183049f269d"
+}

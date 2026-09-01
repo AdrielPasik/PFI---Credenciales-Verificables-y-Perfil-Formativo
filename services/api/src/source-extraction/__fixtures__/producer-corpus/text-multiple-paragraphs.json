@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-paragraphs-002",
+    "sourceSha256": "ba6b057cf8c7f78f3aba3860ccbae8456e2609e7d8bfff47912b467cebf0c20d"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [],
+  "documentCanonicalText": "Primer bloque del temario.\n\nSegundo bloque del temario.\n\nTercer bloque.",
+  "segments": [
+    {
+      "segmentId": "d:0-26",
+      "pageIndex": null,
+      "charStart": 0,
+      "charEnd": 26,
+      "exactExcerpt": "Primer bloque del temario."
+    },
+    {
+      "segmentId": "d:28-55",
+      "pageIndex": null,
+      "charStart": 28,
+      "charEnd": 55,
+      "exactExcerpt": "Segundo bloque del temario."
+    },
+    {
+      "segmentId": "d:57-71",
+      "pageIndex": null,
+      "charStart": 57,
+      "charEnd": 71,
+      "exactExcerpt": "Tercer bloque."
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "de3835e0cc25ecbceb1d0a9c10aee998208da9ae0257ac299bb83be9a5e44a50"
+}

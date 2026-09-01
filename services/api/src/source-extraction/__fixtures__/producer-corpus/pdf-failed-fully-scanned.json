@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-fully-scanned",
+    "sourceSha256": "4babbd764a2e92c9ecf0fd88a7014b62c76f9e1bcb23666dd6e82641fa9cd826",
+    "storageKey": "documents/fully-scanned.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FAILED",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 0,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "",
+      "pageOffsetStart": 2,
+      "pageOffsetEnd": 2,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    }
+  ],
+  "documentCanonicalText": "\n\n",
+  "segments": [],
+  "diagnostics": [
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 0,
+      "affectsCoverage": true
+    },
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 1,
+      "affectsCoverage": true
+    },
+    {
+      "code": "SOURCE_NO_EXTRACTABLE_TEXT",
+      "severity": "ERROR",
+      "scope": "SOURCE",
+      "pageIndex": null,
+      "affectsCoverage": true
+    }
+  ],
+  "artifactContentFingerprint": "248746d12eb91742545b4bfc6e527e052d59e46e198f3cd706fab9922f201614"
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-astral-unicode",
+    "sourceSha256": "58ec6dc0a550a79aad1de8ebc485c2387806283e3cc419d4bc39c27ca557157a",
+    "storageKey": "documents/astral-unicode.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "A🧪B",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 3,
+      "pageObservationStatus": "EXTRACTED"
+    }
+  ],
+  "documentCanonicalText": "A🧪B",
+  "segments": [
+    {
+      "segmentId": "p0:0-3",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 3,
+      "exactExcerpt": "A🧪B"
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "2bd848fd6dbc1bf8fd2ad65dc910e936f44078a96b2b8315f09b89c72621b453"
+}

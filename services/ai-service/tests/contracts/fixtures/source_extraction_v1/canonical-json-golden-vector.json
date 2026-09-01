@@ -1,0 +1,59 @@
+{
+  "fixture": "CANONICAL_JSON_GOLDEN_VECTOR",
+  "canonicalization": "MINIMAL_DETERMINISTIC_JSON_V1",
+  "purpose": "Congela byte a byte el escaping de MINIMAL_DETERMINISTIC_JSON_V1. La contraparte TypeScript de F0.4 debe reproducir exactamente canonicalJson y sha256 partiendo de inputCodePoints, sin adivinar.",
+  "inputCodePoints": [
+    "U+0000",
+    "U+0001",
+    "U+0008",
+    "U+0009",
+    "U+000A",
+    "U+000C",
+    "U+000D",
+    "U+001F",
+    "U+0022",
+    "U+005C",
+    "U+00F1",
+    "U+1F9EA"
+  ],
+  "inputDescription": [
+    "U+0000 NUL -> forma larga",
+    "U+0001 SOH -> forma larga",
+    "U+0008 BACKSPACE -> forma corta \b",
+    "U+0009 TAB -> forma corta \t",
+    "U+000A LINE FEED -> forma corta \n",
+    "U+000C FORM FEED -> forma corta \f",
+    "U+000D CARRIAGE RETURN -> forma corta \r",
+    "U+001F UNIT SEPARATOR -> forma larga, hex MINUSCULA",
+    "U+0022 QUOTATION MARK -> \\\"",
+    "U+005C REVERSE SOLIDUS -> \\\\",
+    "U+00F1 LATIN SMALL LETTER N WITH TILDE -> literal, no escapado",
+    "U+1F9EA TEST TUBE (astral) -> literal, no escapado"
+  ],
+  "payload": {
+    "vector": "\u0000\u0001\b\t\n\f\r\u001f\"\\ñ🧪"
+  },
+  "canonicalJson": "{\"vector\":\"\\u0000\\u0001\\b\\t\\n\\f\\r\\u001f\\\"\\\\ñ🧪\"}",
+  "preimageEncoding": "UTF-8",
+  "preimageByteLength": 51,
+  "hashAlgorithm": "SHA-256",
+  "sha256": "2a1f557054aa86476aef7b7f36155a883ada2f89f7c6e5f0799d1f2537420034",
+  "rejectedUppercaseVariant": {
+    "note": "Mismo JSON semanticamente, preimage distinto. NO es una equivalencia valida de fingerprint.",
+    "canonicalJson": "{\"vector\":\"\\u0000\\u0001\\b\\t\\n\\f\\r\\u001F\\\"\\\\ñ🧪\"}",
+    "sha256": "d31ac8a786bad82b395494be293841e10ac7e6929252f7b2bf4cfec054b2de96"
+  },
+  "frozenEscapeTable": {
+    "U+0022": "\\\"",
+    "U+005C": "\\\\",
+    "U+0008": "\\b",
+    "U+0009": "\\t",
+    "U+000A": "\\n",
+    "U+000C": "\\f",
+    "U+000D": "\\r",
+    "otherC0Controls": "\\u00xx (hex MINUSCULA)",
+    "U+007F": "literal, no escapado",
+    "nonAscii": "literal, UTF-8 al serializar, nunca \\uXXXX",
+    "loneSurrogates": "ENTRADA INVALIDA"
+  }
+}

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { BadRequestException } from '@nestjs/common';
 
+import { productNormalizeText } from './product-text-normalization';
 import { type NormalizedTextEvidenceInput } from './text-evidence.types';
 
 export const MAX_TEXT_EVIDENCE_CHARACTERS = 50_000;
@@ -43,7 +44,10 @@ function normalizeContent(value: unknown): string {
     throw invalidBody('content debe ser un string.');
   }
 
-  const normalized = value.normalize('NFC').replace(/\r\n?/g, '\n').trim();
+  // F0.5: misma expresion, extraida a una funcion pura compartida para que
+  // el trust gate valide contenido historico sin duplicar la regla. Sin
+  // cambio de comportamiento.
+  const normalized = productNormalizeText(value);
 
   if (!normalized) {
     throw invalidBody('content debe contener texto.');

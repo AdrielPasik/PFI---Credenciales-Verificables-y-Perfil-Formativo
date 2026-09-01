@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-partial-003",
+    "sourceSha256": "0a8abdad58e5585a9aa32c071d349831df9b4af222d8b64723fc72730cde31b7",
+    "storageKey": "documents/doc-partial-003.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "edec374aa0435140628ef8f243209c1773b84cb13a1ec1868d394ca8e0409834"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "PARTIAL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "Programa de la materia.\n\nContenidos: estructuras.",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 49,
+      "pageObservationStatus": "EXTRACTED"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "",
+      "pageOffsetStart": 51,
+      "pageOffsetEnd": 51,
+      "pageObservationStatus": "FAILED"
+    }
+  ],
+  "documentCanonicalText": "Programa de la materia.\n\nContenidos: estructuras.\n\n",
+  "segments": [
+    {
+      "segmentId": "p0:0-23",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 23,
+      "exactExcerpt": "Programa de la materia."
+    },
+    {
+      "segmentId": "p0:25-49",
+      "pageIndex": 0,
+      "charStart": 25,
+      "charEnd": 49,
+      "exactExcerpt": "Contenidos: estructuras."
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "PAGE_EXTRACTION_FAILED",
+      "severity": "ERROR",
+      "scope": "PAGE",
+      "pageIndex": 1,
+      "affectsCoverage": true
+    }
+  ],
+  "artifactContentFingerprint": "b3455d10d91b6604d3ced7cccf80835801048100eefce9c0987878504d4162ac"
+}

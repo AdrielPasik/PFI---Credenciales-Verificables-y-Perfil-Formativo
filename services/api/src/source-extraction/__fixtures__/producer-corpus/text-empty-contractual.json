@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-empty-004",
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [],
+  "documentCanonicalText": "",
+  "segments": [],
+  "diagnostics": [
+    {
+      "code": "EMPTY_SOURCE_TEXT",
+      "severity": "INFO",
+      "scope": "SOURCE",
+      "pageIndex": null,
+      "affectsCoverage": false
+    }
+  ],
+  "artifactContentFingerprint": "7f32db28388a40b1b9876ad54f56f3f9362e6fe478e8e8270302c3f346bb2317"
+}

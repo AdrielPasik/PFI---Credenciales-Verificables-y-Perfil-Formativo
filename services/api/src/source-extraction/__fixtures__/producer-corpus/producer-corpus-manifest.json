@@ -1,0 +1,242 @@
+{
+  "fixture": "F0_PRODUCER_CROSS_RUNTIME_CORPUS",
+  "schemaVersion": "source_extraction_v1",
+  "generatedBySlice": "F0.4",
+  "note": "Artifacts producidos por las implementaciones productivas REALES de F0.2 y F0.3, congelados en disco. Los tests de TypeScript los consumen estaticamente: nunca invocan Python, ni FastAPI, ni derivan el resultado esperado preguntandole al productor. Complementan las contract fixtures escritas a mano de F0.1 con compatibilidad cross-runtime real.",
+  "regeneration": "Se regeneran solo si F0.2/F0.3 cambian deliberadamente su salida. Un cambio no intencional se manifiesta como divergencia entre este corpus y el productor, que es exactamente la señal que se quiere.",
+  "pythonVersion": "3.12.5",
+  "resolvedParserVersions": {
+    "pdfminer.six": "20251230",
+    "pdfplumber": "0.11.9",
+    "pypdf": "6.9.2",
+    "pypdfium2": "5.6.0"
+  },
+  "caseCount": 12,
+  "cases": [
+    {
+      "name": "pdf-full-multipage",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/normal-multipage.pdf",
+      "sourceSha256": "b6dfee1275f1c45a348f577bfb90ef85a0214956cda20375cd062001bee73aee",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "431b5be478cdb2535b262b074a6f7e8a87c1b968870364e8cf2a7d93585852d9",
+      "pageCount": 2,
+      "segmentCount": 2,
+      "diagnosticCodes": []
+    },
+    {
+      "name": "pdf-partial-scanned-page",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/scanned-image-only-page.pdf",
+      "sourceSha256": "9835e8f7ba90564c8302f67c6216a4c1bf41916108fcea0fb28ff9a2974de0aa",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "PARTIAL",
+      "artifactContentFingerprint": "6defb5c5e0a41ba5091827494256f85f085089c52ab29ab3de981f440bbb8ecf",
+      "pageCount": 2,
+      "segmentCount": 1,
+      "diagnosticCodes": [
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE"
+      ]
+    },
+    {
+      "name": "pdf-partial-blank-page",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/blank-page.pdf",
+      "sourceSha256": "fe6d4194440b7c2b887dbb838574f02bc1818fbfe9f31009d803fdf3cbae325c",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "PARTIAL",
+      "artifactContentFingerprint": "e51b0b21bf241c57834c97cbc656c246f1cd19780fe2375dc45aacee6d56fa11",
+      "pageCount": 2,
+      "segmentCount": 1,
+      "diagnosticCodes": [
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE"
+      ]
+    },
+    {
+      "name": "pdf-failed-fully-scanned",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/fully-scanned.pdf",
+      "sourceSha256": "4babbd764a2e92c9ecf0fd88a7014b62c76f9e1bcb23666dd6e82641fa9cd826",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "FAILED",
+      "artifactContentFingerprint": "248746d12eb91742545b4bfc6e527e052d59e46e198f3cd706fab9922f201614",
+      "pageCount": 2,
+      "segmentCount": 0,
+      "diagnosticCodes": [
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+        "SOURCE_NO_EXTRACTABLE_TEXT"
+      ]
+    },
+    {
+      "name": "pdf-failed-encrypted",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/encrypted.pdf",
+      "sourceSha256": "ba72f04890a7373397b2bd3d7ffaf86f8262dfec49a1f3619d276903a99ad9ee",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "FAILED",
+      "artifactContentFingerprint": "9d1ad7a28f7e1fe22f85d14f55a45ba0bd885f2898497507ff169183049f269d",
+      "pageCount": 0,
+      "segmentCount": 0,
+      "diagnosticCodes": [
+        "ENCRYPTED_PDF"
+      ]
+    },
+    {
+      "name": "pdf-astral-unicode",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/astral-unicode.pdf",
+      "sourceSha256": "58ec6dc0a550a79aad1de8ebc485c2387806283e3cc419d4bc39c27ca557157a",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PDFPLUMBER",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "2bd848fd6dbc1bf8fd2ad65dc910e936f44078a96b2b8315f09b89c72621b453",
+      "pageCount": 1,
+      "segmentCount": 1,
+      "diagnosticCodes": []
+    },
+    {
+      "name": "pdf-pypdf-fallback",
+      "producer": "services/ai-service/src/source_extraction/pdf.py::extract_pdf_source",
+      "sourceType": "PDF_DOCUMENT",
+      "sourceFixture": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/normal-multipage.pdf",
+      "sourceSha256": "b6dfee1275f1c45a348f577bfb90ef85a0214956cda20375cd062001bee73aee",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "PYPDF",
+        "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "9b904b2947cabb17058e9b3e9b7e0d2c066600c9fca4e48dea8c871fc83224c7",
+      "pageCount": 2,
+      "segmentCount": 2,
+      "diagnosticCodes": [
+        "PRIMARY_PARSER_FAILED_FELL_BACK"
+      ]
+    },
+    {
+      "name": "text-simple",
+      "producer": "services/ai-service/src/source_extraction/text.py::extract_text_source",
+      "sourceType": "TEXT",
+      "sourceFixture": null,
+      "sourceSha256": "bdbae1057e99aa8d4c2e33e0dc28c66693097ba9890ecf0b17a66b8302cdcfc4",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "TEXT_DIRECT"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "c57bac15b299fb89efa78484e5dd24a9317da9ee76310b5ddfa218082e924772",
+      "pageCount": 0,
+      "segmentCount": 1,
+      "diagnosticCodes": []
+    },
+    {
+      "name": "text-multiple-paragraphs",
+      "producer": "services/ai-service/src/source_extraction/text.py::extract_text_source",
+      "sourceType": "TEXT",
+      "sourceFixture": null,
+      "sourceSha256": "ba6b057cf8c7f78f3aba3860ccbae8456e2609e7d8bfff47912b467cebf0c20d",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "TEXT_DIRECT"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "de3835e0cc25ecbceb1d0a9c10aee998208da9ae0257ac299bb83be9a5e44a50",
+      "pageCount": 0,
+      "segmentCount": 3,
+      "diagnosticCodes": []
+    },
+    {
+      "name": "text-astral-unicode",
+      "producer": "services/ai-service/src/source_extraction/text.py::extract_text_source",
+      "sourceType": "TEXT",
+      "sourceFixture": null,
+      "sourceSha256": "331d17eb098a3dade8e4b4608cf3fbd5a575f42d350319cfb4efeba0a4479128",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "TEXT_DIRECT"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "c255abebcb43d6cc34cc91e08fc217162f82d18b1cac370a7819839bbffde3a8",
+      "pageCount": 0,
+      "segmentCount": 2,
+      "diagnosticCodes": []
+    },
+    {
+      "name": "text-empty-contractual",
+      "producer": "services/ai-service/src/source_extraction/text.py::extract_text_source",
+      "sourceType": "TEXT",
+      "sourceFixture": null,
+      "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "TEXT_DIRECT"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "7f32db28388a40b1b9876ad54f56f3f9362e6fe478e8e8270302c3f346bb2317",
+      "pageCount": 0,
+      "segmentCount": 0,
+      "diagnosticCodes": [
+        "EMPTY_SOURCE_TEXT"
+      ]
+    },
+    {
+      "name": "text-repeated-blocks",
+      "producer": "services/ai-service/src/source_extraction/text.py::extract_text_source",
+      "sourceType": "TEXT",
+      "sourceFixture": null,
+      "sourceSha256": "bc6984fa4747ea847accbd46b367b626b35d6fb53c8bd3ec27386ad994905384",
+      "extractionIdentity": {
+        "schemaVersion": "source_extraction_v1",
+        "implementationVersion": "source_extractor_v1.0.0",
+        "parserProfile": "TEXT_DIRECT"
+      },
+      "coverageStatus": "FULL",
+      "artifactContentFingerprint": "c1489f20b70c880eec4aab06dd359996bff6addb9eee02727620034646d3c2db",
+      "pageCount": 0,
+      "segmentCount": 3,
+      "diagnosticCodes": []
+    }
+  ]
+}

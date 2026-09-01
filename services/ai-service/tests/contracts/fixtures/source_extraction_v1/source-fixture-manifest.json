@@ -1,0 +1,187 @@
+{
+  "manifest": "F0_SOURCE_FIXTURE_MANIFEST",
+  "schemaVersion": "source_extraction_v1",
+  "slice": "F0.1",
+  "note": "Inventario de source fixtures. F0.1 declaro las fuentes diferidas con su caso previsto en vez de fabricarlas; F0.2 materializo las cuatro que quedaban (pagina solo imagen, PDF completamente escaneado, PDF cifrado, PDF con caracter astral), agrego una fuente malformada y reemplazo la excepcion de pagina por un doble deterministico, como estaba previsto. Todos los PDFs se escriben en sintaxis PDF cruda: byte a byte deterministicos, sin timestamps ni IDs aleatorios.",
+  "initialObservedEmptyPosture": {
+    "decision": "INITIAL_OBSERVED_EMPTY_SIGNAL: DEFERRED",
+    "consequence": "Toda pagina sin texto se clasifica UNOBSERVED_OR_UNEXTRACTABLE. OBSERVED_EMPTY existe en el schema desde v1 pero es inalcanzable desde el extractor productivo hasta que exista una justificacion deterministica positiva aprobada.",
+    "invariant": "Una pagina escaneada / solo imagen NUNCA puede etiquetarse OBSERVED_EMPTY sin justificacion deterministica positiva. Ninguna fixture de F0.1 lo hace."
+  },
+  "presentSources": [
+    {
+      "file": "sources/normal-multipage.pdf",
+      "case": "PDF de texto normal, multipagina",
+      "sha256": "b6dfee1275f1c45a348f577bfb90ef85a0214956cda20375cd062001bee73aee",
+      "bytes": 1005,
+      "pages": 2,
+      "authoring": "sintaxis PDF cruda escrita a mano; sin timestamps ni IDs aleatorios",
+      "parseVerified": "pdfplumber rinde 2 paginas con 89 y 55 caracteres",
+      "expectedInitialPageStatuses": [
+        "EXTRACTED",
+        "EXTRACTED"
+      ],
+      "expectedInitialCoverage": "FULL"
+    },
+    {
+      "file": "sources/blank-page.pdf",
+      "case": "PDF con una pagina genuinamente en blanco",
+      "sha256": "fe6d4194440b7c2b887dbb838574f02bc1818fbfe9f31009d803fdf3cbae325c",
+      "bytes": 857,
+      "pages": 2,
+      "authoring": "sintaxis PDF cruda; la segunda pagina no tiene stream de texto",
+      "parseVerified": "pdfplumber rinde 2 paginas con 53 y 0 caracteres",
+      "expectedInitialPageStatuses": [
+        "EXTRACTED",
+        "UNOBSERVED_OR_UNEXTRACTABLE"
+      ],
+      "expectedInitialCoverage": "PARTIAL",
+      "expectedAfterPositiveSignal": {
+        "pageStatuses": [
+          "EXTRACTED",
+          "OBSERVED_EMPTY"
+        ],
+        "coverage": "FULL",
+        "condition": "solo si F0.2 define y aprueba la justificacion deterministica positiva"
+      }
+    },
+    {
+      "file": "sources/non-breaking-space.pdf",
+      "case": "PDF con espacio duro (U+00A0) — el texto canonico debe preservarlo",
+      "sha256": "940a580b571b7baba1e31f6b18976e7f0d5e6a90601390f0525d146bed531b3e",
+      "bytes": 640,
+      "pages": 1,
+      "authoring": "sintaxis PDF cruda con WinAnsiEncoding",
+      "parseVerified": "pdfplumber rinde 1 pagina con 48 caracteres",
+      "expectedInitialPageStatuses": [
+        "EXTRACTED"
+      ],
+      "expectedInitialCoverage": "FULL",
+      "parserDivergence": "Verificado en F0.2: pdfminer (via pdfplumber, el parser primario) pliega U+00A0 a U+0020, mientras que pypdf lo conserva. El texto canonico de esta fixture preserva entonces el espacio duro solo bajo parserProfile PYPDF. No es un defecto del extractor — que no colapsa nada por su cuenta — sino una divergencia real entre parsers para los mismos bytes, y es exactamente lo que justifica que parserProfile viva dentro de extractionIdentity.",
+      "expectedInitialPageStatusesNote": "EXTRACTED / FULL en ambos parsers; lo que difiere es el contenido del texto canonico."
+    },
+    {
+      "file": "sources/simple-text-evidence.txt",
+      "case": "TextEvidence simple",
+      "sha256": "15de4e4ae3549621096d8c776437bd1e3b960734c5a515474d9bafe5a46eff30",
+      "bytes": 72,
+      "expectedInitialCoverage": "FULL",
+      "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM"
+    },
+    {
+      "file": "sources/normalized-text-evidence.txt",
+      "case": "TextEvidence con espacio duro, para verificar que la normalizacion del producto (NFC + fines de linea + trim) ya fue aplicada antes de que F0 lo vea",
+      "sha256": "603c4c781d147dd3aff0364713f0b4babbb96e516b741094e575c56f3f49b388",
+      "bytes": 72,
+      "expectedInitialCoverage": "FULL",
+      "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM"
+    },
+    {
+      "file": "sources/scanned-image-only-page.pdf",
+      "case": "PDF con una pagina solo imagen dentro de un documento por lo demas legible",
+      "authoring": "sintaxis PDF cruda; la segunda pagina lleva un XObject /Image de 1x1 y ningun operador de texto",
+      "parseVerified": "pdfplumber y pypdf rinden 2 paginas con 53 y 0 caracteres",
+      "pages": 2,
+      "expectedInitialPageStatuses": [
+        "EXTRACTED",
+        "UNOBSERVED_OR_UNEXTRACTABLE"
+      ],
+      "expectedInitialCoverage": "PARTIAL",
+      "hardInvariant": "NUNCA OBSERVED_EMPTY, en ninguna rama",
+      "verifiedByF02": true,
+      "sha256": "9835e8f7ba90564c8302f67c6216a4c1bf41916108fcea0fb28ff9a2974de0aa",
+      "bytes": 1057
+    },
+    {
+      "file": "sources/fully-scanned.pdf",
+      "case": "PDF completamente escaneado / solo imagen, sin OCR",
+      "authoring": "sintaxis PDF cruda; las dos paginas llevan XObject /Image y ningun operador de texto",
+      "parseVerified": "pdfplumber y pypdf rinden 2 paginas con 0 caracteres cada una",
+      "pages": 2,
+      "expectedInitialPageStatuses": [
+        "UNOBSERVED_OR_UNEXTRACTABLE",
+        "UNOBSERVED_OR_UNEXTRACTABLE"
+      ],
+      "expectedInitialCoverage": "FAILED",
+      "expectedDiagnostics": [
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+        "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+        "SOURCE_NO_EXTRACTABLE_TEXT"
+      ],
+      "hardInvariant": "NUNCA OBSERVED_EMPTY, en ninguna rama",
+      "artifactMustExist": true,
+      "verifiedByF02": true,
+      "sha256": "4babbd764a2e92c9ecf0fd88a7014b62c76f9e1bcb23666dd6e82641fa9cd826",
+      "bytes": 1058
+    },
+    {
+      "file": "sources/encrypted.pdf",
+      "case": "PDF cifrado / ilegible",
+      "authoring": "sintaxis PDF cruda con cifrado RC4 40-bit (/Filter /Standard /V 1 /R 2), /ID fijo y password de usuario NO vacio. La derivacion de clave (MD5) y RC4 son deterministicas, asi que los bytes son reproducibles. El password de usuario tiene que ser no vacio: un PDF cifrado con password vacio se abre y se extrae sin problema, y no ejercitaria el caso",
+      "parseVerified": "pdfplumber levanta PdfminerException/PDFPasswordIncorrect; pypdf levanta FileNotDecryptedError",
+      "expectedInitialPageStatuses": [],
+      "expectedInitialCoverage": "FAILED",
+      "expectedDiagnostic": "ENCRYPTED_PDF",
+      "artifactMustExist": true,
+      "verifiedByF02": true,
+      "sha256": "ba72f04890a7373397b2bd3d7ffaf86f8262dfec49a1f3619d276903a99ad9ee",
+      "bytes": 929
+    },
+    {
+      "file": "sources/astral-unicode.pdf",
+      "case": "PDF con un caracter del plano astral (U+1F9EA) — prueba code point contra code unit UTF-16",
+      "authoring": "sintaxis PDF cruda con una CMap /ToUnicode que mapea el codigo 0x41 al par de surrogates UTF-16BE D83E DDEA. No hace falta fuente embebida: pdfminer y pypdf leen el texto desde la CMap, asi que la fixture es estable y no depende de una fuente escrita a mano",
+      "parseVerified": "pdfplumber y pypdf rinden 'A' + U+1F9EA + 'B' — 3 code points, 4 code units UTF-16",
+      "pages": 1,
+      "expectedInitialPageStatuses": [
+        "EXTRACTED"
+      ],
+      "expectedInitialCoverage": "FULL",
+      "expectedSegmentId": "p0:0-3",
+      "note": "Un lector que use String.prototype.slice leeria p0:0-3 como 'A' + medio emoji. Es el caso que F0.4 debe pasar en TypeScript.",
+      "verifiedByF02": true,
+      "sha256": "58ec6dc0a550a79aad1de8ebc485c2387806283e3cc419d4bc39c27ca557157a",
+      "bytes": 956
+    },
+    {
+      "file": "sources/malformed.pdf",
+      "case": "Bytes que no son un PDF (texto plano con extension .pdf)",
+      "authoring": "texto plano UTF-8. Deliberadamente NO es un PDF corrupto al azar: el comportamiento de un PDF corrupto depende de la version del parser, y un test que dependa de eso miente tarde o temprano",
+      "parseVerified": "pdfplumber levanta PdfminerException/PDFSyntaxError; pypdf levanta PdfStreamError",
+      "expectedInitialPageStatuses": [],
+      "expectedInitialCoverage": "FAILED",
+      "expectedDiagnostic": "UNSUPPORTED_SOURCE",
+      "artifactMustExist": true,
+      "addedBySlice": "F0.2",
+      "verifiedByF02": true,
+      "sha256": "b4c72291b44227e126496bc93690e1ef708cd29515645b1c3253f94317156e20",
+      "bytes": 138
+    }
+  ],
+  "deferredSources": [
+    {
+      "file": "(sin archivo) excepcion del parser en una pagina",
+      "case": "el parser lanza excepcion en una pagina concreta",
+      "status": "materialized_as_test_double_in_F0.2",
+      "reason": "corromper un PDF para forzar comportamiento indefinido del parser produce un test fragil y dependiente de la version del parser; un test double deterministico es mas seguro",
+      "procedure": "en F0.2, inyectar la excepcion en el limite del parser con un doble, no con bytes corruptos",
+      "expectedInitialPageStatuses": [
+        "EXTRACTED",
+        "FAILED"
+      ],
+      "expectedInitialCoverage": "PARTIAL",
+      "contractFixtureMeanwhile": "contract-fixtures/valid/pdf-partial-failed-page.json",
+      "materializedAs": "tests/source_extraction/test_pdf_extractor.py::test_page_scoped_failure_degrades_the_page_without_switching_parser",
+      "verifiedByF02": true
+    },
+    {
+      "file": "(sin archivo) TEXT vacio",
+      "case": "TextEvidence con contenido vacio",
+      "status": "unreachable_in_production",
+      "reason": "text-evidence.validator.ts::normalizeContent lanza invalidBody('content debe contener texto.') si el contenido normalizado queda vacio; las dos rutas de creacion pasan por ese validador",
+      "contractFixtureMeanwhile": "contract-fixtures/valid/text-empty-full.json",
+      "contractRule": "una fuente TEXT completamente observada y vacia es FULL con cero evidencia, nunca FAILED"
+    }
+  ],
+  "lastUpdatedBySlice": "F0.2"
+}

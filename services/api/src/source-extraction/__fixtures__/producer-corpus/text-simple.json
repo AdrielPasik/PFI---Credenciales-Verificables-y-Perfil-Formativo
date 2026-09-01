@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "TEXT",
+  "source": {
+    "textEvidenceId": "text-simple-001",
+    "sourceSha256": "bdbae1057e99aa8d4c2e33e0dc28c66693097ba9890ecf0b17a66b8302cdcfc4"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "TEXT_DIRECT"
+  },
+  "sourceNormalizationApplied": "PRODUCT_NFC_LINEENDINGS_TRIM",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "FULL",
+  "pages": [],
+  "documentCanonicalText": "Curso de introduccion a Kubernetes.",
+  "segments": [
+    {
+      "segmentId": "d:0-35",
+      "pageIndex": null,
+      "charStart": 0,
+      "charEnd": 35,
+      "exactExcerpt": "Curso de introduccion a Kubernetes."
+    }
+  ],
+  "diagnostics": [],
+  "artifactContentFingerprint": "c57bac15b299fb89efa78484e5dd24a9317da9ee76310b5ddfa218082e924772"
+}

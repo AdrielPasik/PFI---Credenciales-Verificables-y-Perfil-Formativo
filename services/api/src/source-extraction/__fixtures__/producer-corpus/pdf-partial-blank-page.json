@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "source_extraction_v1",
+  "sourceType": "PDF_DOCUMENT",
+  "source": {
+    "documentEvidenceId": "doc-blank-page",
+    "sourceSha256": "fe6d4194440b7c2b887dbb838574f02bc1818fbfe9f31009d803fdf3cbae325c",
+    "storageKey": "documents/blank-page.pdf"
+  },
+  "extractionIdentity": {
+    "schemaVersion": "source_extraction_v1",
+    "implementationVersion": "source_extractor_v1.0.0",
+    "parserProfile": "PDFPLUMBER",
+    "dependencyFingerprint": "e7ebffd817b26404f15e51c60fbaf2a08c39d8e502c9bcdc7e9550cb301a2399"
+  },
+  "sourceNormalizationApplied": "NONE",
+  "offsetUnit": "UNICODE_CODE_POINT",
+  "coverageStatus": "PARTIAL",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageNumber": 1,
+      "canonicalText": "Certificado de asistencia emitido por la institucion.",
+      "pageOffsetStart": 0,
+      "pageOffsetEnd": 53,
+      "pageObservationStatus": "EXTRACTED"
+    },
+    {
+      "pageIndex": 1,
+      "pageNumber": 2,
+      "canonicalText": "",
+      "pageOffsetStart": 55,
+      "pageOffsetEnd": 55,
+      "pageObservationStatus": "UNOBSERVED_OR_UNEXTRACTABLE"
+    }
+  ],
+  "documentCanonicalText": "Certificado de asistencia emitido por la institucion.\n\n",
+  "segments": [
+    {
+      "segmentId": "p0:0-53",
+      "pageIndex": 0,
+      "charStart": 0,
+      "charEnd": 53,
+      "exactExcerpt": "Certificado de asistencia emitido por la institucion."
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "PAGE_UNOBSERVED_OR_UNEXTRACTABLE",
+      "severity": "WARNING",
+      "scope": "PAGE",
+      "pageIndex": 1,
+      "affectsCoverage": true
+    }
+  ],
+  "artifactContentFingerprint": "e51b0b21bf241c57834c97cbc656c246f1cd19780fe2375dc45aacee6d56fa11"
+}
