@@ -1,4 +1,9 @@
-# Frontend Roadmap v0
+# Frontend Roadmap v0 (histórico)
+
+> **Continuidad de naming.** El producto actualmente se denomina Scope. Este
+> roadmap conserva el estado técnico y la secuencia correspondiente a su fecha
+> de corte; no presenta capacidades posteriores como si hubieran existido en
+> ese snapshot.
 
 ## 1. Objetivo
 

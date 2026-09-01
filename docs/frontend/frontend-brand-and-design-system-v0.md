@@ -1,4 +1,12 @@
-# Traza: Frontend Brand and Design System v0
+# Traza: Frontend Brand and Design System v0 (histórico)
+
+> **Estado histórico.** Este snapshot registra la identidad anterior de Traza
+> y no es la fuente de verdad activa. La marca vigente es Scope y las decisiones
+> normativas de producto, assets, paleta y jerarquía visual están en
+> `frontend-brand-and-design-system-v1.md` y
+> `scope-product-positioning-v1.md`. Las referencias a Traza, sus assets y
+> tokens en el resto de este archivo se conservan únicamente para explicar el
+> estado de su fecha de corte.
 
 ## 1. Propósito del documento
 
@@ -20,7 +28,7 @@ modifique:
 Su objetivo es evitar decisiones visuales aisladas y asegurar que las tres
 experiencias pertenezcan al mismo producto.
 
-Estado del documento:
+Estado histórico del documento:
 
 ```text
 versión: v0

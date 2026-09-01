@@ -1,8 +1,12 @@
 # Guía de implementación UI frontend v1
 
+> **Actualización Scope.** Esta guía mantiene su versión técnica y adopta la
+> identidad normativa de `frontend-brand-and-design-system-v1.md`. No modifica
+> runtime, contratos, rutas ni responsabilidades de componentes.
+
 ## 1. Propósito y precedencia
 
-Esta guía define reglas operativas para implementar interfaces de Traza. No
+Esta guía define reglas operativas para implementar interfaces de Scope. No
 reemplaza los documentos normativos existentes.
 
 Ante una contradicción, aplicar esta precedencia:
@@ -10,7 +14,7 @@ Ante una contradicción, aplicar esta precedencia:
 1. backend real para capacidades, permisos y datos;
 2. `frontend-data-and-view-models-v0.md` para fronteras y modelos;
 3. `frontend-information-architecture-v0.md` para rutas y navegación;
-4. `frontend-brand-and-design-system-v0.md` para marca y sistema visual;
+4. `frontend-brand-and-design-system-v1.md` para marca y sistema visual;
 5. `frontend-component-inventory-v0.md` para responsabilidades;
 6. screen specs para composición e interacción;
 7. esta guía para decisiones de implementación.
@@ -34,7 +38,7 @@ No completar gaps documentales inventando UI, estados o datos.
 
 - Preferir primitives shadcn/Radix aprobadas antes de crear primitives desde
   cero.
-- Los componentes shadcn son code-owned y se tematizan con Traza.
+- Los componentes shadcn son code-owned y se tematizan con Scope.
 - Construir componentes de dominio sobre primitives técnicas.
 - Centralizar variantes con CVA y combinar clases con `cn()`.
 - Conservar props nativas y forwarding de `ref` cuando corresponda.
@@ -47,14 +51,15 @@ No completar gaps documentales inventando UI, estados o datos.
 
 ## 4. CSS y tokens
 
-- Las variables CSS de Traza son la fuente de verdad.
+- Las variables CSS vigentes son la fuente de verdad; una futura migración de
+  tokens a la nomenclatura Scope debe preservar la semántica existente.
 - Tailwind se usa para composición y responsive.
 - `globals.css` contiene tokens y estilos base, no reglas de componentes o
   páginas.
 - Evitar CSS específico por componente salvo necesidad demostrada.
 - No repetir hexadecimales en JSX.
 - No inventar tokens locales sin documentarlos.
-- No copiar el aspecto default de shadcn sin tematización Traza.
+- No copiar el aspecto default de shadcn sin tematización Scope.
 
 ## 5. Calidad visual
 
@@ -89,26 +94,26 @@ Quedan prohibidos:
 
 ## 7. Marca
 
-`BrandMark` integra la marca aprobada según la superficie. Usa
-`LOGO TRAZA SIN FONDO.png` en superficies claras que solicitan el logo normal
-y `LOGO-TRAZA-FONDO-AZUL.png` en shells autenticados navy. El wordmark textual
-permanece como fallback accesible para contextos que no soliciten asset.
+`BrandMark` integra la marca aprobada según la superficie. Usa `Logo Scope 2.png`
+en superficies claras y `Logo Scope Invertido.png` en shells autenticados navy.
+El wordmark textual permanece como fallback accesible para contextos que no
+soliciten asset.
 
 Los layouts no deben depender de recortes, offsets negativos, filtros de
 inversión ni de dimensiones intrínsecas del PNG: las variantes se renderizan
 completas con `object-contain`.
 
-## 8. Dirección artística de Traza
+## 8. Dirección artística de Scope
 
-- Ink es la base institucional para navegación, paneles de confianza y
-  jerarquía principal.
-- Teal identifica actividad, análisis y foco secundario; ámbar queda reservado
-  para evidencia, hitos o atención puntual.
+- Navy es la base institucional para navegación y jerarquía principal.
+- Teal identifica foco, interpretación y actividad relevante; ámbar queda
+  reservado para warnings o cobertura parcial, no para identidad de marca.
 - Las superficies blancas funcionan como foreground. No deben convertirse en
   el canvas dominante ni producir una sucesión de cards idénticas.
 - La profundidad se construye con fondos por capas, bordes sutiles, acentos
   lineales y sombras controladas.
-- La composición debe ser editorial y contextual, no un dashboard genérico.
+- La composición debe ser editorial, contextual y profile-first, no un
+  dashboard genérico ni una superficie crypto.
 - Lucide es la única familia de iconos y sus símbolos deben aclarar acciones o
   estados reales.
 - El motion debe ser corto, funcional y respetar `prefers-reduced-motion`.

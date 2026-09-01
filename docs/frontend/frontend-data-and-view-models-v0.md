@@ -1,9 +1,14 @@
-# Traza: Datos y view models frontend v0
+# Scope: Datos y view models frontend v0
+
+> **Actualización de marca.** Este documento conserva sus contratos y snapshot
+> técnico v0. Scope es la marca vigente; para posicionamiento y sistema visual
+> activo consultar `scope-product-positioning-v1.md` y
+> `frontend-brand-and-design-system-v1.md`.
 
 ## 1. Resumen ejecutivo
 
 Este documento define la frontera normativa entre los contratos HTTP reales
-del backend NestJS y los datos que pueden consumir los componentes de Traza.
+del backend NestJS y los datos que pueden consumir los componentes de Scope.
 
 La cadena obligatoria es:
 
@@ -37,7 +42,7 @@ versión: v0
 carácter: normativo
 alcance: datos, adapters y view models frontend
 locale: es-AR
-aplicación: Traza web
+aplicación: Scope web
 ```
 
 ## 2. Alcance
@@ -85,7 +90,7 @@ estructura de archivos.
 Aplicar este orden ante contradicciones:
 
 1. Controllers, services, DTOs y serializers actuales de `services/api/src`.
-2. `frontend-brand-and-design-system-v0.md` para marca, tono, terminología y
+2. `frontend-brand-and-design-system-v1.md` para marca, tono, terminología y
    semántica visual.
 3. `frontend-information-architecture-v0.md` para rutas, actores,
    navegación y disponibilidad A/B/C/D.
@@ -1006,7 +1011,7 @@ operationalIssuerContexts:
   memberships activas admin/operator con issuer authorized
 recommendedDestination:
   /issuer
-  | /wallet/credentials
+  | /wallet
   | null
 multiIssuerSelection:
   not_required
@@ -1019,7 +1024,7 @@ Semántica:
 ```text
 cero operationalIssuerContexts
 -> multiIssuerSelection: not_required
--> recommendedDestination: /wallet/credentials
+-> recommendedDestination: /wallet
 
 un operationalIssuerContext
 -> multiIssuerSelection: not_required

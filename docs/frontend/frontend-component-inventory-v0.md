@@ -1,9 +1,13 @@
-# Traza: Inventario de componentes frontend v0
+# Scope: Inventario de componentes frontend v0
+
+> **Actualización de marca.** Este inventario conserva responsabilidades y
+> contratos conceptuales v0. Scope es la marca vigente; no usar este documento
+> para inferir cambios de runtime.
 
 ## 1. Propósito
 
 Este documento define el inventario normativo de componentes conceptuales de
-Traza. Traduce la marca, la arquitectura de información y los contratos de
+Scope. Traduce la marca, la arquitectura de información y los contratos de
 datos en bloques de interfaz con responsabilidades explícitas.
 
 El inventario establece:
@@ -36,7 +40,7 @@ Estado:
 versión: v0
 carácter: normativo
 alcance: taxonomía y contratos conceptuales de componentes frontend
-aplicación: Traza web
+aplicación: Scope web
 locale: es-AR
 ```
 
@@ -59,7 +63,7 @@ Actualizaciones posteriores al snapshot base:
 Documentos normativos leídos:
 
 ```text
-docs/frontend/frontend-brand-and-design-system-v0.md
+docs/frontend/frontend-brand-and-design-system-v1.md
 docs/frontend/frontend-information-architecture-v0.md
 docs/frontend/frontend-data-and-view-models-v0.md
 ```
@@ -68,7 +72,7 @@ Contexto adicional consultado:
 
 ```text
 docs/frontend/frontend-roadmap-v0.md
-docs/frontend/ui-ux-handoff-context-v0.md
+docs/frontend/scope-ui-ux-handoff-context-v1.md
 ```
 
 Ante contradicciones, aplicar esta precedencia:
@@ -78,7 +82,7 @@ Ante contradicciones, aplicar esta precedencia:
    view models, privacidad y campos prohibidos.
 3. `frontend-information-architecture-v0.md` para actores, rutas, navegación
    y disponibilidad A/B/C/D.
-4. `frontend-brand-and-design-system-v0.md` para marca, tokens, responsive,
+4. `frontend-brand-and-design-system-v1.md` para marca, tokens, responsive,
    accesibilidad y tono.
 5. Este documento para taxonomía, responsabilidad, composición y fases de
    componentes.
@@ -416,7 +420,7 @@ por la screen specification correspondiente.
 - `ProfileSourcesSummary`;
 - `ProfileLimitationsList`.
 
-La composición completa de `/wallet/credentials/[id]` y `/wallet/profile`
+La composición completa de `/wallet/credentials/[id]` y `/wallet`
 queda fuera de este documento.
 
 ### G. Verificador Público

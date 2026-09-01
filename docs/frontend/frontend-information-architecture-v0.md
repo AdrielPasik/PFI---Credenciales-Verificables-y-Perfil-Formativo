@@ -1,10 +1,15 @@
-# Traza: Arquitectura de información frontend v0
+# Scope: Arquitectura de información frontend v0
+
+> **Actualización de marca y producto.** Los contratos, rutas y niveles de
+> disponibilidad de este documento conservan su snapshot v0. Scope es la marca
+> vigente; la dirección de producto distingue lo implementado de Contextual
+> Analysis futuro en `scope-product-positioning-v1.md`.
 
 ## 1. Propósito
 
 Este documento define la arquitectura de información, las rutas conceptuales,
 la navegación, la jerarquía funcional y el orden de construcción del frontend
-web de Traza.
+web de Scope.
 
 Es la fuente de verdad para:
 
@@ -71,7 +76,7 @@ Aplicar este orden ante contradicciones:
 
 1. Controllers, services y DTOs actuales de `services/api/src` para endpoints,
    permisos y respuestas realmente implementadas.
-2. `frontend-brand-and-design-system-v0.md` para marca, terminología, tono,
+2. `frontend-brand-and-design-system-v1.md` para marca, terminología, tono,
    estados visuales y responsive.
 3. `ai-frontend-ready-flow-v0.md` y
    `ai-http-backend-integration-v0.md` para integración IA vigente.
@@ -257,7 +262,7 @@ Reservar una URL en este documento no significa crear su carpeta ni su
 
 ### Una aplicación, contextos separados
 
-Traza es una única aplicación Next.js con marca y base técnica compartidas.
+Scope es una única aplicación Next.js con marca y base técnica compartidas.
 No es una navegación única donde todos ven todas las funciones.
 
 ### Autoridad desde sesión y backend
@@ -361,7 +366,6 @@ en su nombre mediante memberships.
 ├── wallet
 │   ├── credentials
 │   │   └── [credentialId]
-│   └── profile
 └── verify
     └── credentials
         └── [credentialId]
@@ -371,9 +375,10 @@ Decisiones:
 
 - `/issuer` es la entrada institucional y reemplaza una ruta
   `/issuer/overview`;
-- `/wallet` es el scope técnico de la experiencia personal;
-- `/wallet` redirige a `/wallet/credentials`;
-- `/wallet/profile` incluye selección y build de perfil;
+- `/wallet` es la entrada autenticada de la experiencia personal y renderiza
+  `Mi perfil formativo`;
+- `/wallet/credentials` contiene las credenciales propias;
+- `/wallet/credentials/[credentialId]` contiene el detalle propio;
 - `/verify` permite introducir manualmente un ID;
 - `/verify/credentials/[credentialId]` es el resultado público;
 - no se crea `/verifier`;
@@ -397,8 +402,8 @@ Reglas:
   o navegación;
 - los breadcrumbs deben consumir metadata de ruta o labels centralizados, no
   capitalizar automáticamente el `pathname`;
-- `Mi Traza` y `Mis credenciales` siguen siendo decisiones verbales
-  pendientes.
+- `Mi perfil formativo` y `Mis credenciales` son labels funcionales; no usar
+  la marca global como posesivo dentro de la navegación.
 
 ### `/`
 
@@ -409,7 +414,7 @@ Comportamiento conceptual:
 ```text
 sin sesión -> /login
 sesión institucional demo válida -> /issuer
-sesión sin contexto emisor operativo -> /wallet/credentials
+sesión sin contexto emisor operativo -> /wallet
 ```
 
 No debe convertirse en un dashboard genérico.
@@ -459,7 +464,8 @@ validan ownership institucional.
 
 ### `/wallet`
 
-Redirect autenticado a `/wallet/credentials`.
+Entrada autenticada del Titular. Renderiza `Mi perfil formativo` y carga el
+perfil actual junto con las fuentes que lo respaldan.
 
 ### `/wallet/credentials`
 
@@ -470,10 +476,9 @@ Lista real de credenciales propias `issued` y `revoked`.
 Detalle propio con institución emisora, datos de credencial, evidencia y latest
 semantic analysis.
 
-### `/wallet/profile`
-
-Perfil actual y construcción desde credenciales elegibles. La selección vive
-dentro del flujo del perfil y no es navegación primaria separada.
+No existe una ruta `/wallet/profile` en el frontend actual. La lectura y el
+flujo de perfil viven en `/wallet`; cualquier ruta futura debe documentarse
+antes de ser propuesta a diseño o navegación.
 
 ### `/verify`
 
@@ -497,10 +502,9 @@ seguro.
 | `/issuer/credentials` | Credenciales | Admin/operator | Sí | Membership activa | Listar credenciales institucionales | No existe | C | Endpoint issuer-facing, paginación y filtros. No implementar ni enlazar en MVP |
 | `/issuer/credentials/new` | Nueva credencial | Admin/operator | Sí | Emisión institucional | Resolver titular y crear draft | `POST /issuers/:issuerId/holders/resolve`, `POST /credentials/draft` | B | Flujo transaccional disponible; selector multi-issuer no implementado |
 | `/issuer/credentials/[credentialId]` | Detalle de credencial | Admin/operator | Sí en UI | Membership del issuer | Consultar y operar por ID | `GET /credentials/:id`, status, issue, AI PDF, latest analysis | B | Reads sin autorización, ID conocido y DTO semántico demasiado amplio |
-| `/wallet` | Entrada personal | Titular | Sí | Usuario activo | Entrar a experiencia personal | `/auth/me` | A | Redirect interno |
+| `/wallet` | Mi perfil formativo | Titular | Sí | Usuario activo | Leer perfil actual y sus fuentes | `/auth/me`, `GET /me/profile/current` | A | Entrada profile-first actual |
 | `/wallet/credentials` | Mis credenciales | Titular | Sí | Ownership por JWT | Listar credenciales propias | `GET /me/credentials` | A | Sin paginación |
 | `/wallet/credentials/[credentialId]` | Detalle de credencial | Titular | Sí | Ownership por JWT | Ver detalle propio | `GET /me/credentials/:id` | A | Ninguna para MVP |
-| `/wallet/profile` | Perfil formativo | Titular | Sí | Usuario actual | Leer y construir perfil | `GET /me/profile/current`, `POST /me/profile/build-from-ai` | A | AI Service disponible para build |
 | `/verify` | Verificar credencial | Verificador | No | Ninguno | Ingresar ID manual | Navegación frontend | A | No equivale a sharing |
 | `/verify/credentials/[credentialId]` | Resultado de verificación | Verificador | No | Acceso público por ID | Mostrar resultado y evidencia | `GET /verify/credentials/:id` | B | Falta institución emisora en DTO y política de exposición más fina |
 | `/issuer/settings` | Configuración | Institucional | Sí | No implementado | Gestionar institución | No existe | D | Fuera del MVP. No implementar ni enlazar en MVP |
@@ -536,8 +540,8 @@ seguro.
 | Experiencia | Entrada | Navegación primaria | Navegación secundaria | Acción principal |
 |---|---|---|---|---|
 | Portal del Emisor | `/issuer` | Inicio; Credenciales solo cuando exista listado | Identidad, contexto institucional y cerrar sesión | Crear credencial |
-| Wallet y Perfil | `/wallet/credentials` | Mis credenciales; Perfil formativo | Cuenta y cerrar sesión | Abrir credencial o construir perfil |
-| Verificador Público | `/verify` o deep link | Sin navegación de aplicación | Logo Traza para superficie clara y volver a verificar | Verificar un ID |
+| Wallet y Perfil | `/wallet` | Mi perfil formativo; Mis credenciales | Cuenta y cerrar sesión | Consultar perfil o abrir credencial |
+| Verificador Público | `/verify` o deep link | Sin navegación de aplicación | Logo Scope para superficie clara y volver a verificar | Verificar un ID |
 
 En el MVP parcial del emisor, `Credenciales` no debe aparecer como lista
 funcional hasta que exista su endpoint. El detalle se alcanza desde el draft
@@ -566,7 +570,7 @@ más de una membership operativa
 -> no seleccionar silenciosamente la primera
 
 ninguna membership operativa
--> /wallet/credentials
+-> /wallet
 ```
 
 Una membership es operativa únicamente cuando está `active`, su rol es `admin`
@@ -578,7 +582,7 @@ controlada puede usarse una cuenta con exactamente una membership operativa.
 Si no posee ninguna membership operativa, redirigir a:
 
 ```text
-/wallet/credentials
+/wallet
 ```
 
 Una lista vacía es un estado válido.
@@ -628,7 +632,7 @@ Evolución:
 
 No habilita emisión ni análisis PDF. Como no existe lectura issuer-facing, no
 justifica hoy una experiencia institucional propia y se redirige a
-`/wallet/credentials`.
+`/wallet`.
 
 ### Sin contexto válido
 
@@ -810,19 +814,19 @@ Prioridad alta:
 
 ### Entrada
 
-La entrada canónica es:
+La entrada canónica actual es:
 
 ```text
-/wallet/credentials
+/wallet
 ```
 
-Label visible tentativo:
+Label visible:
 
 ```text
-Mis credenciales
+Mi perfil formativo
 ```
 
-`Mi Traza` sigue siendo una opción verbal, no un label definitivo.
+`/wallet/credentials` es la ruta secundaria para consultar fuentes emitidas.
 
 ### Mis credenciales
 
@@ -857,7 +861,7 @@ Cada item permite:
 
 ### Perfil formativo
 
-`/wallet/profile` reúne:
+`/wallet` reúne:
 
 - perfil actual;
 - estado sin perfil;
@@ -1058,7 +1062,7 @@ No inferir invalidez cuando falta evidencia.
 
 ### Elementos compartidos
 
-- marca Traza mediante asset de superficie o fallback textual accesible;
+- marca Scope mediante asset de superficie o fallback textual accesible;
 - sistema visual;
 - acceso al contexto actual;
 - identidad de sesión en áreas autenticadas;
@@ -1087,7 +1091,7 @@ Perfil formativo
 
 ### Verificador
 
-Sin navegación de aplicación. Mantiene la marca Traza, volver a verificar y contexto
+Sin navegación de aplicación. Mantiene la marca Scope, volver a verificar y contexto
 del resultado.
 
 ### Cambio de contexto futuro
@@ -1106,7 +1110,7 @@ No implementarlo hasta disponer de:
 
 ### Elementos que permanecen
 
-- marca Traza;
+- marca Scope;
 - paleta y tipografía;
 - terminología visible;
 - cards de credencial;
@@ -1160,10 +1164,8 @@ Antes de la demo:
 11. Iniciar sesión como titular.
 12. Ver la credencial en `/wallet/credentials`.
 13. Abrir su detalle.
-14. Ir a `/wallet/profile`.
-15. Seleccionar la credencial issued y analizada.
-16. Construir el perfil IA.
-17. Mostrar el perfil current.
+14. Volver a `/wallet` para consultar el perfil actual y sus fuentes.
+15. Mostrar el perfil current.
 18. Abrir `/verify/credentials/[credentialId]`.
 19. Mostrar resultado y evidencia disponible.
 
@@ -1241,7 +1243,7 @@ No construir lista institucional falsa.
 - lista real;
 - detalle propio;
 - elegibilidad para perfil;
-- selección dentro de `/wallet/profile`;
+- flujo de perfil dentro de `/wallet`;
 - build IA;
 - perfil current;
 - estados vacíos y errores.
@@ -1408,8 +1410,8 @@ No incorporar al MVP actual:
 - una única aplicación Next.js;
 - login único;
 - `/issuer` como entrada institucional;
-- `/wallet/credentials` como entrada canónica del titular;
-- `/wallet/profile` para perfil, selección y build;
+- `/wallet` como entrada canónica profile-first del titular;
+- `/wallet/credentials` como lista de credenciales propias;
 - `POST /me/profile/build-from-ai` como única acción visible de construcción
   del perfil en el MVP;
 - `POST /me/profile/rebuild` fuera de navegación y CTA del titular;
@@ -1429,7 +1431,8 @@ No incorporar al MVP actual:
 
 Deben esperar:
 
-- label final `Mi Traza` o `Mis credenciales`;
+- priorización final entre `Mi perfil formativo` y `Mis credenciales` según el
+  contexto de navegación;
 - diseño visual de navegación;
 - layout de cada vista;
 - props de componentes;

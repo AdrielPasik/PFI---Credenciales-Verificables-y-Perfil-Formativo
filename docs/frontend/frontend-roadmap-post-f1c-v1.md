@@ -2,7 +2,9 @@
 
 ## Estado del documento
 
-- **Producto:** Traza.
+- **Producto en el snapshot:** Traza.
+- **Marca vigente:** Scope. Este documento preserva el corte post-F1c y no
+  reescribe su secuencia histórica con capacidades posteriores.
 - **Estado:** normativa de planificación posterior a F1c.
 - **Fecha de corte:** 2026-07-30.
 - **Alcance:** frontend, contratos backend necesarios y secuencia de integración para una entrega demostrable.
@@ -18,7 +20,7 @@ Este documento complementa la arquitectura de información, los modelos de vista
 
 ## 1. Estado actual post-F1c
 
-Traza ya dispone de un recorrido operativo real, sin datos de producto simulados:
+El producto ya disponía de un recorrido operativo real, sin datos de producto simulados:
 
 ```text
 login
@@ -541,7 +543,7 @@ El “50 %” debe representar un recorrido vertical demostrable, no la mitad de
 - P9: listado institucional simple.
 - P10: verificador público mínimo, solo después de cerrar privacidad.
 
-P7 y P8 son stretch respecto del corte de la Entrega 50 %, pero forman parte obligatoria del vertical objetivo del proyecto Traza. No se consideran fuera del alcance del producto y permanecen dentro de su camino crítico.
+P7 y P8 son stretch respecto del corte de la Entrega 50 %, pero forman parte obligatoria del vertical objetivo del producto. No se consideran fuera del alcance y permanecen dentro de su camino crítico.
 
 ### Deseable, pero no condiciona el corte
 

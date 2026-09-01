@@ -1,4 +1,10 @@
-# UI/UX Handoff Context v0
+# UI/UX Handoff Context v0 (histórico)
+
+> **Estado histórico.** Este contexto conserva un snapshot técnico anterior.
+> Para la marca y el posicionamiento vigentes de Scope usar
+> `scope-product-positioning-v1.md` y
+> `frontend-brand-and-design-system-v1.md`. No actualizar sus rutas, endpoints
+> o flujos por inferencia desde este archivo.
 
 ## Brief copiable
 

@@ -1,9 +1,13 @@
-# Traza: Especificación de pantallas del Portal del Emisor v0
+# Scope: Especificación de pantallas del Portal del Emisor v0
+
+> **Actualización de marca.** Esta especificación conserva su snapshot
+> funcional v0. Scope es la marca vigente; el Portal del Emisor sigue siendo
+> un workspace institucional web responsive, no una experiencia mobile-first.
 
 ## 1. Propósito
 
 Este documento define la primera especificación normativa de pantallas de
-Traza. Su alcance es el vertical institucional mínimo:
+Scope. Su alcance es el vertical institucional mínimo:
 
 ```text
 Login
@@ -44,12 +48,12 @@ backend inspeccionado:
   services/api/src/ai
   services/api/src/blockchain
 documentación inspeccionada:
-  docs/frontend/frontend-brand-and-design-system-v0.md
+  docs/frontend/frontend-brand-and-design-system-v1.md
   docs/frontend/frontend-information-architecture-v0.md
   docs/frontend/frontend-data-and-view-models-v0.md
   docs/frontend/frontend-component-inventory-v0.md
   docs/frontend/frontend-roadmap-v0.md
-  docs/frontend/ui-ux-handoff-context-v0.md
+  docs/frontend/scope-ui-ux-handoff-context-v1.md
   docs/demo/ai-end-to-end-demo-script-v0.md
   docs/architecture/ai-frontend-ready-flow-v0.md
   docs/architecture/ai-http-backend-integration-v0.md
@@ -69,7 +73,7 @@ Precedencia:
 1. Backend real para comportamiento, requiredness, permisos y errores.
 2. `frontend-data-and-view-models-v0.md` para modelos, adapters y privacidad.
 3. `frontend-information-architecture-v0.md` para rutas y disponibilidad.
-4. `frontend-brand-and-design-system-v0.md` para marca y reglas visuales.
+4. `frontend-brand-and-design-system-v1.md` para marca y reglas visuales.
 5. `frontend-component-inventory-v0.md` para componentes y responsabilidades.
 6. Este documento para composición, jerarquía e interacción por pantalla.
 
@@ -254,9 +258,9 @@ segura.
 | Disponibilidad | A |
 | Precondición | Backend disponible y configuración JWT válida |
 | Entrada | Navegación directa, redirect de ruta protegida o sesión expirada |
-| Salida | `/issuer` o `/wallet/credentials` |
+| Salida | `/issuer` o `/wallet` |
 | Modelos | `LoginFormModel`, `LoginCommand`, `SessionVM`, `FeedbackErrorVM`, `AsyncActionStateVM` |
-| Componentes | `AuthLayout`, logo Traza para superficie clara, `LoginForm`, `FormField`, `TextInput`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
+| Componentes | `AuthLayout`, logo Scope para superficie clara, `LoginForm`, `FormField`, `TextInput`, `Button`, `InlineError`, `FeedbackAlert`, `ActionFeedback` |
 
 No requiere un `ProductHeader` completo. `AuthLayout` ofrece una composición
 focal y mínima.
@@ -265,7 +269,7 @@ focal y mínima.
 
 | Orden | Región | Componente o contenido | Responsabilidad |
 |---:|---|---|---|
-| 1 | Marca | Logo Traza para superficie clara | Identificar el producto |
+| 1 | Marca | Logo Scope para superficie clara | Identificar el producto |
 | 2 | Mensaje | Tagline institucional | Explicar propósito |
 | 3 | Encabezado | Título de acceso | Nombrar la tarea |
 | 4 | Formulario | `LoginForm` | Capturar email y password |
@@ -329,7 +333,7 @@ más de una membership operativa
 -> estado bloqueado para el vertical actual
 
 ninguna membership operativa
--> /wallet/credentials
+-> /wallet
 ```
 
 Una membership es operativa solo si está `active`, tiene rol `admin` u
@@ -356,7 +360,7 @@ asume un usuario con exactamente una membership operativa.
 
 - columna focal;
 - campos y CTA con target táctil;
-- logo Traza y tagline legibles;
+- logo Scope y tagline legibles;
 - sin header sobredimensionado;
 - sin contenido decorativo que desplace el formulario;
 - ancho de lectura contenido en desktop.
@@ -400,7 +404,7 @@ todavía no están implementados.
 
 ### Contenido permitido
 
-- marca Traza para header navy;
+- marca Scope para header navy;
 - identidad de sesión;
 - rol operativo cuando aporte claridad;
 - contexto institucional seguro;
@@ -1180,7 +1184,7 @@ Los action states no reemplazan el estado general de la página.
 
 - columna focal;
 - campos y CTA táctiles;
-- logo Traza y tagline legibles;
+- logo Scope y tagline legibles;
 - sin header sobredimensionado.
 
 ### `/issuer`
@@ -1249,14 +1253,14 @@ Contratos transversales:
 | Loading | Iniciando sesión… | Submitting | No cambia ancho |
 | Inválidas | El email o la contraseña no son correctos. | `invalid_credentials` | No revela cuál falló |
 | Sesión | Tu sesión venció. Iniciá sesión nuevamente. | `session_expired` | No se presenta como password incorrecta |
-| Servicio | No pudimos conectar con Traza. Intentá nuevamente. | Red/backend | Recuperable |
+| Servicio | No pudimos conectar con Scope. Intentá nuevamente. | Red/backend | Recuperable |
 
 ### Entrada del Emisor
 
 | Elemento | Copy v0 | Estado/contexto | Observación |
 |---|---|---|---|
 | Título | Inicio institucional | Default | No dice dashboard |
-| Introducción | Creá, emití y analizá credenciales educativas desde un flujo trazable. | Default | Operativo |
+| Introducción | Gestioná evidencia y credenciales desde un flujo institucional. | Default | Operativo |
 | Contexto | Contexto institucional activo | Issuer sin summary | No muestra UUID |
 | CTA | Crear credencial | Default | Navega a nueva |
 | Contexto ausente | No pudimos resolver un contexto emisor operativo para esta sesión. | Unsupported | Acción segura |
