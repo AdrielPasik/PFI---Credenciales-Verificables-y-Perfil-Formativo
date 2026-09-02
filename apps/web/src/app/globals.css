@@ -3,27 +3,28 @@
 :root {
   color-scheme: light;
 
-  --traza-brand-900: #16324f;
-  --traza-brand-700: #1e496b;
-  --traza-brand-600: #256087;
-  --traza-brand-100: #eaf2f7;
-  --traza-teal-700: #197278;
-  --traza-teal-600: #23838a;
-  --traza-teal-100: #e5f4f3;
+  /* Legacy token names remain stable while their visual values follow Scope. */
+  --traza-brand-900: #0b1d3a;
+  --traza-brand-700: #12315c;
+  --traza-brand-600: #174671;
+  --traza-brand-100: #e5f2f4;
+  --traza-teal-700: #167f89;
+  --traza-teal-600: #2097a1;
+  --traza-teal-100: #bfe6ea;
   --traza-brand-accent: #2097a1;
   --traza-amber-800: #7a4d08;
   --traza-amber-600: #c68a2d;
   --traza-amber-100: #fff3d9;
 
-  --traza-canvas: #f6f8f8;
+  --traza-canvas: #eef2f5;
   --traza-surface: #ffffff;
-  --traza-surface-muted: #eef3f3;
-  --traza-text-strong: #1b2936;
-  --traza-text-default: #344451;
-  --traza-text-muted: #5d6b76;
-  --traza-text-subtle: #7c8992;
-  --traza-border-default: #dce3e5;
-  --traza-border-strong: #c6d0d3;
+  --traza-surface-muted: #f7fafb;
+  --traza-text-strong: #0b1d3a;
+  --traza-text-default: #31445f;
+  --traza-text-muted: #5f7084;
+  --traza-text-subtle: #7b8998;
+  --traza-border-default: #d9e3e8;
+  --traza-border-strong: #bdccd5;
 
   --traza-status-issued: #2563a6;
   --traza-status-issued-soft: #eaf2fb;
@@ -62,24 +63,20 @@
   --traza-space-12: 3rem;
   --traza-space-16: 4rem;
 
-  --traza-radius-sm: 0.375rem;
-  --traza-radius-control: 0.625rem;
-  --traza-radius-card: 0.875rem;
-  --traza-radius-dialog: 1.125rem;
+  --traza-radius-sm: 0.5rem;
+  --traza-radius-control: 0.75rem;
+  --traza-radius-card: 1rem;
+  --traza-radius-dialog: 1.25rem;
   --traza-radius-pill: 9999px;
 
-  --traza-shadow-xs: 0 1px 2px rgb(22 50 79 / 5%);
-  --traza-shadow-sm: 0 2px 8px rgb(22 50 79 / 7%);
-  --traza-shadow-md: 0 8px 24px rgb(22 50 79 / 10%);
+  --traza-shadow-xs: 0 1px 2px rgb(11 29 58 / 5%);
+  --traza-shadow-sm: 0 6px 18px rgb(11 29 58 / 7%);
+  --traza-shadow-md: 0 18px 42px rgb(11 29 58 / 11%);
 
   --traza-focus-ring: #256087;
   --traza-input-height: 2.75rem;
   --traza-reading-width: 75rem;
-  /* C4x: portal emisor unicamente -- wallet-shell.tsx/context-shell.tsx
-     siguen usando --traza-reading-width sin cambios (no rediseñar la
-     wallet del titular). Un ancho mayor especifico del portal emisor
-     evita el efecto "mobile en desktop" en /issuer/credentials/new y
-     /issuer/credentials/[credentialId] sin afectar otras pantallas. */
+  --traza-holder-reading-width: 88rem;
   --traza-issuer-reading-width: 96rem;
   --traza-font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -176,6 +173,11 @@
     font-size: 1rem;
     line-height: 1.5;
     text-rendering: optimizeLegibility;
+    background-image: linear-gradient(
+      135deg,
+      rgb(191 230 234 / 22%),
+      transparent 38rem
+    );
   }
 
   button,
@@ -193,6 +195,13 @@
   ::selection {
     background: var(--traza-teal-100);
     color: var(--traza-brand-900);
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 

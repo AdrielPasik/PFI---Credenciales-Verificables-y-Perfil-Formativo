@@ -58,7 +58,7 @@ export function RegisterScreen() {
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
           <p className="text-sm font-semibold text-teal-700">
-            Creá tu cuenta en Traza
+            Creá tu cuenta en Scope
           </p>
           <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
             Crear cuenta

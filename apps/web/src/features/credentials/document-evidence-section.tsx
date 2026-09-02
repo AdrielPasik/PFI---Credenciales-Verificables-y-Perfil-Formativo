@@ -158,7 +158,7 @@ export function DocumentEvidenceSection({
           {isDraft
             ? supportsDeclaredTextAnalysis
               ? 'Adjuntá un PDF institucional si esta formación cuenta con documentación de respaldo. Para cursos y certificaciones es opcional cuando ya completaste descripción, competencias o contenido adicional.'
-              : 'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
+              : 'La evidencia respalda el borrador. Si hay un PDF vigente, Scope intentará analizarlo automáticamente al emitir.'
             : 'Esta evidencia quedó asociada a la credencial emitida.'}
         </p>
       </div>

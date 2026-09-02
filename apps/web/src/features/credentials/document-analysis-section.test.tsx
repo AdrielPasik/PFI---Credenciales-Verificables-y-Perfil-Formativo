@@ -119,7 +119,7 @@ describe('DocumentAnalysisSection', () => {
     expect(screen.getByText('Interpretación asistida pendiente')).toBeTruthy();
     expect(
       screen.getByText(
-        'Traza generará el análisis automáticamente al emitir la credencial.'
+        'Scope generará el análisis automáticamente al emitir la credencial.'
       )
     ).toBeTruthy();
     expect(screen.queryByRole('button', { name: /analizar documento/i })).toBeNull();
@@ -316,10 +316,10 @@ describe('DocumentAnalysisSection', () => {
 
     expect(
       screen.getByText(
-        'Traza está procesando la información declarada de la credencial.'
+        'Scope está procesando la información declarada de la credencial.'
       )
     ).toBeTruthy();
-    expect(screen.queryByText('Traza está procesando la evidencia documental.')).toBeNull();
+    expect(screen.queryByText('Scope está procesando la evidencia documental.')).toBeNull();
   });
 
   it.each(['issued', 'revoked'] as const)(
@@ -330,7 +330,7 @@ describe('DocumentAnalysisSection', () => {
         currentState: state({ currentRun: runFixture() })
       });
       expect(
-        screen.getByText(/Traza intentó generar una ejecución automática/)
+        screen.getByText(/Scope intentó generar una ejecución automática/)
       ).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Volver a analizar' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();

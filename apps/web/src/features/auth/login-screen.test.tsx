@@ -13,16 +13,16 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
 import { LoginScreen } from './login-screen';
 
-it('presents the definitive Traza identity while preserving the login form', () => {
+it('presents the Scope identity while preserving the login form', () => {
   render(<LoginScreen />);
 
-  const logo = screen.getByRole('img', { name: 'Traza' });
+  const logo = screen.getByRole('img', { name: 'Scope' });
   const logoSource = logo.getAttribute('src') ?? '';
   const logoAssetPath = decodeURIComponent(
     new URL(logoSource, 'http://localhost').searchParams.get('url') ?? ''
   );
 
-  expect(logoAssetPath).toBe('/brand/LOGO TRAZA SIN FONDO.png');
+  expect(logoAssetPath).toBe('/brand/Logo Scope 2.png');
   expect(logoSource).not.toMatch(/^https?:\/\//);
   expect(screen.queryByText('Identidad temporal')).toBeNull();
   expect(
@@ -36,7 +36,7 @@ it('presents the definitive Traza identity while preserving the login form', () 
   expect(screen.getByText('Verificación simple')).toBeTruthy();
   expect(
     screen.getByText(
-      'Credenciales verificables para trayectorias formativas confiables.'
+      'Una nueva forma de entender tu trayectoria.'
     )
   ).toBeTruthy();
   expect(screen.getByLabelText('Correo electrónico')).toBeTruthy();
@@ -60,7 +60,7 @@ it('presents the definitive Traza identity while preserving the login form', () 
 it('A1: shows a discreet CTA to create a new account, linking to /register', () => {
   render(<LoginScreen />);
 
-  expect(screen.getByText('¿Sos nuevo en Traza?')).toBeTruthy();
+  expect(screen.getByText('¿Sos nuevo en Scope?')).toBeTruthy();
   expect(
     (
       screen.getByRole('link', { name: 'Crear una cuenta' }) as HTMLAnchorElement

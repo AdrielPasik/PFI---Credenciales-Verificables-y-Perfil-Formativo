@@ -19,50 +19,32 @@ export function BrandMark({
 }: BrandMarkProps) {
   const usesAuthenticatedAsset = authenticatedDark && tone === 'inverse';
   const usesLightAsset = lightLogo && tone === 'default';
+  const logoSource = usesAuthenticatedAsset
+    ? '/brand/Logo%20Scope%20Invertido.png'
+    : usesLightAsset
+      ? '/brand/Logo%20Scope%202.png'
+      : null;
 
   return (
-    <div
-      aria-label="Traza"
-      className={cn('flex min-w-0 items-center gap-3', className)}
-    >
-      {usesAuthenticatedAsset ? (
+    <div className={cn('flex min-w-0 items-center gap-2.5', className)}>
+      {logoSource ? (
         <Image
-          alt=""
-          aria-hidden="true"
-          className="size-12 shrink-0 object-contain sm:size-14"
+          alt="Scope"
+          className="size-11 shrink-0 object-contain sm:size-12"
           height={1254}
           priority
-          src="/brand/LOGO-TRAZA-FONDO-AZUL.png"
-          width={1254}
-        />
-      ) : usesLightAsset ? (
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="size-14 shrink-0 object-contain sm:size-16"
-          height={1254}
-          priority
-          src="/brand/LOGO%20TRAZA%20SIN%20FONDO.png"
+          src={logoSource}
           width={1254}
         />
       ) : (
-        <>
-          <span
-            aria-hidden="true"
-            className={cn(
-              'size-2 shrink-0 rounded-pill bg-brand-accent ring-4',
-              tone === 'inverse' ? 'ring-white/10' : 'ring-brand-accent/10'
-            )}
-          />
-          <span
-            className={cn(
-              'text-xl font-bold tracking-tight',
-              tone === 'inverse' ? 'text-white' : 'text-brand-900'
-            )}
-          >
-            Traza
-          </span>
-        </>
+        <span
+          className={cn(
+            'text-xl font-bold tracking-[-0.035em]',
+            tone === 'inverse' ? 'text-white' : 'text-brand-900'
+          )}
+        >
+          Scope
+        </span>
       )}
       {descriptor ? (
         <span

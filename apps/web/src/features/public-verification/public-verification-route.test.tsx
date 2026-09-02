@@ -41,7 +41,7 @@ describe('PublicVerificationRoute', () => {
   it('warns against pasting the canonical hash before any lookup happens', () => {
     render(<PublicVerificationRoute />);
 
-    expect(screen.getByText('Pegá el enlace público o el código compartido desde Traza.')).toBeTruthy();
+    expect(screen.getByText('Pegá el enlace público o el código compartido desde Scope.')).toBeTruthy();
     expect(
       screen.getByText(/No pegues la huella canónica: esa huella se muestra después como evidencia técnica de integridad\./)
     ).toBeTruthy();
@@ -65,7 +65,7 @@ describe('PublicVerificationRoute', () => {
     expect(screen.getByText('Este registro corresponde a un entorno técnico de demostración.')).toBeTruthy();
     expect(screen.getByText('31337')).toBeTruthy();
     expect(
-      screen.getByText(/La huella canónica es un identificador criptográfico calculado por Traza/)
+      screen.getByText(/La huella canónica es un identificador criptográfico calculado por Scope/)
     ).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/holder@example|rawData|analysisJson|sourceRefs|evidenceMap|textForEmbedding|storageKey/i);
     expect(document.body.textContent).not.toMatch(/100% verificada|blockchain valida el contenido|IA certifica/i);

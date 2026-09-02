@@ -60,7 +60,7 @@ export function LoginScreen() {
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
           <p className="text-sm font-semibold text-teal-700">
-            Acceso a Traza
+            Acceso a Scope
           </p>
           <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
             Iniciá sesión
@@ -84,7 +84,7 @@ export function LoginScreen() {
             </Link>
           </p>
           <p className="mt-3 text-center text-sm text-text-muted">
-            ¿Sos nuevo en Traza?{' '}
+            ¿Sos nuevo en Scope?{' '}
             <Link href="/register" className="font-semibold text-brand-700 underline underline-offset-4">
               Crear una cuenta
             </Link>

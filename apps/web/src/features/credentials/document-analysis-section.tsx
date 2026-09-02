@@ -65,8 +65,8 @@ export function DocumentAnalysisSection({
             </h2>
             <p className="mt-2 leading-7 text-text-muted">
               {usesDeclaredData
-                ? 'Traza puede interpretar la información declarada de la credencial para resumir áreas, habilidades y conceptos detectados.'
-                : 'Traza puede interpretar la evidencia documental para resumir áreas, habilidades y conceptos detectados.'}
+                ? 'Scope puede interpretar la información declarada de la credencial para resumir áreas, habilidades y conceptos detectados.'
+                : 'Scope puede interpretar la evidencia documental para resumir áreas, habilidades y conceptos detectados.'}
             </p>
             <p className="mt-2 text-sm leading-6 text-text-muted">
               El resultado es asistido por IA y puede requerir revisión.
@@ -121,7 +121,7 @@ export function DocumentAnalysisSection({
               <p className="mt-1 text-sm leading-6 text-text-muted">
                 {credentialStatus === 'draft'
                   ? hasPdf
-                    ? 'Traza generará el análisis automáticamente al emitir la credencial.'
+                    ? 'Scope generará el análisis automáticamente al emitir la credencial.'
                     : usesDeclaredData
                       ? 'El análisis asistido puede utilizar la información declarada de la credencial al emitir.'
                       : 'Adjuntá una evidencia PDF para habilitar el análisis automático al emitir.'
@@ -322,8 +322,8 @@ function EligibilityNotice({
     return (
       <FeedbackAlert variant="information" title="Análisis en modo lectura">
         {usesDeclaredData
-          ? 'El análisis puede consultarse en modo lectura. Traza puede intentar generarlo a partir de la información declarada disponible sin afectar la emisión.'
-          : 'El análisis puede consultarse en modo lectura. Si había un PDF vigente al emitir, Traza intentó generar una ejecución automática sin afectar la emisión.'}
+          ? 'El análisis puede consultarse en modo lectura. Scope puede intentar generarlo a partir de la información declarada disponible sin afectar la emisión.'
+          : 'El análisis puede consultarse en modo lectura. Si había un PDF vigente al emitir, Scope intentó generar una ejecución automática sin afectar la emisión.'}
       </FeedbackAlert>
     );
   }
@@ -408,8 +408,8 @@ function visualDescription(run: IssuerAnalysisRunVM) {
   }
   if (run.status === 'running') {
     return run.inputMode === 'text'
-      ? 'Traza está procesando la información declarada de la credencial.'
-      : 'Traza está procesando la evidencia documental.';
+      ? 'Scope está procesando la información declarada de la credencial.'
+      : 'Scope está procesando la evidencia documental.';
   }
   if (run.status === 'failed') {
     return 'La ejecución terminó sin producir un resultado disponible.';

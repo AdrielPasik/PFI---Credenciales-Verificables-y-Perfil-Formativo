@@ -57,7 +57,7 @@ describe('DocumentEvidenceSection', () => {
     ).toBeTruthy();
     expect(
       screen.getByText(
-        'La evidencia respalda el borrador. Si hay un PDF vigente, Traza intentará analizarlo automáticamente al emitir.'
+        'La evidencia respalda el borrador. Si hay un PDF vigente, Scope intentará analizarlo automáticamente al emitir.'
       )
     ).toBeTruthy();
     expect(

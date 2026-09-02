@@ -7,10 +7,13 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Traza',
-    template: '%s | Traza'
+    default: 'Scope',
+    template: '%s | Scope'
   },
-  description: 'Credenciales verificables y perfil formativo.'
+  description: 'Una nueva forma de entender tu trayectoria.',
+  icons: {
+    icon: '/brand/Logo%20Scope%202.png'
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

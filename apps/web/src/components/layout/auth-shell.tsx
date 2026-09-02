@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { BadgeCheck, Route, SearchCheck } from 'lucide-react';
+import { BadgeCheck, BookOpenCheck, SearchCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 const productPrinciples = [
@@ -9,7 +9,7 @@ const productPrinciples = [
     description: 'Información emitida por instituciones y respaldada por evidencia.'
   },
   {
-    icon: Route,
+    icon: BookOpenCheck,
     title: 'Perfil formativo',
     description: 'Áreas, habilidades y conceptos organizados a partir de la trayectoria.'
   },
@@ -23,34 +23,14 @@ const productPrinciples = [
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(23rem,0.9fr)_minmax(34rem,1.1fr)]">
-      <aside className="relative overflow-hidden bg-surface text-text-strong">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-surface"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -right-28 -bottom-32 size-96 rounded-pill border border-brand-accent/20"
-        />
-        <svg
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-24 bottom-8 h-72 w-[32rem] text-brand-accent opacity-20"
-          fill="none"
-          viewBox="0 0 512 288"
-        >
-          <path d="M8 248C104 214 99 80 222 97c80 11 69 122 176 78 35-14 62-51 106-63" stroke="currentColor" strokeWidth="2" />
-          <circle cx="102" cy="184" r="8" fill="currentColor" />
-          <circle cx="222" cy="97" r="10" fill="currentColor" />
-          <circle cx="398" cy="175" r="8" fill="currentColor" />
-        </svg>
-
+      <aside className="bg-surface text-text-strong">
         <div className="relative mx-auto flex h-full max-w-xl flex-col px-5 py-5 sm:px-8 sm:py-7 lg:min-h-svh lg:px-12 lg:py-10">
           <Image
-            alt="Traza"
-            className="h-auto w-40 sm:w-48 lg:w-56"
+            alt="Scope"
+            className="size-24 object-contain sm:size-28"
             height={1254}
             priority
-            src="/brand/LOGO%20TRAZA%20SIN%20FONDO.png"
+            src="/brand/Logo%20Scope%202.png"
             width={1254}
           />
 
@@ -66,7 +46,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
               <span className="block">Trayectorias que se entienden.</span>
             </h1>
             <p className="mt-5 max-w-lg text-base leading-7 text-text-muted">
-              Traza reúne credenciales, evidencia y análisis formativo para
+              Scope reúne credenciales, evidencia y análisis formativo para
               construir perfiles más claros, confiables y verificables.
             </p>
             <ul className="mt-8 hidden gap-5 lg:grid">
@@ -97,7 +77,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           </div>
 
           <p className="text-xs leading-5 font-medium text-brand-accent">
-            Credenciales verificables para trayectorias formativas confiables.
+            Una nueva forma de entender tu trayectoria.
           </p>
         </div>
       </aside>

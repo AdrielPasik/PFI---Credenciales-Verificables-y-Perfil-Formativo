@@ -992,7 +992,7 @@ describe('CredentialDetailController', () => {
       />
     );
 
-    await screen.findByText('Traza generará el análisis automáticamente al emitir la credencial.');
+    await screen.findByText('Scope generará el análisis automáticamente al emitir la credencial.');
     expect(screen.queryByRole('button', { name: 'Analizar documento' })).toBeNull();
     expect(
       sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>

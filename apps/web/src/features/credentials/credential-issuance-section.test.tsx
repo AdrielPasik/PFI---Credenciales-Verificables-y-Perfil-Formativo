@@ -253,7 +253,7 @@ describe('CredentialIssuanceSection', () => {
     ).toBeTruthy();
     expect(
       screen.getByLabelText(
-        'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Traza.'
+        'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Scope.'
       )
     ).toBeTruthy();
   });

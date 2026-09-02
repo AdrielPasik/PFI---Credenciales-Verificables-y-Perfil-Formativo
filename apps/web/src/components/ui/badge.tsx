@@ -6,13 +6,13 @@ import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
   [
-    'inline-flex min-h-6 w-fit items-center gap-1.5 rounded-pill border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap',
+    'inline-flex min-h-6 w-fit items-center gap-1.5 rounded-pill border px-2.5 py-0.5 text-xs font-semibold tracking-[-0.01em] whitespace-nowrap',
     '[&_svg]:size-3.5 [&_svg]:shrink-0'
   ],
   {
     variants: {
       variant: {
-        default: 'border-brand-900 bg-brand-900 text-white',
+        default: 'border-brand-900 bg-brand-900 text-white shadow-xs',
         secondary:
           'border-teal-700/20 bg-teal-100 text-teal-700',
         outline:

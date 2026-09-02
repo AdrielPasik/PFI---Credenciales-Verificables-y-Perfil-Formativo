@@ -129,7 +129,7 @@ function DraftIssuanceContent({
       <div className="grid gap-2 leading-7 text-text-muted">
         <p>La emisión genera una versión verificable de la credencial.</p>
         <p>
-          Traza registra una huella de integridad para permitir verificaciones
+          Scope registra una huella de integridad para permitir verificaciones
           posteriores.
         </p>
         <p>Después de emitir, la credencial queda en modo lectura.</p>
@@ -163,12 +163,12 @@ function DraftIssuanceContent({
             </p>
             {preparation.hasPdf ? (
               <p className="mt-2 text-sm leading-6 text-text-default">
-                Traza intentará generar automáticamente un análisis documental
+                Scope intentará generar automáticamente un análisis documental
                 a partir del PDF vigente. La IA no bloquea la emisión.
               </p>
             ) : preparation.hasReusableTextSource ? (
               <p className="mt-2 text-sm leading-6 text-text-default">
-                Traza intentará generar automáticamente un análisis asistido
+                Scope intentará generar automáticamente un análisis asistido
                 a partir de la información declarada disponible. La IA no
                 bloquea la emisión.
               </p>
@@ -210,7 +210,7 @@ function DraftIssuanceContent({
                 >
                   {preparation.isReusableType
                     ? 'Confirmo emitir esta credencial con información declarada insuficiente para la interpretación asistida.'
-                    : 'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Traza.'}
+                    : 'Confirmo emitir esta credencial sin una fuente de respaldo cargada en Scope.'}
                 </Label>
               </div>
             </div>
@@ -297,7 +297,7 @@ function IssuancePreparation({
         >
           {preparation.isReusableType
             ? 'Esta credencial tiene poca información declarada para la interpretación asistida. Podés completarla antes de emitir.'
-            : 'Podés emitir solo después de confirmar explícitamente que la credencial quedará sin fuente de respaldo cargada en Traza.'}
+            : 'Podés emitir solo después de confirmar explícitamente que la credencial quedará sin fuente de respaldo cargada en Scope.'}
         </FeedbackAlert>
       ) : null}
     </div>

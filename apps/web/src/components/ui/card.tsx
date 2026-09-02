@@ -10,7 +10,7 @@ export const Card = forwardRef<
     ref={ref}
     data-slot="card"
     className={cn(
-      'rounded-card border border-border-default bg-surface text-text-default shadow-xs',
+      'rounded-card border border-border-default/90 bg-surface text-text-default shadow-xs',
       className
     )}
     {...props}
@@ -26,7 +26,7 @@ export const CardHeader = forwardRef<
   <div
     ref={ref}
     data-slot="card-header"
-    className={cn('grid gap-3 p-5 sm:p-6', className)}
+    className={cn('grid gap-3 p-5 sm:p-7', className)}
     {...props}
   />
 ));
@@ -40,7 +40,7 @@ export const CardContent = forwardRef<
   <div
     ref={ref}
     data-slot="card-content"
-    className={cn('px-5 pb-5 sm:px-6 sm:pb-6', className)}
+    className={cn('px-5 pb-5 sm:px-7 sm:pb-7', className)}
     {...props}
   />
 ));
@@ -54,7 +54,7 @@ export const CardFooter = forwardRef<
   <div
     ref={ref}
     data-slot="card-footer"
-    className={cn('flex items-center px-5 pb-5 sm:px-6 sm:pb-6', className)}
+    className={cn('flex items-center px-5 pb-5 sm:px-7 sm:pb-7', className)}
     {...props}
   />
 ));

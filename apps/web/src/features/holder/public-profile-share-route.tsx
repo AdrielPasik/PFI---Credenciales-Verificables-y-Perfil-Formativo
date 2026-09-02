@@ -23,7 +23,7 @@ export function PublicProfileShareRoute({ token }: { token: string }) {
     return () => { active = false; };
   }, [token]);
 
-  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} /> : null}</div></main>;
+  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} /> : null}</div></main>;
 }
 
 function PublicProfileView({ profile }: { profile: PublicProfileShareVM }) {
@@ -37,7 +37,7 @@ function PublicProfileView({ profile }: { profile: PublicProfileShareVM }) {
       <CardHeader className="gap-4 sm:p-8">
         <div className="flex items-center gap-3"><UserRound aria-hidden="true" className="size-5 text-teal-100" /><p className="text-sm font-semibold text-teal-100">Perfil formativo compartido</p></div>
         <h1 id="shared-profile-title" className="break-words text-3xl font-bold tracking-tight sm:text-4xl">{profile.holderLabel ?? 'Perfil formativo'}</h1>
-        {profile.narrative ? <p className="max-w-3xl leading-7 text-brand-100">{profile.narrative}</p> : <p className="leading-7 text-brand-100">Este perfil reúne información resumida de credenciales emitidas en Traza.</p>}
+        {profile.narrative ? <p className="max-w-3xl leading-7 text-brand-100">{profile.narrative}</p> : <p className="leading-7 text-brand-100">Este perfil reúne información resumida de credenciales emitidas en Scope.</p>}
         <dl className="flex flex-wrap gap-x-8 gap-y-3 pt-1">{metrics.map((metric) => <div key={metric.label}><dt className="text-xs font-semibold tracking-wide text-teal-100 uppercase">{metric.label}</dt><dd className="mt-1 text-lg font-bold text-white">{metric.value}</dd></div>)}</dl>
         <p className="max-w-3xl text-sm leading-6 text-brand-100">Esta es una vista pública resumida. No incluye email ni evidencias crudas.</p>
       </CardHeader>

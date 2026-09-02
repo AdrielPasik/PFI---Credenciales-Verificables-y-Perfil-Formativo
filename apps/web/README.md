@@ -1,6 +1,6 @@
-# Traza Web
+# Scope Web
 
-Aplicación web de Traza dentro del workspace
+Aplicación web de Scope dentro del workspace
 `@credential-intelligence/web`.
 
 ## Estado actual
@@ -9,7 +9,7 @@ F1a/F1b, F1c, P1b, P3, P3.1c, P3.1d-b, P3.2 y P4b incorporan los primeros
 flujos reales del navegador sobre la base F0.1:
 
 - Next.js con App Router, React y TypeScript estricto;
-- Tailwind CSS 4 con variables CSS de Traza como fuente de tokens;
+- Tailwind CSS 4 con tokens CSS Scope y nombres internos legacy estables;
 - componentes code-owned compatibles con shadcn/ui;
 - Radix UI para primitives que requieren comportamiento accesible;
 - variantes centralizadas con CVA y composición mediante `cn()`;
@@ -281,7 +281,7 @@ permanecen visibles sin controles de carga o reemplazo en modo lectura.
 P6c agrega una preparación de emisión visible. PDF vigente habilita el análisis
 documental automático; evidencia textual o documental no-PDF permite emitir sin
 prometer ese análisis; sin ninguna fuente, el emisor debe confirmar de forma
-adicional que emitirá sin respaldo cargado en Traza. Skills, competencias y
+adicional que emitirá sin respaldo cargado en Scope. Skills, competencias y
 campos de aprobación pueden generar advertencias, pero no reemplazan evidencia
 ni bloquean por sí solos. El análisis textual, `combined`, worker, queue y retry
 automático siguen pendientes.
@@ -358,15 +358,12 @@ campos mediante el `PATCH` best-effort posterior, y el aviso
 `SemanticAnalysis`, `lastSemanticAnalysisId` ni `approvedSemanticSnapshot`
 del template -- eso sigue siendo exclusivo de C4a.1/C4a.2/C4b.
 
-**Layout desktop más amplio para el Portal Emisor.** Se agregó la
-variable CSS `--traza-issuer-reading-width` (`90rem`, contra los `75rem`
-de `--traza-reading-width`) y `IssuerShell` (`components/layout/issuer-shell.tsx`)
-pasó a usarla como su `max-w-*`. **La wallet del titular
-(`WalletShell`/`ContextShell`) sigue usando `--traza-reading-width` sin
-cambios** -- este slice explícitamente no rediseña la wallet. El resto de
-la estructura (grids `lg:grid-cols-[...]` ya existentes en
-`credential-draft-form.tsx`/`credential-detail-route.tsx`) se beneficia
-del contenedor más ancho sin requerir cambios adicionales de layout.
+**Canvas web amplio.** `IssuerShell` usa
+`--traza-issuer-reading-width`; `WalletShell` usa el nuevo
+`--traza-holder-reading-width`. Ambos son nombres internos legacy estables:
+los valores visuales ya siguen la identidad Scope. Esto libera a la wallet de
+un ancho artificialmente estrecho sin cambiar su flujo profile-first ni
+simular la futura app Mobile.
 
 Pendiente para C4b: aplicar la interpretación semántica aprobada a
 credenciales nuevas creadas desde un template, y su relación con el

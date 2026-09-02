@@ -11,8 +11,8 @@ export const Textarea = forwardRef<
     data-slot="textarea"
     className={cn(
       [
-        'flex min-h-28 w-full resize-y rounded-control border border-border-strong bg-surface px-3 py-2.5 text-base text-text-strong shadow-xs outline-none transition-colors sm:text-sm',
-        'placeholder:text-text-subtle hover:border-brand-600',
+        'flex min-h-28 w-full resize-y rounded-control border border-border-default bg-surface px-3.5 py-2.5 text-base text-text-strong shadow-xs outline-none transition-colors sm:text-sm',
+        'placeholder:text-text-subtle hover:border-brand-600 hover:shadow-sm',
         'focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25',
         'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted disabled:opacity-70',
         'aria-invalid:border-status-error aria-invalid:ring-status-error/20'

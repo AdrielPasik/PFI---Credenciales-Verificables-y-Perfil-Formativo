@@ -120,7 +120,7 @@ export function HolderProfileEmptyPanel({
   // credencial no recibe accion, el empty state alcanza.
   action?: ReactNode;
 }) {
-  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">Traza construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible.</p>{action ? <div className="mt-4">{action}</div> : null}</div></CardHeader></Card>;
+  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">Scope construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible.</p>{action ? <div className="mt-4">{action}</div> : null}</div></CardHeader></Card>;
 }
 
 interface ProfileListItem {
@@ -146,7 +146,7 @@ function ProfileList({ title, icon, items, empty }: { title: string; icon: React
 // nunca como la unica explicacion (la leyenda de HolderProfilePanel ya
 // define "Emisor"/"IA" de forma visible y persistente). No usa "verificado"
 // -- esa palabra ya significa autenticidad/integridad de credencial en
-// Traza.
+// Scope.
 function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenanceVM }) {
   return (
     <>
