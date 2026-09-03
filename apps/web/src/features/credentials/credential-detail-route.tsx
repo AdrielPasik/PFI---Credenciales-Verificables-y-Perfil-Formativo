@@ -758,15 +758,15 @@ export function CredentialDetailView({
   );
 
   return (
-    <div className="grid gap-10">
-      <header className="max-w-5xl">
+    <div className="grid gap-8 lg:gap-10">
+      <header className="border-b border-border-default pb-7 sm:pb-8">
         <Link
           href="/issuer"
           className="text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
         >
           Volver al portal
         </Link>
-        <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="mt-7 flex flex-wrap items-center gap-3">
           <Badge
             variant="outline"
             className={
@@ -781,10 +781,10 @@ export function CredentialDetailView({
             Registro institucional
           </span>
         </div>
-        <h1 className="mt-4 max-w-5xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-4xl">
+        <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-5xl">
           {detail.title}
         </h1>
-        <p className="mt-4 max-w-4xl leading-7 text-text-muted">
+        <p className="mt-5 max-w-3xl leading-7 text-text-muted">
           {isDraft
             ? 'Este borrador conserva los datos iniciales y todavía no fue emitido.'
             : 'Esta credencial ya no está en estado borrador. Las operaciones posteriores quedan fuera de este flujo.'}
@@ -849,11 +849,11 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-10">
-        <div className="grid gap-8 xl:gap-10">
-          <Card className="overflow-hidden border-border-strong">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
+        <div className="grid gap-6 xl:gap-8">
+          <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm">
           <div aria-hidden="true" className="h-1 bg-brand-700" />
-          <CardHeader className="gap-2 sm:p-8 sm:pb-6">
+          <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
             <p className="text-sm font-semibold text-brand-700">
               Datos principales
             </p>
@@ -956,33 +956,33 @@ export function CredentialDetailView({
           ) : null}
         </div>
 
-        <aside aria-labelledby="draft-actions-title" className="grid gap-5 lg:sticky lg:top-8 lg:self-start">
-          <Card className="border-border-strong bg-surface-muted shadow-none">
-            <CardHeader>
+        <aside aria-labelledby="draft-actions-title" className="grid gap-5 xl:sticky xl:top-8 xl:self-start">
+          <CredentialIssuanceSection detail={detail} onIssue={handleIssue} />
+          <Card className="overflow-hidden rounded-[1.25rem] border-brand-700 bg-brand-900 text-white shadow-md">
+            <CardHeader className="gap-3 sm:p-7">
               <h2
                 id="draft-actions-title"
-                className="text-lg font-semibold text-text-strong"
+                className="text-lg font-semibold"
               >
                 Continuar en el portal
               </h2>
-              <p className="text-sm leading-6 text-text-muted">
+              <p className="text-sm leading-6 text-brand-100/80">
                 Podés volver al contexto institucional o iniciar otro
                 borrador.
               </p>
             </CardHeader>
-            <CardContent className="grid gap-3">
-              <Button asChild>
+            <CardContent className="grid gap-3 sm:px-7 sm:pb-7">
+              <Button asChild variant="secondary">
                 <Link href="/issuer/credentials/new">
                   <FilePlus2 aria-hidden="true" />
                   Crear otra credencial
                 </Link>
               </Button>
-              <Button asChild variant="secondary">
+              <Button asChild variant="ghost" className="border-white/15 text-white hover:bg-white/10 hover:text-white">
                 <Link href="/issuer">Volver al portal</Link>
               </Button>
             </CardContent>
           </Card>
-          <CredentialIssuanceSection detail={detail} onIssue={handleIssue} />
           {isReusableTemplateEligible ? (
             // R1.1: accion primaria, simple, nunca depende de IA -- se
             // renderiza ANTES de SemanticApprovalSection (jerarquia

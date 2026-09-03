@@ -236,11 +236,11 @@ export function ReusableSemanticInterpretationSection({
 
   return (
     <Card
-      className="overflow-hidden border-border-strong shadow-none"
+      className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs"
       data-testid="reusable-semantic-interpretation-section"
     >
       <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="gap-2 border-b border-border-default sm:p-8 sm:pb-6">
+      <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
         <p className="flex items-center gap-2 text-sm font-semibold text-teal-700">
           <Layers aria-hidden="true" className="size-4" />
           Interpretación reutilizable

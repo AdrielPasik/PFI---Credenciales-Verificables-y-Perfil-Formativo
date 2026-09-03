@@ -58,9 +58,9 @@ export function CredentialIssuanceSection({
 
   return (
     <section aria-labelledby="credential-issuance-title">
-      <Card className="overflow-hidden border-border-strong shadow-sm">
+      <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface shadow-sm">
         <div aria-hidden="true" className="h-1 bg-teal-700" />
-        <CardHeader className="gap-2 sm:p-8 sm:pb-6">
+        <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-7 sm:pb-6">
           <p className="text-sm font-semibold text-teal-700">
             Registro verificable
           </p>
@@ -71,7 +71,7 @@ export function CredentialIssuanceSection({
             Emisión de credencial
           </h2>
         </CardHeader>
-        <CardContent className="grid gap-5 sm:px-8 sm:pb-8">
+        <CardContent className="grid gap-5 sm:px-7 sm:pb-7">
           {detail.status === 'draft' ? (
             <DraftIssuanceContent
               confirming={confirming}
@@ -254,7 +254,7 @@ function IssuancePreparation({
     : detail.title;
 
   return (
-    <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted p-5 sm:p-6">
+    <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted/80 p-5 sm:p-6">
       <div>
         <p className="text-sm font-semibold text-brand-700">Preparación para emitir</p>
         <p className="mt-1 text-sm leading-6 text-text-muted">

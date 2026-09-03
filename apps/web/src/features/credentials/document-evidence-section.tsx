@@ -145,7 +145,7 @@ export function DocumentEvidenceSection({
   return (
     <section
       aria-labelledby="document-evidence-title"
-      className="grid gap-6"
+      className="grid gap-6 border-t border-border-default pt-8 sm:pt-10"
     >
       <div className="max-w-5xl">
         <h2
@@ -178,7 +178,7 @@ export function DocumentEvidenceSection({
       {currentDocument ? (
         <CurrentDocumentCard document={currentDocument} />
       ) : !isDraft ? (
-        <Card className="border-border-strong bg-surface-muted shadow-none">
+        <Card className="rounded-[1.25rem] border-border-strong bg-surface-muted shadow-none">
           <CardContent className="py-6">
             <p className="font-semibold text-text-strong">
               No hay evidencia documental registrada.
@@ -227,9 +227,9 @@ function CurrentDocumentCard({
   const Icon = document.kind === 'pdf' ? FileText : FileImage;
 
   return (
-    <Card className="overflow-hidden border-border-strong shadow-none">
+    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
       <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="gap-3 border-b border-border-default sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-teal-700">
             Evidencia actual
@@ -304,8 +304,8 @@ function DocumentUploadForm({
   const describedBy = [instructionsId, errorId].filter(Boolean).join(' ');
 
   return (
-    <Card className="border-border-strong bg-surface-muted shadow-none">
-      <CardHeader>
+    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface-muted shadow-xs">
+      <CardHeader className="border-b border-border-default bg-surface-muted/70">
         <p className="text-sm font-semibold text-brand-700">
           {isReplacement ? 'Selección pendiente' : 'Nuevo respaldo'}
         </p>

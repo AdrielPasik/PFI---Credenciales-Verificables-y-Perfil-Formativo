@@ -1,5 +1,4 @@
 import {
-  BrainCircuit,
   CircleDashed,
   RefreshCw
 } from 'lucide-react';
@@ -45,14 +44,13 @@ export function DocumentAnalysisSection({
     <section
       aria-labelledby="document-analysis-title"
       aria-busy={state.refreshing}
-      className="grid gap-6"
+      className="grid gap-6 border-t border-border-default pt-8 sm:pt-10"
     >
-      <Card className="overflow-hidden border-border-strong shadow-none">
+      <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm">
         <div aria-hidden="true" className="h-1 bg-status-analysis" />
-        <CardHeader className="gap-5 border-b border-border-default sm:flex-row sm:items-start sm:justify-between sm:p-8 sm:pb-6">
+        <CardHeader className="gap-5 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-start sm:justify-between sm:p-8 sm:pb-6">
           <div className="max-w-5xl">
-            <p className="flex items-center gap-2 text-sm font-semibold text-teal-700">
-              <BrainCircuit aria-hidden="true" className="size-4" />
+            <p className="text-sm font-semibold text-teal-700">
               Análisis formativo asistido
             </p>
             <h2
@@ -377,9 +375,7 @@ function RunBadge({ run }: { run: IssuerAnalysisRunVM }) {
     <Badge variant="outline" className={className}>
       {run.status === 'running' || run.status === 'pending' ? (
         <CircleDashed aria-hidden="true" />
-      ) : (
-        <BrainCircuit aria-hidden="true" />
-      )}
+      ) : null}
       {partial ? 'Análisis parcial' : run.statusLabel}
     </Badge>
   );

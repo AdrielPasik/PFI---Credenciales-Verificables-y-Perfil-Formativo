@@ -133,7 +133,7 @@ export function TextEvidenceSection({
   }
 
   return (
-    <section aria-labelledby="text-evidence-title" className="grid gap-6">
+    <section aria-labelledby="text-evidence-title" className="grid gap-6 border-t border-border-default pt-8 sm:pt-10">
       <div className="max-w-5xl">
         <p className="text-sm font-semibold text-teal-700">
           Fuente institucional
@@ -172,7 +172,7 @@ export function TextEvidenceSection({
       {currentText ? (
         <CurrentTextEvidenceCard evidence={currentText} />
       ) : !isDraft ? (
-        <Card className="border-border-strong bg-surface-muted shadow-none">
+        <Card className="rounded-[1.25rem] border-border-strong bg-surface-muted shadow-none">
           <CardContent className="py-6">
             <p className="font-semibold text-text-strong">
               No hay evidencia textual registrada.
@@ -389,9 +389,9 @@ function CurrentTextEvidenceCard({
   const visibleContent = expanded ? evidence.content : preview.text;
 
   return (
-    <Card className="min-w-0 overflow-hidden border-border-strong shadow-none">
+    <Card className="min-w-0 overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
       <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="gap-3 border-b border-border-default sm:flex-row sm:items-start sm:justify-between">
+      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-teal-700">
             Fuente textual actual

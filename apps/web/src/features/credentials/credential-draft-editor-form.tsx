@@ -383,8 +383,8 @@ export const CredentialDraftEditorForm = forwardRef<
   }
 
   return (
-    <section aria-labelledby="draft-editor-title" className="grid gap-6">
-      <div className="max-w-5xl">
+    <section aria-labelledby="draft-editor-title" className="grid gap-6 border-t border-border-default pt-8 sm:pt-10">
+      <div className="max-w-3xl">
         <p className="text-sm font-semibold text-teal-700">
           Completar borrador
         </p>
@@ -400,9 +400,9 @@ export const CredentialDraftEditorForm = forwardRef<
         </p>
       </div>
 
-      <form noValidate onSubmit={submit} className="grid gap-6">
-        <Card className="border-border-strong shadow-none">
-          <CardHeader className="border-b border-border-default">
+      <form noValidate onSubmit={submit} className="grid gap-6 xl:gap-7">
+        <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
+          <CardHeader className="border-b border-border-default bg-surface-muted/70">
             <p className="text-sm font-semibold text-brand-700">
               Información común
             </p>
@@ -670,9 +670,9 @@ function DraftFieldsCard({
   title: string;
 }) {
   return (
-    <Card className="overflow-hidden border-border-strong shadow-none">
+    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
       <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="border-b border-border-default">
+      <CardHeader className="border-b border-border-default bg-surface-muted/70">
         <p className="text-sm font-semibold text-teal-700">{eyebrow}</p>
         <h3 className="text-lg font-semibold text-text-strong">{title}</h3>
         <p className="text-sm leading-6 text-text-muted">{description}</p>
