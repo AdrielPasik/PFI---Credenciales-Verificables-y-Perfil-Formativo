@@ -41,7 +41,10 @@ interface DocumentEvidenceSectionProps {
   credentialStatus: CredentialStatus;
   credentialType?: CredentialType;
   currentDocument: DocumentEvidenceVM | null;
+  display?: 'all' | 'current' | 'composer';
   onUpload(file: File): Promise<DocumentEvidenceVM>;
+  showEmptyState?: boolean;
+  showHeading?: boolean;
 }
 
 type UploadFeedback =
@@ -53,7 +56,10 @@ export function DocumentEvidenceSection({
   credentialStatus,
   credentialType = 'academic_subject',
   currentDocument,
-  onUpload
+  display = 'all',
+  onUpload,
+  showEmptyState = true,
+  showHeading = true
 }: DocumentEvidenceSectionProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(
@@ -69,6 +75,8 @@ export function DocumentEvidenceSection({
     credentialType === 'course' || credentialType === 'certification';
   const uploadVisible =
     isDraft && (currentDocument === null || replacementMode);
+  const showCurrent = display !== 'composer';
+  const showComposer = display !== 'current';
 
   function selectFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
@@ -144,40 +152,47 @@ export function DocumentEvidenceSection({
 
   return (
     <section
-      aria-labelledby="document-evidence-title"
-      className="grid gap-6 border-t border-border-default pt-8 sm:pt-10"
+      aria-label={showHeading ? undefined : 'Evidencia documental'}
+      aria-labelledby={showHeading ? 'document-evidence-title' : undefined}
+      className={
+        showHeading
+          ? 'grid gap-6 border-t border-border-default pt-8 sm:pt-10'
+          : 'grid gap-4'
+      }
     >
-      <div className="max-w-5xl">
-        <h2
-          id="document-evidence-title"
-          className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
-        >
-          Evidencia documental
-        </h2>
-        <p className="mt-2 leading-7 text-text-muted">
-          {isDraft
-            ? supportsDeclaredTextAnalysis
-              ? 'Adjuntá un PDF institucional si esta formación cuenta con documentación de respaldo. Para cursos y certificaciones es opcional cuando ya completaste descripción, competencias o contenido adicional.'
-              : 'La evidencia respalda el borrador. Si hay un PDF vigente, Scope intentará analizarlo automáticamente al emitir.'
-            : 'Esta evidencia quedó asociada a la credencial emitida.'}
-        </p>
-      </div>
+      {showHeading ? (
+        <div className="max-w-5xl">
+          <h2
+            id="document-evidence-title"
+            className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
+          >
+            Evidencia documental
+          </h2>
+          <p className="mt-2 leading-7 text-text-muted">
+            {isDraft
+              ? supportsDeclaredTextAnalysis
+                ? 'Adjuntá un PDF institucional si esta formación cuenta con documentación de respaldo. Para cursos y certificaciones es opcional cuando ya completaste descripción, competencias o contenido adicional.'
+                : 'La evidencia respalda el borrador. Si hay un PDF vigente, Scope intentará analizarlo automáticamente al emitir.'
+              : 'Esta evidencia quedó asociada a la credencial emitida.'}
+          </p>
+        </div>
+      ) : null}
 
-      {feedback?.kind === 'success' ? (
+      {showComposer && feedback?.kind === 'success' ? (
         <FeedbackAlert variant="success" title="Evidencia actualizada">
           {feedback.message}
         </FeedbackAlert>
       ) : null}
 
-      {feedback?.kind === 'error' ? (
+      {showComposer && feedback?.kind === 'error' ? (
         <FeedbackAlert variant="error" title="No pudimos subir la evidencia">
           {feedback.feedback.message}
         </FeedbackAlert>
       ) : null}
 
-      {currentDocument ? (
+      {showCurrent && currentDocument ? (
         <CurrentDocumentCard document={currentDocument} />
-      ) : !isDraft ? (
+      ) : showCurrent && !isDraft && showEmptyState ? (
         <Card className="rounded-[1.25rem] border-border-strong bg-surface-muted shadow-none">
           <CardContent className="py-6">
             <p className="font-semibold text-text-strong">
@@ -187,7 +202,7 @@ export function DocumentEvidenceSection({
         </Card>
       ) : null}
 
-      {isDraft && currentDocument && !replacementMode ? (
+      {showComposer && isDraft && currentDocument && !replacementMode ? (
         <div>
           <Button type="button" variant="secondary" onClick={startReplacement}>
             <RotateCcw aria-hidden="true" />
@@ -196,7 +211,7 @@ export function DocumentEvidenceSection({
         </div>
       ) : null}
 
-      {uploadVisible ? (
+      {showComposer && uploadVisible ? (
         <DocumentUploadForm
           inputRef={inputRef}
           isReplacement={currentDocument !== null}
@@ -209,7 +224,7 @@ export function DocumentEvidenceSection({
         />
       ) : null}
 
-      {!isDraft ? (
+      {showCurrent && !isDraft ? (
         <FeedbackAlert variant="information" title="Evidencia en modo lectura">
           Las modificaciones de evidencia solo están disponibles mientras la
           credencial está en borrador.
@@ -227,12 +242,11 @@ function CurrentDocumentCard({
   const Icon = document.kind === 'pdf' ? FileText : FileImage;
 
   return (
-    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-center sm:justify-between">
+    <Card className="overflow-hidden rounded-card border-border-default shadow-none">
+      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/50 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-teal-700">
-            Evidencia actual
+          <p className="text-sm font-semibold text-text-muted">
+            Documento actual
           </p>
           <h3 className="mt-1 break-words text-lg font-semibold text-text-strong">
             {document.originalFileName}
@@ -304,8 +318,8 @@ function DocumentUploadForm({
   const describedBy = [instructionsId, errorId].filter(Boolean).join(' ');
 
   return (
-    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface-muted shadow-xs">
-      <CardHeader className="border-b border-border-default bg-surface-muted/70">
+    <Card className="overflow-hidden rounded-card border-border-default bg-surface-muted/40 shadow-none">
+      <CardHeader className="border-b border-border-default bg-surface-muted/50">
         <p className="text-sm font-semibold text-brand-700">
           {isReplacement ? 'Selección pendiente' : 'Nuevo respaldo'}
         </p>

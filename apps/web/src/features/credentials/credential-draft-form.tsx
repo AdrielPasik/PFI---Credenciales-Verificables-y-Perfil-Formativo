@@ -289,10 +289,12 @@ export function CredentialDraftForm({
       </header>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
-        <div className="grid gap-6 xl:gap-8">
-          <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm">
-            <div aria-hidden="true" className="h-1 bg-teal-700" />
-            <CardHeader className="gap-4 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
+        <div className="grid gap-8 xl:gap-10">
+          <section
+            aria-labelledby="holder-resolution-title"
+            className="border-b border-border-default pb-8 sm:pb-10"
+          >
+            <div className="border-b border-border-default pb-5 sm:pb-6">
               <div className="flex items-center gap-3">
                 <span className="flex size-9 items-center justify-center rounded-pill bg-teal-100 text-sm font-bold text-teal-700">
                   1
@@ -301,13 +303,16 @@ export function CredentialDraftForm({
                   <p className="text-sm font-semibold text-teal-700">
                     Resolver titular
                   </p>
-                  <h2 className="text-xl font-semibold text-text-strong">
+                  <h2
+                    id="holder-resolution-title"
+                    className="text-xl font-semibold text-text-strong"
+                  >
                     Identidad receptora
                   </h2>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="sm:px-8 sm:pb-8">
+            </div>
+            <div className="pt-6">
               {resolutionFeedback ? (
                 <div className="mb-5">
                   <FeedbackAlert
@@ -391,17 +396,18 @@ export function CredentialDraftForm({
                   </div>
                 </form>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          <Card
+          <section
+            aria-labelledby="credential-data-title"
             className={
               holder
-                ? 'overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm'
-                : 'overflow-hidden rounded-[1.25rem] border-dashed border-border-strong bg-surface-muted/80 shadow-none'
+                ? 'grid gap-6 border-b border-border-default pb-8 sm:pb-10'
+                : 'grid gap-6 border-b border-dashed border-border-strong bg-surface-muted/45 p-5 sm:p-7'
             }
           >
-            <CardHeader className="gap-4 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
+            <div className="border-b border-border-default pb-5 sm:pb-6">
               <div className="flex items-center gap-3">
                 <span
                   className={
@@ -416,13 +422,16 @@ export function CredentialDraftForm({
                   <p className="text-sm font-semibold text-brand-700">
                     Siguiente paso
                   </p>
-                  <h2 className="text-xl font-semibold text-text-strong">
+                  <h2
+                    id="credential-data-title"
+                    className="text-xl font-semibold text-text-strong"
+                  >
                     Datos del logro
                   </h2>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="sm:px-8 sm:pb-8">
+            </div>
+            <div>
               {draftFeedback ? (
                 <div className="mb-5">
                   <FeedbackAlert
@@ -434,8 +443,15 @@ export function CredentialDraftForm({
                 </div>
               ) : null}
 
-              <form onSubmit={handleCreateDraft} noValidate className="grid max-w-4xl gap-6">
+              <form onSubmit={handleCreateDraft} noValidate className="grid max-w-5xl gap-6">
                 <fieldset disabled={!holder || submitting} className="grid gap-5">
+                  <div
+                    className={
+                      credentialType && credentialType !== 'academic_subject'
+                        ? 'grid gap-5 lg:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] lg:items-start'
+                        : 'grid gap-5'
+                    }
+                  >
                   <div className="grid gap-2">
                     <Label htmlFor="credential-type">
                       Tipo de credencial
@@ -557,6 +573,7 @@ export function CredentialDraftForm({
                       error={achievementError}
                     />
                   ) : null}
+                  </div>
 
                   {credentialType === 'academic_subject' &&
                   holder &&
@@ -659,8 +676,8 @@ export function CredentialDraftForm({
                       : 'El borrador todavía no será emitido.'}
                 </p>
               </form>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         </div>
 
         <aside aria-labelledby="issuer-context-title" className="xl:sticky xl:top-8 xl:self-start">

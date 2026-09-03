@@ -22,7 +22,7 @@ export function IssuerShell({
   onLogout
 }: IssuerShellProps) {
   return (
-    <div className="flex min-h-svh flex-col bg-[radial-gradient(circle_at_100%_0%,rgb(191_230_234_/_0.42),transparent_29rem),linear-gradient(to_bottom,#f7fafb_0%,#eef2f5_100%)]">
+    <div className="flex min-h-svh flex-col bg-surface-muted/55">
       <a
         href="#issuer-main-content"
         className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-white px-4 py-3 font-semibold text-brand-900 shadow-sm transition-transform focus:translate-y-0"

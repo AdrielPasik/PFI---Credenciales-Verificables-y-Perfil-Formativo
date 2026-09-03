@@ -273,7 +273,7 @@ describe('CredentialDetailController', () => {
       screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Evidencia documental' })
+      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
     ).toBeTruthy();
     // C4y: course no muestra ni carga manual ni explicación técnica
     // permanente sobre evidencia textual.
@@ -408,7 +408,7 @@ describe('CredentialDetailController', () => {
       })
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Evidencia documental' })
+      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
@@ -1486,7 +1486,7 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     const onLoadCredentialSemanticApprovalCandidate = vi.fn().mockResolvedValue(semanticApprovalCandidateFixture());
     render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'course', status: 'issued' })} documentAnalysis={documentAnalysis} onLoadCredentialSemanticApprovalCandidate={onLoadCredentialSemanticApprovalCandidate} />);
     const mainData = screen.getByRole('heading', { name: 'Registro del logro' });
-    const evidence = screen.getByRole('heading', { name: 'Evidencia documental' });
+    const evidence = screen.getByRole('heading', { name: 'Evidencia de respaldo' });
     const issuance = screen.getByRole('heading', { name: 'Emisión de credencial' });
     // La evidencia sigue en el flujo principal, inmediatamente despues de
     // los datos principales -- nunca despues de toda la sidebar (acciones de
@@ -2093,7 +2093,7 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('still shows "Contenido textual de respaldo" for academic_subject (unaffected)', () => {
+  it('keeps the textual composer available for academic_subject', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2101,13 +2101,11 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
       />
     );
 
-    expect(
-      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
-    ).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('still shows "Contenido textual de respaldo" for degree (unaffected)', () => {
+  it('keeps the textual composer available for degree', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2115,9 +2113,7 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
       />
     );
 
-    expect(
-      screen.getByRole('heading', { name: 'Contenido textual de respaldo' })
-    ).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
   });
 
   it('does not replace the hidden manual textual flow with a technical backing card', () => {

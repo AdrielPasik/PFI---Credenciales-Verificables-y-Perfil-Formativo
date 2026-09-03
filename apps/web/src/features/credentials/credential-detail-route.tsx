@@ -27,7 +27,6 @@ import {
   CardContent,
   CardHeader
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import {
   CredentialDraftEditorForm,
   type CredentialDraftEditorFormHandle
@@ -35,6 +34,7 @@ import {
 import { CredentialIssuanceSection } from '@/features/credentials/credential-issuance-section';
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
+import { EvidenceWorkspace } from '@/features/credentials/evidence-workspace';
 import { ReusableSemanticInterpretationSection } from '@/features/credentials/reusable-semantic-interpretation-section';
 import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
@@ -850,47 +850,49 @@ export function CredentialDetailView({
       ) : null}
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
-        <div className="grid gap-6 xl:gap-8">
-          <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm">
-          <div aria-hidden="true" className="h-1 bg-brand-700" />
-          <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
-            <p className="text-sm font-semibold text-brand-700">
-              Datos principales
-            </p>
-            <h2 className="text-xl font-semibold text-text-strong">
-              Registro del logro
-            </h2>
-          </CardHeader>
-          <CardContent className="grid gap-5 sm:px-8 sm:pb-8">
-            <DetailRow
-              icon={Tags}
-              label="Tipo de credencial"
-              value={detail.typeLabel}
-            />
-            <Separator />
-            <DetailRow
-              icon={Building2}
-              label="Institución emisora"
-              value={detail.issuer.displayName}
-              description={
-                detail.issuer.did ?? 'DID institucional no disponible'
-              }
-            />
-            <Separator />
-            <DetailRow
-              icon={UserRound}
-              label="Titular"
-              value={detail.holder.displayLabel}
-              description={holderDescription(detail.holder)}
-            />
-            <Separator />
-            <DetailRow
-              icon={CalendarDays}
-              label="Creado"
-              value={createdAt}
-            />
-          </CardContent>
-          </Card>
+        <div className="grid gap-8 xl:gap-10">
+          <section
+            aria-labelledby="credential-information-title"
+            className="border-y border-border-default py-6 sm:py-8"
+          >
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold text-brand-700">
+                Información de la credencial
+              </p>
+              <h2
+                id="credential-information-title"
+                className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
+              >
+                Registro del logro
+              </h2>
+            </div>
+            <div className="mt-7 grid gap-x-8 gap-y-6 lg:grid-cols-2">
+              <DetailRow
+                icon={Tags}
+                label="Tipo de credencial"
+                value={detail.typeLabel}
+              />
+              <DetailRow
+                icon={Building2}
+                label="Institución emisora"
+                value={detail.issuer.displayName}
+                description={
+                  detail.issuer.did ?? 'DID institucional no disponible'
+                }
+              />
+              <DetailRow
+                icon={UserRound}
+                label="Titular"
+                value={detail.holder.displayLabel}
+                description={holderDescription(detail.holder)}
+              />
+              <DetailRow
+                icon={CalendarDays}
+                label="Creado"
+                value={createdAt}
+              />
+            </div>
+          </section>
 
           {isDraft && draftEditor ? (
             <CredentialDraftEditorForm
@@ -909,20 +911,62 @@ export function CredentialDetailView({
             <CourseDeclaredDataCard subject={detail.credentialSubject} />
           ) : null}
 
-          <DocumentEvidenceSection
-            credentialStatus={detail.status}
-            credentialType={detail.type}
-            currentDocument={detail.documentEvidence.currentDocument}
-            onUpload={onUploadDocumentEvidence}
+          <EvidenceWorkspace
+            canComposeDocument={isDraft}
+            canComposeText={
+              isDraft &&
+              detail.type !== 'course' &&
+              detail.type !== 'certification'
+            }
+            documentCurrent={
+              detail.documentEvidence.currentDocument || !isDraft ? (
+              <DocumentEvidenceSection
+                credentialStatus={detail.status}
+                credentialType={detail.type}
+                currentDocument={detail.documentEvidence.currentDocument}
+                display="current"
+                onUpload={onUploadDocumentEvidence}
+                showHeading={false}
+              />
+              ) : null
+            }
+            documentComposer={
+              <DocumentEvidenceSection
+                credentialStatus={detail.status}
+                credentialType={detail.type}
+                currentDocument={detail.documentEvidence.currentDocument}
+                display="composer"
+                onUpload={onUploadDocumentEvidence}
+                showHeading={false}
+              />
+            }
+            textCurrent={
+              detail.textEvidence.currentText ||
+              (!isDraft &&
+                detail.type !== 'course' &&
+                detail.type !== 'certification') ? (
+              <TextEvidenceSection
+                credentialStatus={detail.status}
+                currentText={detail.textEvidence.currentText}
+                display="current"
+                onSubmit={onSubmitTextEvidence}
+                showEmptyState={
+                  detail.type !== 'course' && detail.type !== 'certification'
+                }
+                showHeading={false}
+              />
+              ) : null
+            }
+            textComposer={
+              <TextEvidenceSection
+                credentialStatus={detail.status}
+                currentText={detail.textEvidence.currentText}
+                display="composer"
+                onSubmit={onSubmitTextEvidence}
+                showHeading={false}
+              />
+            }
           />
-
-          {detail.type !== 'course' && detail.type !== 'certification' ? (
-            <TextEvidenceSection
-              credentialStatus={detail.status}
-              currentText={detail.textEvidence.currentText}
-              onSubmit={onSubmitTextEvidence}
-            />
-          ) : null}
 
           {documentAnalysis ? (
             <DocumentAnalysisSection
@@ -1110,19 +1154,25 @@ function CourseDeclaredDataCard({
   }
 
   return (
-    <Card className="border-border-strong shadow-none">
-      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
+    <section
+      aria-labelledby="course-declared-data-title"
+      className="grid gap-5 border-t border-border-default pt-8 sm:pt-10"
+    >
+      <div className="flex flex-row items-center gap-3">
         <Link2 aria-hidden="true" className="size-5 text-teal-700" />
         <div>
-          <h2 className="text-lg font-semibold text-text-strong">
+          <h2
+            id="course-declared-data-title"
+            className="text-lg font-semibold text-text-strong"
+          >
             Datos declarados del curso
           </h2>
           <p className="mt-1 text-sm text-text-muted">
             Información declarada por la institución emisora. Modo lectura.
           </p>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-5">
+      </div>
+      <div className="grid gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <OptionalDetailRow icon={Tags} label="Modalidad" value={subject.modality} />
         </div>
@@ -1152,8 +1202,8 @@ function CourseDeclaredDataCard({
         ) : null}
         <TagList title="Competencias declaradas" items={subject.competencies} />
         <TagList title="Contenido e información adicional declarado" items={subject.learningOutcomes} />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
@@ -1213,7 +1263,7 @@ function DetailRow({
   value: string;
 }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-6">
+    <div className="grid gap-2 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:gap-4">
       <span className="flex items-center gap-2 text-sm font-semibold text-text-muted">
         <Icon aria-hidden="true" className="size-4" />
         {label}

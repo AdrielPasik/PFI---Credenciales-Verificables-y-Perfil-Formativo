@@ -150,7 +150,7 @@ describe('DocumentEvidenceSection', () => {
       />
     );
 
-    expect(screen.getByText('Evidencia actual')).toBeTruthy();
+    expect(screen.getByText('Documento actual')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(screen.getByText('Documento PDF')).toBeTruthy();
     expect(screen.getByText('1,5 KB')).toBeTruthy();

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { AcademicProgramSearchField } from '@/features/credentials/academic-program-search-field';
 import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credentials/academic-subject-catalog-section';
 import { CurriculumSubjectSearchField } from '@/features/credentials/curriculum-subject-search-field';
@@ -179,20 +178,24 @@ export function AcademicSubjectCreationCatalogSection({
   }
 
   return (
-    <Card className="overflow-hidden border-border-strong shadow-none">
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="border-b border-border-default">
+    <section
+      aria-labelledby="academic-subject-creation-title"
+      className="grid gap-5 border-t border-border-default pt-6"
+    >
+      <div>
         <p className="text-sm font-semibold text-teal-700">Paso 3</p>
-        <h3 className="text-lg font-semibold text-text-strong">
+        <h3
+          id="academic-subject-creation-title"
+          className="mt-1 text-lg font-semibold text-text-strong"
+        >
           Asignatura oficial
         </h3>
         <p className="max-w-3xl text-sm leading-6 text-text-muted">
           Buscá primero la carrera o plan y luego una materia dentro de esa
           currícula.
         </p>
-      </CardHeader>
-      <CardContent className="grid gap-6 pt-5 sm:pt-6">
-        <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted p-4 sm:p-5">
+      </div>
+      <div className="grid gap-5">
           {!selectedProgram ? (
             <AcademicProgramSearchField
               disabled={disabled}
@@ -285,16 +288,15 @@ export function AcademicSubjectCreationCatalogSection({
               )}
             </div>
           )}
-        </div>
+      </div>
 
-        <FeedbackAlert
-          variant="information"
-          title="Selección preparada para crear"
-        >
-          La selección de catálogo identifica la asignatura oficial. Los
-          datos de aprobación se completan después en el borrador.
-        </FeedbackAlert>
-      </CardContent>
-    </Card>
+      <FeedbackAlert
+        variant="information"
+        title="Selección preparada para crear"
+      >
+        La selección de catálogo identifica la asignatura oficial. Los datos
+        de aprobación se completan después en el borrador.
+      </FeedbackAlert>
+    </section>
   );
 }

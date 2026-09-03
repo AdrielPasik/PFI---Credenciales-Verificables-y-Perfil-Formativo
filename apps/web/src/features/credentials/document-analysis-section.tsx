@@ -6,11 +6,6 @@ import {
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader
-} from '@/components/ui/card';
 import type { DocumentAnalysisState } from '@/features/credentials/use-issuer-document-analysis';
 import type { IssuerAnalysisRunVM } from '@/models/analysis-runs';
 import type {
@@ -46,37 +41,35 @@ export function DocumentAnalysisSection({
       aria-busy={state.refreshing}
       className="grid gap-6 border-t border-border-default pt-8 sm:pt-10"
     >
-      <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-sm">
-        <div aria-hidden="true" className="h-1 bg-status-analysis" />
-        <CardHeader className="gap-5 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-start sm:justify-between sm:p-8 sm:pb-6">
-          <div className="max-w-5xl">
-            <p className="text-sm font-semibold text-teal-700">
-              Análisis formativo asistido
-            </p>
-            <h2
-              id="document-analysis-title"
-              className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
-            >
-              {usesDeclaredData
-                ? 'Análisis inteligente de la credencial'
-                : 'Análisis inteligente del documento'}
-            </h2>
-            <p className="mt-2 leading-7 text-text-muted">
-              {usesDeclaredData
-                ? 'Scope puede interpretar la información declarada de la credencial para resumir áreas, habilidades y conceptos detectados.'
-                : 'Scope puede interpretar la evidencia documental para resumir áreas, habilidades y conceptos detectados.'}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-text-muted">
-              El resultado es asistido por IA y puede requerir revisión.
-            </p>
-          </div>
+      <header className="flex flex-col gap-4 border-b border-border-default pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="max-w-5xl">
+          <p className="text-sm font-semibold text-text-muted">
+            Interpretación asistida
+          </p>
+          <h2
+            id="document-analysis-title"
+            className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
+          >
+            {usesDeclaredData
+              ? 'Análisis inteligente de la credencial'
+              : 'Análisis inteligente del documento'}
+          </h2>
+          <p className="mt-2 leading-7 text-text-muted">
+            {usesDeclaredData
+              ? 'Scope puede interpretar la información declarada de la credencial para resumir áreas, habilidades y conceptos detectados.'
+              : 'Scope puede interpretar la evidencia documental para resumir áreas, habilidades y conceptos detectados.'}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-text-muted">
+            El resultado es asistido por IA y puede requerir revisión.
+          </p>
+        </div>
 
-          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-            {state.currentRun ? <RunBadge run={state.currentRun} /> : null}
-          </div>
-        </CardHeader>
+        <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+          {state.currentRun ? <RunBadge run={state.currentRun} /> : null}
+        </div>
+      </header>
 
-        <CardContent className="grid gap-6 pt-6 sm:p-8 sm:pt-7">
+      <div className="grid gap-6">
           <div aria-live="polite">
             {state.latestStatus === 'loading' ? (
               <AnalysisLoading label="Consultando último análisis" />
@@ -133,8 +126,7 @@ export function DocumentAnalysisSection({
             credentialType={credentialType}
             currentDocument={currentDocument}
           />
-        </CardContent>
-      </Card>
+      </div>
     </section>
   );
 }
@@ -298,7 +290,7 @@ function AnalysisRunSummary({
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-card border border-border-default bg-surface p-5 shadow-xs">
+    <div className="rounded-card border border-border-default bg-surface p-4 shadow-none">
       <p className="text-sm font-semibold text-text-muted">{label}</p>
       <p className="mt-2 text-3xl font-bold text-brand-900">{value}</p>
     </div>

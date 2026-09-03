@@ -41,10 +41,13 @@ import type {
 interface TextEvidenceSectionProps {
   credentialStatus: CredentialStatus;
   currentText: TextEvidenceVM | null;
+  display?: 'all' | 'current' | 'composer';
   onSubmit(command: {
     label: string | null;
     content: string;
   }): Promise<TextEvidenceVM>;
+  showEmptyState?: boolean;
+  showHeading?: boolean;
 }
 
 type SubmitFeedback =
@@ -57,7 +60,10 @@ const counterFormatter = new Intl.NumberFormat('es-AR');
 export function TextEvidenceSection({
   credentialStatus,
   currentText,
-  onSubmit
+  display = 'all',
+  onSubmit,
+  showEmptyState = true,
+  showHeading = true
 }: TextEvidenceSectionProps) {
   const [rawLabel, setRawLabel] = useState('');
   const [rawContent, setRawContent] = useState('');
@@ -72,6 +78,8 @@ export function TextEvidenceSection({
     rawContent.length > 0 && validation.contentError !== null;
   const showLabelError =
     rawLabel.length > 0 && validation.labelError !== null;
+  const showCurrent = display !== 'composer';
+  const showComposer = display !== 'current';
 
   function updateLabel(event: ChangeEvent<HTMLInputElement>) {
     setRawLabel(event.target.value);
@@ -133,34 +141,44 @@ export function TextEvidenceSection({
   }
 
   return (
-    <section aria-labelledby="text-evidence-title" className="grid gap-6 border-t border-border-default pt-8 sm:pt-10">
-      <div className="max-w-5xl">
-        <p className="text-sm font-semibold text-teal-700">
-          Fuente institucional
-        </p>
-        <h2
-          id="text-evidence-title"
-          className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
-        >
-          Contenido textual de respaldo
-        </h2>
-        <p className="mt-2 leading-7 text-text-muted">
-          La evidencia textual se conserva como fuente institucional. No
-          modifica automáticamente los campos oficiales de la credencial.
-        </p>
-        <p className="mt-2 text-sm leading-6 text-text-muted">
-          Más adelante podrá utilizarse para generar propuestas mediante IA,
-          pero el emisor deberá revisarlas y confirmarlas.
-        </p>
-      </div>
+    <section
+      aria-label={showHeading ? undefined : 'Evidencia textual'}
+      aria-labelledby={showHeading ? 'text-evidence-title' : undefined}
+      className={
+        showHeading
+          ? 'grid gap-6 border-t border-border-default pt-8 sm:pt-10'
+          : 'grid gap-4'
+      }
+    >
+      {showHeading ? (
+        <div className="max-w-5xl">
+          <p className="text-sm font-semibold text-teal-700">
+            Fuente institucional
+          </p>
+          <h2
+            id="text-evidence-title"
+            className="mt-2 text-2xl font-bold tracking-tight text-text-strong"
+          >
+            Contenido textual de respaldo
+          </h2>
+          <p className="mt-2 leading-7 text-text-muted">
+            La evidencia textual se conserva como fuente institucional. No
+            modifica automáticamente los campos oficiales de la credencial.
+          </p>
+          <p className="mt-2 text-sm leading-6 text-text-muted">
+            Más adelante podrá utilizarse para generar propuestas mediante IA,
+            pero el emisor deberá revisarlas y confirmarlas.
+          </p>
+        </div>
+      ) : null}
 
-      {feedback?.kind === 'success' ? (
+      {showComposer && feedback?.kind === 'success' ? (
         <FeedbackAlert variant="success" title="Evidencia textual actualizada">
           {feedback.message}
         </FeedbackAlert>
       ) : null}
 
-      {feedback?.kind === 'error' ? (
+      {showComposer && feedback?.kind === 'error' ? (
         <FeedbackAlert
           variant="error"
           title="No pudimos guardar la evidencia textual"
@@ -169,9 +187,9 @@ export function TextEvidenceSection({
         </FeedbackAlert>
       ) : null}
 
-      {currentText ? (
+      {showCurrent && currentText ? (
         <CurrentTextEvidenceCard evidence={currentText} />
-      ) : !isDraft ? (
+      ) : showCurrent && !isDraft && showEmptyState ? (
         <Card className="rounded-[1.25rem] border-border-strong bg-surface-muted shadow-none">
           <CardContent className="py-6">
             <p className="font-semibold text-text-strong">
@@ -181,7 +199,7 @@ export function TextEvidenceSection({
         </Card>
       ) : null}
 
-      {isDraft && currentText && !replacementMode ? (
+      {showComposer && isDraft && currentText && !replacementMode ? (
         <div>
           <Button type="button" variant="secondary" onClick={startReplacement}>
             <RotateCcw aria-hidden="true" />
@@ -190,8 +208,8 @@ export function TextEvidenceSection({
         </div>
       ) : null}
 
-      {formVisible ? (
-        <Card className="border-border-strong bg-surface-muted shadow-none">
+      {showComposer && formVisible ? (
+        <Card className="rounded-card border-border-default bg-surface-muted/40 shadow-none">
           <CardHeader>
             <p className="text-sm font-semibold text-brand-700">
               {currentText ? 'Reemplazo pendiente' : 'Nueva fuente'}
@@ -261,7 +279,7 @@ export function TextEvidenceSection({
         </Card>
       ) : null}
 
-      {!isDraft ? (
+      {showCurrent && !isDraft ? (
         <FeedbackAlert
           variant="information"
           title="Evidencia textual en modo lectura"
@@ -389,11 +407,10 @@ function CurrentTextEvidenceCard({
   const visibleContent = expanded ? evidence.content : preview.text;
 
   return (
-    <Card className="min-w-0 overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/70 sm:flex-row sm:items-start sm:justify-between">
+    <Card className="min-w-0 overflow-hidden rounded-card border-border-default shadow-none">
+      <CardHeader className="gap-3 border-b border-border-default bg-surface-muted/50 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-teal-700">
+          <p className="text-sm font-semibold text-text-muted">
             Fuente textual actual
           </p>
           <h3 className="mt-1 break-words text-lg font-semibold text-text-strong">
