@@ -56,39 +56,40 @@ export function LoginScreen() {
 
   return (
     <AuthShell>
-      <Card className="overflow-hidden border-border-strong bg-surface shadow-md">
+      <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/8">
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
-        <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
-          <p className="text-sm font-semibold text-teal-700">
+        <CardHeader className="gap-3 pb-5 sm:p-9 sm:pb-6">
+          <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">
             Acceso a Scope
           </p>
-          <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
+          <h2 className="text-3xl leading-tight font-bold tracking-[-0.035em] text-text-strong sm:text-[2rem]">
             Iniciá sesión
           </h2>
-          <p className="text-sm leading-6 text-text-muted">
-            Ingresá con tu cuenta para validar el contexto institucional
-            disponible.
+          <p className="max-w-md text-sm leading-6 text-text-muted">
+            Ingresá con tu cuenta para acceder a tu experiencia en Scope.
           </p>
         </CardHeader>
-        <CardContent className="pt-2 sm:px-8 sm:pb-8">
+        <CardContent className="pt-2 sm:px-9 sm:pb-9">
           <LoginForm
             key={initialFeedback?.code ?? 'login'}
             initialFeedback={initialFeedback}
             isSubmitting={isSubmitting}
             onSubmit={login}
           />
-          <p className="mt-6 text-center text-sm text-text-muted">
-            ¿Necesitás consultar una credencial?{' '}
-            <Link href="/verify" className="font-semibold text-brand-700 underline underline-offset-4">
-              Verificar una credencial
-            </Link>
-          </p>
-          <p className="mt-3 text-center text-sm text-text-muted">
-            ¿Sos nuevo en Scope?{' '}
-            <Link href="/register" className="font-semibold text-brand-700 underline underline-offset-4">
-              Crear una cuenta
-            </Link>
-          </p>
+          <div className="mt-7 grid gap-3 border-t border-border-default pt-5 text-center text-sm text-text-muted">
+            <p>
+              ¿Necesitás consultar una credencial?{' '}
+              <Link href="/verify" className="font-semibold text-brand-700 underline underline-offset-4">
+                Verificar una credencial
+              </Link>
+            </p>
+            <p>
+              ¿Sos nuevo en Scope?{' '}
+              <Link href="/register" className="font-semibold text-brand-700 underline underline-offset-4">
+                Crear una cuenta
+              </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </AuthShell>

@@ -54,22 +54,22 @@ export function RegisterScreen() {
 
   return (
     <AuthShell>
-      <Card className="overflow-hidden border-border-strong bg-surface shadow-md">
+      <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/8">
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
-        <CardHeader className="gap-3 pb-4 sm:p-8 sm:pb-5">
-          <p className="text-sm font-semibold text-teal-700">
+        <CardHeader className="gap-3 pb-5 sm:p-9 sm:pb-6">
+          <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">
             Creá tu cuenta en Scope
           </p>
-          <h2 className="text-3xl leading-tight font-bold tracking-tight text-text-strong">
+          <h2 className="text-3xl leading-tight font-bold tracking-[-0.035em] text-text-strong sm:text-[2rem]">
             Crear cuenta
           </h2>
-          <p className="text-sm leading-6 text-text-muted">
+          <p className="max-w-md text-sm leading-6 text-text-muted">
             Empezá a construir tu trayectoria formativa en un solo lugar.
           </p>
         </CardHeader>
-        <CardContent className="pt-2 sm:px-8 sm:pb-8">
+        <CardContent className="pt-2 sm:px-9 sm:pb-9">
           <RegisterForm isSubmitting={isSubmitting} onSubmit={register} />
-          <p className="mt-6 text-center text-sm text-text-muted">
+          <p className="mt-7 border-t border-border-default pt-5 text-center text-sm text-text-muted">
             ¿Ya tenés una cuenta?{' '}
             <Link href="/login" className="font-semibold text-brand-700 underline underline-offset-4">
               Ingresar

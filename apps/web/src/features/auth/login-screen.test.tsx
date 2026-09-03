@@ -22,7 +22,7 @@ it('presents the Scope identity while preserving the login form', () => {
     new URL(logoSource, 'http://localhost').searchParams.get('url') ?? ''
   );
 
-  expect(logoAssetPath).toBe('/brand/Logo Scope 2.png');
+  expect(logoAssetPath).toBe('/brand/Logo Scope Invertido.png');
   expect(logoSource).not.toMatch(/^https?:\/\//);
   expect(screen.queryByText('Identidad temporal')).toBeNull();
   expect(
@@ -31,9 +31,10 @@ it('presents the Scope identity while preserving the login form', () => {
       name: 'Credenciales verificables. Trayectorias que se entienden.'
     })
   ).toBeTruthy();
-  expect(screen.getByText('Credenciales confiables')).toBeTruthy();
-  expect(screen.getByText('Perfil formativo')).toBeTruthy();
-  expect(screen.getByText('Verificación simple')).toBeTruthy();
+  expect(screen.getByText('Formación, evidencia y contexto')).toBeTruthy();
+  expect(screen.queryByText('Credenciales confiables')).toBeNull();
+  expect(screen.queryByText('Perfil formativo')).toBeNull();
+  expect(screen.queryByText('Verificación simple')).toBeNull();
   expect(
     screen.getByText(
       'Una nueva forma de entender tu trayectoria.'

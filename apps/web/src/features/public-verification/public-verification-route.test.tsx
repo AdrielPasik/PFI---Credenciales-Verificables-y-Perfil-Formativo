@@ -38,12 +38,12 @@ describe('PublicVerificationRoute', () => {
     ).toBe('/login');
   });
 
-  it('warns against pasting the canonical hash before any lookup happens', () => {
+  it('explains that the public reference, not the canonical hash, starts a lookup', () => {
     render(<PublicVerificationRoute />);
 
-    expect(screen.getByText('Pegá el enlace público o el código compartido desde Scope.')).toBeTruthy();
+    expect(screen.getByText('Consultá el estado y la evidencia disponible de una credencial emitida en Scope.')).toBeTruthy();
     expect(
-      screen.getByText(/No pegues la huella canónica: esa huella se muestra después como evidencia técnica de integridad\./)
+      screen.getByText(/La huella canónica se muestra después como evidencia técnica de integridad\./)
     ).toBeTruthy();
   });
 

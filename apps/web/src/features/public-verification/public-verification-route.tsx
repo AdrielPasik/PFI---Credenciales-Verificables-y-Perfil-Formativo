@@ -61,7 +61,51 @@ export function PublicVerificationRoute() {
     void verify(reference);
   }
 
-  return <main className="min-h-svh bg-canvas px-4 py-8 sm:px-8 sm:py-12"><div className="mx-auto grid w-full max-w-6xl gap-10"><header className="flex flex-wrap items-center justify-between gap-4 border-b border-border-default pb-6"><BrandMark lightLogo descriptor="Verificación pública" /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header><section className="grid gap-8" aria-labelledby="verify-title"><div className="max-w-2xl"><p className="text-sm font-semibold text-teal-700">Consulta pública</p><h1 id="verify-title" className="mt-2 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">Verificar una credencial</h1><p className="mt-3 leading-7 text-text-muted">Pegá el enlace público o el código compartido desde Scope.</p></div><Card className="overflow-hidden border-border-strong shadow-md"><CardContent className="pt-5 sm:p-6"><form className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" onSubmit={handleSubmit} noValidate><div className="grid gap-2"><Label htmlFor="public-credential-reference">Código o enlace de credencial</Label><Input id="public-credential-reference" value={input} onChange={(event) => setInput(event.target.value)} aria-describedby="public-credential-reference-help" placeholder="Ej: enlace de verificación o código de credencial" autoComplete="off" disabled={state.kind === 'loading'} /><p id="public-credential-reference-help" className="text-sm leading-6 text-text-muted">El código lo puede compartir el titular o la institución emisora. No pegues la huella canónica: esa huella se muestra después como evidencia técnica de integridad.</p></div><Button type="submit" disabled={state.kind === 'loading'}>{state.kind === 'loading' ? 'Verificando…' : 'Verificar credencial'}</Button></form></CardContent></Card><Card className="border-border-default bg-surface-muted shadow-none"><CardContent className="pt-5 sm:p-6"><h2 className="font-semibold text-text-strong">¿Dónde encuentro este código?</h2><p className="mt-2 text-sm leading-6 text-text-muted">El titular puede compartirlo desde su wallet en “Compartir credencial”. También puede venir como enlace directo a esta pantalla.</p></CardContent></Card>{state.kind === 'error' ? <FeedbackAlert variant="error" title="No pudimos verificar la credencial">{state.feedback.message}</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicVerificationResult verification={state.verification} /> : null}</section></div></main>;
+  return (
+    <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10 lg:py-12">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 lg:gap-14">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border-default pb-5 sm:pb-6">
+          <BrandMark lightLogo descriptor="Verificación pública" />
+          <Button asChild size="sm" variant="secondary">
+            <Link href="/login">Volver a iniciar sesión</Link>
+          </Button>
+        </header>
+
+        <section className="grid gap-8 lg:grid-cols-[minmax(15rem,0.72fr)_minmax(0,1.28fr)] lg:items-start lg:gap-12" aria-labelledby="verify-title">
+          <div className="border-l-2 border-brand-accent py-1 pl-5 sm:pl-6">
+            <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">Consulta pública</p>
+            <h1 id="verify-title" className="mt-3 text-3xl leading-[1.1] font-bold tracking-[-0.04em] text-text-strong sm:text-4xl">
+              Verificar una credencial
+            </h1>
+            <p className="mt-4 max-w-md leading-7 text-text-muted">
+              Consultá el estado y la evidencia disponible de una credencial emitida en Scope.
+            </p>
+          </div>
+
+          <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/6">
+            <div aria-hidden="true" className="h-1 bg-brand-accent" />
+            <CardContent className="pt-5 sm:p-7">
+              <form className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" onSubmit={handleSubmit} noValidate>
+                <div className="grid gap-2">
+                  <Label htmlFor="public-credential-reference">Código o enlace de credencial</Label>
+                  <Input id="public-credential-reference" value={input} onChange={(event) => setInput(event.target.value)} aria-describedby="public-credential-reference-help" placeholder="Ej: enlace de verificación o código de credencial" autoComplete="off" disabled={state.kind === 'loading'} />
+                  <p id="public-credential-reference-help" className="text-sm leading-6 text-text-muted">
+                    Usá el enlace compartido por el titular o la institución emisora. La huella canónica se muestra después como evidencia técnica de integridad.
+                  </p>
+                </div>
+                <Button type="submit" disabled={state.kind === 'loading'}>
+                  {state.kind === 'loading' ? 'Verificando…' : 'Verificar credencial'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {state.kind === 'error' ? <div className="lg:col-span-2"><FeedbackAlert variant="error" title="No pudimos verificar la credencial">{state.feedback.message}</FeedbackAlert></div> : null}
+          {state.kind === 'ready' ? <div className="lg:col-span-2"><PublicVerificationResult verification={state.verification} /></div> : null}
+        </section>
+      </div>
+    </main>
+  );
 }
 
 export function PublicVerificationResult({ verification }: { verification: PublicCredentialVerificationVM }) {
