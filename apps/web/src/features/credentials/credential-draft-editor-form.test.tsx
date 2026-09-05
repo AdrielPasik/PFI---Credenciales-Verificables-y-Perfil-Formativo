@@ -266,7 +266,12 @@ describe('CredentialDraftEditorForm', () => {
 
     expect(screen.getByText('Referencia académica oficial')).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Datos de aprobación' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Competencias y habilidades' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Capacidades declaradas por la institución'
+      })
+    ).toBeTruthy();
+    expect(screen.queryByText('Perfil formativo')).toBeNull();
     expect(screen.getByLabelText('Fecha de aprobación (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Año académico (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Período (opcional)')).toBeTruthy();

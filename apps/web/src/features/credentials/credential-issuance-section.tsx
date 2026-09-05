@@ -60,7 +60,7 @@ export function CredentialIssuanceSection({
     <section aria-labelledby="credential-issuance-title">
       <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface shadow-sm">
         <div aria-hidden="true" className="h-1 bg-teal-700" />
-        <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-7 sm:pb-6">
+        <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-6 sm:pb-5">
           <p className="text-sm font-semibold text-teal-700">
             Registro verificable
           </p>
@@ -71,7 +71,7 @@ export function CredentialIssuanceSection({
             Emisión de credencial
           </h2>
         </CardHeader>
-        <CardContent className="grid gap-5 sm:px-7 sm:pb-7">
+        <CardContent className="grid gap-4 sm:px-6 sm:pb-6">
           {detail.status === 'draft' ? (
             <DraftIssuanceContent
               confirming={confirming}
@@ -254,18 +254,22 @@ function IssuancePreparation({
     : detail.title;
 
   return (
-    <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted/80 p-5 sm:p-6">
+    <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted/80 p-4 sm:p-5">
       <div>
         <p className="text-sm font-semibold text-brand-700">Preparación para emitir</p>
         <p className="mt-1 text-sm leading-6 text-text-muted">
           Revisá el estado actual antes de confirmar la emisión.
         </p>
       </div>
-      <dl className="grid gap-3 text-sm">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
         <PreparationItem label="Estado" value="Borrador listo para revisar" />
         <PreparationItem label="Tipo" value={detail.typeLabel} />
         <PreparationItem label="Titular" value={detail.holder.displayLabel} />
-        <PreparationItem label="Logro o referencia académica" value={credentialReference} />
+        <PreparationItem
+          className="col-span-2"
+          label="Logro o referencia académica"
+          value={credentialReference}
+        />
         <PreparationItem
           label="Evidencia de respaldo"
           value={preparation.evidenceLabel}
@@ -305,10 +309,12 @@ function IssuancePreparation({
 }
 
 function PreparationItem({
+  className,
   label,
   tone = 'default',
   value
 }: {
+  className?: string;
   label: string;
   tone?: 'complete' | 'default' | 'warning';
   value: string;
@@ -321,7 +327,7 @@ function PreparationItem({
         : 'text-text-strong';
 
   return (
-    <div>
+    <div className={className}>
       <dt className="text-xs font-semibold tracking-wide text-text-muted uppercase">
         {label}
       </dt>

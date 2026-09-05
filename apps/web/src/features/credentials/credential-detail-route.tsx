@@ -35,6 +35,7 @@ import { CredentialIssuanceSection } from '@/features/credentials/credential-iss
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { EvidenceWorkspace } from '@/features/credentials/evidence-workspace';
+import type { EvidenceComposerMode } from '@/features/credentials/evidence-workspace';
 import { ReusableSemanticInterpretationSection } from '@/features/credentials/reusable-semantic-interpretation-section';
 import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
@@ -665,6 +666,18 @@ export function CredentialDetailView({
   // abajo) -- exactamente la misma condicion bajo la que
   // "Emitir credencial" es clickeable.
   const draftEditorRef = useRef<CredentialDraftEditorFormHandle>(null);
+  const [declaredCapabilitiesTarget, setDeclaredCapabilitiesTarget] =
+    useState<HTMLDivElement | null>(null);
+  const [evidenceComposerMode, setEvidenceComposerMode] =
+    useState<EvidenceComposerMode>('both');
+  const handleDeclaredCapabilitiesTargetChange = useCallback(
+    (target: HTMLDivElement | null) => {
+      setDeclaredCapabilitiesTarget((current) =>
+        current === target ? current : target
+      );
+    },
+    []
+  );
 
   useEffect(() => {
     if (detail.type !== 'course' && detail.type !== 'certification') {
@@ -849,8 +862,8 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
-        <div className="grid gap-8 xl:gap-10">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-7">
+        <div className="grid gap-7 xl:gap-9">
           <section
             aria-labelledby="credential-information-title"
             className="border-y border-border-default py-6 sm:py-8"
@@ -898,6 +911,12 @@ export function CredentialDetailView({
             <CredentialDraftEditorForm
               ref={draftEditorRef}
               detail={detail}
+              declaredCapabilitiesTarget={declaredCapabilitiesTarget}
+              showDraftSaveActionInCapabilitiesSlot={
+                isDraft &&
+                detail.type === 'academic_subject' &&
+                evidenceComposerMode !== 'document'
+              }
               issuerReference={draftEditor.issuerReference}
               onSave={draftEditor.onSave}
               onReloadLatest={draftEditor.onReloadLatest}
@@ -917,6 +936,16 @@ export function CredentialDetailView({
               isDraft &&
               detail.type !== 'course' &&
               detail.type !== 'certification'
+            }
+            onTextualCapabilitiesTargetChange={
+              isDraft && detail.type === 'academic_subject'
+                ? handleDeclaredCapabilitiesTargetChange
+                : undefined
+            }
+            onComposerModeChange={
+              isDraft && detail.type === 'academic_subject'
+                ? setEvidenceComposerMode
+                : undefined
             }
             documentCurrent={
               detail.documentEvidence.currentDocument || !isDraft ? (
@@ -1000,10 +1029,10 @@ export function CredentialDetailView({
           ) : null}
         </div>
 
-        <aside aria-labelledby="draft-actions-title" className="grid gap-5 xl:sticky xl:top-8 xl:self-start">
+        <aside aria-labelledby="draft-actions-title" className="grid gap-4 xl:sticky xl:top-8 xl:self-start">
           <CredentialIssuanceSection detail={detail} onIssue={handleIssue} />
-          <Card className="overflow-hidden rounded-[1.25rem] border-brand-700 bg-brand-900 text-white shadow-md">
-            <CardHeader className="gap-3 sm:p-7">
+          <Card className="overflow-hidden rounded-card border-brand-700 bg-brand-900 text-white shadow-none">
+            <CardHeader className="gap-2 sm:p-5">
               <h2
                 id="draft-actions-title"
                 className="text-lg font-semibold"
@@ -1015,7 +1044,7 @@ export function CredentialDetailView({
                 borrador.
               </p>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:px-7 sm:pb-7">
+            <CardContent className="grid gap-3 sm:px-5 sm:pb-5">
               <Button asChild variant="secondary">
                 <Link href="/issuer/credentials/new">
                   <FilePlus2 aria-hidden="true" />

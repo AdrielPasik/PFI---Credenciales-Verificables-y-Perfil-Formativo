@@ -2105,6 +2105,75 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
+  it('places academic capabilities only inside the textual evidence workspace without changing their draft save path', async () => {
+    const academicDraft = {
+      ...draftResponse,
+      type: 'academic_subject',
+      credentialSubject: {
+        ...draftResponse.credentialSubject,
+        skills: [],
+        competencies: []
+      }
+    };
+    mockCredentialDetailApi({ detail: academicDraft });
+
+    render(
+      <CredentialDetailController
+        credentialReference="credential-internal-reference"
+        membership={membership}
+      />
+    );
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Capacidades declaradas por la institución'
+      })
+    ).toBeTruthy();
+    expect(screen.queryByText('Perfil formativo')).toBeNull();
+    const requestCountBeforeModeChange =
+      sessionMocks.requestAuthenticated.mock.calls.length;
+
+    fireEvent.change(screen.getByLabelText('Habilidades técnicas (opcional)'), {
+      target: { value: 'SQL' }
+    });
+    fireEvent.change(screen.getByLabelText('Competencias formativas (opcional)'), {
+      target: { value: 'Resolver problemas' }
+    });
+    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
+    expect(
+      screen
+        .getByRole('heading', {
+          hidden: true,
+          name: 'Capacidades declaradas por la institución'
+        })
+        .closest('[hidden]')
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
+    expect(
+      (screen.getByLabelText(
+        'Habilidades técnicas (opcional)'
+      ) as HTMLTextAreaElement).value
+    ).toBe('SQL');
+    expect(
+      (screen.getByLabelText(
+        'Competencias formativas (opcional)'
+      ) as HTMLTextAreaElement).value
+    ).toBe('Resolver problemas');
+    expect(
+      screen.getByRole('button', { name: 'Guardar cambios' }).getAttribute('form')
+    ).toBe('credential-draft-editor-form');
+
+    expect(
+      sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
+        String(path).endsWith('/evidence/texts')
+      )
+    ).toHaveLength(0);
+    expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(
+      requestCountBeforeModeChange
+    );
+  });
+
   it('keeps the textual composer available for degree', () => {
     render(
       <CredentialDetailView

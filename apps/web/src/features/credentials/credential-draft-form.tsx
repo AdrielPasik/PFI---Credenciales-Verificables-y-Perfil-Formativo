@@ -288,8 +288,8 @@ export function CredentialDraftForm({
         </p>
       </header>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
-        <div className="grid gap-8 xl:gap-10">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-7">
+        <div className="grid gap-7 xl:gap-9">
           <section
             aria-labelledby="holder-resolution-title"
             className="border-b border-border-default pb-8 sm:pb-10"
@@ -581,9 +581,9 @@ export function CredentialDraftForm({
                   selectedSubject ? (
                     <section
                       aria-labelledby="creation-summary-title"
-                      className="grid gap-4 rounded-card border border-border-default bg-surface-muted p-5 shadow-xs"
+                      className="grid gap-4 border-y border-border-default bg-surface-muted/55 py-5 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:py-6"
                     >
-                      <div>
+                      <div className="sm:col-span-2">
                         <p className="text-sm font-semibold text-teal-700">
                           Paso 4
                         </p>
@@ -594,7 +594,7 @@ export function CredentialDraftForm({
                           Resumen antes de crear
                         </h3>
                       </div>
-                      <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                      <dl className="grid gap-4 text-sm sm:col-span-2 sm:grid-cols-2">
                         <div>
                           <dt className="font-semibold text-text-muted">
                             Titular
@@ -681,8 +681,8 @@ export function CredentialDraftForm({
         </div>
 
         <aside aria-labelledby="issuer-context-title" className="xl:sticky xl:top-8 xl:self-start">
-          <Card className="overflow-hidden rounded-[1.25rem] border-brand-700 bg-brand-900 text-white shadow-md">
-            <CardHeader className="gap-4 sm:p-7">
+          <Card className="overflow-hidden rounded-card border-brand-700 bg-brand-900 text-white shadow-none">
+            <CardHeader className="gap-3 sm:p-5">
               <span
                 aria-hidden="true"
                 className="flex size-11 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"
@@ -703,7 +703,7 @@ export function CredentialDraftForm({
               </div>
             </CardHeader>
             <Separator className="bg-white/10" />
-            <CardContent className="pt-6 sm:px-7 sm:pb-7">
+            <CardContent className="pt-5 sm:px-5 sm:pb-5">
               <p className="flex items-start gap-2 font-semibold">
                 <LockKeyhole
                   aria-hidden="true"

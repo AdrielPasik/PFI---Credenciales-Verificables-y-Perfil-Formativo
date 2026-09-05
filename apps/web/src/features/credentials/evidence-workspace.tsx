@@ -2,13 +2,17 @@
 
 import { useState, type ReactNode } from 'react';
 
-type EvidenceComposerMode = 'document' | 'text' | 'both';
+export type EvidenceComposerMode = 'document' | 'text' | 'both';
 
 interface EvidenceWorkspaceProps {
   canComposeDocument: boolean;
   canComposeText: boolean;
   documentComposer: ReactNode;
   documentCurrent: ReactNode;
+  onComposerModeChange?(mode: EvidenceComposerMode): void;
+  onTextualCapabilitiesTargetChange?: (
+    target: HTMLDivElement | null
+  ) => void;
   textComposer: ReactNode;
   textCurrent: ReactNode;
 }
@@ -18,6 +22,8 @@ export function EvidenceWorkspace({
   canComposeText,
   documentComposer,
   documentCurrent,
+  onComposerModeChange,
+  onTextualCapabilitiesTargetChange,
   textComposer,
   textCurrent
 }: EvidenceWorkspaceProps) {
@@ -28,6 +34,11 @@ export function EvidenceWorkspace({
     canComposeDocument && (!canChooseComposer || mode !== 'text');
   const showTextComposer =
     canComposeText && (!canChooseComposer || mode !== 'document');
+
+  function selectMode(nextMode: EvidenceComposerMode) {
+    setMode(nextMode);
+    onComposerModeChange?.(nextMode);
+  }
 
   return (
     <section
@@ -84,19 +95,19 @@ export function EvidenceWorkspace({
                     checked={mode === 'document'}
                     id="evidence-composer-document"
                     label="Documental"
-                    onChange={() => setMode('document')}
+                    onChange={() => selectMode('document')}
                   />
                   <EvidenceModeOption
                     checked={mode === 'text'}
                     id="evidence-composer-text"
                     label="Textual"
-                    onChange={() => setMode('text')}
+                    onChange={() => selectMode('text')}
                   />
                   <EvidenceModeOption
                     checked={mode === 'both'}
                     id="evidence-composer-both"
                     label="Ambas"
-                    onChange={() => setMode('both')}
+                    onChange={() => selectMode('both')}
                   />
                 </div>
               </fieldset>
@@ -106,7 +117,7 @@ export function EvidenceWorkspace({
           <div
             className={
               mode === 'both' && canChooseComposer
-                ? 'grid gap-5 xl:grid-cols-2 xl:items-start'
+                ? 'grid gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] xl:items-start'
                 : 'grid gap-5'
             }
           >
@@ -114,7 +125,12 @@ export function EvidenceWorkspace({
               <div hidden={!showDocumentComposer}>{documentComposer}</div>
             ) : null}
             {canComposeText ? (
-              <div hidden={!showTextComposer}>{textComposer}</div>
+              <div hidden={!showTextComposer} className="grid gap-6">
+                {textComposer}
+                {onTextualCapabilitiesTargetChange ? (
+                  <div ref={onTextualCapabilitiesTargetChange} />
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>

@@ -13,6 +13,7 @@ import {
   type FormEvent,
   type RefObject
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
@@ -59,6 +60,8 @@ import {
 interface CredentialDraftEditorFormProps
   extends AcademicSubjectCatalogSearchHandlers {
   detail: IssuerCredentialDetailVM;
+  declaredCapabilitiesTarget?: HTMLElement | null;
+  showDraftSaveActionInCapabilitiesSlot?: boolean;
   issuerReference: string;
   onSave(
     command: UpdateIssuerCredentialDraftCommand
@@ -92,6 +95,8 @@ export const CredentialDraftEditorForm = forwardRef<
 >(function CredentialDraftEditorForm(
   {
     detail,
+    declaredCapabilitiesTarget,
+    showDraftSaveActionInCapabilitiesSlot = false,
     issuerReference,
     onReloadLatest,
     onSave,
@@ -149,6 +154,32 @@ export const CredentialDraftEditorForm = forwardRef<
     state.type === 'academic_subject' &&
     persistedAcademicSelection === null &&
     pendingAcademicSelection === null;
+  const declaredCapabilities =
+    state.type === 'academic_subject' ? (
+      <DeclaredCapabilitiesFields
+        fields={academicCapabilityFields}
+        state={state}
+        disabled={saving}
+        errors={errors}
+        academicYearRef={academicYearRef}
+        externalUrlRef={externalUrlRef}
+        gradeRef={gradeRef}
+        onChange={updateField}
+      />
+    ) : null;
+  const isCapabilitiesSlotActive =
+    declaredCapabilitiesTarget !== null &&
+    declaredCapabilities !== null &&
+    showDraftSaveActionInCapabilitiesSlot;
+  const draftSaveAction = (
+    <DraftSaveAction
+      academicSelectionRequired={academicSelectionRequired}
+      command={command}
+      form={isCapabilitiesSlotActive ? 'credential-draft-editor-form' : undefined}
+      pendingType={pendingType}
+      saving={saving}
+    />
+  );
 
   function updateField<Key extends keyof CredentialDraftEditorState>(
     field: Key,
@@ -400,7 +431,12 @@ export const CredentialDraftEditorForm = forwardRef<
         </p>
       </div>
 
-      <form noValidate onSubmit={submit} className="grid gap-6 xl:gap-7">
+      <form
+        id="credential-draft-editor-form"
+        noValidate
+        onSubmit={submit}
+        className="grid gap-6 xl:gap-7"
+      >
         <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
           <CardHeader className="border-b border-border-default bg-surface-muted/70">
             <p className="text-sm font-semibold text-brand-700">
@@ -540,19 +576,6 @@ export const CredentialDraftEditorForm = forwardRef<
               gradeRef={gradeRef}
               onChange={updateField}
             />
-            <DraftFieldsCard
-              eyebrow="Perfil formativo"
-              title="Competencias y habilidades"
-              description="Registrá solo capacidades respaldadas por la institución."
-              fields={academicCapabilityFields}
-              state={state}
-              disabled={saving}
-              errors={errors}
-              academicYearRef={academicYearRef}
-              externalUrlRef={externalUrlRef}
-              gradeRef={gradeRef}
-              onChange={updateField}
-            />
           </>
         ) : (
           <DraftFieldsCard
@@ -569,6 +592,16 @@ export const CredentialDraftEditorForm = forwardRef<
             onChange={updateField}
           />
         )}
+
+        {declaredCapabilitiesTarget && declaredCapabilities
+          ? createPortal(
+              <>
+                {declaredCapabilities}
+                {isCapabilitiesSlotActive ? draftSaveAction : null}
+              </>,
+              declaredCapabilitiesTarget
+            )
+          : declaredCapabilities}
 
         {feedback?.kind === 'success' ? (
           <FeedbackAlert variant="success" title="Cambios guardados">
@@ -604,42 +637,61 @@ export const CredentialDraftEditorForm = forwardRef<
           </FeedbackAlert>
         ) : null}
 
-        <div className="flex flex-col-reverse gap-3 border-t border-border-default pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p aria-live="polite" className="text-sm text-text-muted">
-            {saving
-              ? 'Guardando cambios…'
-              : academicSelectionRequired
-                ? 'Seleccioná una carrera y una materia oficial para guardar.'
-              : command
-                ? 'Tenés cambios sin guardar.'
-                : 'No hay cambios pendientes.'}
-          </p>
-          <Button
-            type="submit"
-            size="lg"
-            disabled={
-              !command ||
-              saving ||
-              pendingType !== null ||
-              academicSelectionRequired
-            }
-          >
-            {saving ? (
-              <RefreshCw aria-hidden="true" className="animate-spin" />
-            ) : command ? (
-              <Save aria-hidden="true" />
-            ) : (
-              <Check aria-hidden="true" />
-            )}
-            {saving ? 'Guardando…' : 'Guardar cambios'}
-          </Button>
-        </div>
+        {!isCapabilitiesSlotActive ? draftSaveAction : null}
       </form>
     </section>
   );
 });
 
 CredentialDraftEditorForm.displayName = 'CredentialDraftEditorForm';
+
+function DraftSaveAction({
+  academicSelectionRequired,
+  command,
+  form,
+  pendingType,
+  saving
+}: {
+  academicSelectionRequired: boolean;
+  command: UpdateIssuerCredentialDraftCommand | null;
+  form?: string;
+  pendingType: CredentialType | null;
+  saving: boolean;
+}) {
+  return (
+    <div className="flex flex-col-reverse gap-3 border-t border-border-default pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <p aria-live="polite" className="text-sm text-text-muted">
+        {saving
+          ? 'Guardando cambios…'
+          : academicSelectionRequired
+            ? 'Seleccioná una carrera y una materia oficial para guardar.'
+            : command
+              ? 'Tenés cambios sin guardar.'
+              : 'No hay cambios pendientes.'}
+      </p>
+      <Button
+        type="submit"
+        size="lg"
+        form={form}
+        disabled={
+          !command ||
+          saving ||
+          pendingType !== null ||
+          academicSelectionRequired
+        }
+      >
+        {saving ? (
+          <RefreshCw aria-hidden="true" className="animate-spin" />
+        ) : command ? (
+          <Save aria-hidden="true" />
+        ) : (
+          <Check aria-hidden="true" />
+        )}
+        {saving ? 'Guardando…' : 'Guardar cambios'}
+      </Button>
+    </div>
+  );
+}
 
 function DraftFieldsCard({
   academicYearRef,
@@ -670,14 +722,13 @@ function DraftFieldsCard({
   title: string;
 }) {
   return (
-    <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
-      <CardHeader className="border-b border-border-default bg-surface-muted/70">
+    <section className="grid gap-5 border-t border-border-default pt-6 sm:pt-8">
+      <div>
         <p className="text-sm font-semibold text-teal-700">{eyebrow}</p>
-        <h3 className="text-lg font-semibold text-text-strong">{title}</h3>
-        <p className="text-sm leading-6 text-text-muted">{description}</p>
-      </CardHeader>
-      <CardContent className="grid gap-5 pt-5 sm:grid-cols-2 sm:pt-6">
+        <h3 className="mt-1 text-lg font-semibold text-text-strong">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-text-muted">{description}</p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
         {fields.map((field) => (
           <SpecificField
             key={field}
@@ -693,8 +744,63 @@ function DraftFieldsCard({
             onChange={onChange}
           />
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
+  );
+}
+
+function DeclaredCapabilitiesFields({
+  academicYearRef,
+  disabled,
+  errors,
+  externalUrlRef,
+  fields,
+  gradeRef,
+  onChange,
+  state
+}: Omit<Parameters<typeof DraftFieldsCard>[0], 'description' | 'eyebrow' | 'title'>) {
+  return (
+    <section
+      aria-labelledby="declared-capabilities-title"
+      className="grid gap-5 border-t border-border-default pt-6"
+    >
+      <div>
+        <p className="text-sm font-semibold text-teal-700">
+          Declaración institucional
+        </p>
+        <h3
+          id="declared-capabilities-title"
+          className="mt-1 text-lg font-semibold text-text-strong"
+        >
+          Capacidades declaradas por la institución
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-text-muted">
+          Registrá únicamente capacidades explícitamente respaldadas por esta
+          fuente institucional.
+        </p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {fields.map((field) => (
+          <SpecificField
+            key={field}
+            field={field}
+            state={state}
+            disabled={disabled}
+            academicPeriodError={errors.academicPeriod}
+            academicYearRef={academicYearRef}
+            externalUrlError={errors.externalUrl}
+            externalUrlRef={externalUrlRef}
+            gradeError={errors.grade}
+            gradeRef={gradeRef}
+            onChange={onChange}
+          />
+        ))}
+      </div>
+      <p className="text-sm leading-6 text-text-muted">
+        Estas capacidades se guardan como datos de la credencial mediante
+        <span className="font-semibold"> Guardar cambios</span>.
+      </p>
+    </section>
   );
 }
 
