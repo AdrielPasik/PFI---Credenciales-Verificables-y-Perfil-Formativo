@@ -133,6 +133,45 @@ describe('NewCredentialController', () => {
     );
   });
 
+  it('keeps holder resolution and achievement data in one aligned workflow before and after resolving the holder', async () => {
+    sessionMocks.requestAuthenticated.mockResolvedValueOnce({
+      id: 'holder-internal-reference',
+      email: 'holder@example.com',
+      did: null,
+      displayLabel: 'Titular Demo',
+      status: 'active'
+    });
+
+    render(<NewCredentialController membership={membership} />);
+
+    const workflow = document.querySelector(
+      '[aria-label="Flujo de creación de credencial"]'
+    );
+    const holderStep = screen
+      .getByRole('heading', { name: 'Identidad receptora' })
+      .closest('section');
+    const achievementStep = screen
+      .getByRole('heading', { name: 'Datos del logro' })
+      .closest('section');
+
+    expect(workflow).toBeTruthy();
+    expect(holderStep?.parentElement).toBe(workflow);
+    expect(achievementStep?.parentElement).toBe(workflow);
+    expect(screen.getAllByText('Universidad Seleccionada')).toHaveLength(1);
+    expect(screen.queryByText('Contexto de trabajo')).toBeNull();
+    expect(document.querySelector('aside')).toBeNull();
+
+    fireEvent.change(screen.getByLabelText('Email del titular'), {
+      target: { value: 'holder@example.com' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar titular' }));
+    await screen.findByText('Titular Demo');
+
+    expect(holderStep?.parentElement).toBe(workflow);
+    expect(achievementStep?.parentElement).toBe(workflow);
+    expect(screen.getAllByText('Universidad Seleccionada')).toHaveLength(1);
+  });
+
   it('creates an academic subject from curriculum with one exact POST and no PATCH', async () => {
     sessionMocks.requestAuthenticated
       .mockResolvedValueOnce({

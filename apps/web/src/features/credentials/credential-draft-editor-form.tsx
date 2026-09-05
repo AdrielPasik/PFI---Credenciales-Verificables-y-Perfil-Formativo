@@ -18,11 +18,6 @@ import { createPortal } from 'react-dom';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader
-} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -60,9 +55,11 @@ import {
 interface CredentialDraftEditorFormProps
   extends AcademicSubjectCatalogSearchHandlers {
   detail: IssuerCredentialDetailVM;
+  declaredCapabilitiesPlacement?: 'inline' | 'textual-evidence';
   declaredCapabilitiesTarget?: HTMLElement | null;
   showDraftSaveActionInCapabilitiesSlot?: boolean;
   issuerReference: string;
+  onCurrentTypeChange?(type: CredentialType): void;
   onSave(
     command: UpdateIssuerCredentialDraftCommand
   ): Promise<IssuerCredentialDetailVM>;
@@ -95,9 +92,11 @@ export const CredentialDraftEditorForm = forwardRef<
 >(function CredentialDraftEditorForm(
   {
     detail,
+    declaredCapabilitiesPlacement = 'inline',
     declaredCapabilitiesTarget,
     showDraftSaveActionInCapabilitiesSlot = false,
     issuerReference,
+    onCurrentTypeChange,
     onReloadLatest,
     onSave,
     onTerminalError,
@@ -168,7 +167,12 @@ export const CredentialDraftEditorForm = forwardRef<
       />
     ) : null;
   const isCapabilitiesSlotActive =
+    declaredCapabilitiesPlacement === 'textual-evidence' &&
     declaredCapabilitiesTarget !== null &&
+    declaredCapabilities !== null &&
+    showDraftSaveActionInCapabilitiesSlot;
+  const isCapabilitiesSlotRequested =
+    declaredCapabilitiesPlacement === 'textual-evidence' &&
     declaredCapabilities !== null &&
     showDraftSaveActionInCapabilitiesSlot;
   const draftSaveAction = (
@@ -212,6 +216,7 @@ export const CredentialDraftEditorForm = forwardRef<
       setState((current) =>
         applyCredentialTypeChange(current, targetType)
       );
+      onCurrentTypeChange?.(targetType);
       setFeedback(null);
       return;
     }
@@ -229,6 +234,7 @@ export const CredentialDraftEditorForm = forwardRef<
     setState((current) =>
       applyCredentialTypeChange(current, pendingType)
     );
+    onCurrentTypeChange?.(pendingType);
     if (catalogLinkWillBeRemoved) {
       setPendingAcademicSelection(null);
       setCatalogSelectionInvalidated(true);
@@ -253,6 +259,7 @@ export const CredentialDraftEditorForm = forwardRef<
       const saved = await onSave(nextCommand);
       setBaselineDetail(saved);
       setState(detailToDraftEditorState(saved));
+      onCurrentTypeChange?.(saved.type);
       setPendingAcademicSelection(null);
       setCatalogSelectionInvalidated(false);
       setCatalogResetKey((current) => current + 1);
@@ -391,6 +398,7 @@ export const CredentialDraftEditorForm = forwardRef<
       const latest = await onReloadLatest();
       setBaselineDetail(latest);
       setState(detailToDraftEditorState(latest));
+      onCurrentTypeChange?.(latest.type);
       setPendingAcademicSelection(null);
       setCatalogSelectionInvalidated(false);
       setCatalogResetKey((current) => current + 1);
@@ -437,16 +445,22 @@ export const CredentialDraftEditorForm = forwardRef<
         onSubmit={submit}
         className="grid gap-6 xl:gap-7"
       >
-        <Card className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs">
-          <CardHeader className="border-b border-border-default bg-surface-muted/70">
+        <section
+          aria-labelledby="credential-common-data-title"
+          className="grid gap-5 border-y border-border-default bg-surface px-4 py-6 sm:px-6"
+        >
+          <header>
             <p className="text-sm font-semibold text-brand-700">
               Información común
             </p>
-            <h3 className="text-lg font-semibold text-text-strong">
+            <h3
+              id="credential-common-data-title"
+              className="text-lg font-semibold text-text-strong"
+            >
               Identidad del logro
             </h3>
-          </CardHeader>
-          <CardContent className="grid gap-5 pt-5 sm:grid-cols-2 sm:pt-6">
+          </header>
+          <div className="grid gap-5 sm:grid-cols-2">
             <SelectField
               id="credential-type"
               label="Tipo de credencial"
@@ -509,8 +523,8 @@ export const CredentialDraftEditorForm = forwardRef<
                 asignatura oficial seleccionada.
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         {pendingType ? (
           <FeedbackAlert variant="warning" title="Revisá el cambio de tipo">
@@ -593,14 +607,16 @@ export const CredentialDraftEditorForm = forwardRef<
           />
         )}
 
-        {declaredCapabilitiesTarget && declaredCapabilities
-          ? createPortal(
-              <>
-                {declaredCapabilities}
-                {isCapabilitiesSlotActive ? draftSaveAction : null}
-              </>,
-              declaredCapabilitiesTarget
-            )
+        {declaredCapabilitiesPlacement === 'textual-evidence'
+          ? declaredCapabilitiesTarget && declaredCapabilities
+            ? createPortal(
+                <>
+                  {declaredCapabilities}
+                  {isCapabilitiesSlotActive ? draftSaveAction : null}
+                </>,
+                declaredCapabilitiesTarget
+              )
+            : null
           : declaredCapabilities}
 
         {feedback?.kind === 'success' ? (
@@ -637,7 +653,9 @@ export const CredentialDraftEditorForm = forwardRef<
           </FeedbackAlert>
         ) : null}
 
-        {!isCapabilitiesSlotActive ? draftSaveAction : null}
+        {!isCapabilitiesSlotActive && !isCapabilitiesSlotRequested
+          ? draftSaveAction
+          : null}
       </form>
     </section>
   );

@@ -58,20 +58,20 @@ export function CredentialIssuanceSection({
 
   return (
     <section aria-labelledby="credential-issuance-title">
-      <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface shadow-sm">
+      <Card className="overflow-hidden rounded-card border-border-strong bg-surface shadow-xs">
         <div aria-hidden="true" className="h-1 bg-teal-700" />
-        <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-6 sm:pb-5">
+        <CardHeader className="gap-1.5 border-b border-border-default bg-surface-muted/70 sm:p-5 sm:pb-4">
           <p className="text-sm font-semibold text-teal-700">
             Registro verificable
           </p>
           <h2
             id="credential-issuance-title"
-            className="text-2xl font-bold tracking-tight text-text-strong"
+            className="text-xl font-bold tracking-tight text-text-strong"
           >
             Emisión de credencial
           </h2>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:px-6 sm:pb-6">
+        <CardContent className="grid gap-4 sm:px-5 sm:pb-5">
           {detail.status === 'draft' ? (
             <DraftIssuanceContent
               confirming={confirming}
@@ -126,7 +126,7 @@ function DraftIssuanceContent({
 
   return (
     <>
-      <div className="grid gap-2 leading-7 text-text-muted">
+      <div className="grid gap-1.5 text-sm leading-6 text-text-muted">
         <p>La emisión genera una versión verificable de la credencial.</p>
         <p>
           Scope registra una huella de integridad para permitir verificaciones
@@ -254,14 +254,14 @@ function IssuancePreparation({
     : detail.title;
 
   return (
-    <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted/80 p-4 sm:p-5">
+    <div className="grid gap-3 rounded-control border border-border-default bg-surface-muted/80 p-4">
       <div>
         <p className="text-sm font-semibold text-brand-700">Preparación para emitir</p>
         <p className="mt-1 text-sm leading-6 text-text-muted">
           Revisá el estado actual antes de confirmar la emisión.
         </p>
       </div>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
         <PreparationItem label="Estado" value="Borrador listo para revisar" />
         <PreparationItem label="Tipo" value={detail.typeLabel} />
         <PreparationItem label="Titular" value={detail.holder.displayLabel} />

@@ -23,11 +23,6 @@ import { SessionLoadingState } from '@/components/feedback/session-loading-state
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardHeader
-} from '@/components/ui/card';
-import {
   CredentialDraftEditorForm,
   type CredentialDraftEditorFormHandle
 } from '@/features/credentials/credential-draft-editor-form';
@@ -76,6 +71,7 @@ import {
 } from '@/lib/api/reusable-semantic-interpretation-api';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
+import { credentialTypeLabels } from '@/models/credentials';
 import type {
   CredentialFeedback,
   AcademicProgramSearchItemVM,
@@ -639,6 +635,22 @@ export function CredentialDetailView({
   };
 }) {
   const isDraft = detail.status === 'draft';
+  const [currentDraftType, setCurrentDraftType] = useState(detail.type);
+  const renderedCredentialType = isDraft
+    ? currentDraftType
+    : detail.type;
+  const renderedCredentialTypeLabel =
+    credentialTypeLabels[renderedCredentialType];
+  const issuanceDetail =
+    renderedCredentialType === detail.type
+      ? detail
+      : {
+          ...detail,
+          type: renderedCredentialType,
+          typeLabel: renderedCredentialTypeLabel
+        };
+  const canComposeDocument = isDraft;
+  const canComposeText = isDraft;
   // R1.1: unica condicion de visibilidad para "guardar como reutilizable" --
   // exclusivamente issued (nunca draft, nunca revoked) y course/certification
   // (nunca academic_subject/degree). Coincide exactamente con lo que exige
@@ -791,7 +803,7 @@ export function CredentialDetailView({
             {detail.statusLabel}
           </Badge>
           <span className="text-sm text-text-muted">
-            Registro institucional
+            {renderedCredentialTypeLabel} · {detail.issuer.displayName}
           </span>
         </div>
         <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-5xl">
@@ -862,13 +874,13 @@ export function CredentialDetailView({
         </section>
       ) : null}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-7">
+      <div className="grid items-start gap-7 xl:grid-cols-[minmax(0,4fr)_minmax(17rem,1fr)] xl:gap-8">
         <div className="grid gap-7 xl:gap-9">
           <section
             aria-labelledby="credential-information-title"
-            className="border-y border-border-default py-6 sm:py-8"
+            className="overflow-hidden rounded-card border border-border-default bg-surface shadow-xs"
           >
-            <div className="max-w-3xl">
+            <div className="border-b border-border-default bg-surface-muted/65 px-5 py-6 sm:px-7">
               <p className="text-sm font-semibold text-brand-700">
                 Información de la credencial
               </p>
@@ -879,11 +891,11 @@ export function CredentialDetailView({
                 Registro del logro
               </h2>
             </div>
-            <div className="mt-7 grid gap-x-8 gap-y-6 lg:grid-cols-2">
+            <div className="grid gap-x-10 gap-y-6 px-5 py-6 sm:px-7 lg:grid-cols-2 lg:py-7">
               <DetailRow
                 icon={Tags}
                 label="Tipo de credencial"
-                value={detail.typeLabel}
+                value={renderedCredentialTypeLabel}
               />
               <DetailRow
                 icon={Building2}
@@ -905,102 +917,103 @@ export function CredentialDetailView({
                 value={createdAt}
               />
             </div>
+            {isDraft && draftEditor ? (
+              <div className="px-5 pb-7 sm:px-7">
+                <CredentialDraftEditorForm
+                  ref={draftEditorRef}
+                  detail={detail}
+                  declaredCapabilitiesPlacement="textual-evidence"
+                  declaredCapabilitiesTarget={declaredCapabilitiesTarget}
+                  showDraftSaveActionInCapabilitiesSlot={
+                    renderedCredentialType === 'academic_subject' &&
+                    evidenceComposerMode !== 'document'
+                  }
+                  issuerReference={draftEditor.issuerReference}
+                  onCurrentTypeChange={setCurrentDraftType}
+                  onSave={draftEditor.onSave}
+                  onReloadLatest={draftEditor.onReloadLatest}
+                  searchPrograms={draftEditor.searchPrograms}
+                  searchSubjects={draftEditor.searchSubjects}
+                  onTerminalError={draftEditor.onTerminalError}
+                />
+              </div>
+            ) : null}
+
+            {!isDraft && detail.type === 'course' ? (
+              <div className="px-5 pb-7 sm:px-7">
+                <CourseDeclaredDataCard subject={detail.credentialSubject} />
+              </div>
+            ) : null}
           </section>
 
-          {isDraft && draftEditor ? (
-            <CredentialDraftEditorForm
-              ref={draftEditorRef}
-              detail={detail}
-              declaredCapabilitiesTarget={declaredCapabilitiesTarget}
-              showDraftSaveActionInCapabilitiesSlot={
-                isDraft &&
-                detail.type === 'academic_subject' &&
-                evidenceComposerMode !== 'document'
-              }
-              issuerReference={draftEditor.issuerReference}
-              onSave={draftEditor.onSave}
-              onReloadLatest={draftEditor.onReloadLatest}
-              searchPrograms={draftEditor.searchPrograms}
-              searchSubjects={draftEditor.searchSubjects}
-              onTerminalError={draftEditor.onTerminalError}
-            />
-          ) : null}
-
-          {!isDraft && detail.type === 'course' ? (
-            <CourseDeclaredDataCard subject={detail.credentialSubject} />
-          ) : null}
-
           <EvidenceWorkspace
-            canComposeDocument={isDraft}
-            canComposeText={
-              isDraft &&
-              detail.type !== 'course' &&
-              detail.type !== 'certification'
-            }
-            onTextualCapabilitiesTargetChange={
-              isDraft && detail.type === 'academic_subject'
-                ? handleDeclaredCapabilitiesTargetChange
-                : undefined
-            }
-            onComposerModeChange={
-              isDraft && detail.type === 'academic_subject'
-                ? setEvidenceComposerMode
-                : undefined
-            }
-            documentCurrent={
-              detail.documentEvidence.currentDocument || !isDraft ? (
-              <DocumentEvidenceSection
-                credentialStatus={detail.status}
-                credentialType={detail.type}
-                currentDocument={detail.documentEvidence.currentDocument}
-                display="current"
-                onUpload={onUploadDocumentEvidence}
-                showHeading={false}
-              />
-              ) : null
-            }
-            documentComposer={
-              <DocumentEvidenceSection
-                credentialStatus={detail.status}
-                credentialType={detail.type}
-                currentDocument={detail.documentEvidence.currentDocument}
-                display="composer"
-                onUpload={onUploadDocumentEvidence}
-                showHeading={false}
-              />
-            }
-            textCurrent={
-              detail.textEvidence.currentText ||
-              (!isDraft &&
-                detail.type !== 'course' &&
-                detail.type !== 'certification') ? (
-              <TextEvidenceSection
-                credentialStatus={detail.status}
-                currentText={detail.textEvidence.currentText}
-                display="current"
-                onSubmit={onSubmitTextEvidence}
-                showEmptyState={
-                  detail.type !== 'course' && detail.type !== 'certification'
-                }
-                showHeading={false}
-              />
-              ) : null
-            }
-            textComposer={
-              <TextEvidenceSection
-                credentialStatus={detail.status}
-                currentText={detail.textEvidence.currentText}
-                display="composer"
-                onSubmit={onSubmitTextEvidence}
-                showHeading={false}
-              />
-            }
+              canComposeDocument={canComposeDocument}
+              canComposeText={canComposeText}
+              onTextualCapabilitiesTargetChange={
+                renderedCredentialType === 'academic_subject' && canComposeText
+                  ? handleDeclaredCapabilitiesTargetChange
+                  : undefined
+              }
+              onComposerModeChange={
+                renderedCredentialType === 'academic_subject' && canComposeText
+                  ? setEvidenceComposerMode
+                  : undefined
+              }
+              documentCurrent={
+                detail.documentEvidence.currentDocument || !isDraft ? (
+                  <DocumentEvidenceSection
+                    credentialStatus={detail.status}
+                    credentialType={renderedCredentialType}
+                    currentDocument={detail.documentEvidence.currentDocument}
+                    display="current"
+                    onUpload={onUploadDocumentEvidence}
+                    showHeading={false}
+                  />
+                ) : null
+              }
+              documentComposer={
+                <DocumentEvidenceSection
+                  credentialStatus={detail.status}
+                  credentialType={renderedCredentialType}
+                  currentDocument={detail.documentEvidence.currentDocument}
+                  display="composer"
+                  onUpload={onUploadDocumentEvidence}
+                  showHeading={false}
+                />
+              }
+              textCurrent={
+                detail.textEvidence.currentText ||
+                (!isDraft &&
+                  renderedCredentialType !== 'course' &&
+                  renderedCredentialType !== 'certification') ? (
+                  <TextEvidenceSection
+                    credentialStatus={detail.status}
+                    currentText={detail.textEvidence.currentText}
+                    display="current"
+                    onSubmit={onSubmitTextEvidence}
+                    showEmptyState={
+                      renderedCredentialType !== 'course' &&
+                      renderedCredentialType !== 'certification'
+                    }
+                    showHeading={false}
+                  />
+                ) : null
+              }
+              textComposer={
+                <TextEvidenceSection
+                  credentialStatus={detail.status}
+                  currentText={detail.textEvidence.currentText}
+                  display="composer"
+                  onSubmit={onSubmitTextEvidence}
+                  showHeading={false}
+                />
+              }
           />
 
           {documentAnalysis ? (
             <DocumentAnalysisSection
               credentialStatus={detail.status}
-              credentialType={detail.type}
+              credentialType={renderedCredentialType}
               currentDocument={detail.documentEvidence.currentDocument}
               state={documentAnalysis.state}
               onRetry={documentAnalysis.onRetry}
@@ -1029,33 +1042,27 @@ export function CredentialDetailView({
           ) : null}
         </div>
 
-        <aside aria-labelledby="draft-actions-title" className="grid gap-4 xl:sticky xl:top-8 xl:self-start">
-          <CredentialIssuanceSection detail={detail} onIssue={handleIssue} />
-          <Card className="overflow-hidden rounded-card border-brand-700 bg-brand-900 text-white shadow-none">
-            <CardHeader className="gap-2 sm:p-5">
-              <h2
-                id="draft-actions-title"
-                className="text-lg font-semibold"
-              >
+        <aside aria-label="Acciones de la credencial" className="grid gap-4 xl:sticky xl:top-8 xl:self-start">
+          <CredentialIssuanceSection detail={issuanceDetail} onIssue={handleIssue} />
+          <nav
+            aria-labelledby="draft-actions-title"
+            className="grid gap-3 border-t border-border-default pt-4"
+          >
+              <h2 id="draft-actions-title" className="text-sm font-semibold text-text-strong">
                 Continuar en el portal
               </h2>
-              <p className="text-sm leading-6 text-brand-100/80">
-                Podés volver al contexto institucional o iniciar otro
-                borrador.
-              </p>
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:px-5 sm:pb-5">
+              <div className="grid gap-2">
               <Button asChild variant="secondary">
                 <Link href="/issuer/credentials/new">
                   <FilePlus2 aria-hidden="true" />
                   Crear otra credencial
                 </Link>
               </Button>
-              <Button asChild variant="ghost" className="border-white/15 text-white hover:bg-white/10 hover:text-white">
+              <Button asChild variant="ghost">
                 <Link href="/issuer">Volver al portal</Link>
               </Button>
-            </CardContent>
-          </Card>
+              </div>
+          </nav>
           {isReusableTemplateEligible ? (
             // R1.1: accion primaria, simple, nunca depende de IA -- se
             // renderiza ANTES de SemanticApprovalSection (jerarquia
@@ -1236,12 +1243,6 @@ function CourseDeclaredDataCard({
   );
 }
 
-// C4x: para course/certification, la carga manual de "Contenido textual de
-// respaldo" (TextEvidence) queda oculta -- era una tarjeta duplicada
-// respecto a los datos declarados (descripcion/competencias/contenido
-// adicional) que ya alimentan la interpretacion asistida. No se elimina el
-// academic_subject/degree mantienen su flujo manual de TextEvidence; course y
-// certification no muestran una fuente textual duplicada en el detalle.
 function OptionalDetailRow({
   icon,
   label,

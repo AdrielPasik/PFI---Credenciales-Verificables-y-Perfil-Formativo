@@ -20,13 +20,7 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader
-} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { AcademicSubjectCreationCatalogSection } from '@/features/credentials/academic-subject-creation-catalog-section';
 import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credentials/academic-subject-catalog-section';
 import { ReusableTemplateSearchSection } from '@/features/credentials/reusable-template-search-section';
@@ -288,8 +282,45 @@ export function CredentialDraftForm({
         </p>
       </header>
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem] xl:gap-7">
-        <div className="grid gap-7 xl:gap-9">
+      <section
+        aria-labelledby="issuer-context-title"
+        className="grid gap-4 rounded-card border border-brand-700 bg-brand-900 p-5 text-white sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center lg:gap-8"
+      >
+        <div className="flex min-w-0 items-start gap-4">
+          <span
+            aria-hidden="true"
+            className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"
+          >
+            <Building2 className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold tracking-wider text-teal-100 uppercase">
+              Institución emisora
+            </p>
+            <h2
+              id="issuer-context-title"
+              className="mt-1 break-words text-xl font-semibold"
+            >
+              {issuerName}
+            </h2>
+          </div>
+        </div>
+        <div className="grid gap-2 border-t border-white/10 pt-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+          <Badge variant="secondary" className="w-fit">
+            <LockKeyhole aria-hidden="true" />
+            Definida por tu sesión
+          </Badge>
+          <p className="text-sm leading-6 text-brand-100/80">
+            La institución proviene de tu sesión y no puede editarse desde
+            este formulario.
+          </p>
+        </div>
+      </section>
+
+      <div
+        aria-label="Flujo de creación de credencial"
+        className="grid gap-8 lg:gap-10"
+      >
           <section
             aria-labelledby="holder-resolution-title"
             className="border-b border-border-default pb-8 sm:pb-10"
@@ -358,25 +389,31 @@ export function CredentialDraftForm({
                   </div>
                 </div>
               ) : (
-                <form onSubmit={handleResolve} noValidate className="grid max-w-2xl gap-4">
-                  <TextField
-                    ref={emailRef}
-                    id="holder-email"
-                    label="Email del titular"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      setEmailError(undefined);
-                      setResolutionFeedback(null);
-                    }}
-                    description="La búsqueda es exacta y solo consulta titulares existentes."
-                    error={emailError}
-                    disabled={resolving}
-                  />
-                  <div aria-live="polite" className="flex items-center gap-3">
+                <form
+                  onSubmit={handleResolve}
+                  noValidate
+                  className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
+                >
+                  <div className="max-w-3xl">
+                    <TextField
+                      ref={emailRef}
+                      id="holder-email"
+                      label="Email del titular"
+                      type="email"
+                      inputMode="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        setEmailError(undefined);
+                        setResolutionFeedback(null);
+                      }}
+                      description="La búsqueda es exacta y solo consulta titulares existentes."
+                      error={emailError}
+                      disabled={resolving}
+                    />
+                  </div>
+                  <div aria-live="polite" className="flex min-h-11 items-center gap-3">
                     <Button type="submit" disabled={resolving}>
                       {resolving ? (
                         <LoaderCircle
@@ -401,11 +438,7 @@ export function CredentialDraftForm({
 
           <section
             aria-labelledby="credential-data-title"
-            className={
-              holder
-                ? 'grid gap-6 border-b border-border-default pb-8 sm:pb-10'
-                : 'grid gap-6 border-b border-dashed border-border-strong bg-surface-muted/45 p-5 sm:p-7'
-            }
+            className="grid gap-6 border-b border-border-default pb-8 sm:pb-10"
           >
             <div className="border-b border-border-default pb-5 sm:pb-6">
               <div className="flex items-center gap-3">
@@ -443,16 +476,24 @@ export function CredentialDraftForm({
                 </div>
               ) : null}
 
-              <form onSubmit={handleCreateDraft} noValidate className="grid max-w-5xl gap-6">
-                <fieldset disabled={!holder || submitting} className="grid gap-5">
-                  <div
-                    className={
-                      credentialType && credentialType !== 'academic_subject'
-                        ? 'grid gap-5 lg:grid-cols-[minmax(15rem,0.65fr)_minmax(0,1.35fr)] lg:items-start'
-                        : 'grid gap-5'
-                    }
+              <form onSubmit={handleCreateDraft} noValidate className="grid gap-6">
+                <fieldset disabled={!holder || submitting} className="grid gap-6">
+                  <section
+                    aria-labelledby="credential-kind-title"
+                    className="grid gap-5"
                   >
-                  <div className="grid gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-teal-700">
+                        Categoría institucional
+                      </p>
+                      <h3
+                        id="credential-kind-title"
+                        className="mt-1 text-lg font-semibold text-text-strong"
+                      >
+                        Categoría del logro
+                      </h3>
+                    </div>
+                    <div className="grid max-w-xl gap-2">
                     <Label htmlFor="credential-type">
                       Tipo de credencial
                     </Label>
@@ -507,7 +548,8 @@ export function CredentialDraftForm({
                         {credentialTypeError}
                       </p>
                     ) : null}
-                  </div>
+                    </div>
+                  </section>
 
                   {isReusableCredentialType(credentialType) &&
                   searchReusableTemplates ? (
@@ -547,33 +589,50 @@ export function CredentialDraftForm({
                       }}
                     />
                   ) : credentialType ? (
-                    <TextField
-                      ref={achievementRef}
-                      id="achievement-name"
-                      label="Nombre del logro"
-                      value={achievementName}
-                      disabled={appliedTemplate !== null}
-                      onChange={(event) => {
-                        // C4x: mientras haya un template aplicado, el
-                        // nombre queda bloqueado (precargado desde el
-                        // template) -- se refuerza aca ademas del
-                        // atributo disabled del input.
-                        if (appliedTemplate) {
-                          return;
-                        }
-                        setAchievementName(event.target.value);
-                        setAchievementError(undefined);
-                        setDraftFeedback(null);
-                      }}
-                      description={
-                        appliedTemplate
-                          ? 'Precargado desde el contenido reutilizable aplicado. Quitalo para editarlo.'
-                          : 'Usá el nombre institucional del curso o logro.'
-                      }
-                      error={achievementError}
-                    />
+                    <section
+                      aria-labelledby="achievement-main-data-title"
+                      className="grid gap-5 border-t border-border-default pt-6"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-teal-700">
+                          Información principal
+                        </p>
+                        <h3
+                          id="achievement-main-data-title"
+                          className="mt-1 text-lg font-semibold text-text-strong"
+                        >
+                          Identidad del logro
+                        </h3>
+                      </div>
+                      <div className="max-w-3xl">
+                        <TextField
+                          ref={achievementRef}
+                          id="achievement-name"
+                          label="Nombre del logro"
+                          value={achievementName}
+                          disabled={appliedTemplate !== null}
+                          onChange={(event) => {
+                            // C4x: mientras haya un template aplicado, el
+                            // nombre queda bloqueado (precargado desde el
+                            // template) -- se refuerza aca ademas del
+                            // atributo disabled del input.
+                            if (appliedTemplate) {
+                              return;
+                            }
+                            setAchievementName(event.target.value);
+                            setAchievementError(undefined);
+                            setDraftFeedback(null);
+                          }}
+                          description={
+                            appliedTemplate
+                              ? 'Precargado desde el contenido reutilizable aplicado. Quitalo para editarlo.'
+                              : 'Usá el nombre institucional del curso o logro.'
+                          }
+                          error={achievementError}
+                        />
+                      </div>
+                    </section>
                   ) : null}
-                  </div>
 
                   {credentialType === 'academic_subject' &&
                   holder &&
@@ -647,77 +706,39 @@ export function CredentialDraftForm({
                     </section>
                   ) : null}
 
-                  <Button
-                    type="submit"
-                    size="lg"
-                    disabled={
-                      !holder ||
-                      submitting ||
-                      (credentialType === 'academic_subject' &&
-                        !curricularSelectionReady)
-                    }
-                  >
-                    {submitting ? (
-                      <LoaderCircle
-                        aria-hidden="true"
-                        className="animate-spin"
-                      />
-                    ) : (
-                      <CheckCircle2 aria-hidden="true" />
-                    )}
-                    {submitting ? 'Creando borrador' : 'Crear borrador'}
-                  </Button>
+                  <div className="flex flex-col-reverse gap-3 border-t border-border-default pt-6 sm:flex-row sm:items-center sm:justify-between">
+                    <p aria-live="polite" className="text-sm text-text-muted">
+                      {!holder
+                        ? 'Confirmá primero al titular para habilitar esta etapa.'
+                        : submitting
+                          ? 'Guardando el borrador institucional.'
+                          : 'El borrador todavía no será emitido.'}
+                    </p>
+                    <Button
+                      type="submit"
+                      size="lg"
+                      disabled={
+                        !holder ||
+                        submitting ||
+                        (credentialType === 'academic_subject' &&
+                          !curricularSelectionReady)
+                      }
+                    >
+                      {submitting ? (
+                        <LoaderCircle
+                          aria-hidden="true"
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <CheckCircle2 aria-hidden="true" />
+                      )}
+                      {submitting ? 'Creando borrador' : 'Crear borrador'}
+                    </Button>
+                  </div>
                 </fieldset>
-                <p aria-live="polite" className="text-sm text-text-muted">
-                  {!holder
-                    ? 'Confirmá primero al titular para habilitar esta etapa.'
-                    : submitting
-                      ? 'Guardando el borrador institucional.'
-                      : 'El borrador todavía no será emitido.'}
-                </p>
               </form>
             </div>
           </section>
-        </div>
-
-        <aside aria-labelledby="issuer-context-title" className="xl:sticky xl:top-8 xl:self-start">
-          <Card className="overflow-hidden rounded-card border-brand-700 bg-brand-900 text-white shadow-none">
-            <CardHeader className="gap-3 sm:p-5">
-              <span
-                aria-hidden="true"
-                className="flex size-11 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"
-              >
-                <Building2 className="size-5" />
-              </span>
-              <div>
-                <p className="text-xs font-semibold tracking-wider text-teal-100 uppercase">
-                  Contexto de trabajo
-                </p>
-                <Badge variant="secondary">Definida por tu sesión</Badge>
-                <h2
-                  id="issuer-context-title"
-                  className="mt-3 text-xl font-semibold"
-                >
-                  Institución emisora
-                </h2>
-              </div>
-            </CardHeader>
-            <Separator className="bg-white/10" />
-            <CardContent className="pt-5 sm:px-5 sm:pb-5">
-              <p className="flex items-start gap-2 font-semibold">
-                <LockKeyhole
-                  aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-teal-100"
-                />
-                <span>{issuerName}</span>
-              </p>
-              <p className="mt-4 text-sm leading-6 text-brand-100/80">
-                La institución proviene de tu sesión y no puede editarse desde
-                este formulario.
-              </p>
-            </CardContent>
-          </Card>
-        </aside>
       </div>
     </div>
   );

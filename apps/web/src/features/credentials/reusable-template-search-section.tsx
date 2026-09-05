@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import type {
@@ -107,11 +106,17 @@ export function ReusableTemplateSearchSection({
   const noun = nounByType[credentialType];
 
   return (
-    <Card className="border-border-strong shadow-none">
-      <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
+    <section
+      aria-labelledby="reusable-content-title"
+      className="grid gap-5 border-t border-border-default pt-6"
+    >
+      <header className="flex items-start gap-3">
         <BookmarkPlus aria-hidden="true" className="size-5 text-teal-700" />
         <div>
-          <h3 className="text-lg font-semibold text-text-strong">
+          <h3
+            id="reusable-content-title"
+            className="text-lg font-semibold text-text-strong"
+          >
             Usar contenido reutilizable
           </h3>
           <p className="mt-1 text-sm leading-6 text-text-muted">
@@ -119,15 +124,16 @@ export function ReusableTemplateSearchSection({
             precargar el formulario.
           </p>
         </div>
-      </CardHeader>
-      <CardContent className="grid gap-4 pt-5">
+      </header>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.36fr)_minmax(0,0.64fr)] lg:gap-6">
         <p className="text-sm leading-6 text-text-muted">
           Podés revisar y editar los datos antes de crear la credencial.
           Seleccionar un template no crea una credencial automáticamente.
         </p>
 
-        {appliedTemplate ? (
-          <div className="grid gap-3">
+        <div>
+          {appliedTemplate ? (
+            <div className="grid gap-3">
             <FeedbackAlert
               variant="success"
               title="Datos precargados desde contenido reutilizable"
@@ -159,9 +165,9 @@ export function ReusableTemplateSearchSection({
               <RotateCcw aria-hidden="true" />
               Quitar contenido reutilizable
             </Button>
-          </div>
-        ) : previewTemplate ? (
-          <div className="grid gap-3">
+            </div>
+          ) : previewTemplate ? (
+            <div className="grid gap-3">
             <div className="rounded-control border border-teal-600/25 bg-teal-100 p-4">
               <p className="text-xs font-bold tracking-wide text-teal-700 uppercase">
                 Vista previa
@@ -189,9 +195,9 @@ export function ReusableTemplateSearchSection({
                 Elegir otro
               </Button>
             </div>
-          </div>
-        ) : (
-          <div className="grid gap-3">
+            </div>
+          ) : (
+            <div className="grid gap-3">
             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div className="grid gap-2">
                 <Label htmlFor="reusable-template-query">
@@ -255,10 +261,11 @@ export function ReusableTemplateSearchSection({
                 ))}
               </ul>
             ) : null}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 

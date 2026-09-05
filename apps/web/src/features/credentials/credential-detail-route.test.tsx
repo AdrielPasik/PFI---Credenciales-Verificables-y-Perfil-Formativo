@@ -68,6 +68,22 @@ const textEvidenceResponse = {
   sha256: 'c'.repeat(64),
   submittedAt: '2026-08-03T12:00:00.000Z'
 };
+const documentEvidenceView = {
+  ...uploadResponse,
+  kind: 'pdf' as const,
+  status: 'current' as const,
+  mimeType: 'application/pdf' as const,
+  sizeLabel: '8 bytes',
+  sha256Short: `${evidenceHash.slice(0, 10)}...${evidenceHash.slice(-8)}`,
+  uploadedAtLabel: '3 ago 2026'
+};
+const textEvidenceView = {
+  ...textEvidenceResponse,
+  status: 'current' as const,
+  characterCountLabel: `${Array.from(textEvidenceContent).length} caracteres`,
+  sha256Short: `${textEvidenceResponse.sha256.slice(0, 10)}...${textEvidenceResponse.sha256.slice(-8)}`,
+  submittedAtLabel: '3 ago 2026'
+};
 const draftResponse = {
   id: 'credential-internal-reference',
   title: 'Arquitectura de Software',
@@ -275,11 +291,9 @@ describe('CredentialDetailController', () => {
     expect(
       screen.getByRole('heading', { name: 'Evidencia de respaldo' })
     ).toBeTruthy();
-    // C4y: course no muestra ni carga manual ni explicación técnica
-    // permanente sobre evidencia textual.
-    expect(
-      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
-    ).toBeNull();
+    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
     expect(
       screen.getByRole('heading', {
@@ -707,10 +721,6 @@ describe('CredentialDetailController', () => {
     );
   });
 
-  // C4x: la carga manual de "Contenido textual de respaldo" queda oculta
-  // para course/certification (ver institutional-textual-backing.ts), asi
-  // que este flujo se sigue probando con un tipo que todavia la usa sin
-  // cambios (degree/academic_subject).
   it('submits one textual source and updates only its current snapshot', async () => {
     mockCredentialDetailApi({
       detail: {
@@ -771,9 +781,6 @@ describe('CredentialDetailController', () => {
     ).toBe(false);
   });
 
-  // C4x: mismo motivo que el test anterior -- "Fuente textual actual" solo
-  // se muestra para tipos que conservan la carga manual de TextEvidence
-  // (degree/academic_subject), ya no para course/certification.
   it('reconstructs current text and document evidence together from GET', async () => {
     mockCredentialDetailApi({
       detail: {
@@ -2064,8 +2071,8 @@ describe('CredentialDetailController C4b.2 reusable semantic interpretation wiri
 // ---------------------------------------------------------------------------
 // C4x: dedicated coverage for the domain/UX hardening items.
 // ---------------------------------------------------------------------------
-describe('CredentialDetailView C4y textual-backing UX', () => {
-  it('never shows "Contenido textual de respaldo" for course', () => {
+describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
+  it('shows Documental, Textual and Ambas for a course draft, defaulting to both composers', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2074,12 +2081,24 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     );
 
     expect(
-      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+      (screen.getByRole('radio', { name: 'Ambas' }) as HTMLInputElement).checked
+    ).toBe(true);
+    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByLabelText('Nombre de la fuente (opcional)')).toBeTruthy();
+    expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Capacidades declaradas por la institución'
+      })
     ).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('never shows "Contenido textual de respaldo" for certification', () => {
+  it('shows Documental, Textual and Ambas for a certification draft, defaulting to both composers', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2088,12 +2107,24 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     );
 
     expect(
-      screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
+      (screen.getByRole('radio', { name: 'Ambas' }) as HTMLInputElement).checked
+    ).toBe(true);
+    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByLabelText('Nombre de la fuente (opcional)')).toBeTruthy();
+    expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Capacidades declaradas por la institución'
+      })
     ).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('keeps the textual composer available for academic_subject', () => {
+  it('keeps all three modes available for academic_subject', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2101,9 +2132,70 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
       />
     );
 
+    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
     expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
+
+  it.each(['course', 'certification'] as const)(
+    'preserves the manual textual draft across mode changes for %s without submitting evidence',
+    (type) => {
+      const onSubmitTextEvidence = vi.fn(async () => textEvidenceView);
+      const onUploadDocumentEvidence = vi.fn(async () => documentEvidenceView);
+      render(
+        <CredentialDetailView
+          onSubmitTextEvidence={onSubmitTextEvidence}
+          onUploadDocumentEvidence={onUploadDocumentEvidence}
+          detail={detailFixture({ type, status: 'draft' })}
+        />
+      );
+
+      fireEvent.change(screen.getByLabelText('Nombre de la fuente (opcional)'), {
+        target: { value: 'Programa institucional' }
+      });
+      fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
+        target: { value: 'Contenido preservado entre modos' }
+      });
+      fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
+
+      expect(
+        (screen.getByLabelText('Nombre de la fuente (opcional)') as HTMLInputElement)
+          .value
+      ).toBe('Programa institucional');
+      expect(
+        (screen.getByLabelText('Contenido de respaldo') as HTMLTextAreaElement)
+          .value
+      ).toBe('Contenido preservado entre modos');
+      expect(onSubmitTextEvidence).not.toHaveBeenCalled();
+      expect(onUploadDocumentEvidence).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(['issued', 'revoked'] as const)(
+    'keeps persisted course text evidence read-only when the credential is %s',
+    (status) => {
+      render(
+        <CredentialDetailView
+          onUploadDocumentEvidence={unusedDocumentUpload}
+          detail={detailFixture({
+            type: 'course',
+            status,
+            textEvidence: { currentText: textEvidenceView }
+          })}
+        />
+      );
+
+      expect(screen.getByText('Fuente textual actual')).toBeTruthy();
+      expect(screen.getByLabelText('Contenido de la fuente textual')).toBeTruthy();
+      expect(screen.queryByRole('radio', { name: 'Textual' })).toBeNull();
+      expect(screen.queryByLabelText('Nombre de la fuente (opcional)')).toBeNull();
+      expect(
+        screen.queryByRole('button', { name: 'Guardar evidencia textual' })
+      ).toBeNull();
+    }
+  );
 
   it('places academic capabilities only inside the textual evidence workspace without changing their draft save path', async () => {
     const academicDraft = {
@@ -2174,6 +2266,112 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     );
   });
 
+  it('derives academic evidence from the current editor type so Course to Academic matches an initial Academic render', async () => {
+    const course = editableDetailFixture('course');
+    const { onSave, unmount } = renderEditableDetail(course);
+
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'academic_subject' }
+    });
+
+    expect(await screen.findByRole('radio', { name: 'Textual' })).toBeTruthy();
+    const transitionedCapabilities = await screen.findByRole('heading', {
+      name: 'Capacidades declaradas por la institución'
+    });
+    const transitionedEvidence = screen.getByRole('heading', {
+      name: 'Evidencia de respaldo'
+    });
+    expect(
+      transitionedEvidence.closest('section')?.contains(transitionedCapabilities)
+    ).toBe(true);
+    expect(screen.queryByLabelText('Modalidad')).toBeNull();
+    expect(
+      screen.getByRole('heading', { name: 'Referencia académica oficial' })
+    ).toBeTruthy();
+    expect(onSave).not.toHaveBeenCalled();
+
+    unmount();
+    const { onSave: initialOnSave } = renderEditableDetail(
+      editableDetailFixture('academic_subject')
+    );
+
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    const initialCapabilities = await screen.findByRole('heading', {
+      name: 'Capacidades declaradas por la institución'
+    });
+    expect(
+      screen
+        .getByRole('heading', { name: 'Evidencia de respaldo' })
+        .closest('section')
+        ?.contains(initialCapabilities)
+    ).toBe(true);
+    expect(initialOnSave).not.toHaveBeenCalled();
+  });
+
+  it('removes academic-only UI but keeps every evidence mode when changing Academic to Course', async () => {
+    const { onSave } = renderEditableDetail(
+      editableDetailFixture('academic_subject')
+    );
+    await screen.findByRole('heading', {
+      name: 'Capacidades declaradas por la institución'
+    });
+
+    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+      target: { value: 'course' }
+    });
+
+    expect(screen.getByLabelText('Modalidad')).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Referencia académica oficial'
+      })
+    ).toBeNull();
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Capacidades declaradas por la institución'
+      })
+    ).toBeNull();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['course', 'certification', 'Código de certificación', 'Modalidad'],
+    ['certification', 'course', 'Modalidad', 'Código de certificación'],
+    ['certification', 'academic_subject', 'Referencia académica oficial', 'Código de certificación'],
+    ['academic_subject', 'certification', 'Código de certificación', 'Referencia académica oficial']
+  ] as const)(
+    'renders only current type UI when changing %s to %s',
+    async (from, to, expected, stale) => {
+      const { onSave } = renderEditableDetail(editableDetailFixture(from));
+
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: to }
+      });
+
+      if (expected === 'Referencia académica oficial') {
+        expect(
+          await screen.findByRole('heading', { name: expected })
+        ).toBeTruthy();
+      } else {
+        expect(screen.getByLabelText(expected)).toBeTruthy();
+      }
+
+      expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+
+      if (stale === 'Referencia académica oficial') {
+        expect(screen.queryByRole('heading', { name: stale })).toBeNull();
+      } else {
+        expect(screen.queryByLabelText(stale)).toBeNull();
+      }
+      expect(onSave).not.toHaveBeenCalled();
+    }
+  );
+
   it('keeps the textual composer available for degree', () => {
     render(
       <CredentialDetailView
@@ -2185,7 +2383,7 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
   });
 
-  it('does not replace the hidden manual textual flow with a technical backing card', () => {
+  it('does not add a separate technical backing card alongside manual textual evidence', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2238,3 +2436,39 @@ describe('CredentialDetailView C4y textual-backing UX', () => {
     expect(text).not.toMatch(/Base textual para la interpretación asistida/i);
   });
 });
+
+function editableDetailFixture(type: 'course' | 'certification' | 'academic_subject') {
+  return detailFixture({
+    type,
+    typeLabel:
+      type === 'course'
+        ? 'Curso'
+        : type === 'certification'
+          ? 'Certificación'
+          : 'Asignatura académica',
+    issuer: {
+      displayName: 'Universidad Seleccionada',
+      did: 'did:example:issuer-demo'
+    }
+  });
+}
+
+function renderEditableDetail(detail: IssuerCredentialDetailVM) {
+  const onSave = vi.fn(async () => detail);
+  const result = render(
+    <CredentialDetailView
+      detail={detail}
+      onUploadDocumentEvidence={unusedDocumentUpload}
+      draftEditor={{
+        issuerReference: 'issuer-selected-reference',
+        onSave,
+        onReloadLatest: vi.fn(async () => detail),
+        searchPrograms: vi.fn(async () => []),
+        searchSubjects: vi.fn(async () => []),
+        onTerminalError: vi.fn()
+      }}
+    />
+  );
+
+  return { ...result, onSave };
+}
