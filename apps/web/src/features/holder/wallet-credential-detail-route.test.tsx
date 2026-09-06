@@ -1,8 +1,31 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { WalletCredentialDetailView } from '@/features/holder/wallet-credential-detail-route';
+import {
+  mapCredentialDetailError,
+  WalletCredentialDetailContent,
+  WalletCredentialDetailView
+} from '@/features/holder/wallet-credential-detail-route';
+import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { HolderCredentialDetailVM } from '@/models/holder';
+
+const routeMocks = vi.hoisted(() => ({
+  credentialReference: 'credential-reference',
+  getMyCredentialRequest: vi.fn(),
+  requestAuthenticated: vi.fn()
+}));
+
+vi.mock('next/navigation', () => ({
+  useParams: () => ({ credentialId: routeMocks.credentialReference })
+}));
+
+vi.mock('@/lib/session/session-provider', () => ({
+  useSession: () => ({ requestAuthenticated: routeMocks.requestAuthenticated })
+}));
+
+vi.mock('@/lib/api/holder-api', () => ({
+  getMyCredentialRequest: routeMocks.getMyCredentialRequest
+}));
 
 const detail: HolderCredentialDetailVM = {
   credentialReference: 'credential-reference', title: 'Arquitectura de software', type: 'course', typeLabel: 'Curso',
@@ -35,6 +58,77 @@ const academicSubjectDetail: HolderCredentialDetailVM = {
   type: 'academic_subject',
   typeLabel: 'Asignatura académica'
 };
+
+describe('WalletCredentialDetailContent error recovery', () => {
+  beforeEach(() => {
+    routeMocks.credentialReference = 'credential-reference';
+    routeMocks.getMyCredentialRequest.mockReset();
+    routeMocks.requestAuthenticated.mockReset();
+  });
+
+  it.each([
+    [404, 'No encontramos esta credencial en tu espacio personal.'],
+    [403, 'No tenés acceso a esta credencial.']
+  ])('maps HTTP %i without offering a misleading retry', async (status, message) => {
+    routeMocks.getMyCredentialRequest.mockRejectedValue(
+      new ApiError('safe', 'http', status)
+    );
+
+    render(<WalletCredentialDetailContent />);
+
+    expect(await screen.findByText(message)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
+  });
+
+  it.each([
+    new ApiError('safe', 'http', 500),
+    new ApiError('safe', 'network'),
+    new IncompatiblePayloadError()
+  ])('shows a safe recoverable state for %s instead of a false 404', async (requestError) => {
+    routeMocks.getMyCredentialRequest.mockRejectedValue(requestError);
+
+    render(<WalletCredentialDetailContent />);
+
+    expect(await screen.findByRole('button', { name: 'Reintentar' })).toBeTruthy();
+    expect(screen.queryByText('No encontramos esta credencial en tu espacio personal.')).toBeNull();
+  });
+
+  it('does not classify a surfaced 304 as not found', () => {
+    expect(mapCredentialDetailError(new ApiError('safe', 'http', 304))).toEqual({
+      title: 'No pudimos cargar la credencial',
+      message: 'Volvé a intentar en unos instantes.',
+      retryable: true
+    });
+  });
+
+  it('retries the same holder credential GET and renders a valid Course', async () => {
+    routeMocks.getMyCredentialRequest
+      .mockRejectedValueOnce(new ApiError('safe', 'network'))
+      .mockResolvedValueOnce(detail);
+
+    render(<WalletCredentialDetailContent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByRole('heading', { name: 'Arquitectura de software' })).toBeTruthy();
+    expect(routeMocks.getMyCredentialRequest).toHaveBeenCalledTimes(2);
+    expect(routeMocks.getMyCredentialRequest).toHaveBeenNthCalledWith(
+      2,
+      routeMocks.requestAuthenticated,
+      'credential-reference'
+    );
+  });
+
+  it('keeps an incompatible payload distinct from not found', async () => {
+    routeMocks.getMyCredentialRequest.mockRejectedValue(
+      new IncompatiblePayloadError()
+    );
+
+    render(<WalletCredentialDetailContent />);
+
+    expect(await screen.findByText('No pudimos cargar correctamente la información de esta credencial')).toBeTruthy();
+    expect(screen.queryByText('No encontramos esta credencial en tu espacio personal.')).toBeNull();
+  });
+});
 
 it('orders holder credential information before secondary integrity evidence', () => {
   render(<WalletCredentialDetailView detail={detail} />);

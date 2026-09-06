@@ -2,22 +2,27 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
+import { WalletHomeContent, WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
 import type { HolderProfileVM } from '@/models/holder';
 
 // P1.1: ProfileRebuildAction (montado solo cuando showProfileShare +
 // onProfileRebuilt) usa useSession() y rebuildMyProfileRequest -- se
 // mockean ambos para poder ejercitar el boton "Actualizar perfil" sin un
 // SessionProvider real ni un fetch real.
-vi.mock('@/lib/session/session-provider', () => ({
-  useSession: () => ({ requestAuthenticated: vi.fn() })
+const holderApiMocks = vi.hoisted(() => ({
+  getMyCredentialsRequest: vi.fn(),
+  getMyCurrentProfileRequest: vi.fn(),
+  rebuildMyProfileRequest: vi.fn(),
+  requestAuthenticated: vi.fn()
 }));
 
-const holderApiMocks = vi.hoisted(() => ({
-  rebuildMyProfileRequest: vi.fn()
+vi.mock('@/lib/session/session-provider', () => ({
+  useSession: () => ({ requestAuthenticated: holderApiMocks.requestAuthenticated })
 }));
 
 vi.mock('@/lib/api/holder-api', () => ({
+  getMyCredentialsRequest: holderApiMocks.getMyCredentialsRequest,
+  getMyCurrentProfileRequest: holderApiMocks.getMyCurrentProfileRequest,
   rebuildMyProfileRequest: holderApiMocks.rebuildMyProfileRequest
 }));
 
@@ -416,5 +421,78 @@ describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
 
     expect(screen.getByRole('button', { name: 'Compartir perfil' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+});
+
+describe('WalletHomeContent profile error recovery', () => {
+  beforeEach(() => {
+    holderApiMocks.getMyCredentialsRequest.mockReset();
+    holderApiMocks.getMyCurrentProfileRequest.mockReset();
+    holderApiMocks.rebuildMyProfileRequest.mockReset();
+    holderApiMocks.requestAuthenticated.mockReset();
+    holderApiMocks.getMyCredentialsRequest.mockResolvedValue([credential]);
+  });
+
+  it('offers retry and rebuild when profile loading fails but issued credentials exist', async () => {
+    holderApiMocks.getMyCurrentProfileRequest.mockRejectedValue(new Error('network'));
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByText('No pudimos cargar tu perfil formativo')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+
+  it('retries GET /me/profile/current and renders the recovered profile', async () => {
+    holderApiMocks.getMyCurrentProfileRequest
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(profile);
+
+    render(<WalletHomeContent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Reintentar' }));
+
+    expect(await screen.findByText(profile.narrative)).toBeTruthy();
+    expect(holderApiMocks.getMyCurrentProfileRequest).toHaveBeenCalledTimes(2);
+    expect(holderApiMocks.getMyCurrentProfileRequest).toHaveBeenNthCalledWith(
+      2,
+      holderApiMocks.requestAuthenticated
+    );
+  });
+
+  it('refetches the current profile after the existing rebuild succeeds', async () => {
+    holderApiMocks.getMyCurrentProfileRequest
+      .mockRejectedValueOnce(new Error('network'))
+      .mockResolvedValueOnce(profile);
+    holderApiMocks.rebuildMyProfileRequest.mockResolvedValue(profile);
+
+    render(<WalletHomeContent />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Actualizar perfil' }));
+
+    await waitFor(() => {
+      expect(holderApiMocks.rebuildMyProfileRequest).toHaveBeenCalledWith(
+        holderApiMocks.requestAuthenticated
+      );
+      expect(holderApiMocks.getMyCurrentProfileRequest).toHaveBeenCalledTimes(2);
+    });
+    expect(await screen.findByText(profile.narrative)).toBeTruthy();
+  });
+
+  it('keeps a null current profile as an empty state rather than an error', async () => {
+    holderApiMocks.getMyCurrentProfileRequest.mockResolvedValue(null);
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByText('Tu perfil todavía no está disponible')).toBeTruthy();
+    expect(screen.queryByText('No pudimos cargar tu perfil formativo')).toBeNull();
+  });
+
+  it('does not offer rebuild after an error when there are no issued credentials', async () => {
+    holderApiMocks.getMyCredentialsRequest.mockResolvedValue([]);
+    holderApiMocks.getMyCurrentProfileRequest.mockRejectedValue(new Error('network'));
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByRole('button', { name: 'Reintentar' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Actualizar perfil' })).toBeNull();
   });
 });

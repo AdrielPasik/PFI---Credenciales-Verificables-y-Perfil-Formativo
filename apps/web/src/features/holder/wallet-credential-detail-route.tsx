@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { WalletRouteBoundary } from '@/features/holder/wallet-route-boundary';
 import { getMyCredentialRequest } from '@/lib/api/holder-api';
+import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderCredentialDetailVM } from '@/models/holder';
 import { LoadingState } from './wallet-home-route';
@@ -20,25 +21,84 @@ export function WalletCredentialDetailRoute() {
   return <WalletRouteBoundary><WalletCredentialDetailContent /></WalletRouteBoundary>;
 }
 
-function WalletCredentialDetailContent() {
+interface HolderCredentialDetailError {
+  title: string;
+  message: string;
+  retryable: boolean;
+}
+
+export function WalletCredentialDetailContent() {
   const params = useParams<{ credentialId: string }>();
   const { requestAuthenticated } = useSession();
   const [detail, setDetail] = useState<HolderCredentialDetailVM | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<HolderCredentialDetailError | null>(null);
+  const [requestVersion, setRequestVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
     const credentialReference = typeof params.credentialId === 'string' ? params.credentialId : '';
     void getMyCredentialRequest(requestAuthenticated, credentialReference)
       .then((value) => active && setDetail(value))
-      .catch((requestError: unknown) => active && setError(requestError instanceof Error && requestError.message.includes('no es válida') ? 'La credencial solicitada no es válida.' : 'No encontramos esta credencial en tu espacio personal.'));
+      .catch((requestError: unknown) => active && setError(mapCredentialDetailError(requestError)));
     return () => { active = false; };
-  }, [params.credentialId, requestAuthenticated]);
+  }, [params.credentialId, requestAuthenticated, requestVersion]);
 
-  if (error) return <section className="grid gap-5"><BackLink /><FeedbackAlert variant="error" title="No pudimos mostrar la credencial">{error}</FeedbackAlert></section>;
+  if (error) {
+    return <section className="grid gap-5"><BackLink /><FeedbackAlert variant="error" title={error.title}>{error.message}</FeedbackAlert>{error.retryable ? <Button type="button" className="w-fit" onClick={() => { setDetail(null); setError(null); setRequestVersion((version) => version + 1); }}>Reintentar</Button> : null}</section>;
+  }
   if (!detail) return <LoadingState label="Cargando credencial" />;
 
   return <WalletCredentialDetailView detail={detail} />;
+}
+
+export function mapCredentialDetailError(error: unknown): HolderCredentialDetailError {
+  if (error instanceof Error && error.message.includes('no es válida')) {
+    return {
+      title: 'No pudimos mostrar la credencial',
+      message: 'La credencial solicitada no es válida.',
+      retryable: false
+    };
+  }
+
+  if (error instanceof IncompatiblePayloadError) {
+    return {
+      title: 'No pudimos cargar correctamente la información de esta credencial',
+      message: 'Volvé a intentar en unos instantes.',
+      retryable: true
+    };
+  }
+
+  if (error instanceof ApiError) {
+    if (error.status === 404) {
+      return {
+        title: 'No pudimos mostrar la credencial',
+        message: 'No encontramos esta credencial en tu espacio personal.',
+        retryable: false
+      };
+    }
+
+    if (error.status === 403) {
+      return {
+        title: 'No pudimos mostrar la credencial',
+        message: 'No tenés acceso a esta credencial.',
+        retryable: false
+      };
+    }
+
+    if (error.status === 401) {
+      return {
+        title: 'Tu sesión ya no está disponible',
+        message: 'Volvé a iniciar sesión para consultar la credencial.',
+        retryable: false
+      };
+    }
+  }
+
+  return {
+    title: 'No pudimos cargar la credencial',
+    message: 'Volvé a intentar en unos instantes.',
+    retryable: true
+  };
 }
 
 export function WalletCredentialDetailView({ detail }: { detail: HolderCredentialDetailVM }) {
