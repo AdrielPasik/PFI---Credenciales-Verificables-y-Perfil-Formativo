@@ -62,6 +62,7 @@ const academicSubjectDetail: HolderCredentialDetailVM = {
 
 describe('WalletCredentialDetailContent error recovery', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/wallet/credentials/credential-reference');
     routeMocks.credentialReference = 'credential-reference';
     routeMocks.getMyCredentialRequest.mockReset();
     routeMocks.requestAuthenticated.mockReset();
@@ -98,7 +99,8 @@ describe('WalletCredentialDetailContent error recovery', () => {
     expect(mapCredentialDetailError(new ApiError('safe', 'http', 304))).toEqual({
       title: 'No pudimos cargar la credencial',
       message: 'Volvé a intentar en unos instantes.',
-      retryable: true
+      retryable: true,
+      diagnostic: null
     });
   });
 
@@ -128,6 +130,61 @@ describe('WalletCredentialDetailContent error recovery', () => {
 
     expect(await screen.findByText('No pudimos cargar correctamente la información de esta credencial')).toBeTruthy();
     expect(screen.queryByText('No encontramos esta credencial en tu espacio personal.')).toBeNull();
+    expect(screen.queryByText('Diagnóstico de contrato')).toBeNull();
+  });
+
+  it('shows only safe contract metadata when contractDebug=1', async () => {
+    window.history.replaceState({}, '', '/wallet/credentials/credential-reference?contractDebug=1');
+    routeMocks.getMyCredentialRequest.mockRejectedValue(
+      new IncompatiblePayloadError('safe', {
+        path: 'credential.textEvidence',
+        expected: 'object',
+        actualCategory: 'string'
+      })
+    );
+
+    render(<WalletCredentialDetailContent />);
+
+    expect(await screen.findByText('Diagnóstico de contrato')).toBeTruthy();
+    expect(screen.getByText('credential.textEvidence')).toBeTruthy();
+    expect(screen.getByText('object')).toBeTruthy();
+    expect(screen.getByText('string')).toBeTruthy();
+  });
+
+  it.each([401, 404, 500])('never shows contract diagnostics for HTTP %i', async (status) => {
+    window.history.replaceState({}, '', '/wallet/credentials/credential-reference?contractDebug=1');
+    routeMocks.getMyCredentialRequest.mockRejectedValue(new ApiError('safe', 'http', status));
+
+    render(<WalletCredentialDetailContent />);
+
+    await screen.findByRole('alert');
+    expect(screen.queryByText('Diagnóstico de contrato')).toBeNull();
+  });
+
+  it('never renders a sensitive original value in contract debug', async () => {
+    const sensitiveOriginalValues = [
+      'private-holder@example.test',
+      '37281902-0947-4c7e-816b-7d8290fd8a31',
+      'private-token-value',
+      'private-evidence.pdf',
+      'source content that must stay private',
+      'document-evidence/private-storage-key'
+    ];
+    window.history.replaceState({}, '', '/wallet/credentials/credential-reference?contractDebug=1');
+    routeMocks.getMyCredentialRequest.mockRejectedValue(
+      new IncompatiblePayloadError('safe', {
+        path: 'credential.subject.email',
+        expected: 'string or null',
+        actualCategory: typeof sensitiveOriginalValues[0] === 'string' ? 'string' : 'object'
+      })
+    );
+
+    render(<WalletCredentialDetailContent />);
+
+    expect(await screen.findByText('Diagnóstico de contrato')).toBeTruthy();
+    for (const forbidden of [...sensitiveOriginalValues, 'storageKey', 'credentialIds', 'semanticAnalysisIds']) {
+      expect(document.body.textContent).not.toContain(forbidden);
+    }
   });
 });
 

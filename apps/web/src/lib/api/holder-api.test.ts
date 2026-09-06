@@ -81,6 +81,27 @@ it('classifies an HTTP 200 malformed current profile as an adapter failure with 
   } satisfies Partial<IncompatiblePayloadError>);
 });
 
+it('preserves the safe diagnostic when an HTTP 200 rebuild response fails adaptation', async () => {
+  const request = vi.fn().mockResolvedValue({
+    currentProfile: {
+      profileVersion: 'formative_profile_v1', credentialsCount: 1, totalHours: 12,
+      areas: [], skills: [], concepts: [], confidence: null,
+      qualityFlags: 'malformed-without-exposing-value',
+      generatedAt: '2026-08-14T10:00:00.000Z'
+    }
+  });
+
+  await expect(rebuildMyProfileRequest(request)).rejects.toMatchObject({
+    name: 'IncompatiblePayloadError',
+    diagnostic: {
+      path: 'profile.currentProfile.qualityFlags',
+      expected: 'array',
+      actualCategory: 'string'
+    }
+  } satisfies Partial<IncompatiblePayloadError>);
+  expect(request).toHaveBeenCalledWith('/me/profile/rebuild', { method: 'POST' });
+});
+
 it('loads one holder credential from the /me scoped route', async () => {
   const request = vi.fn().mockResolvedValue({
     id: 'credential-reference', title: 'Curso', type: 'course', status: 'issued', description: null, hours: null,

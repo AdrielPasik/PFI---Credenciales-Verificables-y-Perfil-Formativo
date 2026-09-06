@@ -9,9 +9,10 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { ContractDiagnostic, useContractDebugEnabled } from '@/features/holder/contract-diagnostic';
 import { WalletRouteBoundary } from '@/features/holder/wallet-route-boundary';
 import { getMyCredentialRequest } from '@/lib/api/holder-api';
-import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
+import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderCredentialDetailVM } from '@/models/holder';
 import { LoadingState } from './wallet-home-route';
@@ -25,10 +26,12 @@ interface HolderCredentialDetailError {
   title: string;
   message: string;
   retryable: boolean;
+  diagnostic: IncompatiblePayloadDiagnostic | null;
 }
 
 export function WalletCredentialDetailContent() {
   const params = useParams<{ credentialId: string }>();
+  const contractDebug = useContractDebugEnabled();
   const { requestAuthenticated } = useSession();
   const [detail, setDetail] = useState<HolderCredentialDetailVM | null>(null);
   const [error, setError] = useState<HolderCredentialDetailError | null>(null);
@@ -44,7 +47,7 @@ export function WalletCredentialDetailContent() {
   }, [params.credentialId, requestAuthenticated, requestVersion]);
 
   if (error) {
-    return <section className="grid gap-5"><BackLink /><FeedbackAlert variant="error" title={error.title}>{error.message}</FeedbackAlert>{error.retryable ? <Button type="button" className="w-fit" onClick={() => { setDetail(null); setError(null); setRequestVersion((version) => version + 1); }}>Reintentar</Button> : null}</section>;
+    return <section className="grid gap-5"><BackLink /><FeedbackAlert variant="error" title={error.title}>{error.message}{contractDebug && error.diagnostic ? <ContractDiagnostic diagnostic={error.diagnostic} /> : null}</FeedbackAlert>{error.retryable ? <Button type="button" className="w-fit" onClick={() => { setDetail(null); setError(null); setRequestVersion((version) => version + 1); }}>Reintentar</Button> : null}</section>;
   }
   if (!detail) return <LoadingState label="Cargando credencial" />;
 
@@ -56,7 +59,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
     return {
       title: 'No pudimos mostrar la credencial',
       message: 'La credencial solicitada no es válida.',
-      retryable: false
+      retryable: false,
+      diagnostic: null
     };
   }
 
@@ -64,7 +68,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
     return {
       title: 'No pudimos cargar correctamente la información de esta credencial',
       message: 'Volvé a intentar en unos instantes.',
-      retryable: true
+      retryable: true,
+      diagnostic: error.diagnostic
     };
   }
 
@@ -73,7 +78,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
       return {
         title: 'No pudimos mostrar la credencial',
         message: 'No encontramos esta credencial en tu espacio personal.',
-        retryable: false
+        retryable: false,
+        diagnostic: null
       };
     }
 
@@ -81,7 +87,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
       return {
         title: 'No pudimos mostrar la credencial',
         message: 'No tenés acceso a esta credencial.',
-        retryable: false
+        retryable: false,
+        diagnostic: null
       };
     }
 
@@ -89,7 +96,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
       return {
         title: 'Tu sesión ya no está disponible',
         message: 'Volvé a iniciar sesión para consultar la credencial.',
-        retryable: false
+        retryable: false,
+        diagnostic: null
       };
     }
   }
@@ -97,7 +105,8 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
   return {
     title: 'No pudimos cargar la credencial',
     message: 'Volvé a intentar en unos instantes.',
-    retryable: true
+    retryable: true,
+    diagnostic: null
   };
 }
 

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WalletHomeContent, WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
+import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { HolderProfileVM } from '@/models/holder';
 
 // P1.1: ProfileRebuildAction (montado solo cuando showProfileShare +
@@ -426,11 +427,55 @@ describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
 
 describe('WalletHomeContent profile error recovery', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/wallet');
     holderApiMocks.getMyCredentialsRequest.mockReset();
     holderApiMocks.getMyCurrentProfileRequest.mockReset();
     holderApiMocks.rebuildMyProfileRequest.mockReset();
     holderApiMocks.requestAuthenticated.mockReset();
     holderApiMocks.getMyCredentialsRequest.mockResolvedValue([credential]);
+  });
+
+  it('keeps contract diagnostics hidden on the default URL', async () => {
+    holderApiMocks.getMyCurrentProfileRequest.mockRejectedValue(
+      new IncompatiblePayloadError('safe', {
+        path: 'profile.currentProfile.qualityFlags',
+        expected: 'array',
+        actualCategory: 'missing'
+      })
+    );
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByText('No pudimos cargar tu perfil formativo')).toBeTruthy();
+    expect(screen.queryByText('Diagnóstico de contrato')).toBeNull();
+  });
+
+  it('shows safe profile contract metadata only with contractDebug=1', async () => {
+    window.history.replaceState({}, '', '/wallet?contractDebug=1');
+    holderApiMocks.getMyCurrentProfileRequest.mockRejectedValue(
+      new IncompatiblePayloadError('safe', {
+        path: 'profile.currentProfile.qualityFlags',
+        expected: 'array',
+        actualCategory: 'missing'
+      })
+    );
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByText('Diagnóstico de contrato')).toBeTruthy();
+    expect(screen.getByText('profile.currentProfile.qualityFlags')).toBeTruthy();
+    expect(screen.getByText('array')).toBeTruthy();
+    expect(screen.getByText('missing')).toBeTruthy();
+  });
+
+  it.each([401, 404, 500])('does not expose contract diagnostics for profile HTTP %i', async (status) => {
+    window.history.replaceState({}, '', '/wallet?contractDebug=1');
+    holderApiMocks.getMyCurrentProfileRequest.mockRejectedValue(new ApiError('safe', 'http', status));
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByText('No pudimos cargar tu perfil formativo')).toBeTruthy();
+    expect(screen.queryByText('Diagnóstico de contrato')).toBeNull();
   });
 
   it('offers retry and rebuild when profile loading fails but issued credentials exist', async () => {
