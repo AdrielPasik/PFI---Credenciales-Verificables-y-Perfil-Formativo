@@ -2266,108 +2266,46 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     );
   });
 
-  it('derives academic evidence from the current editor type so Course to Academic matches an initial Academic render', async () => {
-    const course = editableDetailFixture('course');
-    const { onSave, unmount } = renderEditableDetail(course);
+  it.each([
+    ['academic_subject', 'Asignatura académica'],
+    ['degree', 'Título académico']
+  ] as const)(
+    'keeps the persisted %s family locked while preserving every evidence mode',
+    (type, label) => {
+      const { onSave } = renderEditableDetail(editableDetailFixture(type));
 
-    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
-      target: { value: 'academic_subject' }
-    });
-
-    expect(await screen.findByRole('radio', { name: 'Textual' })).toBeTruthy();
-    const transitionedCapabilities = await screen.findByRole('heading', {
-      name: 'Capacidades declaradas por la institución'
-    });
-    const transitionedEvidence = screen.getByRole('heading', {
-      name: 'Evidencia de respaldo'
-    });
-    expect(
-      transitionedEvidence.closest('section')?.contains(transitionedCapabilities)
-    ).toBe(true);
-    expect(screen.queryByLabelText('Modalidad')).toBeNull();
-    expect(
-      screen.getByRole('heading', { name: 'Referencia académica oficial' })
-    ).toBeTruthy();
-    expect(onSave).not.toHaveBeenCalled();
-
-    unmount();
-    const { onSave: initialOnSave } = renderEditableDetail(
-      editableDetailFixture('academic_subject')
-    );
-
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-    const initialCapabilities = await screen.findByRole('heading', {
-      name: 'Capacidades declaradas por la institución'
-    });
-    expect(
-      screen
-        .getByRole('heading', { name: 'Evidencia de respaldo' })
-        .closest('section')
-        ?.contains(initialCapabilities)
-    ).toBe(true);
-    expect(initialOnSave).not.toHaveBeenCalled();
-  });
-
-  it('removes academic-only UI but keeps every evidence mode when changing Academic to Course', async () => {
-    const { onSave } = renderEditableDetail(
-      editableDetailFixture('academic_subject')
-    );
-    await screen.findByRole('heading', {
-      name: 'Capacidades declaradas por la institución'
-    });
-
-    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
-      target: { value: 'course' }
-    });
-
-    expect(screen.getByLabelText('Modalidad')).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
-    expect(
-      screen.queryByRole('heading', {
-        name: 'Referencia académica oficial'
-      })
-    ).toBeNull();
-    expect(
-      screen.queryByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
-      })
-    ).toBeNull();
-    expect(onSave).not.toHaveBeenCalled();
-  });
+      expect(
+        screen.queryByRole('combobox', { name: 'Tipo de credencial' })
+      ).toBeNull();
+      expect(screen.getByLabelText('Tipo de credencial').textContent).toBe(
+        label
+      );
+      expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+      expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+      expect(onSave).not.toHaveBeenCalled();
+    }
+  );
 
   it.each([
     ['course', 'certification', 'Código de certificación', 'Modalidad'],
-    ['certification', 'course', 'Modalidad', 'Código de certificación'],
-    ['certification', 'academic_subject', 'Referencia académica oficial', 'Código de certificación'],
-    ['academic_subject', 'certification', 'Código de certificación', 'Referencia académica oficial']
+    ['certification', 'course', 'Modalidad', 'Código de certificación']
   ] as const)(
     'renders only current type UI when changing %s to %s',
-    async (from, to, expected, stale) => {
+    (from, to, expected, stale) => {
       const { onSave } = renderEditableDetail(editableDetailFixture(from));
 
       fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
         target: { value: to }
       });
 
-      if (expected === 'Referencia académica oficial') {
-        expect(
-          await screen.findByRole('heading', { name: expected })
-        ).toBeTruthy();
-      } else {
-        expect(screen.getByLabelText(expected)).toBeTruthy();
-      }
+      expect(screen.getByLabelText(expected)).toBeTruthy();
 
       expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
       expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
       expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
 
-      if (stale === 'Referencia académica oficial') {
-        expect(screen.queryByRole('heading', { name: stale })).toBeNull();
-      } else {
-        expect(screen.queryByLabelText(stale)).toBeNull();
-      }
+      expect(screen.queryByLabelText(stale)).toBeNull();
       expect(onSave).not.toHaveBeenCalled();
     }
   );
@@ -2437,7 +2375,9 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
   });
 });
 
-function editableDetailFixture(type: 'course' | 'certification' | 'academic_subject') {
+function editableDetailFixture(
+  type: 'course' | 'certification' | 'academic_subject' | 'degree'
+) {
   return detailFixture({
     type,
     typeLabel:
@@ -2445,7 +2385,9 @@ function editableDetailFixture(type: 'course' | 'certification' | 'academic_subj
         ? 'Curso'
         : type === 'certification'
           ? 'Certificación'
-          : 'Asignatura académica',
+          : type === 'academic_subject'
+            ? 'Asignatura académica'
+            : 'Título académico',
     issuer: {
       displayName: 'Universidad Seleccionada',
       did: 'did:example:issuer-demo'

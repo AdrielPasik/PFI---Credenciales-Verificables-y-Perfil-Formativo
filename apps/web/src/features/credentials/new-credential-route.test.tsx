@@ -420,7 +420,10 @@ function certificationTemplateFixture(overrides: Record<string, unknown> = {}) {
   });
 }
 
-async function resolveHolderAndPickType(type: 'course' | 'certification') {
+async function resolveHolderAndPickType(
+  type: 'course' | 'certification',
+  openReusableSearch = true
+) {
   fireEvent.change(screen.getByLabelText('Email del titular'), {
     target: { value: 'holder@example.com' }
   });
@@ -429,6 +432,11 @@ async function resolveHolderAndPickType(type: 'course' | 'certification') {
   fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
     target: { value: type }
   });
+  if (openReusableSearch) {
+    fireEvent.click(
+      screen.getByRole('button', { name: /Usar contenido reutilizable/ })
+    );
+  }
 }
 
 function mockNewCredentialApi({
@@ -516,21 +524,27 @@ describe('NewCredentialController reusable templates', () => {
   it('shows the reusable template section for course', async () => {
     mockNewCredentialApi();
     render(<NewCredentialController membership={membership} />);
-    await resolveHolderAndPickType('course');
+    await resolveHolderAndPickType('course', false);
 
     expect(screen.getByText('Usar contenido reutilizable')).toBeTruthy();
-    expect(screen.getByLabelText('Buscar curso reutilizable')).toBeTruthy();
+    expect(
+      screen
+        .getByLabelText('Buscador de contenido reutilizable')
+        .hasAttribute('hidden')
+    ).toBe(true);
   });
 
   it('shows the reusable template section for certification', async () => {
     mockNewCredentialApi();
     render(<NewCredentialController membership={membership} />);
-    await resolveHolderAndPickType('certification');
+    await resolveHolderAndPickType('certification', false);
 
     expect(screen.getByText('Usar contenido reutilizable')).toBeTruthy();
     expect(
-      screen.getByLabelText('Buscar certificación reutilizable')
-    ).toBeTruthy();
+      screen
+        .getByLabelText('Buscador de contenido reutilizable')
+        .hasAttribute('hidden')
+    ).toBe(true);
   });
 
   it('searches templates of the current issuer with credentialType=course', async () => {
@@ -614,7 +628,7 @@ describe('NewCredentialController reusable templates', () => {
     );
 
     expect(
-      screen.getByText('Datos precargados desde contenido reutilizable')
+      screen.getByText('Contenido reutilizable')
     ).toBeTruthy();
     expect(
       (screen.getByLabelText('Nombre del logro') as HTMLInputElement).value
@@ -772,7 +786,7 @@ describe('NewCredentialController reusable templates', () => {
       await screen.findByRole('button', { name: 'Usar este contenido' })
     );
     expect(
-      screen.getByText('Datos precargados desde contenido reutilizable')
+      screen.getByText('Contenido reutilizable')
     ).toBeTruthy();
 
     const typeSelect = screen.getByLabelText(
@@ -784,7 +798,7 @@ describe('NewCredentialController reusable templates', () => {
 
     expect(typeSelect.value).toBe('course');
     expect(
-      screen.getByText('Datos precargados desde contenido reutilizable')
+      screen.getByText('Contenido reutilizable')
     ).toBeTruthy();
   });
 
@@ -799,7 +813,7 @@ describe('NewCredentialController reusable templates', () => {
       await screen.findByRole('button', { name: 'Usar este contenido' })
     );
     fireEvent.click(
-      screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+      screen.getByRole('button', { name: 'Cambiar' })
     );
 
     const typeSelect = screen.getByLabelText(
@@ -859,7 +873,7 @@ describe('NewCredentialController reusable templates', () => {
       await screen.findByRole('button', { name: 'Usar este contenido' })
     );
     fireEvent.click(
-      screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+      screen.getByRole('button', { name: 'Cambiar' })
     );
 
     const name = screen.getByLabelText(

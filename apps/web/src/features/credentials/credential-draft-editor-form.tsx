@@ -44,7 +44,6 @@ import {
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
 import {
   credentialTypeLabels,
-  credentialTypesForIssuer,
   type CredentialFeedback,
   type CredentialType,
   type CurriculumAcademicSubjectSearchItemVM,
@@ -71,6 +70,11 @@ type EditorFeedback =
   | { kind: 'success'; message: string }
   | { kind: 'error'; feedback: CredentialFeedback }
   | null;
+
+const reusableDraftTypes = [
+  'course',
+  'certification'
+] as const satisfies readonly CredentialType[];
 
 // R2: permite que un caller externo (CredentialDetailView, antes de
 // emitir) fuerce el guardado de cualquier edicion pendiente del
@@ -131,6 +135,13 @@ export const CredentialDraftEditorForm = forwardRef<
   const externalUrlRef = useRef<HTMLInputElement>(null);
   const academicYearRef = useRef<HTMLInputElement>(null);
   const gradeRef = useRef<HTMLInputElement>(null);
+  const typeCanChangeWithinReusableFamily = reusableDraftTypes.includes(
+    baselineDetail.type as (typeof reusableDraftTypes)[number]
+  );
+  const availableDraftTypes =
+    baselineDetail.type === 'certification'
+      ? [...reusableDraftTypes].reverse()
+      : reusableDraftTypes;
 
   const command = buildDraftUpdateCommand({
     issuerReference,
@@ -201,6 +212,15 @@ export const CredentialDraftEditorForm = forwardRef<
   }
 
   function requestTypeChange(targetType: CredentialType) {
+    if (
+      !typeCanChangeWithinReusableFamily ||
+      !reusableDraftTypes.includes(
+        targetType as (typeof reusableDraftTypes)[number]
+      )
+    ) {
+      return;
+    }
+
     if (targetType === state.type) {
       return;
     }
@@ -461,17 +481,18 @@ export const CredentialDraftEditorForm = forwardRef<
             </h3>
           </header>
           <div className="grid gap-5 sm:grid-cols-2">
-            <SelectField
-              id="credential-type"
-              label="Tipo de credencial"
-              value={state.type}
-              disabled={saving}
-              options={credentialTypesForIssuer(
-                detail.issuer.did,
-                detail.issuer.displayName
-              )}
-              onChange={(value) => requestTypeChange(value)}
-            />
+            {typeCanChangeWithinReusableFamily ? (
+              <SelectField
+                id="credential-type"
+                label="Tipo de credencial"
+                value={state.type}
+                disabled={saving}
+                options={availableDraftTypes}
+                onChange={(value) => requestTypeChange(value)}
+              />
+            ) : (
+              <ReadOnlyTypeField type={baselineDetail.type} />
+            )}
             {state.type !== 'academic_subject' ? (
               <>
                 <TextField
@@ -1197,6 +1218,24 @@ function SelectField({
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+function ReadOnlyTypeField({ type }: { type: CredentialType }) {
+  return (
+    <div className="grid gap-2">
+      <Label id="credential-type-label">Tipo de credencial</Label>
+      <output
+        aria-labelledby="credential-type-label"
+        className="flex min-h-11 items-center rounded-control border border-border-default bg-surface-muted px-3 py-2 font-semibold text-text-strong"
+      >
+        {credentialTypeLabels[type]}
+      </output>
+      <p className="text-sm leading-5 text-text-muted">
+        El tipo se define al crear el borrador. Para trabajar con otra
+        categoría, creá un borrador nuevo.
+      </p>
     </div>
   );
 }

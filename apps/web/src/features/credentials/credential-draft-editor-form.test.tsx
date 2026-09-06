@@ -515,53 +515,53 @@ describe('CredentialDraftEditorForm', () => {
     expect(screen.getAllByText(catalogSubject.name).length).toBeGreaterThan(0);
   });
 
-  it('removes catalog linkage when changing type and requires a new selection on return', async () => {
-    const academicDetail = detailFixture('academic_subject');
-    academicDetail.academicCourse = {
-      academicCourseReference: catalogSubject.academicCourseReference,
-      code: catalogSubject.code,
-      name: catalogSubject.name,
-      description: null,
-      hours: null,
-      program
-    };
-    const savedCourse: IssuerCredentialDetailVM = {
-      ...academicDetail,
-      type: 'course',
-      typeLabel: 'Curso',
-      academicCourse: null,
-      updatedAt: '2026-07-30T14:00:00.000Z'
-    };
-    const onSave = vi.fn<SaveDraft>().mockResolvedValue(savedCourse);
-    renderEditor({ detail: academicDetail, onSave });
+  it.each([
+    ['academic_subject', 'Asignatura académica'],
+    ['degree', 'Título académico']
+  ] as const)(
+    'keeps a persisted %s type read-only and offers no fake discard action',
+    (type, label) => {
+      const onSave = vi.fn<SaveDraft>();
+      renderEditor({ detail: detailFixture(type), onSave });
 
-    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
-      target: { value: 'course' }
-    });
-    expect(
-      screen.getByText(/quitará la vinculación con la asignatura oficial/i)
-    ).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Cambiar tipo' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+      expect(
+        screen.queryByRole('combobox', { name: 'Tipo de credencial' })
+      ).toBeNull();
+      expect(screen.getByLabelText('Tipo de credencial').textContent).toBe(
+        label
+      );
+      expect(
+        screen.getByText(
+          'El tipo se define al crear el borrador. Para trabajar con otra categoría, creá un borrador nuevo.'
+        )
+      ).toBeTruthy();
+      expect(
+        screen.queryByRole('button', { name: /descartar borrador/i })
+      ).toBeNull();
+      expect(onSave).not.toHaveBeenCalled();
+    }
+  );
 
-    await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
-    expect(onSave.mock.calls[0]?.[0]).toEqual({
-      issuerReference: 'issuer-internal-reference',
-      credentialReference: 'credential-internal-reference',
-      expectedUpdatedAt: '2026-07-30T13:00:00.000Z',
-      type: 'course'
-    });
+  it.each([
+    ['course', ['course', 'certification']],
+    ['certification', ['certification', 'course']]
+  ] as const)(
+    'offers only the reusable family when the persisted type is %s',
+    (type, expectedOptions) => {
+      renderEditor({ detail: detailFixture(type) });
 
-    fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
-      target: { value: 'academic_subject' }
-    });
-    expect(
-      await screen.findByText(
-        'Seleccioná una asignatura oficial para completar el borrador académico.'
-      )
-    ).toBeTruthy();
-    expect(screen.queryByText('Selección guardada')).toBeNull();
-  });
+      const select = screen.getByRole('combobox', {
+        name: 'Tipo de credencial'
+      }) as HTMLSelectElement;
+      const optionValues = Array.from(select.options).map(
+        (option) => option.value
+      );
+
+      expect(optionValues).toEqual(expectedOptions);
+      expect(optionValues).not.toContain('academic_subject');
+      expect(optionValues).not.toContain('degree');
+    }
+  );
 
   it('changes type directly when there is no incompatible populated data', () => {
     renderEditor();

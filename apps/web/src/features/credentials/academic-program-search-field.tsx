@@ -28,7 +28,7 @@ export function AcademicProgramSearchField({
   searched
 }: AcademicProgramSearchFieldProps) {
   return (
-    <div className="grid gap-3">
+    <div className="grid max-w-4xl gap-3">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="grid gap-2">
           <Label htmlFor="academic-program-query">

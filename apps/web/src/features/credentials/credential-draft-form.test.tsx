@@ -123,6 +123,9 @@ function renderForm(options?: {
 }
 
 async function applyTemplateViaSearch(template: CourseTemplateSummaryVM) {
+  fireEvent.click(
+    screen.getByRole('button', { name: /Usar contenido reutilizable/ })
+  );
   fireEvent.click(screen.getByRole('button', { name: 'Buscar' }));
   fireEvent.click(await screen.findByRole('button', { name: template.title }));
   fireEvent.click(
@@ -477,6 +480,39 @@ describe('CredentialDraftForm', () => {
   // mientras haya un template aplicado.
   // ---------------------------------------------------------------------
   describe('atomic reusable template application', () => {
+    it('keeps reusable search collapsed by default and preserves its query when reopened', async () => {
+      const searchReusableTemplates = vi.fn().mockResolvedValue([]);
+      renderForm({ searchReusableTemplates });
+      await resolveVisibleHolder();
+      fireEvent.change(screen.getByLabelText('Tipo de credencial'), {
+        target: { value: 'course' }
+      });
+
+      const disclosure = screen.getByRole('button', {
+        name: /Usar contenido reutilizable/
+      });
+      const searchRegion = screen.getByLabelText(
+        'Buscador de contenido reutilizable'
+      );
+      expect(disclosure.getAttribute('aria-expanded')).toBe('false');
+      expect(searchRegion.hasAttribute('hidden')).toBe(true);
+
+      fireEvent.click(disclosure);
+      fireEvent.change(screen.getByLabelText('Buscar curso reutilizable'), {
+        target: { value: 'scrum' }
+      });
+      fireEvent.click(disclosure);
+
+      expect(searchRegion.hasAttribute('hidden')).toBe(true);
+      expect(searchReusableTemplates).not.toHaveBeenCalled();
+
+      fireEvent.click(disclosure);
+      expect(
+        (screen.getByLabelText('Buscar curso reutilizable') as HTMLInputElement)
+          .value
+      ).toBe('scrum');
+    });
+
     it('locks credentialType after applying a course template', async () => {
       const template = courseTemplateFixture();
       renderForm({
@@ -548,7 +584,7 @@ describe('CredentialDraftForm', () => {
       await applyTemplateViaSearch(template);
 
       fireEvent.click(
-        screen.getByRole('button', { name: 'Quitar contenido reutilizable' })
+        screen.getByRole('button', { name: 'Cambiar' })
       );
 
       expect(

@@ -392,9 +392,9 @@ export function CredentialDraftForm({
                 <form
                   onSubmit={handleResolve}
                   noValidate
-                  className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
+                  className="grid max-w-4xl gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
                 >
-                  <div className="max-w-3xl">
+                  <div>
                     <TextField
                       ref={emailRef}
                       id="holder-email"
@@ -554,6 +554,7 @@ export function CredentialDraftForm({
                   {isReusableCredentialType(credentialType) &&
                   searchReusableTemplates ? (
                     <ReusableTemplateSearchSection
+                      key={credentialType}
                       credentialType={credentialType}
                       disabled={submitting}
                       appliedTemplate={appliedTemplate}
