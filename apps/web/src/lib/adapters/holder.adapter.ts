@@ -28,6 +28,11 @@ const semanticLabelFields = {
   concept: ['concept', 'name', 'label', 'concept_label', 'conceptLabel']
 } as const;
 const hashPattern = /^0x[a-fA-F0-9]{64}$/;
+// Los tres arrays declarativos comparten el contrato actual de escritura del
+// backend: hasta 30 entradas normalizadas de 500 caracteres. Las etiquetas
+// semánticas conservan su límite independiente de 160 caracteres.
+const DECLARED_ARRAY_MAX_ITEMS = 30;
+const DECLARED_ARRAY_ITEM_MAX_LENGTH = 500;
 const typeLabels: Record<string, string> = {
   academic_subject: 'Asignatura académica',
   course: 'Curso',
@@ -308,7 +313,13 @@ function nullableString(value: unknown, path: string): string | null {
   const normalized = value.trim().replace(/\s+/g, ' ');
   return normalized || null;
 }
-function stringArray(value: unknown, path: string): string[] { return array(value, path).map((entry, index) => safeString(entry, 160, `${path}[${index}]`)); }
+function stringArray(value: unknown, path: string): string[] {
+  const entries = array(value, path);
+  if (entries.length > DECLARED_ARRAY_MAX_ITEMS) {
+    invalid(path, `array with at most ${DECLARED_ARRAY_MAX_ITEMS} entries`, value);
+  }
+  return entries.map((entry, index) => safeString(entry, DECLARED_ARRAY_ITEM_MAX_LENGTH, `${path}[${index}]`));
+}
 function semanticLabelArray(value: unknown, labelFields: readonly string[], path: string): string[] {
   return array(value, path).map((entry, index) => {
     const itemPath = `${path}[${index}]`;
@@ -328,10 +339,10 @@ function optionalEmittedLabelArray(value: unknown, path: string): string[] {
   if (value === undefined || value === null) return [];
   return array(value, path).map((entry, index) => {
     const itemPath = `${path}[${index}]`;
-    if (typeof entry === 'string') return safeString(entry, 160, itemPath);
+    if (typeof entry === 'string') return safeString(entry, DECLARED_ARRAY_ITEM_MAX_LENGTH, itemPath);
     const descriptor = record(entry, itemPath);
     if (descriptor.label === undefined) invalid(itemPath, 'string or object with label', entry);
-    return safeString(descriptor.label, 160, `${itemPath}.label`);
+    return safeString(descriptor.label, DECLARED_ARRAY_ITEM_MAX_LENGTH, `${itemPath}.label`);
   });
 }
 function qualityFlags(value: unknown, path: string): string[] { return array(value, path).map((entry, index) => formatHolderQualityFlag(safeString(entry, 120, `${path}[${index}]`))); }

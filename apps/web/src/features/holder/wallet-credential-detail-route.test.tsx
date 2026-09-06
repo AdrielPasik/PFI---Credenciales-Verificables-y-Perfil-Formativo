@@ -59,6 +59,7 @@ const academicSubjectDetail: HolderCredentialDetailVM = {
   type: 'academic_subject',
   typeLabel: 'Asignatura académica'
 };
+const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
 
 describe('WalletCredentialDetailContent error recovery', () => {
   beforeEach(() => {
@@ -304,7 +305,7 @@ it('renders a backend-equivalent issued Course with evidence, semantic descripto
       level: 'Intermedio',
       externalUrl: null,
       skills: [],
-      competencies: ['Aplicar análisis de datos'],
+      competencies: [declaredContentAtCurrentLimit],
       learningOutcomes: ['Interpretar resultados']
     },
     documentEvidence: {
@@ -334,6 +335,7 @@ it('renders a backend-equivalent issued Course with evidence, semantic descripto
   expect(screen.getByText('evidencia.pdf')).toBeTruthy();
   expect(screen.getByText('Datos')).toBeTruthy();
   expect(screen.getByText('Python')).toBeTruthy();
+  expect(screen.getByText(declaredContentAtCurrentLimit)).toBeTruthy();
   expect(screen.getByText('Entorno técnico/demo')).toBeTruthy();
   expect(document.body.textContent).not.toContain('area-data');
 });

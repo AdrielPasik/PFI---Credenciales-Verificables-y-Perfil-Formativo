@@ -26,6 +26,7 @@ import {
   type AcademicCurriculumSelection,
   validateCreateCredentialDraftCurricularSelection
 } from './create-credential-draft.validator';
+import { normalizeCredentialSubjectControlledArrays } from './issuer-credential-draft-update.validator';
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialStatusResponseDto } from './dto/credential-status-response.dto';
 import { CredentialSummaryResponseDto } from './dto/credential-summary-response.dto';
@@ -91,9 +92,11 @@ export class CredentialsService {
       : this.requireNonEmptyString(dto.title, 'title');
     const inputCredentialSubject = curricularSelection
       ? null
-      : this.stripPlatformNameForCourse(
-          dto.type,
-          this.assertJsonObject(dto.credentialSubject, 'credentialSubject')
+      : normalizeCredentialSubjectControlledArrays(
+          this.stripPlatformNameForCourse(
+            dto.type,
+            this.assertJsonObject(dto.credentialSubject, 'credentialSubject')
+          )
         );
 
     const credential = await this.prisma.$transaction(

@@ -47,6 +47,7 @@ const profileWithDeclaredInfo = {
   emittedCompetencies: ['Trabajo en equipo'],
   emittedLearningOutcomes: ['Redactar informes técnicos']
 };
+const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
 
 const credentialsReady: HolderCredentialsLoadState = { status: 'ready', credentials: [credential] };
 
@@ -410,10 +411,16 @@ describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
   });
 
   // G
-  it('G: the share action keeps working unaffected by the new rebuild action sitting next to it', () => {
+  it('G: the share action remains available when a ready profile includes valid long declared content', () => {
     render(
       <WalletHomeView
-        profileState={{ status: 'ready', profile }}
+        profileState={{
+          status: 'ready',
+          profile: {
+            ...profileWithDeclaredInfo,
+            emittedCompetencies: [declaredContentAtCurrentLimit]
+          }
+        }}
         credentialsState={credentialsReady}
         showProfileShare
         onProfileRebuilt={() => {}}

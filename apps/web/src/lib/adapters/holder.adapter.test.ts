@@ -8,6 +8,7 @@ import {
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
 const txHash = `0x${'b'.repeat(64)}`;
+const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
 
 function listPayload() {
   return [{
@@ -106,6 +107,62 @@ describe('holder adapters', () => {
       documentEvidence: null, textEvidence: null, blockchainRecords: [], latestSemanticAnalysis: null
     });
     expect(result.hoursLabel).toBe('64 horas');
+  });
+
+  it('accepts declared content within the current backend 500-character invariant in credential detail and current profile', () => {
+    expect(declaredContentAtCurrentLimit.length).toBeGreaterThan(160);
+    expect(declaredContentAtCurrentLimit.length).toBeLessThanOrEqual(500);
+
+    const detail = adaptMyCredential({
+      ...issuedCoursePayload(),
+      type: 'certification',
+      credentialSubject: {
+        ...issuedCoursePayload().credentialSubject as Record<string, unknown>,
+        skills: [declaredContentAtCurrentLimit],
+        competencies: [declaredContentAtCurrentLimit],
+        learningOutcomes: [declaredContentAtCurrentLimit]
+      }
+    });
+    const profile = adaptMyCurrentProfile({
+      currentProfile: {
+        ...legacyDomainProfile(),
+        emittedSkills: [declaredContentAtCurrentLimit],
+        emittedCompetencies: [declaredContentAtCurrentLimit],
+        emittedLearningOutcomes: [declaredContentAtCurrentLimit]
+      }
+    });
+
+    expect(detail.subject.skills).toEqual([declaredContentAtCurrentLimit]);
+    expect(detail.subject.competencies).toEqual([declaredContentAtCurrentLimit]);
+    expect(detail.subject.learningOutcomes).toEqual([declaredContentAtCurrentLimit]);
+    expect(profile?.emittedSkills).toEqual([declaredContentAtCurrentLimit]);
+    expect(profile?.emittedCompetencies).toEqual([declaredContentAtCurrentLimit]);
+    expect(profile?.emittedLearningOutcomes).toEqual([declaredContentAtCurrentLimit]);
+  });
+
+  it('keeps the declared-content reader bounded and rejects malformed entries', () => {
+    for (const invalidEntry of [
+      'x'.repeat(501),
+      'texto institucional\u0001inválido',
+      {},
+      42
+    ]) {
+      expect(() => adaptMyCredential({
+        ...issuedCoursePayload(),
+        credentialSubject: {
+          ...issuedCoursePayload().credentialSubject as Record<string, unknown>,
+          competencies: [invalidEntry]
+        }
+      })).toThrow(IncompatiblePayloadError);
+    }
+
+    expect(() => adaptMyCredential({
+      ...issuedCoursePayload(),
+      credentialSubject: {
+        ...issuedCoursePayload().credentialSubject as Record<string, unknown>,
+        competencies: Array.from({ length: 31 }, (_, index) => `Competencia ${index}`)
+      }
+    })).toThrow(IncompatiblePayloadError);
   });
 
   it('adapts holder detail without raw artifacts, source ids or storage internals', () => {
@@ -248,6 +305,19 @@ describe('holder adapters', () => {
     });
     expect(result.integrity.canonicalHash).toBeNull();
     expect(result.textEvidence).toBeNull();
+  });
+
+  it('reads canonical snake_case and historical camelCase learning outcome aliases', () => {
+    for (const credentialSubject of [
+      { learning_outcomes: ['Contenido canónico'] },
+      { learningOutcomes: ['Contenido histórico'] }
+    ]) {
+      const result = adaptMyCredential(
+        issuedCoursePayload({ credentialSubject })
+      );
+
+      expect(result.subject.learningOutcomes).toHaveLength(1);
+    }
   });
 
   it('keeps exact safe contract diagnostics without payload values', () => {

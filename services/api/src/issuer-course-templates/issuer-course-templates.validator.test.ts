@@ -76,6 +76,18 @@ test('create accepts a full course payload with hours as a JSON number', () => {
   assert.deepEqual(result.learningOutcomes, ['Escribir scripts basicos']);
 });
 
+test('template writers reuse the declared-array invariant and reject control characters', () => {
+  assert.throws(
+    () =>
+      validateCreateCourseTemplatePayload({
+        credentialType: CredentialType.course,
+        title: 'Curso seguro',
+        competencies: ['Competencia\u0001inválida']
+      }),
+    BadRequestException
+  );
+});
+
 // C4x fix: platformName ya no es un campo de entrada para ningun tipo --
 // se rechaza con el mismo mecanismo que un campo desconocido cualquiera,
 // no con "no aplica a este tipo" (a diferencia de modality/learningOutcomes,

@@ -2,11 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import { CourseTemplateStatus, CredentialType, Prisma } from '@prisma/client';
 
 import {
-  CONTROLLED_ARRAY_ITEM_MAX_LENGTH,
-  CONTROLLED_ARRAY_MAX_ITEMS,
   CONTROLLED_STRING_MAX_LENGTH,
   EXTERNAL_URL_MAX_LENGTH,
   isCalendarDate,
+  normalizeControlledStringArray,
   type FieldUpdate
 } from '../credentials/issuer-credential-draft-update.validator';
 
@@ -441,52 +440,6 @@ function normalizeExternalUrl(value: unknown) {
   }
 
   return normalized;
-}
-
-function normalizeControlledStringArray(value: unknown, field: string) {
-  if (value === null || value === undefined) {
-    return [];
-  }
-
-  if (!Array.isArray(value)) {
-    throw new BadRequestException(`${field} debe ser string[] o null.`);
-  }
-
-  if (value.length > CONTROLLED_ARRAY_MAX_ITEMS) {
-    throw new BadRequestException(
-      `${field} no puede superar ${CONTROLLED_ARRAY_MAX_ITEMS} elementos.`
-    );
-  }
-
-  const result: string[] = [];
-  const seen = new Set<string>();
-
-  for (const entry of value) {
-    if (typeof entry !== 'string') {
-      throw new BadRequestException(`${field} solo puede contener strings.`);
-    }
-
-    const normalized = normalizeWhitespace(entry);
-
-    if (!normalized) {
-      continue;
-    }
-
-    if (normalized.length > CONTROLLED_ARRAY_ITEM_MAX_LENGTH) {
-      throw new BadRequestException(
-        `Cada elemento de ${field} admite hasta ${CONTROLLED_ARRAY_ITEM_MAX_LENGTH} caracteres.`
-      );
-    }
-
-    const comparisonKey = normalized.toLocaleLowerCase('en-US');
-
-    if (!seen.has(comparisonKey)) {
-      seen.add(comparisonKey);
-      result.push(normalized);
-    }
-  }
-
-  return result;
 }
 
 function normalizeStatus(value: unknown): CourseTemplateStatus {

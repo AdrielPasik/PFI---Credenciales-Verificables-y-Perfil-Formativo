@@ -466,13 +466,52 @@ test('validator normalizes, removes empty entries and deduplicates string arrays
     Array.from({ length: CONTROLLED_ARRAY_MAX_ITEMS + 1 }, (_, index) =>
       String(index)
     ),
-    ['x'.repeat(CONTROLLED_ARRAY_ITEM_MAX_LENGTH + 1)]
+    ['x'.repeat(CONTROLLED_ARRAY_ITEM_MAX_LENGTH + 1)],
+    ['texto institucional\u0001no permitido']
   ]) {
     assert.throws(
       () =>
         validateIssuerCredentialDraftUpdate({
           expectedUpdatedAt: EXPECTED_UPDATED_AT,
           skills: value
+        }),
+      BadRequestException
+    );
+  }
+});
+
+test('validator accepts the exact current 500-character boundary for every declared array field', () => {
+  const atBoundary = 'x'.repeat(CONTROLLED_ARRAY_ITEM_MAX_LENGTH);
+
+  const result = validateIssuerCredentialDraftUpdate({
+    expectedUpdatedAt: EXPECTED_UPDATED_AT,
+    skills: [atBoundary],
+    competencies: [atBoundary],
+    learningOutcomes: [atBoundary]
+  });
+
+  assert.deepEqual(result.skills.value, [atBoundary]);
+  assert.deepEqual(result.competencies.value, [atBoundary]);
+  assert.deepEqual(result.learningOutcomes.value, [atBoundary]);
+});
+
+test('declared-array normalization accepts whitespace controls but rejects other C0 controls and DEL', () => {
+  const normalized = validateIssuerCredentialDraftUpdate({
+    expectedUpdatedAt: EXPECTED_UPDATED_AT,
+    learningOutcomes: ['Contenido\tde\nformación']
+  });
+
+  assert.deepEqual(normalized.learningOutcomes.value, ['Contenido de formación']);
+
+  for (const invalidValue of [
+    'Contenido\u0001inválido',
+    'Contenido\u007finválido'
+  ]) {
+    assert.throws(
+      () =>
+        validateIssuerCredentialDraftUpdate({
+          expectedUpdatedAt: EXPECTED_UPDATED_AT,
+          learningOutcomes: [invalidValue]
         }),
       BadRequestException
     );

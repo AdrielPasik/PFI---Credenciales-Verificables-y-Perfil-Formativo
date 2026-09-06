@@ -606,6 +606,31 @@ test('create from credential copies title, description, hours, modality, externa
   assert.equal(data.createdByUserId, 'issuer-user-1');
 });
 
+test('create from credential rejects malformed legacy declared content before creating a reusable template', async () => {
+  const { service, calls } = createService({
+    credential: courseCredentialFixture({
+      credentialSubject: {
+        achievement_name: 'Curso de Python',
+        competencies: ['x'.repeat(501)],
+        learning_outcomes: ['Contenido valido']
+      }
+    })
+  });
+
+  await assert.rejects(
+    service.createTemplateFromCredentialForIssuer(
+      'issuer-1',
+      'credential-1',
+      currentUser
+    ),
+    (error: unknown) =>
+      error instanceof BadRequestException &&
+      error.message === 'Cada elemento de competencies admite hasta 500 caracteres.'
+  );
+
+  assert.equal(calls.some((call) => call.op === 'create'), false);
+});
+
 test('create from credential rejects a draft before creating a reusable template', async () => {
   const { service, calls } = createService({
     credential: courseCredentialFixture({ status: CredentialStatus.draft })

@@ -5,6 +5,8 @@ import { CredentialType } from '@prisma/client';
 
 import { FormativeProfileService } from './formative-profile.service';
 
+const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
+
 function decimalLike(value: string) {
   return {
     toString() {
@@ -437,7 +439,7 @@ test('FormativeProfileService keeps skills empty (inferred) but still populates 
       hours: decimalLike('12.00'),
       credentialSubject: {
         skills: ['Excel', 'excel'],
-        competencies: ['Comunicación efectiva']
+        competencies: [declaredContentAtCurrentLimit]
       },
       semanticAnalyses: []
     }
@@ -478,6 +480,8 @@ test('FormativeProfileService keeps skills empty (inferred) but still populates 
     }
   } as never);
 
+  assert.ok(declaredContentAtCurrentLimit.length > 160);
+  assert.ok(declaredContentAtCurrentLimit.length <= 500);
   await service.rebuildForUser('holder-1');
   const createData = createCalls[0].data as Record<string, unknown>;
   const profileJson = createData.profileJson as {
@@ -494,7 +498,7 @@ test('FormativeProfileService keeps skills empty (inferred) but still populates 
   ]);
   assert.deepEqual(profileJson.emittedCompetencies, [
     {
-      label: 'Comunicación efectiva',
+      label: declaredContentAtCurrentLimit,
       credentialIds: ['credential-1'],
       evidenceCount: 1
     }

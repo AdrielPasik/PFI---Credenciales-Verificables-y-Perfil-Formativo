@@ -259,6 +259,132 @@ const validCurricularDraftDto = {
   curriculumReference: ' curriculum-1 '
 } satisfies CreateCredentialDraftDto;
 
+test('createDraft applies the same controlled-array invariant before persisting credentialSubject', async () => {
+  const { service, createCalls, operationOrder } = createDraftService();
+  const atBoundary = 'x'.repeat(500);
+
+  await service.createDraft(
+    {
+      ...validDraftDto,
+      type: CredentialType.course,
+      credentialSubject: {
+        ...validDraftDto.credentialSubject,
+        competencies: [`  ${atBoundary}  `],
+        learning_outcomes: ['  Contenido   declarado  ']
+      }
+    },
+    currentUser
+  );
+
+  const createdSubject = (createCalls[0]?.data as {
+    credentialSubject: Record<string, unknown>;
+  }).credentialSubject;
+  assert.deepEqual(createdSubject.competencies, [atBoundary]);
+  assert.deepEqual(createdSubject.learning_outcomes, ['Contenido declarado']);
+  assert.ok(operationOrder.includes('credential_create'));
+});
+
+test('createDraft rejects the legacy learningOutcomes alias before a transaction can start', async () => {
+  const { service, createCalls, operationOrder } = createDraftService();
+
+  await assert.rejects(
+    () =>
+      service.createDraft(
+        {
+          ...validDraftDto,
+          type: CredentialType.course,
+          credentialSubject: {
+            ...validDraftDto.credentialSubject,
+            learningOutcomes: ['x'.repeat(501)]
+          }
+        },
+        currentUser
+      ),
+    (error: unknown) =>
+      error instanceof BadRequestException &&
+      error.message ===
+        'credentialSubject.learningOutcomes no es una key de escritura soportada; usar learning_outcomes.'
+  );
+
+  assert.deepEqual(createCalls, []);
+  assert.equal(operationOrder.includes('transaction_start'), false);
+});
+
+test('createDraft rejects ambiguous learning outcome aliases before a transaction can start', async () => {
+  const { service, createCalls, operationOrder } = createDraftService();
+
+  await assert.rejects(
+    () =>
+      service.createDraft(
+        {
+          ...validDraftDto,
+          type: CredentialType.course,
+          credentialSubject: {
+            ...validDraftDto.credentialSubject,
+            learning_outcomes: ['Contenido canónico'],
+            learningOutcomes: ['Contenido ambiguo']
+          }
+        },
+        currentUser
+      ),
+    (error: unknown) =>
+      error instanceof BadRequestException &&
+      error.message ===
+        'credentialSubject no puede incluir learningOutcomes y learning_outcomes a la vez.'
+  );
+
+  assert.deepEqual(createCalls, []);
+  assert.equal(operationOrder.includes('transaction_start'), false);
+});
+
+test('createDraft rejects malformed canonical learning_outcomes before a transaction can start', async () => {
+  for (const learningOutcomes of [['x'.repeat(501)], [{}]]) {
+    const { service, createCalls, operationOrder } = createDraftService();
+
+    await assert.rejects(
+      () =>
+        service.createDraft(
+          {
+            ...validDraftDto,
+            type: CredentialType.course,
+            credentialSubject: {
+              ...validDraftDto.credentialSubject,
+              learning_outcomes: learningOutcomes
+            }
+          },
+          currentUser
+        ),
+      BadRequestException
+    );
+
+    assert.deepEqual(createCalls, []);
+    assert.equal(operationOrder.includes('transaction_start'), false);
+  }
+});
+
+test('createDraft rejects an invalid declared competency before it can create a credential', async () => {
+  const { service, createCalls, operationOrder } = createDraftService();
+
+  await assert.rejects(
+    () =>
+      service.createDraft(
+        {
+          ...validDraftDto,
+          type: CredentialType.course,
+          credentialSubject: {
+            ...validDraftDto.credentialSubject,
+            competencies: ['x'.repeat(501)]
+          }
+        },
+        currentUser
+      ),
+    BadRequestException
+  );
+
+  assert.deepEqual(createCalls, []);
+  assert.equal(operationOrder.includes('transaction_start'), false);
+});
+
 test('createDraft creates a curricular academic subject and derives its official snapshot', async () => {
   const {
     service,

@@ -8,6 +8,8 @@ import {
 } from '@/lib/api/holder-api';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 
+const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
+
 it('uses only /me scoped holder endpoints', async () => {
   const request = vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce({ currentProfile: null });
   await getMyCredentialsRequest(request);
@@ -53,6 +55,30 @@ it('adapts an HTTP 200 rebuild response with proven profile domain descriptors',
     emittedSkills: ['Excel']
   });
   expect(JSON.stringify(result)).not.toContain('internal');
+});
+
+it('accepts a rebuild response with declared competency content allowed by the current backend invariant', async () => {
+  const request = vi.fn().mockResolvedValue({
+    currentProfile: {
+      profileVersion: 'formative_profile_v1',
+      credentialsCount: 1,
+      totalHours: 12,
+      areas: [],
+      skills: [],
+      concepts: [],
+      emittedSkills: [],
+      emittedCompetencies: [declaredContentAtCurrentLimit],
+      emittedLearningOutcomes: [],
+      confidence: null,
+      qualityFlags: [],
+      generatedAt: '2026-08-14T10:00:00.000Z'
+    }
+  });
+
+  const result = await rebuildMyProfileRequest(request);
+
+  expect(result?.emittedCompetencies).toEqual([declaredContentAtCurrentLimit]);
+  expect(request).toHaveBeenCalledWith('/me/profile/rebuild', { method: 'POST' });
 });
 
 it('preserves an API failure from GET current without misclassifying it as a contract error', async () => {

@@ -14,6 +14,7 @@ import {
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { normalizeControlledStringArray } from '../credentials/issuer-credential-draft-update.validator';
 import { CourseTemplateResponseDto } from './dto/course-template-response.dto';
 import { TemplateSemanticApprovalCandidateResponseDto } from './dto/template-semantic-approval-candidate-response.dto';
 import {
@@ -247,11 +248,17 @@ export class IssuerCourseTemplatesService {
       description: normalizeNullableText(credential.description),
       hours: credential.hours,
       externalUrl: readSubjectText(subject, 'external_url'),
-      competencies: readSubjectStringArray(subject, 'competencies'),
+      competencies: normalizeControlledStringArray(
+        readSubjectStringArray(subject, 'competencies'),
+        'competencies'
+      ),
       // Lectura defensiva: certification no lo controla por contrato hoy,
       // pero se copia si existiera como dato legacy en credentialSubject
       // (nunca se inventa, readSubjectStringArray devuelve [] si no esta).
-      learningOutcomes: readSubjectStringArray(subject, 'learning_outcomes')
+      learningOutcomes: normalizeControlledStringArray(
+        readSubjectStringArray(subject, 'learning_outcomes'),
+        'learningOutcomes'
+      )
     };
 
     // Campos exclusivos por tipo -- se omiten por completo (ni siquiera se
@@ -272,7 +279,10 @@ export class IssuerCourseTemplatesService {
             expirationDate: readSubjectText(subject, 'expiration_date'),
             providerName: readSubjectText(subject, 'provider_name'),
             level: readSubjectText(subject, 'level'),
-            skills: readSubjectStringArray(subject, 'skills')
+            skills: normalizeControlledStringArray(
+              readSubjectStringArray(subject, 'skills'),
+              'skills'
+            )
           };
 
     const created = (await this.prisma.issuerCourseTemplate.create({

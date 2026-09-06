@@ -414,7 +414,7 @@ function normalizeExternalUrl(value: unknown) {
   return normalized;
 }
 
-function normalizeControlledStringArray(value: unknown, field: string) {
+export function normalizeControlledStringArray(value: unknown, field: string) {
   if (value === null) {
     return [];
   }
@@ -449,6 +449,15 @@ function normalizeControlledStringArray(value: unknown, field: string) {
       );
     }
 
+    // Los controles que JavaScript reconoce como whitespace (por ejemplo tab o
+    // salto de línea) ya fueron convertidos a espacios. El resto de C0 y DEL
+    // permanece detectable y no se permite persistir.
+    if (hasRejectedControlCharacters(normalized)) {
+      throw new BadRequestException(
+        `${field} no puede contener caracteres de control.`
+      );
+    }
+
     const comparisonKey = normalized.toLocaleLowerCase('en-US');
 
     if (!seen.has(comparisonKey)) {
@@ -458,6 +467,48 @@ function normalizeControlledStringArray(value: unknown, field: string) {
   }
 
   return result;
+}
+
+/**
+ * Normaliza los únicos arrays declarativos que pueden persistirse dentro de
+ * credentialSubject al crear un borrador. El PATCH ya usa el mismo helper;
+ * esta frontera evita que POST /credentials/draft lo saltee.
+ */
+export function normalizeCredentialSubjectControlledArrays(
+  subject: Record<string, unknown>
+): Record<string, unknown> {
+  // credentialSubject persiste snake_case. El Holder puede leer el alias
+  // camelCase de datos históricos, pero POST no debe aceptar dos fuentes para
+  // el mismo hecho ni convertir un alias legacy en otra vía de escritura.
+  if (hasOwn(subject, 'learningOutcomes')) {
+    if (hasOwn(subject, 'learning_outcomes')) {
+      throw new BadRequestException(
+        'credentialSubject no puede incluir learningOutcomes y learning_outcomes a la vez.'
+      );
+    }
+
+    throw new BadRequestException(
+      'credentialSubject.learningOutcomes no es una key de escritura soportada; usar learning_outcomes.'
+    );
+  }
+
+  const normalized = { ...subject };
+  const fields = [
+    ['skills', 'skills'],
+    ['competencies', 'competencies'],
+    ['learning_outcomes', 'learningOutcomes']
+  ] as const;
+
+  for (const [subjectKey, field] of fields) {
+    if (hasOwn(subject, subjectKey)) {
+      normalized[subjectKey] = normalizeControlledStringArray(
+        subject[subjectKey],
+        field
+      );
+    }
+  }
+
+  return normalized;
 }
 
 function normalizeHours(value: unknown) {
@@ -494,4 +545,8 @@ function normalizeHours(value: unknown) {
 
 function normalizeWhitespace(value: string) {
   return value.trim().replace(/\s+/g, ' ');
+}
+
+function hasRejectedControlCharacters(value: string) {
+  return /[\u0000-\u001f\u007f]/.test(value);
 }
