@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { HolderDeclaredTextList } from '@/features/holder/holder-content-lists';
 import type { HolderProfileProvenanceVM, HolderProfileVM } from '@/models/holder';
 
 export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
@@ -18,32 +19,33 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
     profile.skills.some((skill) => skill.provenance);
 
   return (
-    <section aria-labelledby="holder-profile-summary-title" className="grid gap-6">
-      <Card className="overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
+    <section aria-labelledby="holder-profile-summary-title" className="grid min-w-0 gap-6">
+      <Card className="min-w-0 overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
         <div aria-hidden="true" className="h-1 bg-teal-600" />
-        <CardHeader className="gap-5 sm:p-8">
-          <div className="flex items-start justify-between gap-4">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"><Sparkles aria-hidden="true" className="size-5" /></span>
-            <Badge variant="secondary">Perfil disponible</Badge>
+        <CardHeader className="grid min-w-0 gap-8 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.42fr)] lg:items-end">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-4 lg:justify-start">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"><Sparkles aria-hidden="true" className="size-5" /></span>
+              <Badge variant="secondary">Perfil disponible</Badge>
+            </div>
+            <h2 id="holder-profile-summary-title" className="mt-5 text-xl font-semibold">Resumen del perfil</h2>
+            <p className="mt-3 max-w-[var(--traza-holder-narrative-width)] text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
+            {profile.narrative ? <p className="mt-4 max-w-[var(--traza-holder-narrative-width)] text-sm leading-6 text-brand-100">{profile.narrative}</p> : null}
+            {profile.totalOfficialHoursLabel ? <p className="mt-2 max-w-[var(--traza-holder-narrative-width)] text-xs leading-5 text-brand-100/70">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
           </div>
-          <div>
-            <h2 id="holder-profile-summary-title" className="text-xl font-semibold">Resumen del perfil</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
-            {profile.narrative ? <p className="mt-4 max-w-2xl text-sm leading-6 text-brand-100">{profile.narrative}</p> : null}
-            {profile.totalOfficialHoursLabel ? <p className="mt-2 max-w-2xl text-xs leading-5 text-brand-100/70">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
-          </div>
+          <dl className="grid min-w-0 gap-4 border-t border-white/15 pt-5 text-sm lg:border-t-0 lg:border-l lg:pl-7 lg:pt-0">
+            <div><dt className="text-xs font-semibold tracking-wide text-brand-100/70 uppercase">Credenciales</dt><dd className="mt-1 text-2xl font-bold text-white">{profile.credentialsCount}</dd></div>
+            {profile.totalOfficialHoursLabel ? <div><dt className="text-xs font-semibold tracking-wide text-brand-100/70 uppercase">Horas oficiales declaradas</dt><dd className="mt-1 break-words font-semibold text-white">{profile.totalOfficialHoursLabel}</dd></div> : null}
+            {profile.confidenceLabel ? <div><dt className="text-xs font-semibold tracking-wide text-brand-100/70 uppercase">Contexto del análisis</dt><dd className="mt-1 break-words text-brand-100">{profile.confidenceLabel}</dd></div> : null}
+          </dl>
         </CardHeader>
       </Card>
 
       {profile.hoursCoverageNoticeLabel || profile.semanticCoverageNoticeLabel ? (
-        <Card className="border-amber-300 bg-amber-50">
-          <CardContent className="pt-5 text-sm leading-6 text-amber-900 sm:pt-6">
-            <p className="font-semibold">Cobertura del perfil</p>
-            {profile.semanticCoverageNoticeLabel ? <p className="mt-2">{profile.semanticCoverageNoticeLabel}</p> : null}
-            {profile.hoursCoverageNoticeLabel ? <p className="mt-2">{profile.hoursCoverageNoticeLabel}</p> : null}
-            <p className="mt-2 text-amber-800">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
-          </CardContent>
-        </Card>
+        <aside className="grid min-w-0 gap-2 rounded-control border border-amber-300 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-900 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4">
+          <p className="font-semibold">Cobertura del perfil</p>
+          <div className="min-w-0"><>{profile.semanticCoverageNoticeLabel ? <p>{profile.semanticCoverageNoticeLabel}</p> : null}{profile.hoursCoverageNoticeLabel ? <p className={profile.semanticCoverageNoticeLabel ? 'mt-1' : ''}>{profile.hoursCoverageNoticeLabel}</p> : null}</><p className="mt-1 text-amber-800">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p></div>
+        </aside>
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -77,20 +79,20 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
         empty="Todavía no hay conceptos disponibles."
       />
       {hasDeclaredInstitutionalInfo ? (
-        <Card>
-          <CardHeader className="flex-row items-center gap-3 pb-4">
+        <section className="min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
+          <div className="flex min-w-0 items-start gap-3 border-b border-border-default px-5 py-5 sm:px-7">
             <span className="text-teal-700"><Landmark aria-hidden="true" className="size-5" /></span>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-text-strong">Información declarada por instituciones</h2>
               <p className="mt-1 text-sm leading-6 text-text-muted">Estos datos provienen de credenciales emitidas. No son una certificación de la IA ni reemplazan la interpretación asistida.</p>
             </div>
-          </CardHeader>
-          <CardContent className="grid gap-5">
-            {profile.emittedSkills.length > 0 ? <DeclaredBlock title="Habilidades declaradas" items={profile.emittedSkills} /> : null}
-            {profile.emittedCompetencies.length > 0 ? <DeclaredBlock title="Competencias declaradas" items={profile.emittedCompetencies} /> : null}
-            {profile.emittedLearningOutcomes.length > 0 ? <DeclaredBlock title="Contenido adicional declarado" items={profile.emittedLearningOutcomes} /> : null}
-          </CardContent>
-        </Card>
+          </div>
+          <div className="grid min-w-0 gap-5 px-5 py-5 sm:px-7 sm:py-6">
+            <HolderDeclaredTextList title="Habilidades declaradas" items={profile.emittedSkills} />
+            <HolderDeclaredTextList title="Competencias declaradas" items={profile.emittedCompetencies} />
+            <HolderDeclaredTextList title="Contenido adicional declarado" items={profile.emittedLearningOutcomes} />
+          </div>
+        </section>
       ) : null}
       <Card>
         <CardContent className="pt-5 text-sm leading-6 text-text-muted sm:pt-6">
@@ -135,7 +137,7 @@ interface ProfileListItem {
 // Se muestra como un indicador chico dentro del mismo Badge -- nunca una
 // tarjeta propia por item, para que no domine cuando hay muchas skills.
 function ProfileList({ title, icon, items, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; empty: string }) {
-  return <Card className="shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="text-teal-700">{icon}</span><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent className="pt-5">{items.length > 0 ? <ul className="flex flex-wrap items-center gap-x-3 gap-y-3">{items.map((item) => <li key={item.key} className="flex min-w-0 flex-wrap items-center gap-2"><Badge variant="outline" className="px-3 py-1.5">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+  return <Card className="min-w-0 shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="shrink-0 text-teal-700">{icon}</span><h2 className="min-w-0 text-lg font-semibold text-text-strong">{title}</h2></CardHeader><CardContent className="min-w-0 pt-5">{items.length > 0 ? <ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3">{items.map((item) => <li key={item.key} className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><Badge variant="outline" className="max-w-full whitespace-normal break-words px-3 py-1.5 text-left">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="min-w-0 break-words text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
 }
 
 // C5b.2-R: la procedencia debe poder comprenderse SIN hover/tooltip (mobile/
@@ -170,8 +172,4 @@ function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenan
       ) : null}
     </>
   );
-}
-
-function DeclaredBlock({ title, items }: { title: string; items: string[] }) {
-  return <section className="grid gap-3 border-t border-border-default pt-5 first:border-t-0 first:pt-0"><h3 className="text-sm font-semibold text-text-strong">{title}</h3><ul className="flex flex-wrap gap-2.5">{items.map((item) => <li key={item}><Badge variant="outline" className="px-3 py-1.5">{item}</Badge></li>)}</ul></section>;
 }

@@ -7,25 +7,25 @@ import type { HolderCredentialListItemVM } from '@/models/holder';
 
 export function HolderCredentialCard({ credential }: { credential: HolderCredentialListItemVM }) {
   return (
-    <Card className="group overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-md motion-reduce:transform-none">
+    <Card className="group min-w-0 overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-600 hover:shadow-md motion-reduce:transform-none">
       <div className={credential.status === 'revoked' ? 'h-1 bg-status-error' : 'h-1 bg-teal-700'} />
       <CardHeader className="gap-3 sm:p-6 sm:pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
           <Badge variant={credential.status === 'revoked' ? 'outline' : 'secondary'}>
             {credential.statusLabel}
           </Badge>
-          <span className="text-xs font-semibold text-text-muted">{credential.typeLabel}</span>
+          <span className="min-w-0 break-words text-xs font-semibold text-text-muted">{credential.typeLabel}</span>
         </div>
-        <div>
-          <h2 className="text-lg font-semibold text-text-strong">{credential.title}</h2>
-          <p className="mt-1 text-sm text-text-muted">Emitida por {credential.issuerName}</p>
+        <div className="min-w-0">
+          <h2 className="break-words text-lg font-semibold text-text-strong">{credential.title}</h2>
+          <p className="mt-1 break-words text-sm text-text-muted">Emitida por {credential.issuerName}</p>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5 border-t border-border-default pt-4 sm:px-6 sm:pb-6">
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm leading-6 text-text-muted">
+      <CardContent className="grid min-w-0 gap-5 border-t border-border-default pt-4 sm:px-6 sm:pb-6">
+        <div className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-sm leading-6 text-text-muted">
           {credential.issuedAtLabel ? <span>{credential.issuedAtLabel}</span> : null}
-          {credential.hasIntegrityEvidence ? <span className="inline-flex items-center gap-1.5"><ShieldCheck aria-hidden="true" className="size-4 text-teal-700" />Evidencia de integridad</span> : null}
-          {credential.hasAnalysis ? <span className="inline-flex items-center gap-1.5"><BrainCircuit aria-hidden="true" className="size-4 text-teal-700" />Análisis disponible</span> : null}
+          {credential.hasIntegrityEvidence ? <span className="inline-flex min-w-0 items-center gap-1.5"><ShieldCheck aria-hidden="true" className="size-4 shrink-0 text-teal-700" />Evidencia de integridad</span> : null}
+          {credential.hasAnalysis ? <span className="inline-flex min-w-0 items-center gap-1.5"><BrainCircuit aria-hidden="true" className="size-4 shrink-0 text-teal-700" />Análisis disponible</span> : null}
         </div>
         <Link
           href={`/wallet/credentials/${encodeURIComponent(credential.credentialReference)}`}

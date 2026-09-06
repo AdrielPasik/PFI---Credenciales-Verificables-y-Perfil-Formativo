@@ -59,7 +59,8 @@ const academicSubjectDetail: HolderCredentialDetailVM = {
   type: 'academic_subject',
   typeLabel: 'Asignatura académica'
 };
-const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
+const declaredContentAtCurrentLimit = 'contenido institucional extenso '.repeat(20).slice(0, 500);
+const longTechnicalReference = `did:example:${'technical-reference-'.repeat(12)}`;
 
 describe('WalletCredentialDetailContent error recovery', () => {
   beforeEach(() => {
@@ -338,6 +339,43 @@ it('renders a backend-equivalent issued Course with evidence, semantic descripto
   expect(screen.getByText(declaredContentAtCurrentLimit)).toBeTruthy();
   expect(screen.getByText('Entorno técnico/demo')).toBeTruthy();
   expect(document.body.textContent).not.toContain('area-data');
+});
+
+it('renders long declared evidence in wrapping rows and long technical values without a single-line badge', () => {
+  const longDetail: HolderCredentialDetailVM = {
+    ...detail,
+    issuerDid: longTechnicalReference,
+    subject: {
+      ...detail.subject,
+      skills: [declaredContentAtCurrentLimit],
+      competencies: [declaredContentAtCurrentLimit],
+      learningOutcomes: [declaredContentAtCurrentLimit]
+    },
+    integrity: {
+      ...detail.integrity,
+      canonicalHashShort: `0x${'a'.repeat(120)}`
+    },
+    analysis: {
+      status: 'partial',
+      statusLabel: 'Análisis parcial',
+      confidenceLabel: null,
+      areas: ['Etiqueta semántica extensa '.repeat(6).slice(0, 150)],
+      skills: [],
+      concepts: [],
+      qualityFlags: ['Información parcial'],
+      analyzedAtLabel: '1 ago 2026'
+    }
+  };
+
+  render(<WalletCredentialDetailView detail={longDetail} />);
+
+  const declaredRows = screen.getAllByText(declaredContentAtCurrentLimit);
+  expect(declaredRows).toHaveLength(3);
+  expect(declaredRows[0].closest('[data-slot="badge"]')).toBeNull();
+  expect(screen.getAllByTestId('holder-declared-text-list')).toHaveLength(3);
+  expect(screen.getByText(longTechnicalReference).className).toMatch(/break-all/);
+  expect(screen.getByText(`0x${'a'.repeat(120)}`).className).toMatch(/break-all/);
+  expect(document.body.innerHTML).not.toContain('overflow-x-hidden');
 });
 
 it('shares an issued or revoked holder credential through the public verifier without exposing extra data', () => {

@@ -47,7 +47,8 @@ const profileWithDeclaredInfo = {
   emittedCompetencies: ['Trabajo en equipo'],
   emittedLearningOutcomes: ['Redactar informes técnicos']
 };
-const declaredContentAtCurrentLimit = 'contenido institucional '.repeat(9).trim();
+const declaredContentAtCurrentLimit = 'contenido institucional extenso '.repeat(20).slice(0, 500);
+const longTaxonomyLabel = 'Etiqueta semántica extensa '.repeat(6).slice(0, 150);
 
 const credentialsReady: HolderCredentialsLoadState = { status: 'ready', credentials: [credential] };
 
@@ -429,6 +430,27 @@ describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
 
     expect(screen.getByRole('button', { name: 'Compartir perfil' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+
+  it('renders 500-character declared evidence as wrapping rows while taxonomy labels remain wrapping badges', () => {
+    const longProfile = {
+      ...profile,
+      skills: [{ label: longTaxonomyLabel, confidenceLabel: null }],
+      emittedSkills: [declaredContentAtCurrentLimit],
+      emittedCompetencies: [declaredContentAtCurrentLimit],
+      emittedLearningOutcomes: [declaredContentAtCurrentLimit]
+    };
+
+    render(<WalletHomeView profileState={{ status: 'ready', profile: longProfile }} credentialsState={credentialsReady} />);
+
+    const declaredRows = screen.getAllByText(declaredContentAtCurrentLimit);
+    expect(declaredRows).toHaveLength(3);
+    expect(screen.getAllByTestId('holder-declared-text-list')).toHaveLength(3);
+    expect(declaredRows[0].closest('[data-slot="badge"]')).toBeNull();
+    const taxonomyBadge = screen.getByText(longTaxonomyLabel).closest('[data-slot="badge"]');
+    expect(taxonomyBadge?.className).toMatch(/whitespace-normal/);
+    expect(taxonomyBadge?.className).toMatch(/break-words/);
+    expect(document.body.innerHTML).not.toContain('overflow-x-hidden');
   });
 });
 

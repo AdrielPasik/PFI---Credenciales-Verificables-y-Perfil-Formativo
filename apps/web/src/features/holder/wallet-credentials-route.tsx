@@ -30,9 +30,9 @@ function WalletCredentialsContent() {
     return () => { active = false; };
   }, [requestAuthenticated]);
 
-  return <section className="grid gap-8" aria-labelledby="holder-credentials-title">
+  return <section className="grid min-w-0 gap-8" aria-labelledby="holder-credentials-title">
     <Button asChild variant="ghost" className="w-fit"><Link href="/wallet"><ArrowLeft aria-hidden="true" />Volver al perfil</Link></Button>
-    <div className="max-w-3xl border-l-4 border-teal-700 pl-5 sm:pl-6">
+    <div className="min-w-0 max-w-[var(--traza-holder-narrative-width)] border-l-4 border-teal-700 pl-5 sm:pl-6">
       <p className="text-sm font-semibold text-teal-700">Credenciales de respaldo</p>
       <h1 id="holder-credentials-title" className="mt-1 text-3xl font-bold tracking-tight text-text-strong">Mis credenciales</h1>
       <p className="mt-3 max-w-2xl leading-7 text-text-muted">{'Consult\u00e1 las credenciales que respaldan tu trayectoria formativa.'}</p>
@@ -40,6 +40,6 @@ function WalletCredentialsContent() {
     {error ? <FeedbackAlert variant="error" title="No pudimos cargar tus credenciales">{error}</FeedbackAlert> : null}
     {credentials === null && !error ? <LoadingState label="Cargando credenciales" /> : null}
     {credentials?.length === 0 ? <EmptyCredentials /> : null}
-    {credentials && credentials.length > 0 ? <div className="grid gap-5 md:grid-cols-2">{credentials.map((credential) => <HolderCredentialCard key={credential.credentialReference} credential={credential} />)}</div> : null}
+    {credentials && credentials.length > 0 ? <div className="grid min-w-0 gap-5 md:grid-cols-2">{credentials.map((credential) => <HolderCredentialCard key={credential.credentialReference} credential={credential} />)}</div> : null}
   </section>;
 }

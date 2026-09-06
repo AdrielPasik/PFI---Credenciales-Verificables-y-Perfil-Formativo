@@ -77,6 +77,8 @@
   --traza-input-height: 2.75rem;
   --traza-reading-width: 75rem;
   --traza-holder-reading-width: 88rem;
+  --traza-holder-canvas-width: 88rem;
+  --traza-holder-narrative-width: 75ch;
   --traza-issuer-reading-width: 96rem;
   --traza-font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
