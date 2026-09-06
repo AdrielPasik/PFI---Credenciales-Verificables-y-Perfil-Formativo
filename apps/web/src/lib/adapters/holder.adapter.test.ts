@@ -18,6 +18,72 @@ function listPayload() {
   }];
 }
 
+function issuedCoursePayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    ...listPayload()[0],
+    title: 'Análisis de datos con Python para negocios',
+    description: 'Curso aplicado',
+    hours: 24,
+    canonicalHash: `0x${'a'.repeat(64)}`,
+    canonicalizationVersion: 'canon_v1',
+    issuer: { name: 'Plataforma de Cursos Demo', did: 'did:example:course-issuer' },
+    subject: { displayLabel: 'Titular registrado', email: 'holder@example.com', did: null },
+    credentialSubject: {
+      achievementName: 'Análisis de datos con Python para negocios',
+      institutionName: 'Plataforma de Cursos Demo',
+      completionDate: '2026-08-01',
+      competencies: ['Aplicar análisis de datos'],
+      learningOutcomes: ['Interpretar resultados']
+    },
+    documentEvidence: {
+      originalFileName: 'evidencia.pdf', mimeType: 'application/pdf', sizeBytes: 2048,
+      sha256: 'c'.repeat(64), uploadedAt: '2026-08-01T10:15:00.000Z', storageKey: 'forbidden'
+    },
+    textEvidence: null,
+    blockchainRecords: [{
+      network: 'anvil', chainId: 31337, txHash, status: 'registered',
+      registeredAt: '2026-08-01T10:05:00.000Z', contractAddress: 'forbidden'
+    }],
+    latestSemanticAnalysis: {
+      status: 'completed', confidence: 0.87,
+      areas: [{ id: 'area-data', label: 'Datos', confidence: 0.9 }],
+      skills: [{ id: 'skill-python', skill: 'Python', confidence: 0.88 }],
+      concepts: [{ id: 'concept-business', concept: 'Analítica de negocios' }],
+      qualityFlags: [], analyzedAt: '2026-08-01T10:10:00.000Z'
+    },
+    ...overrides
+  };
+}
+
+function legacyDomainProfile() {
+  return {
+    profileVersion: 'formative_profile_v1',
+    credentialsCount: 2,
+    totalHours: 36,
+    areasSummary: [{
+      area: 'Datos', estimatedHours: 20,
+      credentialIds: ['forbidden'],
+      provenanceSummary: { issuerReviewedCount: 0, aiInferredCount: 1 }
+    }],
+    skillsSummary: [{
+      skill: 'Python', confidence: 0.84,
+      semanticAnalysisIds: ['forbidden'],
+      provenanceSummary: { issuerReviewedCount: 1, aiInferredCount: 1 }
+    }],
+    profileJson: {
+      narrative: 'La trayectoria muestra formación en datos y programación.',
+      concepts: [{ concept: 'Normalización', credentialIds: ['forbidden'] }],
+      emittedSkills: [{ label: 'Excel', credentialIds: ['forbidden'], evidenceCount: 1 }],
+      emittedCompetencies: [{ label: 'Análisis de información', credentialIds: ['forbidden'] }],
+      emittedLearningOutcomes: [{ label: 'Interpretar resultados', credentialIds: ['forbidden'] }],
+      confidence: { score: 0.8 },
+      sourceRefs: ['forbidden']
+    },
+    qualityFlags: [],
+    generatedAt: '2026-08-14T10:00:00.000Z'
+  };
+}
+
 describe('holder adapters', () => {
   it('adapts only holder-safe credential list fields and accepts issued/revoked', () => {
     const result = adaptMyCredentials(listPayload());
@@ -135,6 +201,75 @@ describe('holder adapters', () => {
     expect(result.subject.skills).toEqual([]);
     expect(JSON.stringify(result)).not.toContain('forbidden');
     expect(JSON.stringify(result)).not.toContain('area-data');
+  });
+
+  it.each([
+    ['omitted', undefined],
+    ['null', null],
+    ['present', {
+      label: 'Contenido declarado', preview: 'Python aplicado a negocios.', characterCount: 28,
+      sha256: 'd'.repeat(64), submittedAt: '2026-08-01T10:20:00.000Z'
+    }]
+  ])('accepts a document-backed issued Course with textEvidence %s', (_label, textEvidence) => {
+    const payload = issuedCoursePayload();
+    if (textEvidence === undefined) delete payload.textEvidence;
+    else payload.textEvidence = textEvidence;
+
+    const result = adaptMyCredential(payload);
+    expect(result.documentEvidence?.mimeType).toBe('application/pdf');
+    expect(result.textEvidence === null).toBe(textEvidence == null);
+    expect(result.analysis?.areas).toEqual(['Datos']);
+    expect(JSON.stringify(result)).not.toContain('forbidden');
+  });
+
+  it('accepts proven legacy omissions and snake_case credentialSubject aliases', () => {
+    const payload = issuedCoursePayload({
+      credentialSubject: {
+        achievement_name: 'Análisis de datos con Python para negocios',
+        institution_name: 'Plataforma de Cursos Demo',
+        completion_date: '2026-08-01',
+        provider_name: 'Proveedor demo',
+        learning_outcomes: ['Interpretar resultados']
+      }
+    });
+    delete payload.textEvidence;
+    delete payload.canonicalHash;
+    delete payload.canonicalizationVersion;
+    delete payload.revokedAt;
+    delete payload.revocationReason;
+
+    const result = adaptMyCredential(payload);
+    expect(result.subject).toMatchObject({
+      achievementName: 'Análisis de datos con Python para negocios',
+      institutionName: 'Plataforma de Cursos Demo',
+      providerName: 'Proveedor demo',
+      competencies: [],
+      learningOutcomes: ['Interpretar resultados']
+    });
+    expect(result.integrity.canonicalHash).toBeNull();
+    expect(result.textEvidence).toBeNull();
+  });
+
+  it('keeps exact safe contract diagnostics without payload values', () => {
+    const payload = issuedCoursePayload({
+      blockchainRecords: [{
+        network: 'anvil', chainId: '31337', txHash, status: 'registered',
+        registeredAt: '2026-08-01T10:05:00.000Z'
+      }]
+    });
+
+    try {
+      adaptMyCredential(payload);
+      throw new Error('Expected adapter rejection');
+    } catch (error) {
+      expect(error).toBeInstanceOf(IncompatiblePayloadError);
+      expect((error as IncompatiblePayloadError).diagnostic).toEqual({
+        path: 'credential.blockchainRecords[0].chainId',
+        expected: 'non-negative integer',
+        actualCategory: 'string'
+      });
+      expect(JSON.stringify((error as IncompatiblePayloadError).diagnostic)).not.toContain('31337');
+    }
   });
 
   it('rejects semantic descriptor objects without an allowlisted label', () => {
@@ -340,6 +475,49 @@ describe('holder adapters', () => {
     });
   });
 
+  it('adapts the proven raw profile domain descriptors through the holder allowlist', () => {
+    const result = adaptMyCurrentProfile({ currentProfile: legacyDomainProfile() });
+
+    expect(result).toMatchObject({
+      credentialsCount: 2,
+      areas: [{ label: 'Datos', provenance: { aiInferredLabel: 'Interpretado con IA' } }],
+      skills: [{ label: 'Python' }],
+      concepts: ['Normalización'],
+      emittedSkills: ['Excel'],
+      emittedCompetencies: ['Análisis de información'],
+      emittedLearningOutcomes: ['Interpretar resultados'],
+      confidenceLabel: '80% de confianza'
+    });
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('forbidden');
+    expect(serialized).not.toContain('credentialIds');
+    expect(serialized).not.toContain('semanticAnalysisIds');
+    expect(serialized).not.toContain('sourceRefs');
+  });
+
+  it.each([
+    ['areasSummary', [{ evidenceCount: 1 }], 'profile.currentProfile.areas[0]'],
+    ['skillsSummary', [{ confidence: 0.8 }], 'profile.currentProfile.skills[0]'],
+    ['concepts', [{ evidenceCount: 1 }], 'profile.currentProfile.concepts[0]'],
+    ['emittedSkills', [{ evidenceCount: 1 }], 'profile.currentProfile.emittedSkills[0]']
+  ])('rejects an unknown %s descriptor with an exact safe path', (field, value, expectedPath) => {
+    const profile = legacyDomainProfile();
+    if (field === 'concepts' || field === 'emittedSkills') {
+      (profile.profileJson as Record<string, unknown>)[field] = value;
+    } else {
+      (profile as Record<string, unknown>)[field] = value;
+    }
+
+    try {
+      adaptMyCurrentProfile({ currentProfile: profile });
+      throw new Error('Expected adapter rejection');
+    } catch (error) {
+      expect(error).toBeInstanceOf(IncompatiblePayloadError);
+      expect((error as IncompatiblePayloadError).diagnostic?.path).toBe(expectedPath);
+      expect((error as IncompatiblePayloadError).diagnostic?.actualCategory).toBe('object');
+    }
+  });
+
   it('treats absent emitted arrays as [] for backend/frontend deploy skew (H1.2 compatibility)', () => {
     const result = adaptMyCurrentProfile({ currentProfile: {
       profileVersion: 'backend_formative_profile_snapshot_v0',
@@ -433,14 +611,15 @@ describe('holder adapters', () => {
     }
   });
 
-  it('rejects emitted arrays that are present but not safe string arrays', () => {
+  it('accepts allowlisted emitted descriptors and rejects other emitted values', () => {
     const base = {
       profileVersion: 'backend_formative_profile_snapshot_v0',
       credentialsCount: 1, totalHours: null, generatedAt: '2026-08-08T10:00:00.000Z',
       areas: [], skills: [], concepts: [], confidence: null, qualityFlags: []
     };
-    expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedSkills: [{ label: 'Excel', credentialIds: ['forbidden'] }] } }))
-      .toThrow(IncompatiblePayloadError);
+    const descriptorResult = adaptMyCurrentProfile({ currentProfile: { ...base, emittedSkills: [{ label: 'Excel', credentialIds: ['forbidden'] }] } });
+    expect(descriptorResult?.emittedSkills).toEqual(['Excel']);
+    expect(JSON.stringify(descriptorResult)).not.toContain('forbidden');
     expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedCompetencies: [42] } }))
       .toThrow(IncompatiblePayloadError);
     expect(() => adaptMyCurrentProfile({ currentProfile: { ...base, emittedLearningOutcomes: [null] } }))
