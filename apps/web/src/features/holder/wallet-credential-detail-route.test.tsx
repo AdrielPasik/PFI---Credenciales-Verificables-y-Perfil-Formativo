@@ -6,6 +6,7 @@ import {
   WalletCredentialDetailContent,
   WalletCredentialDetailView
 } from '@/features/holder/wallet-credential-detail-route';
+import { adaptMyCredential } from '@/lib/adapters/holder.adapter';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { HolderCredentialDetailVM } from '@/models/holder';
 
@@ -212,6 +213,72 @@ it('never shows issuer-facing semantic approval copy in the holder wallet', () =
   expect(document.body.textContent).not.toMatch(
     /aprobar interpretación para reutilización/i
   );
+});
+
+it('renders a backend-equivalent issued Course with evidence, semantic descriptors and integrity', () => {
+  const backendPayload = {
+    id: 'credential-reference',
+    title: 'Análisis de datos con Python para negocios',
+    type: 'course',
+    status: 'issued',
+    description: 'Curso aplicado',
+    hours: 24,
+    issuedAt: '2026-08-01T10:00:00.000Z',
+    revokedAt: null,
+    revocationReason: null,
+    canonicalHash: `0x${'a'.repeat(64)}`,
+    canonicalizationVersion: 'canon_v1',
+    issuer: { name: 'Plataforma de Cursos Demo', did: 'did:example:course-issuer' },
+    subject: {
+      displayLabel: 'Titular registrado',
+      email: 'holder@example.com',
+      did: 'did:example:holder'
+    },
+    credentialSubject: {
+      achievementName: 'Análisis de datos con Python para negocios',
+      institutionName: 'Plataforma de Cursos Demo',
+      completionDate: '2026-08-01',
+      academicPeriod: null,
+      programName: null,
+      grade: null,
+      providerName: 'Proveedor institucional',
+      platformName: null,
+      modality: 'Virtual',
+      level: 'Intermedio',
+      externalUrl: null,
+      skills: [],
+      competencies: ['Aplicar análisis de datos'],
+      learningOutcomes: ['Interpretar resultados']
+    },
+    documentEvidence: {
+      originalFileName: 'evidencia.pdf', mimeType: 'application/pdf', sizeBytes: 2048,
+      sha256: 'c'.repeat(64), uploadedAt: '2026-08-01T10:15:00.000Z'
+    },
+    textEvidence: {
+      label: 'Contenido declarado', preview: 'Python y decisiones de negocio.', characterCount: 31,
+      sha256: 'd'.repeat(64), submittedAt: '2026-08-01T10:20:00.000Z'
+    },
+    blockchainRecords: [{
+      network: 'anvil', chainId: 31337, txHash: `0x${'b'.repeat(64)}`,
+      status: 'registered', registeredAt: '2026-08-01T10:05:00.000Z'
+    }],
+    latestSemanticAnalysis: {
+      status: 'completed', confidence: 0.87,
+      areas: [{ id: 'area-data', label: 'Datos', confidence: 0.9 }],
+      skills: [{ id: 'skill-python', skill: 'Python', confidence: 0.88 }],
+      concepts: [{ id: 'concept-business', concept: 'Analítica de negocios' }],
+      qualityFlags: [], analyzedAt: '2026-08-01T10:10:00.000Z'
+    }
+  };
+
+  render(<WalletCredentialDetailView detail={adaptMyCredential(backendPayload)} />);
+
+  expect(screen.getByRole('heading', { name: 'Análisis de datos con Python para negocios' })).toBeTruthy();
+  expect(screen.getByText('evidencia.pdf')).toBeTruthy();
+  expect(screen.getByText('Datos')).toBeTruthy();
+  expect(screen.getByText('Python')).toBeTruthy();
+  expect(screen.getByText('Entorno técnico/demo')).toBeTruthy();
+  expect(document.body.textContent).not.toContain('area-data');
 });
 
 it('shares an issued or revoked holder credential through the public verifier without exposing extra data', () => {

@@ -22,6 +22,11 @@ const credentialTypes = [
   'degree'
 ] as const;
 const semanticStatuses = ['completed', 'partial'] as const;
+const semanticLabelFields = {
+  area: ['area', 'name', 'label', 'area_label', 'areaLabel'],
+  skill: ['skill', 'name', 'label', 'skill_label', 'skillLabel'],
+  concept: ['concept', 'name', 'label', 'concept_label', 'conceptLabel']
+} as const;
 const hashPattern = /^0x[a-fA-F0-9]{64}$/;
 const typeLabels: Record<string, string> = {
   academic_subject: 'Asignatura académica',
@@ -122,9 +127,9 @@ export function adaptMyCredential(payload: unknown): HolderCredentialDetailVM {
         ? 'Análisis parcial'
         : 'Análisis completado',
       confidenceLabel: nullableConfidenceLabel(analysis.confidence),
-      areas: stringArray(analysis.areas),
-      skills: stringArray(analysis.skills),
-      concepts: stringArray(analysis.concepts),
+      areas: semanticLabelArray(analysis.areas, semanticLabelFields.area),
+      skills: semanticLabelArray(analysis.skills, semanticLabelFields.skill),
+      concepts: semanticLabelArray(analysis.concepts, semanticLabelFields.concept),
       qualityFlags: qualityFlags(analysis.qualityFlags),
       analyzedAtLabel: dateLabel(analysis.analyzedAt)
     } : null
@@ -231,6 +236,18 @@ function nullableString(value: unknown): string | null {
   return normalized || null;
 }
 function stringArray(value: unknown): string[] { return array(value).map((entry) => safeString(entry, 160)); }
+function semanticLabelArray(value: unknown, labelFields: readonly string[]): string[] {
+  return array(value).map((entry) => {
+    if (typeof entry === 'string') return safeString(entry, 160);
+
+    const descriptor = record(entry);
+    for (const field of labelFields) {
+      if (descriptor[field] !== undefined) return safeString(descriptor[field], 160);
+    }
+
+    invalid();
+  });
+}
 function optionalStringArray(value: unknown): string[] { return value === undefined ? [] : stringArray(value); }
 function qualityFlags(value: unknown): string[] { return array(value).map((entry) => formatHolderQualityFlag(safeString(entry, 120))); }
 function safeString(value: unknown, maxLength: number): string { const normalized = requiredString(value); if (normalized.length > maxLength || /[\u0000-\u001f\u007f]/.test(normalized)) invalid(); return normalized; }

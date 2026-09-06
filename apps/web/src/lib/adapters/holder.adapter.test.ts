@@ -60,6 +60,104 @@ describe('holder adapters', () => {
     expect(JSON.stringify(result)).not.toContain('analysisJson');
   });
 
+  it('accepts the backend semantic descriptor shape for an issued Course without weakening the allowlist', () => {
+    const result = adaptMyCredential({
+      ...listPayload()[0],
+      title: 'Análisis de datos con Python para negocios',
+      description: 'Curso aplicado',
+      hours: 24,
+      canonicalHash: `0x${'a'.repeat(64)}`,
+      canonicalizationVersion: 'canon_v1',
+      issuer: { name: 'Plataforma de Cursos Demo', did: 'did:example:course-issuer' },
+      subject: {
+        displayLabel: 'Titular registrado',
+        email: 'holder@example.com',
+        did: 'did:example:holder'
+      },
+      credentialSubject: {
+        achievementName: 'Análisis de datos con Python para negocios',
+        institutionName: 'Plataforma de Cursos Demo',
+        completionDate: '2026-08-01',
+        academicPeriod: null,
+        programName: null,
+        grade: null,
+        providerName: 'Proveedor institucional',
+        platformName: null,
+        modality: 'Virtual',
+        level: 'Intermedio',
+        externalUrl: null,
+        skills: ['legacy-course-skill'],
+        competencies: ['Aplicar análisis de datos'],
+        learningOutcomes: ['Interpretar resultados']
+      },
+      documentEvidence: {
+        originalFileName: 'evidencia.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 2048,
+        sha256: 'c'.repeat(64),
+        uploadedAt: '2026-08-01T10:15:00.000Z',
+        storageKey: 'forbidden'
+      },
+      textEvidence: {
+        label: 'Contenido declarado',
+        preview: 'Python, visualización y decisiones de negocio.',
+        characterCount: 48,
+        sha256: 'd'.repeat(64),
+        submittedAt: '2026-08-01T10:20:00.000Z',
+        content: 'forbidden'
+      },
+      blockchainRecords: [{
+        network: 'anvil',
+        chainId: 31337,
+        txHash,
+        status: 'registered',
+        registeredAt: '2026-08-01T10:05:00.000Z',
+        contractAddress: 'forbidden'
+      }],
+      latestSemanticAnalysis: {
+        status: 'completed',
+        confidence: 0.87,
+        areas: [{ id: 'area-data', label: 'Datos', confidence: 0.9 }],
+        skills: [{ id: 'skill-python', skill: 'Python', confidence: 0.88 }],
+        concepts: [{ id: 'concept-business', concept: 'Analítica de negocios' }],
+        qualityFlags: [],
+        analyzedAt: '2026-08-01T10:10:00.000Z',
+        analysisJson: { forbidden: true },
+        evidenceMap: { forbidden: true }
+      }
+    });
+
+    expect(result.analysis).toMatchObject({
+      areas: ['Datos'],
+      skills: ['Python'],
+      concepts: ['Analítica de negocios']
+    });
+    expect(result.subject.skills).toEqual([]);
+    expect(JSON.stringify(result)).not.toContain('forbidden');
+    expect(JSON.stringify(result)).not.toContain('area-data');
+  });
+
+  it('rejects semantic descriptor objects without an allowlisted label', () => {
+    expect(() => adaptMyCredential({
+      ...listPayload()[0], description: null, hours: null,
+      canonicalHash: null, canonicalizationVersion: null,
+      issuer: { name: 'Institución demo', did: null },
+      subject: { displayLabel: 'Titular demo', email: 'holder@example.com', did: null },
+      credentialSubject: {
+        achievementName: 'Arquitectura de software', institutionName: 'Institución demo',
+        completionDate: null, academicPeriod: null, programName: null, grade: null,
+        providerName: null, platformName: null, modality: null, level: null,
+        externalUrl: null, skills: [], competencies: [], learningOutcomes: []
+      },
+      documentEvidence: null, textEvidence: null, blockchainRecords: [],
+      latestSemanticAnalysis: {
+        status: 'completed', confidence: null,
+        areas: [{ id: 'technical-only' }], skills: [], concepts: [], qualityFlags: [],
+        analyzedAt: '2026-08-01T10:10:00.000Z'
+      }
+    })).toThrow(IncompatiblePayloadError);
+  });
+
   it('A1.1: holderLabel reflects the backend-computed subject.displayLabel (combined name)', () => {
     const result = adaptMyCredential({
       ...listPayload()[0], description: null, hours: null,

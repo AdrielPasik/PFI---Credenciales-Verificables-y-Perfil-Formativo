@@ -91,7 +91,7 @@ test('FormativeProfileService returns the current persisted profile', async () =
   assert.equal(response.currentProfile?.totalHours, 64);
 });
 
-test('FormativeProfileService rebuilds a deterministic profile from latest semantic analyses', async () => {
+test('FormativeProfileService rebuilds a deterministic profile from Academic Subject and Course analyses', async () => {
   const findManyCalls: Array<Record<string, unknown>> = [];
   const updateManyCalls: Array<Record<string, unknown>> = [];
   const createCalls: Array<Record<string, unknown>> = [];
@@ -138,7 +138,7 @@ test('FormativeProfileService rebuilds a deterministic profile from latest seman
     },
     {
       id: 'credential-2',
-      type: CredentialType.certification,
+      type: CredentialType.course,
       hours: decimalLike('20.00'),
       semanticAnalyses: [
         {

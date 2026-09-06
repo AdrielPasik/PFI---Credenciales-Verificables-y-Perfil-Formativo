@@ -59,14 +59,14 @@ test('A1: MeService returns an empty list (never an error) for a freshly registe
   assert.deepEqual(response, []);
 });
 
-test('MeService returns a holder-safe detail without raw data, storage keys, metadata or blockchain addresses', async () => {
+test('MeService returns a holder-safe Course detail compatible with document, text, semantic and integrity evidence', async () => {
   const calls: Array<Record<string, unknown>> = [];
   const service = new MeService({
     credential: {
       async findFirst(args: Record<string, unknown>) {
         calls.push(args);
         return {
-          id: 'cred-1', type: 'academic_subject', title: 'Arquitectura de software', description: 'Descripción emitida', hours: decimalLike('64'), status: 'issued',
+          id: 'cred-1', type: 'course', title: 'Arquitectura de software', description: 'Descripción emitida', hours: decimalLike('64'), status: 'issued',
           issuedAt: new Date('2026-08-01T10:00:00Z'), revokedAt: null, revocationReason: null,
           canonicalHash: '0x' + '3'.repeat(64), canonicalizationVersion: 'canon_v1', rawData: { hidden: true }, metadata: { hidden: true },
           credentialSubject: { achievement_name: 'Arquitectura de software', institution_name: 'Institución demo', academic_period: '2026', skills: ['Diseño'], competencies: ['Análisis'], learning_outcomes: ['Modelar'] },
