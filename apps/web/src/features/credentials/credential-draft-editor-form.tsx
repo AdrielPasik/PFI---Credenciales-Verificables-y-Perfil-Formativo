@@ -154,8 +154,11 @@ export const CredentialDraftEditorForm = forwardRef<
   const academicApprovalFields = visibleFields.filter(
     (field) => field !== 'skills' && field !== 'competencies'
   );
-  const academicCapabilityFields = visibleFields.filter(
-    (field) => field === 'skills' || field === 'competencies'
+  const declaredContentFields = visibleFields.filter((field) =>
+    isTextualDeclaredContentField(field, state.type)
+  );
+  const specificFields = visibleFields.filter(
+    (field) => !isTextualDeclaredContentField(field, state.type)
   );
   const persistedAcademicSelection = catalogSelectionInvalidated
     ? null
@@ -165,9 +168,9 @@ export const CredentialDraftEditorForm = forwardRef<
     persistedAcademicSelection === null &&
     pendingAcademicSelection === null;
   const declaredCapabilities =
-    state.type === 'academic_subject' ? (
-      <DeclaredCapabilitiesFields
-        fields={academicCapabilityFields}
+    declaredContentFields.length > 0 ? (
+      <DeclaredInstitutionalContentFields
+        fields={declaredContentFields}
         state={state}
         disabled={saving}
         errors={errors}
@@ -175,6 +178,7 @@ export const CredentialDraftEditorForm = forwardRef<
         externalUrlRef={externalUrlRef}
         gradeRef={gradeRef}
         onChange={updateField}
+        credentialType={state.type}
       />
     ) : null;
   const isCapabilitiesSlotActive =
@@ -617,7 +621,7 @@ export const CredentialDraftEditorForm = forwardRef<
             eyebrow={credentialTypeLabels[state.type]}
             title="Información específica"
             description="Los campos visibles corresponden al tipo seleccionado."
-            fields={visibleFields}
+            fields={specificFields}
             state={state}
             disabled={saving}
             errors={errors}
@@ -788,8 +792,9 @@ function DraftFieldsCard({
   );
 }
 
-function DeclaredCapabilitiesFields({
+function DeclaredInstitutionalContentFields({
   academicYearRef,
+  credentialType,
   disabled,
   errors,
   externalUrlRef,
@@ -797,25 +802,32 @@ function DeclaredCapabilitiesFields({
   gradeRef,
   onChange,
   state
-}: Omit<Parameters<typeof DraftFieldsCard>[0], 'description' | 'eyebrow' | 'title'>) {
+}: Omit<Parameters<typeof DraftFieldsCard>[0], 'description' | 'eyebrow' | 'title'> & {
+  credentialType: CredentialType;
+}) {
+  const isAcademicSubject = credentialType === 'academic_subject';
+
   return (
     <section
-      aria-labelledby="declared-capabilities-title"
+      aria-labelledby="declared-institutional-content-title"
       className="grid gap-5 border-t border-border-default pt-6"
     >
       <div>
         <p className="text-sm font-semibold text-teal-700">
-          Declaración institucional
+          {isAcademicSubject ? 'Declaración institucional' : 'Evidencia textual'}
         </p>
         <h3
-          id="declared-capabilities-title"
+          id="declared-institutional-content-title"
           className="mt-1 text-lg font-semibold text-text-strong"
         >
-          Capacidades declaradas por la institución
+          {isAcademicSubject
+            ? 'Capacidades declaradas por la institución'
+            : 'Contenido declarado por la institución'}
         </h3>
         <p className="mt-1 text-sm leading-6 text-text-muted">
-          Registrá únicamente capacidades explícitamente respaldadas por esta
-          fuente institucional.
+          {isAcademicSubject
+            ? 'Registrá únicamente capacidades explícitamente respaldadas por esta fuente institucional.'
+            : 'Completá únicamente información declarada y respaldada por la institución emisora.'}
         </p>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -836,11 +848,30 @@ function DeclaredCapabilitiesFields({
         ))}
       </div>
       <p className="text-sm leading-6 text-text-muted">
-        Estas capacidades se guardan como datos de la credencial mediante
+        Este contenido se guarda como dato de la credencial mediante
         <span className="font-semibold"> Guardar cambios</span>.
       </p>
     </section>
   );
+}
+
+function isTextualDeclaredContentField(
+  field: CredentialDraftSpecificField,
+  type: CredentialType
+) {
+  if (type === 'academic_subject') {
+    return field === 'skills' || field === 'competencies';
+  }
+
+  if (type === 'course') {
+    return field === 'competencies' || field === 'learningOutcomes';
+  }
+
+  if (type === 'certification') {
+    return field === 'skills' || field === 'competencies';
+  }
+
+  return false;
 }
 
 function SpecificField({

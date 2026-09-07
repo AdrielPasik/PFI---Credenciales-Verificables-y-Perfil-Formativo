@@ -122,23 +122,38 @@ export function NewCredentialController({
     expectedUpdatedAt: string,
     template: CourseTemplateSummaryVM
   ): Promise<boolean> {
+    // El DTO puede no tener algunos valores opcionales. Este PATCH conserva
+    // su forma sparse: nunca envía null/undefined como si fueran una edición
+    // explícita del borrador recién creado.
     const commonFields = {
-      description: template.description,
-      hours: template.hours,
-      externalUrl: template.externalUrl,
+      ...(template.description !== null
+        ? { description: template.description }
+        : {}),
+      ...(template.hours !== null ? { hours: template.hours } : {}),
+      ...(template.externalUrl !== null
+        ? { externalUrl: template.externalUrl }
+        : {}),
       competencies: template.competencies
     };
     const typeSpecificFields =
       template.credentialType === 'course'
         ? {
-            modality: template.modality,
+            ...(template.modality !== null
+              ? { modality: template.modality }
+              : {}),
             learningOutcomes: template.learningOutcomes
           }
         : {
-            certificationCode: template.certificationCode,
-            expirationDate: template.expirationDate,
-            providerName: template.providerName,
-            level: template.level,
+            ...(template.certificationCode !== null
+              ? { certificationCode: template.certificationCode }
+              : {}),
+            ...(template.expirationDate !== null
+              ? { expirationDate: template.expirationDate }
+              : {}),
+            ...(template.providerName !== null
+              ? { providerName: template.providerName }
+              : {}),
+            ...(template.level !== null ? { level: template.level } : {}),
             skills: template.skills
           };
 

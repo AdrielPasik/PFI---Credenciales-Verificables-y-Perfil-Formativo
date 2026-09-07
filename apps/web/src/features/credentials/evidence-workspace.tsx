@@ -13,6 +13,8 @@ interface EvidenceWorkspaceProps {
   onTextualCapabilitiesTargetChange?: (
     target: HTMLDivElement | null
   ) => void;
+  textualComposerHeading?: ReactNode;
+  textualDeclaredCurrent?: ReactNode;
   textComposer: ReactNode;
   textCurrent: ReactNode;
 }
@@ -24,12 +26,17 @@ export function EvidenceWorkspace({
   documentCurrent,
   onComposerModeChange,
   onTextualCapabilitiesTargetChange,
+  textualComposerHeading,
+  textualDeclaredCurrent,
   textComposer,
   textCurrent
 }: EvidenceWorkspaceProps) {
   const [mode, setMode] = useState<EvidenceComposerMode>('both');
   const canChooseComposer = canComposeDocument && canComposeText;
-  const hasCurrentEvidence = Boolean(documentCurrent) || Boolean(textCurrent);
+  const hasCurrentEvidence =
+    Boolean(documentCurrent) ||
+    Boolean(textCurrent) ||
+    Boolean(textualDeclaredCurrent);
   const showDocumentComposer =
     canComposeDocument && (!canChooseComposer || mode !== 'text');
   const showTextComposer =
@@ -68,7 +75,12 @@ export function EvidenceWorkspace({
           </h3>
           <div className="grid gap-4 xl:grid-cols-2">
             {documentCurrent}
-            {textCurrent}
+            {textualDeclaredCurrent || textCurrent ? (
+              <div className="grid gap-4">
+                {textualDeclaredCurrent}
+                {textCurrent}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -126,10 +138,11 @@ export function EvidenceWorkspace({
             ) : null}
             {canComposeText ? (
               <div hidden={!showTextComposer} className="grid gap-6">
-                {textComposer}
                 {onTextualCapabilitiesTargetChange ? (
                   <div ref={onTextualCapabilitiesTargetChange} />
                 ) : null}
+                {textualComposerHeading}
+                {textComposer}
               </div>
             ) : null}
           </div>

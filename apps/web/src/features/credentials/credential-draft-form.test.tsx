@@ -553,7 +553,7 @@ describe('CredentialDraftForm', () => {
       ).toBe(true);
     });
 
-    it('locks achievementName after applying a template', async () => {
+    it('renders the reusable achievement name as a read-only value after applying a template', async () => {
       const template = courseTemplateFixture();
       renderForm({
         searchReusableTemplates: vi.fn().mockResolvedValue([template])
@@ -565,11 +565,10 @@ describe('CredentialDraftForm', () => {
 
       await applyTemplateViaSearch(template);
 
-      const name = screen.getByLabelText(
-        'Nombre del logro'
-      ) as HTMLInputElement;
-      expect(name.disabled).toBe(true);
-      expect(name.value).toBe(template.title);
+      const name = screen.getByLabelText('Nombre del logro');
+      expect(name.tagName).toBe('P');
+      expect(name.textContent).toBe(template.title);
+      expect(screen.queryByRole('textbox', { name: 'Nombre del logro' })).toBeNull();
     });
 
     it('unlocks credentialType and achievementName after removing the applied template', async () => {
@@ -620,10 +619,10 @@ describe('CredentialDraftForm', () => {
           .value
       ).toBe('course');
       // El template sigue aplicado (no se invalido por el intento fallido).
-      expect(screen.getByText(template.title)).toBeTruthy();
+      expect(screen.getAllByText(template.title).length).toBeGreaterThan(0);
     });
 
-    it('does not allow editing achievementName while a template is applied', async () => {
+    it('does not expose an editable achievementName control while a template is applied', async () => {
       const template = courseTemplateFixture();
       renderForm({
         searchReusableTemplates: vi.fn().mockResolvedValue([template])
@@ -634,13 +633,10 @@ describe('CredentialDraftForm', () => {
       });
       await applyTemplateViaSearch(template);
 
-      fireEvent.change(screen.getByLabelText('Nombre del logro'), {
-        target: { value: 'Otro nombre distinto' }
-      });
-
-      expect(
-        (screen.getByLabelText('Nombre del logro') as HTMLInputElement).value
-      ).toBe(template.title);
+      expect(screen.queryByRole('textbox', { name: 'Nombre del logro' })).toBeNull();
+      expect(screen.getByLabelText('Nombre del logro').textContent).toBe(
+        template.title
+      );
     });
 
     it('creates the draft with the applied template and never sends a templateId', async () => {

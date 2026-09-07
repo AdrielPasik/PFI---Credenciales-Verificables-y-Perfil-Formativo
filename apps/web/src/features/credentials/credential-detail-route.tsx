@@ -651,6 +651,15 @@ export function CredentialDetailView({
         };
   const canComposeDocument = isDraft;
   const canComposeText = isDraft;
+  const hasTextualDeclaredContent =
+    renderedCredentialType === 'academic_subject' ||
+    renderedCredentialType === 'course' ||
+    renderedCredentialType === 'certification';
+  const reusableTextualCredentialType =
+    renderedCredentialType === 'course' ||
+    renderedCredentialType === 'certification'
+      ? renderedCredentialType
+      : null;
   // R1.1: unica condicion de visibilidad para "guardar como reutilizable" --
   // exclusivamente issued (nunca draft, nunca revoked) y course/certification
   // (nunca academic_subject/degree). Coincide exactamente con lo que exige
@@ -925,7 +934,7 @@ export function CredentialDetailView({
                   declaredCapabilitiesPlacement="textual-evidence"
                   declaredCapabilitiesTarget={declaredCapabilitiesTarget}
                   showDraftSaveActionInCapabilitiesSlot={
-                    renderedCredentialType === 'academic_subject' &&
+                    hasTextualDeclaredContent &&
                     evidenceComposerMode !== 'document'
                   }
                   issuerReference={draftEditor.issuerReference}
@@ -950,14 +959,34 @@ export function CredentialDetailView({
               canComposeDocument={canComposeDocument}
               canComposeText={canComposeText}
               onTextualCapabilitiesTargetChange={
-                renderedCredentialType === 'academic_subject' && canComposeText
+                hasTextualDeclaredContent && canComposeText
                   ? handleDeclaredCapabilitiesTargetChange
                   : undefined
               }
               onComposerModeChange={
-                renderedCredentialType === 'academic_subject' && canComposeText
+                hasTextualDeclaredContent && canComposeText
                   ? setEvidenceComposerMode
                   : undefined
+              }
+              textualComposerHeading={
+                reusableTextualCredentialType ? (
+                  <div className="border-t border-border-default pt-6">
+                    <p className="text-sm font-semibold text-teal-700">
+                      Fuente textual adicional
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-text-muted">
+                      Podés registrar además un temario, programa u otra fuente institucional.
+                    </p>
+                  </div>
+                ) : null
+              }
+              textualDeclaredCurrent={
+                !isDraft && reusableTextualCredentialType ? (
+                  <DeclaredInstitutionalContentCard
+                    credentialType={reusableTextualCredentialType}
+                    subject={detail.credentialSubject}
+                  />
+                ) : null
               }
               documentCurrent={
                 detail.documentEvidence.currentDocument || !isDraft ? (
@@ -1177,8 +1206,6 @@ function CourseDeclaredDataCard({
   const hasDeclaredData =
     subject.modality !== null ||
     subject.externalUrl !== null ||
-    subject.competencies.length > 0 ||
-    subject.learningOutcomes.length > 0 ||
     // C4x: platformName ya no es un dato declarado "principal" (ver
     // institutional-textual-backing.ts y credential-draft-editor-form.tsx),
     // pero un valor legacy sigue contando para decidir si esta tarjeta
@@ -1236,9 +1263,58 @@ function CourseDeclaredDataCard({
             </p>
           </div>
         ) : null}
-        <TagList title="Competencias declaradas" items={subject.competencies} />
-        <TagList title="Contenido e información adicional declarado" items={subject.learningOutcomes} />
       </div>
+    </section>
+  );
+}
+
+function DeclaredInstitutionalContentCard({
+  credentialType,
+  subject
+}: {
+  credentialType: 'course' | 'certification';
+  subject: IssuerCredentialDetailVM['credentialSubject'];
+}) {
+  const fields =
+    credentialType === 'course'
+      ? [
+          { title: 'Competencias declaradas', items: subject.competencies },
+          {
+            title: 'Contenido e información adicional declarado',
+            items: subject.learningOutcomes
+          }
+        ]
+      : [
+          { title: 'Habilidades declaradas', items: subject.skills },
+          { title: 'Competencias declaradas', items: subject.competencies }
+        ];
+
+  if (!fields.some((field) => field.items.length > 0)) {
+    return null;
+  }
+
+  return (
+    <section
+      aria-labelledby="declared-institutional-content-read-title"
+      className="grid gap-4 rounded-card border border-border-default bg-surface-muted/40 p-5 sm:p-6"
+    >
+      <div>
+        <p className="text-sm font-semibold text-teal-700">
+          Evidencia textual
+        </p>
+        <h3
+          id="declared-institutional-content-read-title"
+          className="mt-1 text-lg font-semibold text-text-strong"
+        >
+          Contenido declarado por la institución
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-text-muted">
+          Información declarada por la institución emisora. Modo lectura.
+        </p>
+      </div>
+      {fields.map((field) => (
+        <TagList key={field.title} title={field.title} items={field.items} />
+      ))}
     </section>
   );
 }

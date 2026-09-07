@@ -606,31 +606,36 @@ export function CredentialDraftForm({
                         </h3>
                       </div>
                       <div className="max-w-3xl">
-                        <TextField
-                          ref={achievementRef}
-                          id="achievement-name"
-                          label="Nombre del logro"
-                          value={achievementName}
-                          disabled={appliedTemplate !== null}
-                          onChange={(event) => {
-                            // C4x: mientras haya un template aplicado, el
-                            // nombre queda bloqueado (precargado desde el
-                            // template) -- se refuerza aca ademas del
-                            // atributo disabled del input.
-                            if (appliedTemplate) {
-                              return;
-                            }
-                            setAchievementName(event.target.value);
-                            setAchievementError(undefined);
-                            setDraftFeedback(null);
-                          }}
-                          description={
-                            appliedTemplate
-                              ? 'Precargado desde el contenido reutilizable aplicado. Quitalo para editarlo.'
-                              : 'Usá el nombre institucional del curso o logro.'
-                          }
-                          error={achievementError}
-                        />
+                        {appliedTemplate ? (
+                          <div className="grid gap-2">
+                            <Label id="achievement-name-label">
+                              Nombre del logro
+                            </Label>
+                            <p
+                              aria-labelledby="achievement-name-label"
+                              className="min-h-11 rounded-control border border-border-default bg-surface-muted px-3 py-2 text-base text-text-strong sm:text-sm"
+                            >
+                              {achievementName}
+                            </p>
+                            <p className="text-sm leading-5 text-text-muted">
+                              Proviene del contenido reutilizable aplicado. Quitalo para editarlo.
+                            </p>
+                          </div>
+                        ) : (
+                          <TextField
+                            ref={achievementRef}
+                            id="achievement-name"
+                            label="Nombre del logro"
+                            value={achievementName}
+                            onChange={(event) => {
+                              setAchievementName(event.target.value);
+                              setAchievementError(undefined);
+                              setDraftFeedback(null);
+                            }}
+                            description="Usá el nombre institucional del curso o logro."
+                            error={achievementError}
+                          />
+                        )}
                       </div>
                     </section>
                   ) : null}
