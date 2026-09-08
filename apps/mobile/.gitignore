@@ -1,0 +1,22 @@
+# Expo
+.expo/
+.expo-export/
+dist/
+web-build/
+expo-env.d.ts
+
+# Proyectos nativos generados por prebuild (no se versionan: CNG los regenera)
+/android
+/ios
+
+# Metro / Jest
+.metro-health-check*
+coverage/
+
+# Credenciales de firma: NUNCA se versionan
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision

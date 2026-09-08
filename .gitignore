@@ -115,5 +115,8 @@ services/ai-service/*.xls
 services/ai-service/*.pem
 services/ai-service/*.key
 
-# Local post-50% engineering handoff bundles
-mejoras post 50%/
+# Local post-50% engineering handoff bundles. The Mobile implementation
+# documentation is the sole versioned exception in this otherwise local area.
+mejoras post 50%/*
+!mejoras post 50%/Implementación a aplicación móvil/
+!mejoras post 50%/Implementación a aplicación móvil/**

@@ -1,0 +1,38 @@
+{
+  "generatedBy": "apps/mobile/scripts/generate-brand-assets.js",
+  "sources": {
+    "primary": "apps/web/public/brand/Logo Scope 2.png",
+    "inverted": "apps/web/public/brand/Logo Scope Invertido.png"
+  },
+  "detected": {
+    "invertedSymbolRows": {
+      "from": 0,
+      "to": 899
+    },
+    "invertedSymbolBox": {
+      "left": 273,
+      "top": 61,
+      "width": 773,
+      "height": 839
+    },
+    "squareCrop": {
+      "left": 240,
+      "top": 61,
+      "width": 839,
+      "height": 839
+    },
+    "primaryLockupBox": {
+      "left": 181,
+      "top": 66,
+      "width": 898,
+      "height": 1111
+    }
+  },
+  "outputs": [
+    "icon.png",
+    "adaptive-icon.png",
+    "splash-icon.png",
+    "brand-lockup.png",
+    "brand-lockup-inverse.png"
+  ]
+}

@@ -1,4 +1,12 @@
-# Scope: Holder mobile handoff v0
+# Scope: Holder mobile handoff v0 (histórico/preliminar)
+
+> **Estado histórico.** Este handoff inicial queda supersedido para planificación
+> mobile por `scope-holder-mobile-app-blueprint-v1.md`. Conserva el contexto de
+> transición y no define el layout vigente de Holder Web.
+>
+> **Actualización 2026-09-07:** la aplicación móvil ya está implementada en
+> `apps/mobile`. La documentación vigente es
+> `mejoras post 50%/Implementación a aplicación móvil/`.
 
 ## Propósito
 

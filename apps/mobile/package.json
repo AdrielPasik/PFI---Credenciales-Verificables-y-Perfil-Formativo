@@ -1,0 +1,67 @@
+{
+  "name": "@credential-intelligence/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aplicación móvil Holder de Scope construida con Expo y React Native.",
+  "main": "expo-router/entry",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "doctor": "expo-doctor",
+    "export": "expo export --platform android --output-dir .expo-export/android",
+    "export:ios": "expo export --platform ios --output-dir .expo-export/ios"
+  },
+  "dependencies": {
+    "@expo-google-fonts/inter": "0.4.2",
+    "@expo/vector-icons": "^15.0.2",
+    "@tanstack/react-query": "5.102.8",
+    "expo": "~57.0.21",
+    "expo-clipboard": "~57.0.1",
+    "expo-constants": "~57.0.17",
+    "expo-font": "~57.0.3",
+    "expo-linking": "~57.0.9",
+    "expo-router": "~57.0.20",
+    "expo-secure-store": "~57.0.3",
+    "expo-splash-screen": "~57.0.8",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.3",
+    "react": "~19.2.3",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "14.0.1",
+    "@types/jest": "29.5.14",
+    "@types/react": "~19.2.2",
+    "eslint": "9.39.5",
+    "eslint-config-expo": "~57.0.2",
+    "expo-doctor": "^1.20.4",
+    "jest": "29.7.0",
+    "jest-expo": "~57.0.5",
+    "typescript": "~6.0.3"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "enabled": true
+      }
+    },
+    "install": {
+      "exclude": [
+        "react"
+      ]
+    }
+  }
+}
