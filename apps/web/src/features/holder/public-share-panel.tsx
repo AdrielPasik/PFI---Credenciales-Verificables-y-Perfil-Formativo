@@ -11,12 +11,14 @@ export function PublicSharePanel({
   title,
   sharePath,
   credentialReference,
-  description
+  description,
+  layout = 'inline'
 }: {
   title: string;
   sharePath: string;
   credentialReference?: string;
   description: string;
+  layout?: 'inline' | 'header-disclosure';
 }) {
   const [open, setOpen] = useState(false);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
@@ -40,7 +42,14 @@ export function PublicSharePanel({
     }
   }
 
-  return <div className="grid gap-3"><Button type="button" variant="secondary" className="w-fit" onClick={openShare}><Share2 aria-hidden="true" />{title}</Button>{open ? <div className="grid gap-4 rounded-card border border-border-strong bg-surface-muted p-4 text-sm"><div><p className="font-semibold text-text-strong">{title}</p><p className="mt-1 leading-6 text-text-muted">{description}</p></div><ShareField label="Enlace público" value={shareUrl} onCopy={() => void copy(shareUrl, 'Enlace')} />{credentialReference ? <><ShareField label="Código de credencial" value={credentialReference} onCopy={() => void copy(credentialReference, 'Código')} /><p className="text-xs leading-5 text-text-subtle">El código identifica la credencial en Scope. No es la huella canónica.</p></> : null}<Button asChild variant="ghost" className="w-fit"><Link href={sharePath}><ExternalLink aria-hidden="true" />Ver vista pública</Link></Button>{copyMessage ? <p aria-live="polite" className="text-sm text-text-muted">{copyMessage}</p> : null}</div> : null}</div>;
+  const action = <Button type="button" variant="secondary" className="w-fit" onClick={openShare}><Share2 aria-hidden="true" />{title}</Button>;
+  const disclosure = open ? <div data-testid="profile-share-expanded-panel" className="grid min-w-0 gap-4 rounded-card border border-border-strong bg-surface-muted p-4 text-sm"><div className="min-w-0"><p className="font-semibold text-text-strong">{title}</p><p className="mt-1 leading-6 text-text-muted">{description}</p></div><ShareField label="Enlace público" value={shareUrl} onCopy={() => void copy(shareUrl, 'Enlace')} />{credentialReference ? <><ShareField label="Código de credencial" value={credentialReference} onCopy={() => void copy(credentialReference, 'Código')} /><p className="text-xs leading-5 text-text-subtle">El código identifica la credencial en Scope. No es la huella canónica.</p></> : null}<Button asChild variant="ghost" className="w-fit"><Link href={sharePath}><ExternalLink aria-hidden="true" />Ver vista pública</Link></Button>{copyMessage ? <p aria-live="polite" className="text-sm text-text-muted">{copyMessage}</p> : null}</div> : null;
+
+  if (layout === 'header-disclosure') {
+    return <><div className="order-1 min-w-0 lg:col-start-2 lg:row-start-1">{action}</div>{disclosure ? <div className="order-3 min-w-0 lg:col-span-3 lg:row-start-2">{disclosure}</div> : null}</>;
+  }
+
+  return <div className="grid min-w-0 gap-3">{action}{disclosure}</div>;
 }
 
 function ShareField({ label, value, onCopy }: { label: string; value: string; onCopy(): void }) {

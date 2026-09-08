@@ -17,6 +17,10 @@ const holderApiMocks = vi.hoisted(() => ({
   requestAuthenticated: vi.fn()
 }));
 
+const profileSharingMocks = vi.hoisted(() => ({
+  createProfileShareRequest: vi.fn()
+}));
+
 vi.mock('@/lib/session/session-provider', () => ({
   useSession: () => ({ requestAuthenticated: holderApiMocks.requestAuthenticated })
 }));
@@ -25,6 +29,10 @@ vi.mock('@/lib/api/holder-api', () => ({
   getMyCredentialsRequest: holderApiMocks.getMyCredentialsRequest,
   getMyCurrentProfileRequest: holderApiMocks.getMyCurrentProfileRequest,
   rebuildMyProfileRequest: holderApiMocks.rebuildMyProfileRequest
+}));
+
+vi.mock('@/lib/api/profile-sharing-api', () => ({
+  createProfileShareRequest: profileSharingMocks.createProfileShareRequest
 }));
 
 const credential = {
@@ -262,6 +270,7 @@ describe('WalletHomeView', () => {
 describe('WalletHomeView -- P1.1 manual rebuild fallback', () => {
   beforeEach(() => {
     holderApiMocks.rebuildMyProfileRequest.mockReset();
+    profileSharingMocks.createProfileShareRequest.mockReset();
   });
 
   const noCredentials: HolderCredentialsLoadState = { status: 'ready', credentials: [] };
@@ -515,6 +524,26 @@ describe('WalletHomeContent profile error recovery', () => {
     expect(await screen.findByText('No pudimos cargar tu perfil formativo')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
+  });
+
+  it('keeps header actions in their row and places the expanded profile share panel below them', async () => {
+    profileSharingMocks.createProfileShareRequest.mockResolvedValue({ sharePath: '/share/profile-token' });
+    render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} showProfileShare onProfileRebuilt={() => {}} />);
+
+    const header = screen.getByRole('heading', { level: 1, name: 'Mi perfil formativo' }).closest('header');
+    expect(header?.className).toMatch(/lg:grid-cols/);
+    const rebuildAction = screen.getByTestId('profile-rebuild-header-action');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
+    await waitFor(() => expect(profileSharingMocks.createProfileShareRequest).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.queryByTestId('profile-share-action')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
+
+    const panel = await screen.findByTestId('profile-share-expanded-panel');
+    expect(rebuildAction.className).toMatch(/order-2/);
+    expect(panel.parentElement?.className).toMatch(/order-3/);
+    expect(rebuildAction.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(profileSharingMocks.createProfileShareRequest).toHaveBeenCalledTimes(1);
   });
 
   it('retries GET /me/profile/current and renders the recovered profile', async () => {

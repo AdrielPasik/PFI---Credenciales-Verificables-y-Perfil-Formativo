@@ -89,13 +89,13 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
   ) : null;
   return (
     <div className="grid min-w-0 gap-10 lg:gap-12">
-      <header className="flex min-w-0 flex-col gap-5 border-b border-border-default pb-7 lg:flex-row lg:items-end lg:justify-between">
-        <div className="min-w-0 max-w-[var(--traza-holder-narrative-width)]">
+      <header className="grid min-w-0 gap-5 border-b border-border-default pb-7 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
+        <div className="order-0 min-w-0 max-w-[var(--traza-holder-narrative-width)] lg:col-start-1 lg:row-start-1">
           <p className="text-sm font-semibold text-teal-700">Espacio personal</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">Mi perfil formativo</h1>
           <p className="mt-3 leading-7 text-text-muted">Una vista de tu trayectoria construida a partir de tus credenciales formativas y de los análisis disponibles en Scope.</p>
         </div>
-        {profileState.status === 'ready' && showProfileShare ? <div className="flex shrink-0 flex-wrap gap-3"><ProfileShareAction />{rebuildAction}</div> : null}
+        {profileState.status === 'ready' && showProfileShare ? <>{rebuildAction ? <div data-testid="profile-rebuild-header-action" className="order-2 min-w-0 lg:col-start-3 lg:row-start-1">{rebuildAction}</div> : null}<ProfileShareAction /></> : null}
       </header>
       {profileState.status === 'loading' ? <LoadingState label="Cargando tu perfil formativo" /> : null}
       {profileState.status === 'ready' ? <HolderProfilePanel profile={profileState.profile} /> : null}
