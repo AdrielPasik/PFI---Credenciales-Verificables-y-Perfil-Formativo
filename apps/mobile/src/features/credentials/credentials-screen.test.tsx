@@ -77,6 +77,7 @@ describe('biblioteca de credenciales', () => {
     expect(card.props.accessibilityHint).toBe(
       'Abre el detalle de la credencial'
     );
+    expect(card.props.accessibilityLabel).not.toContain('Titular');
   });
 
   it('muestra el estado vacío sin acciones propias de un emisor', async () => {

@@ -32,7 +32,7 @@ describe('menú de cuenta', () => {
     await renderAccountMenu();
 
     const trigger = screen.getByTestId('account-menu-button');
-    expect(trigger.props.accessibilityLabel).toBe('Cuenta');
+    expect(trigger.props.accessibilityLabel).toBe('Cuenta de Ada Lovelace');
     expect(trigger.props.accessibilityRole).toBe('button');
   });
 
@@ -57,6 +57,21 @@ describe('menú de cuenta', () => {
     expect(
       screen.queryByText('Identificador descentralizado')
     ).toBeNull();
+  });
+
+  it('no duplica el correo cuando displayLabel ya es el fallback legacy', async () => {
+    const email = 'legacy.holder@example.com';
+    await renderAccountMenu(
+      currentUserPayload({ displayLabel: email, email, did: null })
+    );
+
+    await fireEvent.press(screen.getByTestId('account-menu-button'));
+
+    await waitFor(() => expect(screen.getByText(email)).toBeTruthy());
+    expect(screen.getAllByText(email)).toHaveLength(1);
+    expect(
+      screen.getByTestId('account-menu-button').props.accessibilityLabel
+    ).toBe(`Cuenta de ${email}`);
   });
 
   it('cerrar sesión está disponible y limpia el material de sesión', async () => {

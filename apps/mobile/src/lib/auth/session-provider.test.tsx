@@ -217,6 +217,57 @@ describe('login', () => {
   });
 });
 
+describe('register', () => {
+  it('reutiliza la activación de sesión, persiste sólo el token y autentica', async () => {
+    const { result, sessionStorage, calls } = await renderSession({
+      responses: { body: loginResponsePayload() }
+    });
+
+    await waitFor(() =>
+      expect(result.current.state.status).toBe('unauthenticated')
+    );
+
+    await act(async () => {
+      await result.current.register({
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: 'ada@example.com',
+        password: 'secreto8'
+      });
+    });
+
+    expect(calls[0]?.url).toBe('https://api.scope.test/auth/register');
+    expect(result.current.state.status).toBe('authenticated');
+    expect(
+      result.current.state.status === 'authenticated'
+        ? result.current.state.currentUser.displayLabel
+        : null
+    ).toBe('Ada Lovelace');
+    await expect(sessionStorage.getAccessToken()).resolves.toBe(
+      'header.payload.signature'
+    );
+    expect(JSON.stringify(await sessionStorage.getAccessToken())).not.toContain('secreto8');
+  });
+
+  it('mapea el email duplicado sin persistir una sesión', async () => {
+    const { result, sessionStorage } = await renderSession({ responses: { status: 409 } });
+
+    await waitFor(() =>
+      expect(result.current.state.status).toBe('unauthenticated')
+    );
+
+    let feedback = null;
+    await act(async () => {
+      feedback = await result.current.register({
+        firstName: 'Ada', lastName: 'Lovelace', email: 'ada@example.com', password: 'secreto8'
+      });
+    });
+
+    expect(feedback).toMatchObject({ code: 'email_in_use' });
+    await expect(sessionStorage.getAccessToken()).resolves.toBeNull();
+  });
+});
+
 describe('logout', () => {
   it('borra el material de sesión y vacía la caché de datos del titular', async () => {
     const storage = new InMemorySessionStorage('jwt-guardado');

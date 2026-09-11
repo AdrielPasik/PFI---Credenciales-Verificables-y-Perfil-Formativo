@@ -29,21 +29,20 @@ interface FieldErrors {
  * Pantalla de acceso.
  *
  * Es holder-oriented: no menciona instituciones, no pregunta "¿sos institución
- * o titular?" y no ofrece registro, recuperación de contraseña ni SSO, porque
- * ninguno de esos flujos está pensado para esta app (secciones 12 y 14).
- *
- * `POST /auth/register` SÍ existe en el backend, pero crear cuentas desde la
- * app no es parte de esta entrega: se documenta como brecha de producto
- * pendiente de decisión, no se inventa una pantalla.
+ * o titular?" y no ofrece recuperación de contraseña ni SSO. El registro
+ * utiliza el contrato público existente de autenticación y sigue siendo una
+ * experiencia exclusivamente Holder.
  *
  * La contraseña se limpia después de cada intento y NUNCA se persiste.
  */
 export function LoginScreen({
   onSubmit,
+  onCreateAccount,
   submitting,
   initialFeedback
 }: {
   onSubmit: (command: LoginCommand) => Promise<AuthFeedback | null>;
+  onCreateAccount: () => void;
   submitting: boolean;
   initialFeedback: AuthFeedback | null;
 }) {
@@ -195,6 +194,19 @@ export function LoginScreen({
               loading={submitting}
               onPress={() => void submit()}
             />
+
+            <View style={styles.registerPrompt}>
+              <ScopeText variant="small" tone="muted">
+                ¿Todavía no tenés una cuenta?
+              </ScopeText>
+              <ScopeButton
+                testID="login-create-account"
+                variant="ghost"
+                label="Crear cuenta"
+                disabled={submitting}
+                onPress={onCreateAccount}
+              />
+            </View>
           </View>
 
           <ScopeText variant="caption" tone="subtle" style={styles.footer}>
@@ -239,6 +251,10 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.lg
+  },
+  registerPrompt: {
+    alignItems: 'center',
+    gap: spacing.xs
   },
   footer: {
     textAlign: 'center'

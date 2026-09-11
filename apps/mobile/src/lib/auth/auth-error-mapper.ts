@@ -1,7 +1,7 @@
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { AuthFeedback } from '@/types/auth';
 
-type AuthOperation = 'login' | 'session';
+type AuthOperation = 'login' | 'register' | 'session';
 
 /**
  * Traduce un error técnico a un mensaje de producto.
@@ -68,17 +68,35 @@ export function mapAuthError(
   }
 
   if (error.status === 401) {
-    return operation === 'login'
-      ? {
-          code: 'invalid_credentials',
-          message: 'El correo o la contraseña son incorrectos.',
-          recoverable: true
-        }
-      : {
-          code: 'session_expired',
-          message: 'Tu sesión venció. Volvé a iniciar sesión.',
-          recoverable: false
-        };
+    if (operation === 'login') {
+      return {
+        code: 'invalid_credentials',
+        message: 'El correo o la contraseña son incorrectos.',
+        recoverable: true
+      };
+    }
+
+    if (operation === 'register') {
+      return {
+        code: 'unexpected',
+        message: 'No pudimos crear tu cuenta. Intentá nuevamente.',
+        recoverable: true
+      };
+    }
+
+    return {
+      code: 'session_expired',
+      message: 'Tu sesión venció. Volvé a iniciar sesión.',
+      recoverable: false
+    };
+  }
+
+  if (error.status === 409 && operation === 'register') {
+    return {
+      code: 'email_in_use',
+      message: 'Ya existe una cuenta con ese correo. Iniciá sesión para continuar.',
+      recoverable: true
+    };
   }
 
   if (error.status === 403) {

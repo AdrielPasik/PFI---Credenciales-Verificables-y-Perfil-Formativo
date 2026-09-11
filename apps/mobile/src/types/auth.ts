@@ -20,6 +20,7 @@ export interface AuthUserVM {
 export type AuthFeedbackCode =
   | 'invalid_input'
   | 'invalid_credentials'
+  | 'email_in_use'
   | 'forbidden'
   | 'service_unavailable'
   | 'network'

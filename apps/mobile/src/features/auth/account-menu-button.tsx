@@ -27,12 +27,15 @@ export function AccountMenuButton() {
   if (state.status !== 'authenticated') return null;
 
   const { currentUser } = state;
+  const showEmail =
+    currentUser.displayLabel.trim().toLowerCase() !==
+    currentUser.email.trim().toLowerCase();
 
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Cuenta"
+        accessibilityLabel={`Cuenta de ${currentUser.displayLabel}`}
         accessibilityHint="Abre la información de tu cuenta y la opción de cerrar sesión"
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.trigger, pressed && styles.pressed]}
@@ -68,9 +71,11 @@ export function AccountMenuButton() {
             <ScopeText variant="cardTitle" tone="strong" accessibilityRole="header">
               {currentUser.displayLabel}
             </ScopeText>
-            <ScopeText variant="small" tone="muted">
-              {currentUser.email}
-            </ScopeText>
+            {showEmail ? (
+              <ScopeText variant="small" tone="muted">
+                {currentUser.email}
+              </ScopeText>
+            ) : null}
             {currentUser.did ? (
               <>
                 <ScopeText variant="overline" tone="muted">

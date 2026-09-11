@@ -128,9 +128,9 @@ export function CredentialDetailView({
       <ScopeSection title="Identidad de la credencial">
         <ScopeCard style={styles.rowsCard}>
           <ScopeDefinitionRow label="Emitida por" value={detail.issuerName} />
-          <ScopeDefinitionRow
-            label="Titular"
-            value={detail.holderLabel ?? detail.holderEmail}
+          <HolderIdentityRow
+            displayLabel={detail.holderLabel}
+            email={detail.holderEmail}
           />
           <ScopeDefinitionRow
             label="Fecha de emisión"
@@ -164,6 +164,38 @@ export function CredentialDetailView({
         </ScopeCard>
       </ScopeSection>
     </ScopeScreen>
+  );
+}
+
+function HolderIdentityRow({
+  displayLabel,
+  email
+}: {
+  displayLabel: string | null;
+  email: string | null;
+}) {
+  const primary = displayLabel ?? email;
+  const showEmail =
+    displayLabel !== null &&
+    email !== null &&
+    displayLabel.trim().toLowerCase() !== email.trim().toLowerCase();
+
+  if (!primary) return null;
+
+  return (
+    <View style={styles.holderIdentity}>
+      <ScopeText variant="overline" tone="muted">
+        Titular
+      </ScopeText>
+      <ScopeText variant="bodyStrong" tone="strong">
+        {primary}
+      </ScopeText>
+      {showEmail ? (
+        <ScopeText variant="small" tone="muted">
+          {email}
+        </ScopeText>
+      ) : null}
+    </View>
   );
 }
 
@@ -567,6 +599,9 @@ const styles = StyleSheet.create({
   },
   rowsCard: {
     gap: spacing.lg
+  },
+  holderIdentity: {
+    gap: spacing.xs
   },
   evidenceBlock: {
     gap: spacing.xs

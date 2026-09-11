@@ -31,6 +31,13 @@ export type FetchImplementation = typeof fetch;
  */
 export const DEFAULT_TIMEOUT_MS = 20_000;
 
+/**
+ * El primer acceso a la API de demo puede requerir que el servicio despierte.
+ * Se reserva para login, registro y restauración de sesión; las consultas
+ * habituales del Holder mantienen el límite general de 20 s.
+ */
+export const AUTH_TIMEOUT_MS = 45_000;
+
 export class HttpClient {
   constructor(
     private readonly baseUrl: string,

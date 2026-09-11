@@ -6,6 +6,7 @@ import {
   getMyCurrentProfileRequest,
   InvalidCredentialReferenceError,
   loginRequest,
+  registerRequest,
   rebuildMyProfileRequest
 } from '@/lib/api/scope-api';
 import type { AuthenticatedRequest } from '@/lib/api/http-client';
@@ -57,6 +58,29 @@ describe('inventario de endpoints consumidos por la app', () => {
     });
 
     expect(JSON.stringify(response)).not.toContain('secreto');
+  });
+
+  it('POST /auth/register usa sólo el contrato público y adapta la sesión', async () => {
+    const { client, calls } = createTestHttpClient({ body: loginResponsePayload() });
+
+    const response = await registerRequest(client, {
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      email: 'ada@example.com',
+      password: 'secreto8'
+    });
+
+    expect(calls[0]?.url).toBe('https://api.scope.test/auth/register');
+    expect(calls[0]?.method).toBe('POST');
+    expect(calls[0]?.body).toBe(
+      JSON.stringify({
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: 'ada@example.com',
+        password: 'secreto8'
+      })
+    );
+    expect(response.user.displayLabel).toBe('Ada Lovelace');
   });
 
   it('GET /auth/me exige el token y adapta el usuario', async () => {

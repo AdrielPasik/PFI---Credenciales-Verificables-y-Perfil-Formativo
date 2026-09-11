@@ -25,6 +25,7 @@ describe('parseBaseUrl', () => {
     ['', 'es requerida.'],
     ['   ', 'es requerida.'],
     ['no-es-una-url', 'debe ser una URL válida.'],
+    ['SET_ME', 'debe ser una URL válida.'],
     ['ftp://api.scope.test', 'debe usar protocolo HTTP o HTTPS.'],
     ['https://user:pass@api.scope.test', 'no debe incluir credenciales, query ni fragmento.'],
     ['https://api.scope.test?token=1', 'no debe incluir credenciales, query ni fragmento.'],

@@ -4,6 +4,7 @@ import { Share } from 'react-native';
 import { ProfileScreen } from '@/features/profile/profile-screen';
 import {
   credentialListPayload,
+  currentUserPayload,
   currentProfilePayload,
   LONG_TEXT_500,
   profileSharePayload
@@ -54,6 +55,41 @@ describe('pantalla de perfil formativo', () => {
 
     expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
     expect(screen.getByText('Espacio personal')).toBeTruthy();
+  });
+
+  it('presenta la identidad humana canónica de la sesión sin convertir el perfil en una cuenta', async () => {
+    await renderWithProviders(<ProfileScreen />, {
+      routes: {
+        ...routes(),
+        'GET /auth/me': { body: currentUserPayload() }
+      }
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-current-user-label')).toBeTruthy()
+    );
+
+    expect(screen.getByText('Ada Lovelace')).toBeTruthy();
+    expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
+    expect(screen.queryByText('titular@example.com')).toBeNull();
+  });
+
+  it('permite que una identidad humana larga crezca sin truncarla', async () => {
+    const longDisplayLabel = `Gabriel ${'Pacífico '.repeat(14).trim()}`;
+
+    await renderWithProviders(<ProfileScreen />, {
+      routes: {
+        ...routes(),
+        'GET /auth/me': {
+          body: currentUserPayload({ displayLabel: longDisplayLabel })
+        }
+      }
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText(longDisplayLabel)).toBeTruthy()
+    );
+    expect(screen.getByText(longDisplayLabel).props.numberOfLines).toBeUndefined();
   });
 
   it('muestra la narrativa y las horas sin inventar puntajes', async () => {

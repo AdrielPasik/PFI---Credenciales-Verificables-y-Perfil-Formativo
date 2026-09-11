@@ -26,7 +26,9 @@ import { HttpClient } from '@/lib/api/http-client';
 import {
   currentUserRequest,
   loginRequest,
-  type LoginCommand
+  registerRequest,
+  type LoginCommand,
+  type RegisterCommand
 } from '@/lib/api/scope-api';
 import { ApiError } from '@/lib/errors/api-error';
 import type { AuthFeedback, AuthSessionState } from '@/types/auth';
@@ -50,6 +52,7 @@ import type { AuthFeedback, AuthSessionState } from '@/types/auth';
 interface SessionContextValue {
   state: AuthSessionState;
   login(command: LoginCommand): Promise<AuthFeedback | null>;
+  register(command: RegisterCommand): Promise<AuthFeedback | null>;
   logout(): Promise<void>;
   retry(): Promise<void>;
   requestAuthenticated: AuthenticatedRequest;
@@ -132,12 +135,15 @@ export function SessionProvider({
     };
   }, [resolveSession, storage]);
 
-  const login = useCallback(
-    async (command: LoginCommand): Promise<AuthFeedback | null> => {
+  const activateAuthentication = useCallback(
+    async (
+      authenticate: () => ReturnType<typeof loginRequest>,
+      operation: 'login' | 'register'
+    ): Promise<AuthFeedback | null> => {
       setState({ status: 'authenticating' });
 
       try {
-        const response = await loginRequest(httpClient, command);
+        const response = await authenticate();
         await storage.setAccessToken(response.accessToken);
         accessTokenRef.current = response.accessToken;
         queryClient.clear();
@@ -146,13 +152,28 @@ export function SessionProvider({
         setState({ status: 'authenticated', currentUser: response.user });
         return null;
       } catch (error) {
-        const feedback = mapAuthError(error, 'login');
+        const feedback = mapAuthError(error, operation);
         await clearSession();
         setState({ status: 'unauthenticated', notice: null });
         return feedback;
       }
     },
-    [clearSession, httpClient, queryClient, storage]
+    [clearSession, queryClient, storage]
+  );
+
+  const login = useCallback(
+    (command: LoginCommand): Promise<AuthFeedback | null> =>
+      activateAuthentication(() => loginRequest(httpClient, command), 'login'),
+    [activateAuthentication, httpClient]
+  );
+
+  const register = useCallback(
+    (command: RegisterCommand): Promise<AuthFeedback | null> =>
+      activateAuthentication(
+        () => registerRequest(httpClient, command),
+        'register'
+      ),
+    [activateAuthentication, httpClient]
   );
 
   const logout = useCallback(async () => {
@@ -208,8 +229,8 @@ export function SessionProvider({
   );
 
   const value = useMemo<SessionContextValue>(
-    () => ({ state, login, logout, retry, requestAuthenticated }),
-    [state, login, logout, retry, requestAuthenticated]
+    () => ({ state, login, register, logout, retry, requestAuthenticated }),
+    [state, login, register, logout, retry, requestAuthenticated]
   );
 
   return (

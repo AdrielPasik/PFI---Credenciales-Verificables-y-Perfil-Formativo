@@ -9,7 +9,11 @@ import {
   adaptMyCurrentProfile
 } from '@/lib/adapters/holder.adapter';
 import { adaptProfileShareLink } from '@/lib/adapters/profile-sharing.adapter';
-import type { AuthenticatedRequest, HttpClient } from '@/lib/api/http-client';
+import {
+  AUTH_TIMEOUT_MS,
+  type AuthenticatedRequest,
+  type HttpClient
+} from '@/lib/api/http-client';
 import type { AuthUserVM } from '@/types/auth';
 import type {
   HolderCredentialDetailVM,
@@ -33,13 +37,38 @@ export interface LoginCommand {
   password: string;
 }
 
+export interface RegisterCommand {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
 /** POST /auth/login (público). */
 export async function loginRequest(
   client: HttpClient,
   command: LoginCommand
 ): Promise<AdaptedLoginResponse> {
   return adaptLoginResponse(
-    await client.request('/auth/login', { method: 'POST', body: command })
+    await client.request('/auth/login', {
+      method: 'POST',
+      body: command,
+      timeoutMs: AUTH_TIMEOUT_MS
+    })
+  );
+}
+
+/** POST /auth/register (público, 201 y mismo response que login). */
+export async function registerRequest(
+  client: HttpClient,
+  command: RegisterCommand
+): Promise<AdaptedLoginResponse> {
+  return adaptLoginResponse(
+    await client.request('/auth/register', {
+      method: 'POST',
+      body: command,
+      timeoutMs: AUTH_TIMEOUT_MS
+    })
   );
 }
 
@@ -49,7 +78,10 @@ export async function currentUserRequest(
   accessToken: string
 ): Promise<AuthUserVM> {
   return adaptCurrentUserResponse(
-    await client.request('/auth/me', { token: accessToken })
+    await client.request('/auth/me', {
+      token: accessToken,
+      timeoutMs: AUTH_TIMEOUT_MS
+    })
   );
 }
 

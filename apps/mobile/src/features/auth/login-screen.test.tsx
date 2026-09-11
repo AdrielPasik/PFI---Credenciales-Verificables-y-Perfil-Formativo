@@ -20,6 +20,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 async function renderLogin({
   onSubmit = jest.fn(async () => null),
+  onCreateAccount = jest.fn(),
   submitting = false,
   initialFeedback = null
 }: {
@@ -27,19 +28,21 @@ async function renderLogin({
     email: string;
     password: string;
   }) => Promise<AuthFeedback | null>;
+  onCreateAccount?: () => void;
   submitting?: boolean;
   initialFeedback?: AuthFeedback | null;
 } = {}) {
   await render(
     <LoginScreen
       onSubmit={onSubmit}
+      onCreateAccount={onCreateAccount}
       submitting={submitting}
       initialFeedback={initialFeedback}
     />,
     { wrapper: Wrapper }
   );
 
-  return { onSubmit };
+  return { onSubmit, onCreateAccount };
 }
 
 describe('pantalla de acceso', () => {
@@ -56,12 +59,20 @@ describe('pantalla de acceso', () => {
     ).toBeTruthy();
   });
 
-  it('no ofrece registro, recuperación de contraseña ni SSO', async () => {
+  it('ofrece crear una cuenta, pero no recuperación de contraseña ni SSO', async () => {
     await renderLogin();
 
-    expect(screen.queryByText(/crear una cuenta/i)).toBeNull();
+    expect(screen.getByText('Crear cuenta')).toBeTruthy();
     expect(screen.queryByText(/olvidaste tu contraseña/i)).toBeNull();
     expect(screen.queryByText(/continuar con google/i)).toBeNull();
+  });
+
+  it('abre el flujo de registro mediante una acción secundaria', async () => {
+    const { onCreateAccount } = await renderLogin();
+
+    await fireEvent.press(screen.getByTestId('login-create-account'));
+
+    expect(onCreateAccount).toHaveBeenCalledTimes(1);
   });
 
   it('no muestra ninguna referencia institucional o de emisor', async () => {

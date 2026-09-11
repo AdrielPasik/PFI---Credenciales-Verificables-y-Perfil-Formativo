@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
-import { ScopeScreen, ScopeScreenHeading } from '@/components/ui/screen';
+import { ScopeScreen } from '@/components/ui/screen';
 import { ScopeCard, ScopeSection } from '@/components/ui/surfaces';
 import {
   ScopeEmptyState,
@@ -22,6 +22,7 @@ import {
   useProfileRebuild
 } from '@/features/profile/use-profile';
 import { ShareAction } from '@/features/sharing/share-action';
+import { useSession } from '@/lib/auth/session-provider';
 import { useProfileShare } from '@/features/sharing/use-share';
 import { colors, spacing } from '@/lib/theme/tokens';
 
@@ -39,6 +40,7 @@ const CREDENTIAL_PREVIEW_COUNT = 2;
  */
 export function ProfileScreen() {
   const router = useRouter();
+  const { state: sessionState } = useSession();
   const profileQuery = useCurrentProfile();
   const credentialsQuery = useCredentials();
   const rebuild = useProfileRebuild();
@@ -69,14 +71,14 @@ export function ProfileScreen() {
   // emitidas: sin ellas no hay nada que recomponer, y el estado vacío de
   // "todavía no recibiste credenciales" explica mejor la situación.
   const canOfferRebuild = credentialsQuery.isSuccess && issuedCount > 0;
+  const displayLabel =
+    sessionState.status === 'authenticated'
+      ? sessionState.currentUser.displayLabel
+      : null;
 
   return (
     <ScopeScreen refreshing={refreshing} onRefresh={onRefresh}>
-      <ScopeScreenHeading
-        eyebrow="Espacio personal"
-        title="Mi perfil formativo"
-        description="Tu trayectoria construida a partir de tus credenciales y de los análisis disponibles en Scope."
-      />
+      <ProfileHeading displayLabel={displayLabel} />
 
       {profileQuery.isLoading ? (
         <View style={styles.skeletonGroup}>
@@ -179,6 +181,27 @@ export function ProfileScreen() {
   );
 }
 
+function ProfileHeading({ displayLabel }: { displayLabel: string | null }) {
+  return (
+    <View style={styles.profileHeading}>
+      <ScopeText variant="overline" tone="teal">
+        Espacio personal
+      </ScopeText>
+      {displayLabel ? (
+        <ScopeText testID="profile-current-user-label" variant="smallStrong" tone="strong">
+          {displayLabel}
+        </ScopeText>
+      ) : null}
+      <ScopeText variant="screenTitle" tone="strong" accessibilityRole="header">
+        Mi perfil formativo
+      </ScopeText>
+      <ScopeText variant="small" tone="muted">
+        Tu trayectoria construida a partir de tus credenciales y de los análisis disponibles en Scope.
+      </ScopeText>
+    </View>
+  );
+}
+
 /**
  * "Actualizar perfil" con etiqueta explícita, nunca un icono de refresh
  * ambiguo (sección 177 del encargo).
@@ -252,6 +275,9 @@ function CredentialsErrorBlock({
 }
 
 const styles = StyleSheet.create({
+  profileHeading: {
+    gap: spacing.xs
+  },
   skeletonGroup: {
     gap: spacing.md
   },

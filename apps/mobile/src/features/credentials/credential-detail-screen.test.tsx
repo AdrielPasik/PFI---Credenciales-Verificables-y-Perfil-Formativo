@@ -37,7 +37,7 @@ describe('detalle de credencial', () => {
     ).toBeTruthy();
   });
 
-  it('muestra la identidad de la credencial', async () => {
+  it('muestra la identidad humana canónica del titular y su correo como dato secundario', async () => {
     await renderDetail();
 
     await waitFor(() =>
@@ -45,7 +45,39 @@ describe('detalle de credencial', () => {
     );
 
     expect(screen.getByText('Ada Lovelace')).toBeTruthy();
+    expect(screen.getByText('titular@example.com')).toBeTruthy();
     expect(screen.getByText(LONG_DID)).toBeTruthy();
+  });
+
+  it('no duplica el correo para un titular legacy cuyo displayLabel cae al email', async () => {
+    const email = 'legacy.holder@example.com';
+
+    await renderDetail({
+      body: credentialDetailPayload({
+        subject: { did: null, email, displayName: null, displayLabel: email }
+      })
+    });
+
+    await waitFor(() => expect(screen.getByText(email)).toBeTruthy());
+    expect(screen.getAllByText(email)).toHaveLength(1);
+  });
+
+  it('permite que un displayLabel largo del titular crezca sin truncarlo', async () => {
+    const longDisplayLabel = `Gabriel ${'Pacífico '.repeat(14).trim()}`;
+
+    await renderDetail({
+      body: credentialDetailPayload({
+        subject: {
+          did: null,
+          email: 'gabriel@example.com',
+          displayName: null,
+          displayLabel: longDisplayLabel
+        }
+      })
+    });
+
+    await waitFor(() => expect(screen.getByText(longDisplayLabel)).toBeTruthy());
+    expect(screen.getByText(longDisplayLabel).props.numberOfLines).toBeUndefined();
   });
 
   it('muestra el aporte formativo declarado por la institución', async () => {
