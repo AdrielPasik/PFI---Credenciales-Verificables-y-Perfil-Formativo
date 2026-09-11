@@ -1,0 +1,184 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+   "primaryExcerpt": "- Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: título universitario",
+    "carreras alternativas: Ingeniería Química, Ingeniería Metalúrgica o disciplina técnica relacionada"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion de titulaciones admitidas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Más de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+   "primaryExcerpt": "- Mas de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: más de 10 años",
+    "nivel: sólida",
+    "actividad integrada: diseño y operación",
+    "alcance: extracción de litio, salmueras, metales y minerales"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Compuesto preservado por §4.1: distribuir 'mas de 10 anos' sobre diseno y operacion, o sobre los cuatro materiales, duplicaria la exigencia temporal."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+   "primaryExcerpt": "- Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "estado: vigente",
+    "objeto: certificación y credenciales profesionales",
+    "habilitación: actuar formalmente como QP",
+    "ámbito: industria minera"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Contradiccion real dentro del mismo aviso: la seccion de tareas dice 'Se valorara la condicion de (QP)' (preferencia) y la seccion de experiencia la enuncia sin marca, en una lista encabezada por 'La experiencia que aportaras'. Se anotan AMBOS claims (g03 y g10) porque difieren materialmente en fuerza y §17 prohibe colapsar solapamientos de distinta fuerza. No se resuelve la contradiccion en la direccion que facilite el scoring.",
+   "compositionNote": "'Certificacion vigente y credenciales profesionales' es el objeto unico de una habilitacion formal."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Dominio avanzado del idioma inglés (excluyente) para redacción de reportes y comunicación con equipos globales.",
+   "primaryExcerpt": "- Dominio avanzado del idioma inglés (excluyente) para la redacción de reportes y comunicación fluida con equipos globales.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: excluyente",
+    "idioma: inglés",
+    "nivel: dominio avanzado",
+    "usos: redacción de reportes, comunicación fluida con equipos globales"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g05",
+   "claim": "Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+   "primaryExcerpt": "- Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "disponibilidad: viajes a proyectos",
+    "alternativa: esquemas de rotación en zonas remotas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Las dos modalidades van unidas por 'o' (alternativas): separar convertiria una disyuncion en dos exigencias."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+   "primaryExcerpt": "- Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: software de simulación de procesos",
+    "objeto: validación de modelos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g07",
+   "claim": "Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+   "primaryExcerpt": "- Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: liderar el diseño",
+    "fases: conceptual, básico y de detalle",
+    "objeto: plantas de procesamiento de litio y manejo de salmueras"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Las tres fases de diseno delimitan el alcance de una unica responsabilidad de liderazgo tecnico."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+   "primaryExcerpt": "- Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: optimizar",
+    "objeto: procesos químicos y metalúrgicos",
+    "objetivos: recuperación de recursos y eficiencia operativa diaria"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g09",
+   "claim": "Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+   "primaryExcerpt": "- Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: soporte experto",
+    "fases: pruebas, comisionamiento, puesta en marcha",
+    "objeto: plantas de procesamiento"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g10",
+   "claim": "Se valorará la condición de Persona Calificada (QP) para proyectos de envergadura.",
+   "primaryExcerpt": "- Se valorará la condición de (QP) para proyectos de envergadura",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorará",
+    "condición: QP",
+    "alcance: proyectos de envergadura"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Ver g03: el mismo aviso presenta la condicion QP como valorada en una seccion y como credencial requerida en otra. Se conservan los dos claims con sus modalidades respectivas.",
+   "compositionNote": "Solapa con g03 con fuerza distinta; §17 prohibe colapsarlos."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Con oficinas en Australia, Canadá, EE. UU., Sudáfrica, Ghana, Filipinas, Argentina y Perú, SAXUM (una empresa de Lycopodium) se enorgullece de brindar servicios profesionales de ingeniería y ejecución de proyectos de alta calidad a nivel mundial, en los sectores de recursos, infraestructura, procesos industriales y cemento.",
+   "reason": "Prosa institucional y geografica (§7). Los sectores listados son los de la empresa, no requisitos del holder."
+  },
+  {
+   "excerpt": "SAXUM se encuentra actualmente en la búsqueda de un Ingeniero Senior de Procesos para unirse a nuestro creciente equipo de profesionales en Argentina.",
+   "reason": "Enunciado del puesto; el titulo es contexto (§8)."
+  },
+  {
+   "excerpt": "Reportando al Chief Operating Officer, el Ingeniero Senior de Procesos se encargará de liderar el diseño, la optimización y la evaluación técnica de los procesos químicos y metalúrgicos, asegurando la máxima eficiencia y el rigor técnico del proyecto.",
+   "reason": "Linea de reporte y resumen del rol que las viñetas de tareas concretan; se registra ademas como pasaje ambiguo."
+  },
+  {
+   "excerpt": "- Colaborar estrechamente con equipos multidisciplinarios e internacionales para garantizar la correcta implementación técnica de los diseños.",
+   "reason": "Descripcion del entorno de trabajo colaborativo (§6, caso 'colaborar con equipos')."
+  },
+  {
+   "excerpt": "- Trabajar en proyectos internacionales de alto impacto en minería, infraestructura y procesos industriales.",
+   "reason": "Beneficio ofrecido bajo '¿Por que unirse a SAXUM?'."
+  },
+  {
+   "excerpt": "- Disfrutar de oportunidades de crecimiento profesional, aprendizaje continuo y exposición global.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "Como parte de nuestro compromiso de brindar la mejor atención y servicio posible a ti como candidato, nos comprometemos a responder a todos los postulantes.",
+   "reason": "Compromiso del proceso de seleccion, no criterio."
+  },
+  {
+   "excerpt": "Por favor, envía tu CV haciendo clic en el botón 'Apply'.",
+   "reason": "Instruccion de postulacion."
+  },
+  {
+   "excerpt": "## Industries\n\nEngineering Services",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Reportando al Chief Operating Officer, el Ingeniero Senior de Procesos se encargará de liderar el diseño, la optimización y la evaluación técnica de los procesos químicos y metalúrgicos, asegurando la máxima eficiencia y el rigor técnico del proyecto.",
+   "note": "Introduce 'evaluacion tecnica de los procesos', que no reaparece en las viñetas de tareas. Un anotador razonable podria emitir un claim propio; aqui se trata como resumen del rol."
+  }
+ ],
+ "annotationNotes": "Caso deliberado de contradiccion interna de modalidad sobre la misma credencial (QP): 'Se valorara la condicion de (QP)' en tareas vs 'Certificacion vigente y credenciales profesionales para actuar formalmente como QP' en experiencia. Ambos claims se conservan. Ademas contiene el umbral de experiencia mas alto del bloque ('Mas de 10 anos') y un '(excluyente)' sobre el ingles.",
+ "objectiveId": "EMP_070",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "6c7773dc53fa56efa0a7a041fd1944fa60de03077dee88d17e565c6606cca128",
+ "requirementCount": 10
+}

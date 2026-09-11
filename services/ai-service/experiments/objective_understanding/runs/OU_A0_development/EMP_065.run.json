@@ -1,0 +1,571 @@
+{
+ "objectiveId": "EMP_065",
+ "candidateVersion": "OU_A0",
+ "promptVersion": "OU_A0",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 31789,
+ "usage": {
+  "input_tokens": 2679,
+  "input_tokens_details": {
+   "cache_write_tokens": 2676,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2691,
+  "output_tokens_details": {
+   "reasoning_tokens": 625
+  },
+  "total_tokens": 5370
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Participar en el diseño, revisión y evolución de redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, adecuación a entornos de misión crítica y alineación con las necesidades del sistema eléctrico.",
+    "primarySourceQuote": "1. Diseño y evolución de redes de telecomunicaciones: participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, su adecuación a entornos de misión crítica y su alineación con las necesidades del sistema eléctrico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Elaborar, analizar y presentar proyectos técnicos de evolución tecnológica, con especial foco en nuevas tecnologías de telecomunicaciones —incluyendo redes IP, transmisión óptica y otras soluciones avanzadas—, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "primarySourceQuote": "2. Desarrollo de proyectos de evolución tecnológica: elaborar, analizar y presentar proyectos técnicos con especial foco en nuevas tecnologías de telecomunicaciones, incluyendo redes IP, transmisión óptica y otras soluciones avanzadas, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas infraestructuras desplegadas en subestaciones eléctricas, apoyando la resolución de incidencias complejas y la mejora de la continuidad del servicio.",
+    "primarySourceQuote": "3. Soporte técnico experto a infraestructuras críticas: dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas las infraestructuras desplegadas en subestaciones eléctricas, apoyando a otras áreas en la resolución de incidencias complejas y en la mejora de la continuidad del servicio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "primarySourceQuote": "4. Especificaciones técnicas y evaluación de soluciones: elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "primarySourceQuote": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, favoreciendo una visión transversal de los proyectos y asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "primarySourceQuote": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones básicas**"
+   },
+   {
+    "proposedRequirementText": "Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "primarySourceQuote": "Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   },
+   {
+    "proposedRequirementText": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "primarySourceQuote": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   },
+   {
+    "proposedRequirementText": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "primarySourceQuote": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   },
+   {
+    "proposedRequirementText": "Experiencia de al menos 3 años en funciones similares.",
+    "primarySourceQuote": "Experiencia de al menos 3 años en funciones similares.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "primarySourceQuote": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "primarySourceQuote": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "primarySourceQuote": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "primarySourceQuote": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "primarySourceQuote": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "2. Experiencia profesional"
+   },
+   {
+    "proposedRequirementText": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "primarySourceQuote": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "primarySourceQuote": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "primarySourceQuote": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "primarySourceQuote": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "primarySourceQuote": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "primarySourceQuote": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)"
+   },
+   {
+    "proposedRequirementText": "Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "primarySourceQuote": "4. Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   },
+   {
+    "proposedRequirementText": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "primarySourceQuote": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   },
+   {
+    "proposedRequirementText": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "primarySourceQuote": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Participar en el diseño, revisión y evolución de redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, adecuación a entornos de misión crítica y alineación con las necesidades del sistema eléctrico.",
+    "primarySourceQuote": "1. Diseño y evolución de redes de telecomunicaciones: participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, su adecuación a entornos de misión crítica y su alineación con las necesidades del sistema eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1314,
+     "charEnd": 1611
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Elaborar, analizar y presentar proyectos técnicos de evolución tecnológica, con especial foco en nuevas tecnologías de telecomunicaciones —incluyendo redes IP, transmisión óptica y otras soluciones avanzadas—, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "primarySourceQuote": "2. Desarrollo de proyectos de evolución tecnológica: elaborar, analizar y presentar proyectos técnicos con especial foco en nuevas tecnologías de telecomunicaciones, incluyendo redes IP, transmisión óptica y otras soluciones avanzadas, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1613,
+     "charEnd": 1934
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas infraestructuras desplegadas en subestaciones eléctricas, apoyando la resolución de incidencias complejas y la mejora de la continuidad del servicio.",
+    "primarySourceQuote": "3. Soporte técnico experto a infraestructuras críticas: dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas las infraestructuras desplegadas en subestaciones eléctricas, apoyando a otras áreas en la resolución de incidencias complejas y en la mejora de la continuidad del servicio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1936,
+     "charEnd": 2269
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "primarySourceQuote": "4. Especificaciones técnicas y evaluación de soluciones: elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2271,
+     "charEnd": 2538
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "primarySourceQuote": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, favoreciendo una visión transversal de los proyectos y asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2589,
+     "charEnd": 2834
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "primarySourceQuote": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2897,
+     "charEnd": 3175
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones básicas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "primarySourceQuote": "Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3195,
+     "charEnd": 3273
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "primarySourceQuote": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3275,
+     "charEnd": 3451
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "primarySourceQuote": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3453,
+     "charEnd": 3593
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Experiencia de al menos 3 años en funciones similares.",
+    "primarySourceQuote": "Experiencia de al menos 3 años en funciones similares.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3623,
+     "charEnd": 3677
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "primarySourceQuote": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3679,
+     "charEnd": 3804
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "primarySourceQuote": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3806,
+     "charEnd": 3880
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "primarySourceQuote": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3882,
+     "charEnd": 3995
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "primarySourceQuote": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3997,
+     "charEnd": 4132
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "primarySourceQuote": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4134,
+     "charEnd": 4246
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "2. Experiencia profesional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "primarySourceQuote": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4289,
+     "charEnd": 4441
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "primarySourceQuote": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4443,
+     "charEnd": 4589
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "primarySourceQuote": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4591,
+     "charEnd": 4725
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "primarySourceQuote": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4727,
+     "charEnd": 4871
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "primarySourceQuote": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4873,
+     "charEnd": 5042
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "primarySourceQuote": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5044,
+     "charEnd": 5210
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "3. Capacidades personales (soft skills)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "primarySourceQuote": "4. Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5212,
+     "charEnd": 5358
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "primarySourceQuote": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5360,
+     "charEnd": 5467
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "primarySourceQuote": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5469,
+     "charEnd": 5551
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 24,
+   "quotesTotal": 24,
+   "quotesFoundLiterally": 24,
+   "primaryUnique": 24,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

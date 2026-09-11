@@ -1,0 +1,260 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Título de Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+   "primaryExcerpt": "- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: titulación de ingeniería/farmacia",
+    "carreras alternativas: Industrial, Químico, Mecánico, Farmacéutico o afines"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion de titulaciones admitidas; separar convertiria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Paquete Office.",
+   "primaryExcerpt": "- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "herramienta: Paquete Office"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: la vineta enumera cuatro conocimientos independientes, cada uno con su propio nivel."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Excel nivel intermedio.",
+   "primaryExcerpt": "- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "herramienta: Excel",
+    "nivel: intermedio"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g02. El nivel 'Intermedio' es qualifier material."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Power BI.",
+   "primaryExcerpt": "- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "herramienta: Power BI"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g02."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Inglés nivel intermedio (excluyente).",
+   "primaryExcerpt": "- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "idioma: inglés",
+    "nivel: intermedio",
+    "modalidad explícita: excluyente"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g02. 'excluyente' aparece al final de la vineta y aplica al ingles; es la unica modalidad obligatoria marcada explicitamente del aviso."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua.",
+   "primaryExcerpt": "- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: mínimo 2 años",
+    "áreas alternativas: producción, Supply Chain, Ingeniería Industrial, mejora continua"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Compuesto preservado por §4.1: distribuir 'minimo de 2 anos' sobre las cuatro areas inventaria cuatro exigencias temporales."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+   "primaryExcerpt": "- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: regulaciones de Calidad",
+    "objeto: estándares de la industria farmacéutica",
+    "modalidad: 'Debe tener'"
+   ],
+   "auxiliaryExcerpts": [
+    "- Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos."
+   ],
+   "compositionNote": "Separado de g06 porque la fuente lo enuncia en oracion propia con verbo deontico distinto ('Debe tener')."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+   "primaryExcerpt": "- Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: monitorear y analizar",
+    "objeto: indicadores de producción, productividad, eficiencia, OEE, utilización de recursos",
+    "resultado esperado: identificar desvíos y proponer mejoras"
+   ],
+   "auxiliaryExcerpts": [
+    "- Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas."
+   ],
+   "compositionNote": "Capacidad integrada (§5)."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+   "primaryExcerpt": "- Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: cierre y análisis de órdenes de producción",
+    "alcance: consumos, rendimientos, mano de obra, costos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g10",
+   "claim": "Generar reportes e información de gestión para la toma de decisiones de Producción, Finanzas y Planificación.",
+   "primaryExcerpt": "- Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: generar reportes e información de gestión",
+    "destinatarios: Producción, Finanzas, Planificación"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g11",
+   "claim": "Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+   "primaryExcerpt": "- Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: asegurar cumplimiento",
+    "alcance: procedimientos, normativas de calidad, regulaciones, seguridad, medio ambiente, estándares corporativos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La enumeracion es el alcance de un unico deber de cumplimiento."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+   "primaryExcerpt": "- Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: gestionar",
+    "objetos: documentación productiva, procedimientos operativos, instrucciones de manufactura, MoC"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g13",
+   "claim": "Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+   "primaryExcerpt": "- Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: coordinar y administrar entrenamientos",
+    "alcance: detectar necesidades y promover desarrollo de competencias"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+   "primaryExcerpt": "- Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: proyectos de mejora continua",
+    "objetivos: optimizar procesos, reducir costos, incrementar eficiencia"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g15",
+   "claim": "Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+   "primaryExcerpt": "- Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: definir y actualizar",
+    "objetos: estándares de producción, Routings, BOMs",
+    "alcance: productos nuevos y existentes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+   "primaryExcerpt": "- Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: elaboración presupuestaria y control de costos",
+    "objetos: presupuestos, análisis financieros, proyecciones de ahorro, control de costos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+   "primaryExcerpt": "- Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: gestionar requisiciones y coordinar proveedores",
+    "alcance: trabajos y proyectos en planta"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Abbott es líder mundial en cuidado de la salud, que crea ciencia innovadora para mejorar la salud de las personas. Siempre estamos mirando hacia el futuro, anticipando cambios en la ciencia y la tecnología médica.",
+   "reason": "Prosa institucional (§7)."
+  },
+  {
+   "excerpt": "- Desarrollo profesional con una empresa internacional donde podrás hacer crecer la carrera que sueñas.",
+   "reason": "Beneficio ofrecido bajo 'Trabajando en Abbott'; no es criterio del holder."
+  },
+  {
+   "excerpt": "- Una compañía reconocida como mejor lugar para trabajar en docenas de países alrededor del mundo y nombrada una de las empresas más admiradas del mundo por Fortune.",
+   "reason": "Prosa de reputacion corporativa."
+  },
+  {
+   "excerpt": "Esta posición está ubicada en nuestra planta de producción en Florencio Varela, Buenos Aires en la división EPD.",
+   "reason": "Ubicacion del puesto, no exigencia."
+  },
+  {
+   "excerpt": "Nuestro amplio portafolio de medicamentos genéricos de marca diferenciada y de alta calidad abarca múltiples áreas terapéuticas, incluidas la gastroenterología, la salud de la mujer, los cardiometabólicos, el manejo del dolor / sistema nervioso central y las vías respiratorias.",
+   "reason": "Descripcion del portafolio de la empresa: las areas terapeuticas NO son requisitos de conocimiento (§7)."
+  },
+  {
+   "excerpt": "- Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+   "reason": "Describe el entorno de trabajo transversal (§6, caso 'colaborar con equipos')."
+  },
+  {
+   "excerpt": "Abbott es un empleador de igualdad de oportunidades, comprometido con la diversidad de los empleados.",
+   "reason": "Declaracion de igualdad de oportunidades."
+  },
+  {
+   "excerpt": "Conéctese con nosotros en www.abbott.com, en Facebook en www.facebook.com/Abbott y en Twitter @AbbottNews y @AbbottGlobal.",
+   "reason": "Enlaces de redes corporativas."
+  },
+  {
+   "excerpt": "## Seniority level\n\nNot Applicable",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Como **Ingeniero/a de Manufactura**, serás responsable de brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad.",
+   "note": "Resumen del rol que anticipa lo que la seccion 'Que haras' detalla en viñetas. Un anotador razonable podria emitir un claim de 'soporte tecnico, operativo y financiero'; aqui se trata como encuadre que las viñetas concretan."
+  },
+  {
+   "excerpt": "Analizarás el desempeño de los procesos, identificarás oportunidades de mejora y participarás en la implementación de iniciativas orientadas a optimizar recursos y resultados.",
+   "note": "Reitera en prosa lo que g08 y g14 establecen en viñetas; solapamiento de la misma capacidad en dos secciones."
+  }
+ ],
+ "annotationNotes": "Aviso largo de multinacional farmaceutica con tres bloques que repiten el mismo contenido: resumen del rol en prosa, 'Que haras' en viñetas y 'Cualificaciones requeridas'. La unica modalidad explicita es '(excluyente)' aplicada al ingles intermedio.",
+ "objectiveId": "EMP_056",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "7dcee1b8bf006f8380631bfd1e9a786a34d88d78bab5d5d990a3016bbd7e3ef6",
+ "requirementCount": 17
+}

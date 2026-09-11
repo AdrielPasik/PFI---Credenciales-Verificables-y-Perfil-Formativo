@@ -1,0 +1,346 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Backend con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot).",
+   "primaryExcerpt": "- **Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot); **frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capa: backend",
+    "tecnologías alternativas: Node.js/Express, Python (Django, Flask, FastAPI), Java (Spring Boot)",
+    "conector: 'y/o' (disyuncion inclusiva)"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado de frontend por §4.1: la fuente usa punto y coma para delimitar dos capas independientes. Dentro de cada capa las tecnologias van unidas por 'o'/'y/o' y NO se separan: convertirlas en claims individuales transformaria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Frontend con React, Angular, Vue.js o frameworks equivalentes.",
+   "primaryExcerpt": "- **Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot); **frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capa: frontend",
+    "tecnologías alternativas: React, Angular, Vue.js o equivalentes"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g01."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Diseño, implementación y consumo de APIs REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+   "primaryExcerpt": "- **Diseño, implementación y consumo de APIs** REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseño, implementación y consumo",
+    "objeto: APIs REST y GraphQL",
+    "entorno: arquitecturas de microservicios",
+    "estándar de documentación: OpenAPI/Swagger o equivalentes"
+   ],
+   "auxiliaryExcerpts": [
+    "- Desarrollar e integrar **servicios, APIs y componentes reutilizables**, con interoperabilidad, escalabilidad, mantenibilidad y desempeño."
+   ],
+   "compositionNote": "Capacidad integrada (§5): el smoke de F3.5 mostro que 'diseno e implementacion de APIs REST' se resuelve como UN claim con facets."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Arquitecturas de microservicios: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+   "primaryExcerpt": "- **Arquitecturas de microservicios**: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: arquitecturas de microservicios",
+    "alcance: mensajería y eventos, patrones de diseño, SOLID, DDD"
+   ],
+   "auxiliaryExcerpts": [
+    "- Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**."
+   ],
+   "compositionNote": "La enumeracion tras los dos puntos delimita el alcance del mismo dominio de conocimiento."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Bases de datos relacionales y NoSQL (PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes) en diseño, desarrollo y optimización.",
+   "primaryExcerpt": "- **Bases de datos relacionales y NoSQL**: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes, en diseño, desarrollo y optimización.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: bases de datos relacionales y NoSQL",
+    "motores alternativos: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes",
+    "actividades: diseño, desarrollo y optimización"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los motores van cerrados por 'o equivalentes' (alternativos); las tres actividades califican al mismo objeto."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+   "primaryExcerpt": "- **Cloud**: desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: desarrollo e integración",
+    "entorno: plataformas cloud",
+    "preferencia interna (no obligatoria): AWS",
+    "buenas prácticas: escalabilidad, resiliencia, observabilidad"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Modalidad mixta interna: la plataforma cloud es requerida y AWS solo 'preferentemente'. Perder ese matiz fortaleceria el claim."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Contenedores y DevOps: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+   "primaryExcerpt": "- **Contenedores y DevOps**: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: Docker, Kubernetes",
+    "objeto: CI/CD",
+    "herramientas alternativas de CI/CD: GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g08",
+   "claim": "Desarrollo asistido por IA: uso de asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo supervisión y validación humana del código generado.",
+   "primaryExcerpt": "- **Desarrollo asistido por IA**: asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: asistentes de programación y herramientas agénticas",
+    "usos: programar, revisar código, documentar, automatizar",
+    "restricción material: supervisión y validación humana del código generado"
+   ],
+   "auxiliaryExcerpts": [
+    "- Usar herramientas de **desarrollo asistido por IA** para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana."
+   ],
+   "compositionNote": "La clausula de supervision humana es un qualifier material del claim, no un adorno: elimina la lectura de uso autonomo de IA."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Desarrollo seguro y gestión de vulnerabilidades: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+   "primaryExcerpt": "- **Desarrollo seguro y gestión de vulnerabilidades**: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: desarrollo seguro y gestión de vulnerabilidades",
+    "marcos: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001, NIST CSF"
+   ],
+   "auxiliaryExcerpts": [
+    "- Implementar controles de seguridad durante el ciclo de vida del desarrollo (**Secure by Design**), conforme a OWASP Top 10 y OWASP ASVS."
+   ]
+  },
+  {
+   "goldId": "g10",
+   "claim": "Pruebas y aseguramiento de calidad: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+   "primaryExcerpt": "- **Pruebas y aseguramiento de calidad**: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: pruebas y aseguramiento de calidad",
+    "herramientas alternativas: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes"
+   ],
+   "auxiliaryExcerpts": [
+    "- Desarrollar y mantener **pruebas unitarias, de integración y automatizadas** dentro de los procesos de CI/CD."
+   ]
+  },
+  {
+   "goldId": "g11",
+   "claim": "Control de versiones con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+   "primaryExcerpt": "- **Control de versiones** con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Git",
+    "plataformas alternativas: GitHub, GitLab o equivalentes",
+    "flujos alternativos: GitFlow, Trunk Based Development o similares"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g12",
+   "claim": "Documentación técnica: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+   "primaryExcerpt": "- **Documentación técnica**: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: diagramas de arquitectura, especificaciones funcionales, documentación de APIs",
+    "herramientas alternativas: Swagger/OpenAPI, Markdown o equivalentes"
+   ],
+   "auxiliaryExcerpts": [
+    "- Mantener la **documentación técnica y funcional**: APIs, diagramas, manuales y procedimientos de operación."
+   ]
+  },
+  {
+   "goldId": "g13",
+   "claim": "Protección de datos personales: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+   "primaryExcerpt": "- **Protección de datos personales**: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: controles técnicos de protección de datos",
+    "norma: Ley N° 21.719",
+    "principios: Privacy by Design, minimización de datos"
+   ],
+   "auxiliaryExcerpts": [
+    "- Desarrollar soluciones con los controles técnicos para cumplir la **Ley N° 21.719 de Protección de Datos Personales** y las políticas de seguridad de la información."
+   ]
+  },
+  {
+   "goldId": "g14",
+   "claim": "Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+   "primaryExcerpt": "- Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: título profesional",
+    "carreras alternativas: computación, informática, telecomunicaciones, electrónica o afín",
+    "duración mínima de la carrera: al menos 10 semestres"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El umbral de duracion ('al menos 10 semestres') es un qualifier material que califica a todas las carreras admitidas; separar por carrera lo duplicaria."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Al menos 5 años de experiencia en desarrollo de software.",
+   "primaryExcerpt": "- Al menos 5 años de experiencia en desarrollo de software.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: al menos 5 años",
+    "objeto: desarrollo de software"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Diseñar, desarrollar y evolucionar componentes backend, frontend y servicios de ClaveÚnica, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+   "primaryExcerpt": "- Diseñar, desarrollar y evolucionar componentes **backend, frontend y servicios de ClaveÚnica**, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseñar, desarrollar y evolucionar",
+    "objetos: componentes backend, frontend, servicios de ClaveÚnica",
+    "atributos: seguridad, disponibilidad, escalabilidad, continuidad operacional",
+    "condicional: aplicaciones móviles cuando corresponda"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El condicional 'cuando corresponda' atenua la exigencia sobre moviles y es material."
+  },
+  {
+   "goldId": "g17",
+   "claim": "Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+   "primaryExcerpt": "- Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "fases: análisis, diseño, integración, pruebas, mantenimiento",
+    "tipos de mantenimiento: correctivo, adaptativo, evolutivo",
+    "restricción: según los estándares de la Secretaría"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g18",
+   "claim": "Implementar mecanismos de autenticación, autorización y control de acceso, integrados con las plataformas de identidad digital del Estado.",
+   "primaryExcerpt": "- Implementar mecanismos de **autenticación, autorización y control de acceso**, integrados con las plataformas de identidad digital del Estado.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: autenticación, autorización, control de acceso",
+    "integración: plataformas de identidad digital del Estado"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Participar en el despliegue, la estabilización y el soporte de postproducción, resolviendo incidentes que afecten la continuidad de las plataformas.",
+   "primaryExcerpt": "- Participar en el despliegue, la estabilización y el **soporte de postproducción**, resolviendo incidentes que afecten la continuidad de las plataformas.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "fases: despliegue, estabilización, soporte de postproducción",
+    "alcance: incidentes que afecten la continuidad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g20",
+   "claim": "Participar en revisiones de código, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+   "primaryExcerpt": "- Participar en **revisiones de código**, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividades: revisiones de código, definición de estándares, transferencia de conocimiento"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g21",
+   "claim": "Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+   "primaryExcerpt": "- Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: demos, prototipos, presentaciones técnicas"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g22",
+   "claim": "Opcional (suma pero no excluyente): desarrollo de aplicaciones móviles con Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+   "primaryExcerpt": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: suman, pero no son excluyentes",
+    "objeto: desarrollo de aplicaciones móviles",
+    "tecnologías alternativas: Kotlin/Java (Android), Swift (iOS), React Native, Flutter"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad hasta la vineta (§12 P2.0)."
+  },
+  {
+   "goldId": "g23",
+   "claim": "Opcional (suma pero no excluyente): observabilidad y monitoreo con Grafana, Kibana, New Relic y/o Wazuh.",
+   "primaryExcerpt": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.\n- **Observabilidad y monitoreo**: Grafana, Kibana, New Relic y/o Wazuh.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: suman, pero no son excluyentes",
+    "objeto: observabilidad y monitoreo",
+    "herramientas alternativas: Grafana, Kibana, New Relic, Wazuh"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "**Renta.** $4.020.000 bruto mensual. Para acceder a este monto se debe acreditar **10 años de experiencia laboral, o 5 años más grado de magíster o doctor**, conforme al Instructivo sobre buen uso de los recursos fiscales.",
+   "reason": "TRAMPA CENTRAL DEL AVISO: los '10 anos de experiencia laboral, o 5 anos mas grado de magister o doctor' NO son un requisito del cargo sino la condicion para acceder al tramo superior de renta bajo el instructivo fiscal. El requisito real de experiencia es 'Al menos 5 anos' (g15). Emitir un Requirement de 10 anos o de magister/doctorado a partir de este pasaje es una alucinacion material."
+  },
+  {
+   "excerpt": "- Calidad jurídica **Honorarios**.",
+   "reason": "Condicion contractual del puesto, no criterio del holder."
+  },
+  {
+   "excerpt": "- 44 horas semanales, lunes a viernes, **presencial** en Teatinos 92, piso 9, Santiago centro.",
+   "reason": "Condiciones de jornada y lugar enunciadas como informacion del puesto en la seccion de beneficios y condiciones, no como exigencia dirigida al postulante. Se registra ademas como pasaje ambiguo."
+  },
+  {
+   "excerpt": "- Permisos administrativos.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Sala cuna.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Capacitación y desarrollo profesional.",
+   "reason": "Beneficio ofrecido; no es un requisito de formacion."
+  },
+  {
+   "excerpt": "- Oficina a pasos del metro, en pleno centro de Santiago.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Colaborar con arquitectos, líderes técnicos y los equipos de **DevSecOps, SRE, QA y UX** en el diseño, la construcción y la mejora de las plataformas.",
+   "reason": "Describe el entorno de colaboracion (§6, caso 'colaborar con equipos')."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "- 44 horas semanales, lunes a viernes, **presencial** en Teatinos 92, piso 9, Santiago centro.",
+   "note": "Un anotador razonable podria emitir un Requirement de disponibilidad presencial y de jornada. Aqui se trata como condicion informativa del puesto por su ubicacion en 'Beneficios y condiciones'. No se penaliza si el extractor lo emite."
+  },
+  {
+   "excerpt": "- Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**.",
+   "note": "Reitera el alcance de g04 desde la seccion de funciones; podria sostenerse como claim propio de calidad de codigo."
+  }
+ ],
+ "annotationNotes": "HOLDOUT. Aviso de sector publico chileno, largo (5.075 car.), con requisitos tecnicos en viñetas densas, requisitos formales del cargo publico, funciones que repiten el stack y una seccion de opcionales con negacion explicita ('Suman, pero no son excluyentes'). Contiene la trampa de contexto-vs-requisito mas peligrosa del Holdout: una condicion de tramo salarial redactada con anos de experiencia y grado academico.",
+ "objectiveId": "EMP_043",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "ac5e48f5053e71377097f7d867413c7115513e970b0a00ee7848fa28e2501a6d",
+ "requirementCount": 23
+}

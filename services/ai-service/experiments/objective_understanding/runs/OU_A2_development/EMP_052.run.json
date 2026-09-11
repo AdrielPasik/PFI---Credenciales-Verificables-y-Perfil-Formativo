@@ -1,0 +1,659 @@
+{
+ "objectiveId": "EMP_052",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 38154,
+ "usage": {
+  "input_tokens": 2726,
+  "input_tokens_details": {
+   "cache_write_tokens": 2723,
+   "cached_tokens": 0
+  },
+  "output_tokens": 3645,
+  "output_tokens_details": {
+   "reasoning_tokens": 876
+  },
+  "total_tokens": 6371
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+    "primarySourceQuote": "Buscamos un perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia participando en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas de calidad, consistencia y trazabilidad.",
+    "primarySourceQuote": "Debes haber participado en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas reales de calidad, consistencia y trazabilidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Dominio avanzado de SQL.",
+    "primarySourceQuote": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "primarySourceQuote": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras mantenibles y reutilizables.",
+    "primarySourceQuote": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+    "primarySourceQuote": "Es requisito contar con experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Estar acostumbrado a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software.",
+    "primarySourceQuote": "El rol requerirá trabajar con modelos, dependencias, pruebas, documentación, control de versiones y despliegues, por lo que buscamos una persona acostumbrada a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+    "primarySourceQuote": "Debes tener experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+    "primarySourceQuote": "También esperamos experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para utilizar Python para extracción, automatización, procesamiento o validación de datos.",
+    "primarySourceQuote": "Python será el principal lenguaje de programación complementario a SQL, por lo que debes poder utilizarlo para extracción, automatización, procesamiento o validación de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+    "primarySourceQuote": "El cargo requiere conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo conceptos como tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+    "primarySourceQuote": "También buscamos experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Criterio para manejar datos responsablemente y considerar aspectos de acceso, confidencialidad y tratamiento de información.",
+    "primarySourceQuote": "Dado que trabajamos con información operacional y de clientes, esperamos criterio para manejar datos responsablemente y considerar aspectos de acceso, confidencialidad y tratamiento de información.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Autonomía técnica para tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+    "primarySourceQuote": "Valoramos especialmente la autonomía técnica: deberás ser capaz de tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para comunicar decisiones a públicos técnicos y no técnicos, documentar el trabajo y privilegiar soluciones simples, sostenibles y orientadas a generar valor incremental.",
+    "primarySourceQuote": "Necesitamos una persona que comunique bien sus decisiones a públicos técnicos y no técnicos, documente su trabajo y privilegie soluciones simples, sostenibles y orientadas a generar valor incremental.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o una carrera afín.",
+    "primarySourceQuote": "Se requiere formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o una carrera afín.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para desarrollar o habilitar modelos de datos para reportes, indicadores, paneles y modelos semánticos utilizados internamente y por clientes.",
+    "primarySourceQuote": "También desarrollarás o habilitarás modelos de datos para reportes, indicadores, paneles y modelos semánticos utilizados tanto internamente como por nuestros clientes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para comprender procesos y reglas de negocio, traducirlos a soluciones de datos y proponer mejoras a la arquitectura con autonomía técnica.",
+    "primarySourceQuote": "Parte importante del rol será comprender procesos y reglas de negocio, traducirlos a soluciones de datos y trabajar con autonomía técnica para proponer mejoras a la arquitectura.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para participar en la operación y evolución de pipelines, monitoreo y resolución de incidentes, implementación de controles de calidad y gobierno de datos, y preparación de información estructurada para iniciativas de automatización, analítica avanzada e inteligencia artificial.",
+    "primarySourceQuote": "Además, participarás en la operación y evolución de los pipelines, monitoreo y resolución de incidentes, implementación de controles de calidad y gobierno de datos, y preparación de información estructurada para iniciativas de automatización, analítica avanzada e inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Deseable: experiencia específica en AWS y servicios de integración o procesamiento de datos.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: experiencia profunda con Amazon Redshift o Snowflake.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: conocimientos de Power BI y modelamiento semántico.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: conocimientos de Git, CI/CD y prácticas de DataOps.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: conocimientos de monitoreo y observabilidad de pipelines.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: conocimientos de gobierno, catálogo y linaje de datos.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.\n\nSumará experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Deseable: conocimiento de seguridad de la información y normativa de protección de datos personales.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.\n\nSumará experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana. También será valorado el conocimiento de seguridad de la información y normativa de protección de datos personales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+    "primarySourceQuote": "Buscamos un perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 30,
+     "charEnd": 139
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Experiencia participando en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas de calidad, consistencia y trazabilidad.",
+    "primarySourceQuote": "Debes haber participado en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas reales de calidad, consistencia y trazabilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 140,
+     "charEnd": 339
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Dominio avanzado de SQL.",
+    "primarySourceQuote": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 341,
+     "charEnd": 462
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "primarySourceQuote": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 341,
+     "charEnd": 462
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Capacidad para modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras mantenibles y reutilizables.",
+    "primarySourceQuote": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 463,
+     "charEnd": 618
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+    "primarySourceQuote": "Es requisito contar con experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 620,
+     "charEnd": 734
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Estar acostumbrado a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software.",
+    "primarySourceQuote": "El rol requerirá trabajar con modelos, dependencias, pruebas, documentación, control de versiones y despliegues, por lo que buscamos una persona acostumbrada a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 735,
+     "charEnd": 980
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+    "primarySourceQuote": "Debes tener experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 982,
+     "charEnd": 1150
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+    "primarySourceQuote": "También esperamos experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1151,
+     "charEnd": 1323
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Capacidad para utilizar Python para extracción, automatización, procesamiento o validación de datos.",
+    "primarySourceQuote": "Python será el principal lenguaje de programación complementario a SQL, por lo que debes poder utilizarlo para extracción, automatización, procesamiento o validación de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1325,
+     "charEnd": 1500
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+    "primarySourceQuote": "El cargo requiere conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo conceptos como tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1502,
+     "charEnd": 1721
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+    "primarySourceQuote": "También buscamos experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1723,
+     "charEnd": 1833
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Criterio para manejar datos responsablemente y considerar aspectos de acceso, confidencialidad y tratamiento de información.",
+    "primarySourceQuote": "Dado que trabajamos con información operacional y de clientes, esperamos criterio para manejar datos responsablemente y considerar aspectos de acceso, confidencialidad y tratamiento de información.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1834,
+     "charEnd": 2031
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Autonomía técnica para tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+    "primarySourceQuote": "Valoramos especialmente la autonomía técnica: deberás ser capaz de tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2033,
+     "charEnd": 2230
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Capacidad para comunicar decisiones a públicos técnicos y no técnicos, documentar el trabajo y privilegiar soluciones simples, sostenibles y orientadas a generar valor incremental.",
+    "primarySourceQuote": "Necesitamos una persona que comunique bien sus decisiones a públicos técnicos y no técnicos, documente su trabajo y privilegie soluciones simples, sostenibles y orientadas a generar valor incremental.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2231,
+     "charEnd": 2431
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o una carrera afín.",
+    "primarySourceQuote": "Se requiere formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o una carrera afín.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2433,
+     "charEnd": 2557
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requerimientos del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Capacidad para desarrollar o habilitar modelos de datos para reportes, indicadores, paneles y modelos semánticos utilizados internamente y por clientes.",
+    "primarySourceQuote": "También desarrollarás o habilitarás modelos de datos para reportes, indicadores, paneles y modelos semánticos utilizados tanto internamente como por nuestros clientes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3384,
+     "charEnd": 3551
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Capacidad para comprender procesos y reglas de negocio, traducirlos a soluciones de datos y proponer mejoras a la arquitectura con autonomía técnica.",
+    "primarySourceQuote": "Parte importante del rol será comprender procesos y reglas de negocio, traducirlos a soluciones de datos y trabajar con autonomía técnica para proponer mejoras a la arquitectura.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3552,
+     "charEnd": 3730
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Capacidad para participar en la operación y evolución de pipelines, monitoreo y resolución de incidentes, implementación de controles de calidad y gobierno de datos, y preparación de información estructurada para iniciativas de automatización, analítica avanzada e inteligencia artificial.",
+    "primarySourceQuote": "Además, participarás en la operación y evolución de los pipelines, monitoreo y resolución de incidentes, implementación de controles de calidad y gobierno de datos, y preparación de información estructurada para iniciativas de automatización, analítica avanzada e inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3732,
+     "charEnd": 4020
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Deseable: experiencia específica en AWS y servicios de integración o procesamiento de datos.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Deseable: experiencia profunda con Amazon Redshift o Snowflake.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Deseable: conocimientos de Power BI y modelamiento semántico.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Deseable: conocimientos de Git, CI/CD y prácticas de DataOps.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Deseable: conocimientos de monitoreo y observabilidad de pipelines.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Deseable: conocimientos de gobierno, catálogo y linaje de datos.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Deseable: experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_27",
+    "order": 27,
+    "proposedRequirementText": "Deseable: experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.\n\nSumará experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4824
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_28",
+    "order": 28,
+    "proposedRequirementText": "Deseable: conocimiento de seguridad de la información y normativa de protección de datos personales.",
+    "primarySourceQuote": "**Opcionales**\n\nSerá un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake. También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.\n\nSumará experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana. También será valorado el conocimiento de seguridad de la información y normativa de protección de datos personales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4186,
+     "charEnd": 4940
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 28,
+   "quotesTotal": 28,
+   "quotesFoundLiterally": 28,
+   "primaryUnique": 28,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

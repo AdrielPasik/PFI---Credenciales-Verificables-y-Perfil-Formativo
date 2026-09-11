@@ -1,0 +1,579 @@
+{
+ "objectiveId": "EMP_066",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 35,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "*En Laboratorio Elea** queremos sumar a nuestro equipo un/a ***Analista de Desarrollo Analítico (Almagro - CABA)*",
+    "primarySourceQuote": "*En Laboratorio Elea** queremos sumar a nuestro equipo un/a ***Analista de Desarrollo Analítico (Almagro - CABA)*",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1,
+     "charEnd": 114
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "**¡Tenemos un gran desafío para profesionales con experiencia en industria farmacéutica!* *🚀*",
+    "primarySourceQuote": "**¡Tenemos un gran desafío para profesionales con experiencia en industria farmacéutica!* *🚀*",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 117,
+     "charEnd": 210
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "📝**¿Cuáles serían tus tareas?**",
+    "primarySourceQuote": "📝**¿Cuáles serían tus tareas?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 212,
+     "charEnd": 243
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "primarySourceQuote": "Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 247,
+     "charEnd": 352
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Analizar (FQ) productos en desarrollo.",
+    "primarySourceQuote": "Analizar (FQ) productos en desarrollo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 355,
+     "charEnd": 393
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Hacer seguimiento de los proyectos a cargo.",
+    "primarySourceQuote": "Hacer seguimiento de los proyectos a cargo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 396,
+     "charEnd": 439
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Generar y ejecutar protocolos de validación de técnicas analíticas. Redactar los correspondientes informes de validación.",
+    "primarySourceQuote": "Generar y ejecutar protocolos de validación de técnicas analíticas. Redactar los correspondientes informes de validación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 442,
+     "charEnd": 563
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "primarySourceQuote": "Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 566,
+     "charEnd": 715
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "primarySourceQuote": "Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 718,
+     "charEnd": 810
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Realizar las actividades relacionadas con los equipos a cargo.",
+    "primarySourceQuote": "Realizar las actividades relacionadas con los equipos a cargo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 813,
+     "charEnd": 875
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "primarySourceQuote": "Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 878,
+     "charEnd": 937
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "primarySourceQuote": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 951,
+     "charEnd": 1004
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "primarySourceQuote": "Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1008,
+     "charEnd": 1091
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+    "primarySourceQuote": "Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1094,
+     "charEnd": 1202
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1205,
+     "charEnd": 1303
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "primarySourceQuote": "Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1306,
+     "charEnd": 1395
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primarySourceQuote": "Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1398,
+     "charEnd": 1484
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Idiomas inglés avanzado, oral y escrito (deseable).",
+    "primarySourceQuote": "Idiomas inglés avanzado, oral y escrito (deseable).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1487,
+     "charEnd": 1538
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Orientación al logro, resolución de problemas.",
+    "primarySourceQuote": "Orientación al logro, resolución de problemas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1564,
+     "charEnd": 1610
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "primarySourceQuote": "Capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1613,
+     "charEnd": 1683
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Capacidad de trabajo en equipo.",
+    "primarySourceQuote": "Capacidad de trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1686,
+     "charEnd": 1717
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Proactividad, y buena comunicación.",
+    "primarySourceQuote": "Proactividad, y buena comunicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1720,
+     "charEnd": 1755
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "*💟** **¿Cuál es nuestra propuesta?**",
+    "primarySourceQuote": "*💟** **¿Cuál es nuestra propuesta?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1770,
+     "charEnd": 1806
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Es una gran oportunidad para profesionales que quieran desarrollarse en uno de los laboratorios más importantes del país, una empresa donde podrás aprender de un equipo de profesionales de alta calidad y a su vez desarrollar tu propia carrera en un ambiente dinámico y altamente desafiante.",
+    "primarySourceQuote": "Es una gran oportunidad para profesionales que quieran desarrollarse en uno de los laboratorios más importantes del país, una empresa donde podrás aprender de un equipo de profesionales de alta calidad y a su vez desarrollar tu propia carrera en un ambiente dinámico y altamente desafiante.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1808,
+     "charEnd": 2098
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Te ofrecemos interesantes condiciones de contratación, programa de Capacitación & Desarrollo, movilidad interna y un interesante paquete de Beneficios",
+    "primarySourceQuote": "Te ofrecemos interesantes condiciones de contratación, programa de Capacitación & Desarrollo, movilidad interna y un interesante paquete de Beneficios",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2100,
+     "charEnd": 2250
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Días adicionales por paternidad y adopción🍼",
+    "primarySourceQuote": "Días adicionales por paternidad y adopción🍼",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2329,
+     "charEnd": 2372
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "🤱Licencia por maternidad extendida, y espacios de lactancia en las oficinas",
+    "primarySourceQuote": "🤱Licencia por maternidad extendida, y espacios de lactancia en las oficinas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2375,
+     "charEnd": 2450
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "Convenios académicos con Universidades de primer nivel para formarte",
+    "primarySourceQuote": "Convenios académicos con Universidades de primer nivel para formarte",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2453,
+     "charEnd": 2521
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Descuentos en Sportclub y familia Sportclub💪",
+    "primarySourceQuote": "Descuentos en Sportclub y familia Sportclub💪",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2524,
+     "charEnd": 2568
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "Productos de la compañía 100% bonificados.",
+    "primarySourceQuote": "Productos de la compañía 100% bonificados.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2571,
+     "charEnd": 2613
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "🎁 Obsequios para fechas especiales.",
+    "primarySourceQuote": "🎁 Obsequios para fechas especiales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2616,
+     "charEnd": 2651
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "¡Sumate a nuestro Team y viví la experiencia Elea!*💪",
+    "primarySourceQuote": "¡Sumate a nuestro Team y viví la experiencia Elea!*💪",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2669,
+     "charEnd": 2721
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_33",
+    "order": 33,
+    "proposedRequirementText": "Somos un Laboratorio Argentino, que desde 1939 investiga y desarrolla medicamentos confiables para diversas especialidades médicas. Respaldados por unidades de negocios con marcas líderes, proyectos propios de Investigación y Desarrollo, licencias de importantes Compañías internacionales, plantas productoras que operan en total sincronía y una red de distribución de gran alcance, nos ubicamos hoy entre las primeras posiciones del mercado Farmacéutico Argentino.",
+    "primarySourceQuote": "Somos un Laboratorio Argentino, que desde 1939 investiga y desarrolla medicamentos confiables para diversas especialidades médicas. Respaldados por unidades de negocios con marcas líderes, proyectos propios de Investigación y Desarrollo, licencias de importantes Compañías internacionales, plantas productoras que operan en total sincronía y una red de distribución de gran alcance, nos ubicamos hoy entre las primeras posiciones del mercado Farmacéutico Argentino.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2723,
+     "charEnd": 3188
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_34",
+    "order": 34,
+    "proposedRequirementText": "Business Development and Sales",
+    "primarySourceQuote": "Business Development and Sales",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3307,
+     "charEnd": 3337
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Job function",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_35",
+    "order": 35,
+    "proposedRequirementText": "Pharmaceutical Manufacturing",
+    "primarySourceQuote": "Pharmaceutical Manufacturing",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3357,
+     "charEnd": 3385
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Industries",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 35,
+   "quotesTotal": 35,
+   "quotesFoundLiterally": 35,
+   "primaryUnique": 35,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

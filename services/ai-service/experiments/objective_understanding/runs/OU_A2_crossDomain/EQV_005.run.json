@@ -1,0 +1,329 @@
+{
+ "objectiveId": "EQV_005",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 22581,
+ "usage": {
+  "input_tokens": 2774,
+  "input_tokens_details": {
+   "cache_write_tokens": 2771,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1832,
+  "output_tokens_details": {
+   "reasoning_tokens": 343
+  },
+  "total_tokens": 4606
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Para que se reconozcan créditos, las competencias, conocimientos y carga de trabajo del alumno de las asignaturas de origen deben ser equivalentes a los de una o varias asignaturas de la titulación de destino.",
+    "primarySourceQuote": "se reconocerán los créditos de las asignaturas cuyas competencias, conocimientos y carga de trabajo del alumno, sean equivalentes a las correspondientes a una o varias asignaturas de la titulación de destino.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Reconocimiento de créditos por estudios universitarios extranjeros"
+   },
+   {
+    "proposedRequirementText": "Pueden solicitarlo los estudiantes con estudios universitarios extranjeros, parciales o totales, que no hayan obtenido la homologación de su titulación en España y hayan seguido el proceso de admisión por estudios extranjeros.",
+    "primarySourceQuote": "Los estudiante que habiendo realizado e**studios universitarios extranjeros, parciales o totales, que no hayan obtenido la homologación de su titulación en España**, y hayan seguido el proceso de admisión por estudios extranjeros:",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Quién puede solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Los solicitantes que continúen el proceso de admisión a estudios oficiales de grado con estudios universitarios extranjeros y no hayan obtenido el reconocimiento de al menos 30 créditos de materia básica y obligatoria deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+    "primarySourceQuote": "Continuando con el proceso de admisión a estudios oficiales de grado con estudios universitarios extranjeros, si no han obtenido resolución de reconocimiento de al menos 30 créditos de materia básica y obligatoria, deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Quién puede solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "La instancia normalizada debe acompañarse de una certificación académica oficial de los estudios realizados que incluya las calificaciones obtenidas en las asignaturas impartidas y la correspondiente nota media aprobatoria.",
+    "primarySourceQuote": "- Certificación académica oficial de los estudios realizados, en la que consten las calificaciones obtenidas en las asignaturas impartidas, con su correspondiente nota media aprobatoria.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "La instancia normalizada debe acompañarse del programa de las asignaturas aprobadas, con su contenido y carga lectiva, sellado y diligenciado por el centro donde se impartió en todas sus hojas y detallando los cursos académicos en los que estuvo vigente.",
+    "primarySourceQuote": "- Programa de las asignaturas aprobadas, en el que conste el contenido y la carga lectiva. Deberá estar sellado y diligenciado por el centro donde se impartió en todas y cada una de sus hojas, detallando los cursos académicos en los que estuvo vigente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "La instancia normalizada debe acompañarse de pasaporte o DNI/NIE; los estudiantes extranjeros pueden presentar una certificación de los Servicios Consulares de su país en España que indique su nacionalidad e inscripción en el Registro Consular.",
+    "primarySourceQuote": "- Pasaporte, DNI/ NIE. (Los estudiantes extranjeros pueden presentar una certificación de los Servicios Consulares de su país en España, en la que figure su nacionalidad e inscripción en el Registro Consular).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "La instancia normalizada debe acompañarse del resguardo de haber solicitado plaza.",
+    "primarySourceQuote": "- Resguardo de haber solicitado plaza.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Los documentos deben ser oficiales, expedidos por las autoridades competentes y legalizados por vía diplomática.",
+    "primarySourceQuote": "- Serán **oficiales**, expedidos por las **autoridades competentes y legalizados** por vía diplomática.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Para la legalización de documentos por vía diplomática, los documentos deben presentarse, en el orden indicado, ante el Ministerio de Educación del país de origen, el Ministerio de Asuntos Exteriores del país donde se expidieron, la representación diplomática o consular de España en dicho país y la Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores, Unión Europea y Cooperación.",
+    "primarySourceQuote": "- Para legalización de documentos por vía diplomática, deberán ser presentados en todos y cada uno de los siguientes organismos, por el orden que se cita:\n\n- El Ministerio de Educación del país de origen.\n\n- El Ministerio de Asuntos Exteriores del país donde se expidieron dichos documentos.\n\n- La representación diplomática o consular de España en dicho país.\n\n- La Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores, Unión Europea y Cooperación (C/ General Pardiñas, 55. 28006 Madrid)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Para los documentos procedentes de países acogidos al Convenio de La Haya, la legalización por vía diplomática se sustituye por la apostilla correspondiente.",
+    "primarySourceQuote": "- Para la legalización de los documentos procedentes de los países acogidos al “Convenio de La Haya”, los requisitos citados con anterioridad para una legalización por vía diplomática, serán sustituidos por la correspondiente apostilla.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Los documentos deben ir acompañados, cuando corresponda, de su traducción oficial al castellano.",
+    "primarySourceQuote": "Los documentos deberán ir acompañados, en su caso, de su **correspondiente traducción oficial al castellano**, que podrá hacerse:",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?"
+   },
+   {
+    "proposedRequirementText": "Se debe remitir una solicitud de reconocimiento de créditos para alumnos con estudios extranjeros, junto con la documentación mencionada, a la secretaría de la E.T.S.I. de Sistemas Informáticos.",
+    "primarySourceQuote": "Se deberá remitir una solicitud de reconocimiento de créditos para alumnos con estudios extranjeros junto con la documentación mencionada a la secretaría de la E.T.S.I. de Sistemas Informáticos:",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Cómo se solicita?"
+   },
+   {
+    "proposedRequirementText": "Una vez efectuado el abono de las tasas por el estudio de la solicitud, se debe remitir al centro el resguardo del abono a la mayor brevedad.",
+    "primarySourceQuote": "Una vez efectuado debe remitir al centro el resguardo del abono a la mayor brevedad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "¿Cómo se solicita?"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Para que se reconozcan créditos, las competencias, conocimientos y carga de trabajo del alumno de las asignaturas de origen deben ser equivalentes a los de una o varias asignaturas de la titulación de destino.",
+    "primarySourceQuote": "se reconocerán los créditos de las asignaturas cuyas competencias, conocimientos y carga de trabajo del alumno, sean equivalentes a las correspondientes a una o varias asignaturas de la titulación de destino.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 241,
+     "charEnd": 449
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Reconocimiento de créditos por estudios universitarios extranjeros",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Pueden solicitarlo los estudiantes con estudios universitarios extranjeros, parciales o totales, que no hayan obtenido la homologación de su titulación en España y hayan seguido el proceso de admisión por estudios extranjeros.",
+    "primarySourceQuote": "Los estudiante que habiendo realizado e**studios universitarios extranjeros, parciales o totales, que no hayan obtenido la homologación de su titulación en España**, y hayan seguido el proceso de admisión por estudios extranjeros:",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 802,
+     "charEnd": 1032
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Quién puede solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Los solicitantes que continúen el proceso de admisión a estudios oficiales de grado con estudios universitarios extranjeros y no hayan obtenido el reconocimiento de al menos 30 créditos de materia básica y obligatoria deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+    "primarySourceQuote": "Continuando con el proceso de admisión a estudios oficiales de grado con estudios universitarios extranjeros, si no han obtenido resolución de reconocimiento de al menos 30 créditos de materia básica y obligatoria, deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1102,
+     "charEnd": 1404
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Quién puede solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "La instancia normalizada debe acompañarse de una certificación académica oficial de los estudios realizados que incluya las calificaciones obtenidas en las asignaturas impartidas y la correspondiente nota media aprobatoria.",
+    "primarySourceQuote": "- Certificación académica oficial de los estudios realizados, en la que consten las calificaciones obtenidas en las asignaturas impartidas, con su correspondiente nota media aprobatoria.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1534,
+     "charEnd": 1720
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "La instancia normalizada debe acompañarse del programa de las asignaturas aprobadas, con su contenido y carga lectiva, sellado y diligenciado por el centro donde se impartió en todas sus hojas y detallando los cursos académicos en los que estuvo vigente.",
+    "primarySourceQuote": "- Programa de las asignaturas aprobadas, en el que conste el contenido y la carga lectiva. Deberá estar sellado y diligenciado por el centro donde se impartió en todas y cada una de sus hojas, detallando los cursos académicos en los que estuvo vigente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1722,
+     "charEnd": 1974
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "La instancia normalizada debe acompañarse de pasaporte o DNI/NIE; los estudiantes extranjeros pueden presentar una certificación de los Servicios Consulares de su país en España que indique su nacionalidad e inscripción en el Registro Consular.",
+    "primarySourceQuote": "- Pasaporte, DNI/ NIE. (Los estudiantes extranjeros pueden presentar una certificación de los Servicios Consulares de su país en España, en la que figure su nacionalidad e inscripción en el Registro Consular).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1976,
+     "charEnd": 2185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "La instancia normalizada debe acompañarse del resguardo de haber solicitado plaza.",
+    "primarySourceQuote": "- Resguardo de haber solicitado plaza.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2187,
+     "charEnd": 2225
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Los documentos deben ser oficiales, expedidos por las autoridades competentes y legalizados por vía diplomática.",
+    "primarySourceQuote": "- Serán **oficiales**, expedidos por las **autoridades competentes y legalizados** por vía diplomática.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2292,
+     "charEnd": 2395
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Para la legalización de documentos por vía diplomática, los documentos deben presentarse, en el orden indicado, ante el Ministerio de Educación del país de origen, el Ministerio de Asuntos Exteriores del país donde se expidieron, la representación diplomática o consular de España en dicho país y la Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores, Unión Europea y Cooperación.",
+    "primarySourceQuote": "- Para legalización de documentos por vía diplomática, deberán ser presentados en todos y cada uno de los siguientes organismos, por el orden que se cita:\n\n- El Ministerio de Educación del país de origen.\n\n- El Ministerio de Asuntos Exteriores del país donde se expidieron dichos documentos.\n\n- La representación diplomática o consular de España en dicho país.\n\n- La Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores, Unión Europea y Cooperación (C/ General Pardiñas, 55. 28006 Madrid)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2397,
+     "charEnd": 2903
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Para los documentos procedentes de países acogidos al Convenio de La Haya, la legalización por vía diplomática se sustituye por la apostilla correspondiente.",
+    "primarySourceQuote": "- Para la legalización de los documentos procedentes de los países acogidos al “Convenio de La Haya”, los requisitos citados con anterioridad para una legalización por vía diplomática, serán sustituidos por la correspondiente apostilla.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2905,
+     "charEnd": 3141
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Los documentos deben ir acompañados, cuando corresponda, de su traducción oficial al castellano.",
+    "primarySourceQuote": "Los documentos deberán ir acompañados, en su caso, de su **correspondiente traducción oficial al castellano**, que podrá hacerse:",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3236,
+     "charEnd": 3365
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Qué documentación necesito para solicitarlo?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Se debe remitir una solicitud de reconocimiento de créditos para alumnos con estudios extranjeros, junto con la documentación mencionada, a la secretaría de la E.T.S.I. de Sistemas Informáticos.",
+    "primarySourceQuote": "Se deberá remitir una solicitud de reconocimiento de créditos para alumnos con estudios extranjeros junto con la documentación mencionada a la secretaría de la E.T.S.I. de Sistemas Informáticos:",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4138,
+     "charEnd": 4332
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Cómo se solicita?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Una vez efectuado el abono de las tasas por el estudio de la solicitud, se debe remitir al centro el resguardo del abono a la mayor brevedad.",
+    "primarySourceQuote": "Una vez efectuado debe remitir al centro el resguardo del abono a la mayor brevedad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4585,
+     "charEnd": 4669
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "¿Cómo se solicita?",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 13,
+   "quotesTotal": 13,
+   "quotesFoundLiterally": 13,
+   "primaryUnique": 13,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

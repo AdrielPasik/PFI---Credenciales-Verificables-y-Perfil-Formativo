@@ -1,0 +1,306 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Valorado: formación académica de Ingeniero Químico o Electrónico.",
+   "primaryExcerpt": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: ¿Qué Valoramos?",
+    "titulaciones alternativas: Ingeniero Químico o Electrónico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad (§12 P2.0). La seccion completa de credenciales del aviso esta gobernada por '¿Que Valoramos?', no por un encabezado de requisitos: tratarla como requerida seria fortalecer la modalidad."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Valorado: experiencia previa en proyectos, Ingeniería de control e Instrumentación, dimensionamientos y cálculos de equipos de procesos.",
+   "primaryExcerpt": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: ¿Qué Valoramos?",
+    "naturaleza: experiencia previa",
+    "objetos: proyectos, Ingeniería de control e Instrumentación, dimensionamientos y cálculos de equipos de procesos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad. No hay cuantificador de anos en todo el aviso."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Valorado: manejo del software Hysys.",
+   "primaryExcerpt": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: ¿Qué Valoramos?",
+    "herramienta: Hysys"
+   ],
+   "auxiliaryExcerpts": [
+    "6.Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones."
+   ],
+   "compositionNote": "Separado de Autocad por §4.1: 'manejo del software' distribuye sobre dos herramientas independientes."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Valorado: manejo del software Autocad.",
+   "primaryExcerpt": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: ¿Qué Valoramos?",
+    "herramienta: Autocad"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g03."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+   "primaryExcerpt": "- **Otros requisitos:** experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: no excluyente",
+    "objetos: manejo de químicos, ensayos de laboratorios"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Marca de negacion explicita dentro de una vineta rotulada 'Otros requisitos': el rotulo dice requisito pero el parentesis lo desmiente. Tratarlo como exigencia seria una inversion de negacion."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio.",
+   "primaryExcerpt": "Un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "perfil: profesional de Ingeniería",
+    "actitudes: proactivo, autónomo",
+    "nivel: sólidas habilidades",
+    "objetos: liderazgo de proyectos, trabajo en equipo, adaptación al cambio"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Unico bloque del aviso enunciado bajo '¿Que buscamos?' sin marca de preferencia. Compuesto preservado: 'solidas habilidades de' gobierna las tres capacidades y distribuirlo duplicaria el nivel exigido."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Disponibilidad para viajar eventualmente.",
+   "primaryExcerpt": "**Disponibilidad para viajar:** si, eventualmente",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "disponibilidad: viajar",
+    "frecuencia atenuada: eventualmente"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'eventualmente' limita la exigencia y es material; perderlo la fortaleceria a disponibilidad permanente."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada, asegurando la operación dentro de la ventana operativa definida y el cumplimiento de objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos.",
+   "primaryExcerpt": "1.Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada con el fin de asegurar la ejecución de la operación dentro de los límites de ventana operativa definida, el cumplimiento de los objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos definidos por el Negocio.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: controlar variables operativas y equipos",
+    "alcance: instalaciones de procesamiento y transporte de fluidos",
+    "ámbito: Región asignada",
+    "objetivos: ventana operativa, seguridad, calidad, producción, eficiencia, gastos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g09",
+   "claim": "Dimensionar, revisar y validar las lógicas de control de procesos, enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo, garantizando operación segura, confiable y eficiente y alineación con estudios de riesgo y mejores prácticas de ingeniería.",
+   "primaryExcerpt": "2.Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a las instalaciones de procesamiento y transporte de fluidos, con el fin de garantizar la operación segura, confiable y eficiente de los procesos, asegurando que las estrategias de control se encuentren alineadas con los objetivos operativos, los estudios de riesgo y las mejores prácticas de ingeniería.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: dimensionar, revisar y validar",
+    "objetos: lógicas de control, enclavamientos e interlocks SIS/ESD, alarmas críticas, instrumentación de campo",
+    "criterios: operación segura, confiable y eficiente; alineación con estudios de riesgo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): las tres actividades gobiernan la misma lista de objetos de seguridad funcional."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Integrar análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos y sistemas de control e instrumentación para generar una visión integral de diseño y optimización de proyectos.",
+   "primaryExcerpt": "3.Integrar los análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación, con el fin de generar una visión integral para el diseño y optimización de proyectos, promoviendo la sinergia entre las redes de producción, recolección, transporte y las instalaciones de procesamiento de agua, petróleo y gas, asegurando soluciones técnicas robustas, escalables y alineadas con los planes de desarrollo del negocio.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: integrar disciplinas",
+    "alcance: análisis operativos, simulaciones, capacidad, eficiencia energética, riesgos, calidad de fluidos, control e instrumentación",
+    "finalidad: visión integral para diseño y optimización de proyectos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El criterio es justamente la INTEGRACION de las disciplinas: separarlo por disciplina destruiria el claim (§4.2 'la composicion misma es el criterio')."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Controlar los indicadores de calidad (KPIs) de procesos para identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad e impulsar acciones correctivas.",
+   "primaryExcerpt": "4.Controlar los indicadores de calidad (KPIs) de procesos, con el fin de identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad a la operación, e impulsar las acciones correctivas necesarias.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: controlar KPIs de procesos",
+    "finalidades: identificar desvíos, alertar, impulsar acciones correctivas"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g12",
+   "claim": "Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos.",
+   "primaryExcerpt": "5.Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, a fin de monitorear desvíos, identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: controlar parámetros fisicoquímicos",
+    "objeto: fluidos",
+    "alcance: condiciones de entrega y variabilidad en los ingresos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g13",
+   "claim": "Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte utilizando Simuladores de Proceso.",
+   "primaryExcerpt": "6.Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: desarrollar y actualizar",
+    "objeto: simulación de facilidades",
+    "herramienta: Simuladores de Proceso"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Solapa con g03 (Hysys, valorado) con fuerza distinta: aqui la simulacion es tarea del rol y alli la herramienta concreta es valorada. §17 prohibe colapsarlos."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Identificar cuellos de botella en las instalaciones, manteniendo información actualizada de las capacidades instaladas e impulsando modificaciones cuando resulten inconsistentes con el plan de producción.",
+   "primaryExcerpt": "7.Identificar cuellos de botella en las instalaciones, con el fin de mantener información actualizada de las capacidades instaladas, e impulsar modificaciones cuando dichas capacidades resulten inconsistentes con el plan de producción.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: identificar cuellos de botella",
+    "alcance: capacidades instaladas",
+    "condicional: cuando resulten inconsistentes con el plan de producción"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g15",
+   "claim": "Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización para asegurar el cumplimiento de los requisitos normativos de la compañía.",
+   "primaryExcerpt": "8.Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, con el fin de asegurar el cumplimiento de los requisitos normativos de la compañía.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: resguardar documentación",
+    "alcance: respaldo y actualización",
+    "finalidad: cumplimiento normativo de la compañía"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, conociendo usos, disposiciones y costos asociados y buscando optimizaciones.",
+   "primaryExcerpt": "9.Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, a fin de lograr un conocimiento certero de todos los usos y disposiciones de energía, con sus costos asociados, además de conocer y acompañar las acciones realizadas en las operaciones con impacto en el desempeño energético, buscando optimizaciones en el uso de esta.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: medir y gestionar",
+    "objeto: eficiencia energética y Uso de la Energía Upstream",
+    "alcance: usos, disposiciones y costos asociados"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios.",
+   "primaryExcerpt": "10.Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, con el fin de mantener la operación de las instalaciones dentro de los márgenes definidos en la normativa corporativa.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: liderar y controlar",
+    "objeto: estudios de riesgos de instalaciones existentes",
+    "alcance: acciones definidas en los estudios"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g18",
+   "claim": "Asesorar en aspectos relativos a la especialidad, participando en investigaciones de incidentes y búsqueda de fallas.",
+   "primaryExcerpt": "11.Asesorar en aspectos relativos a la especialidad, participando en las investigaciones de incidentes y búsqueda de fallas donde se requiera, con el fin de aportar conocimientos específicos del área.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: asesorar",
+    "alcance: investigaciones de incidentes y búsqueda de fallas",
+    "condicional: donde se requiera"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Asesorar en las paradas de planta programadas, colaborando en planes de consignación, programación de actividades e inspección de tareas.",
+   "primaryExcerpt": "12.Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, con el fin de aportar conocimientos específicos del área y contribuir al desarrollo seguro y eficiente de los paros de planta.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: asesorar",
+    "objeto: paradas de planta programadas",
+    "alcance: planes de consignación, programación de actividades, inspección de tareas"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Sumá tu energía a la compañía que contribuye al desarrollo de nuestro país.",
+   "reason": "Encabezado motivacional."
+  },
+  {
+   "excerpt": "Con más de cien años de historia, somos la compañía energética líder de la Argentina, impulsando el desarrollo y la innovación tecnológica del país.",
+   "reason": "Prosa institucional. 'mas de cien anos' es antiguedad de la empresa, NO experiencia exigida; es la trampa de contexto-vs-requisito principal del aviso."
+  },
+  {
+   "excerpt": "¡Sumarte a YPF es unirte a un proyecto que combina experiencia, pasión y la energía necesaria para seguir construyendo nuestro futuro!",
+   "reason": "Prosa motivacional. Usa la palabra 'experiencia' referida al proyecto, no al holder."
+  },
+  {
+   "excerpt": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+   "reason": "Resumen del desafio del rol que las doce tareas numeradas concretan; se registra ademas como pasaje ambiguo."
+  },
+  {
+   "excerpt": "**Reporte directo:** JEFE INGENIERIA PROCESOS Y CONTROL",
+   "reason": "Linea de reporte organizacional."
+  },
+  {
+   "excerpt": "**Lugar de trabajo:** BASE YPF LOMA CAMPANA",
+   "reason": "Ubicacion del puesto, no exigencia dirigida al postulante."
+  },
+  {
+   "excerpt": "**Encuadre gremial:** Fuera de convenio",
+   "reason": "Condicion contractual del puesto."
+  },
+  {
+   "excerpt": "- Trabaja con excelencia y profesionalismo.",
+   "reason": "Bloque 'Si sos una persona que:' con perfil aspiracional de cultura; se registra como pasaje ambiguo por su lectura alternativa."
+  },
+  {
+   "excerpt": "- Promueve un buen clima de trabajo, con empatía, escucha activa y respeto.",
+   "reason": "Idem: perfil cultural aspiracional."
+  },
+  {
+   "excerpt": "- Descuentos especiales en universidades orientados a impulsar estudios de especialización y posgrado.",
+   "reason": "Beneficio ofrecido. Trampa lexica: menciona posgrado y especializacion pero NO exige ninguna credencial."
+  },
+  {
+   "excerpt": "- Cobertura médica para vos y tu familia.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "## Seniority level\n\nAssociate",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Si sos una persona que:",
+   "note": "Encabeza seis viñetas de perfil cultural ('Trabaja con excelencia', 'valora la meritocracia', 'Disfruta del trabajo en equipo', etc.). Un anotador razonable podria emitirlas como Requirements de soft skills; aqui se tratan como perfil aspiracional de marca empleadora porque estan fuera de la seccion de criterios y redactadas como autodescripcion del lector. No se penalizan si el extractor las emite, ni se cuentan como omision si no las emite."
+  },
+  {
+   "excerpt": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+   "note": "Resumen del rol que anticipa g08; podria sostenerse como claim propio de responsabilidad general."
+  }
+ ],
+ "annotationNotes": "HOLDOUT. Objective mas largo de la seleccion (7.015 car.). Rasgo dominante: TODA la seccion de credenciales esta gobernada por '¿Que Valoramos?', de modo que formacion, experiencia y herramientas son PREFERRED y no REQUIRED; ademas una vineta rotulada 'Otros requisitos' termina en '(no excluyente)'. El aviso no contiene ningun cuantificador de anos de experiencia, pero si menciona 'mas de cien anos de historia' de la empresa. Doce tareas numeradas muy extensas con finalidad encadenada ('con el fin de...').",
+ "objectiveId": "EMP_069",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "4b9305a79a8b23df4b833c0a7c5f61aa14366d2924601979a636e93c82630b45",
+ "requirementCount": 19
+}

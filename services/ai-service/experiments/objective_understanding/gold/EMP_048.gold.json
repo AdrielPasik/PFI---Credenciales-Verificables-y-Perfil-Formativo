@@ -1,0 +1,381 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+   "primaryExcerpt": "Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: avanzado",
+    "objeto: Linux (Ubuntu)",
+    "alcance: administración, scripting Bash, systemd, logs"
+   ],
+   "auxiliaryExcerpts": [
+    "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red."
+   ],
+   "compositionNote": "El nivel 'avanzado' gobierna toda la enumeracion; separar por componente lo duplicaria."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+   "primaryExcerpt": "Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos alternativos: DigitalOcean y/o AWS",
+    "alcance: VPC, security groups, IAM"
+   ],
+   "auxiliaryExcerpts": [
+    "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad."
+   ],
+   "compositionNote": "'y/o' es una disyuncion inclusiva: separar en dos claims convertiria una alternativa en dos exigencias."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Infraestructura como código: Terraform (o Pulumi/CloudFormation).",
+   "primaryExcerpt": "Infraestructura como código: Terraform (o Pulumi/CloudFormation).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: infraestructura como código",
+    "herramientas alternativas: Terraform, Pulumi, CloudFormation"
+   ],
+   "auxiliaryExcerpts": [
+    "Infraestructura como código: gestionar la plataforma de forma versionada y reproducible (Terraform o similar)."
+   ]
+  },
+  {
+   "goldId": "g04",
+   "claim": "Contenedores y orquestación: Docker y Kubernetes.",
+   "primaryExcerpt": "Contenedores y orquestación: Docker y Kubernetes.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Docker",
+    "objeto: Kubernetes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g05",
+   "claim": "CI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+   "primaryExcerpt": "CI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: CI/CD",
+    "herramientas alternativas: GitHub Actions, GitLab CI o similar",
+    "restricción material: con seguridad integrada"
+   ],
+   "auxiliaryExcerpts": [
+    "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad)."
+   ],
+   "compositionNote": "'con seguridad integrada' es un qualifier material: un CI/CD sin controles de seguridad no satisface el claim."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+   "primaryExcerpt": "Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: redes y seguridad de red",
+    "alcance: firewalls, TLS/certificados, segmentación"
+   ],
+   "auxiliaryExcerpts": [
+    "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos, certificados TLS."
+   ]
+  },
+  {
+   "goldId": "g07",
+   "claim": "Gestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+   "primaryExcerpt": "Gestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: gestión de secretos",
+    "herramientas alternativas: Vault, AWS Secrets Manager, 1Password u otro"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g08",
+   "claim": "Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+   "primaryExcerpt": "Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: bases de datos",
+    "preferencia interna (no obligatoria): PostgreSQL",
+    "alcance: monitoreo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Modalidad mixta interna: la base de datos es requerida y PostgreSQL solo 'idealmente'. Convertir PostgreSQL en obligatorio fortaleceria el claim."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Git y buenas prácticas de versionado.",
+   "primaryExcerpt": "Git y buenas prácticas de versionado.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Git",
+    "alcance: buenas prácticas de versionado"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g10",
+   "claim": "Al menos un lenguaje de scripting/programación, siendo Python el ideal por su uso en automatización.",
+   "primaryExcerpt": "Al menos un lenguaje de scripting/programación (Python es ideal por su uso en automatización).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: al menos uno",
+    "objeto: lenguaje de scripting/programación",
+    "preferencia interna (no obligatoria): Python"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El cuantificador 'al menos un' y la preferencia interna por Python son ambos materiales."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Hardening por estándares CIS/NIST.",
+   "primaryExcerpt": "Hardening por estándares CIS/NIST.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: hardening",
+    "estándares: CIS/NIST"
+   ],
+   "auxiliaryExcerpts": [
+    "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red."
+   ],
+   "compositionNote": "Separado por §4.1: el parrafo de conocimientos de seguridad enumera dominios independientes delimitados por punto."
+  },
+  {
+   "goldId": "g12",
+   "claim": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación.",
+   "primaryExcerpt": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: DevSecOps",
+    "alcance: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g11."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Gestión de identidades y accesos, principio de mínimo privilegio, MFA.",
+   "primaryExcerpt": "Gestión de identidades y accesos, principio de mínimo privilegio, MFA.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: gestión de identidades y accesos",
+    "principios: mínimo privilegio, MFA"
+   ],
+   "auxiliaryExcerpts": [
+    "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas (sin claves en texto plano)."
+   ],
+   "compositionNote": "Ver g11."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Respuesta a incidentes y forense básico.",
+   "primaryExcerpt": "Respuesta a incidentes y forense básico.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: respuesta a incidentes",
+    "objeto: forense",
+    "nivel: básico"
+   ],
+   "auxiliaryExcerpts": [
+    "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos."
+   ],
+   "compositionNote": "Ver g11. El nivel 'basico' aplicado al forense es material: perderlo fortaleceria el claim."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+   "primaryExcerpt": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel atenuado: nociones",
+    "objetos: gestión de riesgos, ISO 27001, NIST CSF"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g11. 'Nociones' rebaja el nivel exigido y es material."
+  },
+  {
+   "goldId": "g16",
+   "claim": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo.",
+   "primaryExcerpt": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: autonomía total",
+    "contexto material: sin equipo debajo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+   "primaryExcerpt": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actitud: automatización",
+    "contraste explícito: no apagar incendios manualmente"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g18",
+   "claim": "Buena comunicación y capacidad de documentar con claridad.",
+   "primaryExcerpt": "Buena comunicación y capacidad de documentar con claridad (ZIYU valora especialmente esto).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: buena comunicación",
+    "soft skill: documentar con claridad",
+    "énfasis: la empresa lo valora especialmente"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Criterio para equilibrar velocidad de entrega y seguridad.",
+   "primaryExcerpt": "Criterio para equilibrar velocidad de entrega y seguridad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "criterio: equilibrio entre velocidad de entrega y seguridad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g20",
+   "claim": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+   "primaryExcerpt": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: administrar y automatizar",
+    "objeto: infraestructura cloud",
+    "alcance: aprovisionamiento, escalamiento, redes, disponibilidad"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5). Solapa con g02 con actividad distinta; §17 prohibe colapsarlos."
+  },
+  {
+   "goldId": "g21",
+   "claim": "Operar backups, restauración y continuidad (RTO/RPO).",
+   "primaryExcerpt": "Operar backups, restauración y continuidad (RTO/RPO).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: backups, restauración, continuidad",
+    "métricas: RTO/RPO"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g22",
+   "claim": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+   "primaryExcerpt": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: observability stack",
+    "alcance: monitoreo, alertas, detección de anomalías",
+    "herramientas alternativas: Grafana, Sentry, PGHero o equivalentes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g23",
+   "claim": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+   "primaryExcerpt": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: liderar respuesta a incidentes",
+    "condicional: cuando corresponda",
+    "obligación regulatoria: notificación a la ANCI dentro de plazos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g24",
+   "claim": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+   "primaryExcerpt": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: mantener y aplicar procedimientos de ciberseguridad",
+    "rol: contraparte técnica en auditorías",
+    "normas: Ley 21.663 y 21.719"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g25",
+   "claim": "Deseable (no el centro del rol): familiaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales; si no se tiene de entrada, debe poder aprenderse rápido.",
+   "primaryExcerpt": "**Cumplimiento (deseable, no el centro del rol)**\n\nFamiliaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales. Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseable, no el centro del rol",
+    "objetos: Ley 21.663 y rol de la ANCI, Ley 21.719",
+    "clausula sustitutiva material: si no la tiene, debe poder aprenderla rápido"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El excerpt abarca el encabezado de modalidad de forma contigua. La clausula 'Si no la tiene de entrada, debe poder aprenderla rapido' ATENUA el requisito y debe sobrevivir: tratar la familiaridad como obligatoria seria una inversion de modalidad."
+  },
+  {
+   "goldId": "g26",
+   "claim": "Certificaciones deseables (no excluyentes) técnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+   "primaryExcerpt": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseables, no excluyentes",
+    "certificaciones alternativas: AWS Certified DevOps Engineer, AWS Solutions Architect, CKA"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad (§12 P2.0)."
+  },
+  {
+   "goldId": "g27",
+   "claim": "Certificaciones deseables (no excluyentes) de seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva.",
+   "primaryExcerpt": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseables, no excluyentes",
+    "certificaciones alternativas: AWS Security Specialty o de seguridad ofensiva",
+    "condicional: si se quiere reforzar ese flanco"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g28",
+   "claim": "Certificación deseable (no excluyente) de gobierno: ISO 27001, sólo si se busca dar más peso al cumplimiento.",
+   "primaryExcerpt": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.\n\nDe gobierno: ISO 27001, solo si se busca dar más peso al cumplimiento.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseables, no excluyentes",
+    "certificación: ISO 27001",
+    "condicional material: sólo si se busca dar más peso al cumplimiento"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad. El condicional 'solo si' es material y no puede eliminarse."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "- Giftcard de Navidad 🎄",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Día libre de cumpleaños",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Oportunidades de crecimiento profesional y aprendizaje continuo 📚🚀",
+   "reason": "Beneficio ofrecido; no es un requisito de aprendizaje."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+   "note": "Contiene un 'debe poder' que podria leerse como Requirement propio de capacidad de aprendizaje rapido. Aqui se anota como clausula atenuante dentro de g25."
+  }
+ ],
+ "annotationNotes": "HOLDOUT. Aviso chileno de DevOps/ciberseguridad escrito en parrafos sin viñetas en la mitad tecnica. Contiene tres marcadores de negacion o atenuacion distintos: 'deseable, no el centro del rol', 'Certificaciones deseables (no excluyentes)' y el condicional 'solo si se busca dar mas peso al cumplimiento'. Ademas dos preferencias internas dentro de claims requeridos ('idealmente PostgreSQL', 'Python es ideal').",
+ "objectiveId": "EMP_048",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "8df51882cbb7d5fb5bd530647d469e8b69f81158c5720443c4b83fd6f1f50909",
+ "requirementCount": 28
+}

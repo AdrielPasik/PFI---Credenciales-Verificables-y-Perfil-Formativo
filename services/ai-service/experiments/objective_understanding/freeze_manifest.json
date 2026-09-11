@@ -1,0 +1,106 @@
+{
+ "version": "P2_1_FREEZE_V1",
+ "frozenAt": "2026-09-10",
+ "selectionFrozenBeforeGold": true,
+ "selectionFrozenBeforeProviderCalls": true,
+ "goldFrozenBeforeProviderCalls": true,
+ "rubricVersion": "P2_1_RUBRIC_V1",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateVersion": "OU_A0",
+ "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+ "partitions": {
+  "development": [
+   "EMP_044",
+   "EMP_008",
+   "EMP_052",
+   "EMP_017",
+   "EMP_041",
+   "EMP_056",
+   "EMP_065",
+   "EMP_060",
+   "EMP_067",
+   "EMP_070"
+  ],
+  "holdout": [
+   "EMP_043",
+   "EMP_048",
+   "EMP_025",
+   "EMP_066",
+   "EMP_069"
+  ],
+  "crossDomain": [
+   "SCH_005",
+   "ADM_005",
+   "EQV_005"
+  ]
+ },
+ "rawObjectiveSha256": {
+  "EMP_044": "fda230c2f0fa44a6bd56a0f5796ce964921b69acc737d0d0fde2deaded53f8bd",
+  "EMP_008": "c39165a550117f884dca2c87224a4e56cb9b0df3dcaf70b0d0eaf0f89c8ccad0",
+  "EMP_052": "5c792cee27a273b22d602e9469d1a45f5d0bb499c11a3e534213c01ba4491cea",
+  "EMP_017": "b49c5560a41a2b395830c5d63cd8d1f1c608818f421194680d08ac90f3118c84",
+  "EMP_041": "32274697e0948a9f6a51f3f3185880d017410546dd4e4fb9554c040e86b64eb8",
+  "EMP_056": "7dcee1b8bf006f8380631bfd1e9a786a34d88d78bab5d5d990a3016bbd7e3ef6",
+  "EMP_065": "cfc09ed9601398ddee84227ea41600e18c480eafb3169f4d469ac52a5e0ecbe1",
+  "EMP_060": "0449b5132dac5619f1c72b600d821d2252e4d5b6a05bad11e3106b1f179df691",
+  "EMP_067": "c81ccfe3a57f84ea520f2a7dfe1ad8ca01946914af70b285984943d6751c2668",
+  "EMP_070": "6c7773dc53fa56efa0a7a041fd1944fa60de03077dee88d17e565c6606cca128",
+  "EMP_043": "ac5e48f5053e71377097f7d867413c7115513e970b0a00ee7848fa28e2501a6d",
+  "EMP_048": "8df51882cbb7d5fb5bd530647d469e8b69f81158c5720443c4b83fd6f1f50909",
+  "EMP_025": "3f6a7348bdf3752724ef5b648b095e5ca98e562ba366377d951b2b0e1222c47c",
+  "EMP_066": "1a3a89d4945107f3cca3b648aafbd15aff5fae1d5faa6bde48f4c7368d411c60",
+  "EMP_069": "4b9305a79a8b23df4b833c0a7c5f61aa14366d2924601979a636e93c82630b45",
+  "SCH_005": "77d3b2eec46fd2d58c16ce97a33844f6facbd64883b9eb44e84d7260a112e48b",
+  "ADM_005": "77ceced8c2fdd09be250a802a04893ad39de590fd7d2734f58dbc49f3477f55f",
+  "EQV_005": "58656df557d225f3c77ecdc5b725c3d73f98586cf9ce054940188bf6fbcbc079"
+ },
+ "goldSha256": {
+  "EMP_044": "8f5bbb605e3799d5b0a1ad9e3751b37cbc692c0550fce41bb8a6b0e6fd7500db",
+  "EMP_008": "730f26276854d4c8c83eddf14654218b69eec80d2f08e91178e2252a7186c386",
+  "EMP_052": "6648e4c052152adbe254d2d6db36a91204a256804ec98f5763143203dfb05c82",
+  "EMP_017": "8ca6f450df3fb138ac0d15554cbbfc7ca236af0b76f09b4258401007f3ec6857",
+  "EMP_041": "7e35d6d0371959bcda329e7856d922d2e810fb34a25cb2516a447ec312bced2d",
+  "EMP_056": "bcec8db70ff1b2d6a3be4d0cc9d18503d1bd72f6ad098212e1c6884c76651922",
+  "EMP_065": "084c31631f6176b3e9bc1d41a4d65775b6ba772535d97d5b7ca74f3d7509b2db",
+  "EMP_060": "a8c1d3b216fb062cf265df3e9351519b94f69ea13a14122ede9971f2f44b9ecb",
+  "EMP_067": "a07fa8d2d15b7e38eac997027b4ef04b0c691fed579328008f24144fcebb7adf",
+  "EMP_070": "cd34cfecaf5af35d701ff7f6b6865cfc8605c575ccb583845ba53a2485e1b06c",
+  "EMP_043": "e5095165714e12b830a74e66554d8ed85d74ea486f75f21ae714d573f4cc1c7c",
+  "EMP_048": "f923eb91ea99ea748eeae2bdc7abf2944ce1b2540465f5cbea9c3f2dda7a8317",
+  "EMP_025": "a295ec385d6d56b1c63fab327da079755e6c50225b95c9b9010937efd706eea7",
+  "EMP_066": "2d67c1d288db36bb7273c0d0bcb2565e387e724660a54ff2eacab925149eeb36",
+  "EMP_069": "54433d745cddeca3e154fcb4befea41207deccf2f36031ff4b5d21a4ddf3fddd",
+  "SCH_005": "35a8871c768077bdab81da6a888d5f7d771c476c515975721fa6169e05729731",
+  "ADM_005": "07440e4d8888dac2be11a0ef10c0743073787f05c8e68da4ad827ec9d43a1d8f",
+  "EQV_005": "e9dfc3296071210dbf864c52e4e3ed08e8a811c4ea53f7e5a9fa174f7bbaab98"
+ },
+ "goldCounts": {
+  "development": {
+   "goldRequirements": 189,
+   "ambiguousRequirements": 15,
+   "explicitNonRequirements": 75,
+   "ambiguousPassages": 13
+  },
+  "holdout": {
+   "goldRequirements": 104,
+   "ambiguousRequirements": 0,
+   "explicitNonRequirements": 39,
+   "ambiguousPassages": 7
+  },
+  "crossDomain": {
+   "goldRequirements": 18,
+   "ambiguousRequirements": 1,
+   "explicitNonRequirements": 18,
+   "ambiguousPassages": 3
+  }
+ },
+ "artifactSha256": {
+  "selectionManifest": "705cfbac29e6fc2eadccf1151794bd6218459f6e149f2409bfbe85a9d4d4e45c",
+  "rubric": "e5e9781b1d900472438cb8b6f898983b957de9fe999ee4e58ba5c7d3bbdf9485",
+  "baselineImplementation": "d69a9249e5a6144e551840b7cc989a546ba35c13abf64fe376d6f14cddc51331",
+  "prompt": "47dc0281fe65a47ffc124eb3e734a0eb3ebbd24884e51d777b8daa65b0a960ca",
+  "trustedBuilder": "e0eb7f03b5fed6801cc2761cd0d95cc7c2a1c0894252ad38931ed1487d70c0f4",
+  "providerRunner": "50b89949d50648a79dc6aae1cd0ad916e4c7091814ada38a2dbce6dd72f7d08f"
+ },
+ "providerCallsMadeBeforeFreeze": 0
+}

@@ -1,0 +1,353 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Titulación en Ingeniería de Telecomunicación o titulación equivalente.",
+   "primaryExcerpt": "**Requisitos** 1. Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad: titulación requerida",
+    "titulación: Ingeniería de Telecomunicación",
+    "alternativa admitida: titulación equivalente"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La alternativa 'o titulacion equivalente' amplia el objeto y es material."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+   "primaryExcerpt": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: formación deseable",
+    "objetos alternativos: redes IP, transmisión óptica, sincronización de red, automatización industrial, tecnologías del sector eléctrico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los objetos van unidos por 'o' (alternativos) bajo un unico marcador de preferencia; separar convertiria una disyuncion deseable en cinco preferencias independientes."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes).",
+   "primaryExcerpt": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorarán",
+    "objeto: certificaciones en tecnologías IP y redes",
+    "ejemplos alternativos: CCNA, CCNP o equivalentes"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado del claim IEC 61850/PTP porque 'asi como' introduce un segundo objeto de certificacion distinto."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Se valorará formación o certificación en IEC 61850 y/o PTP.",
+   "primaryExcerpt": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorarán",
+    "objeto: formación o certificación",
+    "normas: IEC 61850 y/o PTP"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g03. 'y/o' preserva la disyuncion inclusiva."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Experiencia de al menos 3 años en funciones similares.",
+   "primaryExcerpt": "Experiencia de al menos 3 años en funciones similares.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: al menos 3 años",
+    "alcance: funciones similares"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g06",
+   "claim": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+   "primaryExcerpt": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: consolidada",
+    "objeto: redes de telecomunicaciones",
+    "entorno preferido (no obligatorio): industriales o infraestructuras críticas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Modalidad mixta dentro del mismo claim: la experiencia es requerida y el entorno solo 'preferiblemente'. Perder ese 'preferiblemente' fortaleceria el claim."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+   "primaryExcerpt": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: redes de misión crítica",
+    "objeto: servicios de alta disponibilidad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g08",
+   "claim": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+   "primaryExcerpt": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: proyectos de evolución tecnológica",
+    "alcance: coordinación transversal con áreas y proveedores"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g09",
+   "claim": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+   "primaryExcerpt": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorará",
+    "objetos alternativos: transmisión, voz, sincronismo de red, subestaciones, sector eléctrico"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g10",
+   "claim": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+   "primaryExcerpt": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorará",
+    "objeto: soporte técnico avanzado",
+    "objeto: análisis de soluciones con alto componente tecnológico"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g11",
+   "claim": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+   "primaryExcerpt": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actitud: interés real por la tecnología",
+    "actitud: curiosidad técnica",
+    "actitud: motivación por aprender en telecomunicaciones"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g12",
+   "claim": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+   "primaryExcerpt": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad integrada: diseño y análisis",
+    "alcance: evaluar alternativas, estructurar soluciones, defender propuestas"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g13",
+   "claim": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+   "primaryExcerpt": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "atributo: rigor técnico",
+    "foco: continuidad de servicio",
+    "entorno: misión crítica"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+   "primaryExcerpt": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: coordinación transversal",
+    "interlocutores: áreas, proveedores, fabricantes",
+    "entorno: multidisciplinar"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Colinda con el caso 'colaborar con equipos' que §6 trata como entorno; aqui la fuente lo enuncia explicitamente como 'capacidad' dentro de la seccion de soft skills exigidas, por eso se anota como Requirement."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+   "primaryExcerpt": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: autonomía en entornos técnicos complejos",
+    "capacidad: comunicación clara de soluciones"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico.",
+   "primaryExcerpt": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actitud: proactiva",
+    "objetivo: identificar oportunidades de modernización y aportar valor técnico"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Nivel alto de inglés (B2-C1), para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+   "primaryExcerpt": "4. Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "idioma: inglés",
+    "nivel: alto (B2-C1)",
+    "usos: documentación técnica, interlocución con fabricantes, ponencias públicas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El nivel certificable (B2-C1) es qualifier material."
+  },
+  {
+   "goldId": "g18",
+   "claim": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+   "primaryExcerpt": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "disponibilidad: colaboración transversal y proyectos técnicos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+   "primaryExcerpt": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "disponibilidad: viajes nacionales e internacionales",
+    "frecuencia: puntual en el año"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'de modo puntual en el ano' limita la exigencia; eliminarlo la fortaleceria."
+  },
+  {
+   "goldId": "g20",
+   "claim": "Participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando coherencia técnica, adecuación a entornos de misión crítica y alineación con el sistema eléctrico.",
+   "primaryExcerpt": "**Funciones básicas** 1. Diseño y evolución de redes de telecomunicaciones: participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, su adecuación a entornos de misión crítica y su alineación con las necesidades del sistema eléctrico.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseño, revisión y evolución",
+    "objeto: redes corporativas y operativas",
+    "criterios: coherencia técnica, misión crítica, alineación con el sistema eléctrico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5)."
+  },
+  {
+   "goldId": "g21",
+   "claim": "Elaborar, analizar y presentar proyectos técnicos de nuevas tecnologías de telecomunicaciones (redes IP, transmisión óptica y otras), valorando viabilidad técnica, impacto operativo e integración en la red existente.",
+   "primaryExcerpt": "2. Desarrollo de proyectos de evolución tecnológica: elaborar, analizar y presentar proyectos técnicos con especial foco en nuevas tecnologías de telecomunicaciones, incluyendo redes IP, transmisión óptica y otras soluciones avanzadas, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: elaborar, analizar y presentar",
+    "objeto: proyectos técnicos",
+    "alcance: redes IP, transmisión óptica y otras soluciones avanzadas",
+    "criterios de valoración: viabilidad, impacto operativo, integración"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g22",
+   "claim": "Dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas subestaciones eléctricas, apoyando en la resolución de incidencias complejas y la continuidad del servicio.",
+   "primaryExcerpt": "3. Soporte técnico experto a infraestructuras críticas: dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas las infraestructuras desplegadas en subestaciones eléctricas, apoyando a otras áreas en la resolución de incidencias complejas y en la mejora de la continuidad del servicio.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: soporte técnico especializado",
+    "entorno: misión crítica, subestaciones eléctricas",
+    "alcance: incidencias complejas y continuidad del servicio"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g23",
+   "claim": "Elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, y participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+   "primaryExcerpt": "4. Especificaciones técnicas y evaluación de soluciones: elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: elaborar y revisar",
+    "objetos: especificaciones, documentación de diseño, criterios de implantación",
+    "alcance adicional: evaluación técnica de soluciones, ofertas y propuestas"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g24",
+   "claim": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+   "primaryExcerpt": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, favoreciendo una visión transversal de los proyectos y asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: coordinar actuaciones técnicas",
+    "interlocutores: fabricantes, integradores, operadores, áreas internas",
+    "criterios: implantación ordenada, robusta y alineada con estándares"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g25",
+   "claim": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando visión sobre transmisión, voz, sincronismo y evolución de redes.",
+   "primaryExcerpt": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: contribuir a definir estándares y criterios técnicos",
+    "alcance: transmisión, voz, sincronismo, evolución de redes"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Nacimos como el primer TSO del mundo. Hoy somos un gestor global de infraestructuras esenciales de electricidad y telecomunicaciones y protagonistas de la transformación ecológica y digital.",
+   "reason": "Prosa institucional (§7)."
+  },
+  {
+   "excerpt": "Una red compuesta por cinco marcas, más de 2.100 profesionales y millones de personas unidas por el valor de lo esencial.",
+   "reason": "Cifras corporativas ('2.100 profesionales') que NO son qualifiers de ningun requisito."
+  },
+  {
+   "excerpt": "En Red eléctrica, empresa de Redeia, más de 1.200 personas estamos pendientes de un gesto tuyo, para llevarte la energía que necesitas en cada momento.",
+   "reason": "Prosa institucional con cifra de plantilla; trampa de contexto-vs-requisito."
+  },
+  {
+   "excerpt": "Estamos buscando incorporar un/a Técnico/a Ingeniería de Telecomunicaciones para formar parte del equipo Dp. Telecomunicaciones de Red Eléctrica.",
+   "reason": "Enunciado del puesto; el titulo es contexto y no crea Requirements (§8)."
+  },
+  {
+   "excerpt": "- Un empleo estable y de calidad, donde la empleabilidad y la movilidad funcional son palancas clave de crecimiento y desarrollo profesional.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Un modelo de compensación justo y competitivo con el mercado, orientado a disminuir la brecha salarial entre hombres y mujeres y facilitando la igualdad de oportunidades.",
+   "reason": "Politica de compensacion ofrecida, no criterio."
+  },
+  {
+   "excerpt": "En Redeia celebramos el talento y la diversidad y apostamos por una cultura inclusiva, donde las personas empleadas trabajan para generar valor a la sociedad y mejorar la vida de las personas, fieles a sus valores éticos: respeto, integridad, sostenibilidad.",
+   "reason": "Compromisos corporativos; 'respeto, integridad, sostenibilidad' son valores de la empresa, no requisitos del holder."
+  },
+  {
+   "excerpt": "## Industries\n\nRenewable Energy Semiconductor Manufacturing, Oil and Gas, and Telecommunications",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Coordinación transversal y relación con terceros.",
+   "note": "Encabezado de funcion que quedo embebido en el parrafo 4 tras la conversion; su contenido se anota en g24."
+  },
+  {
+   "excerpt": "Impulso de buenas prácticas y evolución tecnológica del área.",
+   "note": "Idem: encabezado embebido cuyo contenido se anota en g25."
+  }
+ ],
+ "annotationNotes": "Objective mas largo de Development (7.042 car.), espanol de Espana, con numeracion de secciones embebida en el texto. Distingue con claridad requerido / deseable / se valorara, e incluye nivel de idioma certificable (B2-C1) y disponibilidad de viajes acotada ('de modo puntual en el ano').",
+ "objectiveId": "EMP_065",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "cfc09ed9601398ddee84227ea41600e18c480eafb3169f4d469ac52a5e0ecbe1",
+ "requirementCount": 25
+}

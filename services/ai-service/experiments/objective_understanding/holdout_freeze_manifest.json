@@ -1,0 +1,42 @@
+{
+ "version": "P2_1_HOLDOUT_FREEZE_V1",
+ "frozenAt": "2026-09-10",
+ "selectedCandidate": "OU_A2",
+ "candidatesTested": [
+  "OU_A0",
+  "OU_A1",
+  "OU_A2"
+ ],
+ "selectionRationale": "OU_A0 fallo el gate determinista de anclaje (6 citas NOT_FOUND por concatenar encabezados no adyacentes). OU_A1 lo corrigio y paso todos los gates, pero perdio la modalidad en 5 gold PREFERRED. OU_A2 corrige esa perdida y domina a OU_A1 en todas las metricas del gate sin regresion en ninguna.",
+ "model": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "providerTopology": "ONE_CALL_PER_OBJECTIVE",
+ "frozenArtifacts": {
+  "prompt": "7f81726d20d8a6bbe3e0d66dc6700a4ccff947e48d42cafd534ff72290fe707a",
+  "providerRunner": "b94f52035aa1a3769dc849d66d947c896ca856d5bff41104c5fa7da5ba82d3fc",
+  "trustedBuilder": "e0eb7f03b5fed6801cc2761cd0d95cc7c2a1c0894252ad38931ed1487d70c0f4",
+  "baselineImplementation": "d69a9249e5a6144e551840b7cc989a546ba35c13abf64fe376d6f14cddc51331",
+  "rubric": "e5e9781b1d900472438cb8b6f898983b957de9fe999ee4e58ba5c7d3bbdf9485",
+  "selectionManifest": "705cfbac29e6fc2eadccf1151794bd6218459f6e149f2409bfbe85a9d4d4e45c",
+  "developmentResults": "cee5cd3bb3a4c6c39bfe5b7924288586d0f512a5e6d57963536a4d3897796ff8"
+ },
+ "holdoutGoldSha256": {
+  "EMP_043": "e5095165714e12b830a74e66554d8ed85d74ea486f75f21ae714d573f4cc1c7c",
+  "EMP_048": "f923eb91ea99ea748eeae2bdc7abf2944ce1b2540465f5cbea9c3f2dda7a8317",
+  "EMP_025": "a295ec385d6d56b1c63fab327da079755e6c50225b95c9b9010937efd706eea7",
+  "EMP_066": "2d67c1d288db36bb7273c0d0bcb2565e387e724660a54ff2eacab925149eeb36",
+  "EMP_069": "54433d745cddeca3e154fcb4befea41207deccf2f36031ff4b5d21a4ddf3fddd"
+ },
+ "crossDomainGoldSha256": {
+  "SCH_005": "35a8871c768077bdab81da6a888d5f7d771c476c515975721fa6169e05729731",
+  "ADM_005": "07440e4d8888dac2be11a0ef10c0743073787f05c8e68da4ad827ec9d43a1d8f",
+  "EQV_005": "e9dfc3296071210dbf864c52e4e3ed08e8a811c4ea53f7e5a9fa174f7bbaab98"
+ },
+ "holdoutGoldUnchangedSinceInitialFreeze": true,
+ "crossDomainGoldUnchangedSinceInitialFreeze": true,
+ "rubricUnchangedSinceInitialFreeze": true,
+ "selectionUnchangedSinceInitialFreeze": true,
+ "developmentGate": "PASS",
+ "baselineAdvantage": "PASS",
+ "providerCallsOnHoldoutBeforeThisFreeze": 0
+}

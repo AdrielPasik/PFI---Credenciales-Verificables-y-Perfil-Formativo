@@ -1,0 +1,403 @@
+{
+ "objectiveId": "EMP_017",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 24,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "Seguimos innovando y revolucionando la industria de la tecnología, ¡nos gustaría que te sumes como **Data Scientist**!",
+    "primarySourceQuote": "Seguimos innovando y revolucionando la industria de la tecnología, ¡nos gustaría que te sumes como **Data Scientist**!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 118
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "*Experimentá tu próximo rol:**",
+    "primarySourceQuote": "*Experimentá tu próximo rol:**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 121,
+     "charEnd": 151
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "En **etermax**, el rol de Data Scientist, tiene como objetivo brindar valor añadido a través de la explotación y el modelado de datos, trabajando sobre la estrategia de nuestros productos.",
+    "primarySourceQuote": "En **etermax**, el rol de Data Scientist, tiene como objetivo brindar valor añadido a través de la explotación y el modelado de datos, trabajando sobre la estrategia de nuestros productos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 153,
+     "charEnd": 341
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "*Los desafíos del rol son, entre otros:**",
+    "primarySourceQuote": "*Los desafíos del rol son, entre otros:**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 344,
+     "charEnd": 385
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Desarrollar modelos predictivos y segmentaciones en pos de predecir y entender el comportamiento de nuestros usuarios y optimizar nuestros productos y procesos. Entre otras cosas, se incluyen modelos predictivos de Lifetime Value, modelos de recomendación y de moderación de contenido y simulaciones.",
+    "primarySourceQuote": "Desarrollar modelos predictivos y segmentaciones en pos de predecir y entender el comportamiento de nuestros usuarios y optimizar nuestros productos y procesos. Entre otras cosas, se incluyen modelos predictivos de Lifetime Value, modelos de recomendación y de moderación de contenido y simulaciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 389,
+     "charEnd": 689
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "primarySourceQuote": "Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 692,
+     "charEnd": 796
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "primarySourceQuote": "Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 799,
+     "charEnd": 917
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad. Interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "primarySourceQuote": "Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad. Interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 920,
+     "charEnd": 1116
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "*Habilidades y conocimientos requeridos para este desafío:**",
+    "primarySourceQuote": "*Habilidades y conocimientos requeridos para este desafío:**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1119,
+     "charEnd": 1179
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "En **etermax** trabajamos sobre los pilares de la innovación y la mejora continua para proporcionar valor a un ritmo constante, sostenible e ininterrumpido. Nuestra cultura de excelencia potencia a las personas y su crecimiento profesional.",
+    "primarySourceQuote": "En **etermax** trabajamos sobre los pilares de la innovación y la mejora continua para proporcionar valor a un ritmo constante, sostenible e ininterrumpido. Nuestra cultura de excelencia potencia a las personas y su crecimiento profesional.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1181,
+     "charEnd": 1421
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primarySourceQuote": "Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1446,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "primarySourceQuote": "Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1588,
+     "charEnd": 1696
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primarySourceQuote": "Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1699,
+     "charEnd": 1841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "primarySourceQuote": "Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1844,
+     "charEnd": 1942
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Mindset orientado a producto con proactividad para proponer e investigar.",
+    "primarySourceQuote": "Mindset orientado a producto con proactividad para proponer e investigar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1945,
+     "charEnd": 2018
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "primarySourceQuote": "Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2021,
+     "charEnd": 2106
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Ambición por descubrir y explorar nuevas formas de hacer las cosas, lo que incluiría desafiar el status quo de la tecnología en general.",
+    "primarySourceQuote": "Ambición por descubrir y explorar nuevas formas de hacer las cosas, lo que incluiría desafiar el status quo de la tecnología en general.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2109,
+     "charEnd": 2245
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Valoramos el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en el área de la ciencia de datos, la estadística y la Inteligencia Artificial.",
+    "primarySourceQuote": "Valoramos el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en el área de la ciencia de datos, la estadística y la Inteligencia Artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2248,
+     "charEnd": 2425
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "*Lugar de trabajo:** Villa Urquiza (Híbrido).",
+    "primarySourceQuote": "*Lugar de trabajo:** Villa Urquiza (Híbrido).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2428,
+     "charEnd": 2473
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "*etermax** es líder mundial en la industria de la tecnología del entretenimiento.",
+    "primarySourceQuote": "*etermax** es líder mundial en la industria de la tecnología del entretenimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2497,
+     "charEnd": 2578
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "etermax busca revolucionar la forma en que las personas se conectan, construyen comunidades y co-crean valor a través de contenido interactivo desde 2009.",
+    "primarySourceQuote": "etermax busca revolucionar la forma en que las personas se conectan, construyen comunidades y co-crean valor a través de contenido interactivo desde 2009.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2579,
+     "charEnd": 2733
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Con la creación de marcas emblemáticas como Preguntados (Trivia Crack) y Apalabrados (Word Crack), su equipo desarrolla experiencias lúdicas que buscan hacer que el conocimiento sea interactivo y accesible a escala mundial a través de una amplia gama de plataformas y tecnologías, incluidos dispositivos móviles, realidad aumentada, realidad virtual, inteligencia artificial, servicios de streaming, televisión conectada, dispositivos de voz, tecnología portátil y más.",
+    "primarySourceQuote": "Con la creación de marcas emblemáticas como Preguntados (Trivia Crack) y Apalabrados (Word Crack), su equipo desarrolla experiencias lúdicas que buscan hacer que el conocimiento sea interactivo y accesible a escala mundial a través de una amplia gama de plataformas y tecnologías, incluidos dispositivos móviles, realidad aumentada, realidad virtual, inteligencia artificial, servicios de streaming, televisión conectada, dispositivos de voz, tecnología portátil y más.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2734,
+     "charEnd": 3203
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Para más información, visita **www.etermax.com** o sigue a **@etermax** en redes sociales.",
+    "primarySourceQuote": "Para más información, visita **www.etermax.com** o sigue a **@etermax** en redes sociales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3204,
+     "charEnd": 3294
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Engineering and Information Technology",
+    "primarySourceQuote": "Engineering and Information Technology",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3413,
+     "charEnd": 3451
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Job function",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 24,
+   "quotesTotal": 24,
+   "quotesFoundLiterally": 24,
+   "primaryUnique": 24,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

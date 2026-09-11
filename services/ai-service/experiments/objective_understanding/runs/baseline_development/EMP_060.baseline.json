@@ -1,0 +1,531 @@
+{
+ "objectiveId": "EMP_060",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 32,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "Descripción de la empresa",
+    "primarySourceQuote": "Descripción de la empresa",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 25
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Louis Dreyfus Company es una empresa líder en la comercialización y transformación de productos agrícolas. Nuestras actividades abarcan toda la cadena de valor, desde el campo hasta la mesa, a través de una amplia gama de líneas de negocio, aprovechamos nuestro alcance global y nuestra extensa red de activos para servir a nuestros clientes y consumidores en todo el mundo. Estructurada como una organización matricial de seis regiones geográficas y diez plataformas, Louis Dreyfus Company opera en más de 100 países y emplea aproximadamente a 18.000 personas en todo el mundo.",
+    "primarySourceQuote": "Louis Dreyfus Company es una empresa líder en la comercialización y transformación de productos agrícolas. Nuestras actividades abarcan toda la cadena de valor, desde el campo hasta la mesa, a través de una amplia gama de líneas de negocio, aprovechamos nuestro alcance global y nuestra extensa red de activos para servir a nuestros clientes y consumidores en todo el mundo. Estructurada como una organización matricial de seis regiones geográficas y diez plataformas, Louis Dreyfus Company opera en más de 100 países y emplea aproximadamente a 18.000 personas en todo el mundo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 27,
+     "charEnd": 605
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Buscamos incorporar un/a Ingeniero/a de Confiabilidad (Mecánico) para nuestra operación industrial.",
+    "primarySourceQuote": "Buscamos incorporar un/a Ingeniero/a de Confiabilidad (Mecánico) para nuestra operación industrial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 631,
+     "charEnd": 730
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "El propósito del rol es asegurar la confiabilidad de los equipos y procesos, garantizando su funcionamiento continuo sin fallas y promoviendo mejoras que maximicen la performance y eficiencia operativa.",
+    "primarySourceQuote": "El propósito del rol es asegurar la confiabilidad de los equipos y procesos, garantizando su funcionamiento continuo sin fallas y promoviendo mejoras que maximicen la performance y eficiencia operativa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 732,
+     "charEnd": 934
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "primarySourceQuote": "Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 994,
+     "charEnd": 1094
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "primarySourceQuote": "Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1097,
+     "charEnd": 1185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "primarySourceQuote": "Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1188,
+     "charEnd": 1269
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "primarySourceQuote": "Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1272,
+     "charEnd": 1351
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Administrar procedimientos de mantenimiento y documentación técnica.",
+    "primarySourceQuote": "Administrar procedimientos de mantenimiento y documentación técnica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1354,
+     "charEnd": 1422
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "primarySourceQuote": "Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1425,
+     "charEnd": 1536
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "primarySourceQuote": "Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1539,
+     "charEnd": 1616
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Se trata de una posición con fuerte foco en análisis técnico, mejora continua y optimización de activos industriales.",
+    "primarySourceQuote": "Se trata de una posición con fuerte foco en análisis técnico, mejora continua y optimización de activos industriales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1618,
+     "charEnd": 1735
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Graduado/a de Ingeniería Mecánica",
+    "primarySourceQuote": "Graduado/a de Ingeniería Mecánica",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1751,
+     "charEnd": 1784
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Experiencia previa (aprox. 1 año) en roles similares en entorno industrial (no excluyente)",
+    "primarySourceQuote": "Experiencia previa (aprox. 1 año) en roles similares en entorno industrial (no excluyente)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1787,
+     "charEnd": 1877
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Inglés intermedio (lectura).",
+    "primarySourceQuote": "Inglés intermedio (lectura).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1880,
+     "charEnd": 1908
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primarySourceQuote": "Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1911,
+     "charEnd": 1964
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Capacidad analítica y orientación a resolución de problemas.",
+    "primarySourceQuote": "Capacidad analítica y orientación a resolución de problemas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2016,
+     "charEnd": 2076
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Valoramos perfiles con",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Buenas habilidades de comunicación y trabajo en equipo.",
+    "primarySourceQuote": "Buenas habilidades de comunicación y trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2079,
+     "charEnd": 2134
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Valoramos perfiles con",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Proactividad, dinamismo y autonomía.",
+    "primarySourceQuote": "Proactividad, dinamismo y autonomía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2137,
+     "charEnd": 2173
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Valoramos perfiles con",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Capacidad para gestionar múltiples tareas y priorizar.",
+    "primarySourceQuote": "Capacidad para gestionar múltiples tareas y priorizar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2176,
+     "charEnd": 2230
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Valoramos perfiles con",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Un entorno multicultural, dinámico y desafiante, que ampliará y desarrollará sus capacidades y canalizará sus habilidades y experiencia con excelentes oportunidades de desarrollo profesional, en una de las companías mas sólidas a nivel global.",
+    "primarySourceQuote": "Un entorno multicultural, dinámico y desafiante, que ampliará y desarrollará sus capacidades y canalizará sus habilidades y experiencia con excelentes oportunidades de desarrollo profesional, en una de las companías mas sólidas a nivel global.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2251,
+     "charEnd": 2494
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Valoramos perfiles con",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Salario y Beneficios Competitivos.",
+    "primarySourceQuote": "Salario y Beneficios Competitivos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2541,
+     "charEnd": 2575
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Ambiente Laboral Flexible.",
+    "primarySourceQuote": "Ambiente Laboral Flexible.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2578,
+     "charEnd": 2604
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Accesos a Capacitaciones y Desarrollo.",
+    "primarySourceQuote": "Accesos a Capacitaciones y Desarrollo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2607,
+     "charEnd": 2645
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Programa de Salud y Bienestar.",
+    "primarySourceQuote": "Programa de Salud y Bienestar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2648,
+     "charEnd": 2678
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Licencia por Maternidad y Paternidad Extendida.",
+    "primarySourceQuote": "Licencia por Maternidad y Paternidad Extendida.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2681,
+     "charEnd": 2728
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "*Diversidad & Inclusión**",
+    "primarySourceQuote": "*Diversidad & Inclusión**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2731,
+     "charEnd": 2756
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "LDC se rige por un conjunto de valores compartidos, elevadas normas éticas, y la diversidad y la inclusión forman parte de nuestro ADN. LDC es una empresa que ofrece igualdad de oportunidades y se compromete a proporcionar un entorno de trabajo que adopte y valore la diversidad, la equidad y la inclusión.",
+    "primarySourceQuote": "LDC se rige por un conjunto de valores compartidos, elevadas normas éticas, y la diversidad y la inclusión forman parte de nuestro ADN. LDC es una empresa que ofrece igualdad de oportunidades y se compromete a proporcionar un entorno de trabajo que adopte y valore la diversidad, la equidad y la inclusión.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2758,
+     "charEnd": 3064
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "LDC fomenta la diversidad, apoya a las comunidades locales y las iniciativas medioambientales. Animamos a personas de todos los orígenes a presentar su candidatura.",
+    "primarySourceQuote": "LDC fomenta la diversidad, apoya a las comunidades locales y las iniciativas medioambientales. Animamos a personas de todos los orígenes a presentar su candidatura.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3066,
+     "charEnd": 3230
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "El valor sustentable está en el centro de nuestro propósito como empresa.",
+    "primarySourceQuote": "El valor sustentable está en el centro de nuestro propósito como empresa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3253,
+     "charEnd": 3326
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "Nos apasiona crear un valor justo y sustentable, tanto para nuestra empresa como para las demás partes interesadas de la cadena de valor: nuestra gente, nuestros socios comerciales, las comunidades con las que nos relacionamos y el medioambiente que nos rodea.",
+    "primarySourceQuote": "Nos apasiona crear un valor justo y sustentable, tanto para nuestra empresa como para las demás partes interesadas de la cadena de valor: nuestra gente, nuestros socios comerciales, las comunidades con las que nos relacionamos y el medioambiente que nos rodea.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3328,
+     "charEnd": 3588
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Estos son algunos de nuestros beneficios",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "Food and Beverage Manufacturing and International Trade and Development",
+    "primarySourceQuote": "Food and Beverage Manufacturing and International Trade and Development",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3735,
+     "charEnd": 3806
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Industries",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 32,
+   "quotesTotal": 32,
+   "quotesFoundLiterally": 32,
+   "primaryUnique": 32,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

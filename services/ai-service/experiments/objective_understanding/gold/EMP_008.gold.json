@@ -1,0 +1,222 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Más de 4 años de experiencia en roles de Cloud, DevOps o SRE.",
+   "primaryExcerpt": "- +4 años en roles de Cloud / DevOps / SRE.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: +4 años",
+    "alcance: roles de Cloud / DevOps / SRE (alternativos)"
+   ],
+   "compositionNote": "Compuesto preservado por §4.1: distribuir '+4 anos' sobre los tres roles inventaria tres exigencias temporales donde la fuente pide una sola."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+   "primaryExcerpt": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+   "auxiliaryExcerpts": [
+    "- Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: sólida",
+    "objeto: AWS",
+    "alcance: VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch"
+   ],
+   "compositionNote": "La lista entre parentesis delimita el alcance del mismo claim; §4.2 prohibe partir el sintagma nominal en sus modificadores."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Manejo de Terraform (u otras herramientas de infraestructura como código).",
+   "primaryExcerpt": "- Manejo de Terraform (u otras herramientas IaC).",
+   "auxiliaryExcerpts": [
+    "- Implementar Infraestructura como Código (Terraform u otros)."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Terraform",
+    "alternativa admitida: otras herramientas IaC"
+   ],
+   "compositionNote": "La alternativa 'u otras herramientas IaC' amplia el objeto y es material: eliminarla fortaleceria el claim."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Experiencia con Docker y plataformas de ejecución.",
+   "primaryExcerpt": "- Experiencia con Docker y plataformas de ejecución.",
+   "auxiliaryExcerpts": [
+    "- Trabajar con contenedores (Docker, ECS/Kubernetes)."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Docker",
+    "objeto: plataformas de ejecución"
+   ],
+   "ambiguous": true,
+   "ambiguityNote": "'plataformas de ejecucion' es una categoria generica que subsume a Docker, asi que la lectura separada duplicaria parcialmente el claim. Se preserva compuesto por default de nivel de fuente; un anotador razonable podria separarlo.",
+   "compositionNote": "Compuesto preservado."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+   "primaryExcerpt": "- Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+   "auxiliaryExcerpts": [
+    "- Diseñar y mejorar pipelines CI/CD."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: CI/CD",
+    "ejemplos de herramienta: GitHub Actions, Jenkins"
+   ]
+  },
+  {
+   "goldId": "g06",
+   "claim": "Conocimientos en observabilidad.",
+   "primaryExcerpt": "- Conocimientos en observabilidad y seguridad cloud.",
+   "auxiliaryExcerpts": [
+    "- Asegurar observabilidad (logs, métricas, alertas)."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: conocimientos",
+    "objeto: observabilidad"
+   ],
+   "compositionNote": "Separado por §4.1: 'Conocimientos en' distribuye sobre dos dominios independientes."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Conocimientos en seguridad cloud.",
+   "primaryExcerpt": "- Conocimientos en observabilidad y seguridad cloud.",
+   "auxiliaryExcerpts": [
+    "- Implementar buenas prácticas de seguridad en cloud."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: conocimientos",
+    "objeto: seguridad cloud"
+   ],
+   "compositionNote": "Ver g06."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Scripting (Bash / Python).",
+   "primaryExcerpt": "- Scripting (Bash / Python).",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: scripting",
+    "lenguajes admitidos: Bash / Python"
+   ],
+   "compositionNote": "Bash y Python aparecen como alternativas dentro del mismo parentesis; no son dos criterios."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Suma puntos: experiencia en SRE (SLO/SLI).",
+   "primaryExcerpt": "**Suma puntos si tenés**\n\n- Experiencia en SRE (SLO/SLI).",
+   "auxiliaryExcerpts": [],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: suma puntos (no requerido)",
+    "objeto: SRE",
+    "alcance: SLO/SLI"
+   ],
+   "compositionNote": "El excerpt primario abarca el encabezado de modalidad y la vineta de forma contigua (§12 P2.0)."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Suma puntos: certificaciones cloud.",
+   "primaryExcerpt": "**Suma puntos si tenés**\n\n- Experiencia en SRE (SLO/SLI).\n- Certificaciones cloud.",
+   "auxiliaryExcerpts": [],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: suma puntos (no requerido)",
+    "objeto: certificaciones cloud"
+   ],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad hasta la vineta correspondiente."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Suma puntos: uso de IA aplicada a operaciones.",
+   "primaryExcerpt": "**Suma puntos si tenés**\n\n- Experiencia en SRE (SLO/SLI).\n- Certificaciones cloud.\n- Uso de IA aplicada a operaciones.",
+   "auxiliaryExcerpts": [],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: suma puntos (no requerido)",
+    "objeto: IA aplicada a operaciones"
+   ],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad hasta la vineta correspondiente."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+   "primaryExcerpt": "- Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: diseñar y administrar",
+    "entorno: infraestructura cloud (AWS)",
+    "atributos de calidad: disponibilidad, seguridad y performance"
+   ],
+   "compositionNote": "Capacidad integrada (§5): disenar-y-administrar con tres atributos de calidad gobernados conjuntamente. Solapa con g02 pero difiere materialmente en fuerza y actividad; §17 prohibe colapsarlos."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+   "primaryExcerpt": "- Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: gestionar",
+    "objeto: networking",
+    "alcance: VPC, routing, DNS, balanceo, seguridad"
+   ]
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "- Colaborar con equipos de producto para mejorar despliegues y operación.",
+   "reason": "Describe el entorno de trabajo, no una capacidad evaluable (§6 P2.0, caso 'colaborar con equipos')."
+  },
+  {
+   "excerpt": "- Modalidad 100% remota",
+   "reason": "Beneficio ofrecido por la empresa, no criterio del holder."
+  },
+  {
+   "excerpt": "- Acceso a formación académica.",
+   "reason": "Beneficio ofrecido, no requisito de formación."
+  },
+  {
+   "excerpt": "¡Con la educación estamos formando el futuro! Somos Centro de e-Learning y desarrollamos ofertas educativas innovadoras de alta calidad que acerquen a las personas a sus trabajos soñados.",
+   "reason": "Prosa institucional de la empresa (§7)."
+  },
+  {
+   "excerpt": "## Seniority level\n\nMid-Senior level",
+   "reason": "Metadata de la plataforma LinkedIn, no texto de criterio del empleador."
+  },
+  {
+   "excerpt": "## Employment type\n\nFull-time",
+   "reason": "Metadata de la plataforma LinkedIn."
+  },
+  {
+   "excerpt": "## Industries\n\nHigher Education",
+   "reason": "Metadata de la plataforma LinkedIn; el sector no es un requisito del holder."
+  },
+  {
+   "excerpt": "En el **Centro de eLearning** buscamos sumar un/a **Cloud Platform Engineer** para diseñar, operar y evolucionar nuestra infraestructura en la nube (principalmente AWS), acompañando el crecimiento de nuestros productos y equipos.",
+   "reason": "Encuadre del puesto; la mencion de AWS aqui es contexto, el criterio se establece en la seccion de requisitos (§7 y §8)."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "- Trabajar con contenedores (Docker, ECS/Kubernetes).",
+   "note": "Introduce ECS/Kubernetes, que no aparecen como criterio propio en la seccion de requisitos salvo dentro del alcance de AWS (ECS/EKS). Se trata como referencia auxiliar de g04 y no como Requirement nuevo."
+  }
+ ],
+ "annotationNotes": "Aviso corto (2.210 car.) con separacion limpia entre responsabilidades ('Que vas a hacer'), requisitos ('Que buscamos') y preferencias ('Suma puntos si tenes'). Contiene metadata de plataforma al pie que no es texto del empleador.",
+ "objectiveId": "EMP_008",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "c39165a550117f884dca2c87224a4e56cb9b0df3dcaf70b0d0eaf0f89c8ccad0",
+ "requirementCount": 13
+}

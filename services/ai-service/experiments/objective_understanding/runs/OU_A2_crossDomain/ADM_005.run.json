@@ -1,0 +1,109 @@
+{
+ "objectiveId": "ADM_005",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 23894,
+ "usage": {
+  "input_tokens": 2153,
+  "input_tokens_details": {
+   "cache_write_tokens": 2150,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1569,
+  "output_tokens_details": {
+   "reasoning_tokens": 812
+  },
+  "total_tokens": 3722
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Contar con una formación adecuada y suficiente para incorporarse a la maestría, según lo que se corrobore en el proceso de admisión.",
+    "primarySourceQuote": "Lo anterior, no es excluyente de otras profesiones ya que será en el proceso de admisión donde se corroborará si el postulante o la postulante tiene o no una formación adecuada y suficiente para incorporarse a la maestría.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso"
+   },
+   {
+    "proposedRequirementText": "Obligatorio: cumplir con al menos una de las siguientes condiciones: ser graduado/a de la Facultad de Ingeniería de la Universidad de Buenos Aires con título de grado de una carrera de al menos cuatro años; ser graduado/a de una carrera afín a ingeniería de otra universidad argentina con título de grado de una carrera de al menos cuatro años; ser graduado/a de una carrera afín a la ingeniería de una universidad extranjera con al menos 2.600 horas reloj de plan de estudios o formación equivalente a Master de nivel I; o ser egresado/a de estudios superiores no universitarios de al menos cuatro años, con formación en un área de ingeniería, y completar los prerrequisitos que determine la Comisión de Maestría para asegurar compatibilidad con las exigencias del posgrado.",
+    "primarySourceQuote": "Es requisito obligatorio para solicitar la admisión cumplir con al menos una (1) de las siguientes condiciones, de acuerdo a la Res. (CS) Nro. 5284/2012, que aprueba el Reglamento de Maestrías de la Universidad de Buenos Aires:\n. Ser graduado/a de la Facultad de Ingeniería de la Universidad de Buenos Aires, con título de grado correspondiente a una carrera de cuatro (4) años de duración como mínimo.\n. Ser graduado/a de una carrera afín a ingeniería de otras universidades argentinas con título de grado correspondiente a una carrera de cuatro (4) años de duración como mínimo.\n. Ser graduado/a de una carrera afín a la ingeniería de universidades extranjeras que hayan completado, al menos, un plan de estudios de dos mil seiscientas (2.600) horas reloj o hasta una formación equivalente a Master de nivel I.\n. Ser egresado/a con estudios de nivel superior no universitario de cuatro (4) años de duración como mínimo, con formación en un área de la ingeniería, y además completar los prerrequisitos que determine la Comisión de Maestría, a fin de asegurar que su formación resulte compatible con las exigencias del posgrado al que aspira.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso"
+   },
+   {
+    "proposedRequirementText": "Excepcionalmente, podrán ser admitidas personas con antecedentes relevantes en investigación o profesionales aunque no cumplan los requisitos reglamentarios citados, con recomendación de la Comisión de Maestría y aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+    "primarySourceQuote": "Aquellas personas que cuenten con antecedentes relevantes en investigación o profesionales, aun cuando no cumplan con los requisitos reglamentarios citados, podrán ser admitidas excepcionalmente para ingresar a la Maestría con la recomendación de la Comisión de Maestría y con la aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Contar con una formación adecuada y suficiente para incorporarse a la maestría, según lo que se corrobore en el proceso de admisión.",
+    "primarySourceQuote": "Lo anterior, no es excluyente de otras profesiones ya que será en el proceso de admisión donde se corroborará si el postulante o la postulante tiene o no una formación adecuada y suficiente para incorporarse a la maestría.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 238,
+     "charEnd": 460
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Obligatorio: cumplir con al menos una de las siguientes condiciones: ser graduado/a de la Facultad de Ingeniería de la Universidad de Buenos Aires con título de grado de una carrera de al menos cuatro años; ser graduado/a de una carrera afín a ingeniería de otra universidad argentina con título de grado de una carrera de al menos cuatro años; ser graduado/a de una carrera afín a la ingeniería de una universidad extranjera con al menos 2.600 horas reloj de plan de estudios o formación equivalente a Master de nivel I; o ser egresado/a de estudios superiores no universitarios de al menos cuatro años, con formación en un área de ingeniería, y completar los prerrequisitos que determine la Comisión de Maestría para asegurar compatibilidad con las exigencias del posgrado.",
+    "primarySourceQuote": "Es requisito obligatorio para solicitar la admisión cumplir con al menos una (1) de las siguientes condiciones, de acuerdo a la Res. (CS) Nro. 5284/2012, que aprueba el Reglamento de Maestrías de la Universidad de Buenos Aires:\n. Ser graduado/a de la Facultad de Ingeniería de la Universidad de Buenos Aires, con título de grado correspondiente a una carrera de cuatro (4) años de duración como mínimo.\n. Ser graduado/a de una carrera afín a ingeniería de otras universidades argentinas con título de grado correspondiente a una carrera de cuatro (4) años de duración como mínimo.\n. Ser graduado/a de una carrera afín a la ingeniería de universidades extranjeras que hayan completado, al menos, un plan de estudios de dos mil seiscientas (2.600) horas reloj o hasta una formación equivalente a Master de nivel I.\n. Ser egresado/a con estudios de nivel superior no universitario de cuatro (4) años de duración como mínimo, con formación en un área de la ingeniería, y además completar los prerrequisitos que determine la Comisión de Maestría, a fin de asegurar que su formación resulte compatible con las exigencias del posgrado al que aspira.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 462,
+     "charEnd": 1604
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Excepcionalmente, podrán ser admitidas personas con antecedentes relevantes en investigación o profesionales aunque no cumplan los requisitos reglamentarios citados, con recomendación de la Comisión de Maestría y aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+    "primarySourceQuote": "Aquellas personas que cuenten con antecedentes relevantes en investigación o profesionales, aun cuando no cumplan con los requisitos reglamentarios citados, podrán ser admitidas excepcionalmente para ingresar a la Maestría con la recomendación de la Comisión de Maestría y con la aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1606,
+     "charEnd": 1948
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 3,
+   "quotesTotal": 3,
+   "quotesFoundLiterally": 3,
+   "primaryUnique": 3,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

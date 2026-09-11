@@ -1,0 +1,451 @@
+{
+ "objectiveId": "EMP_025",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 27,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "*¡En INVAP seguimos creciendo y te proponemos que nos acompañes!**",
+    "primarySourceQuote": "*¡En INVAP seguimos creciendo y te proponemos que nos acompañes!**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1,
+     "charEnd": 67
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Nos encontramos en la búsqueda de un/a **Ingeniero/a de Radiofrecuencia** para sumarse a nuestro equipo de Electrónica de Radiofrecuencia en Bariloche.",
+    "primarySourceQuote": "Nos encontramos en la búsqueda de un/a **Ingeniero/a de Radiofrecuencia** para sumarse a nuestro equipo de Electrónica de Radiofrecuencia en Bariloche.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 69,
+     "charEnd": 220
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "La persona seleccionada será responsable del diseño y desarrollo de hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "primarySourceQuote": "La persona seleccionada será responsable del diseño y desarrollo de hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 222,
+     "charEnd": 421
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "*Descripción de las funciones:**",
+    "primarySourceQuote": "*Descripción de las funciones:**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 424,
+     "charEnd": 456
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+    "primarySourceQuote": "Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 460,
+     "charEnd": 617
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+    "primarySourceQuote": "Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 620,
+     "charEnd": 726
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Simulación eléctrica y electromagnética.",
+    "primarySourceQuote": "Simulación eléctrica y electromagnética.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 729,
+     "charEnd": 769
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+    "primarySourceQuote": "Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 772,
+     "charEnd": 841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Verificación y puesta a punto en laboratorio.",
+    "primarySourceQuote": "Verificación y puesta a punto en laboratorio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 844,
+     "charEnd": 889
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "*¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "primarySourceQuote": "*¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 892,
+     "charEnd": 959
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "primarySourceQuote": "Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 963,
+     "charEnd": 1024
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "primarySourceQuote": "Experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1027,
+     "charEnd": 1101
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "primarySourceQuote": "Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1104,
+     "charEnd": 1180
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "primarySourceQuote": "Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1183,
+     "charEnd": 1260
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+    "primarySourceQuote": "Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1263,
+     "charEnd": 1361
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Destrezas de planificación de tareas y recursos.",
+    "primarySourceQuote": "Destrezas de planificación de tareas y recursos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1364,
+     "charEnd": 1412
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Flexibilidad y trabajo en equipo.",
+    "primarySourceQuote": "Flexibilidad y trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1415,
+     "charEnd": 1448
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Relaciones interpersonales y capacidades de comunicación.",
+    "primarySourceQuote": "Relaciones interpersonales y capacidades de comunicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1451,
+     "charEnd": 1508
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Visión sistémica, pensamiento crítico y capacidad analítica.",
+    "primarySourceQuote": "Visión sistémica, pensamiento crítico y capacidad analítica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1511,
+     "charEnd": 1571
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "*¿Qué oportunidades te ofrecemos con este puesto?**",
+    "primarySourceQuote": "*¿Qué oportunidades te ofrecemos con este puesto?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1590,
+     "charEnd": 1641
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Trabajar en una empresa referente en proyectos tecnológicos a nivel mundial y protagonista del desarrollo en Argentina.",
+    "primarySourceQuote": "Trabajar en una empresa referente en proyectos tecnológicos a nivel mundial y protagonista del desarrollo en Argentina.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1645,
+     "charEnd": 1764
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "El desafío de desarrollar sistemas que vas a ver funcionando y prestando servicio en nuestro país.",
+    "primarySourceQuote": "El desafío de desarrollar sistemas que vas a ver funcionando y prestando servicio en nuestro país.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1767,
+     "charEnd": 1865
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Una carrera profesional de primer nivel, donde vas a poder materializar tus conocimientos.",
+    "primarySourceQuote": "Una carrera profesional de primer nivel, donde vas a poder materializar tus conocimientos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1868,
+     "charEnd": 1958
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Medicina prepaga para el grupo familiar primario.",
+    "primarySourceQuote": "Medicina prepaga para el grupo familiar primario.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1985,
+     "charEnd": 2034
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "*Lugar de trabajo: Bariloche, modalidad presencial.**",
+    "primarySourceQuote": "*Lugar de trabajo: Bariloche, modalidad presencial.**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2037,
+     "charEnd": 2090
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Formá parte del desarrollo tecnológico que mejora el día a día de las personas.",
+    "primarySourceQuote": "Formá parte del desarrollo tecnológico que mejora el día a día de las personas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2092,
+     "charEnd": 2171
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "¡Conocenos! www.paraquehacemosloquehacemos.com.ar",
+    "primarySourceQuote": "¡Conocenos! www.paraquehacemosloquehacemos.com.ar",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2173,
+     "charEnd": 2222
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 27,
+   "quotesTotal": 27,
+   "quotesFoundLiterally": 27,
+   "primaryUnique": 27,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

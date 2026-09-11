@@ -1,0 +1,306 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Interés y/o experiencia en desarrollo con Django.",
+   "primaryExcerpt": "- Interés y/o experiencia en desarrollo con **Django** y **Next.js**.",
+   "auxiliaryExcerpts": [
+    "- Desarrollar y mantener funcionalidades Fullstack con **Django** (backend) y **Next.js** (frontend)."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad atenuada: 'interés y/o experiencia' (no exige experiencia)",
+    "actividad: desarrollo",
+    "objeto: Django",
+    "rol: backend (auxiliar)"
+   ],
+   "compositionNote": "Separado de Next.js por §4.1: el qualifier compartido 'Interés y/o experiencia en desarrollo con' distribuye sobre dos objetos distintos sin alterar cantidad ni modalidad."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Interés y/o experiencia en desarrollo con Next.js.",
+   "primaryExcerpt": "- Interés y/o experiencia en desarrollo con **Django** y **Next.js**.",
+   "auxiliaryExcerpts": [
+    "- Desarrollar y mantener funcionalidades Fullstack con **Django** (backend) y **Next.js** (frontend)."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad atenuada: 'interés y/o experiencia'",
+    "actividad: desarrollo",
+    "objeto: Next.js",
+    "rol: frontend (auxiliar)"
+   ],
+   "compositionNote": "Ver g01."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Conocimientos de PostgreSQL.",
+   "primaryExcerpt": "- Conocimientos de **PostgreSQL** y **SQL**.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: conocimientos",
+    "objeto: PostgreSQL"
+   ],
+   "compositionNote": "Separado de SQL por §4.1: 'Conocimientos de' distribuye sin perdida."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Conocimientos de SQL.",
+   "primaryExcerpt": "- Conocimientos de **PostgreSQL** y **SQL**.",
+   "auxiliaryExcerpts": [
+    "- Escribir y optimizar consultas SQL según necesidades del producto."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: conocimientos",
+    "objeto: SQL"
+   ],
+   "compositionNote": "Ver g03. La funcion 'Escribir y optimizar consultas SQL' es referencia auxiliar del mismo claim."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Deseable (no excluyente): conocimiento de Power BI.",
+   "primaryExcerpt": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+   "auxiliaryExcerpts": [
+    "- **Power BI** para apoyo en visualizaciones/analítica.",
+    "**Conocimientos deseables (no excluyentes)**"
+   ],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: deseable, no excluyente",
+    "objeto: Power BI"
+   ],
+   "compositionNote": "Separado en cuatro por §4.1: 'conocimiento deseable (no excluyente)' distribuye sobre cuatro tecnologias independientes, confirmadas como independientes por la seccion posterior que asigna un proposito distinto a cada una."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Deseable (no excluyente): conocimiento de Redis.",
+   "primaryExcerpt": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+   "auxiliaryExcerpts": [
+    "- **Redis** para cache y optimización de rendimiento."
+   ],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: deseable, no excluyente",
+    "objeto: Redis"
+   ],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Deseable (no excluyente): conocimiento de Celery.",
+   "primaryExcerpt": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+   "auxiliaryExcerpts": [
+    "- **Celery** para tareas asíncronas y automatización."
+   ],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: deseable, no excluyente",
+    "objeto: Celery"
+   ],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Deseable (no excluyente): conocimiento de Linux.",
+   "primaryExcerpt": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+   "auxiliaryExcerpts": [
+    "- **Linux** para despliegue, operación y troubleshooting básico.",
+    "- Utilizar entornos Linux para despliegue y soporte básico."
+   ],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: deseable, no excluyente",
+    "objeto: Linux"
+   ],
+   "ambiguous": true,
+   "ambiguityNote": "Tension real de la fuente: Linux figura como deseable NO excluyente en Requisitos, pero la seccion Funciones lo presenta como tarea efectiva ('Utilizar entornos Linux para despliegue y soporte basico'). Se anota con la modalidad que la seccion de requisitos establece explicitamente; un anotador razonable podria sostener que la funcion lo eleva a requerido. No se resuelve en la direccion que facilite el scoring.",
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Conocimiento o interés en trabajo bajo prácticas ágiles (Scrum), con disposición a aprender.",
+   "primaryExcerpt": "- Conocimiento o interés en trabajo bajo prácticas ágiles (**Scrum**), con disposición a aprender.",
+   "auxiliaryExcerpts": [
+    "- Trabajar en un flujo con **Scrum**: participar en ceremonias, estimaciones y planificación."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad atenuada: 'conocimiento o interés'",
+    "marco: prácticas ágiles / Scrum",
+    "condicion adicional: disposición a aprender"
+   ],
+   "compositionNote": "Compuesto preservado: 'con disposicion a aprender' es parte del mismo criterio y no distribuye como claim independiente."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Disponibilidad para modalidad presencial en Quilicura y horario full time.",
+   "primaryExcerpt": "- Disponibilidad para modalidad **presencial en Quilicura** y horario de **full time**.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad de trabajo: presencial",
+    "ubicacion: Quilicura",
+    "jornada: full time"
+   ],
+   "ambiguous": true,
+   "ambiguityNote": "Lectura compuesta vs separada difieren: 'Disponibilidad para' gobierna dos dimensiones distintas (modalidad y jornada) y no dos objetos del mismo tipo. Se aplica el default de nivel de fuente (§4.2 AMBIGUO): la fuente lo presenta como una sola condicion de disponibilidad.",
+   "compositionNote": "Compuesto preservado por default de nivel de fuente."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Pensamiento analítico y crítico para resolver problemas y depurar.",
+   "primaryExcerpt": "- Pensamiento analítico y crítico para resolver problemas y depurar.",
+   "auxiliaryExcerpts": [
+    "Buscamos una persona con mentalidad analítica y crítica, capaz de proponer mejoras y entender el “por qué” detrás de cada decisión técnica."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: pensamiento analítico y crítico",
+    "aplicacion: resolver problemas y depurar"
+   ],
+   "compositionNote": "'Pensamiento analitico y critico' es un unico sintagma nominal: §4.2 prohibe partirlo en sus modificadores."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+   "primaryExcerpt": "- Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+   "auxiliaryExcerpts": [
+    "Valoramos la proactividad y el deseo genuino de aprender."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actitud: proactiva",
+    "conducta esperada: iniciativa y pedido de ayuda"
+   ]
+  },
+  {
+   "goldId": "g13",
+   "claim": "Colaboración con el equipo y respeto por el proceso.",
+   "primaryExcerpt": "- Colaboración con el equipo y respeto por el proceso.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: colaboración",
+    "soft skill: respeto por el proceso"
+   ],
+   "ambiguous": true,
+   "ambiguityNote": "Sin qualifier compartido que distribuir; las dos partes son independientes pero la fuente las presenta en una sola vineta de soft skills. Default de nivel de fuente.",
+   "compositionNote": "Compuesto preservado por default de nivel de fuente."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Comunicación clara del progreso y de los riesgos/bloqueos.",
+   "primaryExcerpt": "- Comunicación clara del progreso y de los riesgos/bloqueos.",
+   "auxiliaryExcerpts": [
+    "- Comunicar avances y bloqueos de forma proactiva para destrabar el trabajo del equipo."
+   ],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: comunicación clara",
+    "objeto: progreso y riesgos/bloqueos"
+   ],
+   "compositionNote": "Compuesto preservado: 'Comunicacion clara de' gobierna objetos del mismo acto comunicativo."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Curiosidad técnica y aprendizaje continuo.",
+   "primaryExcerpt": "- Curiosidad técnica y aprendizaje continuo.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: curiosidad técnica",
+    "soft skill: aprendizaje continuo"
+   ]
+  },
+  {
+   "goldId": "g16",
+   "claim": "Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+   "primaryExcerpt": "- Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "alcance: tareas asignadas",
+    "atenuante: con acompañamiento del equipo"
+   ],
+   "compositionNote": "El atenuante 'con acompanamiento del equipo' es material: rebaja el nivel de autonomia exigido y no puede eliminarse."
+  },
+  {
+   "goldId": "g17",
+   "claim": "Implementar y consumir APIs, integrando lógica de negocio.",
+   "primaryExcerpt": "- Implementar y consumir APIs, integrando lógica de negocio.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: implementar y consumir",
+    "objeto: APIs",
+    "alcance: integrar lógica de negocio"
+   ],
+   "compositionNote": "Compuesto preservado (§5): 'implementar y consumir APIs' es una capacidad integrada; separarla emitiria dos estados finales donde la fuente pide uno."
+  },
+  {
+   "goldId": "g18",
+   "claim": "Apoyar la calidad del código mediante revisión, pruebas funcionales y buenas prácticas.",
+   "primaryExcerpt": "- Apoyar la calidad del código: revisión, pruebas funcionales y buenas prácticas.",
+   "auxiliaryExcerpts": [],
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetivo: calidad del código",
+    "medios: revisión, pruebas funcionales, buenas prácticas"
+   ],
+   "compositionNote": "Los tres medios son la enumeracion de un unico criterio de calidad; preservados como compuesto."
+  },
+  {
+   "goldId": "g19",
+   "claim": "Se valora tener base en SQL y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+   "primaryExcerpt": "Además, valoramos que tengas base en **SQL** y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+   "auxiliaryExcerpts": [],
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valorado",
+    "objeto: base en SQL",
+    "objeto: curiosidad por mejorar consultas, rendimiento y calidad de datos"
+   ],
+   "compositionNote": "Solapa con g04 (SQL requerido) pero difiere materialmente en fuerza y agrega un objeto nuevo; §17 prohibe colapsarlos."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Si tienes conocimiento parcial, ¡no pasa nada! Podemos enseñarte y acompañarte en metodologías como **Scrum** y en el stack de tecnologías del equipo, siempre que tengas base y motivación.",
+   "reason": "Declaracion de modalidad que ATENUA los requisitos: el conocimiento parcial es aceptable. No genera Requirement y no debe invertirse en exigencia."
+  },
+  {
+   "excerpt": "**Prácticas profesionales:** se aceptan postulaciones de personas en etapa de prácticas profesionales.",
+   "reason": "Amplia la elegibilidad; no es un criterio que la persona deba satisfacer."
+  },
+  {
+   "excerpt": "**Beneficios**",
+   "reason": "Encabezado de beneficios ofrecidos por la empresa, no criterios."
+  },
+  {
+   "excerpt": "- Trabajo en proyectos reales con impacto directo",
+   "reason": "Beneficio ofrecido, no requisito."
+  },
+  {
+   "excerpt": "- Bus de acercamiento",
+   "reason": "Beneficio ofrecido, no requisito."
+  },
+  {
+   "excerpt": "Como Desarrollador/a Fullstack Junior, nos enfocamos en que aprendas rápido y avances con acompañamiento en un entorno colaborativo.",
+   "reason": "Prosa de encuadre del rol; describe el entorno, no un criterio evaluable."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "- Utilizar entornos Linux para despliegue y soporte básico.",
+   "note": "Convive con Linux marcado como deseable no excluyente en Requisitos. Ver g08."
+  }
+ ],
+ "annotationNotes": "Aviso junior chileno con dos secciones que repiten las mismas tecnologias (Requisitos y Funciones) y una lista de deseables repetida con proposito por item. La modalidad atenuada ('interes y/o experiencia', 'conocimiento o interes', 'con acompanamiento') es material en casi todos los claims.",
+ "objectiveId": "EMP_044",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "fda230c2f0fa44a6bd56a0f5796ce964921b69acc737d0d0fde2deaded53f8bd",
+ "requirementCount": 19
+}

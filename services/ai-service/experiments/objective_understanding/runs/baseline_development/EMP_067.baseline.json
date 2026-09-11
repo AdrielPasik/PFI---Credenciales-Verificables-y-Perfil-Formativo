@@ -1,0 +1,419 @@
+{
+ "objectiveId": "EMP_067",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 25,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "primarySourceQuote": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 170
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Desarrollar y optimizar formulaciones de distintas formas farmacéuticas",
+    "primarySourceQuote": "Desarrollar y optimizar formulaciones de distintas formas farmacéuticas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 197,
+     "charEnd": 268
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Elaborar lotes a escala laboratorio y piloto",
+    "primarySourceQuote": "Elaborar lotes a escala laboratorio y piloto",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 271,
+     "charEnd": 315
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Definir y ejecutar protocolos de desarrollo",
+    "primarySourceQuote": "Definir y ejecutar protocolos de desarrollo",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 318,
+     "charEnd": 361
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Realizar ensayos farmacotécnicos y analizar resultados",
+    "primarySourceQuote": "Realizar ensayos farmacotécnicos y analizar resultados",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 364,
+     "charEnd": 418
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Registrar y documentar ensayos conforme a normativas vigentes",
+    "primarySourceQuote": "Registrar y documentar ensayos conforme a normativas vigentes",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 421,
+     "charEnd": 482
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Participar en el escalado y seguimiento de lotes en planta productiva",
+    "primarySourceQuote": "Participar en el escalado y seguimiento de lotes en planta productiva",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 485,
+     "charEnd": 554
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.)",
+    "primarySourceQuote": "Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 557,
+     "charEnd": 647
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Coordinar actividades con Producción, Control de Calidad y otras áreas",
+    "primarySourceQuote": "Coordinar actividades con Producción, Control de Calidad y otras áreas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 650,
+     "charEnd": 720
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Farmacéutico/a, Lic. en Química, Ingeniería Química o afines",
+    "primarySourceQuote": "Farmacéutico/a, Lic. en Química, Ingeniería Química o afines",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 751,
+     "charEnd": 811
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Experiencia en desarrollo galénico (excluyente)",
+    "primarySourceQuote": "Experiencia en desarrollo galénico (excluyente)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 832,
+     "charEnd": 879
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Se valorará experiencia previa en áreas analíticas",
+    "primarySourceQuote": "Se valorará experiencia previa en áreas analíticas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 882,
+     "charEnd": 932
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Formulación de sólidos y/o líquidos (deseable otras formas)",
+    "primarySourceQuote": "Formulación de sólidos y/o líquidos (deseable otras formas)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 955,
+     "charEnd": 1014
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Buen manejo de documentación y normativas (GMP)",
+    "primarySourceQuote": "Buen manejo de documentación y normativas (GMP)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1017,
+     "charEnd": 1064
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Inglés técnico (deseable)",
+    "primarySourceQuote": "Inglés técnico (deseable)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1067,
+     "charEnd": 1092
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Somos un laboratorio farmacéutico argentino de especialidades medicinales con más de 25 años de trayectoria en el mercado.",
+    "primarySourceQuote": "Somos un laboratorio farmacéutico argentino de especialidades medicinales con más de 25 años de trayectoria en el mercado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1094,
+     "charEnd": 1216
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "El espíritu emprendedor y la creatividad de las más de 200 personas que trabajan día a día para llegar a todas las farmacias y droguerías del país son el motor fundamental de nuestra organización; gracias al cual logramos un sostenido crecimiento y expansión desde nuestro origen.",
+    "primarySourceQuote": "El espíritu emprendedor y la creatividad de las más de 200 personas que trabajan día a día para llegar a todas las farmacias y droguerías del país son el motor fundamental de nuestra organización; gracias al cual logramos un sostenido crecimiento y expansión desde nuestro origen.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1218,
+     "charEnd": 1498
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Hoy, con 2 plantas farmacéuticas G.M.P (Good Manufacturing Practices), más de 4500m2 ubicados en Capital Federal y Provincia de Buenos Aires desarrollamos, elaboramos y comercializamos productos medicinales que garantizan un sano consejo farmacéutico.",
+    "primarySourceQuote": "Hoy, con 2 plantas farmacéuticas G.M.P (Good Manufacturing Practices), más de 4500m2 ubicados en Capital Federal y Provincia de Buenos Aires desarrollamos, elaboramos y comercializamos productos medicinales que garantizan un sano consejo farmacéutico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1500,
+     "charEnd": 1751
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Nuestro alcance global llegando a más de 7 países nos motiva y desafía más allá de nuestros límites.",
+    "primarySourceQuote": "Nuestro alcance global llegando a más de 7 países nos motiva y desafía más allá de nuestros límites.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1753,
+     "charEnd": 1853
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "En Biosintex creemos que el arte de curar se construye cada día teniendo una mirada integradora, que considera a todos los eslabones de la cadena sanitaria farmacéuticos, médicos, instituciones y laboratorios, en post de mejorar la calidad de vida y el bienestar de todas las personas.",
+    "primarySourceQuote": "En Biosintex creemos que el arte de curar se construye cada día teniendo una mirada integradora, que considera a todos los eslabones de la cadena sanitaria farmacéuticos, médicos, instituciones y laboratorios, en post de mejorar la calidad de vida y el bienestar de todas las personas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1855,
+     "charEnd": 2140
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "l reconocimiento de nuestras más de 50 marcas está validado por miles de familias que eligen cada día Bucoangin, para tratar el dolor de garganta; Tavinex, para aliviar la tos; Lacrigestina, para el ojo seco; Ibulgia, para bajar la fiebre y Midermus, para cuidar la piel.",
+    "primarySourceQuote": "l reconocimiento de nuestras más de 50 marcas está validado por miles de familias que eligen cada día Bucoangin, para tratar el dolor de garganta; Tavinex, para aliviar la tos; Lacrigestina, para el ojo seco; Ibulgia, para bajar la fiebre y Midermus, para cuidar la piel.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2142,
+     "charEnd": 2413
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Nuestro progreso se fundamenta en un grupo humano comprometido que, comparte valores e ideales, dando lo mejor en cada tarea.",
+    "primarySourceQuote": "Nuestro progreso se fundamenta en un grupo humano comprometido que, comparte valores e ideales, dando lo mejor en cada tarea.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2415,
+     "charEnd": 2540
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "primarySourceQuote": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2542,
+     "charEnd": 2673
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Business Development and Sales",
+    "primarySourceQuote": "Business Development and Sales",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2792,
+     "charEnd": 2822
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Job function",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Pharmaceutical Manufacturing",
+    "primarySourceQuote": "Pharmaceutical Manufacturing",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2842,
+     "charEnd": 2870
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Industries",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 25,
+   "quotesTotal": 25,
+   "quotesFoundLiterally": 25,
+   "primaryUnique": 25,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

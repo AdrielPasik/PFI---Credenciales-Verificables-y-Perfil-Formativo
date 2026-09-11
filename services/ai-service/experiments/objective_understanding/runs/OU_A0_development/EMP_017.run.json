@@ -1,0 +1,549 @@
+{
+ "objectiveId": "EMP_017",
+ "candidateVersion": "OU_A0",
+ "promptVersion": "OU_A0",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 29819,
+ "usage": {
+  "input_tokens": 2046,
+  "input_tokens_details": {
+   "cache_write_tokens": 2043,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2595,
+  "output_tokens_details": {
+   "reasoning_tokens": 915
+  },
+  "total_tokens": 4641
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Desarrollar modelos predictivos y segmentaciones para predecir y entender el comportamiento de usuarios y optimizar productos y procesos, incluyendo modelos de Lifetime Value, de recomendación, de moderación de contenido y simulaciones.",
+    "primarySourceQuote": "- Desarrollar modelos predictivos y segmentaciones en pos de predecir y entender el comportamiento de nuestros usuarios y optimizar nuestros productos y procesos. Entre otras cosas, se incluyen modelos predictivos de Lifetime Value, modelos de recomendación y de moderación de contenido y simulaciones.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**"
+   },
+   {
+    "proposedRequirementText": "Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "primarySourceQuote": "- Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**"
+   },
+   {
+    "proposedRequirementText": "Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "primarySourceQuote": "- Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**"
+   },
+   {
+    "proposedRequirementText": "Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad, interiorizándose en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "primarySourceQuote": "- Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad. Interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en SQL.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en Python.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en AWS.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en modelos predictivos.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en redes neuronales.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en simulaciones numéricas.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico y conocimientos en modelado estadístico.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity.",
+    "primarySourceQuote": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Dominio técnico en modelos de lenguaje masivos.",
+    "primarySourceQuote": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorada positivamente: experiencia con Spark.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorados positivamente: conocimientos en NLP.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorados positivamente: conocimientos en sistemas de recomendación.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valoradas positivamente: maestrías relacionadas a Ciencias de Datos.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "primarySourceQuote": "- Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Mindset orientado a producto con proactividad para proponer e investigar.",
+    "primarySourceQuote": "- Mindset orientado a producto con proactividad para proponer e investigar.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Buenas herramientas humanas.",
+    "primarySourceQuote": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Trabajo en equipo como condición excluyente.",
+    "primarySourceQuote": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Ambición por descubrir y explorar nuevas formas de hacer las cosas, incluyendo desafiar el status quo de la tecnología en general.",
+    "primarySourceQuote": "- Ambición por descubrir y explorar nuevas formas de hacer las cosas, lo que incluiría desafiar el status quo de la tecnología en general.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Estudio, investigación y exploración de herramientas, novedades e innovaciones en ciencia de datos, estadística e Inteligencia Artificial.",
+    "primarySourceQuote": "- Valoramos el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en el área de la ciencia de datos, la estadística y la Inteligencia Artificial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Desarrollar modelos predictivos y segmentaciones para predecir y entender el comportamiento de usuarios y optimizar productos y procesos, incluyendo modelos de Lifetime Value, de recomendación, de moderación de contenido y simulaciones.",
+    "primarySourceQuote": "- Desarrollar modelos predictivos y segmentaciones en pos de predecir y entender el comportamiento de nuestros usuarios y optimizar nuestros productos y procesos. Entre otras cosas, se incluyen modelos predictivos de Lifetime Value, modelos de recomendación y de moderación de contenido y simulaciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 387,
+     "charEnd": 689
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "primarySourceQuote": "- Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 690,
+     "charEnd": 796
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "primarySourceQuote": "- Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 797,
+     "charEnd": 917
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad, interiorizándose en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "primarySourceQuote": "- Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad. Interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 918,
+     "charEnd": 1116
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Los desafíos del rol son, entre otros:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Dominio técnico y conocimientos en SQL.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Dominio técnico y conocimientos en Python.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Dominio técnico y conocimientos en AWS.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Dominio técnico y conocimientos en modelos predictivos.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Dominio técnico y conocimientos en redes neuronales.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Dominio técnico y conocimientos en simulaciones numéricas.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Dominio técnico y conocimientos en modelado estadístico.",
+    "primarySourceQuote": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1444,
+     "charEnd": 1585
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity.",
+    "primarySourceQuote": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1586,
+     "charEnd": 1696
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Dominio técnico en modelos de lenguaje masivos.",
+    "primarySourceQuote": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1586,
+     "charEnd": 1696
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Valorada positivamente: experiencia con Spark.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1697,
+     "charEnd": 1841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Valorados positivamente: conocimientos en NLP.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1697,
+     "charEnd": 1841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Valorados positivamente: conocimientos en sistemas de recomendación.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1697,
+     "charEnd": 1841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Valoradas positivamente: maestrías relacionadas a Ciencias de Datos.",
+    "primarySourceQuote": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1697,
+     "charEnd": 1841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "primarySourceQuote": "- Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1842,
+     "charEnd": 1942
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Mindset orientado a producto con proactividad para proponer e investigar.",
+    "primarySourceQuote": "- Mindset orientado a producto con proactividad para proponer e investigar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1943,
+     "charEnd": 2018
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Buenas herramientas humanas.",
+    "primarySourceQuote": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2019,
+     "charEnd": 2106
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Trabajo en equipo como condición excluyente.",
+    "primarySourceQuote": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2019,
+     "charEnd": 2106
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Ambición por descubrir y explorar nuevas formas de hacer las cosas, incluyendo desafiar el status quo de la tecnología en general.",
+    "primarySourceQuote": "- Ambición por descubrir y explorar nuevas formas de hacer las cosas, lo que incluiría desafiar el status quo de la tecnología en general.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2107,
+     "charEnd": 2245
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Estudio, investigación y exploración de herramientas, novedades e innovaciones en ciencia de datos, estadística e Inteligencia Artificial.",
+    "primarySourceQuote": "- Valoramos el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en el área de la ciencia de datos, la estadística y la Inteligencia Artificial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2246,
+     "charEnd": 2425
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 23,
+   "quotesTotal": 23,
+   "quotesFoundLiterally": 23,
+   "primaryUnique": 23,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

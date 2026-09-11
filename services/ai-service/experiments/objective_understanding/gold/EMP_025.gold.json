@@ -1,0 +1,235 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+   "primaryExcerpt": "- Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "titulaciones alternativas: Ingeniería Electrónica, Telecomunicaciones o afines"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion de titulaciones admitidas; separar convertiria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Experiencia académica o laboral en actividades relacionadas con el puesto.",
+   "primaryExcerpt": "- Experiencia académica o laboral en actividades relacionadas con el puesto.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "naturaleza alternativa: académica o laboral",
+    "alcance: actividades relacionadas con el puesto"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La alternativa 'academica o laboral' es material: admite trayectoria formativa sin experiencia profesional. Eliminarla fortaleceria el claim. No hay cuantificador de anos."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+   "primaryExcerpt": "- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: simulación eléctrica/electromagnética",
+    "preferencia interna (no obligatoria): ADS"
+   ],
+   "auxiliaryExcerpts": [
+    "- Simulación eléctrica y electromagnética."
+   ],
+   "compositionNote": "Modalidad mixta interna: el conocimiento de simulacion es exigido y la herramienta ADS solo 'preferentemente'. Convertir ADS en obligatorio fortaleceria el claim."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+   "primaryExcerpt": "- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Altium Designer",
+    "alternativa admitida: herramientas equivalentes",
+    "dominio: diseño de PCB de RF"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'o herramientas equivalentes' amplia el objeto y es material."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+   "primaryExcerpt": "- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: instrumental de laboratorio de RF",
+    "alcance: VNA, generadores de señal, analizadores de espectro"
+   ],
+   "auxiliaryExcerpts": [
+    "- Verificación y puesta a punto en laboratorio."
+   ],
+   "compositionNote": "La enumeracion delimita el alcance del mismo instrumental."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Destrezas de planificación de tareas y recursos.",
+   "primaryExcerpt": "- Destrezas de planificación de tareas y recursos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: planificación",
+    "objetos: tareas y recursos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g07",
+   "claim": "Flexibilidad y trabajo en equipo.",
+   "primaryExcerpt": "- Flexibilidad y trabajo en equipo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: flexibilidad",
+    "soft skill: trabajo en equipo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g08",
+   "claim": "Relaciones interpersonales y capacidades de comunicación.",
+   "primaryExcerpt": "- Relaciones interpersonales y capacidades de comunicación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: relaciones interpersonales",
+    "soft skill: comunicación"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g09",
+   "claim": "Visión sistémica, pensamiento crítico y capacidad analítica.",
+   "primaryExcerpt": "- Visión sistémica, pensamiento crítico y capacidad analítica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidades: visión sistémica, pensamiento crítico, capacidad analítica"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g10",
+   "claim": "Inglés B1/B2.",
+   "primaryExcerpt": "- Inglés B1/B2.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "idioma: inglés",
+    "nivel: B1/B2"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El nivel certificable es qualifier material."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+   "primaryExcerpt": "- Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseño y desarrollo",
+    "objeto: hardware de RF",
+    "alcance ejemplificado: transceivers, módulos T/R de radar, amplificadores de potencia, receptores"
+   ],
+   "auxiliaryExcerpts": [
+    "La persona seleccionada será responsable del diseño y desarrollo de hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio."
+   ],
+   "compositionNote": "Capacidad integrada (§5). 'entre otros' marca que la enumeracion es abierta y ejemplificada."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+   "primaryExcerpt": "- Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: esquemáticos, diagramas funcionales, selección de componentes, ruteo de PCB"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g13",
+   "claim": "Simulación eléctrica y electromagnética.",
+   "primaryExcerpt": "- Simulación eléctrica y electromagnética.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: simulación eléctrica y electromagnética"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Solapa con g03 (conocimientos) con actividad distinta; §17 prohibe colapsarlos."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+   "primaryExcerpt": "- Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: documentación técnica",
+    "alcance: diseño, fabricación y ensayo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g15",
+   "claim": "Verificación y puesta a punto en laboratorio.",
+   "primaryExcerpt": "- Verificación y puesta a punto en laboratorio.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: verificación y puesta a punto",
+    "entorno: laboratorio"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "**¡En INVAP seguimos creciendo y te proponemos que nos acompañes!**",
+   "reason": "Encabezado de convocatoria."
+  },
+  {
+   "excerpt": "Nos encontramos en la búsqueda de un/a **Ingeniero/a de Radiofrecuencia** para sumarse a nuestro equipo de Electrónica de Radiofrecuencia en Bariloche.",
+   "reason": "Enunciado del puesto y del equipo; el titulo es contexto y no crea Requirements (§8)."
+  },
+  {
+   "excerpt": "- Trabajar en una empresa referente en proyectos tecnológicos a nivel mundial y protagonista del desarrollo en Argentina.",
+   "reason": "Oportunidad ofrecida por la empresa, no criterio del holder."
+  },
+  {
+   "excerpt": "- Una carrera profesional de primer nivel, donde vas a poder materializar tus conocimientos.",
+   "reason": "Oportunidad ofrecida. Contiene 'carrera' y 'conocimientos' pero no enuncia ningun requisito de formacion; es una trampa lexica."
+  },
+  {
+   "excerpt": "- Contratación directa.",
+   "reason": "Condicion contractual ofrecida."
+  },
+  {
+   "excerpt": "- Medicina prepaga para el grupo familiar primario.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "Formá parte del desarrollo tecnológico que mejora el día a día de las personas.",
+   "reason": "Cierre motivacional."
+  },
+  {
+   "excerpt": "¡Conocenos! www.paraquehacemosloquehacemos.com.ar",
+   "reason": "Enlace institucional."
+  },
+  {
+   "excerpt": "## Job function\n\nEngineering",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+   "note": "Encabezado que califica TODA la lista como 'requisitos valorables', una formula intermedia entre requerido y deseable. Se anotan los claims con modality REQUIRED porque es la unica seccion de requisitos del aviso y no hay una lista requerida alternativa, pero un anotador razonable podria anotarlos todos como PREFERRED. Esta decision NO se toma en la direccion que facilite el scoring: se documenta y se tolera la lectura alternativa en la adjudicacion de modalidad."
+  },
+  {
+   "excerpt": "**Lugar de trabajo: Bariloche, modalidad presencial.**",
+   "note": "Condicion de lugar y modalidad enunciada como dato del puesto. No se emite Requirement; tampoco se penaliza si el extractor emite uno de disponibilidad presencial en Bariloche."
+  }
+ ],
+ "annotationNotes": "HOLDOUT. Aviso argentino corto (2.390 car.) de INVAP. Su rasgo distintivo es el encabezado 'requisitos valorables', que no es ni 'requeridos' ni 'deseables'; se documenta como ambiguedad de modalidad a nivel de seccion. Contiene ademas una preferencia interna ('preferentemente ADS') y una alternativa de naturaleza de experiencia ('academica o laboral') sin cuantificador de anos.",
+ "objectiveId": "EMP_025",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "3f6a7348bdf3752724ef5b648b095e5ca98e562ba366377d951b2b0e1222c47c",
+ "requirementCount": 15
+}

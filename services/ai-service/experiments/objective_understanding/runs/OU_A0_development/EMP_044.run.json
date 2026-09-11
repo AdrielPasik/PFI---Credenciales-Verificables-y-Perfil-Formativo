@@ -1,0 +1,751 @@
+{
+ "objectiveId": "EMP_044",
+ "candidateVersion": "OU_A0",
+ "promptVersion": "OU_A0",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 72430,
+ "usage": {
+  "input_tokens": 1977,
+  "input_tokens_details": {
+   "cache_write_tokens": 1974,
+   "cached_tokens": 0
+  },
+  "output_tokens": 3775,
+  "output_tokens_details": {
+   "reasoning_tokens": 1990
+  },
+  "total_tokens": 5752
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Mentalidad analítica y crítica.",
+    "primarySourceQuote": "Buscamos una persona con mentalidad analítica y crítica",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de proponer mejoras y entender el “por qué” detrás de cada decisión técnica.",
+    "primarySourceQuote": "capaz de proponer mejoras y entender el “por qué” detrás de cada decisión técnica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Se valora la proactividad.",
+    "primarySourceQuote": "Valoramos la proactividad",
+    "auxiliarySourceQuotes": [
+     "- Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda."
+    ],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Se valora el deseo genuino de aprender.",
+    "primarySourceQuote": "y el deseo genuino de aprender.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Base y motivación.",
+    "primarySourceQuote": "siempre que tengas base y motivación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Interés y/o experiencia en desarrollo con Django y Next.js.",
+    "primarySourceQuote": "- Interés y/o experiencia en desarrollo con **Django** y **Next.js**.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos de PostgreSQL.",
+    "primarySourceQuote": "- Conocimientos de **PostgreSQL** y **SQL**.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos de SQL.",
+    "primarySourceQuote": "- Conocimientos de **PostgreSQL** y **SQL**.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Power BI para apoyo en visualizaciones/analítica.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "auxiliarySourceQuotes": [
+     "- **Power BI** para apoyo en visualizaciones/analítica."
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Redis para cache y optimización de rendimiento.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "auxiliarySourceQuotes": [
+     "- **Redis** para cache y optimización de rendimiento."
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Celery para tareas asíncronas y automatización.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "auxiliarySourceQuotes": [
+     "- **Celery** para tareas asíncronas y automatización."
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Linux para despliegue, operación y troubleshooting básico.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "auxiliarySourceQuotes": [
+     "- **Linux** para despliegue, operación y troubleshooting básico."
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento o interés en trabajo bajo prácticas ágiles (Scrum), con disposición a aprender.",
+    "primarySourceQuote": "- Conocimiento o interés en trabajo bajo prácticas ágiles (**Scrum**), con disposición a aprender.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Disponibilidad para modalidad presencial en Quilicura y horario de full time.",
+    "primarySourceQuote": "- Disponibilidad para modalidad **presencial en Quilicura** y horario de **full time**.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Pensamiento analítico y crítico para resolver problemas y depurar.",
+    "primarySourceQuote": "- Pensamiento analítico y crítico para resolver problemas y depurar.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+    "primarySourceQuote": "- Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+    "auxiliarySourceQuotes": [
+     "Valoramos la proactividad"
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**"
+   },
+   {
+    "proposedRequirementText": "Colaboración con el equipo y respeto por el proceso.",
+    "primarySourceQuote": "- Colaboración con el equipo y respeto por el proceso.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**"
+   },
+   {
+    "proposedRequirementText": "Comunicación clara del progreso y de los riesgos/bloqueos.",
+    "primarySourceQuote": "- Comunicación clara del progreso y de los riesgos/bloqueos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**"
+   },
+   {
+    "proposedRequirementText": "Curiosidad técnica y aprendizaje continuo.",
+    "primarySourceQuote": "- Curiosidad técnica y aprendizaje continuo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**"
+   },
+   {
+    "proposedRequirementText": "Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+    "primarySourceQuote": "- Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**"
+   },
+   {
+    "proposedRequirementText": "Se aceptan postulaciones de personas en etapa de prácticas profesionales.",
+    "primarySourceQuote": "**Prácticas profesionales:** se aceptan postulaciones de personas en etapa de prácticas profesionales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de desarrollar y mantener funcionalidades Fullstack con Django (backend) y Next.js (frontend).",
+    "primarySourceQuote": "- Desarrollar y mantener funcionalidades Fullstack con **Django** (backend) y **Next.js** (frontend).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de implementar y consumir APIs, integrando lógica de negocio.",
+    "primarySourceQuote": "- Implementar y consumir APIs, integrando lógica de negocio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de escribir y optimizar consultas SQL según necesidades del producto.",
+    "primarySourceQuote": "- Escribir y optimizar consultas SQL según necesidades del producto.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de trabajar en un flujo con Scrum, participando en ceremonias, estimaciones y planificación.",
+    "primarySourceQuote": "- Trabajar en un flujo con **Scrum**: participar en ceremonias, estimaciones y planificación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de utilizar entornos Linux para despliegue y soporte básico.",
+    "primarySourceQuote": "- Utilizar entornos Linux para despliegue y soporte básico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de apoyar la calidad del código mediante revisión, pruebas funcionales y buenas prácticas.",
+    "primarySourceQuote": "- Apoyar la calidad del código: revisión, pruebas funcionales y buenas prácticas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Capacidad de comunicar avances y bloqueos de forma proactiva para destrabar el trabajo del equipo.",
+    "primarySourceQuote": "- Comunicar avances y bloqueos de forma proactiva para destrabar el trabajo del equipo.",
+    "auxiliarySourceQuotes": [
+     "- Comunicación clara del progreso y de los riesgos/bloqueos."
+    ],
+    "sourceSectionLabel": "**Funciones**"
+   },
+   {
+    "proposedRequirementText": "Se valora tener base en SQL y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+    "primarySourceQuote": "Además, valoramos que tengas base en **SQL** y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos deseables (no excluyentes)**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Mentalidad analítica y crítica.",
+    "primarySourceQuote": "Buscamos una persona con mentalidad analítica y crítica",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 17,
+     "charEnd": 72
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Capacidad de proponer mejoras y entender el “por qué” detrás de cada decisión técnica.",
+    "primarySourceQuote": "capaz de proponer mejoras y entender el “por qué” detrás de cada decisión técnica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 74,
+     "charEnd": 156
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Se valora la proactividad.",
+    "primarySourceQuote": "Valoramos la proactividad",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 157,
+     "charEnd": 182
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 920,
+      "charEnd": 997,
+      "quote": "- Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda."
+     }
+    ],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Se valora el deseo genuino de aprender.",
+    "primarySourceQuote": "y el deseo genuino de aprender.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 183,
+     "charEnd": 214
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Base y motivación.",
+    "primarySourceQuote": "siempre que tengas base y motivación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 367,
+     "charEnd": 404
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Interés y/o experiencia en desarrollo con Django y Next.js.",
+    "primarySourceQuote": "- Interés y/o experiencia en desarrollo con **Django** y **Next.js**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 439,
+     "charEnd": 508
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Conocimientos de PostgreSQL.",
+    "primarySourceQuote": "- Conocimientos de **PostgreSQL** y **SQL**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 509,
+     "charEnd": 553
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Conocimientos de SQL.",
+    "primarySourceQuote": "- Conocimientos de **PostgreSQL** y **SQL**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 509,
+     "charEnd": 553
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Power BI para apoyo en visualizaciones/analítica.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 554,
+     "charEnd": 663
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 2132,
+      "charEnd": 2187,
+      "quote": "- **Power BI** para apoyo en visualizaciones/analítica."
+     }
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Redis para cache y optimización de rendimiento.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 554,
+     "charEnd": 663
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 2188,
+      "charEnd": 2241,
+      "quote": "- **Redis** para cache y optimización de rendimiento."
+     }
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Celery para tareas asíncronas y automatización.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 554,
+     "charEnd": 663
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 2242,
+      "charEnd": 2295,
+      "quote": "- **Celery** para tareas asíncronas y automatización."
+     }
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Conocimiento deseable (no excluyente) de Linux para despliegue, operación y troubleshooting básico.",
+    "primarySourceQuote": "- Se considerará como conocimiento deseable (no excluyente): **Power BI**, **Redis**, **Celery** y **Linux**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 554,
+     "charEnd": 663
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 2296,
+      "charEnd": 2360,
+      "quote": "- **Linux** para despliegue, operación y troubleshooting básico."
+     }
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Conocimiento o interés en trabajo bajo prácticas ágiles (Scrum), con disposición a aprender.",
+    "primarySourceQuote": "- Conocimiento o interés en trabajo bajo prácticas ágiles (**Scrum**), con disposición a aprender.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 664,
+     "charEnd": 762
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Disponibilidad para modalidad presencial en Quilicura y horario de full time.",
+    "primarySourceQuote": "- Disponibilidad para modalidad **presencial en Quilicura** y horario de **full time**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 763,
+     "charEnd": 850
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Pensamiento analítico y crítico para resolver problemas y depurar.",
+    "primarySourceQuote": "- Pensamiento analítico y crítico para resolver problemas y depurar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 851,
+     "charEnd": 919
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+    "primarySourceQuote": "- Actitud proactiva: avanzar con iniciativa y pedir ayuda cuando corresponda.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 920,
+     "charEnd": 997
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 157,
+      "charEnd": 182,
+      "quote": "Valoramos la proactividad"
+     }
+    ],
+    "sourceSectionLabel": "**Requisitos y conocimientos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Colaboración con el equipo y respeto por el proceso.",
+    "primarySourceQuote": "- Colaboración con el equipo y respeto por el proceso.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1029,
+     "charEnd": 1083
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Comunicación clara del progreso y de los riesgos/bloqueos.",
+    "primarySourceQuote": "- Comunicación clara del progreso y de los riesgos/bloqueos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1084,
+     "charEnd": 1144
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Curiosidad técnica y aprendizaje continuo.",
+    "primarySourceQuote": "- Curiosidad técnica y aprendizaje continuo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1145,
+     "charEnd": 1189
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+    "primarySourceQuote": "- Responsabilidad y autonomía en las tareas asignadas, con acompañamiento del equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1190,
+     "charEnd": 1275
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Se aceptan postulaciones de personas en etapa de prácticas profesionales.",
+    "primarySourceQuote": "**Prácticas profesionales:** se aceptan postulaciones de personas en etapa de prácticas profesionales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1276,
+     "charEnd": 1378
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Soft skills que buscamos:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Capacidad de desarrollar y mantener funcionalidades Fullstack con Django (backend) y Next.js (frontend).",
+    "primarySourceQuote": "- Desarrollar y mantener funcionalidades Fullstack con **Django** (backend) y **Next.js** (frontend).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1529,
+     "charEnd": 1630
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Capacidad de implementar y consumir APIs, integrando lógica de negocio.",
+    "primarySourceQuote": "- Implementar y consumir APIs, integrando lógica de negocio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1631,
+     "charEnd": 1691
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Capacidad de escribir y optimizar consultas SQL según necesidades del producto.",
+    "primarySourceQuote": "- Escribir y optimizar consultas SQL según necesidades del producto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1692,
+     "charEnd": 1760
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Capacidad de trabajar en un flujo con Scrum, participando en ceremonias, estimaciones y planificación.",
+    "primarySourceQuote": "- Trabajar en un flujo con **Scrum**: participar en ceremonias, estimaciones y planificación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1761,
+     "charEnd": 1854
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Capacidad de utilizar entornos Linux para despliegue y soporte básico.",
+    "primarySourceQuote": "- Utilizar entornos Linux para despliegue y soporte básico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1855,
+     "charEnd": 1914
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_27",
+    "order": 27,
+    "proposedRequirementText": "Capacidad de apoyar la calidad del código mediante revisión, pruebas funcionales y buenas prácticas.",
+    "primarySourceQuote": "- Apoyar la calidad del código: revisión, pruebas funcionales y buenas prácticas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1915,
+     "charEnd": 1996
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_28",
+    "order": 28,
+    "proposedRequirementText": "Capacidad de comunicar avances y bloqueos de forma proactiva para destrabar el trabajo del equipo.",
+    "primarySourceQuote": "- Comunicar avances y bloqueos de forma proactiva para destrabar el trabajo del equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1997,
+     "charEnd": 2084
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 1084,
+      "charEnd": 1144,
+      "quote": "- Comunicación clara del progreso y de los riesgos/bloqueos."
+     }
+    ],
+    "sourceSectionLabel": "**Funciones**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_29",
+    "order": 29,
+    "proposedRequirementText": "Se valora tener base en SQL y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+    "primarySourceQuote": "Además, valoramos que tengas base en **SQL** y curiosidad por mejorar consultas, rendimiento y calidad de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2361,
+     "charEnd": 2473
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos deseables (no excluyentes)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 29,
+   "quotesTotal": 36,
+   "quotesFoundLiterally": 36,
+   "primaryUnique": 29,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

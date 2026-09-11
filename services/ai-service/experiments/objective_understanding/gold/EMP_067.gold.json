@@ -1,0 +1,220 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Formación de Farmacéutico/a, Lic. en Química, Ingeniería Química o afines.",
+   "primaryExcerpt": "- Farmacéutico/a, Lic. en Química, Ingeniería Química o afines",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "titulaciones alternativas: Farmacéutico/a, Lic. en Química, Ingeniería Química o afines"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion de titulaciones admitidas; separar convertiria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Experiencia en desarrollo galénico (excluyente).",
+   "primaryExcerpt": "- Experiencia en desarrollo galénico (excluyente)",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: excluyente",
+    "naturaleza: experiencia",
+    "objeto: desarrollo galénico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Unico requisito marcado como excluyente; la marca es material y debe sobrevivir."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Se valorará experiencia previa en áreas analíticas.",
+   "primaryExcerpt": "- Se valorará experiencia previa en áreas analíticas",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: se valorará",
+    "naturaleza: experiencia previa",
+    "objeto: áreas analíticas"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g04",
+   "claim": "Formulación de sólidos y/o líquidos, siendo deseables otras formas farmacéuticas.",
+   "primaryExcerpt": "- Formulación de sólidos y/o líquidos (deseable otras formas)",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: formulación de sólidos y/o líquidos",
+    "alcance ampliado deseable: otras formas farmacéuticas"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Modalidad mixta en una misma vineta: la formulacion de solidos y/o liquidos se presenta sin marca (requerida por posicion en la seccion de Conocimientos) mientras que 'otras formas' lleva marca de preferencia. Se anota el claim principal como REQUIRED y se registra el alcance deseable como qualifier, en lugar de emitir dos claims con modalidades distintas sobre el mismo objeto.",
+   "compositionNote": "'y/o' preserva la disyuncion inclusiva entre solidos y liquidos."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Buen manejo de documentación y normativas (GMP).",
+   "primaryExcerpt": "- Buen manejo de documentación y normativas (GMP)",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: buen manejo",
+    "objeto: documentación",
+    "objeto: normativas GMP"
+   ],
+   "auxiliaryExcerpts": [
+    "- Registrar y documentar ensayos conforme a normativas vigentes"
+   ]
+  },
+  {
+   "goldId": "g06",
+   "claim": "Inglés técnico (deseable).",
+   "primaryExcerpt": "- Inglés técnico (deseable)",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseable",
+    "idioma: inglés",
+    "alcance: técnico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'tecnico' acota el alcance del idioma y es material."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Desarrollar y optimizar formulaciones de distintas formas farmacéuticas.",
+   "primaryExcerpt": "- Desarrollar y optimizar formulaciones de distintas formas farmacéuticas",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: desarrollar y optimizar",
+    "objeto: formulaciones",
+    "alcance: distintas formas farmacéuticas"
+   ],
+   "auxiliaryExcerpts": [
+    "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial."
+   ],
+   "compositionNote": "Capacidad integrada (§5)."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Elaborar lotes a escala laboratorio y piloto.",
+   "primaryExcerpt": "- Elaborar lotes a escala laboratorio y piloto",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: elaborar lotes",
+    "escalas: laboratorio y piloto"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Las dos escalas delimitan el alcance de una misma actividad."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Definir y ejecutar protocolos de desarrollo.",
+   "primaryExcerpt": "- Definir y ejecutar protocolos de desarrollo",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: definir y ejecutar",
+    "objeto: protocolos de desarrollo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): definir sin ejecutar no satisface el criterio tal como se enuncia."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Realizar ensayos farmacotécnicos y analizar resultados.",
+   "primaryExcerpt": "- Realizar ensayos farmacotécnicos y analizar resultados",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: realizar ensayos y analizar resultados",
+    "objeto: ensayos farmacotécnicos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g11",
+   "claim": "Registrar y documentar ensayos conforme a normativas vigentes.",
+   "primaryExcerpt": "- Registrar y documentar ensayos conforme a normativas vigentes",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: registrar y documentar",
+    "objeto: ensayos",
+    "restricción: conforme a normativas vigentes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g12",
+   "claim": "Participar en el escalado y seguimiento de lotes en planta productiva.",
+   "primaryExcerpt": "- Participar en el escalado y seguimiento de lotes en planta productiva",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: escalado y seguimiento de lotes",
+    "entorno: planta productiva"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g13",
+   "claim": "Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.).",
+   "primaryExcerpt": "- Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.)",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: documentación técnica",
+    "alcance ejemplificado: guías de manufactura, reportes"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Coordinar actividades con Producción, Control de Calidad y otras áreas.",
+   "primaryExcerpt": "- Coordinar actividades con Producción, Control de Calidad y otras áreas",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: coordinar",
+    "interlocutores: Producción, Control de Calidad, otras áreas"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Colinda con el caso 'colaborar con equipos' de §6; se anota como Requirement porque 'coordinar actividades' es una capacidad operativa y no una mera descripcion del entorno."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Somos un laboratorio farmacéutico argentino de especialidades medicinales con más de 25 años de trayectoria en el mercado.",
+   "reason": "Prosa institucional. 'mas de 25 anos' es antiguedad de la empresa, NO experiencia exigida; confundirlo seria una alucinacion material."
+  },
+  {
+   "excerpt": "El espíritu emprendedor y la creatividad de las más de 200 personas que trabajan día a día para llegar a todas las farmacias y droguerías del país son el motor fundamental de nuestra organización; gracias al cual logramos un sostenido crecimiento y expansión desde nuestro origen.",
+   "reason": "Prosa institucional con cifra de plantilla."
+  },
+  {
+   "excerpt": "Hoy, con 2 plantas farmacéuticas G.M.P (Good Manufacturing Practices), más de 4500m2 ubicados en Capital Federal y Provincia de Buenos Aires desarrollamos, elaboramos y comercializamos productos medicinales que garantizan un sano consejo farmacéutico.",
+   "reason": "Contexto de la empresa. Menciona GMP como caracteristica de sus plantas, no como requisito; el requisito GMP se establece por separado en Conocimientos (g05)."
+  },
+  {
+   "excerpt": "Nuestro alcance global llegando a más de 7 países nos motiva y desafía más allá de nuestros límites.",
+   "reason": "Prosa institucional."
+  },
+  {
+   "excerpt": "l reconocimiento de nuestras más de 50 marcas está validado por miles de familias que eligen cada día Bucoangin, para tratar el dolor de garganta; Tavinex, para aliviar la tos; Lacrigestina, para el ojo seco; Ibulgia, para bajar la fiebre y Midermus, para cuidar la piel.",
+   "reason": "Catalogo de marcas de la empresa; ninguna es un criterio del holder."
+  },
+  {
+   "excerpt": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+   "reason": "Declaracion de valores corporativos ubicada fuera de la seccion de requisitos. Caso limite deliberado: usa el verbo 'Valoramos' pero se enuncia sobre la organizacion, no como criterio de seleccion. Se registra tambien como pasaje ambiguo."
+  },
+  {
+   "excerpt": "## Job function\n\nBusiness Development and Sales",
+   "reason": "Metadata de la plataforma LinkedIn, ademas incorrecta respecto del puesto real."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+   "note": "Un anotador razonable podria emitir un Requirement PREFERRED de proactividad y mejora continua. Aqui se trata como prosa de valores por su ubicacion fuera del bloque de Requisitos. No se penaliza si el extractor lo emite."
+  }
+ ],
+ "annotationNotes": "Aviso farmaceutico argentino con seccion de requisitos muy compacta y tres modalidades distintas en cuatro lineas: '(excluyente)', 'Se valorara' y '(deseable)'. El bloque institucional posterior esta lleno de cifras de la empresa ('mas de 25 anos', 'mas de 200 personas', 'mas de 50 marcas') que son trampas de contexto-vs-requisito.",
+ "objectiveId": "EMP_067",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "c81ccfe3a57f84ea520f2a7dfe1ad8ca01946914af70b285984943d6751c2668",
+ "requirementCount": 14
+}

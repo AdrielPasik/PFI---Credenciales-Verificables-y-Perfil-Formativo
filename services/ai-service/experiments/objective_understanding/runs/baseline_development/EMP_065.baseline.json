@@ -1,0 +1,691 @@
+{
+ "objectiveId": "EMP_065",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 42,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "*¿Quieres formar parte de la empresa líder del sector energético?**",
+    "primarySourceQuote": "*¿Quieres formar parte de la empresa líder del sector energético?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 26,
+     "charEnd": 93
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Si te motiva el reto de la transición energética en España y quieres ser parte de él, ¿te apuntas al desafío?",
+    "primarySourceQuote": "Si te motiva el reto de la transición energética en España y quieres ser parte de él, ¿te apuntas al desafío?",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 94,
+     "charEnd": 203
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Nacimos como el primer TSO del mundo. Hoy somos un gestor global de infraestructuras esenciales de electricidad y telecomunicaciones y protagonistas de la transformación ecológica y digital. La identidad de Redeia refleja nuestro verdadero núcleo central: la red. Una red compuesta por cinco marcas, más de 2.100 profesionales y millones de personas unidas por el valor de lo esencial.",
+    "primarySourceQuote": "Nacimos como el primer TSO del mundo. Hoy somos un gestor global de infraestructuras esenciales de electricidad y telecomunicaciones y protagonistas de la transformación ecológica y digital. La identidad de Redeia refleja nuestro verdadero núcleo central: la red. Una red compuesta por cinco marcas, más de 2.100 profesionales y millones de personas unidas por el valor de lo esencial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 226,
+     "charEnd": 611
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Nuestro propósito: garantizar el suministro eléctrico y la conectividad, impulsando con criterios de sostenibilidad, una transición ecológica justa, poniendo en valor nuestra neutralidad y contribuyendo a la cohesión social y territorial. ¡Estamos preparados!",
+    "primarySourceQuote": "Nuestro propósito: garantizar el suministro eléctrico y la conectividad, impulsando con criterios de sostenibilidad, una transición ecológica justa, poniendo en valor nuestra neutralidad y contribuyendo a la cohesión social y territorial. ¡Estamos preparados!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 612,
+     "charEnd": 871
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "En Red eléctrica, empresa de Redeia, más de 1.200 personas estamos pendientes de un gesto tuyo, para llevarte la energía que necesitas en cada momento. Transportamos la electricidad en alta tensión y operamos el sistema eléctrico prestando un servicio de máxima calidad.",
+    "primarySourceQuote": "En Red eléctrica, empresa de Redeia, más de 1.200 personas estamos pendientes de un gesto tuyo, para llevarte la energía que necesitas en cada momento. Transportamos la electricidad en alta tensión y operamos el sistema eléctrico prestando un servicio de máxima calidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 873,
+     "charEnd": 1143
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Estamos buscando incorporar un/a Técnico/a Ingeniería de Telecomunicaciones para formar parte del equipo Dp. Telecomunicaciones de Red Eléctrica.",
+    "primarySourceQuote": "Estamos buscando incorporar un/a Técnico/a Ingeniería de Telecomunicaciones para formar parte del equipo Dp. Telecomunicaciones de Red Eléctrica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1145,
+     "charEnd": 1290
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "*Funciones básicas** 1. Diseño y evolución de redes de telecomunicaciones: participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, su adecuación a entornos de misión crítica y su alineación con las necesidades del sistema eléctrico.",
+    "primarySourceQuote": "*Funciones básicas** 1. Diseño y evolución de redes de telecomunicaciones: participar en el diseño, revisión y evolución de las redes de telecomunicaciones corporativas y operativas, asegurando su coherencia técnica, su adecuación a entornos de misión crítica y su alineación con las necesidades del sistema eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1293,
+     "charEnd": 1611
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Desarrollo de proyectos de evolución tecnológica: elaborar, analizar y presentar proyectos técnicos con especial foco en nuevas tecnologías de telecomunicaciones, incluyendo redes IP, transmisión óptica y otras soluciones avanzadas, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "primarySourceQuote": "Desarrollo de proyectos de evolución tecnológica: elaborar, analizar y presentar proyectos técnicos con especial foco en nuevas tecnologías de telecomunicaciones, incluyendo redes IP, transmisión óptica y otras soluciones avanzadas, valorando su viabilidad técnica, impacto operativo e integración en la red existente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1616,
+     "charEnd": 1934
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Soporte técnico experto a infraestructuras críticas: dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas las infraestructuras desplegadas en subestaciones eléctricas, apoyando a otras áreas en la resolución de incidencias complejas y en la mejora de la continuidad del servicio.",
+    "primarySourceQuote": "Soporte técnico experto a infraestructuras críticas: dar soporte técnico especializado a redes y sistemas de telecomunicaciones de misión crítica, incluidas las infraestructuras desplegadas en subestaciones eléctricas, apoyando a otras áreas en la resolución de incidencias complejas y en la mejora de la continuidad del servicio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1939,
+     "charEnd": 2269
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Especificaciones técnicas y evaluación de soluciones: elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "primarySourceQuote": "Especificaciones técnicas y evaluación de soluciones: elaborar y revisar especificaciones técnicas, documentación de diseño y criterios de implantación, así como participar en la evaluación técnica de soluciones, ofertas y propuestas de fabricantes o integradores.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2274,
+     "charEnd": 2538
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Coordinación transversal y relación con terceros.",
+    "primarySourceQuote": "Coordinación transversal y relación con terceros.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2539,
+     "charEnd": 2588
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, favoreciendo una visión transversal de los proyectos y asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "primarySourceQuote": "Coordinar actuaciones técnicas con fabricantes, integradores, operadores y otras áreas internas, favoreciendo una visión transversal de los proyectos y asegurando una implantación ordenada, robusta y alineada con los estándares del departamento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2589,
+     "charEnd": 2834
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Impulso de buenas prácticas y evolución tecnológica del área.",
+    "primarySourceQuote": "Impulso de buenas prácticas y evolución tecnológica del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2835,
+     "charEnd": 2896
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "primarySourceQuote": "Contribuir a la definición de estándares, buenas prácticas y criterios técnicos del Departamento, aportando una visión tecnóloga y proactiva sobre soluciones modernas de transmisión, voz, sincronismo y evolución de redes, con interés continuo por el aprendizaje y la innovación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2897,
+     "charEnd": 3175
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "*Requisitos** 1. Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "primarySourceQuote": "*Requisitos** 1. Titulación requerida: Ingeniería de Telecomunicación o titulación equivalente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3178,
+     "charEnd": 3273
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "primarySourceQuote": "Formación deseable: certificaciones o formación específica en redes IP, transmisión óptica, sincronización de red, automatización industrial o tecnologías del sector eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3275,
+     "charEnd": 3451
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "primarySourceQuote": "Se valorarán certificaciones en tecnologías IP y redes (CCNA, CCNP o equivalentes), así como formación o certificación en IEC 61850 y/o PTP.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3453,
+     "charEnd": 3593
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Experiencia de al menos 3 años en funciones similares.",
+    "primarySourceQuote": "Experiencia de al menos 3 años en funciones similares.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3623,
+     "charEnd": 3677
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "primarySourceQuote": "Experiencia consolidada en redes de telecomunicaciones, preferiblemente en entornos industriales o infraestructuras críticas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3679,
+     "charEnd": 3804
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "primarySourceQuote": "Experiencia en redes de misión crítica y servicios de alta disponibilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3806,
+     "charEnd": 3880
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "primarySourceQuote": "Participación en proyectos de evolución tecnológica y coordinación transversal con distintas áreas y proveedores.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3882,
+     "charEnd": 3995
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "primarySourceQuote": "Se valorará experiencia en transmisión, voz, sincronismo de red, entornos de subestaciones o tecnologías asociadas al sector eléctrico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3997,
+     "charEnd": 4132
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "primarySourceQuote": "Se valorará experiencia en soporte técnico avanzado y en análisis de soluciones con alto componente tecnológico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4134,
+     "charEnd": 4246
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Capacidades personales (soft skills)",
+    "primarySourceQuote": "Capacidades personales (soft skills)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4251,
+     "charEnd": 4287
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "primarySourceQuote": "Perfil tecnólogo: interés real por la tecnología, curiosidad técnica y motivación por aprender y profundizar en nuevas soluciones de telecomunicaciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4289,
+     "charEnd": 4441
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "primarySourceQuote": "Capacidad de diseño y análisis: criterio técnico para evaluar alternativas, estructurar soluciones y defender propuestas de evolución tecnológica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4443,
+     "charEnd": 4589
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "primarySourceQuote": "Rigor técnico y foco en continuidad de servicio: orientación a la fiabilidad, robustez y disponibilidad en entornos de misión crítica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4591,
+     "charEnd": 4725
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "primarySourceQuote": "Colaboración transversal: capacidad para trabajar de forma coordinada con otras áreas, proveedores y fabricantes en entornos multidisciplinares.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4727,
+     "charEnd": 4871
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "primarySourceQuote": "Autonomía y comunicación clara: capacidad para desenvolverse con independencia en entornos técnicos complejos y explicar con claridad los aspectos clave de una solución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4873,
+     "charEnd": 5042
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "primarySourceQuote": "Orientación a la evolución y mejora continua: actitud proactiva para identificar oportunidades de modernización y aportar valor técnico al desarrollo futuro del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5044,
+     "charEnd": 5210
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "primarySourceQuote": "Nivel alto de inglés (B2-C1), especialmente para documentación técnica e interlocución con fabricantes y/o ponencias públicas en el extranjero.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5215,
+     "charEnd": 5358
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "primarySourceQuote": "Disponibilidad para colaboración transversal y participación en proyectos con componente técnico relevante.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5360,
+     "charEnd": 5467
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_33",
+    "order": 33,
+    "proposedRequirementText": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "primarySourceQuote": "Disponibilidad para viajes nacionales e internacionales de modo puntual en el año.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5469,
+     "charEnd": 5551
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_34",
+    "order": 34,
+    "proposedRequirementText": "*¿Qué más podemos ofrecerte?**",
+    "primarySourceQuote": "*¿Qué más podemos ofrecerte?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5554,
+     "charEnd": 5584
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_35",
+    "order": 35,
+    "proposedRequirementText": "Un empleo estable y de calidad, donde la empleabilidad y la movilidad funcional son palancas clave de crecimiento y desarrollo profesional.",
+    "primarySourceQuote": "Un empleo estable y de calidad, donde la empleabilidad y la movilidad funcional son palancas clave de crecimiento y desarrollo profesional.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5588,
+     "charEnd": 5727
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_36",
+    "order": 36,
+    "proposedRequirementText": "Un ambiente que promueve la diversidad e igualdad.",
+    "primarySourceQuote": "Un ambiente que promueve la diversidad e igualdad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5730,
+     "charEnd": 5780
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_37",
+    "order": 37,
+    "proposedRequirementText": "Equilibrio entre tu vida personal y profesional, poniendo a tu disposición diferentes medidas de conciliación.",
+    "primarySourceQuote": "Equilibrio entre tu vida personal y profesional, poniendo a tu disposición diferentes medidas de conciliación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5783,
+     "charEnd": 5893
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_38",
+    "order": 38,
+    "proposedRequirementText": "Un modelo de compensación justo y competitivo con el mercado, orientado a disminuir la brecha salarial entre hombres y mujeres y facilitando la igualdad de oportunidades.",
+    "primarySourceQuote": "Un modelo de compensación justo y competitivo con el mercado, orientado a disminuir la brecha salarial entre hombres y mujeres y facilitando la igualdad de oportunidades.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5896,
+     "charEnd": 6066
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_39",
+    "order": 39,
+    "proposedRequirementText": "Un proyecto de futuro clave dentro del sector y ¡contamos contigo para llevarlo a cabo!.",
+    "primarySourceQuote": "Un proyecto de futuro clave dentro del sector y ¡contamos contigo para llevarlo a cabo!.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6069,
+     "charEnd": 6157
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_40",
+    "order": 40,
+    "proposedRequirementText": "*Principales compromisos de la compañía**",
+    "primarySourceQuote": "*Principales compromisos de la compañía**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6160,
+     "charEnd": 6201
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_41",
+    "order": 41,
+    "proposedRequirementText": "En Redeia celebramos el talento y la diversidad y apostamos por una cultura inclusiva, donde las personas empleadas trabajan para generar valor a la sociedad y mejorar la vida de las personas, fieles a sus valores éticos: respeto, integridad, sostenibilidad. Consideramos esencial promover un entorno de trabajo de calidad basado en el comportamiento ético, el respeto, la diversidad y la igualdad de oportunidades. Un compromiso integrado en nuestra cultura corporativa y en las políticas internas de la compañía ¿te vas a perder la oportunidad de desarrollarte con nosotras/os? ¡Ven a conocernos!",
+    "primarySourceQuote": "En Redeia celebramos el talento y la diversidad y apostamos por una cultura inclusiva, donde las personas empleadas trabajan para generar valor a la sociedad y mejorar la vida de las personas, fieles a sus valores éticos: respeto, integridad, sostenibilidad. Consideramos esencial promover un entorno de trabajo de calidad basado en el comportamiento ético, el respeto, la diversidad y la igualdad de oportunidades. Un compromiso integrado en nuestra cultura corporativa y en las políticas internas de la compañía ¿te vas a perder la oportunidad de desarrollarte con nosotras/os? ¡Ven a conocernos!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6202,
+     "charEnd": 6800
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Descripción del puesto",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_42",
+    "order": 42,
+    "proposedRequirementText": "Renewable Energy Semiconductor Manufacturing, Oil and Gas, and Telecommunications",
+    "primarySourceQuote": "Renewable Energy Semiconductor Manufacturing, Oil and Gas, and Telecommunications",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6961,
+     "charEnd": 7042
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Industries",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 42,
+   "quotesTotal": 42,
+   "quotesFoundLiterally": 42,
+   "primaryUnique": 42,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

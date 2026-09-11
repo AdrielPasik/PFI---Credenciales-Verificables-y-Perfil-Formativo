@@ -1,0 +1,659 @@
+{
+ "objectiveId": "EMP_043",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 40,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "*Requerimientos del cargo**",
+    "primarySourceQuote": "*Requerimientos del cargo**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1,
+     "charEnd": 28
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "**Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot); **frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+    "primarySourceQuote": "**Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot); **frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 55,
+     "charEnd": 224
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "**Diseño, implementación y consumo de APIs** REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "primarySourceQuote": "**Diseño, implementación y consumo de APIs** REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 227,
+     "charEnd": 371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "**Arquitecturas de microservicios**: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "primarySourceQuote": "**Arquitecturas de microservicios**: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 374,
+     "charEnd": 526
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "**Bases de datos relacionales y NoSQL**: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes, en diseño, desarrollo y optimización.",
+    "primarySourceQuote": "**Bases de datos relacionales y NoSQL**: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes, en diseño, desarrollo y optimización.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 529,
+     "charEnd": 669
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "**Cloud**: desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "primarySourceQuote": "**Cloud**: desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 672,
+     "charEnd": 873
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "**Contenedores y DevOps**: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "primarySourceQuote": "**Contenedores y DevOps**: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 876,
+     "charEnd": 996
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "**Desarrollo asistido por IA**: asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "primarySourceQuote": "**Desarrollo asistido por IA**: asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 999,
+     "charEnd": 1221
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "**Desarrollo seguro y gestión de vulnerabilidades**: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "primarySourceQuote": "**Desarrollo seguro y gestión de vulnerabilidades**: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1224,
+     "charEnd": 1366
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "**Pruebas y aseguramiento de calidad**: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "primarySourceQuote": "**Pruebas y aseguramiento de calidad**: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1369,
+     "charEnd": 1491
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "**Control de versiones** con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "primarySourceQuote": "**Control de versiones** con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1494,
+     "charEnd": 1636
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "**Documentación técnica**: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "primarySourceQuote": "**Documentación técnica**: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1639,
+     "charEnd": 1803
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "**Protección de datos personales**: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "primarySourceQuote": "**Protección de datos personales**: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1806,
+     "charEnd": 1989
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "*Requisitos formales del cargo público:**",
+    "primarySourceQuote": "*Requisitos formales del cargo público:**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1991,
+     "charEnd": 2032
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "primarySourceQuote": "Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2036,
+     "charEnd": 2190
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Al menos 5 años de experiencia en desarrollo de software.",
+    "primarySourceQuote": "Al menos 5 años de experiencia en desarrollo de software.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2193,
+     "charEnd": 2250
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Diseñar, desarrollar y evolucionar componentes **backend, frontend y servicios de ClaveÚnica**, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "primarySourceQuote": "Diseñar, desarrollar y evolucionar componentes **backend, frontend y servicios de ClaveÚnica**, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2279,
+     "charEnd": 2498
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "primarySourceQuote": "Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2501,
+     "charEnd": 2665
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Desarrollar e integrar **servicios, APIs y componentes reutilizables**, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "primarySourceQuote": "Desarrollar e integrar **servicios, APIs y componentes reutilizables**, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2668,
+     "charEnd": 2805
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Implementar controles de seguridad durante el ciclo de vida del desarrollo (**Secure by Design**), conforme a OWASP Top 10 y OWASP ASVS.",
+    "primarySourceQuote": "Implementar controles de seguridad durante el ciclo de vida del desarrollo (**Secure by Design**), conforme a OWASP Top 10 y OWASP ASVS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2808,
+     "charEnd": 2944
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Implementar mecanismos de **autenticación, autorización y control de acceso**, integrados con las plataformas de identidad digital del Estado.",
+    "primarySourceQuote": "Implementar mecanismos de **autenticación, autorización y control de acceso**, integrados con las plataformas de identidad digital del Estado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2947,
+     "charEnd": 3089
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Desarrollar y mantener **pruebas unitarias, de integración y automatizadas** dentro de los procesos de CI/CD.",
+    "primarySourceQuote": "Desarrollar y mantener **pruebas unitarias, de integración y automatizadas** dentro de los procesos de CI/CD.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3092,
+     "charEnd": 3201
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Mantener la **documentación técnica y funcional**: APIs, diagramas, manuales y procedimientos de operación.",
+    "primarySourceQuote": "Mantener la **documentación técnica y funcional**: APIs, diagramas, manuales y procedimientos de operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3204,
+     "charEnd": 3311
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Participar en el despliegue, la estabilización y el **soporte de postproducción**, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "primarySourceQuote": "Participar en el despliegue, la estabilización y el **soporte de postproducción**, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3314,
+     "charEnd": 3466
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Usar herramientas de **desarrollo asistido por IA** para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "primarySourceQuote": "Usar herramientas de **desarrollo asistido por IA** para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3469,
+     "charEnd": 3645
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**.",
+    "primarySourceQuote": "Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3648,
+     "charEnd": 3768
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "Colaborar con arquitectos, líderes técnicos y los equipos de **DevSecOps, SRE, QA y UX** en el diseño, la construcción y la mejora de las plataformas.",
+    "primarySourceQuote": "Colaborar con arquitectos, líderes técnicos y los equipos de **DevSecOps, SRE, QA y UX** en el diseño, la construcción y la mejora de las plataformas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3771,
+     "charEnd": 3921
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "Desarrollar soluciones con los controles técnicos para cumplir la **Ley N° 21.719 de Protección de Datos Personales** y las políticas de seguridad de la información.",
+    "primarySourceQuote": "Desarrollar soluciones con los controles técnicos para cumplir la **Ley N° 21.719 de Protección de Datos Personales** y las políticas de seguridad de la información.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3924,
+     "charEnd": 4089
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Participar en **revisiones de código**, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "primarySourceQuote": "Participar en **revisiones de código**, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4092,
+     "charEnd": 4211
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "primarySourceQuote": "Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4214,
+     "charEnd": 4285
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "Suman, pero no son excluyentes.",
+    "primarySourceQuote": "Suman, pero no son excluyentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4303,
+     "charEnd": 4334
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "primarySourceQuote": "Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4338,
+     "charEnd": 4443
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_33",
+    "order": 33,
+    "proposedRequirementText": "**Observabilidad y monitoreo**: Grafana, Kibana, New Relic y/o Wazuh.",
+    "primarySourceQuote": "**Observabilidad y monitoreo**: Grafana, Kibana, New Relic y/o Wazuh.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4446,
+     "charEnd": 4515
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_34",
+    "order": 34,
+    "proposedRequirementText": "*Beneficios y condiciones**",
+    "primarySourceQuote": "*Beneficios y condiciones**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4518,
+     "charEnd": 4545
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_35",
+    "order": 35,
+    "proposedRequirementText": "*Renta.** $4.020.000 bruto mensual. Para acceder a este monto se debe acreditar **10 años de experiencia laboral, o 5 años más grado de magíster o doctor**, conforme al Instructivo sobre buen uso de los recursos fiscales.",
+    "primarySourceQuote": "*Renta.** $4.020.000 bruto mensual. Para acceder a este monto se debe acreditar **10 años de experiencia laboral, o 5 años más grado de magíster o doctor**, conforme al Instructivo sobre buen uso de los recursos fiscales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4548,
+     "charEnd": 4769
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_36",
+    "order": 36,
+    "proposedRequirementText": "Calidad jurídica **Honorarios**.",
+    "primarySourceQuote": "Calidad jurídica **Honorarios**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4791,
+     "charEnd": 4823
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_37",
+    "order": 37,
+    "proposedRequirementText": "44 horas semanales, lunes a viernes, **presencial** en Teatinos 92, piso 9, Santiago centro.",
+    "primarySourceQuote": "44 horas semanales, lunes a viernes, **presencial** en Teatinos 92, piso 9, Santiago centro.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4826,
+     "charEnd": 4918
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_38",
+    "order": 38,
+    "proposedRequirementText": "Permisos administrativos.",
+    "primarySourceQuote": "Permisos administrativos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4938,
+     "charEnd": 4963
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_39",
+    "order": 39,
+    "proposedRequirementText": "Capacitación y desarrollo profesional.",
+    "primarySourceQuote": "Capacitación y desarrollo profesional.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4979,
+     "charEnd": 5017
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_40",
+    "order": 40,
+    "proposedRequirementText": "Oficina a pasos del metro, en pleno centro de Santiago.",
+    "primarySourceQuote": "Oficina a pasos del metro, en pleno centro de Santiago.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5020,
+     "charEnd": 5075
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 40,
+   "quotesTotal": 40,
+   "quotesFoundLiterally": 40,
+   "primaryUnique": 40,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

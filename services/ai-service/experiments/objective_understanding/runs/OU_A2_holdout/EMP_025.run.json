@@ -1,0 +1,427 @@
+{
+ "objectiveId": "EMP_025",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 26989,
+ "usage": {
+  "input_tokens": 2232,
+  "input_tokens_details": {
+   "cache_write_tokens": 2229,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2475,
+  "output_tokens_details": {
+   "reasoning_tokens": 436
+  },
+  "total_tokens": 4707
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Diseñar y desarrollar hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "primarySourceQuote": "La persona seleccionada será responsable del diseño y desarrollo de hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": ""
+   },
+   {
+    "proposedRequirementText": "Diseñar y desarrollar hardware de RF, incluyendo transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia y receptores.",
+    "primarySourceQuote": "- Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**"
+   },
+   {
+    "proposedRequirementText": "Elaborar esquemáticos y diagramas funcionales, seleccionar componentes y definir el ruteo de PCB.",
+    "primarySourceQuote": "- Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**"
+   },
+   {
+    "proposedRequirementText": "Realizar simulación eléctrica y electromagnética.",
+    "primarySourceQuote": "- Simulación eléctrica y electromagnética.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**"
+   },
+   {
+    "proposedRequirementText": "Elaborar documentación técnica de diseño, fabricación y ensayo.",
+    "primarySourceQuote": "- Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**"
+   },
+   {
+    "proposedRequirementText": "Realizar verificación y puesta a punto en laboratorio.",
+    "primarySourceQuote": "- Verificación y puesta a punto en laboratorio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**"
+   },
+   {
+    "proposedRequirementText": "Valorable: Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "auxiliarySourceQuotes": [
+     "- Simulación eléctrica y electromagnética."
+    ],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: manejo de instrumental de laboratorio de RF, incluyendo VNA, generadores de señal y analizadores de espectro.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: destrezas de planificación de tareas y recursos.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: flexibilidad y trabajo en equipo.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: relaciones interpersonales y capacidades de comunicación.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: visión sistémica, pensamiento crítico y capacidad analítica.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.\n- Visión sistémica, pensamiento crítico y capacidad analítica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: inglés B1/B2.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.\n- Visión sistémica, pensamiento crítico y capacidad analítica.\n- Inglés B1/B2.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**"
+   },
+   {
+    "proposedRequirementText": "Trabajo presencial en Bariloche.",
+    "primarySourceQuote": "**Lugar de trabajo: Bariloche, modalidad presencial.**",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Lugar de trabajo: Bariloche, modalidad presencial.**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Diseñar y desarrollar hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "primarySourceQuote": "La persona seleccionada será responsable del diseño y desarrollo de hardware de RF a nivel placa y subsistema, participando en etapas de simulación, diseño, integración y verificación en laboratorio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 222,
+     "charEnd": 421
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Diseñar y desarrollar hardware de RF, incluyendo transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia y receptores.",
+    "primarySourceQuote": "- Diseño y desarrollo de hardware de RF: transceivers, módulos de transmisión/recepción de sistemas radar, amplificadores de potencia, receptores, entre otros.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 458,
+     "charEnd": 617
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Elaborar esquemáticos y diagramas funcionales, seleccionar componentes y definir el ruteo de PCB.",
+    "primarySourceQuote": "- Elaboración de esquemáticos, diagramas funcionales, selección de componentes y definición de ruteo de PCB.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 618,
+     "charEnd": 726
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Realizar simulación eléctrica y electromagnética.",
+    "primarySourceQuote": "- Simulación eléctrica y electromagnética.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 727,
+     "charEnd": 769
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Elaborar documentación técnica de diseño, fabricación y ensayo.",
+    "primarySourceQuote": "- Elaboración de documentación técnica de diseño, fabricación y ensayo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 770,
+     "charEnd": 841
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Realizar verificación y puesta a punto en laboratorio.",
+    "primarySourceQuote": "- Verificación y puesta a punto en laboratorio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 842,
+     "charEnd": 889
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción de las funciones:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Valorable: Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1024
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Valorable: experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1101
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Valorable: conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1180
+    },
+    "auxiliaryAnchors": [
+     {
+      "status": "UNIQUE",
+      "occurrences": 1,
+      "charStart": 727,
+      "charEnd": 769,
+      "quote": "- Simulación eléctrica y electromagnética."
+     }
+    ],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Valorable: manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1260
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Valorable: manejo de instrumental de laboratorio de RF, incluyendo VNA, generadores de señal y analizadores de espectro.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1361
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Valorable: destrezas de planificación de tareas y recursos.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1412
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Valorable: flexibilidad y trabajo en equipo.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1448
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Valorable: relaciones interpersonales y capacidades de comunicación.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1508
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Valorable: visión sistémica, pensamiento crítico y capacidad analítica.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.\n- Visión sistémica, pensamiento crítico y capacidad analítica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1571
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Valorable: inglés B1/B2.",
+    "primarySourceQuote": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**\n\n- Ingeniería Electrónica, Telecomunicaciones o carreras afines.\n- Experiencia académica o laboral en actividades relacionadas con el puesto.\n- Conocimientos de simulación eléctrica/electromagnética, preferentemente ADS.\n- Manejo de Altium Designer o herramientas equivalentes de diseño de PCB de RF.\n- Manejo de instrumental de laboratorio de RF: VNA, generadores de señal y analizadores de espectro.\n- Destrezas de planificación de tareas y recursos.\n- Flexibilidad y trabajo en equipo.\n- Relaciones interpersonales y capacidades de comunicación.\n- Visión sistémica, pensamiento crítico y capacidad analítica.\n- Inglés B1/B2.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 891,
+     "charEnd": 1587
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles son los requisitos valorables para desarrollar este rol?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Trabajo presencial en Bariloche.",
+    "primarySourceQuote": "**Lugar de trabajo: Bariloche, modalidad presencial.**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2036,
+     "charEnd": 2090
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Lugar de trabajo: Bariloche, modalidad presencial.**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 17,
+   "quotesTotal": 18,
+   "quotesFoundLiterally": 18,
+   "primaryUnique": 17,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

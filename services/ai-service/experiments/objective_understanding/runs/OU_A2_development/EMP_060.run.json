@@ -1,0 +1,439 @@
+{
+ "objectiveId": "EMP_060",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 14569,
+ "usage": {
+  "input_tokens": 2500,
+  "input_tokens_details": {
+   "cache_write_tokens": 2497,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1291,
+  "output_tokens_details": {
+   "reasoning_tokens": 232
+  },
+  "total_tokens": 3791
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "primarySourceQuote": "- Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "primarySourceQuote": "- Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "primarySourceQuote": "- Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "primarySourceQuote": "- Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Administrar procedimientos de mantenimiento y documentación técnica.",
+    "primarySourceQuote": "- Administrar procedimientos de mantenimiento y documentación técnica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "primarySourceQuote": "- Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "primarySourceQuote": "- Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:"
+   },
+   {
+    "proposedRequirementText": "Ser graduado/a de Ingeniería Mecánica.",
+    "primarySourceQuote": "- Graduado/a de Ingeniería Mecánica",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "No excluyente: experiencia previa (aprox. 1 año) en roles similares en entorno industrial.",
+    "primarySourceQuote": "- Experiencia previa (aprox. 1 año) en roles similares en entorno industrial (no excluyente)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Inglés intermedio (lectura).",
+    "primarySourceQuote": "- Inglés intermedio (lectura).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Manejo de Office.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Manejo de SAP.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Manejo de CAD.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Manejo de SolidWorks.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Requisitos"
+   },
+   {
+    "proposedRequirementText": "Valorable: capacidad analítica y orientación a resolución de problemas.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Información adicional"
+   },
+   {
+    "proposedRequirementText": "Valorable: buenas habilidades de comunicación y trabajo en equipo.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Información adicional"
+   },
+   {
+    "proposedRequirementText": "Valorable: proactividad, dinamismo y autonomía.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Información adicional"
+   },
+   {
+    "proposedRequirementText": "Valorable: capacidad para gestionar múltiples tareas y priorizar.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.\n- Capacidad para gestionar múltiples tareas y priorizar.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Información adicional"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "primarySourceQuote": "- Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 992,
+     "charEnd": 1094
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "primarySourceQuote": "- Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1095,
+     "charEnd": 1185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "primarySourceQuote": "- Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1186,
+     "charEnd": 1269
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "primarySourceQuote": "- Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1270,
+     "charEnd": 1351
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Administrar procedimientos de mantenimiento y documentación técnica.",
+    "primarySourceQuote": "- Administrar procedimientos de mantenimiento y documentación técnica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1352,
+     "charEnd": 1422
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "primarySourceQuote": "- Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1423,
+     "charEnd": 1536
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "primarySourceQuote": "- Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1537,
+     "charEnd": 1616
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Entre sus principales responsabilidades se encuentran:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Ser graduado/a de Ingeniería Mecánica.",
+    "primarySourceQuote": "- Graduado/a de Ingeniería Mecánica",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1749,
+     "charEnd": 1784
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "No excluyente: experiencia previa (aprox. 1 año) en roles similares en entorno industrial.",
+    "primarySourceQuote": "- Experiencia previa (aprox. 1 año) en roles similares en entorno industrial (no excluyente)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1785,
+     "charEnd": 1877
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Inglés intermedio (lectura).",
+    "primarySourceQuote": "- Inglés intermedio (lectura).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1878,
+     "charEnd": 1908
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Manejo de Office.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1909,
+     "charEnd": 1964
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Manejo de SAP.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1909,
+     "charEnd": 1964
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Manejo de CAD.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1909,
+     "charEnd": 1964
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Manejo de SolidWorks.",
+    "primarySourceQuote": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1909,
+     "charEnd": 1964
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Requisitos",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Valorable: capacidad analítica y orientación a resolución de problemas.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1989,
+     "charEnd": 2076
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Información adicional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Valorable: buenas habilidades de comunicación y trabajo en equipo.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1989,
+     "charEnd": 2134
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Información adicional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Valorable: proactividad, dinamismo y autonomía.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1989,
+     "charEnd": 2173
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Información adicional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Valorable: capacidad para gestionar múltiples tareas y priorizar.",
+    "primarySourceQuote": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.\n- Capacidad para gestionar múltiples tareas y priorizar.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1989,
+     "charEnd": 2230
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Información adicional",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 18,
+   "quotesTotal": 18,
+   "quotesFoundLiterally": 18,
+   "primaryUnique": 18,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

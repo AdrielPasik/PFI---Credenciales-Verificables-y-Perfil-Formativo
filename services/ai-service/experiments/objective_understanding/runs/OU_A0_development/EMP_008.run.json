@@ -1,0 +1,615 @@
+{
+ "objectiveId": "EMP_008",
+ "candidateVersion": "OU_A0",
+ "promptVersion": "OU_A0",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 34960,
+ "usage": {
+  "input_tokens": 1839,
+  "input_tokens_details": {
+   "cache_write_tokens": 1836,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2702,
+  "output_tokens_details": {
+   "reasoning_tokens": 1194
+  },
+  "total_tokens": 4541
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Diseñar, operar y evolucionar infraestructura en la nube (principalmente AWS).",
+    "primarySourceQuote": "En el **Centro de eLearning** buscamos sumar un/a **Cloud Platform Engineer** para diseñar, operar y evolucionar nuestra infraestructura en la nube (principalmente AWS), acompañando el crecimiento de nuestros productos y equipos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": ""
+   },
+   {
+    "proposedRequirementText": "Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "primarySourceQuote": "- Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "primarySourceQuote": "- Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Implementar Infraestructura como Código (Terraform u otros).",
+    "primarySourceQuote": "- Implementar Infraestructura como Código (Terraform u otros).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "primarySourceQuote": "- Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Diseñar y mejorar pipelines CI/CD.",
+    "primarySourceQuote": "- Diseñar y mejorar pipelines CI/CD.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Asegurar observabilidad (logs, métricas, alertas).",
+    "primarySourceQuote": "- Asegurar observabilidad (logs, métricas, alertas).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "Implementar buenas prácticas de seguridad en cloud.",
+    "primarySourceQuote": "- Implementar buenas prácticas de seguridad en cloud.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**"
+   },
+   {
+    "proposedRequirementText": "+4 años en roles de Cloud / DevOps / SRE.",
+    "primarySourceQuote": "- +4 años en roles de Cloud / DevOps / SRE.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (VPC).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (IAM).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (EC2).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (ECS/EKS).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (S3).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (RDS).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia sólida en AWS (CloudWatch).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Manejo de Terraform (u otras herramientas IaC).",
+    "primarySourceQuote": "- Manejo de Terraform (u otras herramientas IaC).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia con Docker.",
+    "primarySourceQuote": "- Experiencia con Docker y plataformas de ejecución.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia con plataformas de ejecución.",
+    "primarySourceQuote": "- Experiencia con Docker y plataformas de ejecución.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "primarySourceQuote": "- Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos en observabilidad.",
+    "primarySourceQuote": "- Conocimientos en observabilidad y seguridad cloud.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos en seguridad cloud.",
+    "primarySourceQuote": "- Conocimientos en observabilidad y seguridad cloud.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Scripting (Bash / Python).",
+    "primarySourceQuote": "- Scripting (Bash / Python).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Deseable: experiencia en SRE (SLO/SLI).",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Experiencia en SRE (SLO/SLI).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**"
+   },
+   {
+    "proposedRequirementText": "Deseable: certificaciones cloud.",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Certificaciones cloud.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**"
+   },
+   {
+    "proposedRequirementText": "Deseable: uso de IA aplicada a operaciones.",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Uso de IA aplicada a operaciones.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Diseñar, operar y evolucionar infraestructura en la nube (principalmente AWS).",
+    "primarySourceQuote": "En el **Centro de eLearning** buscamos sumar un/a **Cloud Platform Engineer** para diseñar, operar y evolucionar nuestra infraestructura en la nube (principalmente AWS), acompañando el crecimiento de nuestros productos y equipos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 229
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "primarySourceQuote": "- Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 254,
+     "charEnd": 358
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "primarySourceQuote": "- Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 359,
+     "charEnd": 423
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Implementar Infraestructura como Código (Terraform u otros).",
+    "primarySourceQuote": "- Implementar Infraestructura como Código (Terraform u otros).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 424,
+     "charEnd": 486
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "primarySourceQuote": "- Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 487,
+     "charEnd": 540
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Diseñar y mejorar pipelines CI/CD.",
+    "primarySourceQuote": "- Diseñar y mejorar pipelines CI/CD.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 541,
+     "charEnd": 577
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Asegurar observabilidad (logs, métricas, alertas).",
+    "primarySourceQuote": "- Asegurar observabilidad (logs, métricas, alertas).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 578,
+     "charEnd": 630
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Implementar buenas prácticas de seguridad en cloud.",
+    "primarySourceQuote": "- Implementar buenas prácticas de seguridad en cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 631,
+     "charEnd": 684
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué vas a hacer?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "+4 años en roles de Cloud / DevOps / SRE.",
+    "primarySourceQuote": "- +4 años en roles de Cloud / DevOps / SRE.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 792,
+     "charEnd": 835
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Experiencia sólida en AWS (VPC).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Experiencia sólida en AWS (IAM).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Experiencia sólida en AWS (EC2).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Experiencia sólida en AWS (ECS/EKS).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Experiencia sólida en AWS (S3).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Experiencia sólida en AWS (RDS).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Experiencia sólida en AWS (CloudWatch).",
+    "primarySourceQuote": "- Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 836,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Manejo de Terraform (u otras herramientas IaC).",
+    "primarySourceQuote": "- Manejo de Terraform (u otras herramientas IaC).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 911,
+     "charEnd": 960
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Experiencia con Docker.",
+    "primarySourceQuote": "- Experiencia con Docker y plataformas de ejecución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 961,
+     "charEnd": 1013
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Experiencia con plataformas de ejecución.",
+    "primarySourceQuote": "- Experiencia con Docker y plataformas de ejecución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 961,
+     "charEnd": 1013
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "primarySourceQuote": "- Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1014,
+     "charEnd": 1069
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Conocimientos en observabilidad.",
+    "primarySourceQuote": "- Conocimientos en observabilidad y seguridad cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1070,
+     "charEnd": 1122
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Conocimientos en seguridad cloud.",
+    "primarySourceQuote": "- Conocimientos en observabilidad y seguridad cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1070,
+     "charEnd": 1122
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Scripting (Bash / Python).",
+    "primarySourceQuote": "- Scripting (Bash / Python).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1123,
+     "charEnd": 1151
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Deseable: experiencia en SRE (SLO/SLI).",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Experiencia en SRE (SLO/SLI).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1153,
+     "charEnd": 1210
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Deseable: certificaciones cloud.",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Certificaciones cloud.",
+    "primaryAnchor": {
+     "status": "NOT_FOUND",
+     "occurrences": 0,
+     "charStart": null,
+     "charEnd": null
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": false
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Deseable: uso de IA aplicada a operaciones.",
+    "primarySourceQuote": "**Suma puntos si tenés**\n\n- Uso de IA aplicada a operaciones.",
+    "primaryAnchor": {
+     "status": "NOT_FOUND",
+     "occurrences": 0,
+     "charStart": null,
+     "charEnd": null
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Suma puntos si tenés**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": false
+   }
+  ],
+  "counts": {
+   "candidates": 26,
+   "quotesTotal": 26,
+   "quotesFoundLiterally": 24,
+   "primaryUnique": 24,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 2,
+   "exactDuplicates": 0
+  }
+ }
+}

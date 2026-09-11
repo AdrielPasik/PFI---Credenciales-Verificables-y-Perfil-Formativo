@@ -1,0 +1,266 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Graduado/a de Ingeniería Mecánica.",
+   "primaryExcerpt": "- Graduado/a de Ingeniería Mecánica",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: graduado",
+    "carrera: Ingeniería Mecánica"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g02",
+   "claim": "Experiencia previa de aproximadamente 1 año en roles similares en entorno industrial (no excluyente).",
+   "primaryExcerpt": "- Experiencia previa (aprox. 1 año) en roles similares en entorno industrial (no excluyente)",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: no excluyente",
+    "cantidad aproximada: aprox. 1 año",
+    "alcance: roles similares",
+    "entorno: industrial"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La marca '(no excluyente)' convierte todo el claim en preferencia: tratarlo como requisito seria una inversion de negacion. La cantidad es aproximada ('aprox.') y ese matiz es material."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Inglés intermedio (lectura).",
+   "primaryExcerpt": "- Inglés intermedio (lectura).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "idioma: inglés",
+    "nivel: intermedio",
+    "habilidad acotada: lectura"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'(lectura)' acota la habilidad exigida; eliminarlo fortaleceria el claim a dominio general del idioma."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Manejo de Office.",
+   "primaryExcerpt": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Office"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: 'Manejo de herramientas' distribuye sobre cuatro herramientas independientes."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Manejo de SAP.",
+   "primaryExcerpt": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: SAP"
+   ],
+   "auxiliaryExcerpts": [
+    "- Gestionar información técnica de activos (planos, manuales, materiales) en SAP."
+   ],
+   "compositionNote": "Ver g04."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Manejo de CAD.",
+   "primaryExcerpt": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: CAD"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g04."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Manejo de SolidWorks.",
+   "primaryExcerpt": "- Manejo de herramientas: Office, SAP, CAD, SolidWorks.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: SolidWorks"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g04."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Valorado: capacidad analítica y orientación a resolución de problemas.",
+   "primaryExcerpt": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "capacidad: analítica",
+    "orientación: resolución de problemas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El excerpt abarca de forma contigua el encabezado de modalidad y la vineta (§12 P2.0)."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Valorado: buenas habilidades de comunicación y trabajo en equipo.",
+   "primaryExcerpt": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "soft skill: comunicación",
+    "soft skill: trabajo en equipo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Valorado: proactividad, dinamismo y autonomía.",
+   "primaryExcerpt": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "actitudes: proactividad, dinamismo, autonomía"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Valorado: capacidad para gestionar múltiples tareas y priorizar.",
+   "primaryExcerpt": "Valoramos perfiles con:\n\n- Capacidad analítica y orientación a resolución de problemas.\n- Buenas habilidades de comunicación y trabajo en equipo.\n- Proactividad, dinamismo y autonomía.\n- Capacidad para gestionar múltiples tareas y priorizar.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "capacidad: gestionar múltiples tareas y priorizar"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Analizar fallas mecánicas y realizar Análisis de Causa Raíz (ACR) para definir acciones correctivas.",
+   "primaryExcerpt": "- Analizar fallas mecánicas y realizar ACR (Análisis de Causa Raíz) para definir acciones correctivas.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: analizar fallas y realizar ACR",
+    "finalidad: definir acciones correctivas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): el ACR es el metodo del analisis de fallas."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+   "primaryExcerpt": "- Liderar proyectos de mejora y CAPEX, incluyendo definición técnica, compras y ejecución.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: liderar",
+    "objetos: proyectos de mejora y CAPEX",
+    "alcance: definición técnica, compras, ejecución"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+   "primaryExcerpt": "- Proponer e implementar mejoras en sistemas y equipos para optimizar la operación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: proponer e implementar",
+    "objeto: sistemas y equipos",
+    "finalidad: optimizar la operación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): proponer sin implementar no satisface el criterio tal como la fuente lo enuncia."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+   "primaryExcerpt": "- Gestionar información técnica de activos (planos, manuales, materiales) en SAP.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: información técnica de activos",
+    "alcance: planos, manuales, materiales",
+    "sistema: SAP"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Administrar procedimientos de mantenimiento y documentación técnica.",
+   "primaryExcerpt": "- Administrar procedimientos de mantenimiento y documentación técnica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: procedimientos de mantenimiento",
+    "objeto: documentación técnica"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+   "primaryExcerpt": "- Asegurar el cumplimiento de estándares de seguridad, calidad y medio ambiente durante la ejecución de trabajos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: asegurar cumplimiento",
+    "estándares: seguridad, calidad, medio ambiente",
+    "momento: ejecución de trabajos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g18",
+   "claim": "Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+   "primaryExcerpt": "- Realizar seguimiento de órdenes de compra y servicios asociados a su gestión.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: seguimiento",
+    "objetos: órdenes de compra y servicios asociados"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Louis Dreyfus Company es una empresa líder en la comercialización y transformación de productos agrícolas.",
+   "reason": "Prosa institucional (§7)."
+  },
+  {
+   "excerpt": "Estructurada como una organización matricial de seis regiones geográficas y diez plataformas, Louis Dreyfus Company opera en más de 100 países y emplea aproximadamente a 18.000 personas en todo el mundo.",
+   "reason": "Cifras corporativas ('mas de 100 paises', '18.000 personas') que no son qualifiers de requisito."
+  },
+  {
+   "excerpt": "El propósito del rol es asegurar la confiabilidad de los equipos y procesos, garantizando su funcionamiento continuo sin fallas y promoviendo mejoras que maximicen la performance y eficiencia operativa.",
+   "reason": "Proposito del puesto; el contenido evaluable se detalla en las viñetas de responsabilidades."
+  },
+  {
+   "excerpt": "Se trata de una posición con fuerte foco en análisis técnico, mejora continua y optimización de activos industriales.",
+   "reason": "Caracterizacion del puesto, no criterio."
+  },
+  {
+   "excerpt": "- Salario y Beneficios Competitivos.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Licencia por Maternidad y Paternidad Extendida.",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "LDC es una empresa que ofrece igualdad de oportunidades y se compromete a proporcionar un entorno de trabajo que adopte y valore la diversidad, la equidad y la inclusión.",
+   "reason": "Declaracion de igualdad de oportunidades. Contiene 'valore' pero no marca preferencia sobre ningun criterio del holder."
+  },
+  {
+   "excerpt": "El valor sustentable está en el centro de nuestro propósito como empresa.",
+   "reason": "Prosa de sostenibilidad corporativa."
+  },
+  {
+   "excerpt": "## Seniority level\n\nNot Applicable",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [],
+ "annotationNotes": "Caso central de negacion del bloque de Development: '(no excluyente)' al final de la unica linea de experiencia. Ademas contiene un nivel de idioma acotado por habilidad ('Ingles intermedio (lectura)') y un encabezado de preferencia ('Valoramos perfiles con:') que gobierna cuatro viñetas.",
+ "objectiveId": "EMP_060",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "0449b5132dac5619f1c72b600d821d2252e4d5b6a05bad11e3106b1f179df691",
+ "requirementCount": 18
+}

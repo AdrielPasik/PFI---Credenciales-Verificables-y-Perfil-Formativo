@@ -1,0 +1,452 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+   "primaryExcerpt": "Buscamos un perfil senior con experiencia práctica construyendo soluciones de datos en ambientes productivos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: senior",
+    "naturaleza: experiencia práctica",
+    "entorno: ambientes productivos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g02",
+   "claim": "Haber participado en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas reales de calidad, consistencia y trazabilidad.",
+   "primaryExcerpt": "Debes haber participado en el diseño y operación de data warehouses o datamarts, integrando información desde múltiples fuentes y resolviendo problemas reales de calidad, consistencia y trazabilidad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseño y operación",
+    "objeto: data warehouses o datamarts",
+    "alcance: múltiples fuentes",
+    "alcance: calidad, consistencia y trazabilidad"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): 'diseno y operacion' con dos alcances gobernados conjuntamente; separar duplicaria el objeto."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Dominio avanzado de SQL.",
+   "primaryExcerpt": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: avanzado",
+    "objeto: SQL"
+   ],
+   "auxiliaryExcerpts": [
+    "utilizando plataformas para integración de datos, SQL y Python"
+   ],
+   "compositionNote": "Separado del pipeline ETL por §4.1: los dos claims tienen qualifiers gobernantes distintos ('dominio avanzado' vs 'experiencia desarrollando')."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+   "primaryExcerpt": "Necesitamos dominio avanzado de SQL y experiencia desarrollando pipelines de extracción, transformación y carga de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "naturaleza: experiencia desarrollando",
+    "objeto: pipelines de extracción, transformación y carga"
+   ],
+   "auxiliaryExcerpts": [
+    "Construirás y mantendrás procesos de extracción, integración y transformación desde distintas fuentes"
+   ],
+   "compositionNote": "Ver g03. Las tres fases del pipeline son el alcance de un unico objeto, no tres criterios."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Capacidad de modelar información.",
+   "primaryExcerpt": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: modelar información"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: 'Esperamos que puedas' distribuye sobre cuatro capacidades independientes sin alterar cantidad ni modalidad."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Capacidad de optimizar consultas.",
+   "primaryExcerpt": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: optimizar consultas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Capacidad de implementar cargas incrementales.",
+   "primaryExcerpt": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: implementar cargas incrementales"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Capacidad de diseñar estructuras mantenibles y reutilizables.",
+   "primaryExcerpt": "Esperamos que puedas modelar información, optimizar consultas, implementar cargas incrementales y diseñar estructuras que sean mantenibles y reutilizables.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: diseñar estructuras",
+    "atributos exigidos: mantenibles y reutilizables"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05. Los dos atributos califican a un mismo objeto y no se separan."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Es requisito contar con experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+   "primaryExcerpt": "Es requisito contar con experiencia práctica utilizando dbt para desarrollar y mantener transformaciones de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: es requisito",
+    "naturaleza: experiencia práctica",
+    "objeto: dbt",
+    "actividad: desarrollar y mantener transformaciones de datos"
+   ],
+   "auxiliaryExcerpts": [
+    "con dbt como marco de trabajo para modelar, probar, documentar y desplegar transformaciones"
+   ]
+  },
+  {
+   "goldId": "g10",
+   "claim": "Estar acostumbrado a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software (modelos, dependencias, pruebas, documentación, control de versiones y despliegues).",
+   "primaryExcerpt": "El rol requerirá trabajar con modelos, dependencias, pruebas, documentación, control de versiones y despliegues, por lo que buscamos una persona acostumbrada a desarrollar soluciones de datos aplicando buenas prácticas de ingeniería de software.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "habito: acostumbrada a",
+    "marco: buenas prácticas de ingeniería de software",
+    "alcance: modelos, dependencias, pruebas, documentación, control de versiones y despliegues"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La enumeracion es el alcance del mismo criterio; preservada como compuesto."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Experiencia trabajando con plataformas de datos en cloud.",
+   "primaryExcerpt": "Debes tener experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: plataformas de datos en cloud"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: 'Debes tener experiencia trabajando con' distribuye sobre dos objetos distintos."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Experiencia con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+   "primaryExcerpt": "Debes tener experiencia trabajando con plataformas de datos en cloud y con al menos un motor o data warehouse como Amazon Redshift, Snowflake, PostgreSQL o equivalente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: al menos uno",
+    "objeto: motor o data warehouse",
+    "alternativas: Amazon Redshift, Snowflake, PostgreSQL o equivalente"
+   ],
+   "auxiliaryExcerpts": [
+    "Participarás en el diseño de modelos dimensionales y productos de datos sobre plataformas como Redshift, Snowflake y PostgreSQL"
+   ],
+   "compositionNote": "El cuantificador 'al menos un' es material: separar por motor convertiria una alternativa en tres exigencias."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+   "primaryExcerpt": "También esperamos experiencia integrando fuentes mediante APIs, bases de datos, archivos y herramientas o servicios de extracción de datos en AWS u otras plataformas cloud.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: integrar fuentes",
+    "medios: APIs, bases de datos, archivos, herramientas/servicios de extracción",
+    "entorno: AWS u otras plataformas cloud"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los medios son el alcance de una unica capacidad de integracion."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Poder utilizar Python para extracción, automatización, procesamiento o validación de datos.",
+   "primaryExcerpt": "Python será el principal lenguaje de programación complementario a SQL, por lo que debes poder utilizarlo para extracción, automatización, procesamiento o validación de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: Python",
+    "usos alternativos: extracción, automatización, procesamiento o validación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los cuatro usos van unidos por 'o' (alternativos): separar convertiria una disyuncion en cuatro exigencias."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Conocimientos de modelamiento dimensional.",
+   "primaryExcerpt": "El cargo requiere conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo conceptos como tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: modelamiento dimensional"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado de la capacidad de diseno por §4.1: los qualifiers gobernantes son distintos ('conocimientos de' vs 'capacidad para')."
+  },
+  {
+   "goldId": "g16",
+   "claim": "Capacidad para diseñar modelos orientados al análisis, comprendiendo tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+   "primaryExcerpt": "El cargo requiere conocimientos de modelamiento dimensional y capacidad para diseñar modelos orientados al análisis, comprendiendo conceptos como tablas de hechos, dimensiones, granularidad y relaciones entre entidades.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: diseñar modelos orientados al análisis",
+    "alcance conceptual: tablas de hechos, dimensiones, granularidad, relaciones entre entidades"
+   ],
+   "auxiliaryExcerpts": [
+    "Participarás en el diseño de modelos dimensionales y productos de datos sobre plataformas como Redshift, Snowflake y PostgreSQL, cuidando su calidad, trazabilidad, seguridad, rendimiento y mantenibilidad."
+   ],
+   "compositionNote": "Ver g15."
+  },
+  {
+   "goldId": "g17",
+   "claim": "Experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+   "primaryExcerpt": "También buscamos experiencia aplicando controles de calidad, documentación, seguridad y trazabilidad de datos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: aplicar",
+    "objetos: controles de calidad, documentación, seguridad, trazabilidad"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "'experiencia aplicando' distribuye sobre cuatro objetos, lo que habilitaria la separacion; pero la fuente los presenta como las facetas de una misma practica de gobierno de datos. Se aplica el default de nivel de fuente.",
+   "compositionNote": "Compuesto preservado por default de nivel de fuente."
+  },
+  {
+   "goldId": "g18",
+   "claim": "Criterio para manejar datos responsablemente, considerando acceso, confidencialidad y tratamiento de información.",
+   "primaryExcerpt": "esperamos criterio para manejar datos responsablemente y considerar aspectos de acceso, confidencialidad y tratamiento de información",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "criterio: manejo responsable de datos",
+    "alcance: acceso, confidencialidad, tratamiento"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Autonomía técnica: ser capaz de tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+   "primaryExcerpt": "Valoramos especialmente la autonomía técnica: deberás ser capaz de tomar un problema poco estructurado, comprender el proceso con usuarios de negocio, proponer una solución y llevarla a producción.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad integrada: extremo a extremo del problema a produccion",
+    "alcance: problema poco estructurado, usuarios de negocio, propuesta, puesta en produccion"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Modalidad mixta en la misma oracion: 'Valoramos especialmente' sugiere preferencia y 'deberas ser capaz de' impone obligacion. Se anota REQUIRED porque la obligacion es explicita, pero un anotador razonable podria leer PREFERRED.",
+   "compositionNote": "Los cuatro pasos describen un unico recorrido de autonomia; separarlos rompe la capacidad integrada (§5)."
+  },
+  {
+   "goldId": "g20",
+   "claim": "Comunicar bien las decisiones a públicos técnicos y no técnicos.",
+   "primaryExcerpt": "Necesitamos una persona que comunique bien sus decisiones a públicos técnicos y no técnicos, documente su trabajo y privilegie soluciones simples, sostenibles y orientadas a generar valor incremental.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: comunicar decisiones",
+    "audiencia: técnicos y no técnicos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: 'Necesitamos una persona que' distribuye sobre tres conductas independientes."
+  },
+  {
+   "goldId": "g21",
+   "claim": "Documentar su trabajo.",
+   "primaryExcerpt": "Necesitamos una persona que comunique bien sus decisiones a públicos técnicos y no técnicos, documente su trabajo y privilegie soluciones simples, sostenibles y orientadas a generar valor incremental.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "conducta: documentar el propio trabajo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g20."
+  },
+  {
+   "goldId": "g22",
+   "claim": "Privilegiar soluciones simples, sostenibles y orientadas a generar valor incremental.",
+   "primaryExcerpt": "Necesitamos una persona que comunique bien sus decisiones a públicos técnicos y no técnicos, documente su trabajo y privilegie soluciones simples, sostenibles y orientadas a generar valor incremental.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "criterio de diseño: simples, sostenibles, valor incremental"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g20. Los tres atributos califican a un mismo objeto."
+  },
+  {
+   "goldId": "g23",
+   "claim": "Formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o carrera afín.",
+   "primaryExcerpt": "Se requiere formación universitaria o técnica en Informática, Computación, Estadística, Ciencia de Datos o una carrera afín.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: universitaria o técnica",
+    "areas admitidas: Informática, Computación, Estadística, Ciencia de Datos o afín"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion de titulaciones admitidas: separar convertiria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g24",
+   "claim": "Plus: experiencia específica en AWS y servicios de integración o procesamiento de datos.",
+   "primaryExcerpt": "Será un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: será un plus",
+    "objeto: AWS y servicios de integración o procesamiento de datos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado del claim de Redshift/Snowflake por 'asi como', que introduce un segundo criterio con su propio qualifier ('experiencia profunda')."
+  },
+  {
+   "goldId": "g25",
+   "claim": "Plus: experiencia profunda con Amazon Redshift o Snowflake.",
+   "primaryExcerpt": "Será un plus contar con experiencia específica en AWS y servicios de integración o procesamiento de datos, así como experiencia profunda con Amazon Redshift o Snowflake.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: será un plus",
+    "nivel: profunda",
+    "objeto: Amazon Redshift o Snowflake (alternativos)"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g26",
+   "claim": "Valorado: conocimientos de Power BI y modelamiento semántico.",
+   "primaryExcerpt": "También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoraremos",
+    "objeto: Power BI y modelamiento semántico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La fuente separa los grupos con punto y coma; cada grupo se toma como un claim."
+  },
+  {
+   "goldId": "g27",
+   "claim": "Valorado: Git, CI/CD y prácticas de DataOps.",
+   "primaryExcerpt": "También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoraremos",
+    "objeto: Git, CI/CD, DataOps"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g26."
+  },
+  {
+   "goldId": "g28",
+   "claim": "Valorado: monitoreo y observabilidad de pipelines.",
+   "primaryExcerpt": "También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoraremos",
+    "objeto: monitoreo y observabilidad de pipelines"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g26."
+  },
+  {
+   "goldId": "g29",
+   "claim": "Valorado: gobierno, catálogo y linaje de datos.",
+   "primaryExcerpt": "También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoraremos",
+    "objeto: gobierno, catálogo y linaje de datos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g26."
+  },
+  {
+   "goldId": "g30",
+   "claim": "Valorado: experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "primaryExcerpt": "También valoraremos conocimientos de Power BI y modelamiento semántico; Git, CI/CD y prácticas de DataOps; monitoreo y observabilidad de pipelines; gobierno, catálogo y linaje de datos; y experiencia preparando datasets para analítica avanzada, machine learning o inteligencia artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoraremos",
+    "actividad: preparar datasets",
+    "destinos alternativos: analítica avanzada, machine learning o IA"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g26."
+  },
+  {
+   "goldId": "g31",
+   "claim": "Suma: experiencia en organizaciones con procesos transaccionales o regulatorios complejos, especialmente en logística, comercio exterior o agencias de aduana.",
+   "primaryExcerpt": "Sumará experiencia en organizaciones con procesos transaccionales o regulatorios complejos y, especialmente, en logística, comercio exterior o agencias de aduana.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: sumará",
+    "entorno: procesos transaccionales o regulatorios complejos",
+    "sectores preferidos: logística, comercio exterior, agencias de aduana"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El 'especialmente' refina el mismo claim y no crea un criterio separado."
+  },
+  {
+   "goldId": "g32",
+   "claim": "Valorado: conocimiento de seguridad de la información.",
+   "primaryExcerpt": "También será valorado el conocimiento de seguridad de la información y normativa de protección de datos personales.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: será valorado",
+    "objeto: seguridad de la información"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: 'el conocimiento de' distribuye sobre dos dominios normativos distintos."
+  },
+  {
+   "goldId": "g33",
+   "claim": "Valorado: conocimiento de normativa de protección de datos personales.",
+   "primaryExcerpt": "También será valorado el conocimiento de seguridad de la información y normativa de protección de datos personales.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: será valorado",
+    "objeto: normativa de protección de datos personales"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g32."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Como Ingeniero/a de Datos y Analítica trabajarás en la Subgerencia de Tecnología y Procesos, colaborando con equipos de Desarrollo, Operaciones TI, Procesos y Proyectos, además de usuarios de negocio y clientes.",
+   "reason": "Describe la ubicacion organizacional y el entorno de colaboracion; no es criterio evaluable (§6)."
+  },
+  {
+   "excerpt": "Es un rol técnico senior, sin personas a cargo, con espacio para influir en decisiones de arquitectura y en la evolución de nuestra práctica de Datos y Analítica.",
+   "reason": "Caracterizacion del puesto, no criterio del holder."
+  },
+  {
+   "excerpt": "Formar parte de una empresa con más de 40 años de trayectoria y sólida reputación en el mercado nacional, certificada en estándares internacionales de calidad y responsabilidad social.",
+   "reason": "Condiciones ofrecidas y prosa institucional. 'mas de 40 anos' es antiguedad de la empresa, NO experiencia exigida al holder; invertirlo seria una alucinacion material."
+  },
+  {
+   "excerpt": "Una vez pases a contrato indefinido, podrás optar al sistema de incentivos de la organización por cumplimiento de objetivos.",
+   "reason": "Condicion contractual ofrecida, no requisito."
+  },
+  {
+   "excerpt": "Oportunidad para desarrollarse en un entorno innovador, con tecnologías modernas y proyectos desafiantes que aportan al comercio exterior chileno.",
+   "reason": "Prosa de oferta."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Además, participarás en la operación y evolución de los pipelines, monitoreo y resolución de incidentes, implementación de controles de calidad y gobierno de datos, y preparación de información estructurada para iniciativas de automatización, analítica avanzada e inteligencia artificial.",
+   "note": "Funcion que solapa con g04, g17 y g30. Un anotador razonable podria emitir claims propios de operacion de pipelines y resolucion de incidentes; aqui se trata como funcion que reitera criterios ya establecidos."
+  },
+  {
+   "excerpt": "También desarrollarás o habilitarás modelos de datos para reportes, indicadores, paneles y modelos semánticos utilizados tanto internamente como por nuestros clientes.",
+   "note": "Podria leerse como criterio propio de construccion de modelos semanticos; solapa con g26 (Power BI y modelamiento semantico, deseable) con fuerza distinta."
+  }
+ ],
+ "annotationNotes": "Objective en prosa corrida (no viñetas) con requisitos, funciones y opcionales bien separados por seccion. Alto riesgo de confundir contexto con requisito: la empresa declara 'mas de 40 anos de trayectoria' y menciona tecnologias dentro de las funciones.",
+ "objectiveId": "EMP_052",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "5c792cee27a273b22d602e9469d1a45f5d0bb499c11a3e534213c01ba4491cea",
+ "requirementCount": 33
+}

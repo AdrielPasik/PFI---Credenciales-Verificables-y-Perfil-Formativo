@@ -1,0 +1,395 @@
+{
+ "objectiveId": "EMP_067",
+ "candidateVersion": "OU_A0",
+ "promptVersion": "OU_A0",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 18659,
+ "usage": {
+  "input_tokens": 1961,
+  "input_tokens_details": {
+   "cache_write_tokens": 1958,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1423,
+  "output_tokens_details": {
+   "reasoning_tokens": 508
+  },
+  "total_tokens": 3384
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "primarySourceQuote": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": ""
+   },
+   {
+    "proposedRequirementText": "Desarrollar y optimizar formulaciones de distintas formas farmacéuticas.",
+    "primarySourceQuote": "- Desarrollar y optimizar formulaciones de distintas formas farmacéuticas",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Elaborar lotes a escala laboratorio y piloto.",
+    "primarySourceQuote": "- Elaborar lotes a escala laboratorio y piloto",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Definir y ejecutar protocolos de desarrollo.",
+    "primarySourceQuote": "- Definir y ejecutar protocolos de desarrollo",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Realizar ensayos farmacotécnicos y analizar resultados.",
+    "primarySourceQuote": "- Realizar ensayos farmacotécnicos y analizar resultados",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Registrar y documentar ensayos conforme a normativas vigentes.",
+    "primarySourceQuote": "- Registrar y documentar ensayos conforme a normativas vigentes",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Participar en el escalado y seguimiento de lotes en planta productiva.",
+    "primarySourceQuote": "- Participar en el escalado y seguimiento de lotes en planta productiva",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.).",
+    "primarySourceQuote": "- Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Coordinar actividades con Producción, Control de Calidad y otras áreas.",
+    "primarySourceQuote": "- Coordinar actividades con Producción, Control de Calidad y otras áreas",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Ser Farmacéutico/a, Lic. en Química, Ingeniería Química o afines.",
+    "primarySourceQuote": "- Farmacéutico/a, Lic. en Química, Ingeniería Química o afines",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Formación**"
+   },
+   {
+    "proposedRequirementText": "Experiencia en desarrollo galénico (excluyente).",
+    "primarySourceQuote": "- Experiencia en desarrollo galénico (excluyente)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Experiencia**"
+   },
+   {
+    "proposedRequirementText": "Se valorará experiencia previa en áreas analíticas.",
+    "primarySourceQuote": "- Se valorará experiencia previa en áreas analíticas",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Experiencia**"
+   },
+   {
+    "proposedRequirementText": "Formulación de sólidos y/o líquidos (deseable otras formas).",
+    "primarySourceQuote": "- Formulación de sólidos y/o líquidos (deseable otras formas)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos**"
+   },
+   {
+    "proposedRequirementText": "Buen manejo de documentación y normativas (GMP).",
+    "primarySourceQuote": "- Buen manejo de documentación y normativas (GMP)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos**"
+   },
+   {
+    "proposedRequirementText": "Inglés técnico (deseable).",
+    "primarySourceQuote": "- Inglés técnico (deseable)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos**"
+   },
+   {
+    "proposedRequirementText": "Se valoran la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "primarySourceQuote": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": ""
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "primarySourceQuote": "Desarrollar nuevas formulaciones y brindar soporte galénico a planta productiva, participando en todas las etapas del proceso desde laboratorio hasta escalado industrial.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 170
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Desarrollar y optimizar formulaciones de distintas formas farmacéuticas.",
+    "primarySourceQuote": "- Desarrollar y optimizar formulaciones de distintas formas farmacéuticas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 195,
+     "charEnd": 268
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Elaborar lotes a escala laboratorio y piloto.",
+    "primarySourceQuote": "- Elaborar lotes a escala laboratorio y piloto",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 269,
+     "charEnd": 315
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Definir y ejecutar protocolos de desarrollo.",
+    "primarySourceQuote": "- Definir y ejecutar protocolos de desarrollo",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 316,
+     "charEnd": 361
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Realizar ensayos farmacotécnicos y analizar resultados.",
+    "primarySourceQuote": "- Realizar ensayos farmacotécnicos y analizar resultados",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 362,
+     "charEnd": 418
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Registrar y documentar ensayos conforme a normativas vigentes.",
+    "primarySourceQuote": "- Registrar y documentar ensayos conforme a normativas vigentes",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 419,
+     "charEnd": 482
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Participar en el escalado y seguimiento de lotes en planta productiva.",
+    "primarySourceQuote": "- Participar en el escalado y seguimiento de lotes en planta productiva",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 483,
+     "charEnd": 554
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.).",
+    "primarySourceQuote": "- Colaborar en la confección de documentación técnica (guías de manufactura, reportes, etc.)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 555,
+     "charEnd": 647
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Coordinar actividades con Producción, Control de Calidad y otras áreas.",
+    "primarySourceQuote": "- Coordinar actividades con Producción, Control de Calidad y otras áreas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 648,
+     "charEnd": 720
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Ser Farmacéutico/a, Lic. en Química, Ingeniería Química o afines.",
+    "primarySourceQuote": "- Farmacéutico/a, Lic. en Química, Ingeniería Química o afines",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 749,
+     "charEnd": 811
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Formación**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Experiencia en desarrollo galénico (excluyente).",
+    "primarySourceQuote": "- Experiencia en desarrollo galénico (excluyente)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 830,
+     "charEnd": 879
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Experiencia**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Se valorará experiencia previa en áreas analíticas.",
+    "primarySourceQuote": "- Se valorará experiencia previa en áreas analíticas",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 880,
+     "charEnd": 932
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Experiencia**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Formulación de sólidos y/o líquidos (deseable otras formas).",
+    "primarySourceQuote": "- Formulación de sólidos y/o líquidos (deseable otras formas)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 953,
+     "charEnd": 1014
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Buen manejo de documentación y normativas (GMP).",
+    "primarySourceQuote": "- Buen manejo de documentación y normativas (GMP)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1015,
+     "charEnd": 1064
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Inglés técnico (deseable).",
+    "primarySourceQuote": "- Inglés técnico (deseable)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1065,
+     "charEnd": 1092
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Se valoran la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "primarySourceQuote": "Valoramos la proactividad y el esfuerzo personal hacia la mejora continua y el conocimiento enriquecido a partir de la experiencia.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2542,
+     "charEnd": 2673
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 16,
+   "quotesTotal": 16,
+   "quotesFoundLiterally": 16,
+   "primaryUnique": 16,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

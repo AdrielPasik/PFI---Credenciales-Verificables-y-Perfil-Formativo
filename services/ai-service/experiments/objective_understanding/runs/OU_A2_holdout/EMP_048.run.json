@@ -1,0 +1,769 @@
+{
+ "objectiveId": "EMP_048",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 41255,
+ "usage": {
+  "input_tokens": 2537,
+  "input_tokens_details": {
+   "cache_write_tokens": 2534,
+   "cached_tokens": 0
+  },
+  "output_tokens": 4388,
+  "output_tokens_details": {
+   "reasoning_tokens": 935
+  },
+  "total_tokens": 6925
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Imprescindible: Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd y logs.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Infraestructura como código con Terraform o Pulumi/CloudFormation.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Contenedores y orquestación con Docker y Kubernetes.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: CI/CD con GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados y segmentación.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Gestión de secretos con Vault, AWS Secrets Manager, 1Password u otro.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Git y buenas prácticas de versionado.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.\n\nGit y buenas prácticas de versionado.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Imprescindible: Al menos un lenguaje de scripting/programación; Python es ideal por su uso en automatización.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.\n\nGit y buenas prácticas de versionado.\n\nAl menos un lenguaje de scripting/programación (Python es ideal por su uso en automatización).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**"
+   },
+   {
+    "proposedRequirementText": "Hardening por estándares CIS/NIST.",
+    "primarySourceQuote": "Hardening por estándares CIS/NIST.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**"
+   },
+   {
+    "proposedRequirementText": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades y SLA de remediación.",
+    "primarySourceQuote": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**"
+   },
+   {
+    "proposedRequirementText": "Gestión de identidades y accesos, principio de mínimo privilegio y MFA.",
+    "primarySourceQuote": "Gestión de identidades y accesos, principio de mínimo privilegio, MFA.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**"
+   },
+   {
+    "proposedRequirementText": "Respuesta a incidentes y forense básico.",
+    "primarySourceQuote": "Respuesta a incidentes y forense básico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**"
+   },
+   {
+    "proposedRequirementText": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "primarySourceQuote": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**"
+   },
+   {
+    "proposedRequirementText": "Autonomía total para ser el área de infraestructura y seguridad, sin equipo debajo.",
+    "primarySourceQuote": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Habilidades blandas**"
+   },
+   {
+    "proposedRequirementText": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+    "primarySourceQuote": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Habilidades blandas**"
+   },
+   {
+    "proposedRequirementText": "Buena comunicación y capacidad de documentar con claridad.",
+    "primarySourceQuote": "Buena comunicación y capacidad de documentar con claridad (ZIYU valora especialmente esto).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Habilidades blandas**"
+   },
+   {
+    "proposedRequirementText": "Criterio para equilibrar velocidad de entrega y seguridad.",
+    "primarySourceQuote": "Criterio para equilibrar velocidad de entrega y seguridad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Habilidades blandas**"
+   },
+   {
+    "proposedRequirementText": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes y disponibilidad.",
+    "primarySourceQuote": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Gestionar la infraestructura como código de forma versionada y reproducible con Terraform o similar.",
+    "primarySourceQuote": "Infraestructura como código: gestionar la plataforma de forma versionada y reproducible (Terraform o similar).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "primarySourceQuote": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root y políticas de red.",
+    "primarySourceQuote": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos y certificados TLS.",
+    "primarySourceQuote": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos, certificados TLS.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas, sin claves en texto plano.",
+    "primarySourceQuote": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas (sin claves en texto plano).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "primarySourceQuote": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Mantener el observability stack: monitoreo, alertas y detección de anomalías con Grafana, Sentry, PGHero o equivalentes.",
+    "primarySourceQuote": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "primarySourceQuote": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "primarySourceQuote": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades principales**"
+   },
+   {
+    "proposedRequirementText": "Deseable, no el centro del rol: familiaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales; si no la tiene de entrada, debe poder aprenderla rápido.",
+    "primarySourceQuote": "**Cumplimiento (deseable, no el centro del rol)**\n\nFamiliaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales. Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cumplimiento (deseable, no el centro del rol)**"
+   },
+   {
+    "proposedRequirementText": "Deseable y no excluyente: certificaciones técnicas/cloud, AWS Certified DevOps Engineer o Solutions Architect, y Certified Kubernetes Administrator (CKA).",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)"
+   },
+   {
+    "proposedRequirementText": "Deseable y no excluyente: AWS Security Specialty, o alguna certificación de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)"
+   },
+   {
+    "proposedRequirementText": "Deseable y no excluyente: certificación ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.\n\nDe gobierno: ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Imprescindible: Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd y logs.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 125
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Imprescindible: Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 183
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Imprescindible: Infraestructura como código con Terraform o Pulumi/CloudFormation.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 250
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Imprescindible: Contenedores y orquestación con Docker y Kubernetes.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 301
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Imprescindible: CI/CD con GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Imprescindible: Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados y segmentación.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 456
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Imprescindible: Gestión de secretos con Vault, AWS Secrets Manager, 1Password u otro.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 524
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Imprescindible: Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 580
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Imprescindible: Git y buenas prácticas de versionado.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.\n\nGit y buenas prácticas de versionado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 619
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Imprescindible: Al menos un lenguaje de scripting/programación; Python es ideal por su uso en automatización.",
+    "primarySourceQuote": "**Stack y conocimientos técnicos imprescindibles**\n\nLinux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.\n\nCloud: DigitalOcean y/o AWS (VPC, security groups, IAM).\n\nInfraestructura como código: Terraform (o Pulumi/CloudFormation).\n\nContenedores y orquestación: Docker y Kubernetes.\n\nCI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.\n\nRedes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.\n\nGestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.\n\nBases de datos, idealmente PostgreSQL, y su monitoreo.\n\nGit y buenas prácticas de versionado.\n\nAl menos un lenguaje de scripting/programación (Python es ideal por su uso en automatización).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 715
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Stack y conocimientos técnicos imprescindibles**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Hardening por estándares CIS/NIST.",
+    "primarySourceQuote": "Hardening por estándares CIS/NIST.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 769,
+     "charEnd": 803
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades y SLA de remediación.",
+    "primarySourceQuote": "DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 804,
+     "charEnd": 897
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Gestión de identidades y accesos, principio de mínimo privilegio y MFA.",
+    "primarySourceQuote": "Gestión de identidades y accesos, principio de mínimo privilegio, MFA.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 898,
+     "charEnd": 968
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Respuesta a incidentes y forense básico.",
+    "primarySourceQuote": "Respuesta a incidentes y forense básico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 969,
+     "charEnd": 1009
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "primarySourceQuote": "Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1010,
+     "charEnd": 1078
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Conocimientos de seguridad (integrados al rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Autonomía total para ser el área de infraestructura y seguridad, sin equipo debajo.",
+    "primarySourceQuote": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1105,
+     "charEnd": 1185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Habilidades blandas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+    "primarySourceQuote": "Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1186,
+     "charEnd": 1289
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Habilidades blandas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Buena comunicación y capacidad de documentar con claridad.",
+    "primarySourceQuote": "Buena comunicación y capacidad de documentar con claridad (ZIYU valora especialmente esto).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1290,
+     "charEnd": 1381
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Habilidades blandas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Criterio para equilibrar velocidad de entrega y seguridad.",
+    "primarySourceQuote": "Criterio para equilibrar velocidad de entrega y seguridad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1382,
+     "charEnd": 1440
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Habilidades blandas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes y disponibilidad.",
+    "primarySourceQuote": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1477,
+     "charEnd": 1604
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Gestionar la infraestructura como código de forma versionada y reproducible con Terraform o similar.",
+    "primarySourceQuote": "Infraestructura como código: gestionar la plataforma de forma versionada y reproducible (Terraform o similar).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1606,
+     "charEnd": 1716
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "primarySourceQuote": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1718,
+     "charEnd": 1835
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root y políticas de red.",
+    "primarySourceQuote": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1837,
+     "charEnd": 1974
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos y certificados TLS.",
+    "primarySourceQuote": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos, certificados TLS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1976,
+     "charEnd": 2071
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas, sin claves en texto plano.",
+    "primarySourceQuote": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas (sin claves en texto plano).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2073,
+     "charEnd": 2204
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "primarySourceQuote": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2206,
+     "charEnd": 2259
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_27",
+    "order": 27,
+    "proposedRequirementText": "Mantener el observability stack: monitoreo, alertas y detección de anomalías con Grafana, Sentry, PGHero o equivalentes.",
+    "primarySourceQuote": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2261,
+     "charEnd": 2379
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_28",
+    "order": 28,
+    "proposedRequirementText": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "primarySourceQuote": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2381,
+     "charEnd": 2496
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_29",
+    "order": 29,
+    "proposedRequirementText": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "primarySourceQuote": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2498,
+     "charEnd": 2642
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades principales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_30",
+    "order": 30,
+    "proposedRequirementText": "Deseable, no el centro del rol: familiaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales; si no la tiene de entrada, debe poder aprenderla rápido.",
+    "primarySourceQuote": "**Cumplimiento (deseable, no el centro del rol)**\n\nFamiliaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales. Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2644,
+     "charEnd": 2921
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cumplimiento (deseable, no el centro del rol)**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_31",
+    "order": 31,
+    "proposedRequirementText": "Deseable y no excluyente: certificaciones técnicas/cloud, AWS Certified DevOps Engineer o Solutions Architect, y Certified Kubernetes Administrator (CKA).",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2923,
+     "charEnd": 3077
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_32",
+    "order": 32,
+    "proposedRequirementText": "Deseable y no excluyente: AWS Security Specialty, o alguna certificación de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2923,
+     "charEnd": 3190
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_33",
+    "order": 33,
+    "proposedRequirementText": "Deseable y no excluyente: certificación ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)\n\nTécnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).\n\nDe seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.\n\nDe gobierno: ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2923,
+     "charEnd": 3262
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Certificaciones deseables (no excluyentes)",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 33,
+   "quotesTotal": 33,
+   "quotesFoundLiterally": 33,
+   "primaryUnique": 33,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

@@ -1,0 +1,659 @@
+{
+ "objectiveId": "EMP_069",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 44929,
+ "usage": {
+  "input_tokens": 3176,
+  "input_tokens_details": {
+   "cache_write_tokens": 3173,
+   "cached_tokens": 0
+  },
+  "output_tokens": 3897,
+  "output_tokens_details": {
+   "reasoning_tokens": 936
+  },
+  "total_tokens": 7073
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Ser un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "primarySourceQuote": "Un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**"
+   },
+   {
+    "proposedRequirementText": "Controlar el desempeño de las instalaciones de superficie y su operación para optimizar la eficiencia, asegurar calidad de despacho y mantener la operación en niveles aceptables según defina la compañía.",
+    "primarySourceQuote": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuál será su desafío?**"
+   },
+   {
+    "proposedRequirementText": "Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada, para asegurar la operación dentro de la ventana operativa definida y el cumplimiento de objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos.",
+    "primarySourceQuote": "1.Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada con el fin de asegurar la ejecución de la operación dentro de los límites de ventana operativa definida, el cumplimiento de los objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos definidos por el Negocio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a instalaciones de procesamiento y transporte de fluidos, garantizando una operación segura, confiable y eficiente alineada con objetivos operativos, estudios de riesgo y mejores prácticas de ingeniería.",
+    "primarySourceQuote": "2.Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a las instalaciones de procesamiento y transporte de fluidos, con el fin de garantizar la operación segura, confiable y eficiente de los procesos, asegurando que las estrategias de control se encuentren alineadas con los objetivos operativos, los estudios de riesgo y las mejores prácticas de ingeniería.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Integrar análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación para el diseño y optimización de proyectos, promoviendo la sinergia entre redes de producción, recolección, transporte e instalaciones de procesamiento de agua, petróleo y gas.",
+    "primarySourceQuote": "3.Integrar los análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación, con el fin de generar una visión integral para el diseño y optimización de proyectos, promoviendo la sinergia entre las redes de producción, recolección, transporte y las instalaciones de procesamiento de agua, petróleo y gas, asegurando soluciones técnicas robustas, escalables y alineadas con los planes de desarrollo del negocio.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Controlar los indicadores de calidad (KPIs) de procesos para identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad e impulsar las acciones correctivas necesarias.",
+    "primarySourceQuote": "4.Controlar los indicadores de calidad (KPIs) de procesos, con el fin de identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad a la operación, e impulsar las acciones correctivas necesarias.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, para monitorear desvíos e identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "primarySourceQuote": "5.Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, a fin de monitorear desvíos, identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte utilizando Simuladores de Proceso, para contribuir a la toma de decisiones.",
+    "primarySourceQuote": "6.Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Identificar cuellos de botella en las instalaciones, mantener información actualizada de las capacidades instaladas e impulsar modificaciones cuando las capacidades sean inconsistentes con el plan de producción.",
+    "primarySourceQuote": "7.Identificar cuellos de botella en las instalaciones, con el fin de mantener información actualizada de las capacidades instaladas, e impulsar modificaciones cuando dichas capacidades resulten inconsistentes con el plan de producción.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, para asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "primarySourceQuote": "8.Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, con el fin de asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, con conocimiento de los usos, disposiciones y costos asociados a la energía, y acompañar acciones operativas con impacto en el desempeño energético buscando optimizaciones.",
+    "primarySourceQuote": "9.Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, a fin de lograr un conocimiento certero de todos los usos y disposiciones de energía, con sus costos asociados, además de conocer y acompañar las acciones realizadas en las operaciones con impacto en el desempeño energético, buscando optimizaciones en el uso de esta.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, para mantener la operación dentro de los márgenes definidos en la normativa corporativa.",
+    "primarySourceQuote": "10.Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, con el fin de mantener la operación de las instalaciones dentro de los márgenes definidos en la normativa corporativa.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Asesorar en aspectos relativos a la especialidad, participando en investigaciones de incidentes y búsqueda de fallas cuando se requiera.",
+    "primarySourceQuote": "11.Asesorar en aspectos relativos a la especialidad, participando en las investigaciones de incidentes y búsqueda de fallas donde se requiera, con el fin de aportar conocimientos específicos del área.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, para contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "primarySourceQuote": "12.Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, con el fin de aportar conocimientos específicos del área y contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: formación académica como Ingeniero Químico o Electrónico.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: experiencia previa en proyectos.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: experiencia previa en Ingeniería de control e Instrumentación.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: experiencia previa en dimensionamientos y cálculos de equipos de procesos.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: manejo del software Hysys.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: manejo del software Autocad.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable, no excluyente: experiencia en manejo de químicos y ensayos de laboratorios.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.\n- **Otros requisitos:** experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Disponibilidad para viajar eventualmente.",
+    "primarySourceQuote": "**Disponibilidad para viajar:** si, eventualmente",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Información del puesto**"
+   },
+   {
+    "proposedRequirementText": "Trabajar con excelencia y profesionalismo.",
+    "primarySourceQuote": "- Trabaja con excelencia y profesionalismo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   },
+   {
+    "proposedRequirementText": "Dar lo mejor cada día, valorar la meritocracia y buscar siempre la milla extra.",
+    "primarySourceQuote": "- Da lo mejor cada día, valora la meritocracia y busca siempre la milla extra.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   },
+   {
+    "proposedRequirementText": "Vivir los desafíos como oportunidades para innovar y aprender.",
+    "primarySourceQuote": "- Vive los desafíos como oportunidades para innovar y aprender.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   },
+   {
+    "proposedRequirementText": "Disfrutar del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "primarySourceQuote": "- Disfruta del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   },
+   {
+    "proposedRequirementText": "Encarar los proyectos con pasión y compromiso.",
+    "primarySourceQuote": "- Encara los proyectos con pasión y compromiso.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   },
+   {
+    "proposedRequirementText": "Promover un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "primarySourceQuote": "- Promueve un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "Si sos una persona que:"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Ser un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "primarySourceQuote": "Un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 536,
+     "charEnd": 798
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué buscamos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Controlar el desempeño de las instalaciones de superficie y su operación para optimizar la eficiencia, asegurar calidad de despacho y mantener la operación en niveles aceptables según defina la compañía.",
+    "primarySourceQuote": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 828,
+     "charEnd": 1069
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuál será su desafío?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada, para asegurar la operación dentro de la ventana operativa definida y el cumplimiento de objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos.",
+    "primarySourceQuote": "1.Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada con el fin de asegurar la ejecución de la operación dentro de los límites de ventana operativa definida, el cumplimiento de los objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos definidos por el Negocio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1114,
+     "charEnd": 1503
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a instalaciones de procesamiento y transporte de fluidos, garantizando una operación segura, confiable y eficiente alineada con objetivos operativos, estudios de riesgo y mejores prácticas de ingeniería.",
+    "primarySourceQuote": "2.Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a las instalaciones de procesamiento y transporte de fluidos, con el fin de garantizar la operación segura, confiable y eficiente de los procesos, asegurando que las estrategias de control se encuentren alineadas con los objetivos operativos, los estudios de riesgo y las mejores prácticas de ingeniería.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1505,
+     "charEnd": 1987
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Integrar análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación para el diseño y optimización de proyectos, promoviendo la sinergia entre redes de producción, recolección, transporte e instalaciones de procesamiento de agua, petróleo y gas.",
+    "primarySourceQuote": "3.Integrar los análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación, con el fin de generar una visión integral para el diseño y optimización de proyectos, promoviendo la sinergia entre las redes de producción, recolección, transporte y las instalaciones de procesamiento de agua, petróleo y gas, asegurando soluciones técnicas robustas, escalables y alineadas con los planes de desarrollo del negocio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1989,
+     "charEnd": 2507
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Controlar los indicadores de calidad (KPIs) de procesos para identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad e impulsar las acciones correctivas necesarias.",
+    "primarySourceQuote": "4.Controlar los indicadores de calidad (KPIs) de procesos, con el fin de identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad a la operación, e impulsar las acciones correctivas necesarias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2509,
+     "charEnd": 2727
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, para monitorear desvíos e identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "primarySourceQuote": "5.Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, a fin de monitorear desvíos, identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2729,
+     "charEnd": 2980
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte utilizando Simuladores de Proceso, para contribuir a la toma de decisiones.",
+    "primarySourceQuote": "6.Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2982,
+     "charEnd": 3164
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Identificar cuellos de botella en las instalaciones, mantener información actualizada de las capacidades instaladas e impulsar modificaciones cuando las capacidades sean inconsistentes con el plan de producción.",
+    "primarySourceQuote": "7.Identificar cuellos de botella en las instalaciones, con el fin de mantener información actualizada de las capacidades instaladas, e impulsar modificaciones cuando dichas capacidades resulten inconsistentes con el plan de producción.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3166,
+     "charEnd": 3401
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, para asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "primarySourceQuote": "8.Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, con el fin de asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3403,
+     "charEnd": 3584
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, con conocimiento de los usos, disposiciones y costos asociados a la energía, y acompañar acciones operativas con impacto en el desempeño energético buscando optimizaciones.",
+    "primarySourceQuote": "9.Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, a fin de lograr un conocimiento certero de todos los usos y disposiciones de energía, con sus costos asociados, además de conocer y acompañar las acciones realizadas en las operaciones con impacto en el desempeño energético, buscando optimizaciones en el uso de esta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3586,
+     "charEnd": 3945
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, para mantener la operación dentro de los márgenes definidos en la normativa corporativa.",
+    "primarySourceQuote": "10.Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, con el fin de mantener la operación de las instalaciones dentro de los márgenes definidos en la normativa corporativa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3947,
+     "charEnd": 4185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Asesorar en aspectos relativos a la especialidad, participando en investigaciones de incidentes y búsqueda de fallas cuando se requiera.",
+    "primarySourceQuote": "11.Asesorar en aspectos relativos a la especialidad, participando en las investigaciones de incidentes y búsqueda de fallas donde se requiera, con el fin de aportar conocimientos específicos del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4187,
+     "charEnd": 4387
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, para contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "primarySourceQuote": "12.Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, con el fin de aportar conocimientos específicos del área y contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4389,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Cuáles serán sus principales tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Valorable: formación académica como Ingeniero Químico o Electrónico.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4742
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Valorable: experiencia previa en proyectos.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4900
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Valorable: experiencia previa en Ingeniería de control e Instrumentación.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4900
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Valorable: experiencia previa en dimensionamientos y cálculos de equipos de procesos.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4900
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Valorable: manejo del software Hysys.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4970
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Valorable: manejo del software Autocad.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 4970
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Valorable, no excluyente: experiencia en manejo de químicos y ensayos de laboratorios.",
+    "primarySourceQuote": "**¿Qué Valoramos?**\n\n- **Formación académica:** Ingeniero Químico o Electrónico.\n- **Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.\n- **Herramientas informáticas:** manejo del software Hysys y Autocad.\n- **Otros requisitos:** experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4662,
+     "charEnd": 5071
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**¿Qué Valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Disponibilidad para viajar eventualmente.",
+    "primarySourceQuote": "**Disponibilidad para viajar:** si, eventualmente",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5244,
+     "charEnd": 5293
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Información del puesto**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Trabajar con excelencia y profesionalismo.",
+    "primarySourceQuote": "- Trabaja con excelencia y profesionalismo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5320,
+     "charEnd": 5363
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Dar lo mejor cada día, valorar la meritocracia y buscar siempre la milla extra.",
+    "primarySourceQuote": "- Da lo mejor cada día, valora la meritocracia y busca siempre la milla extra.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5364,
+     "charEnd": 5442
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Vivir los desafíos como oportunidades para innovar y aprender.",
+    "primarySourceQuote": "- Vive los desafíos como oportunidades para innovar y aprender.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5443,
+     "charEnd": 5506
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Disfrutar del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "primarySourceQuote": "- Disfruta del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5507,
+     "charEnd": 5587
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_27",
+    "order": 27,
+    "proposedRequirementText": "Encarar los proyectos con pasión y compromiso.",
+    "primarySourceQuote": "- Encara los proyectos con pasión y compromiso.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5588,
+     "charEnd": 5635
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_28",
+    "order": 28,
+    "proposedRequirementText": "Promover un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "primarySourceQuote": "- Promueve un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5636,
+     "charEnd": 5711
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 28,
+   "quotesTotal": 28,
+   "quotesFoundLiterally": 28,
+   "primaryUnique": 28,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

@@ -1,0 +1,251 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Estudios universitarios completos de ingeniería industrial o química, o no adeudar más del 10% de la carrera.",
+   "primaryExcerpt": "- Estudios universitarios completos, o no adeudar más del 10% de la carrera de ingeniero industrial o químico.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "nivel: estudios universitarios completos",
+    "alternativa admitida: no adeudar más del 10% de la carrera",
+    "carreras: ingeniero industrial o químico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Disyuncion con umbral cuantitativo ('no adeudar mas del 10%'): separar convertiria una alternativa en dos exigencias y perderia el umbral."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Deseable, pero no excluyente: experiencia en puestos de gestión operativa o de normas ISO.",
+   "primaryExcerpt": "- Es deseable, pero no excluyente tener experiencia en puestos de gestión operativa o de normas ISO.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseable, pero no excluyente",
+    "naturaleza: experiencia",
+    "objetos alternativos: gestión operativa o normas ISO"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Modalidad negada explicita ('no excluyente'): convertirla en requisito seria una inversion de negacion. Los dos objetos van unidos por 'o' (alternativos)."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Pensamiento analítico, iniciativa proactiva y autonomía.",
+   "primaryExcerpt": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actitudes: pensamiento analítico, iniciativa proactiva, autonomía"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Tres atributos enumerados en una misma oracion sin qualifier gobernante que distribuir; se preservan al nivel en que la fuente los presenta."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+   "primaryExcerpt": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "capacidad: trabajo en entornos multidisciplinarios y jerárquicos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado de g03 porque la fuente lo enuncia como oracion propia con su propio verbo ('Capacidad para')."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Habilidades interpersonales y de comunicación efectiva.",
+   "primaryExcerpt": "- Habilidades interpersonales y de comunicación efectiva.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "soft skill: habilidades interpersonales",
+    "soft skill: comunicación efectiva"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g06",
+   "claim": "Creatividad.",
+   "primaryExcerpt": "- Creatividad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "atributo: creatividad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g07",
+   "claim": "Inglés nivel intermedio - avanzado.",
+   "primaryExcerpt": "- Inglés nivel intermedio - avanzado",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "idioma: inglés",
+    "nivel: intermedio - avanzado"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El nivel es un qualifier material: 'ingles' a secas debilitaria el claim."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Office MS.",
+   "primaryExcerpt": "- Office MS, power Bi,",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "herramienta: Office MS"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: la vineta enumera dos herramientas independientes sin qualifier compartido que se altere."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Power BI.",
+   "primaryExcerpt": "- Office MS, power Bi,",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "herramienta: Power BI"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g08."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Metodologías Lean, mejora continua y gestión visual.",
+   "primaryExcerpt": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "marco: Lean",
+    "marco: mejora continua",
+    "marco: gestión visual"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "La vineta agrupa dos oraciones nominales sin verbo; podria leerse como un unico bloque de conocimientos o como seis items. Se separa en las dos oraciones que la fuente puntua, sin descender a cada termino.",
+   "compositionNote": "Separacion al nivel de las dos oraciones que la fuente delimita con punto."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+   "primaryExcerpt": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: estándares operativos",
+    "objeto: análisis de procesos",
+    "objeto: herramientas de diagnóstico"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "Ver g10.",
+   "compositionNote": "Ver g10."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+   "primaryExcerpt": "- Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: implementar y dar soporte",
+    "alcance: 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización, gestión por indicadores"
+   ],
+   "auxiliaryExcerpts": [
+    "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico."
+   ],
+   "compositionNote": "Capacidad integrada (§5). La enumeracion tras 'como' es alcance ejemplificado, no criterios separados. Solapa con g10 pero con actividad distinta (§17)."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+   "primaryExcerpt": "- Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: acompañar",
+    "audiencia: líderes, gerentes y directores operativos",
+    "alcance: buenas prácticas de liderazgo y gestión de equipos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+   "primaryExcerpt": "- Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: revisión, mejora y estandarización",
+    "objeto: procedimientos e instructivos de trabajo"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "El verbo principal es 'Colaborar en', que §6 trata como entorno; sin embargo el objeto (revision/mejora/estandarizacion de procedimientos) es una capacidad evaluable propia del rol."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+   "primaryExcerpt": "- Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: proyectos de mejora",
+    "focos: eficiencia operativa, seguridad, calidad, reducción de costos"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g16",
+   "claim": "Apoyar el fortalecimiento de la cultura de excelencia mediante facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+   "primaryExcerpt": "- Apoyar el fortalecimiento de la cultura de excelencia mediante la facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetivo: cultura de excelencia",
+    "medios: facilitación de herramientas, sesiones de trabajo, capacitaciones, seguimiento"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g17",
+   "claim": "Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+   "primaryExcerpt": "- Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: diseño e implementación",
+    "objeto: sistemas de gestión documental y estructuración de información de soporte operativo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "'diseno e implementacion' es capacidad integrada (§5)."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Eramine Sudamérica SA es una subsidiaria de Eramet, un grupo minero y metalúrgico global francés. Está ubicada en el Salar Centenario Ratones, a 3.800 metros sobre el nivel del mar, en el departamento de Los Andes, en la provincia de Salta, Argentina.",
+   "reason": "Prosa institucional y geografica (§7). La altitud y la ubicacion no son criterios del holder."
+  },
+  {
+   "excerpt": "Las actividades de exploración tuvieron inicio hace 12 años y a fines de 2019 comenzó a operar nuestra planta piloto que proporciona una demostración de la calidad del producto final de carbonato de litio, con más de un 90% de eficiencia de extracción directa.",
+   "reason": "Contexto de la empresa con cifras ('hace 12 anos', 'mas de un 90%') que NO son qualifiers de ningun requisito. Convertir '12 anos' en experiencia exigida seria una alucinacion material."
+  },
+  {
+   "excerpt": "El ingeniero de excelencia operacional es un agente critico y participativo para involucrarse con los gerentes y lideres de áreas operativas y de soporte de la organización a fin de entender sus procesos, evaluar el desvío respecto al plan de implementación y acordar tácticas para alinear los procesos internos al plan maestro de excelencia operacional.",
+   "reason": "Descripcion del proposito del puesto; el contenido evaluable se enuncia en Responsabilidades y Su Perfil."
+  },
+  {
+   "excerpt": "Esta posición reporta a: Coordinador de Excelencia Operacional",
+   "reason": "Linea de reporte organizacional, no criterio."
+  },
+  {
+   "excerpt": "Ubicación: Proyecto Centenario-Ratones Salta, Argentina.",
+   "reason": "Dato de ubicacion del puesto, no exigencia dirigida al postulante."
+  },
+  {
+   "excerpt": "Presente en los cinco continentes y con empleados de más de 70 nacionalidades, Eramet es por naturaleza un grupo inherentemente diverso.",
+   "reason": "Declaracion de diversidad corporativa (§7)."
+  },
+  {
+   "excerpt": "## Seniority level\n\nNot Applicable",
+   "reason": "Metadata de la plataforma LinkedIn."
+  },
+  {
+   "excerpt": "## Industries\n\nMining",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [],
+ "annotationNotes": "Aviso industrial argentino con la negacion modal mas limpia del corpus ('Es deseable, pero no excluyente'). Contiene dos cifras de contexto ('hace 12 anos', 'mas de un 90%') que son trampas de contexto-vs-requisito. La seccion 'Su Perfil' mezcla formacion, experiencia, soft skills, idioma y herramientas.",
+ "objectiveId": "EMP_041",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "32274697e0948a9f6a51f3f3185880d017410546dd4e4fb9554c040e86b64eb8",
+ "requirementCount": 17
+}

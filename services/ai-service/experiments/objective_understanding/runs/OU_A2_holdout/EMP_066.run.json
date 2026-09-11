@@ -1,0 +1,593 @@
+{
+ "objectiveId": "EMP_066",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 38241,
+ "usage": {
+  "input_tokens": 2480,
+  "input_tokens_details": {
+   "cache_write_tokens": 2477,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2864,
+  "output_tokens_details": {
+   "reasoning_tokens": 942
+  },
+  "total_tokens": 5344
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "primarySourceQuote": "- Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Analizar (FQ) productos en desarrollo.",
+    "primarySourceQuote": "- Analizar (FQ) productos en desarrollo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Hacer seguimiento de los proyectos a cargo.",
+    "primarySourceQuote": "- Hacer seguimiento de los proyectos a cargo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Generar y ejecutar protocolos de validación de técnicas analíticas, y redactar los correspondientes informes de validación.",
+    "primarySourceQuote": "- Generar y ejecutar protocolos de validación de técnicas analíticas. Redactar los correspondientes informes de validación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "primarySourceQuote": "- Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "primarySourceQuote": "- Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Realizar las actividades relacionadas con los equipos a cargo.",
+    "primarySourceQuote": "- Realizar las actividades relacionadas con los equipos a cargo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "primarySourceQuote": "- Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**"
+   },
+   {
+    "proposedRequirementText": "Ser estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "primarySourceQuote": "- Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos normativos de GMP, GLP, GXP y normativas nacionales e internacionales de industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos sobre procesos de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos sobre equipos de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Conocimientos sobre instrumental de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "primarySourceQuote": "- Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Manejo excluyente de software Word.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Manejo excluyente de software Excel.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Manejo no excluyente de Lab Solutions.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Manejo no excluyente de Empower.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Deseable: inglés avanzado, oral y escrito.",
+    "primarySourceQuote": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**\n\n- Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.\n- Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).\n- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.\n- Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.\n- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).\n- Idiomas inglés avanzado, oral y escrito (deseable).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: orientación al logro.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: resolución de problemas.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: capacidad de trabajo en equipo.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: proactividad.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.\n- Proactividad, y buena comunicación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   },
+   {
+    "proposedRequirementText": "Valorable: buena comunicación.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.\n- Proactividad, y buena comunicación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "primarySourceQuote": "- Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 245,
+     "charEnd": 352
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Analizar (FQ) productos en desarrollo.",
+    "primarySourceQuote": "- Analizar (FQ) productos en desarrollo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 353,
+     "charEnd": 393
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Hacer seguimiento de los proyectos a cargo.",
+    "primarySourceQuote": "- Hacer seguimiento de los proyectos a cargo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 394,
+     "charEnd": 439
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Generar y ejecutar protocolos de validación de técnicas analíticas, y redactar los correspondientes informes de validación.",
+    "primarySourceQuote": "- Generar y ejecutar protocolos de validación de técnicas analíticas. Redactar los correspondientes informes de validación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 440,
+     "charEnd": 563
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "primarySourceQuote": "- Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 564,
+     "charEnd": 715
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "primarySourceQuote": "- Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 716,
+     "charEnd": 810
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Realizar las actividades relacionadas con los equipos a cargo.",
+    "primarySourceQuote": "- Realizar las actividades relacionadas con los equipos a cargo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 811,
+     "charEnd": 875
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "primarySourceQuote": "- Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 876,
+     "charEnd": 937
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "📝**¿Cuáles serían tus tareas?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Ser estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "primarySourceQuote": "- Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1006,
+     "charEnd": 1091
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Conocimientos normativos de GMP, GLP, GXP y normativas nacionales e internacionales de industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1092,
+     "charEnd": 1202
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Conocimientos sobre procesos de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1203,
+     "charEnd": 1303
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Conocimientos sobre equipos de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1203,
+     "charEnd": 1303
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Conocimientos sobre instrumental de laboratorios en la industria farmacéutica.",
+    "primarySourceQuote": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1203,
+     "charEnd": 1303
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "primarySourceQuote": "- Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1304,
+     "charEnd": 1395
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Manejo excluyente de software Word.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1396,
+     "charEnd": 1484
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Manejo excluyente de software Excel.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1396,
+     "charEnd": 1484
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Manejo no excluyente de Lab Solutions.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1396,
+     "charEnd": 1484
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Manejo no excluyente de Empower.",
+    "primarySourceQuote": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1396,
+     "charEnd": 1484
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Deseable: inglés avanzado, oral y escrito.",
+    "primarySourceQuote": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**\n\n- Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.\n- Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).\n- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.\n- Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.\n- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).\n- Idiomas inglés avanzado, oral y escrito (deseable).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 951,
+     "charEnd": 1538
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "✅ **¿Qué necesitamos de vos para sumarte al equipo?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Valorable: orientación al logro.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1610
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Valorable: resolución de problemas.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1610
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Valorable: capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1683
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Valorable: capacidad de trabajo en equipo.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1717
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Valorable: proactividad.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.\n- Proactividad, y buena comunicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1755
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Valorable: buena comunicación.",
+    "primarySourceQuote": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.\n- Proactividad, y buena comunicación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1540,
+     "charEnd": 1755
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "💡**¿Qué valoramos?**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 25,
+   "quotesTotal": 25,
+   "quotesFoundLiterally": 25,
+   "primaryUnique": 25,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

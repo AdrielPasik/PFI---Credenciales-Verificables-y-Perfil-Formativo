@@ -1,0 +1,83 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Cumplir con al menos una de cuatro condiciones de titulación de origen para solicitar la admisión: graduado de FIUBA con carrera de 4 años mínimo; graduado de carrera afín a ingeniería de otra universidad argentina con carrera de 4 años mínimo; graduado de carrera afín de universidad extranjera con al menos 2.600 horas reloj o formación equivalente a Master de nivel I; o egresado de nivel superior no universitario de 4 años mínimo con formación en un área de la ingeniería.",
+   "primaryExcerpt": "Es requisito obligatorio para solicitar la admisión cumplir con al menos una (1) de las siguientes condiciones, de acuerdo a la Res. (CS) Nro. 5284/2012, que aprueba el Reglamento de Maestrías de la Universidad de Buenos Aires:",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: requisito obligatorio",
+    "cuantificador: al menos una (1) de las siguientes condiciones",
+    "alternativa 1: graduado FIUBA, carrera de 4 años mínimo",
+    "alternativa 2: graduado de universidad argentina, carrera afín a ingeniería, 4 años mínimo",
+    "alternativa 3: graduado de universidad extranjera, al menos 2.600 horas reloj o Master de nivel I",
+    "alternativa 4: egresado de nivel superior no universitario de 4 años mínimo en área de ingeniería",
+    "norma: Res. (CS) Nro. 5284/2012"
+   ],
+   "auxiliaryExcerpts": [
+    ". Ser graduado/a de la Facultad de Ingeniería de la Universidad de Buenos Aires, con título de grado correspondiente a una carrera de cuatro (4) años de duración como mínimo.",
+    ". Ser graduado/a de una carrera afín a la ingeniería de universidades extranjeras que hayan completado, al menos, un plan de estudios de dos mil seiscientas (2.600) horas reloj o hasta una formación equivalente a Master de nivel I."
+   ],
+   "compositionNote": "CASO CENTRAL DE GRANULARIDAD: la fuente enuncia explicitamente 'al menos una (1) de las siguientes condiciones'. Emitir las cuatro vias como Requirements independientes convertiria una disyuncion en cuatro exigencias acumulativas y haria inadmisible a casi cualquier postulante. Se conserva UN claim con las cuatro vias como qualifiers alternativos."
+  },
+  {
+   "goldId": "g02",
+   "claim": "La cuarta vía de admisión (egresado de nivel superior no universitario) exige además completar los prerrequisitos que determine la Comisión de Maestría, para asegurar formación compatible con las exigencias del posgrado.",
+   "primaryExcerpt": ". Ser egresado/a con estudios de nivel superior no universitario de cuatro (4) años de duración como mínimo, con formación en un área de la ingeniería, y además completar los prerrequisitos que determine la Comisión de Maestría, a fin de asegurar que su formación resulte compatible con las exigencias del posgrado al que aspira.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "condición adicional: completar prerrequisitos determinados por la Comisión de Maestría",
+    "alcance: aplica sólo a la vía de nivel superior no universitario",
+    "finalidad: compatibilidad de la formación con las exigencias del posgrado"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Se emite como claim propio porque impone una obligacion ADICIONAL que no comparten las otras tres vias: fundirlo en g01 haria perder una exigencia asimetrica."
+  },
+  {
+   "goldId": "g03",
+   "claim": "La orientación a ingenieros/as civiles o en construcciones no es excluyente de otras profesiones: en el proceso de admisión se corrobora si el postulante tiene formación adecuada y suficiente.",
+   "primaryExcerpt": "La Maestría en Construcción y Diseño Estructural está dirigida a profesionales de la construcción, en particular, a ingenieros/as civiles o en construcciones. Lo anterior, no es excluyente de otras profesiones ya que será en el proceso de admisión donde se corroborará si el postulante o la postulante tiene o no una formación adecuada y suficiente para incorporarse a la maestría.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: no es excluyente de otras profesiones",
+    "perfil preferido: profesionales de la construcción, en particular ingenieros civiles o en construcciones",
+    "mecanismo: corroboración de formación adecuada y suficiente en el proceso de admisión"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Claim de modalidad negada: el perfil se enuncia como orientacion preferente y se niega explicitamente su caracter excluyente. Emitirlo como requisito de ser ingeniero civil seria una inversion de negacion."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Excepcionalmente pueden ser admitidas personas con antecedentes relevantes en investigación o profesionales aun cuando no cumplan los requisitos reglamentarios, con recomendación de la Comisión de Maestría y aprobación del Consejo Directivo.",
+   "primaryExcerpt": "Aquellas personas que cuenten con antecedentes relevantes en investigación o profesionales, aun cuando no cumplan con los requisitos reglamentarios citados, podrán ser admitidas excepcionalmente para ingresar a la Maestría con la recomendación de la Comisión de Maestría y con la aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "vía excepcional: antecedentes relevantes en investigación o profesionales",
+    "condición negada: aun cuando no cumplan los requisitos reglamentarios",
+    "autorizaciones necesarias: recomendación de la Comisión de Maestría y aprobación del Consejo Directivo"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "HALLAZGO DE CONTRATO: no es un requisito, ni una preferencia, ni una no-exigencia. Es una clausula de DISPENSA que relaja g01 bajo autorizacion de dos organos. El contrato V1 (§12 P2.0) solo distingue requerido / preferido / no requerido, y ninguna de las tres etiquetas representa fielmente una via de excepcion. Se anota UNSPECIFIED en lugar de forzar una etiqueta que afirmaria una modalidad que la fuente no establece. Se documenta como limitacion del contrato, no como defecto de anotacion.",
+   "compositionNote": "Se emite como claim propio porque introduce condiciones adicionales (recomendacion y aprobacion) que no aparecen en ningun otro pasaje."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "## Maestría en Construcción y Diseño Estructural - Requisitos para el ingreso",
+   "reason": "Titulo de la pagina; el titulo es contexto y no crea Requirements (§8)."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Aquellas personas que cuenten con antecedentes relevantes en investigación o profesionales, aun cuando no cumplan con los requisitos reglamentarios citados, podrán ser admitidas excepcionalmente para ingresar a la Maestría con la recomendación de la Comisión de Maestría y con la aprobación del Consejo Directivo de la Facultad de Ingeniería.",
+   "note": "Clausula de dispensa. El contrato V1 solo distingue requerido / preferido / no requerido y no tiene una categoria para 'via de excepcion que relaja los requisitos'. Se anota como g04 con modality PREFERRED y se registra la limitacion."
+  }
+ ],
+ "annotationNotes": "CROSS-DOMAIN (admision). Texto integramente de criterio, sin prosa institucional. Es el caso mas puro de disyuncion del corpus: 'al menos una (1) de las siguientes condiciones' con cuatro vias, una de ellas con obligacion adicional propia, mas una negacion de exclusividad de perfil y una via de excepcion. Objective mas corto de la seleccion (1.948 car.).",
+ "objectiveId": "ADM_005",
+ "objectiveType": "ADMISSION",
+ "language": "es",
+ "rawTextSha256": "77ceced8c2fdd09be250a802a04893ad39de590fd7d2734f58dbc49f3477f55f",
+ "requirementCount": 4
+}

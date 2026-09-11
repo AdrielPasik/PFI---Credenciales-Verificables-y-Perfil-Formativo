@@ -1,0 +1,563 @@
+{
+ "objectiveId": "EMP_048",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 34,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "*Stack y conocimientos técnicos imprescindibles**",
+    "primarySourceQuote": "*Stack y conocimientos técnicos imprescindibles**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1,
+     "charEnd": 50
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+    "primarySourceQuote": "Linux (Ubuntu) avanzado: administración, scripting (Bash), systemd, logs.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 52,
+     "charEnd": 125
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "primarySourceQuote": "Cloud: DigitalOcean y/o AWS (VPC, security groups, IAM).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 127,
+     "charEnd": 183
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Infraestructura como código: Terraform (o Pulumi/CloudFormation).",
+    "primarySourceQuote": "Infraestructura como código: Terraform (o Pulumi/CloudFormation).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 185,
+     "charEnd": 250
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Contenedores y orquestación: Docker y Kubernetes.",
+    "primarySourceQuote": "Contenedores y orquestación: Docker y Kubernetes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 252,
+     "charEnd": 301
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "CI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "primarySourceQuote": "CI/CD: GitHub Actions, GitLab CI o similar, con seguridad integrada.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 303,
+     "charEnd": 371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+    "primarySourceQuote": "Redes y seguridad de red: firewalls (UFW/iptables), TLS/certificados, segmentación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 373,
+     "charEnd": 456
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Gestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+    "primarySourceQuote": "Gestión de secretos: Vault, AWS Secrets Manager, 1Password u otro.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 458,
+     "charEnd": 524
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "primarySourceQuote": "Bases de datos, idealmente PostgreSQL, y su monitoreo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 526,
+     "charEnd": 580
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Git y buenas prácticas de versionado.",
+    "primarySourceQuote": "Git y buenas prácticas de versionado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 582,
+     "charEnd": 619
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Al menos un lenguaje de scripting/programación (Python es ideal por su uso en automatización).",
+    "primarySourceQuote": "Al menos un lenguaje de scripting/programación (Python es ideal por su uso en automatización).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 621,
+     "charEnd": 715
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "*Conocimientos de seguridad (integrados al rol)**",
+    "primarySourceQuote": "*Conocimientos de seguridad (integrados al rol)**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 718,
+     "charEnd": 767
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Hardening por estándares CIS/NIST. DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación. Gestión de identidades y accesos, principio de mínimo privilegio, MFA. Respuesta a incidentes y forense básico. Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "primarySourceQuote": "Hardening por estándares CIS/NIST. DevSecOps: escaneo de código y dependencias, gestión de vulnerabilidades, SLA de remediación. Gestión de identidades y accesos, principio de mínimo privilegio, MFA. Respuesta a incidentes y forense básico. Nociones de gestión de riesgos y de los marcos ISO 27001 / NIST CSF.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 769,
+     "charEnd": 1078
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo. Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente. Buena comunicación y capacidad de documentar con claridad (ZIYU valora especialmente esto). Criterio para equilibrar velocidad de entrega y seguridad.",
+    "primarySourceQuote": "Autonomía total: será el área de infraestructura y seguridad, sin equipo debajo. Mentalidad de automatización: resolver una vez y dejarlo automatizado, no apagar incendios manualmente. Buena comunicación y capacidad de documentar con claridad (ZIYU valora especialmente esto). Criterio para equilibrar velocidad de entrega y seguridad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1105,
+     "charEnd": 1440
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "*Responsabilidades principales**",
+    "primarySourceQuote": "*Responsabilidades principales**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1443,
+     "charEnd": 1475
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+    "primarySourceQuote": "Administrar y automatizar la infraestructura cloud (DigitalOcean, AWS): aprovisionamiento, escalamiento, redes, disponibilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1477,
+     "charEnd": 1604
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Infraestructura como código: gestionar la plataforma de forma versionada y reproducible (Terraform o similar).",
+    "primarySourceQuote": "Infraestructura como código: gestionar la plataforma de forma versionada y reproducible (Terraform o similar).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1606,
+     "charEnd": 1716
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "primarySourceQuote": "Construir y mantener pipelines de CI/CD con controles de seguridad integrados (SAST, DAST, SCA, gates por severidad).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1718,
+     "charEnd": 1835
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red.",
+    "primarySourceQuote": "Administrar y endurecer servidores Linux y contenedores (Docker/Kubernetes): hardening CIS, imágenes seguras, non-root, políticas de red.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1837,
+     "charEnd": 1974
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos, certificados TLS.",
+    "primarySourceQuote": "Operar la seguridad de red: firewalls, segmentación, VPN, control de puertos, certificados TLS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1976,
+     "charEnd": 2071
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas (sin claves en texto plano).",
+    "primarySourceQuote": "Gestionar accesos e identidades técnicas: SSH seguro, RBAC, MFA, secretos y credenciales privilegiadas (sin claves en texto plano).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2073,
+     "charEnd": 2204
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "primarySourceQuote": "Operar backups, restauración y continuidad (RTO/RPO).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2206,
+     "charEnd": 2259
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+    "primarySourceQuote": "Mantener el observability stack: monitoreo, alertas y detección de anomalías (Grafana, Sentry, PGHero o equivalentes).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2261,
+     "charEnd": 2379
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "primarySourceQuote": "Liderar la respuesta técnica a incidentes y, cuando corresponda, apoyar la notificación a la ANCI dentro de plazos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2381,
+     "charEnd": 2496
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "primarySourceQuote": "Mantener vigentes y aplicar los procedimientos de ciberseguridad; ser la contraparte técnica en auditorías y cumplimiento (Ley 21.663 y 21.719).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2498,
+     "charEnd": 2642
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "*Cumplimiento (deseable, no el centro del rol)**",
+    "primarySourceQuote": "*Cumplimiento (deseable, no el centro del rol)**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2645,
+     "charEnd": 2693
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "Familiaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales. Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+    "primarySourceQuote": "Familiaridad con la Ley 21.663 de ciberseguridad y el rol de la ANCI, y con la Ley 21.719 de datos personales. Si no la tiene de entrada, debe poder aprenderla rápido; el cuerpo de procedimientos ya existente le sirve de base.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2695,
+     "charEnd": 2921
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "Certificaciones deseables (no excluyentes)",
+    "primarySourceQuote": "Certificaciones deseables (no excluyentes)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2923,
+     "charEnd": 2965
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Técnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+    "primarySourceQuote": "Técnicas/cloud: AWS Certified DevOps Engineer o Solutions Architect, Certified Kubernetes Administrator (CKA).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2967,
+     "charEnd": 3077
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "De seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "primarySourceQuote": "De seguridad práctica: AWS Security Specialty, o alguna de seguridad ofensiva si se quiere reforzar ese flanco.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3079,
+     "charEnd": 3190
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "De gobierno: ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "primarySourceQuote": "De gobierno: ISO 27001, solo si se busca dar más peso al cumplimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3192,
+     "charEnd": 3262
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "*Beneficios e incentivos**",
+    "primarySourceQuote": "*Beneficios e incentivos**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3265,
+     "charEnd": 3291
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_33",
+    "order": 33,
+    "proposedRequirementText": "Giftcard de Fiestas Patrias 🇨🇱",
+    "primarySourceQuote": "Giftcard de Fiestas Patrias 🇨🇱",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3319,
+     "charEnd": 3349
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_34",
+    "order": 34,
+    "proposedRequirementText": "Oportunidades de crecimiento profesional y aprendizaje continuo 📚🚀",
+    "primarySourceQuote": "Oportunidades de crecimiento profesional y aprendizaje continuo 📚🚀",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3405,
+     "charEnd": 3471
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 34,
+   "quotesTotal": 34,
+   "quotesFoundLiterally": 34,
+   "primaryUnique": 34,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

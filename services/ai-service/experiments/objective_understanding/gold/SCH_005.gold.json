@@ -1,0 +1,109 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Poseer el grado académico de Licenciado(a) o Título Profesional o su equivalente (en el caso de estudios de pregrado realizados en el extranjero), otorgado por instituciones de educación superior chilenas o extranjeras.",
+   "primaryExcerpt": "- Poseer el grado académico de Licenciado(a) o Título Profesional o su equivalente en el caso de los estudios de pregrado realizados en el extranjero, otorgado por instituciones de educación superior chilenas o extranjeras.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "credenciales alternativas: Licenciado, Título Profesional o equivalente extranjero",
+    "emisor admitido: instituciones de educación superior chilenas o extranjeras"
+   ],
+   "auxiliaryExcerpts": [
+    "Los requisitos de postulación, de acuerdo con el numeral 4 de las bases del concurso, son:"
+   ],
+   "compositionNote": "Disyuncion de credenciales admitidas; separar convertiria alternativas en exigencias acumulativas."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Encontrarse en proceso de postulación formal, admitido/a o con calidad de alumno/a regular en un programa de Doctorado acreditado conforme a la Ley N° 20.129 e impartido por una universidad chilena, al momento del cierre del periodo de postulación.",
+   "primaryExcerpt": "- Encontrarse en proceso de postulación formal, admitido(a) o tener la calidad de alumno o alumna regular en un programa de Doctorado acreditado en conformidad con la Ley Nº 20.129 (deberá encontrarse en esta condición al momento de cierre del periodo de postulación) e impartido por una universidad chilena.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "estados alternativos: en postulación formal, admitido o alumno regular",
+    "objeto: programa de Doctorado acreditado (Ley N° 20.129)",
+    "emisor: universidad chilena",
+    "momento material: al cierre del periodo de postulación"
+   ],
+   "auxiliaryExcerpts": [
+    "Estar postulando de manera formal implica que los antecedentes de la o el postulante fueron revisados y aceptados por el programa de Doctorado y se encuentran en proceso de evaluación, lo que debe estar certificado mediante una carta del programa de estudios o el formulario en formato ANID, en conformidad con el numeral 8.9.7."
+   ],
+   "compositionNote": "Los tres estados son alternativos y el momento de verificacion es un qualifier temporal material."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Acreditar excelencia académica cumpliendo al menos uno de dos requisitos: promedio de pregrado igual o superior a 5,0 sobre 7,0, o ubicarse en el 30% superior del ranking de egreso.",
+   "primaryExcerpt": "- Acreditar excelencia académica a través de, al menos, uno de los siguientes requisitos:",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cuantificador: al menos uno de los siguientes",
+    "objeto: excelencia académica",
+    "alternativa 1: promedio >= 5,0 sobre 7,0",
+    "alternativa 2: 30% superior del ranking de egreso"
+   ],
+   "auxiliaryExcerpts": [
+    "- Acreditar excelencia académica a través de, al menos, uno de los siguientes requisitos:\n\n- Haber obtenido un promedio de notas de licenciatura, título profesional o equivalente igual o superior a 5.0 sobre un máximo de 7.0 o su equivalente en escala de nota 1 a 7; o bien\n\n- Encontrase dentro del 30% superior del ranking de egreso de pregrado respecto de su generación de egreso o titulación."
+   ],
+   "compositionNote": "CASO CENTRAL DE GRANULARIDAD CROSS-DOMAIN: el criterio es una disyuncion explicita ('al menos uno de los siguientes'). Emitir las dos alternativas como Requirements independientes convertiria una condicion satisfacible por una via en dos exigencias acumulativas, que es exactamente la sobre-particion que §4.1 prohibe. Se conserva UN claim con las dos alternativas como qualifiers."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Presentar obligatoriamente los documentos señalados en los numerales 8.9.5 y 8.9.6, aun cuando se cumpla sólo una de las dos condiciones de excelencia académica.",
+   "primaryExcerpt": "- Si bien es suficiente que los y las postulantes cumplan con una de las dos condiciones señaladas precedentemente, **deberán presentar obligatoriamente**los documentos señalados en el numeral 8.9.5 y 8.9.6.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: deberán presentar obligatoriamente",
+    "objeto: documentos de los numerales 8.9.5 y 8.9.6",
+    "aclaración material: la suficiencia de una sola condición NO exime de la documentación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Claim documental independiente que ADEMAS corrige una inferencia erronea posible sobre g03; perder la clausula 'si bien es suficiente... deberan presentar obligatoriamente' invertiria la carga documental."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Esta beca tiene por objetivo apoyar financieramente los estudios de doctorado en todas las áreas del conocimiento, en programas acreditados en conformidad con la Ley Nº 20.129 e impartidos por universidades chilenas, por un plazo máximo de cuatro años, contados desde la fecha de inicio del programa de estudios.",
+   "reason": "Objetivo y alcance del beneficio ofrecido. El 'plazo maximo de cuatro anos' es la duracion de la beca, NO un requisito del postulante; convertirlo en exigencia seria una alucinacion material."
+  },
+  {
+   "excerpt": "Además, en caso de que corresponda, una extensión de los beneficios de mantenimiento, por un máximo de seis meses, para la redacción de la tesis doctoral.",
+   "reason": "Beneficio ofrecido, no criterio."
+  },
+  {
+   "excerpt": "Al concurso podrán postular personas chilenas o extranjeras, con o sin permanencia definitiva en Chile.",
+   "reason": "Clausula de NO restriccion por nacionalidad ni residencia: amplia la elegibilidad en vez de exigir algo. Emitir un Requirement de nacionalidad o residencia a partir de este pasaje seria una inversion de negacion."
+  },
+  {
+   "excerpt": "Con el objetivo de evaluar tus posibilidades de obtener esta beca, a modo de referencia, puedes consultar el Panel Interactivo, donde encontrarás información sobre personas seleccionadas en convocatorias anteriores, agrupadas por nota de licenciatura, título profesional o equivalente y ranking de egreso de pregrado.",
+   "reason": "Herramienta informativa de referencia. Menciona nota y ranking, que si son criterios reales, pero aqui como dato historico consultable, no como exigencia."
+  },
+  {
+   "excerpt": "Este aporte **no requiere una nueva postulación**, dado que la OEA efectúa la selección en forma directa, considerando factores como la excelencia; priorizando a quienes provengan de zonas rurales o remotas y de países con bajos índices de desarrollo humano (de acuerdo con la clasificación del Programa de las Naciones Unidas para el Desarrollo, PNUD); y considerando a las y los becarios que no hayan realizado previamente estudios en nuestro país.",
+   "reason": "Beneficio adicional de un tercero (OEA) con criterios propios de priorizacion que NO son requisitos de esta beca. Contiene ademas una negacion explicita ('no requiere una nueva postulacion')."
+  },
+  {
+   "excerpt": "Para la presente convocatoria, se entregarán **65 nuevos aportes.**",
+   "reason": "Cupo del beneficio OEA, no criterio."
+  },
+  {
+   "excerpt": "**Publicación de bases e inicio del periodo de postulación:** jueves 25 de septiembre de 2025.",
+   "reason": "Fecha del calendario del concurso, no criterio del postulante."
+  },
+  {
+   "excerpt": "Concurso Adjudicado",
+   "reason": "Estado administrativo de la convocatoria."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Revisa los programas acreditados en el sitio web de la Comisión Nacional de Acreditación CNA.",
+   "note": "Instruccion operativa que remite a la lista de programas acreditados; la exigencia de acreditacion ya esta capturada en g02."
+  }
+ ],
+ "annotationNotes": "CROSS-DOMAIN (beca). Objective de organismo publico chileno. Prueba clave del contrato fuera de empleo: el criterio de excelencia academica es una DISYUNCION explicita con umbrales cuantitativos (5,0/7,0 o 30% superior del ranking), y el texto agrega una nota que impide inferir que cumplir una condicion exime de documentacion. Contiene ademas dos clausulas que amplian elegibilidad en vez de restringirla.",
+ "objectiveId": "SCH_005",
+ "objectiveType": "SCHOLARSHIP",
+ "language": "es",
+ "rawTextSha256": "77d3b2eec46fd2d58c16ce97a33844f6facbd64883b9eb44e84d7260a112e48b",
+ "requirementCount": 4
+}

@@ -1,0 +1,333 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Desarrollar modelos predictivos y segmentaciones para predecir y entender el comportamiento de los usuarios y optimizar productos y procesos (incluye Lifetime Value, recomendación, moderación de contenido y simulaciones).",
+   "primaryExcerpt": "- Desarrollar modelos predictivos y segmentaciones en pos de predecir y entender el comportamiento de nuestros usuarios y optimizar nuestros productos y procesos. Entre otras cosas, se incluyen modelos predictivos de Lifetime Value, modelos de recomendación y de moderación de contenido y simulaciones.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "actividad: desarrollar",
+    "objetos: modelos predictivos y segmentaciones",
+    "finalidad: predecir/entender comportamiento y optimizar productos y procesos",
+    "alcance ejemplificado: LTV, recomendación, moderación de contenido, simulaciones"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los ejemplos ('Entre otras cosas, se incluyen...') delimitan el alcance del mismo claim, no criterios separados."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+   "primaryExcerpt": "- Ejecutar proyectos periódicos end-to-end desde la exploración hasta la productivización y mantenimiento.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "alcance: end-to-end",
+    "fases: exploración, productivización, mantenimiento",
+    "cadencia: periódicos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada extremo a extremo (§5); separar por fase destruiria el alcance."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Aportar soluciones estratégicas para el roadmap definido por producto, colaborando con el desarrollo del área de Data.",
+   "primaryExcerpt": "- Colaborar con el desarrollo del área de Data, aportando soluciones estratégicas para el roadmap definido por producto.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "aporte: soluciones estratégicas",
+    "marco: roadmap definido por producto"
+   ],
+   "auxiliaryExcerpts": [],
+   "ambiguous": true,
+   "ambiguityNote": "El verbo principal es 'Colaborar', que §6 trata como descripcion de entorno; sin embargo 'aportando soluciones estrategicas' si es una capacidad evaluable. Se anota como Requirement por esa segunda parte."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad, interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+   "primaryExcerpt": "- Orientarse a las necesidades del producto en un entorno de cambio, experimentación y novedad. Interiorizando en los desarrollos vigentes para identificar problemáticas y acercar insights de valor.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "orientación: necesidades del producto",
+    "entorno: cambio, experimentación y novedad",
+    "conducta: identificar problemáticas y acercar insights"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g05",
+   "claim": "Dominio técnico y conocimientos en SQL.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: SQL"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado por §4.1: el qualifier 'Dominio tecnico y conocimientos en' distribuye sobre una lista de objetos independientes."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Dominio técnico y conocimientos en Python.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: Python"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Dominio técnico y conocimientos en AWS.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: AWS"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Dominio técnico y conocimientos en modelos predictivos.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: modelos predictivos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Dominio técnico y conocimientos en redes neuronales.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: redes neuronales"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Dominio técnico y conocimientos en simulaciones numéricas.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: simulaciones numéricas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Dominio técnico y conocimientos en modelado estadístico.",
+   "primaryExcerpt": "- Dominio técnico y conocimientos en: SQL, Python, AWS, modelos predictivos, redes neuronales, simulaciones numéricas y modelado estadístico.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico y conocimientos",
+    "objeto: modelado estadístico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity.",
+   "primaryExcerpt": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico",
+    "objeto: tecnologías agénticas",
+    "ejemplos alternativos: Cursor, Claude, Antigravity"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Los tres productos son ejemplos alternativos del mismo objeto y no se separan; el segundo objeto de la vineta (LLM) si es independiente."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Dominio técnico en modelos de lenguaje masivos.",
+   "primaryExcerpt": "- Dominio técnico en tecnologías agénticas como Cursor, Claude o Antigravity y en modelos de lenguaje masivos.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "nivel: dominio técnico",
+    "objeto: modelos de lenguaje masivos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g12."
+  },
+  {
+   "goldId": "g14",
+   "claim": "Valorado positivamente: experiencia con Spark.",
+   "primaryExcerpt": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valorado positivamente",
+    "naturaleza: experiencia",
+    "objeto: Spark"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado porque los items de la vineta llevan qualifiers distintos ('experiencia con' / 'conocimientos en' / 'maestrias')."
+  },
+  {
+   "goldId": "g15",
+   "claim": "Valorado positivamente: conocimientos en NLP.",
+   "primaryExcerpt": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valorado positivamente",
+    "nivel: conocimientos",
+    "objeto: NLP"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g14."
+  },
+  {
+   "goldId": "g16",
+   "claim": "Valorado positivamente: conocimientos en sistemas de recomendación.",
+   "primaryExcerpt": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valorado positivamente",
+    "nivel: conocimientos",
+    "objeto: sistemas de recomendación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g14."
+  },
+  {
+   "goldId": "g17",
+   "claim": "Valorado positivamente: maestrías relacionadas a Ciencias de Datos.",
+   "primaryExcerpt": "- Valoraremos positivamente experiencia con Spark, conocimientos en NLP, sistemas de recomendación y maestrías relacionadas a Ciencias de Datos.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valorado positivamente",
+    "credencial: maestría",
+    "área: Ciencias de Datos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g14."
+  },
+  {
+   "goldId": "g18",
+   "claim": "Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+   "primaryExcerpt": "- Mindset orientado a ownership sobre objetivos y responsabilidad sobre entregables de alta calidad.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "actitud: ownership sobre objetivos",
+    "actitud: responsabilidad sobre entregables",
+    "nivel exigido: alta calidad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Mindset orientado a producto con proactividad para proponer e investigar.",
+   "primaryExcerpt": "- Mindset orientado a producto con proactividad para proponer e investigar.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "actitud: orientación a producto",
+    "conducta: proactividad para proponer e investigar"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g20",
+   "claim": "Buenas herramientas humanas.",
+   "primaryExcerpt": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "soft skill: herramientas humanas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Separado del trabajo en equipo porque este ultimo lleva su propia modalidad explicita ('condicion excluyente') y el primero no."
+  },
+  {
+   "goldId": "g21",
+   "claim": "Trabajo en equipo como condición excluyente.",
+   "primaryExcerpt": "- Buenas herramientas humanas, y que el trabajo en equipo sea una condición excluyente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: condición excluyente",
+    "objeto: trabajo en equipo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Unico claim del aviso con modalidad obligatoria explicita; perderla convertiria un excluyente en un simple valorado."
+  },
+  {
+   "goldId": "g22",
+   "claim": "Ambición por descubrir y explorar nuevas formas de hacer las cosas, incluyendo desafiar el status quo de la tecnología.",
+   "primaryExcerpt": "- Ambición por descubrir y explorar nuevas formas de hacer las cosas, lo que incluiría desafiar el status quo de la tecnología en general.",
+   "modality": "UNSPECIFIED",
+   "materialQualifiers": [
+    "actitud: ambición exploratoria",
+    "alcance: desafiar el status quo tecnológico"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g23",
+   "claim": "Valorado: el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en ciencia de datos, estadística e Inteligencia Artificial.",
+   "primaryExcerpt": "- Valoramos el estudio, la investigación y la exploración de herramientas, novedades e innovaciones en el área de la ciencia de datos, la estadística y la Inteligencia Artificial.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "conductas: estudio, investigación, exploración",
+    "áreas: ciencia de datos, estadística, IA"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Una sola disposicion hacia el aprendizaje; las tres areas son su alcance."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Seguimos innovando y revolucionando la industria de la tecnología, ¡nos gustaría que te sumes como **Data Scientist**!",
+   "reason": "Encabezado de convocatoria; el titulo del puesto es contexto y no crea Requirements (§8)."
+  },
+  {
+   "excerpt": "En **etermax** trabajamos sobre los pilares de la innovación y la mejora continua para proporcionar valor a un ritmo constante, sostenible e ininterrumpido. Nuestra cultura de excelencia potencia a las personas y su crecimiento profesional.",
+   "reason": "Prosa de cultura de empresa colocada bajo un encabezado de 'habilidades requeridas'; no enuncia ningun criterio del holder (§7)."
+  },
+  {
+   "excerpt": "**etermax** es líder mundial en la industria de la tecnología del entretenimiento.",
+   "reason": "Prosa institucional (§7)."
+  },
+  {
+   "excerpt": "Con la creación de marcas emblemáticas como Preguntados (Trivia Crack) y Apalabrados (Word Crack), su equipo desarrolla experiencias lúdicas que buscan hacer que el conocimiento sea interactivo y accesible a escala mundial a través de una amplia gama de plataformas y tecnologías, incluidos dispositivos móviles, realidad aumentada, realidad virtual, inteligencia artificial, servicios de streaming, televisión conectada, dispositivos de voz, tecnología portátil y más.",
+   "reason": "Lista de tecnologias de la empresa mencionadas como contexto: realidad aumentada, realidad virtual, streaming, TV conectada, etc. NO son criterios (§7). Es el caso de ruido mas peligroso del aviso."
+  },
+  {
+   "excerpt": "## Seniority level\n\nMid-Senior level",
+   "reason": "Metadata de la plataforma LinkedIn."
+  },
+  {
+   "excerpt": "## Industries\n\nEntertainment Providers",
+   "reason": "Metadata de la plataforma LinkedIn."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "**Habilidades y conocimientos requeridos para este desafío:**",
+   "note": "Encabezado que anuncia requisitos pero cuyo contenido inmediato es prosa de cultura; las viñetas efectivas cuelgan del encabezado posterior '¿Que valoramos?'. Por eso la mayoria de los claims se anotan con modality UNSPECIFIED en lugar de forzar REQUIRED o PREFERRED."
+  },
+  {
+   "excerpt": "**¿Qué valoramos?**",
+   "note": "Encabezado de preferencia que gobierna viñetas que la seccion anterior habia anunciado como requeridas. Modalidad genuinamente indecidible a nivel de seccion; solo se anota modalidad donde la viñeta la establece por si misma."
+  },
+  {
+   "excerpt": "**Lugar de trabajo:** Villa Urquiza (Híbrido).",
+   "note": "Condicion de lugar y modalidad enunciada como dato informativo, no como exigencia dirigida al postulante. No se emite Requirement; tampoco se penaliza si el extractor emite uno."
+  }
+ ],
+ "annotationNotes": "Caso deliberado de modalidad indecidible a nivel de seccion: un encabezado dice 'requeridos' y el siguiente dice '¿Que valoramos?'. Solo tres viñetas traen modalidad propia ('Valoraremos positivamente', 'condicion excluyente', 'Valoramos'). El parrafo institucional enumera muchas tecnologias que NO son criterios.",
+ "objectiveId": "EMP_017",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "b49c5560a41a2b395830c5d63cd8d1f1c608818f421194680d08ac90f3118c84",
+ "requirementCount": 23
+}

@@ -1,0 +1,175 @@
+{
+ "objectiveId": "SCH_005",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 20234,
+ "usage": {
+  "input_tokens": 3947,
+  "input_tokens_details": {
+   "cache_write_tokens": 3944,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1465,
+  "output_tokens_details": {
+   "reasoning_tokens": 639
+  },
+  "total_tokens": 5412
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Ser persona chilena o extranjera, con o sin permanencia definitiva en Chile.",
+    "primarySourceQuote": "Al concurso podrán postular personas chilenas o extranjeras, con o sin permanencia definitiva en Chile.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   },
+   {
+    "proposedRequirementText": "Poseer el grado académico de Licenciado(a), Título Profesional o su equivalente para estudios de pregrado realizados en el extranjero, otorgado por instituciones de educación superior chilenas o extranjeras.",
+    "primarySourceQuote": "- Poseer el grado académico de Licenciado(a) o Título Profesional o su equivalente en el caso de los estudios de pregrado realizados en el extranjero, otorgado por instituciones de educación superior chilenas o extranjeras.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   },
+   {
+    "proposedRequirementText": "Encontrarse en proceso de postulación formal, admitido(a) o tener la calidad de alumno o alumna regular, al cierre del periodo de postulación, en un programa de Doctorado acreditado conforme a la Ley Nº 20.129 e impartido por una universidad chilena.",
+    "primarySourceQuote": "- Encontrarse en proceso de postulación formal, admitido(a) o tener la calidad de alumno o alumna regular en un programa de Doctorado acreditado en conformidad con la Ley Nº 20.129 (deberá encontrarse en esta condición al momento de cierre del periodo de postulación) e impartido por una universidad chilena.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   },
+   {
+    "proposedRequirementText": "Si se postula formalmente, tener los antecedentes revisados y aceptados por el programa de Doctorado y en proceso de evaluación, acreditado mediante una carta del programa de estudios o el formulario en formato ANID, conforme al numeral 8.9.7.",
+    "primarySourceQuote": "Estar postulando de manera formal implica que los antecedentes de la o el postulante fueron revisados y aceptados por el programa de Doctorado y se encuentran en proceso de evaluación, lo que debe estar certificado mediante una carta del programa de estudios o el formulario en formato ANID, en conformidad con el numeral 8.9.7.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   },
+   {
+    "proposedRequirementText": "Acreditar excelencia académica mediante, al menos, una de las siguientes condiciones: haber obtenido un promedio de notas de licenciatura, título profesional o equivalente igual o superior a 5.0 sobre un máximo de 7.0, o su equivalente en escala de nota 1 a 7; o encontrarse dentro del 30% superior del ranking de egreso de pregrado respecto de la generación de egreso o titulación.",
+    "primarySourceQuote": "- Acreditar excelencia académica a través de, al menos, uno de los siguientes requisitos:\n\n- Haber obtenido un promedio de notas de licenciatura, título profesional o equivalente igual o superior a 5.0 sobre un máximo de 7.0 o su equivalente en escala de nota 1 a 7; o bien\n\n- Encontrase dentro del 30% superior del ranking de egreso de pregrado respecto de su generación de egreso o titulación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   },
+   {
+    "proposedRequirementText": "Presentar obligatoriamente los documentos señalados en los numerales 8.9.5 y 8.9.6, aun cuando sea suficiente cumplir una de las dos condiciones de excelencia académica.",
+    "primarySourceQuote": "- Si bien es suficiente que los y las postulantes cumplan con una de las dos condiciones señaladas precedentemente, **deberán presentar obligatoriamente**los documentos señalados en el numeral 8.9.5 y 8.9.6.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "PRESENTACIÓN"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Ser persona chilena o extranjera, con o sin permanencia definitiva en Chile.",
+    "primarySourceQuote": "Al concurso podrán postular personas chilenas o extranjeras, con o sin permanencia definitiva en Chile.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 716,
+     "charEnd": 819
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Poseer el grado académico de Licenciado(a), Título Profesional o su equivalente para estudios de pregrado realizados en el extranjero, otorgado por instituciones de educación superior chilenas o extranjeras.",
+    "primarySourceQuote": "- Poseer el grado académico de Licenciado(a) o Título Profesional o su equivalente en el caso de los estudios de pregrado realizados en el extranjero, otorgado por instituciones de educación superior chilenas o extranjeras.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2714,
+     "charEnd": 2937
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Encontrarse en proceso de postulación formal, admitido(a) o tener la calidad de alumno o alumna regular, al cierre del periodo de postulación, en un programa de Doctorado acreditado conforme a la Ley Nº 20.129 e impartido por una universidad chilena.",
+    "primarySourceQuote": "- Encontrarse en proceso de postulación formal, admitido(a) o tener la calidad de alumno o alumna regular en un programa de Doctorado acreditado en conformidad con la Ley Nº 20.129 (deberá encontrarse en esta condición al momento de cierre del periodo de postulación) e impartido por una universidad chilena.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2939,
+     "charEnd": 3247
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Si se postula formalmente, tener los antecedentes revisados y aceptados por el programa de Doctorado y en proceso de evaluación, acreditado mediante una carta del programa de estudios o el formulario en formato ANID, conforme al numeral 8.9.7.",
+    "primarySourceQuote": "Estar postulando de manera formal implica que los antecedentes de la o el postulante fueron revisados y aceptados por el programa de Doctorado y se encuentran en proceso de evaluación, lo que debe estar certificado mediante una carta del programa de estudios o el formulario en formato ANID, en conformidad con el numeral 8.9.7.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3249,
+     "charEnd": 3577
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Acreditar excelencia académica mediante, al menos, una de las siguientes condiciones: haber obtenido un promedio de notas de licenciatura, título profesional o equivalente igual o superior a 5.0 sobre un máximo de 7.0, o su equivalente en escala de nota 1 a 7; o encontrarse dentro del 30% superior del ranking de egreso de pregrado respecto de la generación de egreso o titulación.",
+    "primarySourceQuote": "- Acreditar excelencia académica a través de, al menos, uno de los siguientes requisitos:\n\n- Haber obtenido un promedio de notas de licenciatura, título profesional o equivalente igual o superior a 5.0 sobre un máximo de 7.0 o su equivalente en escala de nota 1 a 7; o bien\n\n- Encontrase dentro del 30% superior del ranking de egreso de pregrado respecto de su generación de egreso o titulación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3579,
+     "charEnd": 3974
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Presentar obligatoriamente los documentos señalados en los numerales 8.9.5 y 8.9.6, aun cuando sea suficiente cumplir una de las dos condiciones de excelencia académica.",
+    "primarySourceQuote": "- Si bien es suficiente que los y las postulantes cumplan con una de las dos condiciones señaladas precedentemente, **deberán presentar obligatoriamente**los documentos señalados en el numeral 8.9.5 y 8.9.6.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3988,
+     "charEnd": 4195
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "PRESENTACIÓN",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 6,
+   "quotesTotal": 6,
+   "quotesFoundLiterally": 6,
+   "primaryUnique": 6,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

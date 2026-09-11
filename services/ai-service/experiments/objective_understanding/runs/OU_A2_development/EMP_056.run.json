@@ -1,0 +1,483 @@
+{
+ "objectiveId": "EMP_056",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 32376,
+ "usage": {
+  "input_tokens": 2850,
+  "input_tokens_details": {
+   "cache_write_tokens": 2847,
+   "cached_tokens": 0
+  },
+  "output_tokens": 2623,
+  "output_tokens_details": {
+   "reasoning_tokens": 748
+  },
+  "total_tokens": 5473
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad.",
+    "primarySourceQuote": "Como **Ingeniero/a de Manufactura**, serás responsable de brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La Oportunidad**"
+   },
+   {
+    "proposedRequirementText": "Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "primarySourceQuote": "- Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "primarySourceQuote": "- Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "primarySourceQuote": "- Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "primarySourceQuote": "- Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "primarySourceQuote": "- Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "primarySourceQuote": "- Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "primarySourceQuote": "- Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "primarySourceQuote": "- Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "primarySourceQuote": "- Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "primarySourceQuote": "- Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "primarySourceQuote": "- Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "primarySourceQuote": "- Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Que harás**"
+   },
+   {
+    "proposedRequirementText": "Requerido: formación como Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido: conocimientos de Paquete Office.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido: Excel Intermedio.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido: conocimientos de Power BI.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido y excluyente: Inglés Intermedio.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido: un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).\n- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   },
+   {
+    "proposedRequirementText": "Requerido: conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).\n- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad.",
+    "primarySourceQuote": "Como **Ingeniero/a de Manufactura**, serás responsable de brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1499,
+     "charEnd": 1757
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La Oportunidad**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "primarySourceQuote": "- Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2734,
+     "charEnd": 2898
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "primarySourceQuote": "- Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2899,
+     "charEnd": 3023
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "primarySourceQuote": "- Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3024,
+     "charEnd": 3148
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "primarySourceQuote": "- Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3149,
+     "charEnd": 3298
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "primarySourceQuote": "- Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3299,
+     "charEnd": 3434
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "primarySourceQuote": "- Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3435,
+     "charEnd": 3577
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "primarySourceQuote": "- Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3578,
+     "charEnd": 3709
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "primarySourceQuote": "- Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3710,
+     "charEnd": 3856
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "primarySourceQuote": "- Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3857,
+     "charEnd": 3978
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "primarySourceQuote": "- Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3979,
+     "charEnd": 4168
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "primarySourceQuote": "- Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4169,
+     "charEnd": 4281
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "primarySourceQuote": "- Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4282,
+     "charEnd": 4427
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Que harás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Requerido: formación como Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4549
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Requerido: conocimientos de Paquete Office.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4655
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Requerido: Excel Intermedio.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4655
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Requerido: conocimientos de Power BI.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4655
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Requerido y excluyente: Inglés Intermedio.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4655
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Requerido: un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).\n- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4894
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Requerido: conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primarySourceQuote": "**Cualificaciones requeridas**\n\n- Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.\n- Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).\n- Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4429,
+     "charEnd": 4894
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Cualificaciones requeridas**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 20,
+   "quotesTotal": 20,
+   "quotesFoundLiterally": 20,
+   "primaryUnique": 20,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

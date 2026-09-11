@@ -1,0 +1,191 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Haber realizado estudios universitarios extranjeros, parciales o totales, sin haber obtenido la homologación de la titulación en España, y haber seguido el proceso de admisión por estudios extranjeros.",
+   "primaryExcerpt": "Los estudiante que habiendo realizado e**studios universitarios extranjeros, parciales o totales, que no hayan obtenido la homologación de su titulación en España**, y hayan seguido el proceso de admisión por estudios extranjeros:",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "condición: estudios universitarios extranjeros, parciales o totales",
+    "condición negativa material: NO haber obtenido la homologación en España",
+    "condición procedimental: haber seguido el proceso de admisión por estudios extranjeros"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La condicion negativa es constitutiva de la elegibilidad: quien SI obtuvo homologacion no puede solicitar este reconocimiento. Convertirla en positiva invertiria el criterio."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Quienes no hayan obtenido resolución de reconocimiento de al menos 30 créditos de materia básica y obligatoria deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+   "primaryExcerpt": "Continuando con el proceso de admisión a estudios oficiales de grado con estudios universitarios extranjeros, si no han obtenido resolución de reconocimiento de al menos 30 créditos de materia básica y obligatoria, deberán solicitar el reconocimiento de créditos a la E.T.S.I. de Sistemas Informáticos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "umbral cuantitativo: al menos 30 créditos de materia básica y obligatoria",
+    "condicional negativo: si NO han obtenido resolución de reconocimiento",
+    "destinatario del trámite: E.T.S.I. de Sistemas Informáticos"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "El umbral de 30 creditos y el condicional negativo son ambos materiales."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Presentar certificación académica oficial de los estudios realizados, con las calificaciones obtenidas en las asignaturas impartidas y su correspondiente nota media aprobatoria.",
+   "primaryExcerpt": "- Certificación académica oficial de los estudios realizados, en la que consten las calificaciones obtenidas en las asignaturas impartidas, con su correspondiente nota media aprobatoria.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "documento: certificación académica oficial",
+    "contenido exigido: calificaciones por asignatura y nota media aprobatoria"
+   ],
+   "auxiliaryExcerpts": [
+    "La instancia normalizada deberá ir acompañada de la siguiente documentación:"
+   ],
+   "compositionNote": "Separado por §4.1: la lista documental enumera piezas independientes, cada una con sus propias exigencias de contenido."
+  },
+  {
+   "goldId": "g04",
+   "claim": "Presentar el programa de las asignaturas aprobadas, con el contenido y la carga lectiva, sellado y diligenciado por el centro en todas y cada una de sus hojas, detallando los cursos académicos en los que estuvo vigente.",
+   "primaryExcerpt": "- Programa de las asignaturas aprobadas, en el que conste el contenido y la carga lectiva. Deberá estar sellado y diligenciado por el centro donde se impartió en todas y cada una de sus hojas, detallando los cursos académicos en los que estuvo vigente.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "documento: programa de asignaturas aprobadas",
+    "contenido exigido: contenido y carga lectiva",
+    "formalidad: sellado y diligenciado en todas y cada una de sus hojas",
+    "detalle exigido: cursos académicos de vigencia"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g03. Las exigencias de formalidad son qualifiers materiales del mismo documento."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Presentar pasaporte o DNI/NIE; los estudiantes extranjeros pueden presentar en su lugar una certificación de los Servicios Consulares de su país en España con nacionalidad e inscripción en el Registro Consular.",
+   "primaryExcerpt": "- Pasaporte, DNI/ NIE. (Los estudiantes extranjeros pueden presentar una certificación de los Servicios Consulares de su país en España, en la que figure su nacionalidad e inscripción en el Registro Consular).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "documentos alternativos: pasaporte, DNI/NIE",
+    "sustituto admitido para extranjeros: certificación de Servicios Consulares"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g03. El sustituto consular es una alternativa material, no un documento adicional."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Presentar el resguardo de haber solicitado plaza.",
+   "primaryExcerpt": "- Resguardo de haber solicitado plaza.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "documento: resguardo de solicitud de plaza"
+   ],
+   "auxiliaryExcerpts": [
+    "La instancia normalizada deberá ir acompañada de la siguiente documentación:"
+   ],
+   "compositionNote": "Ver g03."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Los documentos deben ser oficiales, expedidos por las autoridades competentes y legalizados por vía diplomática.",
+   "primaryExcerpt": "- Serán **oficiales**, expedidos por las **autoridades competentes y legalizados** por vía diplomática.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "carácter: oficiales",
+    "emisor: autoridades competentes",
+    "formalidad: legalizados por vía diplomática"
+   ],
+   "auxiliaryExcerpts": [
+    "Estos documentos deberán ajustarse a los requisitos siguientes:"
+   ]
+  },
+  {
+   "goldId": "g08",
+   "claim": "La legalización por vía diplomática exige presentar los documentos, en ese orden, ante el Ministerio de Educación del país de origen, el Ministerio de Asuntos Exteriores del país emisor, la representación diplomática o consular de España en dicho país y la Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores.",
+   "primaryExcerpt": "- Para legalización de documentos por vía diplomática, deberán ser presentados en todos y cada uno de los siguientes organismos, por el orden que se cita:",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cuantificador: todos y cada uno de los organismos",
+    "restricción material: por el orden que se cita",
+    "organismos: Ministerio de Educación de origen, Ministerio de Asuntos Exteriores emisor, representación diplomática española, Sección de Legalizaciones española"
+   ],
+   "auxiliaryExcerpts": [
+    "- El Ministerio de Educación del país de origen.",
+    "- La Sección de Legalizaciones del Ministerio Español de Asuntos Exteriores, Unión Europea y Cooperación (C/ General Pardiñas, 55. 28006 Madrid)"
+   ],
+   "compositionNote": "Compuesto preservado: 'todos y cada uno' y 'por el orden que se cita' son qualifiers que NO distribuyen; emitir un Requirement por organismo perderia la exigencia de secuencia y de completitud."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Para documentos procedentes de países acogidos al Convenio de La Haya, la legalización por vía diplomática se sustituye por la apostilla, efectuada por la autoridad competente del Estado de procedencia.",
+   "primaryExcerpt": "- Para la legalización de los documentos procedentes de los países acogidos al “Convenio de La Haya”, los requisitos citados con anterioridad para una legalización por vía diplomática, serán sustituidos por la correspondiente apostilla. Este trámite lo efectúa la autoridad competente del Estado de donde procedan los documentos.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "condición: países acogidos al Convenio de La Haya",
+    "efecto material: SUSTITUYE los requisitos de legalización diplomática",
+    "ejecutor: autoridad competente del Estado de procedencia"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Claim que EXIME de g08 bajo una condicion. Tratarlo como una exigencia adicional acumulativa seria un error material de modalidad."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Los documentos deben ir acompañados de su correspondiente traducción oficial al castellano, realizada por representación diplomática o consular española en el extranjero, por la representación del país del solicitante en España, por traductor jurado autorizado e inscrito en España o por la Oficina de Interpretación de Lenguas.",
+   "primaryExcerpt": "Los documentos deberán ir acompañados, en su caso, de su **correspondiente traducción oficial al castellano**, que podrá hacerse:",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: traducción oficial al castellano",
+    "condicional: en su caso",
+    "vías alternativas: representación diplomática/consular española, representación del país del solicitante en España, traductor jurado inscrito en España, Oficina de Interpretación de Lenguas"
+   ],
+   "auxiliaryExcerpts": [
+    "- Por traductor jurado, debidamente autorizado e inscrito en España."
+   ],
+   "compositionNote": "Las cuatro vias van introducidas por 'podra hacerse' (alternativas): separar convertiria una disyuncion en cuatro exigencias. El 'en su caso' condiciona la exigencia y es material."
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Cuando la titulación universitaria de origen no esté regulada por la vigente ley de educación universitaria española, ni se haya podido realizar homologación del título, se reconocerán los créditos de las asignaturas cuyas competencias, conocimientos y carga de trabajo del alumno, sean equivalentes a las correspondientes a una o varias asignaturas de la titulación de destino.",
+   "reason": "Define el criterio que aplica la UNIVERSIDAD al resolver, no una exigencia dirigida al solicitante. Distincion clave del dominio de equivalencias: hay criterios del evaluador y criterios del solicitante."
+  },
+  {
+   "excerpt": "Este reconocimiento supondrá para el alumno la exención de cursar dichas asignaturas.",
+   "reason": "Efecto del reconocimiento, no requisito."
+  },
+  {
+   "excerpt": "**Normativa de Reconocimiento y Transferencia de Créditos de la UPM**",
+   "reason": "Referencia normativa enlazada."
+  },
+  {
+   "excerpt": "Una vez remitida la solicitud, junto con la documentación indicada, el centro le enviará la **carta de pago de tasas** por el estudio de la solicitud para su abono. Una vez efectuado debe remitir al centro el resguardo del abono a la mayor brevedad.",
+   "reason": "Paso procedimental posterior a la solicitud; se registra como pasaje ambiguo porque contiene un 'debe remitir'."
+  },
+  {
+   "excerpt": "La documentación será evaluada por la Subdirección de Ordenación Académica, los departamentos y secciones departamentales, así como por los profesores y profesoras de las asignaturas, que emitirán informe favorable o desfavorable.",
+   "reason": "Describe el circuito de evaluacion interno de la universidad."
+  },
+  {
+   "excerpt": "La Resolución concediendo o denegando los reconocimientos de créditos será adoptada por la CRTC.",
+   "reason": "Organo resolutor; no es criterio del solicitante."
+  },
+  {
+   "excerpt": "Se deberá remitir una solicitud de reconocimiento de créditos para alumnos con estudios extranjeros junto con la documentación mencionada a la secretaría de la E.T.S.I. de Sistemas Informáticos: secretaria.estudiantes.etsisi@upm.es. Teléfono para solicitar información: 910673524.",
+   "reason": "Instruccion de canal y datos de contacto."
+  },
+  {
+   "excerpt": "Los plazos para el reconocimiento de créditos por estudios internacionales vienen especificados en el siguiente documento:",
+   "reason": "Remision a otro documento; no enuncia el plazo."
+  },
+  {
+   "excerpt": "## Jefatura de Estudios",
+   "reason": "Encabezado de la unidad administrativa de la pagina."
+  }
+ ],
+ "ambiguousPassages": [
+  {
+   "excerpt": "Una vez remitida la solicitud, junto con la documentación indicada, el centro le enviará la **carta de pago de tasas** por el estudio de la solicitud para su abono. Una vez efectuado debe remitir al centro el resguardo del abono a la mayor brevedad.",
+   "note": "Contiene una obligacion del solicitante ('debe remitir al centro el resguardo del abono') dentro de un pasaje mayoritariamente procedimental. Un anotador razonable podria emitir un Requirement documental. No se penaliza si el extractor lo emite."
+  }
+ ],
+ "annotationNotes": "CROSS-DOMAIN (equivalencia). Objective de universidad espanola con estructura normativa: elegibilidad definida por una condicion NEGATIVA (no haber homologado), lista documental con exigencias de formalidad, cadena de legalizacion con cuantificador 'todos y cada uno' y orden obligatorio, y una clausula de SUSTITUCION (apostilla de La Haya) que exime del requisito anterior. Prueba dos fenomenos que el bloque de empleo casi no tiene: criterios del evaluador frente a criterios del solicitante, y clausulas de sustitucion condicional.",
+ "objectiveId": "EQV_005",
+ "objectiveType": "EQUIVALENCE",
+ "language": "es",
+ "rawTextSha256": "58656df557d225f3c77ecdc5b725c3d73f98586cf9ce054940188bf6fbcbc079",
+ "requirementCount": 10
+}

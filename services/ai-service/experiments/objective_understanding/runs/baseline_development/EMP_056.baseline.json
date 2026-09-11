@@ -1,0 +1,531 @@
+{
+ "objectiveId": "EMP_056",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 32,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "Abbott es líder mundial en cuidado de la salud, que crea ciencia innovadora para mejorar la salud de las personas. Siempre estamos mirando hacia el futuro, anticipando cambios en la ciencia y la tecnología médica.",
+    "primarySourceQuote": "Abbott es líder mundial en cuidado de la salud, que crea ciencia innovadora para mejorar la salud de las personas. Siempre estamos mirando hacia el futuro, anticipando cambios en la ciencia y la tecnología médica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 22,
+     "charEnd": 235
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "En Abbott, puedes hacer un trabajo que importa, crecer y aprender, cuidar de ti mismo y de tu familia, ser verdaderamente quién eres y vivir una vida plena. Tendrás acceso a :",
+    "primarySourceQuote": "En Abbott, puedes hacer un trabajo que importa, crecer y aprender, cuidar de ti mismo y de tu familia, ser verdaderamente quién eres y vivir una vida plena. Tendrás acceso a :",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 263,
+     "charEnd": 438
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Desarrollo profesional con una empresa internacional donde podrás hacer crecer la carrera que sueñas.",
+    "primarySourceQuote": "Desarrollo profesional con una empresa internacional donde podrás hacer crecer la carrera que sueñas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 442,
+     "charEnd": 543
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Una compañía reconocida como mejor lugar para trabajar en docenas de países alrededor del mundo y nombrada una de las empresas más admiradas del mundo por Fortune.",
+    "primarySourceQuote": "Una compañía reconocida como mejor lugar para trabajar en docenas de países alrededor del mundo y nombrada una de las empresas más admiradas del mundo por Fortune.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 546,
+     "charEnd": 709
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Una compañía que es reconocida como una de las mejores compañías grandes para trabajar, así como un mejor lugar para trabajar para la diversidad, las madres trabajadoras, mujeres ejecutivas y científicas.",
+    "primarySourceQuote": "Una compañía que es reconocida como una de las mejores compañías grandes para trabajar, así como un mejor lugar para trabajar para la diversidad, las madres trabajadoras, mujeres ejecutivas y científicas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 712,
+     "charEnd": 916
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Esta posición está ubicada en nuestra planta de producción en Florencio Varela, Buenos Aires en la división EPD.",
+    "primarySourceQuote": "Esta posición está ubicada en nuestra planta de producción en Florencio Varela, Buenos Aires en la división EPD.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 938,
+     "charEnd": 1050
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "En esta división, estamos comprometidos a llevar los beneficios de nuestros medicamentos confiables a más personas en los países de más rápido crecimiento del mundo.",
+    "primarySourceQuote": "En esta división, estamos comprometidos a llevar los beneficios de nuestros medicamentos confiables a más personas en los países de más rápido crecimiento del mundo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1052,
+     "charEnd": 1217
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Nuestro amplio portafolio de medicamentos genéricos de marca diferenciada y de alta calidad abarca múltiples áreas terapéuticas, incluidas la gastroenterología, la salud de la mujer, los cardiometabólicos, el manejo del dolor / sistema nervioso central y las vías respiratorias.",
+    "primarySourceQuote": "Nuestro amplio portafolio de medicamentos genéricos de marca diferenciada y de alta calidad abarca múltiples áreas terapéuticas, incluidas la gastroenterología, la salud de la mujer, los cardiometabólicos, el manejo del dolor / sistema nervioso central y las vías respiratorias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1219,
+     "charEnd": 1497
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Como **Ingeniero/a de Manufactura**, serás responsable de brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad. Analizarás el desempeño de los procesos, identificarás oportunidades de mejora y participarás en la implementación de iniciativas orientadas a optimizar recursos y resultados.",
+    "primarySourceQuote": "Como **Ingeniero/a de Manufactura**, serás responsable de brindar soporte técnico, operativo y financiero a las áreas productivas de la planta, asegurando operaciones eficientes, seguras y alineadas con los objetivos de calidad, productividad y rentabilidad. Analizarás el desempeño de los procesos, identificarás oportunidades de mejora y participarás en la implementación de iniciativas orientadas a optimizar recursos y resultados.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1499,
+     "charEnd": 1933
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Tendrás a cargo el seguimiento de indicadores de producción, eficiencia y costos, realizando análisis de desvíos, evaluando órdenes de producción y generando información clave para la toma de decisiones. Además, participarás en la definición y actualización de estándares productivos, rutas de fabricación y listas de materiales, contribuyendo a la planificación financiera y al control de costos de la operación.",
+    "primarySourceQuote": "Tendrás a cargo el seguimiento de indicadores de producción, eficiencia y costos, realizando análisis de desvíos, evaluando órdenes de producción y generando información clave para la toma de decisiones. Además, participarás en la definición y actualización de estándares productivos, rutas de fabricación y listas de materiales, contribuyendo a la planificación financiera y al control de costos de la operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1935,
+     "charEnd": 2348
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Trabajarás de manera transversal con equipos de Producción, Ingeniería, Mantenimiento, Supply Chain y Finanzas, impulsando proyectos de mejora continua, productividad y ahorro. Asimismo, colaborarás en actividades de cumplimiento regulatorio, gestión de cambios, documentación técnica y capacitación, contribuyendo al desarrollo sostenible y competitivo de la planta.",
+    "primarySourceQuote": "Trabajarás de manera transversal con equipos de Producción, Ingeniería, Mantenimiento, Supply Chain y Finanzas, impulsando proyectos de mejora continua, productividad y ahorro. Asimismo, colaborarás en actividades de cumplimiento regulatorio, gestión de cambios, documentación técnica y capacitación, contribuyendo al desarrollo sostenible y competitivo de la planta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2350,
+     "charEnd": 2717
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "primarySourceQuote": "Monitorear y analizar indicadores de producción, productividad, eficiencia, OEE y utilización de recursos, identificando desvíos y proponiendo acciones de mejora.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2736,
+     "charEnd": 2898
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "primarySourceQuote": "Realizar el cierre y análisis de órdenes de producción, evaluando consumos, rendimientos, mano de obra y costos asociados.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2901,
+     "charEnd": 3023
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "primarySourceQuote": "Generar reportes e información de gestión para la toma de decisiones de las áreas de Producción, Finanzas y Planificación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3026,
+     "charEnd": 3148
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "primarySourceQuote": "Asegurar el cumplimiento de procedimientos, normativas de calidad, regulaciones, requisitos de seguridad, medio ambiente y estándares corporativos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3151,
+     "charEnd": 3298
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "primarySourceQuote": "Gestionar documentación productiva, procedimientos operativos, instrucciones de manufactura y procesos de Management of Change (MoC).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3301,
+     "charEnd": 3434
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "primarySourceQuote": "Coordinar y administrar los entrenamientos del personal, detectando necesidades de capacitación y promoviendo el desarrollo de competencias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3437,
+     "charEnd": 3577
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "primarySourceQuote": "Participar en proyectos de mejora continua orientados a optimizar procesos, reducir costos e incrementar la eficiencia operativa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3580,
+     "charEnd": 3709
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "primarySourceQuote": "Definir y actualizar estándares de producción, rutas de fabricación (Routings) y listas de materiales (BOMs) para productos nuevos y existentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3712,
+     "charEnd": 3856
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "primarySourceQuote": "Colaborar en la elaboración de presupuestos, análisis financieros, proyecciones de ahorro y control de costos del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3859,
+     "charEnd": 3978
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "primarySourceQuote": "Trabajar de manera transversal con Producción, Ingeniería, Mantenimiento, Calidad, Supply Chain y Finanzas para impulsar mejoras y asegurar el cumplimiento de los objetivos operacionales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3981,
+     "charEnd": 4168
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "primarySourceQuote": "Gestionar requisiciones de compra y coordinar proveedores para la ejecución de trabajos y proyectos en planta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4171,
+     "charEnd": 4281
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "primarySourceQuote": "Mantener actualizados tableros de control, métricas e indicadores clave de desempeño para el seguimiento de resultados y cumplimiento de metas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4284,
+     "charEnd": 4427
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "*Cualificaciones requeridas**",
+    "primarySourceQuote": "*Cualificaciones requeridas**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4430,
+     "charEnd": 4459
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "primarySourceQuote": "Educación : Ingeniero Industrial, Químico, Mecánico o Farmacéutico, o carreras afines.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4463,
+     "charEnd": 4549
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primarySourceQuote": "Conocimientos específicos : Paquete Office, Excel Intermedio, Power BI, Ingles Intermedio (excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4552,
+     "charEnd": 4655
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primarySourceQuote": "Experiencia : contar con un mínimo de 2 años de experiencia en producción, Supply Chain, Ingeniería Industrial o mejora continua. Debe tener conocimiento en regulaciones de Calidad y los estándares que afectan la industria farmacéutica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4658,
+     "charEnd": 4894
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "Siga tus aspiraciones profesionales con Abbott para obtener diversas oportunidades con una empresa que puede ayudarte a construir tu futuro y vivir tu mejor vida. Abbott es un empleador de igualdad de oportunidades, comprometido con la diversidad de los empleados.",
+    "primarySourceQuote": "Siga tus aspiraciones profesionales con Abbott para obtener diversas oportunidades con una empresa que puede ayudarte a construir tu futuro y vivir tu mejor vida. Abbott es un empleador de igualdad de oportunidades, comprometido con la diversidad de los empleados.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4915,
+     "charEnd": 5179
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Si aún no eres parte de nuestra comunidad de talento, únete ahora y podrás recibir noticias de Abbott y otras oportunidades que puedan ser de tu interés en el futuro : Comunidad de Talento Abbott.",
+    "primarySourceQuote": "Si aún no eres parte de nuestra comunidad de talento, únete ahora y podrás recibir noticias de Abbott y otras oportunidades que puedan ser de tu interés en el futuro : Comunidad de Talento Abbott.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5181,
+     "charEnd": 5377
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "Conéctese con nosotros en www.abbott.com, en Facebook en www.facebook.com/Abbott y en Twitter @AbbottNews y @AbbottGlobal.",
+    "primarySourceQuote": "Conéctese con nosotros en www.abbott.com, en Facebook en www.facebook.com/Abbott y en Twitter @AbbottNews y @AbbottGlobal.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5379,
+     "charEnd": 5501
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "Production and Manufacturing",
+    "primarySourceQuote": "Production and Manufacturing",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5618,
+     "charEnd": 5646
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Job function",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "Hospitals and Health Care",
+    "primarySourceQuote": "Hospitals and Health Care",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5666,
+     "charEnd": 5691
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Industries",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 32,
+   "quotesTotal": 32,
+   "quotesFoundLiterally": 32,
+   "primaryUnique": 32,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

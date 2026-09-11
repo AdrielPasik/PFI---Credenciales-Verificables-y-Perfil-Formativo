@@ -1,0 +1,787 @@
+{
+ "objectiveId": "EMP_069",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 48,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "Sumá tu energía a la compañía que contribuye al desarrollo de nuestro país.",
+    "primarySourceQuote": "Sumá tu energía a la compañía que contribuye al desarrollo de nuestro país.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 75
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "En YPF buscamos personas que quieran ser parte de un gran equipo que transforma desafíos en oportunidades y que actúa con excelencia para generar valor. Con más de cien años de historia, somos la compañía energética líder de la Argentina, impulsando el desarrollo y la innovación tecnológica del país.",
+    "primarySourceQuote": "En YPF buscamos personas que quieran ser parte de un gran equipo que transforma desafíos en oportunidades y que actúa con excelencia para generar valor. Con más de cien años de historia, somos la compañía energética líder de la Argentina, impulsando el desarrollo y la innovación tecnológica del país.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 77,
+     "charEnd": 378
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "¡Sumarte a YPF es unirte a un proyecto que combina experiencia, pasión y la energía necesaria para seguir construyendo nuestro futuro!",
+    "primarySourceQuote": "¡Sumarte a YPF es unirte a un proyecto que combina experiencia, pasión y la energía necesaria para seguir construyendo nuestro futuro!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 380,
+     "charEnd": 514
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "primarySourceQuote": "Un profesional de Ingeniería proactivo, autónomo y con sólidas habilidades de liderazgo de proyectos, trabajo en equipo y adaptación al cambio, orientadas a desempeñarse en el rol de Ingeniero De Procesos dentro de la Vicepresidencia de Operaciones del Upstream.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 536,
+     "charEnd": 798
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "*¿Cuál será su desafío?**",
+    "primarySourceQuote": "*¿Cuál será su desafío?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 801,
+     "charEnd": 826
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+    "primarySourceQuote": "Serás responsable de controlar el desempeño de las instalaciones de superficie y su operación, con el objetivo de optimizar la eficiencia, asegurar calidad de despacho, manteniendo la operación en niveles aceptables según defina la compañía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 828,
+     "charEnd": 1069
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "*¿Cuáles serán sus principales tareas?**",
+    "primarySourceQuote": "*¿Cuáles serán sus principales tareas?**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1072,
+     "charEnd": 1112
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada con el fin de asegurar la ejecución de la operación dentro de los límites de ventana operativa definida, el cumplimiento de los objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos definidos por el Negocio.",
+    "primarySourceQuote": "Controlar las variables operativas y equipos de procesos de todas las instalaciones de procesamiento y transporte de fluidos de la Región asignada con el fin de asegurar la ejecución de la operación dentro de los límites de ventana operativa definida, el cumplimiento de los objetivos de seguridad operativa, calidad de producto, producción, eficiencia y gastos definidos por el Negocio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1116,
+     "charEnd": 1503
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a las instalaciones de procesamiento y transporte de fluidos, con el fin de garantizar la operación segura, confiable y eficiente de los procesos, asegurando que las estrategias de control se encuentren alineadas con los objetivos operativos, los estudios de riesgo y las mejores prácticas de ingeniería.",
+    "primarySourceQuote": "Dimensionar, revisar y validar las lógicas de control de procesos, los enclavamientos e interlocks de seguridad (SIS/ESD), alarmas críticas e instrumentación de campo asociada a las instalaciones de procesamiento y transporte de fluidos, con el fin de garantizar la operación segura, confiable y eficiente de los procesos, asegurando que las estrategias de control se encuentren alineadas con los objetivos operativos, los estudios de riesgo y las mejores prácticas de ingeniería.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1507,
+     "charEnd": 1987
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "Integrar los análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación, con el fin de generar una visión integral para el diseño y optimización de proyectos, promoviendo la sinergia entre las redes de producción, recolección, transporte y las instalaciones de procesamiento de agua, petróleo y gas, asegurando soluciones técnicas robustas, escalables y alineadas con los planes de desarrollo del negocio.",
+    "primarySourceQuote": "Integrar los análisis operativos, simulaciones de proceso, estudios de capacidad, eficiencia energética, gestión de riesgos, calidad de fluidos, sistemas de control e instrumentación, con el fin de generar una visión integral para el diseño y optimización de proyectos, promoviendo la sinergia entre las redes de producción, recolección, transporte y las instalaciones de procesamiento de agua, petróleo y gas, asegurando soluciones técnicas robustas, escalables y alineadas con los planes de desarrollo del negocio.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1991,
+     "charEnd": 2507
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Controlar los indicadores de calidad (KPIs) de procesos, con el fin de identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad a la operación, e impulsar las acciones correctivas necesarias.",
+    "primarySourceQuote": "Controlar los indicadores de calidad (KPIs) de procesos, con el fin de identificar desvíos, alertar condiciones inseguras y/o incumplimientos de calidad a la operación, e impulsar las acciones correctivas necesarias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2511,
+     "charEnd": 2727
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, a fin de monitorear desvíos, identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "primarySourceQuote": "Controlar los parámetros fisicoquímicos de los fluidos, verificando condiciones de entrega y variabilidad en los ingresos, a fin de monitorear desvíos, identificar acciones correctivas, oportunidades de optimización o modificaciones procedimentales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2731,
+     "charEnd": 2980
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones.",
+    "primarySourceQuote": "Desarrollar y actualizar la simulación de todas las facilidades de procesamiento y transporte, utilizando Simuladores de Proceso, con el fin de contribuir en la toma de decisiones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2984,
+     "charEnd": 3164
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Identificar cuellos de botella en las instalaciones, con el fin de mantener información actualizada de las capacidades instaladas, e impulsar modificaciones cuando dichas capacidades resulten inconsistentes con el plan de producción.",
+    "primarySourceQuote": "Identificar cuellos de botella en las instalaciones, con el fin de mantener información actualizada de las capacidades instaladas, e impulsar modificaciones cuando dichas capacidades resulten inconsistentes con el plan de producción.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3168,
+     "charEnd": 3401
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, con el fin de asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "primarySourceQuote": "Resguardar la documentación clave de las instalaciones, procurando su respaldo y actualización, con el fin de asegurar el cumplimiento de los requisitos normativos de la compañía.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3405,
+     "charEnd": 3584
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, a fin de lograr un conocimiento certero de todos los usos y disposiciones de energía, con sus costos asociados, además de conocer y acompañar las acciones realizadas en las operaciones con impacto en el desempeño energético, buscando optimizaciones en el uso de esta.",
+    "primarySourceQuote": "Medir la eficiencia energética de los procesos y gestionar el Uso de la Energía Upstream, a fin de lograr un conocimiento certero de todos los usos y disposiciones de energía, con sus costos asociados, además de conocer y acompañar las acciones realizadas en las operaciones con impacto en el desempeño energético, buscando optimizaciones en el uso de esta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3588,
+     "charEnd": 3945
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, con el fin de mantener la operación de las instalaciones dentro de los márgenes definidos en la normativa corporativa.",
+    "primarySourceQuote": "Liderar y controlar los estudios de riesgos de instalaciones existentes y las acciones definidas en dichos estudios, con el fin de mantener la operación de las instalaciones dentro de los márgenes definidos en la normativa corporativa.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3950,
+     "charEnd": 4185
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Asesorar en aspectos relativos a la especialidad, participando en las investigaciones de incidentes y búsqueda de fallas donde se requiera, con el fin de aportar conocimientos específicos del área.",
+    "primarySourceQuote": "Asesorar en aspectos relativos a la especialidad, participando en las investigaciones de incidentes y búsqueda de fallas donde se requiera, con el fin de aportar conocimientos específicos del área.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4190,
+     "charEnd": 4387
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, con el fin de aportar conocimientos específicos del área y contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "primarySourceQuote": "Asesorar en las paradas de planta programadas, colaborando en los planes de consignación, programación de actividades e inspección de tareas, con el fin de aportar conocimientos específicos del área y contribuir al desarrollo seguro y eficiente de los paros de planta.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4392,
+     "charEnd": 4660
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "**Formación académica:** Ingeniero Químico o Electrónico.",
+    "primarySourceQuote": "**Formación académica:** Ingeniero Químico o Electrónico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4685,
+     "charEnd": 4742
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "**Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "primarySourceQuote": "**Experiencia profesional:** Experiencia previa en proyectos, Ingeniería de control e Instrumentación. dimensionamientos y cálculos de equipos de procesos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4745,
+     "charEnd": 4900
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "**Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "primarySourceQuote": "**Herramientas informáticas:** manejo del software Hysys y Autocad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4903,
+     "charEnd": 4970
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "**Otros requisitos:** experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+    "primarySourceQuote": "**Otros requisitos:** experiencia en manejo de químicos y ensayos de laboratorios (no excluyente).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4973,
+     "charEnd": 5071
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "*Información del puesto**",
+    "primarySourceQuote": "*Información del puesto**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5074,
+     "charEnd": 5099
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "*Reporte directo:** JEFE INGENIERIA PROCESOS Y CONTROL",
+    "primarySourceQuote": "*Reporte directo:** JEFE INGENIERIA PROCESOS Y CONTROL",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5102,
+     "charEnd": 5156
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_26",
+    "order": 26,
+    "proposedRequirementText": "*Lugar de trabajo:** BASE YPF LOMA CAMPANA",
+    "primarySourceQuote": "*Lugar de trabajo:** BASE YPF LOMA CAMPANA",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5159,
+     "charEnd": 5201
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_27",
+    "order": 27,
+    "proposedRequirementText": "*Encuadre gremial:** Fuera de convenio",
+    "primarySourceQuote": "*Encuadre gremial:** Fuera de convenio",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5204,
+     "charEnd": 5242
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_28",
+    "order": 28,
+    "proposedRequirementText": "*Disponibilidad para viajar:** si, eventualmente",
+    "primarySourceQuote": "*Disponibilidad para viajar:** si, eventualmente",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5245,
+     "charEnd": 5293
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_29",
+    "order": 29,
+    "proposedRequirementText": "Trabaja con excelencia y profesionalismo.",
+    "primarySourceQuote": "Trabaja con excelencia y profesionalismo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5322,
+     "charEnd": 5363
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_30",
+    "order": 30,
+    "proposedRequirementText": "Da lo mejor cada día, valora la meritocracia y busca siempre la milla extra.",
+    "primarySourceQuote": "Da lo mejor cada día, valora la meritocracia y busca siempre la milla extra.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5366,
+     "charEnd": 5442
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_31",
+    "order": 31,
+    "proposedRequirementText": "Vive los desafíos como oportunidades para innovar y aprender.",
+    "primarySourceQuote": "Vive los desafíos como oportunidades para innovar y aprender.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5445,
+     "charEnd": 5506
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_32",
+    "order": 32,
+    "proposedRequirementText": "Disfruta del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "primarySourceQuote": "Disfruta del trabajo en equipo y del intercambio de distintos puntos de vista.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5509,
+     "charEnd": 5587
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_33",
+    "order": 33,
+    "proposedRequirementText": "Encara los proyectos con pasión y compromiso.",
+    "primarySourceQuote": "Encara los proyectos con pasión y compromiso.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5590,
+     "charEnd": 5635
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_34",
+    "order": 34,
+    "proposedRequirementText": "Promueve un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "primarySourceQuote": "Promueve un buen clima de trabajo, con empatía, escucha activa y respeto.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5638,
+     "charEnd": 5711
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_35",
+    "order": 35,
+    "proposedRequirementText": "¡Este puesto es para vos!",
+    "primarySourceQuote": "¡Este puesto es para vos!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5713,
+     "charEnd": 5738
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_36",
+    "order": 36,
+    "proposedRequirementText": "Un entorno donde podés aportar lo más valioso que tenés: tu energía. Esa energía que impulsa, que se adapta, que aprende, que suma, que transforma.",
+    "primarySourceQuote": "Un entorno donde podés aportar lo más valioso que tenés: tu energía. Esa energía que impulsa, que se adapta, que aprende, que suma, que transforma.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5761,
+     "charEnd": 5908
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Si sos una persona que",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_37",
+    "order": 37,
+    "proposedRequirementText": "🤩 Impulsar tu desarrollo al siguiente nivel con nuevas oportunidades de aprendizaje.",
+    "primarySourceQuote": "🤩 Impulsar tu desarrollo al siguiente nivel con nuevas oportunidades de aprendizaje.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 5944,
+     "charEnd": 6028
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_38",
+    "order": 38,
+    "proposedRequirementText": "💡 Crear soluciones innovadoras que impactan en el país.",
+    "primarySourceQuote": "💡 Crear soluciones innovadoras que impactan en el país.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6030,
+     "charEnd": 6085
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_39",
+    "order": 39,
+    "proposedRequirementText": "🤝 Formar parte de una empresa comprometida con la equidad y la inclusión.",
+    "primarySourceQuote": "🤝 Formar parte de una empresa comprometida con la equidad y la inclusión.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6087,
+     "charEnd": 6160
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_40",
+    "order": 40,
+    "proposedRequirementText": "🧘 ♀️ Disfrutar del acompañamiento integral del Programa Be #BeneficiosYExperiencias.",
+    "primarySourceQuote": "🧘 ♀️ Disfrutar del acompañamiento integral del Programa Be #BeneficiosYExperiencias.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6162,
+     "charEnd": 6246
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_41",
+    "order": 41,
+    "proposedRequirementText": "Programa Be (Beneficios y Experiencias)",
+    "primarySourceQuote": "Programa Be (Beneficios y Experiencias)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6248,
+     "charEnd": 6287
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_42",
+    "order": 42,
+    "proposedRequirementText": "Descuentos exclusivos en combustibles, gimnasios y muchos otros productos y servicios.",
+    "primarySourceQuote": "Descuentos exclusivos en combustibles, gimnasios y muchos otros productos y servicios.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6291,
+     "charEnd": 6377
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_43",
+    "order": 43,
+    "proposedRequirementText": "Iniciativas para estar cerca en los momentos familiares claves: ayuda escolar, licencias parentales extendidas y regalo de nacimiento.",
+    "primarySourceQuote": "Iniciativas para estar cerca en los momentos familiares claves: ayuda escolar, licencias parentales extendidas y regalo de nacimiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6380,
+     "charEnd": 6514
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_44",
+    "order": 44,
+    "proposedRequirementText": "Cobertura médica para vos y tu familia.",
+    "primarySourceQuote": "Cobertura médica para vos y tu familia.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6517,
+     "charEnd": 6556
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_45",
+    "order": 45,
+    "proposedRequirementText": "Descuentos especiales en universidades orientados a impulsar estudios de especialización y posgrado.",
+    "primarySourceQuote": "Descuentos especiales en universidades orientados a impulsar estudios de especialización y posgrado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6559,
+     "charEnd": 6659
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_46",
+    "order": 46,
+    "proposedRequirementText": "Servicios de refrigerio, frutas, snacks y comedor (según locación).",
+    "primarySourceQuote": "Servicios de refrigerio, frutas, snacks y comedor (según locación).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6662,
+     "charEnd": 6729
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_47",
+    "order": 47,
+    "proposedRequirementText": "Esquema de vacaciones adicionales",
+    "primarySourceQuote": "Esquema de vacaciones adicionales",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6758,
+     "charEnd": 6791
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_48",
+    "order": 48,
+    "proposedRequirementText": "¡Te esperamos para seguir generando valor y construyendo juntos el futuro energético de nuestro país!",
+    "primarySourceQuote": "¡Te esperamos para seguir generando valor y construyendo juntos el futuro energético de nuestro país!",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 6793,
+     "charEnd": 6894
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Sumarte a la #ExperienciaYPF es",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 48,
+   "quotesTotal": 48,
+   "quotesFoundLiterally": 48,
+   "primaryUnique": 48,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

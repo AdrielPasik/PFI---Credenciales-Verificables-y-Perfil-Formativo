@@ -1,0 +1,274 @@
+{
+ "goldRequirements": [
+  {
+   "goldId": "g01",
+   "claim": "Estudiante o graduado/a de Farmacia, Bioquímica, Lic. en Química, o carreras afines.",
+   "primaryExcerpt": "- Estudiante o graduado/a de Farmacia, Bioquímica, Lic en Química, o carreras afines.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "estado alternativo: estudiante o graduado",
+    "titulaciones alternativas: Farmacia, Bioquímica, Lic. en Química o afines"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La alternativa 'Estudiante o graduado' es material: admite formacion en curso. Eliminarla fortaleceria el claim a titulacion completa."
+  },
+  {
+   "goldId": "g02",
+   "claim": "Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+   "primaryExcerpt": "- Conocimientos normativos (GMP, GLP, GXP, normativas nacionales e internacionales de industria farmacéutica).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: conocimientos normativos",
+    "alcance: GMP, GLP, GXP, normativas nacionales e internacionales"
+   ],
+   "auxiliaryExcerpts": [
+    "- Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA."
+   ],
+   "compositionNote": "La enumeracion entre parentesis delimita el alcance del mismo conocimiento normativo."
+  },
+  {
+   "goldId": "g03",
+   "claim": "Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+   "primaryExcerpt": "- Conocimientos sobre procesos, equipos e instrumental de laboratorios en la industria farmacéutica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objetos: procesos, equipos, instrumental de laboratorio",
+    "sector: industria farmacéutica"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g04",
+   "claim": "Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+   "primaryExcerpt": "- Experiencia mínima de 2 años en Desarrollo Analítico dentro de la industria farmacéutica.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "cantidad: mínima de 2 años",
+    "área: Desarrollo Analítico",
+    "sector: industria farmacéutica"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Compuesto preservado: el area y el sector acotan una unica exigencia temporal."
+  },
+  {
+   "goldId": "g05",
+   "claim": "Manejo de software Word y Excel (excluyente).",
+   "primaryExcerpt": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "modalidad explícita: excluyente",
+    "objetos: Word y Excel"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "CASO CENTRAL DE NEGACION DEL HOLDOUT: la misma linea contrasta '(excluyente)' para Word/Excel y '(no excluyente)' para Lab Solutions/Empower. Se emiten dos claims con modalidades opuestas y el mismo excerpt primario; colapsarlos o uniformar la modalidad seria una inversion de negacion."
+  },
+  {
+   "goldId": "g06",
+   "claim": "Manejo de software Lab Solutions y Empower (no excluyente).",
+   "primaryExcerpt": "- Manejo de software Word y Excel (excluyente); Lab Solutions, Empower; (no excluyente).",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: no excluyente",
+    "objetos: Lab Solutions, Empower"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Ver g05."
+  },
+  {
+   "goldId": "g07",
+   "claim": "Inglés avanzado, oral y escrito (deseable).",
+   "primaryExcerpt": "- Idiomas inglés avanzado, oral y escrito (deseable).",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad explícita: deseable",
+    "idioma: inglés",
+    "nivel: avanzado",
+    "habilidades: oral y escrito"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Tratar este claim como requisito seria una inversion de modalidad: el aviso lo marca deseable pese al nivel alto exigido."
+  },
+  {
+   "goldId": "g08",
+   "claim": "Valorado: orientación al logro y resolución de problemas.",
+   "primaryExcerpt": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "actitud: orientación al logro",
+    "capacidad: resolución de problemas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad (§12 P2.0)."
+  },
+  {
+   "goldId": "g09",
+   "claim": "Valorado: capacidad de planificación y análisis para gestionar múltiples tareas.",
+   "primaryExcerpt": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "capacidad: planificación y análisis",
+    "alcance: múltiples tareas"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g10",
+   "claim": "Valorado: capacidad de trabajo en equipo.",
+   "primaryExcerpt": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "soft skill: trabajo en equipo"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g11",
+   "claim": "Valorado: proactividad y buena comunicación.",
+   "primaryExcerpt": "💡**¿Qué valoramos?**\n\n- Orientación al logro, resolución de problemas.\n- Capacidad de planificación y análisis para gestionar múltiples tareas.\n- Capacidad de trabajo en equipo.\n- Proactividad, y buena comunicación.",
+   "modality": "PREFERRED",
+   "materialQualifiers": [
+    "modalidad: valoramos",
+    "actitud: proactividad",
+    "soft skill: buena comunicación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Excerpt contiguo desde el encabezado de modalidad."
+  },
+  {
+   "goldId": "g12",
+   "claim": "Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+   "primaryExcerpt": "- Desarrollar nuevas técnicas analíticas y adecuar técnicas vigentes de materia prima y producto terminado.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: desarrollar nuevas y adecuar vigentes",
+    "objeto: técnicas analíticas",
+    "alcance: materia prima y producto terminado"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada (§5): desarrollar-y-adecuar sobre el mismo objeto."
+  },
+  {
+   "goldId": "g13",
+   "claim": "Analizar fisicoquímicamente (FQ) productos en desarrollo.",
+   "primaryExcerpt": "- Analizar (FQ) productos en desarrollo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: análisis fisicoquímico",
+    "objeto: productos en desarrollo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g14",
+   "claim": "Hacer seguimiento de los proyectos a cargo.",
+   "primaryExcerpt": "- Hacer seguimiento de los proyectos a cargo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: seguimiento",
+    "objeto: proyectos a cargo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g15",
+   "claim": "Generar y ejecutar protocolos de validación de técnicas analíticas y redactar los informes de validación correspondientes.",
+   "primaryExcerpt": "- Generar y ejecutar protocolos de validación de técnicas analíticas. Redactar los correspondientes informes de validación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: generar y ejecutar protocolos",
+    "objeto: validación de técnicas analíticas",
+    "producto adicional: informes de validación"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "La fuente enuncia las dos oraciones dentro de la misma vineta y encadenadas por el mismo objeto (la validacion); se preservan como un unico criterio."
+  },
+  {
+   "goldId": "g16",
+   "claim": "Generar técnicas analíticas de nuevos excipientes e IFA's, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+   "primaryExcerpt": "- Generar técnicas analíticas de nuevos excipientes e IFA´s, subirlas al sistema documental electrónico y realizar el seguimiento hasta su publicación.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad integrada: generar, cargar y seguir hasta publicación",
+    "objetos: técnicas analíticas de nuevos excipientes e IFA",
+    "sistema: documental electrónico"
+   ],
+   "auxiliaryExcerpts": [],
+   "compositionNote": "Capacidad integrada de extremo a extremo (§5): separar por paso destruiria el alcance 'hasta su publicacion'."
+  },
+  {
+   "goldId": "g17",
+   "claim": "Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+   "primaryExcerpt": "- Ejecutar transferencias de técnicas analíticas de producto terminado con Control de Calidad.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: ejecutar transferencias",
+    "objeto: técnicas analíticas de producto terminado",
+    "contraparte: Control de Calidad"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g18",
+   "claim": "Realizar las actividades relacionadas con los equipos a cargo.",
+   "primaryExcerpt": "- Realizar las actividades relacionadas con los equipos a cargo.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "objeto: equipos a cargo"
+   ],
+   "auxiliaryExcerpts": []
+  },
+  {
+   "goldId": "g19",
+   "claim": "Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+   "primaryExcerpt": "- Realizar búsqueda bibliográfica USP-NF; BPh; EPh, ICH, FDA.",
+   "modality": "REQUIRED",
+   "materialQualifiers": [
+    "actividad: búsqueda bibliográfica",
+    "fuentes: USP-NF, BPh, EPh, ICH, FDA"
+   ],
+   "auxiliaryExcerpts": []
+  }
+ ],
+ "explicitNonRequirements": [
+  {
+   "excerpt": "Es una gran oportunidad para profesionales que quieran desarrollarse en uno de los laboratorios más importantes del país, una empresa donde podrás aprender de un equipo de profesionales de alta calidad y a su vez desarrollar tu propia carrera en un ambiente dinámico y altamente desafiante.",
+   "reason": "Prosa de oferta. Menciona 'profesionales de alta calidad' refiriendose al equipo de la empresa, no al holder."
+  },
+  {
+   "excerpt": "- Obra social Luis Pasteur",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "- Convenios académicos con Universidades de primer nivel para formarte",
+   "reason": "Beneficio ofrecido. Trampa lexica: menciona universidades y formacion pero no exige ninguna credencial."
+  },
+  {
+   "excerpt": "- 📆3 semanas de vacaciones",
+   "reason": "Beneficio ofrecido."
+  },
+  {
+   "excerpt": "Somos un Laboratorio Argentino, que desde 1939 investiga y desarrolla medicamentos confiables para diversas especialidades médicas.",
+   "reason": "Prosa institucional. 'desde 1939' es antiguedad de la empresa, no experiencia exigida."
+  },
+  {
+   "excerpt": "Respaldados por unidades de negocios con marcas líderes, proyectos propios de Investigación y Desarrollo, licencias de importantes Compañías internacionales, plantas productoras que operan en total sincronía y una red de distribución de gran alcance, nos ubicamos hoy entre las primeras posiciones del mercado Farmacéutico Argentino.",
+   "reason": "Prosa institucional (§7)."
+  },
+  {
+   "excerpt": "## Job function\n\nBusiness Development and Sales",
+   "reason": "Metadata de la plataforma LinkedIn, ademas incorrecta respecto del puesto real."
+  }
+ ],
+ "ambiguousPassages": [],
+ "annotationNotes": "HOLDOUT. Aviso farmaceutico argentino con el caso de negacion mas exigente del corpus: una sola linea que contrasta '(excluyente)' y '(no excluyente)' sobre dos grupos de software distintos. Ademas el ingles avanzado se marca '(deseable)' pese al nivel alto, y la formacion admite 'Estudiante o graduado'. Tres modalidades explicitas distintas conviven en la seccion de requisitos.",
+ "objectiveId": "EMP_066",
+ "objectiveType": "EMPLOYMENT",
+ "language": "es",
+ "rawTextSha256": "1a3a89d4945107f3cca3b648aafbd15aff5fae1d5faa6bde48f4c7368d411c60",
+ "requirementCount": 19
+}

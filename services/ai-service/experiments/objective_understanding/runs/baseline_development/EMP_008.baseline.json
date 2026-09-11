@@ -1,0 +1,419 @@
+{
+ "objectiveId": "EMP_008",
+ "baselineVersion": "P2_1_BASELINE_V1",
+ "candidateCount": 25,
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "base_01",
+    "order": 1,
+    "proposedRequirementText": "En el **Centro de eLearning** buscamos sumar un/a **Cloud Platform Engineer** para diseñar, operar y evolucionar nuestra infraestructura en la nube (principalmente AWS), acompañando el crecimiento de nuestros productos y equipos.",
+    "primarySourceQuote": "En el **Centro de eLearning** buscamos sumar un/a **Cloud Platform Engineer** para diseñar, operar y evolucionar nuestra infraestructura en la nube (principalmente AWS), acompañando el crecimiento de nuestros productos y equipos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 0,
+     "charEnd": 229
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_02",
+    "order": 2,
+    "proposedRequirementText": "Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "primarySourceQuote": "Diseñar y administrar infraestructura cloud (AWS), asegurando disponibilidad, seguridad y performance.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 256,
+     "charEnd": 358
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_03",
+    "order": 3,
+    "proposedRequirementText": "Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "primarySourceQuote": "Gestionar networking (VPC, routing, DNS, balanceo, seguridad).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 361,
+     "charEnd": 423
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_04",
+    "order": 4,
+    "proposedRequirementText": "Implementar Infraestructura como Código (Terraform u otros).",
+    "primarySourceQuote": "Implementar Infraestructura como Código (Terraform u otros).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 426,
+     "charEnd": 486
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_05",
+    "order": 5,
+    "proposedRequirementText": "Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "primarySourceQuote": "Trabajar con contenedores (Docker, ECS/Kubernetes).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 489,
+     "charEnd": 540
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_06",
+    "order": 6,
+    "proposedRequirementText": "Diseñar y mejorar pipelines CI/CD.",
+    "primarySourceQuote": "Diseñar y mejorar pipelines CI/CD.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 543,
+     "charEnd": 577
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_07",
+    "order": 7,
+    "proposedRequirementText": "Asegurar observabilidad (logs, métricas, alertas).",
+    "primarySourceQuote": "Asegurar observabilidad (logs, métricas, alertas).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 580,
+     "charEnd": 630
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_08",
+    "order": 8,
+    "proposedRequirementText": "Implementar buenas prácticas de seguridad en cloud.",
+    "primarySourceQuote": "Implementar buenas prácticas de seguridad en cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 633,
+     "charEnd": 684
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_09",
+    "order": 9,
+    "proposedRequirementText": "Colaborar con equipos de producto para mejorar despliegues y operación.",
+    "primarySourceQuote": "Colaborar con equipos de producto para mejorar despliegues y operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 687,
+     "charEnd": 758
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_10",
+    "order": 10,
+    "proposedRequirementText": "+4 años en roles de Cloud / DevOps / SRE.",
+    "primarySourceQuote": "+4 años en roles de Cloud / DevOps / SRE.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 794,
+     "charEnd": 835
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_11",
+    "order": 11,
+    "proposedRequirementText": "Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primarySourceQuote": "Experiencia sólida en AWS (VPC, IAM, EC2, ECS/EKS, S3, RDS, CloudWatch).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 838,
+     "charEnd": 910
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_12",
+    "order": 12,
+    "proposedRequirementText": "Manejo de Terraform (u otras herramientas IaC).",
+    "primarySourceQuote": "Manejo de Terraform (u otras herramientas IaC).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 913,
+     "charEnd": 960
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_13",
+    "order": 13,
+    "proposedRequirementText": "Experiencia con Docker y plataformas de ejecución.",
+    "primarySourceQuote": "Experiencia con Docker y plataformas de ejecución.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 963,
+     "charEnd": 1013
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_14",
+    "order": 14,
+    "proposedRequirementText": "Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "primarySourceQuote": "Experiencia en CI/CD (GitHub Actions, Jenkins, etc.).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1016,
+     "charEnd": 1069
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_15",
+    "order": 15,
+    "proposedRequirementText": "Conocimientos en observabilidad y seguridad cloud.",
+    "primarySourceQuote": "Conocimientos en observabilidad y seguridad cloud.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1072,
+     "charEnd": 1122
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_16",
+    "order": 16,
+    "proposedRequirementText": "Scripting (Bash / Python).",
+    "primarySourceQuote": "Scripting (Bash / Python).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1125,
+     "charEnd": 1151
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_17",
+    "order": 17,
+    "proposedRequirementText": "Experiencia en SRE (SLO/SLI).",
+    "primarySourceQuote": "Experiencia en SRE (SLO/SLI).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1181,
+     "charEnd": 1210
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_18",
+    "order": 18,
+    "proposedRequirementText": "Uso de IA aplicada a operaciones.",
+    "primarySourceQuote": "Uso de IA aplicada a operaciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1238,
+     "charEnd": 1271
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_19",
+    "order": 19,
+    "proposedRequirementText": "Equipos en crecimiento y proyectos desafiantes.",
+    "primarySourceQuote": "Equipos en crecimiento y proyectos desafiantes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1311,
+     "charEnd": 1358
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_20",
+    "order": 20,
+    "proposedRequirementText": "Acceso a formación académica.",
+    "primarySourceQuote": "Acceso a formación académica.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1361,
+     "charEnd": 1390
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_21",
+    "order": 21,
+    "proposedRequirementText": "***https //centrodeelearning.com/conocenos/**",
+    "primarySourceQuote": "***https //centrodeelearning.com/conocenos/**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1414,
+     "charEnd": 1459
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_22",
+    "order": 22,
+    "proposedRequirementText": "*Https //www.linkedin.com/company/centro-de-elearning**",
+    "primarySourceQuote": "*Https //www.linkedin.com/company/centro-de-elearning**",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1462,
+     "charEnd": 1517
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_23",
+    "order": 23,
+    "proposedRequirementText": "¡Con la educación estamos formando el futuro! Somos Centro de e-Learning y desarrollamos ofertas educativas innovadoras de alta calidad que acerquen a las personas a sus trabajos soñados. Para lograrlo necesitamos colaboradores talentosos, enérgicos, visionarios, apasionados y muy comprometidos con nuestra misión.",
+    "primarySourceQuote": "¡Con la educación estamos formando el futuro! Somos Centro de e-Learning y desarrollamos ofertas educativas innovadoras de alta calidad que acerquen a las personas a sus trabajos soñados. Para lograrlo necesitamos colaboradores talentosos, enérgicos, visionarios, apasionados y muy comprometidos con nuestra misión.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1519,
+     "charEnd": 1834
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_24",
+    "order": 24,
+    "proposedRequirementText": "Nuestro equipo multidisciplinario se encuentra en constante crecimiento. Si te consideras una persona con estas características, te invitamos a formar parte de nuestra organización.",
+    "primarySourceQuote": "Nuestro equipo multidisciplinario se encuentra en constante crecimiento. Si te consideras una persona con estas características, te invitamos a formar parte de nuestra organización.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1836,
+     "charEnd": 2017
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "base_25",
+    "order": 25,
+    "proposedRequirementText": "Engineering and Information Technology",
+    "primarySourceQuote": "Engineering and Information Technology",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2136,
+     "charEnd": 2174
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "Job function",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 25,
+   "quotesTotal": 25,
+   "quotesFoundLiterally": 25,
+   "primaryUnique": 25,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

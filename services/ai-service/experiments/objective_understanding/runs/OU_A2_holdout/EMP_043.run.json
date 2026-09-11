@@ -1,0 +1,703 @@
+{
+ "objectiveId": "EMP_043",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 28007,
+ "usage": {
+  "input_tokens": 2879,
+  "input_tokens_details": {
+   "cache_write_tokens": 2876,
+   "cached_tokens": 0
+  },
+  "output_tokens": 3001,
+  "output_tokens_details": {
+   "reasoning_tokens": 333
+  },
+  "total_tokens": 5880
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Backend con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot).",
+    "primarySourceQuote": "**Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot)",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Frontend con React, Angular, Vue.js o frameworks equivalentes.",
+    "primarySourceQuote": "**frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Diseño, implementación y consumo de APIs REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "primarySourceQuote": "- **Diseño, implementación y consumo de APIs** REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Arquitecturas de microservicios: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "primarySourceQuote": "- **Arquitecturas de microservicios**: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Bases de datos relacionales y NoSQL —PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes— en diseño, desarrollo y optimización.",
+    "primarySourceQuote": "- **Bases de datos relacionales y NoSQL**: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes, en diseño, desarrollo y optimización.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "primarySourceQuote": "- **Cloud**: desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Contenedores y DevOps: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "primarySourceQuote": "- **Contenedores y DevOps**: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Desarrollo asistido por IA mediante asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "primarySourceQuote": "- **Desarrollo asistido por IA**: asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Desarrollo seguro y gestión de vulnerabilidades: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "primarySourceQuote": "- **Desarrollo seguro y gestión de vulnerabilidades**: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Pruebas y aseguramiento de calidad con JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "primarySourceQuote": "- **Pruebas y aseguramiento de calidad**: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Control de versiones con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "primarySourceQuote": "- **Control de versiones** con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Documentación técnica: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "primarySourceQuote": "- **Documentación técnica**: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Protección de datos personales mediante controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "primarySourceQuote": "- **Protección de datos personales**: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "En términos de stack:"
+   },
+   {
+    "proposedRequirementText": "Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "primarySourceQuote": "- Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos formales del cargo público:**"
+   },
+   {
+    "proposedRequirementText": "Al menos 5 años de experiencia en desarrollo de software.",
+    "primarySourceQuote": "- Al menos 5 años de experiencia en desarrollo de software.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Requisitos formales del cargo público:**"
+   },
+   {
+    "proposedRequirementText": "Diseñar, desarrollar y evolucionar componentes backend, frontend y servicios de ClaveÚnica, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "primarySourceQuote": "- Diseñar, desarrollar y evolucionar componentes **backend, frontend y servicios de ClaveÚnica**, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "primarySourceQuote": "- Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Desarrollar e integrar servicios, APIs y componentes reutilizables, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "primarySourceQuote": "- Desarrollar e integrar **servicios, APIs y componentes reutilizables**, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Implementar controles de seguridad durante el ciclo de vida del desarrollo (Secure by Design), conforme a OWASP Top 10 y OWASP ASVS.",
+    "primarySourceQuote": "- Implementar controles de seguridad durante el ciclo de vida del desarrollo (**Secure by Design**), conforme a OWASP Top 10 y OWASP ASVS.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Implementar mecanismos de autenticación, autorización y control de acceso, integrados con las plataformas de identidad digital del Estado.",
+    "primarySourceQuote": "- Implementar mecanismos de **autenticación, autorización y control de acceso**, integrados con las plataformas de identidad digital del Estado.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Desarrollar y mantener pruebas unitarias, de integración y automatizadas dentro de los procesos de CI/CD.",
+    "primarySourceQuote": "- Desarrollar y mantener **pruebas unitarias, de integración y automatizadas** dentro de los procesos de CI/CD.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Mantener la documentación técnica y funcional: APIs, diagramas, manuales y procedimientos de operación.",
+    "primarySourceQuote": "- Mantener la **documentación técnica y funcional**: APIs, diagramas, manuales y procedimientos de operación.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Participar en el despliegue, la estabilización y el soporte de postproducción, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "primarySourceQuote": "- Participar en el despliegue, la estabilización y el **soporte de postproducción**, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Usar herramientas de desarrollo asistido por IA para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "primarySourceQuote": "- Usar herramientas de **desarrollo asistido por IA** para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con patrones de diseño y principios SOLID.",
+    "primarySourceQuote": "- Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Desarrollar soluciones con los controles técnicos para cumplir la Ley N° 21.719 de Protección de Datos Personales y las políticas de seguridad de la información.",
+    "primarySourceQuote": "- Desarrollar soluciones con los controles técnicos para cumplir la **Ley N° 21.719 de Protección de Datos Personales** y las políticas de seguridad de la información.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Participar en revisiones de código, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "primarySourceQuote": "- Participar en **revisiones de código**, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "primarySourceQuote": "- Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Funciones del cargo**"
+   },
+   {
+    "proposedRequirementText": "Opcional, suma pero no es excluyente: desarrollo de aplicaciones móviles con Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "primarySourceQuote": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   },
+   {
+    "proposedRequirementText": "Opcional, suma pero no es excluyente: observabilidad y monitoreo con Grafana, Kibana, New Relic y/o Wazuh.",
+    "primarySourceQuote": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.\n- **Observabilidad y monitoreo**: Grafana, Kibana, New Relic y/o Wazuh.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Opcionales**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Backend con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot).",
+    "primarySourceQuote": "**Backend** con Node.js, Express o similares, Python (Django, Flask o FastAPI) y/o Java (Spring Boot)",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 55,
+     "charEnd": 156
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Frontend con React, Angular, Vue.js o frameworks equivalentes.",
+    "primarySourceQuote": "**frontend** con React, Angular, Vue.js o frameworks equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 158,
+     "charEnd": 224
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Diseño, implementación y consumo de APIs REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "primarySourceQuote": "- **Diseño, implementación y consumo de APIs** REST y GraphQL en arquitecturas de microservicios, documentadas con OpenAPI/Swagger o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 225,
+     "charEnd": 371
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Arquitecturas de microservicios: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "primarySourceQuote": "- **Arquitecturas de microservicios**: integración por mensajería y eventos, patrones de diseño, principios SOLID y desarrollo orientado a dominios (DDD).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 372,
+     "charEnd": 526
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Bases de datos relacionales y NoSQL —PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes— en diseño, desarrollo y optimización.",
+    "primarySourceQuote": "- **Bases de datos relacionales y NoSQL**: PostgreSQL, MySQL, MongoDB, Amazon RDS, Redis o equivalentes, en diseño, desarrollo y optimización.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 527,
+     "charEnd": 669
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "primarySourceQuote": "- **Cloud**: desarrollo e integración de aplicaciones desplegadas en plataformas cloud, preferentemente AWS, con servicios administrados y buenas prácticas de escalabilidad, resiliencia y observabilidad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 670,
+     "charEnd": 873
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Contenedores y DevOps: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "primarySourceQuote": "- **Contenedores y DevOps**: Docker, Kubernetes y CI/CD con GitLab CI/CD, GitHub Actions, Jenkins, Argo CD o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 874,
+     "charEnd": 996
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Desarrollo asistido por IA mediante asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "primarySourceQuote": "- **Desarrollo asistido por IA**: asistentes de programación y herramientas de desarrollo agéntico para programar, revisar código, documentar y automatizar, manteniendo la supervisión y validación humana del código generado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 997,
+     "charEnd": 1221
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Desarrollo seguro y gestión de vulnerabilidades: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "primarySourceQuote": "- **Desarrollo seguro y gestión de vulnerabilidades**: OWASP Top 10, OWASP ASVS, Secure by Design, ISO/IEC 27001 y NIST Cybersecurity Framework.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1222,
+     "charEnd": 1366
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Pruebas y aseguramiento de calidad con JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "primarySourceQuote": "- **Pruebas y aseguramiento de calidad**: JUnit, JUnit 5, Jest, PyTest, Selenium, Cypress, Postman, Insomnia o equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1367,
+     "charEnd": 1491
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Control de versiones con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "primarySourceQuote": "- **Control de versiones** con Git sobre GitHub, GitLab o equivalentes, con flujos colaborativos (GitFlow, Trunk Based Development o similares).",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1492,
+     "charEnd": 1636
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Documentación técnica: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "primarySourceQuote": "- **Documentación técnica**: diagramas de arquitectura, especificaciones funcionales y documentación de APIs con Swagger/OpenAPI, Markdown o plataformas equivalentes.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1637,
+     "charEnd": 1803
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Protección de datos personales mediante controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "primarySourceQuote": "- **Protección de datos personales**: controles técnicos que contribuyan al cumplimiento de la Ley N° 21.719, con privacidad desde el diseño (Privacy by Design) y minimización de datos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1804,
+     "charEnd": 1989
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "En términos de stack:",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "primarySourceQuote": "- Título profesional de una carrera de ingeniería en computación, informática, telecomunicaciones, electrónica o afín, de al menos 10 semestres de duración.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2034,
+     "charEnd": 2190
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos formales del cargo público:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Al menos 5 años de experiencia en desarrollo de software.",
+    "primarySourceQuote": "- Al menos 5 años de experiencia en desarrollo de software.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2191,
+     "charEnd": 2250
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Requisitos formales del cargo público:**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Diseñar, desarrollar y evolucionar componentes backend, frontend y servicios de ClaveÚnica, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "primarySourceQuote": "- Diseñar, desarrollar y evolucionar componentes **backend, frontend y servicios de ClaveÚnica**, resguardando seguridad, disponibilidad, escalabilidad y continuidad operacional; y aplicaciones móviles cuando corresponda.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2277,
+     "charEnd": 2498
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "primarySourceQuote": "- Participar en el análisis, diseño, integración, pruebas y mantenimiento correctivo, adaptativo y evolutivo de las soluciones, según los estándares de la Secretaría.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2499,
+     "charEnd": 2665
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_18",
+    "order": 18,
+    "proposedRequirementText": "Desarrollar e integrar servicios, APIs y componentes reutilizables, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "primarySourceQuote": "- Desarrollar e integrar **servicios, APIs y componentes reutilizables**, con interoperabilidad, escalabilidad, mantenibilidad y desempeño.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2666,
+     "charEnd": 2805
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_19",
+    "order": 19,
+    "proposedRequirementText": "Implementar controles de seguridad durante el ciclo de vida del desarrollo (Secure by Design), conforme a OWASP Top 10 y OWASP ASVS.",
+    "primarySourceQuote": "- Implementar controles de seguridad durante el ciclo de vida del desarrollo (**Secure by Design**), conforme a OWASP Top 10 y OWASP ASVS.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2806,
+     "charEnd": 2944
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_20",
+    "order": 20,
+    "proposedRequirementText": "Implementar mecanismos de autenticación, autorización y control de acceso, integrados con las plataformas de identidad digital del Estado.",
+    "primarySourceQuote": "- Implementar mecanismos de **autenticación, autorización y control de acceso**, integrados con las plataformas de identidad digital del Estado.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2945,
+     "charEnd": 3089
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_21",
+    "order": 21,
+    "proposedRequirementText": "Desarrollar y mantener pruebas unitarias, de integración y automatizadas dentro de los procesos de CI/CD.",
+    "primarySourceQuote": "- Desarrollar y mantener **pruebas unitarias, de integración y automatizadas** dentro de los procesos de CI/CD.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3090,
+     "charEnd": 3201
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_22",
+    "order": 22,
+    "proposedRequirementText": "Mantener la documentación técnica y funcional: APIs, diagramas, manuales y procedimientos de operación.",
+    "primarySourceQuote": "- Mantener la **documentación técnica y funcional**: APIs, diagramas, manuales y procedimientos de operación.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3202,
+     "charEnd": 3311
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_23",
+    "order": 23,
+    "proposedRequirementText": "Participar en el despliegue, la estabilización y el soporte de postproducción, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "primarySourceQuote": "- Participar en el despliegue, la estabilización y el **soporte de postproducción**, resolviendo incidentes que afecten la continuidad de las plataformas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3312,
+     "charEnd": 3466
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_24",
+    "order": 24,
+    "proposedRequirementText": "Usar herramientas de desarrollo asistido por IA para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "primarySourceQuote": "- Usar herramientas de **desarrollo asistido por IA** para generar y revisar código, documentación, casos de prueba, refactorizaciones y automatizaciones, con supervisión humana.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3467,
+     "charEnd": 3645
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_25",
+    "order": 25,
+    "proposedRequirementText": "Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con patrones de diseño y principios SOLID.",
+    "primarySourceQuote": "- Velar por la calidad, mantenibilidad, rendimiento y seguridad del código, con **patrones de diseño y principios SOLID**.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3646,
+     "charEnd": 3768
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_26",
+    "order": 26,
+    "proposedRequirementText": "Desarrollar soluciones con los controles técnicos para cumplir la Ley N° 21.719 de Protección de Datos Personales y las políticas de seguridad de la información.",
+    "primarySourceQuote": "- Desarrollar soluciones con los controles técnicos para cumplir la **Ley N° 21.719 de Protección de Datos Personales** y las políticas de seguridad de la información.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 3922,
+     "charEnd": 4089
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_27",
+    "order": 27,
+    "proposedRequirementText": "Participar en revisiones de código, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "primarySourceQuote": "- Participar en **revisiones de código**, definición de estándares técnicos y transferencia de conocimiento en el equipo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4090,
+     "charEnd": 4211
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_28",
+    "order": 28,
+    "proposedRequirementText": "Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "primarySourceQuote": "- Preparar demos, prototipos y presentaciones técnicas de las soluciones.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4212,
+     "charEnd": 4285
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Funciones del cargo**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_29",
+    "order": 29,
+    "proposedRequirementText": "Opcional, suma pero no es excluyente: desarrollo de aplicaciones móviles con Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "primarySourceQuote": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4287,
+     "charEnd": 4443
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_30",
+    "order": 30,
+    "proposedRequirementText": "Opcional, suma pero no es excluyente: observabilidad y monitoreo con Grafana, Kibana, New Relic y/o Wazuh.",
+    "primarySourceQuote": "**Opcionales**\n\nSuman, pero no son excluyentes.\n\n- Desarrollo de **aplicaciones móviles**: Kotlin/Java para Android, Swift para iOS, React Native o Flutter.\n- **Observabilidad y monitoreo**: Grafana, Kibana, New Relic y/o Wazuh.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 4287,
+     "charEnd": 4515
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Opcionales**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 30,
+   "quotesTotal": 30,
+   "quotesFoundLiterally": 30,
+   "primaryUnique": 30,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

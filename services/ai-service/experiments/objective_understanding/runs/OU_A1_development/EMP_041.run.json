@@ -1,0 +1,417 @@
+{
+ "objectiveId": "EMP_041",
+ "candidateVersion": "OU_A1",
+ "promptVersion": "OU_A1",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 23225,
+ "usage": {
+  "input_tokens": 2261,
+  "input_tokens_details": {
+   "cache_write_tokens": 2258,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1657,
+  "output_tokens_details": {
+   "reasoning_tokens": 449
+  },
+  "total_tokens": 3918
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Involucrarse con los gerentes y líderes de áreas operativas y de soporte de la organización para entender sus procesos, evaluar el desvío respecto al plan de implementación y acordar tácticas para alinear los procesos internos al plan maestro de excelencia operacional.",
+    "primarySourceQuote": "El ingeniero de excelencia operacional es un agente critico y participativo para involucrarse con los gerentes y lideres de áreas operativas y de soporte de la organización a fin de entender sus procesos, evaluar el desvío respecto al plan de implementación y acordar tácticas para alinear los procesos internos al plan maestro de excelencia operacional.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Descripción**"
+   },
+   {
+    "proposedRequirementText": "Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+    "primarySourceQuote": "- Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+    "primarySourceQuote": "- Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+    "primarySourceQuote": "- Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+    "primarySourceQuote": "- Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Apoyar el fortalecimiento de la cultura de excelencia mediante la facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+    "primarySourceQuote": "- Apoyar el fortalecimiento de la cultura de excelencia mediante la facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+    "primarySourceQuote": "- Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Responsabilidades**"
+   },
+   {
+    "proposedRequirementText": "Estudios universitarios completos, o no adeudar más del 10% de la carrera de ingeniero industrial o químico.",
+    "primarySourceQuote": "- Estudios universitarios completos, o no adeudar más del 10% de la carrera de ingeniero industrial o químico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Deseable, pero no excluyente: experiencia en puestos de gestión operativa o de normas ISO.",
+    "primarySourceQuote": "- Es deseable, pero no excluyente tener experiencia en puestos de gestión operativa o de normas ISO.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Pensamiento analítico, iniciativa proactiva y autonomía.",
+    "primarySourceQuote": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "primarySourceQuote": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Habilidades interpersonales y de comunicación efectiva.",
+    "primarySourceQuote": "- Habilidades interpersonales y de comunicación efectiva.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Creatividad.",
+    "primarySourceQuote": "- Creatividad.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Inglés nivel intermedio - avanzado.",
+    "primarySourceQuote": "- Inglés nivel intermedio - avanzado",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Office MS y Power BI.",
+    "primarySourceQuote": "- Office MS, power Bi,",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Metodologías Lean, mejora continua y gestión visual.",
+    "primarySourceQuote": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   },
+   {
+    "proposedRequirementText": "Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "primarySourceQuote": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Su Perfil**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Involucrarse con los gerentes y líderes de áreas operativas y de soporte de la organización para entender sus procesos, evaluar el desvío respecto al plan de implementación y acordar tácticas para alinear los procesos internos al plan maestro de excelencia operacional.",
+    "primarySourceQuote": "El ingeniero de excelencia operacional es un agente critico y participativo para involucrarse con los gerentes y lideres de áreas operativas y de soporte de la organización a fin de entender sus procesos, evaluar el desvío respecto al plan de implementación y acordar tácticas para alinear los procesos internos al plan maestro de excelencia operacional.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 571,
+     "charEnd": 925
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Descripción**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+    "primarySourceQuote": "- Implementar y dar soporte a metodologías de mejora continua como 5S, rutinas de gestión, análisis de causa raíz, control visual, estandarización de procesos y gestión por indicadores.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1072,
+     "charEnd": 1257
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+    "primarySourceQuote": "- Acompañar a líderes, gerentes y directores operativos en el desarrollo de sus funciones diarias, promoviendo buenas prácticas de liderazgo y gestión de equipos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1258,
+     "charEnd": 1420
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+    "primarySourceQuote": "- Colaborar en la revisión, mejora y estandarización de procedimientos e instructivos de trabajo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1421,
+     "charEnd": 1518
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+    "primarySourceQuote": "- Participar en proyectos de mejora enfocados en eficiencia operativa, seguridad, calidad y reducción de costos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1519,
+     "charEnd": 1631
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Apoyar el fortalecimiento de la cultura de excelencia mediante la facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+    "primarySourceQuote": "- Apoyar el fortalecimiento de la cultura de excelencia mediante la facilitación de herramientas, sesiones de trabajo, capacitaciones y seguimiento de iniciativas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1632,
+     "charEnd": 1795
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+    "primarySourceQuote": "- Contribuir al diseño e implementación de sistemas de gestión documental y estructuración de la información de soporte operativo.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1796,
+     "charEnd": 1926
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Responsabilidades**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Estudios universitarios completos, o no adeudar más del 10% de la carrera de ingeniero industrial o químico.",
+    "primarySourceQuote": "- Estudios universitarios completos, o no adeudar más del 10% de la carrera de ingeniero industrial o químico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1943,
+     "charEnd": 2053
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Deseable, pero no excluyente: experiencia en puestos de gestión operativa o de normas ISO.",
+    "primarySourceQuote": "- Es deseable, pero no excluyente tener experiencia en puestos de gestión operativa o de normas ISO.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2054,
+     "charEnd": 2154
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Pensamiento analítico, iniciativa proactiva y autonomía.",
+    "primarySourceQuote": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2155,
+     "charEnd": 2284
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "primarySourceQuote": "- Pensamiento analítico, iniciativa proactiva y autonomía. Capacidad para trabajar en entornos multidisciplinarios y jerárquicos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2155,
+     "charEnd": 2284
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_12",
+    "order": 12,
+    "proposedRequirementText": "Habilidades interpersonales y de comunicación efectiva.",
+    "primarySourceQuote": "- Habilidades interpersonales y de comunicación efectiva.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2285,
+     "charEnd": 2342
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_13",
+    "order": 13,
+    "proposedRequirementText": "Creatividad.",
+    "primarySourceQuote": "- Creatividad.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2343,
+     "charEnd": 2357
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_14",
+    "order": 14,
+    "proposedRequirementText": "Inglés nivel intermedio - avanzado.",
+    "primarySourceQuote": "- Inglés nivel intermedio - avanzado",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2358,
+     "charEnd": 2394
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_15",
+    "order": 15,
+    "proposedRequirementText": "Office MS y Power BI.",
+    "primarySourceQuote": "- Office MS, power Bi,",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2395,
+     "charEnd": 2417
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_16",
+    "order": 16,
+    "proposedRequirementText": "Metodologías Lean, mejora continua y gestión visual.",
+    "primarySourceQuote": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2418,
+     "charEnd": 2547
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_17",
+    "order": 17,
+    "proposedRequirementText": "Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "primarySourceQuote": "- Metodologías Lean, mejora continua y gestión visual. Estándares operativos, análisis de procesos y herramientas de diagnóstico.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2418,
+     "charEnd": 2547
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Su Perfil**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 17,
+   "quotesTotal": 17,
+   "quotesFoundLiterally": 17,
+   "primaryUnique": 17,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}

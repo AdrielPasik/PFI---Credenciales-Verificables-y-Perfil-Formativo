@@ -1,0 +1,285 @@
+{
+ "objectiveId": "EMP_070",
+ "candidateVersion": "OU_A2",
+ "promptVersion": "OU_A2",
+ "schemaName": "objective_requirement_proposal_v1",
+ "requestedModel": "gpt-5.6-terra",
+ "effectiveModel": "gpt-5.6-terra",
+ "reasoningEffort": "medium",
+ "schemaValid": true,
+ "latencyMs": 14250,
+ "usage": {
+  "input_tokens": 2338,
+  "input_tokens_details": {
+   "cache_write_tokens": 2335,
+   "cached_tokens": 0
+  },
+  "output_tokens": 1194,
+  "output_tokens_details": {
+   "reasoning_tokens": 380
+  },
+  "total_tokens": 3532
+ },
+ "providerOutput": {
+  "proposedRequirements": [
+   {
+    "proposedRequirementText": "Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+    "primarySourceQuote": "- Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**"
+   },
+   {
+    "proposedRequirementText": "Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+    "primarySourceQuote": "- Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**"
+   },
+   {
+    "proposedRequirementText": "Deseable: condición de Persona Calificada (QP) para proyectos de envergadura.",
+    "primarySourceQuote": "- Se valorará la condición de (QP) para proyectos de envergadura",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**"
+   },
+   {
+    "proposedRequirementText": "Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+    "primarySourceQuote": "- Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**"
+   },
+   {
+    "proposedRequirementText": "Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+    "primarySourceQuote": "- Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Mas de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+    "primarySourceQuote": "- Mas de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+    "primarySourceQuote": "- Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Dominio avanzado del idioma inglés, excluyente, para la redacción de reportes y comunicación fluida con equipos globales.",
+    "primarySourceQuote": "- Dominio avanzado del idioma inglés (excluyente) para la redacción de reportes y comunicación fluida con equipos globales.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+    "primarySourceQuote": "- Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento de Software de Simulación de Procesos.",
+    "primarySourceQuote": "- Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   },
+   {
+    "proposedRequirementText": "Conocimiento de Validación de Modelos.",
+    "primarySourceQuote": "- Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+    "auxiliarySourceQuotes": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**"
+   }
+  ],
+  "unresolvedPassages": []
+ },
+ "unresolvedPassages": [],
+ "trusted": {
+  "trustedBuilderVersion": "P2_1_TRUSTED_BUILDER_V1",
+  "candidates": [
+   {
+    "candidateId": "cand_01",
+    "order": 1,
+    "proposedRequirementText": "Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+    "primarySourceQuote": "- Liderar el diseño conceptual, básico y de detalle para plantas de procesamiento de litio y manejo de salmueras.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 987,
+     "charEnd": 1100
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_02",
+    "order": 2,
+    "proposedRequirementText": "Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+    "primarySourceQuote": "- Optimizar los procesos químicos y metalúrgicos para maximizar la recuperación de recursos y la eficiencia operativa diaria.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1101,
+     "charEnd": 1226
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_03",
+    "order": 3,
+    "proposedRequirementText": "Deseable: condición de Persona Calificada (QP) para proyectos de envergadura.",
+    "primarySourceQuote": "- Se valorará la condición de (QP) para proyectos de envergadura",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1227,
+     "charEnd": 1291
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_04",
+    "order": 4,
+    "proposedRequirementText": "Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+    "primarySourceQuote": "- Brindar soporte experto durante las fases de pruebas, comisionamiento y puesta en marcha de las plantas de procesamiento.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1435,
+     "charEnd": 1558
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**Las tareas que realizarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_05",
+    "order": 5,
+    "proposedRequirementText": "Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+    "primarySourceQuote": "- Título universitario en Ingeniería Química, Ingeniería Metalúrgica o una disciplina técnica estrechamente relacionada.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1594,
+     "charEnd": 1714
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_06",
+    "order": 6,
+    "proposedRequirementText": "Mas de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+    "primarySourceQuote": "- Mas de 10 años de experiencia sólida en el diseño y operación de procesos de extracción de litio, salmueras, metales y minerales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1715,
+     "charEnd": 1846
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_07",
+    "order": 7,
+    "proposedRequirementText": "Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+    "primarySourceQuote": "- Certificación vigente y credenciales profesionales para actuar formalmente como Persona Calificada (QP) en la industria minera.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1847,
+     "charEnd": 1976
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_08",
+    "order": 8,
+    "proposedRequirementText": "Dominio avanzado del idioma inglés, excluyente, para la redacción de reportes y comunicación fluida con equipos globales.",
+    "primarySourceQuote": "- Dominio avanzado del idioma inglés (excluyente) para la redacción de reportes y comunicación fluida con equipos globales.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 1977,
+     "charEnd": 2100
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_09",
+    "order": 9,
+    "proposedRequirementText": "Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+    "primarySourceQuote": "- Disponibilidad para realizar viajes a los proyectos o trabajar bajo esquemas de rotación en zonas remotas.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2101,
+     "charEnd": 2209
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_10",
+    "order": 10,
+    "proposedRequirementText": "Conocimiento de Software de Simulación de Procesos.",
+    "primarySourceQuote": "- Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2210,
+     "charEnd": 2287
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   },
+   {
+    "candidateId": "cand_11",
+    "order": 11,
+    "proposedRequirementText": "Conocimiento de Validación de Modelos.",
+    "primarySourceQuote": "- Conocimiento de Software de Simulación de Procesos y Validación de Modelos.",
+    "primaryAnchor": {
+     "status": "UNIQUE",
+     "occurrences": 1,
+     "charStart": 2210,
+     "charEnd": 2287
+    },
+    "auxiliaryAnchors": [],
+    "sourceSectionLabel": "**La experiencia que aportarás**",
+    "exactDuplicateOfEarlier": false,
+    "persistableAsDerived": true
+   }
+  ],
+  "counts": {
+   "candidates": 11,
+   "quotesTotal": 11,
+   "quotesFoundLiterally": 11,
+   "primaryUnique": 11,
+   "primaryAmbiguous": 0,
+   "primaryNotFound": 0,
+   "exactDuplicates": 0
+  }
+ }
+}
