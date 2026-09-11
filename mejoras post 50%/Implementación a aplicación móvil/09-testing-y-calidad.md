@@ -3,14 +3,14 @@
 ## 1. Resultado actual
 
 ~~~
-Test Suites: 13 passed, 13 total
-Tests:      203 passed, 203 total
+Test Suites: 15 passed, 15 total
+Tests:      222 passed, 222 total
 Time:       ~15 s
 ~~~
 
 | Verificación | Comando | Resultado |
 | --- | --- | --- |
-| Tests | `npm test` | 203/203 verde |
+| Tests | `npm test` | 222/222 verde |
 | Tipos | `npm run typecheck` | Sin errores |
 | Lint | `npm run lint` | Sin errores ni advertencias |
 | Expo Doctor | `npm run doctor` | 21/21 |
@@ -55,7 +55,7 @@ sesión ya autenticada y reintentos desactivados.
 
 | Categoría | Suite | Casos |
 | --- | --- | --- |
-| A — Sesión y autenticación | `lib/auth/session-provider.test.tsx` | 13 |
+| A — Sesión y autenticación | `lib/auth/session-provider.test.tsx` | 15 |
 | B — Protección de navegación | Cubierta en A y en el menú de cuenta | — |
 | C — Perfil | `features/profile/profile-screen.test.tsx` | 23 |
 | D — Lista de credenciales | `features/credentials/credentials-screen.test.tsx` | 10 |
@@ -68,11 +68,14 @@ sesión ya autenticada y reintentos desactivados.
 | L — Adaptación de contratos | `lib/adapters/holder.adapter.test.ts` | 38 |
 | M — Logout | `features/auth/account-menu-button.test.tsx` | 6 |
 | Cliente HTTP | `lib/api/http-client.test.ts` | 14 |
-| Inventario de endpoints | `lib/api/scope-api.test.ts` | 13 |
-| Configuración de entorno | `lib/config/app-config.test.ts` | 13 |
+| Inventario de endpoints | `lib/api/scope-api.test.ts` | Incluye `POST /auth/register` |
+| Configuración de entorno | `lib/config/app-config.test.ts` | URL pública HTTPS, emulador, LAN, barra final, URL rota y `SET_ME` |
 | Formateadores | `lib/format/display.test.ts` | 14 |
 | Política de reintentos | `lib/query/query-client.test.ts` | 12 |
-| Acceso | `features/auth/login-screen.test.tsx` | 12 |
+| Acceso | `features/auth/login-screen.test.tsx` | 13 |
+| Registro Holder | `features/auth/register-screen.test.tsx` | Validación, confirmación local, payload seguro, limpieza de contraseñas y duplicados |
+| Conectividad | `lib/api/connectivity-probe.test.ts` | `401` como alcance, timeout y red sin mutar sesión |
+| Identidad humana | Perfil, menú de cuenta y detalle de credencial | `displayLabel` canónico, email no duplicado, fallback legacy, contenido largo y sesión tras registro |
 
 ## 5. Tests de tortura de contrato
 
@@ -118,7 +121,16 @@ Además de "funciona", se verifica que **no** haga cosas que no debe:
 | No hay acciones de emisor | Ni "crear credencial" ni "emitir" en ningún estado vacío. |
 | No hay superficies institucionales | El menú de cuenta no muestra membresías de emisor aunque existan. |
 | El modelo de usuario no filtra datos de emisor | Se verifica que no contenga la cadena `issuer`. |
-| El acceso es holder-only | Sin registro, sin recuperación de contraseña, sin SSO, sin mensajería institucional. |
+| El acceso es holder-only | Registro Holder nativo, sin recuperación de contraseña, SSO ni mensajería institucional. |
+
+## Actualización 01.3 — conectividad y registro
+
+Las suites de registro y conectividad ya están integradas en la tabla de
+cobertura. El probe usa `GET /auth/me` sin token: un `401` confirma alcance sin
+alterar la sesión.
+
+| Regla | Test |
+| --- | --- |
 | Actualizar perfil no se dispara solo | Ni al montar, ni al refrescar. |
 | Compartir no se dispara solo | No se genera un enlace al montar la pantalla. |
 | Compartir no duplica el share | Tres acciones → una sola llamada. |

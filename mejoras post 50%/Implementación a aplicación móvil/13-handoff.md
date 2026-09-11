@@ -31,6 +31,7 @@ Editar `apps/mobile/.env`:
 | Emulador Android | `http://10.0.2.2:3001` |
 | Simulador iOS | `http://127.0.0.1:3001` |
 | Teléfono físico | `http://<IP-de-tu-PC>:3001` |
+| API pública desplegada | `https://<host-público-del-api>` |
 
 `EXPO_PUBLIC_WEB_BASE_URL` apunta a Scope Web (mismo host, puerto 3000 en local).
 
@@ -43,6 +44,21 @@ un teléfono físico tiene que escuchar en `0.0.0.0`, no sólo en `127.0.0.1`.
 cd apps/mobile && npm start
 ```
 
+Para otra red o una LAN bloqueada:
+
+```bash
+cd apps/mobile && npm run start:tunnel
+```
+
+El tunnel conecta Expo Go con Metro; no reemplaza `EXPO_PUBLIC_API_BASE_URL`.
+Antes de probar login contra una API pública se puede ejecutar:
+
+```bash
+cd apps/mobile && npm run check:api
+```
+
+Un `401` de ese probe sin token significa que la API está alcanzable.
+
 **5. Abrirla:** `a` para Android, `i` para iOS, o escanear el QR con Expo Go.
 
 > Si cambiás `.env`, reiniciá con `npx expo start --clear`: las variables
@@ -54,6 +70,18 @@ Todos desde `apps/mobile/`.
 
 ```bash
 npm start
+```
+
+```bash
+npm run start:clear
+```
+
+```bash
+npm run start:tunnel
+```
+
+```bash
+npm run check:api
 ```
 
 ```bash
@@ -157,7 +185,7 @@ cd apps/mobile && eas build --platform android --profile preview
 **3. Confirmar el identificador de tienda.** `com.scope.holder` es
 **PROVISIONAL** y después de publicar no se puede cambiar.
 
-**4. Decidir sobre el registro de cuentas** (`11-brechas`, P-01).
+**4. Resolver el borrado de cuenta antes de publicar en tiendas** (`11-brechas`, P-01). El registro Holder nativo ya está disponible.
 
 **5. Evaluar la vida del JWT** (`11-brechas`, B-01): 1 h sin refresh es molesto
 en una app.
@@ -166,7 +194,7 @@ en una app.
 
 | Verificación | Resultado |
 | --- | --- |
-| Tests de mobile | 203/203 en 13 suites |
+| Tests de mobile | 222/222 en 15 suites; incluye registro, conectividad e identidad humana. |
 | Typecheck de mobile | Sin errores |
 | Lint de mobile | Sin errores ni advertencias |
 | Expo Doctor | 21/21 |

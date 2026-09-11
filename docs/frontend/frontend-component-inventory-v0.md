@@ -413,12 +413,15 @@ por la screen specification correspondiente.
 - `HolderCredentialList`;
 - `HolderCredentialListItem`;
 - `HolderCredentialSummary`;
-- `ProfileCredentialSelector`;
-- `ProfileCredentialEligibilityItem`;
 - `CurrentProfileState`;
-- `BuildProfileSection`;
+- `ProfileRebuildAction`;
 - `ProfileSourcesSummary`;
 - `ProfileLimitationsList`.
+
+`ProfileCredentialSelector`, `ProfileCredentialEligibilityItem` y
+`BuildProfileSection` son componentes condicionados/futuros para una eventual
+CTA de `build-from-ai`; no pertenecen al resumen de F2 actual porque no tienen
+consumidor runtime vigente.
 
 La composición completa de `/wallet/credentials/[id]` y `/wallet`
 queda fuera de este documento.
@@ -672,15 +675,16 @@ la unidad funcional.
 
 | Componente | Categoría | Experiencia | Modelo recibido | Intenciones emitidas | Responsabilidad | Variantes/estados | Responsive | Accesibilidad | Reutilización | Fase | No debe conocer |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `WalletShell` | Shell | Titular | `CurrentUserVM` | Navegación y logout | Marco personal mobile-first | Authenticated | Navegación corta y táctil | Landmarks, skip link, foco | Baja | F2 | Issuer operations |
-| `WalletNavigation` | Shell | Titular | Destinos wallet aprobados | Navegar | Mis credenciales y perfil | Active route | Mobile-first sin ocultar destinos | Estado activo y teclado | Baja | F2 | Sharing o rutas futuras |
+| `WalletShell` | Shell | Titular | `CurrentUserVM` | Navegación y logout | Marco personal web responsive, profile-first | Authenticated | Canvas adaptable; no simula la app Mobile futura | Landmarks, skip link, foco | Baja | F2 | Issuer operations |
+| `WalletNavigation` | Shell | Titular | Destinos wallet aprobados | Navegar | Mis credenciales y perfil | Active route | Web responsive sin ocultar destinos | Estado activo y teclado | Baja | F2 | Navegación Mobile nativa o rutas futuras |
 | `HolderCredentialList` | Feature | Titular | `HolderCredentialListItemVM[]` | Abrir credencial | Listar credenciales propias | Loading, empty, list, error | Cards mobile; densidad mayor en desktop | Lista semántica y headings | Baja | F2 | Drafts, credenciales ajenas, fetching |
-| `HolderCredentialListItem` | Feature | Titular | `HolderCredentialListItemVM` | `onOpenCredential`, selección futura separada | Resumen táctil de una credencial | Issued, revoked; evidence/analysis variants | Card mobile-first | No card-botón si agrega controles; foco visible | Baja | F2 | Raw DTO o issuer authority |
+| `HolderCredentialListItem` | Feature | Titular | `HolderCredentialListItemVM` | `onOpenCredential`, selección futura separada | Resumen táctil de una credencial | Issued, revoked; evidence/analysis variants | Card adaptable; densidad mayor en desktop | No card-botón si agrega controles; foco visible | Baja | F2 | Raw DTO o issuer authority |
 | `HolderCredentialSummary` | Feature | Titular | `HolderCredentialDetailVM` | Ninguna | Identidad y lifecycle propio | Issued, revoked | Jerarquía personal apilada | Heading, labels y fechas semánticas | Baja | F2 | Datos de otros holders |
-| `ProfileCredentialSelector` | Feature | Titular | `ProfileCredentialEligibilityVM[]`, `BuildProfileFormModel` | `onSelectCredentialForProfile` | Elegir fuentes elegibles | Empty, selectable, no eligible, error | Lista táctil | Fieldset/legend; selección por teclado | Baja | F2 | UserId, ownership local, artifacts |
-| `ProfileCredentialEligibilityItem` | Feature | Titular | Item de elegibilidad y resumen seguro | Toggle si eligible | Explicar selección o motivo | Eligible, revoked, missing analysis, unsupported | Fila/card apilada | Disabled con motivo visible | Baja | F2 | Pending inventado |
-| `CurrentProfileState` | Feature | Titular | `CurrentProfileVM` | Acción de build cuando corresponda | Resolver empty, available o unsupported | Exactamente tres variantes | Contenido principal mobile-first | Unsupported no se anuncia como empty | Baja | F2 | ProfileJson o versión inventada |
-| `BuildProfileSection` | Feature | Titular | `BuildProfileFormModel`, action state | `onBuildProfile`, `onRetry` | Confirmar selección y construir perfil | Idle, submitting, success, error | CTA visible sin overlay permanente | Resultado y errores anunciados | Baja | F2 | UserId, FastAPI, profile rebuild |
+| `ProfileCredentialSelector` | Feature condicionada | Titular | `ProfileCredentialEligibilityVM[]`, `BuildProfileFormModel` | `onSelectCredentialForProfile` | Elegir fuentes para build asistido solo si existe CTA aprobada | Empty, selectable, no eligible, error | Lista táctil | Fieldset/legend; selección por teclado | Baja | FUTURE | UserId, ownership local, artifacts |
+| `ProfileCredentialEligibilityItem` | Feature condicionada | Titular | Item de elegibilidad y resumen seguro | Toggle si eligible | Explicar elegibilidad solo dentro de build asistido aprobado | Eligible, revoked, missing analysis, unsupported | Fila/card apilada | Disabled con motivo visible | Baja | FUTURE | Pending inventado |
+| `CurrentProfileState` | Feature | Titular | `CurrentProfileVM` | Actualizar perfil cuando corresponda | Resolver empty, available o unsupported | Exactamente tres variantes | Contenido principal web responsive | Unsupported no se anuncia como empty | Baja | F2 | ProfileJson o versión inventada |
+| `ProfileRebuildAction` | Feature actual | Titular | action state y `HolderProfileVM` resultante | `onRebuilt`, retry | Llamar `POST /me/profile/rebuild` sin ejecutar IA | Idle, submitting, success, error | CTA secundaria; no overlay permanente | Resultado y errores anunciados | Baja | F2 | UserId, FastAPI, payload, nombres internos |
+| `BuildProfileSection` | Feature futura/condicionada | Titular | `BuildProfileFormModel`, action state | `onBuildProfile`, `onRetry` | Seleccionar fuentes y llamar build asistido solo si se aprueba ese flujo | Idle, submitting, success, error | No asumir CTA actual | Resultado y errores anunciados | Baja | FUTURE | UserId, FastAPI, profile rebuild |
 | `ProfileSourcesSummary` | Feature | Titular | Source count discriminado del profile VM | Ninguna | Explicar fuentes realmente representadas | Credential count, artifact count, unavailable | Resumen apilable | No confundir labels ni conteos | Baja | F2 | Completion inferida |
 | `ProfileLimitationsList` | Feature | Titular | Limitations y warnings seguros | Ninguna | Mantener límites visibles | Empty omitido, list | Lista legible | Heading y lista semántica | Baja | F2 | Claims absolutos |
 
@@ -798,10 +802,8 @@ issuer invalida el holder resuelto antes del submit.
 - `HolderCredentialList`;
 - `HolderCredentialListItem`;
 - `HolderCredentialSummary`;
-- `ProfileCredentialSelector`;
-- `ProfileCredentialEligibilityItem`;
 - `CurrentProfileState`;
-- `BuildProfileSection`;
+- `ProfileRebuildAction`;
 - `FormativeProfileSummary`;
 - `FormativeProfileAreaList`;
 - `FormativeProfileSkillList`;
@@ -809,6 +811,9 @@ issuer invalida el holder resuelto antes del submit.
 - `ProfileSourcesSummary`;
 - `ProfileLimitationsList`;
 - componentes compartidos de estado, evidencia, análisis y detalle técnico.
+
+Componentes condicionados, sin consumidor F2 actual: `ProfileCredentialSelector`,
+`ProfileCredentialEligibilityItem` y `BuildProfileSection`.
 
 ### F3: Verificador Público
 
@@ -834,8 +839,9 @@ No se implementan placeholders ni opciones `Próximamente`.
 | `IssuerUsersManagement` | D | Gestión de memberships y permisos | No hay endpoints administrativos | Altas, bajas o roles ficticios |
 | `IssuerSettings` | D | Configuración institucional | No hay contrato de lectura/escritura | Nombre, DID o signer editable fake |
 | `MultiIssuerSwitcher` | B | Selección explícita y persistencia de contexto | `/auth/me` ya ofrece summaries, pero no define selección | Selector con UUID o elección silenciosa |
-| `SharingPanel` | D | Grants, expiración y revocación | Acceso por ID no es sharing seguro | Links compartidos con falsa privacidad |
-| `QrSharePanel` | D | Sharing grant y QR real | No existe token controlado | QR que codifica solo un ID |
+| `ProfileShareAction` | F2 actual | Crear profile grant opaco desde Perfil current | No crear ruta `/wallet/share`; la respuesta pública es allowlisted | Token como dato visible separado, email o evidencia cruda |
+| `SharingGrantManagementPanel` | D | Listar, revocar o configurar grants | No existe UI Holder de gestión | Presentar gestión inexistente como actual |
+| `QrSharePanel` | D | QR real sobre URL/política estable | Profile sharing actual no implica QR | QR que codifica solo un ID |
 | `RevocationPanel` | B | Endpoint protegido de revocación | Lifecycle incompleto | Botón sin efecto o estado local |
 | `AsyncJobProgress` | B | Job ID, status y progreso backend | IA actual es síncrona | Porcentajes o segundo plano falsos |
 | `VerificationHistory` | D | Endpoint de eventos de verificación | No hay historial visible | Eventos inventados |
@@ -957,9 +963,13 @@ Portal del Emisor:
 
 Wallet:
 
-- prioriza cards y navegación mobile-first;
+- es web responsive, profile-first y desktop-capable;
+- puede aprovechar densidad adicional en desktop sin imitar la futura app
+  Mobile;
 - muestra título, issuer y estado antes que datos técnicos;
-- mantiene la selección de perfil operable táctilmente.
+- mantiene `Actualizar perfil` como acción visible actual;
+- no presenta selector de credenciales para build asistido mientras no exista
+  una CTA aprobada.
 
 Verificador:
 
@@ -1146,32 +1156,14 @@ El inventario queda aprobado si:
 - no implementa código;
 - no modifica backend.
 
-## 29. Próximo paso
+## 29. Continuidad documental
 
-El próximo documento recomendado es:
+La especificación institucional ya existe en
+`frontend-issuer-portal-screen-spec-v0.md` y debe mantenerse alineada con este
+inventario. Los contratos de datos y las decisiones de información se
+continúan en `frontend-data-and-view-models-v0.md` y
+`frontend-information-architecture-v0.md`.
 
-```text
-docs/frontend/frontend-issuer-portal-screen-spec-v0.md
-```
-
-Debe especificar las pantallas reales del vertical institucional:
-
-- login compartido;
-- entrada del emisor;
-- creación de draft;
-- detalle de credencial;
-- emisión;
-- análisis de PDF;
-- resultado;
-- estados;
-- responsive;
-- composición.
-
-Después:
-
-```text
-docs/frontend/frontend-holder-wallet-profile-screen-spec-v0.md
-docs/frontend/frontend-public-verifier-screen-spec-v0.md
-```
-
-Estas especificaciones no se redactan en este documento.
+Las screen specifications específicas de Holder Web y del verificador público
+siguen siendo trabajo documental futuro; este inventario no las crea ni
+anticipa una composición nueva.

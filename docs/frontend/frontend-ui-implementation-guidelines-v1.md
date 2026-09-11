@@ -113,7 +113,9 @@ completas con `object-contain`.
 - La profundidad se construye con fondos por capas, bordes sutiles, acentos
   lineales y sombras controladas.
 - La composición debe ser editorial, contextual y profile-first, no un
-  dashboard genérico ni una superficie crypto.
+  dashboard genérico ni una superficie crypto. Holder Web es responsive y
+  desktop-capable; la futura app Holder mobile se diseña con su blueprint
+  dedicado, no reduciendo la web a una simulación mobile.
 - Lucide es la única familia de iconos y sus símbolos deben aclarar acciones o
   estados reales.
 - El motion debe ser corto, funcional y respetar `prefers-reduced-motion`.

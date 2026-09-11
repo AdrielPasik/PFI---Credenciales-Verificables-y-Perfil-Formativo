@@ -92,6 +92,21 @@ cd apps/mobile && npx expo start --clear
 
 ## D. Teléfono Android físico
 
+### Dos conexiones, dos diagnósticos
+
+`Cannot connect to Expo CLI` corresponde a **teléfono → Metro**. Usar `npm
+start` en la misma Wi-Fi, o `npm run start:tunnel` cuando LAN/firewall no sea
+viable. El tunnel no cambia la API de Scope.
+
+`Scope tardó demasiado en responder` corresponde a **app → API**. Revisar
+`EXPO_PUBLIC_API_BASE_URL` y ejecutar `npm run check:api`; un `401` de
+`/auth/me` sin token confirma alcance. La app desplegada llama al API público
+por HTTPS directamente, sin CORS de navegador.
+
+En Windows, `npm run start:tunnel` resuelve `@expo/ngrok` global. Si Expo falla
+por un emulador offline, ejecutar `adb kill-server` y volver a abrir sólo los
+dispositivos reales antes de iniciar Metro.
+
 1. Instalar **Expo Go** desde Play Store.
 2. Averiguar la IP LAN de la computadora (`ipconfig` en Windows).
 3. Poner esa IP en `.env`:

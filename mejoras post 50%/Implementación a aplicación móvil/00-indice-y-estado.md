@@ -13,6 +13,7 @@ Una aplicación nativa (React Native + Expo + TypeScript) que consume el backend
 NestJS de Scope y permite a un titular:
 
 - iniciar sesión con su cuenta de Scope;
+- crear una cuenta Holder mediante el contrato público existente;
 - entender su **perfil formativo** (narrativa, áreas, habilidades, conceptos,
   cobertura, información declarada por instituciones);
 - consultar sus **credenciales** y el detalle de cada una;
@@ -42,11 +43,12 @@ un verificador nativo, un WebView de la web, ni una billetera cripto.
 | Actualizar perfil | Implementado |
 | Design system nativo (tokens Scope) | Implementado |
 | Assets de marca derivados del logo aprobado | Implementado |
-| Tests (203, 13 suites) | Verde |
+| Tests (222, 15 suites) | Verde |
 | Typecheck / lint / Expo Doctor | Verde (21/21 doctor) |
 | Export de bundle Android e iOS | Verde |
 | `eas.json` (development / preview interno: APK Android o ad hoc iOS / production store: AAB Android o IPA iOS) | Configurado, **sin ejecutar** |
 | Build en la nube, cuenta EAS, publicación en tiendas | **NO ejecutado** (fuera de alcance) |
+| Conectividad física y tunnel Expo | **Verificado localmente**: API pública por HTTPS y tunnel Metro con ngrok. |
 
 **Backend, AI service, Prisma y migraciones: sin ningún cambio.** Holder Web e
 Issuer Web: sin ningún cambio.
@@ -152,11 +154,10 @@ npm run export
 
 ## 8. Nota sobre el control de versiones
 
-`mejoras post 50%/` está listado en `.gitignore` (línea 119). Esta documentación
-**no queda versionada en git**: vive en el árbol de trabajo local, igual que el
-resto de los materiales de esa carpeta. Si en el futuro se decide versionarla,
-hay que mover la carpeta fuera de `mejoras post 50%/` (por ejemplo a
-`docs/mobile/`) o ajustar el `.gitignore` de forma explícita y consciente.
+`mejoras post 50%/` continúa ignorado en general. Existe una excepción explícita
+versionada para `mejoras post 50%/Implementación a aplicación móvil/**`; esta
+carpeta queda incluida en git. El resto de los materiales bajo `mejoras post 50%/`
+permanece local e ignorado.
 
 ## 9. Documentos previos que este trabajo supersede
 

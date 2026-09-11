@@ -125,6 +125,21 @@ con el aviso. Si el servidor no responde (red/5xx), el token **se conserva** y
 se ofrece reintentar: un problema de conectividad no debería costarle la sesión
 a nadie. En ningún caso la persona queda atrapada en una pantalla de carga.
 
+### 3.6 Identidad humana de presentación
+
+`POST /auth/login`, `POST /auth/register` y `GET /auth/me` entregan
+`user.displayLabel`. Es una proyección canónica del backend construida con
+`buildHolderDisplayLabel`: `displayName` normalizado, luego `firstName +
+lastName`, luego cada nombre disponible, luego email y finalmente el fallback
+seguro del servidor. Mobile transporta ese valor sin recalcularlo y lo presenta
+en el Perfil y el menú de cuenta. Si el label ya coincide con el email, el email
+no se duplica visualmente.
+
+No existe un endpoint de autoedición de `displayName`, `firstName` o `lastName`
+para el usuario autenticado. Por eso un Holder legacy cuyo `displayLabel` cae al
+email no puede completar su identidad desde Mobile todavía; ver P-03 en
+`11-brechas-y-trabajo-futuro.md`.
+
 ## 4. Prevención de envíos duplicados
 
 - El botón de acceso se deshabilita (`accessibilityState.disabled` y `busy`)
@@ -143,7 +158,7 @@ a nadie. En ningún caso la persona queda atrapada en una pantalla de carga.
 | **Sin revocación del lado del servidor.** El logout borra el token localmente; el JWT sigue siendo válido hasta que vence. | Un token exfiltrado sirve hasta 1 h. | BACKEND / AUTH |
 | **Sin biometría.** No se implementó Face ID / huella. | Ninguno hoy. Es trabajo futuro razonable *después* de que exista un contrato de sesión estable. | MOBILE |
 | **Sin bloqueo de capturas de pantalla.** | Ninguno hoy; agregarlo implicaría código nativo sin un requisito real. | MOBILE |
-| **Sin registro de cuenta en la app.** El backend expone `POST /auth/register`, pero es una decisión de producto no tomada. | Una persona nueva necesita la web para crear su cuenta. | PRODUCTO |
+| **Sin borrado de cuenta.** Mobile ya permite alta mediante `POST /auth/register`, pero no existe un endpoint Holder de borrado propio inspeccionado en el backend. | No bloquea Expo Go, APK privado ni demo; bloquea una publicación real en tiendas hasta ofrecer borrado desde app o una URL accesible. | PRODUCTO / BACKEND |
 
 Ninguno de estos límites bloquea la entrega. Están registrados en
 `11-brechas-y-trabajo-futuro.md` con su severidad.

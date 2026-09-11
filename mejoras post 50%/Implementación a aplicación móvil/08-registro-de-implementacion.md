@@ -6,7 +6,7 @@
 | --- | --- |
 | 0 — Descubrimiento | Auditoría de sólo lectura del monorepo, Holder Web, contratos del backend, marca y documentación mobile previa. |
 | 1 — Fundación | `apps/mobile` con Expo SDK 57, Expo Router, TypeScript estricto, tokens, fuentes, providers, entorno, tests, lint. |
-| 2 — Sesión | Restauración, login, guardia de navegación, logout, `expo-secure-store`. |
+| 2 — Sesión | Restauración, login, registro Holder, guardia de navegación, logout, `expo-secure-store`. |
 | 3 — API y contratos | Cliente HTTP, adaptadores, inventario de endpoints, tests de contrato. |
 | 4 — Navegación | Pestañas Perfil / Credenciales + stack de detalle. |
 | 5 — Perfil | Panel completo, cobertura, taxonomía, procedencia, contenido declarado. |
@@ -31,7 +31,7 @@
 | `POST /me/profile/share` devuelve una **ruta**, no una URL. Web la completa con `window.location.origin`. | Mobile necesita `EXPO_PUBLIC_WEB_BASE_URL`. |
 | `packages/shared-types` **está vacío** (sólo `package.json` y `README`). | No hay contrato compartido reutilizable; la adaptación se duplicó a propósito. |
 | El adaptador de Holder Web contiene **compatibilidades ganadas en incidentes reales**. | Se replicaron todas desde el día uno en Mobile. |
-| `mejoras post 50%/` está en `.gitignore`. | Esta documentación no queda versionada. Reportado. |
+| `mejoras post 50%/` está en `.gitignore`. | La subcarpeta `Implementación a aplicación móvil/**` tiene una excepción explícita y queda versionada; el resto del área continúa ignorado. |
 | Existen dos documentos de planificación mobile previos. | Se marcaron en su encabezado como superados por la implementación. |
 
 ## 3. Registros de decisión
@@ -108,14 +108,28 @@ empujan el contenido formativo fuera de vista.
 **Consecuencias.** Ninguna información formativa queda escondida; lo técnico
 sigue disponible a un toque.
 
-### ADR-09 — Sin registro de cuenta en la app
+### ADR-09 — Sin registro de cuenta en la app (**supersedido por ADR-10**)
 
 **Contexto.** `POST /auth/register` existe y funciona.
 **Decisión.** No exponerlo en Mobile en v1.
 **Consecuencias.** Una persona nueva necesita la web para crear su cuenta.
+
+### ADR-10 — Registro Holder nativo y timeout de autenticación acotado
+
+**Decisión.** Mobile consume el contrato existente `POST /auth/register` con
+nombre, apellido, email y contraseña; el `201` activa la misma sesión
+SecureStore que login. La confirmación de contraseña es sólo local.
+
+**Conectividad.** La URL pública del API se obtuvo del bundle público de Scope
+Web. Una medición de `GET /auth/me` sin token confirmó `401` tras 22,755 ms en
+frío y 234/226 ms luego. Por eso autenticación usa 45 s y el resto del Holder
+mantiene 20 s. No se modificó el backend.
+
+**Consecuencia.** Se agrega el gap de borrado de cuenta antes de tiendas; no
+bloquea la demo ni Expo Go.
 Registrado como brecha de PRODUCTO, no técnica.
 
-### ADR-10 — `forceExit` en Jest
+### ADR-11 — `forceExit` en Jest
 
 **Contexto.** El runtime de React Native que monta `jest-expo` deja handles
 abiertos y Jest se cuelga tras reportar resultados. `--detectOpenHandles` no
@@ -125,6 +139,17 @@ identifica el origen. Sólo ocurre en suites que montan componentes.
 **Decisión.** `forceExit: true` en `jest.config.js`, comentado.
 **Consecuencias.** Es un artefacto de **teardown**: no afecta resultados ni
 oculta fallos. Registrado como brecha POLISH.
+
+### ADR-12 — Presentar la identidad humana mediante `displayLabel`
+
+**Contexto.** El contrato de auth y el detalle de credencial ya entregan una
+proyección canónica `displayLabel`, pero Mobile no la presentaba en el Perfil y
+el detalle priorizaba el correo.
+**Decisión.** Consumir `displayLabel` sin recomputarlo: contexto breve en Perfil,
+jerarquía `displayLabel` → email → DID en menú y `subject.displayLabel` primario
+en el detalle de credencial.
+**Consecuencias.** Los usuarios legacy sin nombre siguen viendo el correo una
+sola vez; completar su identidad requiere un endpoint futuro de autoedición.
 
 ## 4. Bitácora de problemas y soluciones
 
@@ -147,17 +172,20 @@ oculta fallos. Registrado como brecha POLISH.
 
 **Configuración (10):** `package.json`, `tsconfig.json`, `app.config.ts`,
 `babel.config.js`, `jest.config.js`, `eslint.config.mjs`, `eas.json`,
-`.gitignore`, `.env.example`, `scripts/generate-brand-assets.js`.
+`.gitignore`, `.env.example`, `scripts/generate-brand-assets.js`; y tooling de
+conectividad: `scripts/check-connectivity.js` y `scripts/start-tunnel.js`.
 
-**Rutas (8):** `app/_layout.tsx`, `app/index.tsx`, `app/login.tsx`,
+**Rutas (9):** `app/_layout.tsx`, `app/index.tsx`, `app/login.tsx`, `app/register.tsx`,
 `app/(holder)/_layout.tsx`, `app/(holder)/(tabs)/_layout.tsx`,
 `app/(holder)/(tabs)/index.tsx`, `app/(holder)/(tabs)/credentials.tsx`,
 `app/(holder)/credentials/[credentialId].tsx`.
 
-**Fuente (30):** shell (2), primitivas de UI (8), features (11), lib (12),
-tipos (3).
+**Fuente:** incluye `features/auth/register-screen.tsx`, el probe de
+conectividad y la extensión de sesión/API para registro, además de las capas
+preexistentes.
 
-**Tests (13 suites, 203 casos)** y utilidades de test (4).
+**Tests (15 suites, 222 casos)** y utilidades de test (4), incluidos registro,
+conectividad.
 
 **Assets (6):** icono, icono adaptativo, splash, dos lockups y el manifiesto de
 procedencia.
@@ -171,12 +199,13 @@ procedencia.
 | `docs/frontend/scope-holder-mobile-handoff-v0.md` | Nota de estado en el encabezado apuntando a esta carpeta. |
 
 **Sin cambios:** `services/api/**`, `services/ai-service/**`, Prisma, migraciones,
-`apps/web/src/**`, `packages/**`, `.gitignore`, `README.md` de la raíz,
-`package.json` de la raíz.
+`apps/web/src/**`, `packages/**`, `README.md` de la raíz y `package.json` de la
+raíz. `.gitignore` se ajustó únicamente para versionar la excepción documental
+Mobile dentro de un área que sigue ignorada en general.
 
 ## 7. Dependencias agregadas
 
-**Runtime (17):** `expo`, `expo-router`, `expo-constants`, `expo-linking`,
+**Runtime (20):** `expo`, `expo-router`, `expo-constants`, `expo-linking`,
 `expo-splash-screen`, `expo-status-bar`, `expo-system-ui`, `expo-font`,
 `expo-secure-store`, `expo-clipboard`, `@expo/vector-icons`,
 `@expo-google-fonts/inter`, `@tanstack/react-query`, `react`, `react-native`,
@@ -184,7 +213,8 @@ procedencia.
 `react-native-gesture-handler`, `react-native-reanimated`,
 `react-native-worklets`.
 
-**Desarrollo (8):** `typescript`, `@types/react`, `@types/jest`, `jest`,
-`jest-expo`, `@testing-library/react-native`, `eslint`, `eslint-config-expo`.
+**Desarrollo (9):** `typescript`, `@types/react`, `@types/jest`, `jest`,
+`jest-expo`, `@testing-library/react-native`, `eslint`, `eslint-config-expo` y
+`expo-doctor`.
 
 Todas verificadas como compatibles con Expo SDK 57 (`expo-doctor` 21/21).

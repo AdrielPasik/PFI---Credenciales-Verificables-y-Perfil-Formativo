@@ -31,7 +31,7 @@ Base URL: `EXPO_PUBLIC_API_BASE_URL`. Ninguna pantalla conoce una URL.
 | **Request** | `{ email: string, password: string }` — el email se normaliza a minúsculas y sin espacios antes de enviarse. |
 | **Response** | `{ accessToken: string, user: { id, email, did \| null, displayLabel, status } }` |
 | **Errores** | `400` datos inválidos · `401` credenciales incorrectas · `5xx` servicio no disponible · red / timeout. |
-| **Notas** | La contraseña se limpia del formulario tras cada intento y **nunca** se persiste. |
+| **Notas** | `displayLabel` es la proyección humana canónica del backend. La contraseña se limpia del formulario tras cada intento y **nunca** se persiste. |
 
 ### 2.2 `GET /auth/me`
 
@@ -41,11 +41,22 @@ Base URL: `EXPO_PUBLIC_API_BASE_URL`. Ninguna pantalla conoce una URL.
 | **Auth** | `Authorization: Bearer <accessToken>` |
 | **Pantalla** | Arranque (`app/index.tsx`) y menú de cuenta. |
 | **Tipo** | Consulta. |
-| **Response** | El usuario **más** `issuerMemberships: []`. |
+| **Response** | El usuario, incluido `displayLabel`, **más** `issuerMemberships: []`. |
 | **Errores** | `401` sesión vencida → limpia el token y vuelve a acceso · red → se conserva el token y se ofrece reintentar. |
 | **Notas** | `issuerMemberships` se **valida** (tiene que ser un array, para detectar un contrato roto) pero **no se expone**: Scope Mobile es holder-only. Hay un test que verifica que el modelo devuelto no contenga la palabra `issuer`. |
 
-### 2.3 `GET /me/credentials`
+### 2.3 `POST /auth/register`
+
+| Campo | Valor |
+| --- | --- |
+| **Propósito** | Crear una cuenta Holder y activar su sesión. |
+| **Auth** | No (público). |
+| **Request** | `{ firstName, lastName, email, password }`. Nombre y apellido: no vacíos, hasta 100 caracteres; email válido; contraseña entre 8 y 128 caracteres. |
+| **Response** | `201` con el mismo shape que login: `{ accessToken, user }`, incluido `user.displayLabel`. |
+| **Errores** | `400` datos inválidos · `409` email ya registrado · red / timeout / `5xx`. |
+| **Notas** | `confirmPassword` es exclusivamente local y nunca se envía. El token se guarda sólo en SecureStore; la contraseña se limpia y nunca se persiste. |
+
+### 2.4 `GET /me/credentials`
 
 | Campo | Valor |
 | --- | --- |
@@ -58,7 +69,7 @@ Base URL: `EXPO_PUBLIC_API_BASE_URL`. Ninguna pantalla conoce una URL.
 | **`status`** | `issued` · `revoked` |
 | **Errores** | `404` sin credenciales disponibles · `5xx` · red / timeout · payload incompatible. |
 
-### 2.4 `GET /me/credentials/:id`
+### 2.5 `GET /me/credentials/:id`
 
 | Campo | Valor |
 | --- | --- |
@@ -91,7 +102,11 @@ Shape relevante de la respuesta:
 }
 ~~~
 
-### 2.5 `GET /me/profile/current`
+Mobile presenta `subject.displayLabel` como identidad primaria y `subject.email`
+como dato secundario sólo cuando ambos difieren. Nunca reconstruye un nombre
+desde `displayName`, `firstName`, `lastName` ni desde el correo.
+
+### 2.6 `GET /me/profile/current`
 
 | Campo | Valor |
 | --- | --- |
@@ -109,7 +124,7 @@ Campos consumidos: `profileVersion`, `credentialsCount`, `totalOfficialHours`
 `emittedCompetencies[]`, `emittedLearningOutcomes[]`, `confidence`,
 `qualityFlags[]`, `generatedAt`.
 
-### 2.6 `POST /me/profile/rebuild`
+### 2.7 `POST /me/profile/rebuild`
 
 | Campo | Valor |
 | --- | --- |
@@ -123,7 +138,7 @@ Campos consumidos: `profileVersion`, `credentialsCount`, `totalOfficialHours`
 Nunca se dispara al montar la pantalla ni con pull-to-refresh. Hay tests que lo
 verifican.
 
-### 2.7 `POST /me/profile/share`
+### 2.8 `POST /me/profile/share`
 
 | Campo | Valor |
 | --- | --- |
@@ -142,7 +157,6 @@ acciones seguidas produzcan **una sola** llamada al endpoint.
 
 | Endpoint | Por qué no |
 | --- | --- |
-| `POST /auth/register` | Crear cuentas desde la app es una decisión de producto no tomada. |
 | `POST /me/profile/build-from-ai` | Tampoco tiene CTA en Holder Web. Introducirlo sólo en Mobile crearía una asimetría de producto que nadie decidió. |
 | `GET /share/profile/:token` | Es la vista pública; la abre el navegador, no la app. |
 | `GET /verify/credentials/*` | Verificación pública: superficie web. |
@@ -243,7 +257,7 @@ implicaría tocar Holder Web — explícitamente fuera del alcance de este traba
 | Categoría | Cuándo | Reintenta |
 | --- | --- | --- |
 | `network` | `fetch` rechaza | Sí |
-| `timeout` | Se supera el timeout (20 s por defecto) | Sí |
+| `timeout` | Se supera el timeout aplicable | Sí |
 | `http` + `5xx` | El servidor falló | Sí |
 | `http` + `401` | Sesión vencida | No — vuelve a acceso |
 | `http` + `403` | Sin permiso | No |
@@ -259,7 +273,20 @@ llegue nunca a la superficie.
 
 ## 8. Timeouts
 
-`DEFAULT_TIMEOUT_MS = 20_000`, centralizado en el cliente HTTP. Cubre con holgura
-las lecturas del titular y la recomposición determinística del perfil. No se usa
-un timeout más agresivo: abortar una operación legítima del backend sería peor
-que esperar.
+`DEFAULT_TIMEOUT_MS = 20_000` sigue aplicando a las lecturas Holder. Login,
+registro y restauración de sesión usan `AUTH_TIMEOUT_MS = 45_000`: una medición
+controlada del API público registró un primer `GET /auth/me` de 22,755 ms y dos
+posteriores de 234 ms y 226 ms. La tolerancia mayor queda limitada al primer
+acceso de autenticación, no a todas las operaciones.
+
+## 9. Diagnóstico de conectividad en dispositivo físico
+
+Hay dos conexiones independientes: **teléfono → Metro/Expo CLI** y **app → API
+de Scope**. Un tunnel de Expo sólo resuelve la primera; la app llama al API
+público directamente por HTTPS.
+
+`npm run check:api` hace un `GET /auth/me` sin credenciales, no muta datos y
+considera `401` como API alcanzable. Nunca imprime tokens ni cuerpos. Para
+Metro: `npm start` usa LAN, `npm run start:clear` limpia la caché y
+`npm run start:tunnel` crea un tunnel para Expo Go. En Windows, el último
+script carga el directorio global de `@expo/ngrok` de forma explícita.

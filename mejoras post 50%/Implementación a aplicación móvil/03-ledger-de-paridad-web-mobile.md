@@ -32,7 +32,8 @@ Auditada contra el Holder Web vigente (`apps/web/src/features/holder/**`,
 | Cierre de sesión | Sí (menú de cuenta) | Sí (menú de cuenta del encabezado) | `PARIDAD` | |
 | Expiración de sesión (401) | Sí | Sí | `PARIDAD` | Vuelve a acceso con aviso. |
 | Reintento ante backend caído sin perder la sesión | Sí | Sí | `PARIDAD` | |
-| Registro de cuenta | Sí (`/register`) | No | `WEB-ONLY INTENCIONAL` | El backend expone `POST /auth/register`, pero crear cuentas desde la app es una decisión de producto no tomada. Ver `11-brechas`. |
+| Registro de cuenta | Sí (`/register`) | Sí (`/register`) | `PARIDAD` | Usa el mismo `POST /auth/register`, sin campos de emisor y con activación inmediata de sesión. |
+| Presentación de identidad humana | `displayLabel` en Wallet, detalle y menú de cuenta | `displayLabel` en Perfil, detalle y menú de cuenta | `PARIDAD` | Proyección canónica del backend: no se reconstruye nombre desde email ni desde campos crudos. Email sólo es secundario cuando difiere del label. |
 | Selección de contexto de emisor | Sí | No | `WEB-ONLY INTENCIONAL` | Mobile es holder-only. |
 
 ### 2.2 Perfil formativo
@@ -128,13 +129,13 @@ Auditada contra el Holder Web vigente (`apps/web/src/features/holder/**`,
 
 | Estado | Cantidad |
 | --- | --- |
-| `PARIDAD` | 48 |
+| `PARIDAD` | 50 |
 | `MOBILE-ADAPTED` | 14 |
-| `WEB-ONLY INTENCIONAL` | 6 |
+| `WEB-ONLY INTENCIONAL` | 5 |
 | `MOBILE-PENDING` | **0** |
 
 **No hay ninguna capacidad del Holder Web que Mobile deba tener y no tenga.**
-Las seis diferencias `WEB-ONLY INTENCIONAL` están justificadas arriba una por
+Las cinco diferencias `WEB-ONLY INTENCIONAL` están justificadas arriba una por
 una, y ninguna oculta funcionalidad que el titular necesite en el teléfono.
 
 ## 4. Plantilla para una capacidad nueva

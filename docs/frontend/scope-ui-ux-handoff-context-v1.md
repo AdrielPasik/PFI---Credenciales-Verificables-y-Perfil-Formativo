@@ -15,7 +15,7 @@ La integridad técnica respalda la proveniencia y el estado de una credencial. N
 | Audiencia | Necesidad principal | Forma de experiencia |
 | --- | --- | --- |
 | Institución emisora | Operar credenciales y evidencia con claridad contextual. | Workspace web responsive. |
-| Titular | Entender su perfil y las fuentes que lo respaldan. | Personal, profile-first y mobile-first. |
+| Titular | Entender su perfil y las fuentes que lo respaldan. | Holder Web responsive, profile-first y desktop-capable. |
 | Verificador | Consultar estado y evidencia técnica mínima sin login. | Público, focal y simple. |
 
 ## Experiencias actuales
@@ -26,11 +26,23 @@ La prioridad es operación institucional: contexto activo, creación/edición pe
 
 ### Perfil y credenciales del Titular
 
-El perfil es la lectura principal de la trayectoria. Las áreas, habilidades y conceptos se presentan con cobertura y confianza prudentes; las credenciales funcionan como evidencia de respaldo. La arquitectura debe poder pasar a móvil sin depender de una tabla desktop o una sidebar compleja.
+El perfil es la lectura principal de la trayectoria. Las áreas, habilidades y
+conceptos se presentan con cobertura y confianza prudentes; las credenciales
+funcionan como evidencia de respaldo. La arquitectura debe poder pasar a móvil
+sin depender de una tabla desktop o una sidebar compleja. La web del Titular no
+es un mock de la futura app móvil: reutilizan producto, contratos y
+terminología, no necesariamente layout ni componentes visuales. El blueprint
+móvil activo es `scope-holder-mobile-app-blueprint-v1.md`.
 
 La ruta actual `/wallet` renderiza `Mi perfil formativo`; `/wallet/credentials`
 es la lista de fuentes y `/wallet/credentials/[credentialId]` su detalle. No
 proponer `/wallet/profile` mientras esa ruta no exista realmente.
+
+El Holder puede compartir un perfil current desde la acción existente dentro de
+`/wallet`. El grant usa un token opaco y la vista pública es allowlisted; no
+equivale a compartir una credencial por verificación pública, a QR, a gestión
+de grants ni a compartir Contextual Analysis. La gestión/revocación de grants
+por Holder todavía no tiene UI.
 
 ### Verificador público
 
@@ -63,7 +75,8 @@ No representar todavía esa secuencia como pantalla, endpoint, score, matching o
 
 - confirmar ruta, permisos, estado y datos contra contrato real;
 - distinguir evidencia, interpretación y perfil;
-- mantener el Titular profile-first y mobile-first;
+- mantener Holder Web profile-first y responsive; remitir la app móvil futura
+  a `scope-holder-mobile-app-blueprint-v1.md`;
 - no exponer IDs, tokens, storage, artifacts crudos ni errores internos;
 - no convertir una dirección futura en placeholder funcional;
 - documentar cualquier necesidad de backend como gap;

@@ -74,7 +74,7 @@ sin evidencia no equivale a que la persona no posea esa capacidad
 | --- | --- |
 | Credenciales, evidencia, perfil formativo, interpretación asistida y verificación técnica bajo contratos existentes. | `ContextualAnalysis`, extracción de requisitos, matching de evidencia, gaps y explicación frente a un objetivo. |
 | Áreas, habilidades y conceptos provienen de evidencia disponible y reglas/contratos actuales. | Conclusiones contextualizadas con fuentes concretas y lenguaje prudente. |
-| Verificador público focal y sin análisis crudo. | Experiencias de sharing/contexto cuando existan endpoints y reglas de privacidad. |
+| Verificador público focal y sin análisis crudo; profile sharing actual resumido mediante token opaco. | Sharing contextual, gestión Holder de grants y experiencias frente a un contexto cuando existan contratos y reglas de privacidad. |
 
 No inventar rutas, endpoints, estados o scores para la segunda columna.
 
@@ -95,4 +95,7 @@ No reemplazar literalmente expresiones históricas por “Mi Scope” o “Scope
 
 Scope debe sentirse humana, inteligente, moderna, educativa, clara, rigurosa, tecnológica, premium e institucional contemporánea. No debe sentirse crypto, Web3, ATS/recruiting-only, LMS tradicional, certificadora tradicional, chatbot ni startup AI genérica.
 
-La aplicación de estas decisiones visuales se define en `frontend-brand-and-design-system-v1.md`. Las capacidades mobile del Titular se detallan en `scope-holder-mobile-handoff-v0.md`.
+La aplicación de estas decisiones visuales se define en
+`frontend-brand-and-design-system-v1.md`. Las capacidades mobile del Titular
+se detallan en `scope-holder-mobile-app-blueprint-v1.md`; el handoff v0 queda
+como antecedente histórico/preliminar.

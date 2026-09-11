@@ -338,11 +338,20 @@ Comprobar la persistencia:
 ```powershell
 $latestSemantic = Invoke-RestMethod `
   -Uri "$apiBaseUrl/credentials/$credentialId/semantic-analysis/latest" `
-  -Method Get
+  -Method Get `
+  -Headers @{ Authorization = "Bearer $issuerToken" }
 
 $latestSemantic.latestSemanticAnalysis.id
 $latestSemantic.latestSemanticAnalysis.schemaVersion
 ```
+
+Desde F1.5 esta lectura exige el token del emisor: la ruta dejo de ser publica y
+comprueba membresia activa sobre el issuer de la credencial. Sin el header
+responde `401`; con un token de otro emisor, `403`.
+
+La respuesta es un resumen con allowlist explicita. Ya no trae `analysisJson`,
+`textForEmbedding` ni `evidenceMap`: los internals del pipeline no se publican
+por esta ruta.
 
 ## 9. Construir perfil IA como holder
 

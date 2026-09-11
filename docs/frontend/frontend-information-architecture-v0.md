@@ -67,7 +67,7 @@ No cubre:
 - estrategia de almacenamiento del JWT;
 - librería de data fetching;
 - microcopy definitivo;
-- sharing, QR o revocación no implementados;
+- QR, gestión Holder de grants y revocación de credenciales no implementados;
 - administración institucional avanzada.
 
 ## 3. Fuentes de verdad y precedencia
@@ -105,6 +105,9 @@ Actualizaciones posteriores al snapshot base:
 - P0.1 protegió `POST /credentials/draft`.
 - P0.2 agregó issuer summaries seguros en `GET /auth/me`.
 - P0.3 agregó resolución autorizada del titular por email exacto.
+- La Wallet Holder expone sharing de perfil por token opaco y actualización
+  manual del perfil; ver `scope-holder-mobile-app-blueprint-v1.md` para la
+  reconciliación de runtime de 2026-09-02.
 
 > Cuando cambien controllers, DTOs, permisos o rutas del backend, debe
 > revisarse la clasificación A/B/C/D de este documento.
@@ -118,6 +121,7 @@ Actualizaciones posteriores al snapshot base:
 | `backend-implemented-slices-v0.md` y algunos README dicen que no existe IA HTTP | Controllers y documentación posterior exponen endpoints IA protegidos | Considerar IA HTTP implementada |
 | `api-contracts-v0.md` enumera rutas candidatas | Varias no tienen controller real | No tratarlas como implementadas |
 | Flujos históricos asumen link, QR, auditoría y consulta on-chain | El runtime actual resuelve por ID y evidencia persistida | Clasificarlos como futuro o dependencia |
+| Fuentes antiguas indican que no existen sharing links | Runtime expone profile grant opaco y vista pública allowlisted | Profile sharing es actual; QR, gestión de grants y sharing contextual siguen pendientes |
 
 Los documentos históricos no deben usarse para justificar navegación hacia
 funcionalidades inexistentes.
@@ -138,7 +142,7 @@ login institucional
 -> SemanticAnalysis
 -> login titular
 -> credenciales propias
--> build de perfil IA
+-> perfil current y actualización manual
 -> FormativeProfile current
 -> verificación pública por ID
 ```
@@ -152,6 +156,7 @@ GET  /credentials/:id
 GET  /credentials/:id/status
 GET  /credentials/:id/semantic-analysis/latest
 GET  /verify/credentials/:id
+GET  /share/profile/:token
 ```
 
 Los tres reads genéricos bajo `/credentials/:id` son públicos en el código
@@ -201,6 +206,7 @@ GET  /me/credentials/:id
 GET  /me/profile/current
 POST /me/profile/rebuild
 POST /me/profile/build-from-ai
+POST /me/profile/share
 ```
 
 ### Límites relevantes
@@ -212,9 +218,11 @@ POST /me/profile/build-from-ai
   estado de autorización institucional, rol y estado de membership;
 - `/auth/me` devuelve issuer summaries para memberships activas, pero todavía
   no existe un contrato de selección y persistencia del contexto multi-issuer;
-- no existe análisis desde texto;
 - no existe revocación backend completa;
-- no existen sharing links ni QR;
+- existe profile sharing actual: `POST /me/profile/share` crea token opaco y
+  `GET /share/profile/:token` devuelve una vista pública allowlisted;
+- no existe UI Holder para listar, revocar o configurar profile grants;
+- no existe QR ni sharing contextual;
 - no existe historial de verificaciones;
 - no existen jobs ni progreso;
 - no existe storage de PDFs;
@@ -254,8 +262,6 @@ Reservar una URL en este documento no significa crear su carpeta ni su
 /issuer/credentials
 /issuer/settings
 /issuer/users
-/wallet/share
-/verify/shared/[token]
 ```
 
 ## 6. Principios de arquitectura de información
@@ -467,6 +473,11 @@ validan ownership institucional.
 Entrada autenticada del Titular. Renderiza `Mi perfil formativo` y carga el
 perfil actual junto con las fuentes que lo respaldan.
 
+La jerarquía es profile-first, no una restricción de composición narrow. En web
+puede aprovechar un canvas desktop responsive con lectura narrativa acotada y
+regiones complementarias cuando mejoren la comprensión. La futura app Holder
+se documenta aparte en `scope-holder-mobile-app-blueprint-v1.md`.
+
 ### `/wallet/credentials`
 
 Lista real de credenciales propias `issued` y `revoked`.
@@ -509,8 +520,7 @@ seguro.
 | `/verify/credentials/[credentialId]` | Resultado de verificación | Verificador | No | Acceso público por ID | Mostrar resultado y evidencia | `GET /verify/credentials/:id` | B | Falta institución emisora en DTO y política de exposición más fina |
 | `/issuer/settings` | Configuración | Institucional | Sí | No implementado | Gestionar institución | No existe | D | Fuera del MVP. No implementar ni enlazar en MVP |
 | `/issuer/users` | Equipo | Institucional | Sí | No implementado | Gestionar memberships | No existe | D | Fuera del MVP. No implementar ni enlazar en MVP |
-| `/wallet/share` | Compartir | Titular | Sí | No implementado | Crear grants o links | No existe | D | Sharing y consentimiento. No implementar ni enlazar en MVP |
-| `/verify/shared/[token]` | Verificación compartida | Verificador | No | Token válido | Resolver un grant | No existe | D | Token, expiración y revocación. No implementar ni enlazar en MVP |
+| `/share/profile/[token]` | Perfil compartido | Público | No | Token opaco válido | Leer perfil público resumido | `GET /share/profile/:token` | A | Token hash persistido; sin gestión Holder de grants |
 
 ## 11. Matriz de capacidades por actor
 
@@ -526,13 +536,14 @@ seguro.
 | Analizar texto | Futuro | No | No | C | No existe endpoint |
 | Ver credenciales propias | No | Sí | No | A | Solo `issued` y `revoked` |
 | Ver detalle propio | No | Sí | No | A | Respuesta segura, sin `rawData` |
-| Construir perfil IA | No | Sí | No | A | Requiere credenciales issued con análisis |
-| Reconstruir fallback backend | No | No en UI MVP | No | Implementado técnicamente, no expuesto en UI MVP | Reservado para soporte o herramientas internas |
+| Construir perfil asistido | No | Backend disponible; sin CTA Web actual | No | B | `POST /me/profile/build-from-ai` requiere selección explícita de credenciales issued con análisis |
+| Actualizar perfil | No | Sí | No | A | Wallet actual llama `POST /me/profile/rebuild`; reconstruye con datos persistidos, sin ejecutar IA |
 | Ver perfil actual | No | Sí | No | A | Puede devolver `currentProfile: null` |
 | Verificar por ID | No | No | Sí | B | Resultado real, DTO institucional incompleto |
 | Consultar evidencia | Parcial | Sí | Sí parcial | B | Persistida; no consulta on-chain en tiempo real |
 | Revocar credencial | Futuro | No | No | C | Sin endpoint de dominio |
-| Compartir por link o QR | No | Futuro | Futuro | D | Sin grants, tokens ni QR |
+| Compartir perfil por link | No | Sí | Sí, con token | A | Grant `profile` opaco; vista pública limitada y sin email/evidencia cruda |
+| Compartir credencial / QR | No | Verificación pública por referencia | Sí | B / futuro | No es grant de perfil; QR y sharing contextual siguen pendientes |
 | Ver historial de verificaciones | Futuro | Futuro | Futuro | D | Modelo Prisma sin endpoint |
 
 ## 12. Matriz de navegación
@@ -865,16 +876,17 @@ Cada item permite:
 
 - perfil actual;
 - estado sin perfil;
-- selección de credenciales;
-- build con IA;
+- acción visible `Actualizar perfil` cuando corresponde;
 - resultado persistido;
 - errores de dependencia.
 
-No se crea una ruta primaria `profile/select`.
+No existe selector de credenciales, build asistido visible ni ruta primaria
+`profile/select` en la Wallet Web actual.
 
-### Elegibilidad para build IA
+### Elegibilidad del build asistido: capability backend condicionada
 
-Una credencial es elegible cuando:
+El backend puede validar que una credencial sea elegible para
+`POST /me/profile/build-from-ai` cuando:
 
 ```text
 pertenece al titular
@@ -882,16 +894,17 @@ AND status === issued
 AND latestSemanticAnalysis !== null
 ```
 
-La lista de wallet permite determinarlo con datos reales.
+La lista y sus VMs tienen datos suficientes para modelar esa validación, pero
+la Wallet Web actual no presenta selección ni explicación de elegibilidad.
 
 Las credenciales revocadas o sin análisis:
 
 - siguen visibles en Mis credenciales;
 - no se ocultan;
-- aparecen no elegibles dentro del flujo de perfil;
-- incluyen una razón comprensible.
+- no activan por sí mismas un flujo visible de build asistido.
 
-No usar `pendiente` si no existe un job.
+Ese selector y sus razones quedan como flujo condicionado futuro; no usar
+`pendiente` si no existe un job.
 
 ### Perfil inexistente
 
@@ -906,29 +919,29 @@ No usar `pendiente` si no existe un job.
 
 Esto es un empty state, no un error.
 
-### Build IA
+### Rebuild actual y build asistido disponible
 
-La acción primaria de demo usa:
+La Wallet Web actual expone `Actualizar perfil` y llama:
+
+```text
+POST /me/profile/rebuild
+```
+
+No recibe body, reconstruye un profile current desde credenciales emitted y
+semántica ya persistida, y no ejecuta IA. La UI no expone nombres internos como
+`backend_formative_profile_snapshot_v0` ni
+`backend_deterministic_aggregation_v0`.
+
+También existe en backend:
 
 ```text
 POST /me/profile/build-from-ai
 ```
 
-El backend valida ownership, status y latest analysis. El frontend no envía
-`userId`.
-
-### Rebuild backend
-
-`POST /me/profile/rebuild` existe y produce
-`backend_formative_profile_snapshot_v0`.
-
-No tendrá CTA visible, no formará parte de la navegación y no se mostrará como
-alternativa a `Construir perfil` en el MVP del titular. Se reserva para
-herramientas internas, soporte técnico o una decisión futura explícita.
-
-La UI no expone los nombres `backend_formative_profile_snapshot_v0` ni
-`backend_deterministic_aggregation_v0`. La única acción visible de construcción
-del perfil es `POST /me/profile/build-from-ai`.
+Recibe `credentialIds`, valida ownership, estado issued y análisis disponible,
+solicita el build asistido y persiste el resultado. No tiene CTA en la Wallet
+Web actual. No se debe describir como la acción primaria visible ni agregar un
+selector Mobile hasta aprobar ese flujo de producto.
 
 `GET /me/profile/current` puede mostrar un perfil persistido sin importar su
 método de generación, siempre que el DTO permita presentarlo honestamente. El
@@ -939,15 +952,15 @@ view models.
 
 - sin credenciales;
 - credenciales issued sin análisis;
-- credenciales elegibles;
 - perfil inexistente;
 - perfil existente;
-- build en curso;
+- actualización de perfil en curso;
 - análisis parcial;
 - confianza no disponible;
-- AI Service no disponible;
-- timeout;
-- error de ownership o dato inválido.
+
+Los estados de elegibilidad, AI Service, timeout u ownership aplican solo al
+build asistido backend disponible; no son estados visibles de la Wallet Web
+actual mientras no exista CTA ni selector aprobados.
 
 ## 16. Verificador Público
 
@@ -1085,8 +1098,8 @@ ser una acción principal sin convertirse en sección global.
 Navegación primaria:
 
 ```text
+Mi perfil formativo
 Mis credenciales
-Perfil formativo
 ```
 
 ### Verificador
@@ -1127,8 +1140,8 @@ No implementarlo hasta disponer de:
 |---|---|---|---|
 | Densidad | Operativa y mayor | Personal y acotada | Focal |
 | Navegación | Contextual institucional | Dos áreas principales | Mínima |
-| Acciones | Crear, emitir, analizar | Consultar y construir perfil | Verificar |
-| Mobile | Funcional y completa | Prioridad mobile-first | Prioridad mobile-first |
+| Acciones | Crear, emitir, analizar | Consultar perfil/credenciales y actualizar perfil | Verificar |
+| Responsive | Funcional y completa | Web responsive profile-first; app mobile futura separada | Prioridad mobile-first |
 | Detalle técnico | Operativo | Progresivo | Evidencia secundaria |
 | Identidad | Usuario + institución | Titular | Sin sesión |
 
@@ -1188,7 +1201,7 @@ Emisor
 -> crea, emite y analiza
 
 Titular
--> ve credencial y construye perfil
+-> ve credencial, perfil current y actualización manual si corresponde
 
 Verificador
 -> abre el ID y revisa evidencia
@@ -1242,11 +1255,13 @@ No construir lista institucional falsa.
 - login titular;
 - lista real;
 - detalle propio;
-- elegibilidad para perfil;
 - flujo de perfil dentro de `/wallet`;
-- build IA;
+- perfil current y acción `Actualizar perfil`;
 - perfil current;
 - estados vacíos y errores.
+
+`build-from-ai`, selección de credenciales y elegibilidad asistida quedan como
+capability backend condicionada, no como alcance visible de esta fase Web.
 
 ### Fase 3: Verificador Público
 
@@ -1325,13 +1340,18 @@ Reglas:
 
 ### Wallet y Perfil
 
-- mobile-first;
+- Holder Web responsive y profile-first;
+- canvas amplio cuando aporte comprensión, con lectura narrativa acotada;
 - navegación corta;
 - cards táctiles;
 - contenido prioritario;
 - selección operable con targets mínimos de `44 x 44 px`;
 - detalle técnico progresivo;
 - acciones persistentes solo cuando no oculten contenido.
+
+La futura app mobile del Titular se especifica por separado en
+`scope-holder-mobile-app-blueprint-v1.md`; no hereda obligatoriamente esta
+composición web.
 
 ### Verificador
 
@@ -1356,7 +1376,7 @@ Reglas:
 | P1 | Paginación y filtros | Emisor | Lista escalable y honesta |
 | P2 | Análisis desde texto | Emisor | Cursos sin PDF cargados por institución |
 | P2 | Revocación protegida | Emisor y verificador | Flujo completo de lifecycle |
-| P3 | Sharing grants y QR | Titular y verificador | Acceso controlado |
+| P3 | Gestión de grants, QR y sharing contextual | Titular y verificador | Complementar profile sharing actual con controles y scopes nuevos |
 | P3 | Jobs y progreso | IA | Procesamiento asíncrono real |
 | P3 | Storage de PDFs | Emisor | Upload durable y controlado |
 | P3 | VerificationEvent endpoint | Auditoría | Historial verificable |
@@ -1396,7 +1416,7 @@ No incorporar al MVP actual:
 | Exponer IDs internos | UX pobre y fuga de modelo | Mostrar nombres; usar IDs solo en rutas/detalle técnico |
 | Mostrar artifacts | Contrato interno filtrado | DTOs y view models seguros |
 | Confundir evidencia con validez | Claim incorrecto | Estados y secciones separados |
-| Diseñar sharing antes de grants | Falsa privacidad | Mantener verificación por ID como demo |
+| Confundir sharing actual y futuros scopes | Exposición o claims incorrectos | Separar profile grant actual, verificación pública, QR, gestión y sharing contextual |
 | Hardcodear seed en UI | Demo no reproducible | Preparación externa y datos obtenidos del backend |
 | Ocultar gaps con estado local | Mentir sobre persistencia | Mostrar solo estados backend o de request |
 | Navegación sobredimensionada | MVP vacío | Dos áreas holder, inicio emisor y verificador focal |
@@ -1412,9 +1432,9 @@ No incorporar al MVP actual:
 - `/issuer` como entrada institucional;
 - `/wallet` como entrada canónica profile-first del titular;
 - `/wallet/credentials` como lista de credenciales propias;
-- `POST /me/profile/build-from-ai` como única acción visible de construcción
-  del perfil en el MVP;
-- `POST /me/profile/rebuild` fuera de navegación y CTA del titular;
+- `POST /me/profile/rebuild` como acción actual `Actualizar perfil`, sin body
+  ni ejecución IA;
+- `POST /me/profile/build-from-ai` disponible en backend, sin CTA Web actual;
 - `/verify` como ingreso manual;
 - `/verify/credentials/[credentialId]` como resultado público;
 - ausencia de dashboard del verificador;
@@ -1422,7 +1442,7 @@ No incorporar al MVP actual:
 - emisión y análisis dentro del detalle;
 - navegación contextual por actor;
 - Portal del Emisor web responsive;
-- wallet y verificador mobile-first;
+- Holder Web responsive profile-first; verificador mobile-first;
 - recorrido de demo por ID;
 - clasificación A/B/C/D;
 - orden de implementación.
@@ -1431,8 +1451,6 @@ No incorporar al MVP actual:
 
 Deben esperar:
 
-- priorización final entre `Mi perfil formativo` y `Mis credenciales` según el
-  contexto de navegación;
 - diseño visual de navegación;
 - layout de cada vista;
 - props de componentes;
@@ -1444,7 +1462,7 @@ Deben esperar:
 - selector multi-contexto;
 - DTOs y view models finales;
 - QR;
-- sharing;
+- gestión Holder de grants y sharing contextual;
 - revocación;
 - permisos productivos;
 - paginación y filtros definitivos.
@@ -1470,38 +1488,26 @@ La arquitectura es aceptable si:
 - no consume endpoints públicos demo-grade como contratos productivos;
 - no filtra `analysisJson`, `textForEmbedding` ni artifacts a la UI;
 - no inventa una institución emisora en verificación;
-- no expone `POST /me/profile/rebuild` al titular;
+- distingue `Actualizar perfil` visible de build asistido sin CTA actual;
 - mantiene separados labels visibles y segmentos URL;
 - define redirects MVP sin confundir viewer, titular y admin/operator;
 - mantiene el portal responsive;
-- mantiene wallet y verificador mobile-first;
+- mantiene Holder Web responsive profile-first y verificador mobile-first;
 - permite una demo end-to-end real;
 - separa credencial, análisis, perfil, evidencia y verificación;
-- no presenta sharing o QR como implementados;
+- presenta profile sharing actual sin confundirlo con QR, gestión de grants o
+  sharing contextual;
 - no presenta evidence mock como blockchain productiva;
 - no diseña pantallas ni wireframes;
 - prepara DTOs y view models sin adelantarlos.
 
-## 29. Próximo documento recomendado
+## 29. Continuidad documental
 
-Crear después:
+El inventario de DTOs, view models, normalización, adaptación de respuestas y
+contratos de componentes ya se mantiene en
+`frontend-data-and-view-models-v0.md`. La responsabilidad, variantes y límites
+de presentación se continúan en `frontend-component-inventory-v0.md`.
 
-```text
-docs/frontend/frontend-data-and-view-models-v0.md
-```
-
-Ese documento debe cerrar:
-
-- inventario de DTOs reales;
-- view models por experiencia;
-- mappings de estados;
-- normalización de datos;
-- campos visibles por actor;
-- adaptación de respuestas parciales;
-- formato `es-AR`;
-- errores y recuperación;
-- adapters del cliente HTTP;
-- contratos esperados por componentes.
-
-No debe modificar endpoints ni usar tipos Prisma, FastAPI, ethers o artifacts
-como modelos directos de UI.
+Estas referencias deben revisarse junto con esta arquitectura cuando cambie un
+contrato real, sin crear un documento duplicado ni convertir modelos de
+transporte en modelos de UI.

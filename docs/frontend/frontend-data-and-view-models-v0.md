@@ -227,7 +227,8 @@ Si en el futuro se admite rich text o Markdown, debe existir:
 - el backend decide ownership, membership y permisos;
 - una pantalla autenticada no vuelve seguro un endpoint público;
 - no guardar artifacts o responses internas en `localStorage`;
-- no exponer `POST /me/profile/rebuild` como acción del MVP.
+- reconocer que la Wallet actual expone `Actualizar perfil` mediante
+  `POST /me/profile/rebuild`; no confundirlo con un build asistido por IA.
 
 ### Autoridad institucional
 
@@ -786,7 +787,7 @@ información.
 | `GET /me/credentials` | Sin parámetros | Sin body |
 | `GET /me/credentials/:id` | `id` de credencial | Sin body |
 | `GET /me/profile/current` | Sin parámetros | Sin body |
-| `POST /me/profile/build-from-ai` | Sin parámetros | JSON con `credentialIds` |
+| `POST /me/profile/build-from-ai` | Sin parámetros | JSON con `credentialIds` no vacío y único |
 | `POST /me/profile/rebuild` | Sin parámetros | Sin body |
 | `GET /verify/credentials/:id` | `id` de credencial | Sin body |
 
@@ -899,8 +900,8 @@ versión pueden omitirse.
 | `GET /me/credentials` | Titular | A | JWT; ownership desde token | `MeCredentialSummaryResponseDto[]` | `adaptHolderCredentialList` | `HolderCredentialListItemVM[]` | título, tipo, issuer, fechas, estado, evidencia/análisis resumidos | IDs no necesarios en child components; campos extra | credential, analysis, evidence, eligibility | 401, network, unexpected | Backend ya excluye drafts y credenciales ajenas |
 | `GET /me/credentials/:id` | Titular | A | JWT; ownership; issued/revoked | `MeCredentialDetailResponseDto` | `adaptHolderCredentialDetail` | `HolderCredentialDetailVM` | identidad, issuer, titular, lifecycle, subject allowlisted, evidencia, análisis sanitizado | metadata no allowlisted; objetos unknown; campos extra | credential, analysis, evidence | 401, 404, network, unexpected | 404 también evita filtrar credencial ajena |
 | `GET /me/profile/current` | Titular | A | JWT | `CurrentProfileResponseDto` | `adaptCurrentProfile` | `CurrentProfileVM` | profile fields extraídos por versión | `profileJson` completo, campos desconocidos | empty/available | 401, network, unexpected | Response actual es amplio y requiere parser por versión |
-| `POST /me/profile/build-from-ai` | Titular | A | JWT; ownership; issued; latest analysis | `CurrentProfileResponseDto` | `adaptBuiltProfile` | `BuildProfileCommand`; `BuildProfileResultVM` | perfil seguro extraído | `profileJson` completo; userId del transporte no visible | available | 400, 401, 403, 404, 409, 422, 502, 503, 504 | Command contiene solo `credentialIds` |
-| `POST /me/profile/rebuild` | Interno | Implementado; fuera UI MVP | JWT | `CurrentProfileResponseDto` | Sin adapter de acción visible | Ningún CTA o navegación | Un current profile preexistente puede leerse | nombres internos; `profileJson` | no aplica a UI | no aplica a flujo MVP | Reservado para soporte/herramientas internas |
+| `POST /me/profile/build-from-ai` | Titular | Backend disponible; sin CTA Web actual | JWT; ownership; issued; latest analysis | `CurrentProfileResponseDto` | `adaptBuiltProfile` si se habilita un flujo aprobado | `BuildProfileCommand`; `BuildProfileResultVM` | perfil seguro extraído | `profileJson` completo; userId del transporte no visible | available | 400, 401, 403, 404, 409, 422, 502, 503, 504 | Command contiene solo `credentialIds`; no inventar selector Mobile todavía |
+| `POST /me/profile/rebuild` | Titular | A | JWT | `CurrentProfileResponseDto` | `rebuildMyProfileRequest` reutiliza el adapter de current profile | `ProfileRebuildAction` / `HolderProfileVM` | perfil reconstruido desde credenciales emitidas y semántica persistida | nombres internos; `profileJson` | available/empty | 401, network, unexpected | CTA actual `Actualizar perfil`; no ejecuta IA ni recibe body |
 
 ### Verificador
 
@@ -1448,7 +1449,8 @@ El response real incluye:
 - latest BlockchainRecord;
 - canonical hash y versión.
 
-Por eso contiene datos suficientes para derivar elegibilidad:
+Por eso contiene datos suficientes para derivar elegibilidad únicamente para la
+capability backend condicionada `build-from-ai`:
 
 ```text
 status === issued
@@ -1457,7 +1459,7 @@ AND latestSemanticAnalysis !== null
 
 Ownership no se deriva en frontend: el endpoint ya filtra por usuario del JWT.
 
-### Elegibilidad
+### Elegibilidad para build asistido condicionado
 
 | Condición | `eligible` | `reasonCode` |
 |---|---:|---|
@@ -1467,7 +1469,8 @@ Ownership no se deriva en frontend: el endpoint ya filtra por usuario del JWT.
 | status desconocido | false | `unknown` |
 | shape insuficiente | false | `unsupported` |
 
-Las no elegibles:
+Si en el futuro se aprueba una CTA y selector de build asistido, las no
+elegibles:
 
 - siguen visibles;
 - no se pueden seleccionar;
@@ -1550,8 +1553,8 @@ Descarta propiedades adicionales antes del view model.
 
 ### Responses reales
 
-`GET /me/profile/current` y `POST /me/profile/build-from-ai` devuelven
-`CurrentProfileResponseDto`.
+`GET /me/profile/current`, `POST /me/profile/build-from-ai` y
+`POST /me/profile/rebuild` devuelven `CurrentProfileResponseDto`.
 
 La response incluye:
 
@@ -1595,7 +1598,8 @@ Para `backend_formative_profile_snapshot_v0`:
 - validar su shape mínima;
 - extraer áreas, skills, conceptos, confidence y warnings;
 - no mostrar su nombre interno ni método;
-- no ofrecer rebuild.
+- permitir la acción visible `Actualizar perfil` sin exponer método interno ni
+  presentarla como análisis IA nuevo.
 
 Para una versión desconocida:
 
@@ -1693,7 +1697,9 @@ No contiene `userId`. El backend lo obtiene del JWT.
 - un error transitorio no elimina el perfil current anterior en la UI;
 - el frontend no ejecuta Python;
 - el frontend no envía artifacts;
-- `POST /me/profile/rebuild` no tiene CTA, navegación ni alternativa visible.
+- `POST /me/profile/rebuild` es la acción visible `Actualizar perfil` en la
+  Wallet actual; reconstruye desde datos persistidos y no debe anunciarse como
+  análisis IA nuevo.
 
 ## 20. Verificador Público
 
@@ -2147,7 +2153,7 @@ Regla:
 | Sin análisis desde texto | PDF/form futuro | Command y resultado textual | No mostrar acción | Simular análisis | Endpoint institucional protegido |
 | Sin jobs/progreso | Action state | Job ID y status | Loader indeterminado del request | Porcentaje fake | Job async con polling/eventos |
 | Sin storage de PDFs | PDF form | Referencia durable | Selección local durante request | Persistir PDF en browser | Storage + referencia autorizada |
-| Sin QR/sharing | Verify/navigation | Grant o token | Ingreso manual de ID | QR que solo disfraza un ID | Sharing grant revocable |
+| Sin QR / gestión de sharing | Verify/navigation | Grant o token administrable | Profile sharing actual con token opaco o ingreso manual de ID para verify | QR que solo disfraza un ID | Gestión/revocación de grant y scopes nuevos |
 | Sin revocación completa | Lifecycle | Command y permisos | No mostrar acción | Botón sin backend | Endpoint protegido de revocación |
 | Sin paginación issuer-facing | Lista issuer | Cursor/total/filtros | No implementar lista completa | Filtrar datos hardcodeados | Endpoint paginado |
 | Evidencia mock/Anvil indistinguible | `EvidenceStatusVM` | Origen o mode | Label local/demo y `unknown` | Inferir por hash/address | `evidenceOrigin` seguro en DTO |
@@ -2218,9 +2224,11 @@ No pasar a pantallas consumiendo responses crudas como solución temporal.
 - null, ausencia, vacío, ocultado y no soportado son distintos;
 - profile y verification usan modelos discriminados;
 - `profileJson` y `analysisJson` no llegan a componentes;
-- elegibilidad usa issued y latest analysis;
-- el build de perfil no envía user ID;
-- rebuild queda fuera de la UI MVP;
+- la elegibilidad por issued y latest analysis pertenece solo a build asistido
+  condicionado, no a la Wallet Web actual;
+- el command de build asistido no envía user ID;
+- la UI actual puede actualizar el perfil mediante rebuild sin exponer nombres
+  internos ni convertirlo en una promesa de análisis IA;
 - `CurrentProfileVM` tiene exactamente tres variantes;
 - institución emisora e institución del logro son conceptos distintos;
 - `credentialSubject` usa una allowlist frontend v0;
@@ -2286,29 +2294,20 @@ El documento es aceptable si:
 - mantiene formato `es-AR`;
 - conserva valores de máquina;
 - respeta actores y rutas aprobadas;
-- no expone rebuild al titular;
+- diferencia rebuild visible de build asistido disponible solo en backend;
 - documenta gaps;
 - no diseña pantallas;
 - no implementa código;
 - no modifica backend.
 
-## 33. Próximo documento recomendado
+## 33. Continuidad documental
 
-Crear después:
+La asignación de estos view models a componentes, responsabilidades, variantes
+y límites de transporte ya se documenta en
+`frontend-component-inventory-v0.md`. La jerarquía de experiencias, rutas y
+prioridades de actor se mantiene en
+`frontend-information-architecture-v0.md`.
 
-```text
-docs/frontend/frontend-component-inventory-v0.md
-```
-
-Ese documento debe usar estos view models para definir:
-
-- componentes;
-- responsabilidades;
-- variantes;
-- estados;
-- reutilización;
-- límites entre componentes de dominio y primitivas visuales;
-- qué componente acepta cada view model;
-- qué componente nunca recibe datos de transporte.
-
-No debe reabrir marca, arquitectura de información ni contratos de datos.
+Los tres documentos deben evolucionar en conjunto ante cambios de contratos,
+sin reabrir marca, arquitectura de información ni datos fuera de su fuente de
+verdad correspondiente.

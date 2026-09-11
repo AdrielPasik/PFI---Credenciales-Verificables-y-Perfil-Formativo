@@ -48,7 +48,7 @@ inglés.
 | Audiencia | Necesidad principal | Prioridad visual |
 | --- | --- | --- |
 | Institución emisora | Operar credenciales, evidencia y contexto institucional. | Densidad operativa y claridad de acciones. |
-| Titular | Comprender el perfil y las fuentes que lo respaldan. | Lectura personal, profile-first y mobile-first. |
+| Titular | Comprender el perfil y las fuentes que lo respaldan. | Holder Web responsive, profile-first y desktop-capable. |
 | Verificador | Consultar una credencial sin sesión. | Resultado focal, sobrio y fácil de interpretar. |
 
 Usar `Portal del Emisor`, `Mi perfil formativo`, `Mis credenciales`,
@@ -224,7 +224,7 @@ de dominio distintos.
 | --- | --- | --- |
 | `issuer` | Workspace institucional, formularios y detalle operativo. | 1200-1440 px |
 | `reading` | Perfil, detalle narrativo y contenido de lectura. | 760-960 px |
-| `holder` | Perfil personal y listas de credenciales. | 680-960 px |
+| `holder` | Perfil personal y listas de credenciales en web. | 1200-1440 px de canvas; 680-900 px para bloques narrativos. |
 | `verifier` | Consulta pública focal. | 640-800 px |
 
 Primitives de composición:
@@ -253,8 +253,11 @@ Los breakpoints son puntos de cambio de composición, no dispositivos rígidos:
 - **Portal del Emisor:** web responsive. Puede usar dos columnas en desktop,
   pero los formularios, detalles y acciones siguen completos en pantallas
   pequeñas.
-- **Titular:** mobile-first. El perfil precede a las listas, no depende de una
-  sidebar y evita tablas densas.
+- **Holder Web:** responsive, profile-first y desktop-capable. Puede usar
+  columnas, grids editoriales o regiones laterales cuando aclaren la relación
+  entre perfil y fuentes; los párrafos conservan una medida de lectura cómoda.
+- **Holder Mobile futuro:** superficie dedicada mobile-first, vertical y táctil;
+  no hereda obligatoriamente el layout ni los componentes visuales web.
 - **Verificador:** mobile-first y focal. Resultado primero, evidencia técnica
   después mediante disclosure o secciones cortas.
 
@@ -469,7 +472,8 @@ Una pantalla Scope está lista para revisión cuando:
 - conserva foco, teclado, contraste, labels y feedback accesible;
 - no expone IDs, secretos, artifacts ni detalles técnicos innecesarios;
 - no presenta datos inventados, métricas decorativas o promesas técnicas falsas;
-- trata holder y verificador como mobile-first y emisor como web responsive;
+- trata Holder Web y emisor como web responsive, y verificador como
+  mobile-first; una futura app Holder aplica su blueprint mobile dedicado;
 - respeta límites de producto y contratos reales.
 
 ## 23. Reglas históricas descartadas

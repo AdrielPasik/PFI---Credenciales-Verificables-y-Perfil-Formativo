@@ -68,23 +68,16 @@ volumen. No es un problema hoy.
 
 ## 2. Brechas de producto
 
-### P-01 — No se puede crear una cuenta desde la app
-**Severidad:** `IMPORTANTE` · **Dueño:** `PRODUCTO`
+### P-01 — Borrado de cuenta antes de publicar en tiendas
+**Severidad:** `BLOCKER` para tiendas · **Dueño:** `PRODUCTO / BACKEND`
 
-`POST /auth/register` existe y funciona. La app **no** lo expone.
+Mobile ya permite crear una cuenta Holder mediante el endpoint público existente
+`POST /auth/register`. La inspección del backend no encontró un endpoint propio
+de borrado de cuenta para el titular.
 
-**Por qué:** no se puede inventar una decisión de producto. Que Web ofrezca
-registro no implica que la app deba: hay preguntas abiertas (¿verificación de
-correo? ¿términos y condiciones dentro de la app? ¿tiendas que exigen borrado de
-cuenta si hay creación de cuenta?) que corresponden a producto, no a la
-implementación.
-
-**Consecuencia:** una persona nueva necesita la web para crear su cuenta. Para el
-PFI es aceptable: las cuentas de demo se crean antes.
-
-> **Nota importante para la publicación en tiendas:** si la app llega a permitir
-> crear cuentas, tanto Google Play como App Store exigen ofrecer también el
-> borrado de cuenta desde la app o desde una URL accesible.
+**Consecuencia:** no bloquea PFI, Expo Go ni distribución privada de APK. Antes
+de Google Play o App Store se debe ofrecer borrado desde la app o mediante una
+URL accesible y segura. No se inventó un borrado local.
 
 ### P-02 — El "código de credencial" no se ofrece al compartir
 **Severidad:** `POLISH` · **Dueño:** `PRODUCTO`
@@ -95,6 +88,20 @@ enlace completo y un segundo campo copiable competiría con la acción principal
 
 **Reevaluar** si aparece un flujo de verificación por código en el que el
 identificador suelto sea realmente útil.
+
+### P-03 — Los Holders legacy no pueden completar su identidad humana
+**Severidad:** `IMPORTANTE` para producto · **Dueño:** `PRODUCTO / BACKEND`
+
+La presentación privada usa `displayLabel`, proyección canónica del backend. En
+usuarios legacy sin `displayName`, `firstName` ni `lastName`, ese valor cae al
+correo correctamente. No existe hoy un endpoint self-service para actualizar
+esos campos, por lo que Mobile no puede inventar, derivar ni persistir un nombre
+local.
+
+**Resolución sugerida:** un `PATCH /me` autenticado y allowlisted para
+`firstName`, `lastName` y/o `displayName`, con validación, normalización y una
+respuesta `displayLabel` recalculada. Debe definirse en un slice de backend
+propio, sin mutar credenciales ni perfiles desde el cliente.
 
 ---
 
@@ -118,7 +125,7 @@ solo aguas arriba.
 ### M-02 — Sin tests end-to-end
 **Severidad:** `POLISH` · **Dueño:** `MOBILE`
 
-Hay 203 tests de unidad e integración, pero ninguno E2E en dispositivo.
+Hay 222 tests de unidad e integración, pero ninguno E2E en dispositivo.
 
 **Mitigación:** la matriz de prueba manual de `09-testing-y-calidad.md`.
 
@@ -261,8 +268,8 @@ Ambas tiendas las exigen.
 
 | Severidad | Cantidad | ¿Bloquea el PFI? |
 | --- | --- | --- |
-| `BLOCKER` | 4 (M-12, I-01, I-02, I-04) | Sólo I-01 e I-02, y se resuelven en minutos. |
-| `IMPORTANTE` | 5 (B-01, B-02, P-01, M-08, M-11) | No. |
+| `BLOCKER` | 5 (P-01, M-12, I-01, I-02, I-04) | Sólo I-01 e I-02 bloquean el PFI y se resuelven en minutos. |
+| `IMPORTANTE` | 5 (B-01, B-02, P-03, M-08, M-11) | No. |
 | `POLISH` | 8 | No. |
 | `FUTURO` | 6 | No. |
 
@@ -286,7 +293,7 @@ Para el PFI hace falta resolver **I-01** (crear el proyecto EAS) e **I-02**
 - [x] Estados de error, vacío y parcial
 - [x] Accesibilidad básica
 - [x] Marca Scope (icono, splash, tipografía, colores)
-- [x] 203 tests, typecheck, lint y Expo Doctor en verde
+- [x] 222 tests, typecheck, lint y Expo Doctor en verde
 - [ ] Proyecto EAS creado (**I-01**)
 - [ ] URLs de entorno configuradas (**I-02**)
 - [ ] APK generado y probado en un dispositivo real

@@ -4,10 +4,10 @@
 
 | Pieza | Versión | Por qué |
 | --- | --- | --- |
-| `expo` | `~57.0.20` | SDK estable más reciente al momento de implementar. |
+| `expo` | `~57.0.21` | SDK estable más reciente al momento de implementar. |
 | `react-native` | `0.86.3` | La versión que fija Expo SDK 57. |
 | `react` | `~19.2.3` (resuelve a `19.2.8`) | Ver sección 3. |
-| `expo-router` | `~57.0.19` | Enrutado por archivos, alineado al SDK. |
+| `expo-router` | `~57.0.20` | Enrutado por archivos, alineado al SDK. |
 | `typescript` | `~6.0.3` | Misma línea que `apps/web` (`6.0.3`). |
 | `@tanstack/react-query` | `5.102.8` | Estado de servidor. |
 | `expo-secure-store` | `~57.0.3` | Persistencia segura del token. |
