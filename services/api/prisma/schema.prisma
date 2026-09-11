@@ -167,6 +167,29 @@ enum AnalysisRunSourceType {
   text_evidence
 }
 
+// F1.1: nivel de confianza de la DERIVACION del texto extraido, establecido por el
+// trust gate de F0.5 al atar el artifact a su fuente autoritativa. NO es un booleano
+// "trusted": la asimetria entre TEXT y PDF es real, y borrarla dejaria al consumidor
+// sin saber cuanto puede apoyarse en el texto.
+//
+//   AUTHORITATIVE_CONTENT_MATCHED  TEXT -- el contenido autoritativo ES el texto
+//                                  canonico y NestJS comprueba igualdad exacta.
+//                                  La derivacion queda DEMOSTRADA.
+//   PRODUCER_ASSUMED               PDF -- los bytes autoritativos se verifican por
+//                                  SHA, pero NestJS no reejecuta pdfplumber/pypdf.
+//                                  La derivacion queda ASUMIDA sobre el productor
+//                                  interno de extraccion.
+//
+// Los valores van en MAYUSCULA, apartandose del snake_case de los demas enums,
+// porque son tokens de contrato congelados en F0.5 y reproducidos tal cual por el
+// verificador TypeScript. Un alias en minuscula obligaria a mapear entre el valor
+// persistido y el token del contrato -- justo la traduccion silenciosa que F0
+// elimino.
+enum ExtractionDerivationTrust {
+  AUTHORITATIVE_CONTENT_MATCHED
+  PRODUCER_ASSUMED
+}
+
 // C4b.1a: aplicacion congelada (snapshot) de una interpretacion semantica
 // aprobada (ver IssuerCourseTemplate.approvedSemantic*) sobre una credencial
 // concreta ya emitida. Ver docs/architecture/
@@ -205,6 +228,8 @@ model User {
   requestedAnalysisRuns          AnalysisRun[]                              @relation("AnalysisRunRequester")
   createdCourseTemplates         IssuerCourseTemplate[]                     @relation("IssuerCourseTemplateCreator")
   appliedSemanticInterpretations CredentialReusableSemanticInterpretation[] @relation("CredentialSemanticInterpretationApplier")
+  ownedObjectives                Objective[]                                @relation("ObjectiveOwner")
+  reasoningRuns                  ReasoningRun[]                             @relation("ReasoningRunOwner")
 }
 
 model AuthCredential {
@@ -290,6 +315,7 @@ model Credential {
   documentEvidences               DocumentEvidence[]
   textEvidences                   TextEvidence[]
   analysisRuns                    AnalysisRun[]
+  reasoningRunInventoryItems      ReasoningRunInventoryItem[]
   reusableSemanticInterpretations CredentialReusableSemanticInterpretation[]
 
   @@index([issuerId])
@@ -329,22 +355,23 @@ model SemanticAnalysis {
 }
 
 model DocumentEvidence {
-  id                 String                 @id @default(uuid())
-  credentialId       String
-  uploadedByUserId   String
-  kind               DocumentEvidenceKind
-  originalFileName   String
-  mimeType           String
-  sizeBytes          Int
-  sha256             String
-  storageProvider    String
-  storageKey         String                 @unique
-  status             DocumentEvidenceStatus @default(current)
-  uploadedAt         DateTime               @default(now())
-  replacedAt         DateTime?
-  credential         Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  uploadedBy         User                   @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
-  analysisRunSources AnalysisRunSource[]
+  id                         String                      @id @default(uuid())
+  credentialId               String
+  uploadedByUserId           String
+  kind                       DocumentEvidenceKind
+  originalFileName           String
+  mimeType                   String
+  sizeBytes                  Int
+  sha256                     String
+  storageProvider            String
+  storageKey                 String                      @unique
+  status                     DocumentEvidenceStatus      @default(current)
+  uploadedAt                 DateTime                    @default(now())
+  replacedAt                 DateTime?
+  credential                 Credential                  @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  uploadedBy                 User                        @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  analysisRunSources         AnalysisRunSource[]
+  reasoningRunInventoryItems ReasoningRunInventoryItem[]
 
   @@index([credentialId])
   @@index([uploadedByUserId])
@@ -352,18 +379,19 @@ model DocumentEvidence {
 }
 
 model TextEvidence {
-  id                 String              @id @default(uuid())
-  credentialId       String
-  submittedByUserId  String
-  label              String?
-  content            String              @db.Text
-  sha256             String
-  status             TextEvidenceStatus  @default(current)
-  submittedAt        DateTime            @default(now())
-  replacedAt         DateTime?
-  credential         Credential          @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  submittedBy        User                @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
-  analysisRunSources AnalysisRunSource[]
+  id                         String                      @id @default(uuid())
+  credentialId               String
+  submittedByUserId          String
+  label                      String?
+  content                    String                      @db.Text
+  sha256                     String
+  status                     TextEvidenceStatus          @default(current)
+  submittedAt                DateTime                    @default(now())
+  replacedAt                 DateTime?
+  credential                 Credential                  @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  submittedBy                User                        @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
+  analysisRunSources         AnalysisRunSource[]
+  reasoningRunInventoryItems ReasoningRunInventoryItem[]
 
   @@index([credentialId])
   @@index([submittedByUserId])
@@ -410,6 +438,36 @@ model AnalysisRunSource {
   analysisRun        AnalysisRun           @relation(fields: [analysisRunId], references: [id], onDelete: Cascade)
   documentEvidence   DocumentEvidence?     @relation(fields: [documentEvidenceId], references: [id], onDelete: Restrict)
   textEvidence       TextEvidence?         @relation(fields: [textEvidenceId], references: [id], onDelete: Restrict)
+
+  // F3.1: los items de inventario que SELECCIONARON esta representacion de
+  // extraccion. Solo filas INCLUDED pueden apuntar aca.
+  selectedByReasoningRunInventoryItems ReasoningRunInventoryItem[]
+
+  // F1.1 -- EXTRACTION SLOT. Ver evidence-reasoning-f0.6-persistence-design.md.
+  //
+  // Todo lo de arriba es el SOURCE SNAPSHOT: IMMUTABLE_FROM_CREATION.
+  // Estos tres campos son el slot de extraccion: MONOTONIC_FILL_ONCE.
+  //
+  //   ABSENT   los tres null      <- estado de toda fila previa a F1
+  //   PRESENT  los tres no-null   <- se llena exactamente UNA vez
+  //
+  // Permitido:  ABSENT -> PRESENT
+  // Prohibido:  PRESENT -> otro PRESENT distinto
+  //             PRESENT -> ABSENT
+  //             bundle parcialmente poblado
+  //             sobrescribir porque exista un parser o una version mas nueva
+  //
+  // Una extraccion distinta de la misma fuente pertenece a OTRO AnalysisRun, no a
+  // una mutacion del historico: eso es lo que hace que "el run conserva exactamente
+  // lo que uso" sea una garantia y no una convencion. El llenado atomico condicional
+  // es responsabilidad de F1.2; F1.1 solo crea el slot.
+  //
+  // Ninguna metadata del artifact se duplica en columnas: identity, coverage,
+  // fingerprint, paginas, segmentos y diagnosticos viven DENTRO del artifact y se
+  // obtienen verificandolo con F0.4 en la lectura.
+  extractionArtifactCanonicalJson String?                    @db.Text
+  artifactBlobSha256              String?
+  extractionDerivationTrust       ExtractionDerivationTrust?
 
   @@unique([analysisRunId, documentEvidenceId])
   @@unique([analysisRunId, textEvidenceId])
@@ -750,4 +808,264 @@ model SharingGrant {
   @@index([userId])
   @@index([credentialId])
   @@index([profileId])
+}
+
+// F2 -- OBJECTIVE / REQUIREMENT.
+// Ver evidence-reasoning-f2.0-objective-requirement-foundation-design.md.
+//
+// Tokens en MAYUSCULA a proposito: son EXACTAMENTE los mismos que el artifact
+// `objective_definition_v1` guarda en `definition.objectiveType`. El contrato
+// exige `Objective.objectiveType == definition.objectiveType`, y cualquier
+// traduccion de casing entre columna y artifact volveria esa comparacion una
+// conversion en vez de una igualdad. Mismo precedente que ExtractionDerivationTrust.
+enum ObjectiveType {
+  EMPLOYMENT
+  SCHOLARSHIP
+  ADMISSION
+  EQUIVALENCE
+  OTHER
+}
+
+// Minusculas, siguiendo a CredentialSemanticInterpretationStatus, que modela
+// exactamente el mismo ciclo de vida activo/reemplazado.
+enum ObjectiveStatus {
+  active
+  superseded
+}
+
+// Contexto externo contra el cual se interpretara evidencia formativa.
+//
+// UNA FILA FINALIZADA ES UNA VERSION INMUTABLE. No hay tabla de versiones, ni
+// numero de version, ni draft: editar produce una fila NUEVA que apunta a la
+// anterior con `supersedesObjectiveId`, y la anterior pasa a `superseded`.
+// Asi un resultado historico de reasoning nunca cambia de significado porque
+// alguien edito el Objective despues.
+//
+// HOLDER-INDEPENDENT. `definition` describe la oportunidad y sus requisitos:
+// nunca evidencia, credenciales, conclusiones ni gaps de una persona. Eso es
+// distinto de `ownerUserId`, que es solo ACCESS OWNERSHIP.
+//
+// `definition` es el artifact `objective_definition_v1` completo, con los
+// Requirements anidados. RequirementFacet y Objective Analysis NO se persisten
+// aca: son artefactos de reasoning y pertenecen al futuro ReasoningRun.
+//
+// Sin columna de schemaVersion: el artifact la lleva dentro y es requerida, asi
+// que una columna seria un segundo testigo del mismo hecho. Sin `updatedAt` ni
+// `finalizedAt`: no hay drafts, `createdAt` ES el instante de finalizacion.
+model Objective {
+  id                    String          @id @default(uuid())
+  ownerUserId           String
+  objectiveType         ObjectiveType
+  title                 String
+  definition            Json
+  supersedesObjectiveId String?
+  status                ObjectiveStatus @default(active)
+  createdAt             DateTime        @default(now())
+
+  owner         User           @relation("ObjectiveOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  // Auto-referencia: la revision apunta a la fila que reemplaza. `Restrict`
+  // porque un Objective historico no debe poder desaparecer por debajo de su
+  // sucesor; F2.1 no implementa delete.
+  supersedes    Objective?     @relation("ObjectiveRevision", fields: [supersedesObjectiveId], references: [id], onDelete: Restrict)
+  supersededBy  Objective[]    @relation("ObjectiveRevision")
+  reasoningRuns ReasoningRun[]
+
+  @@index([ownerUserId, status])
+  @@index([ownerUserId, createdAt])
+  @@index([supersedesObjectiveId])
+}
+
+// F3.1 -- REASONING RUN.
+//
+// Ver evidence-reasoning-f3.0-reasoning-run-product-contract.md.
+
+// Lifecycle OPERACIONAL del run. Minusculas, siguiendo a AnalysisRunStatus, que
+// modela el mismo ciclo. Sin `canceled`: F3.0 no congelo cancelacion.
+//
+// NO CONFUNDIR con el estado epistemologico de un Requirement
+// (SUPPORTED | PARTIALLY_SUPPORTED | INSUFFICIENT_EVIDENCE | NOT_ASSESSABLE |
+// ABSTAIN), que vive DENTRO de `resultArtifact` y es por Requirement. `ABSTAIN`
+// no pertenece a este enum: un run que completa habiendo abstenido es
+// `completed`, no `failed`.
+enum ReasoningRunStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+// Que paso con cada item del inventario congelado.
+//
+// MAYUSCULA: son los mismos tokens del contrato F3.0 y de los artifacts.
+//
+// DOS FAMILIAS, y el prefijo las separa a proposito:
+//
+//   EXCLUDED_*  la candidata queda fuera del grounding set   -> el run PUEDE seguir
+//   BLOCKED_*   la fuente fue SELECCIONADA y su extraccion   -> el run DEBE fallar
+//               requerida falta o no es confiable               antes de razonar
+//
+// Los dos BLOCKED_* son HECHOS DISTINTOS y por eso son tokens distintos:
+//
+//   BLOCKED_EXTRACTION_UNAVAILABLE        no existe slot de extraccion persistido
+//                                         para la fuente seleccionada
+//   BLOCKED_EXTRACTION_INTEGRITY_FAILURE  habia una representacion presente y se
+//                                         la sometio a verificacion, pero fallo
+//                                         el contrato de integridad/binding de F1
+//
+// El segundo se persiste SOLO cuando el sistema observo deterministicamente esa
+// violacion. No es un catch-all para base caida, timeout ni excepcion interna:
+// eso hace fallar el run por `failureCode`, sin inventar una disposicion de
+// inventario que nunca llego a determinarse.
+//
+// `EXCLUDED_DUPLICATE_SOURCE` NO esta: F3.0 lo audito como inalcanzable en V1
+// -- con la identidad `(entidad de evidencia + sourceSha256)` y un solo current
+// por tipo y credencial, dos credenciales que comparten el mismo PDF son
+// candidatas distintas. No se anticipan estados persistidos sin productor; si
+// algun dia es alcanzable, entra por una migracion nueva.
+enum ReasoningRunInventoryDisposition {
+  INCLUDED
+  EXCLUDED_CREDENTIAL_STATE_DRAFT
+  EXCLUDED_CREDENTIAL_STATE_REVOKED
+  EXCLUDED_NO_GROUNDING_SOURCE
+  EXCLUDED_SOURCE_SUPERSEDED
+  EXCLUDED_UNSUPPORTED_TYPE
+  EXCLUDED_ALTERNATE_REPRESENTATION
+  BLOCKED_EXTRACTION_UNAVAILABLE
+  BLOCKED_EXTRACTION_INTEGRITY_FAILURE
+}
+
+// Evaluacion de un Objective contra la evidencia formativa de UN holder.
+//
+// TRES SLOTS DE ETAPA, cada uno MONOTONIC_FILL_ONCE, con la misma disciplina que
+// el extraction slot de F1.1:
+//
+//   objectiveAnalysisArtifact  objective_analysis_v1     ABSENT -> PRESENT, una vez
+//   evidenceUnitsArtifact      evidence_units_v1         ABSENT -> PRESENT, una vez
+//   resultArtifact             reasoning_run_result_v1   ABSENT -> PRESENT, una vez
+//
+// Un run fallido conserva asi los outputs EXACTOS de las etapas que si
+// terminaron, sin que nada los llame resultado final. El resultado existe si y
+// solo si `resultArtifact` esta presente.
+//
+// UNA AUTORIDAD PERSISTIDA POR HECHO: `resultArtifact` NO recopia el Objective
+// Analysis ni las EvidenceUnits; los referencia por `requirementId` /
+// `evidenceUnitId`.
+//
+// `objectiveDefinitionSnapshot` es el artifact `objective_definition_v1` EXACTO
+// que se uso. Editar el Objective despues no puede cambiar el significado de un
+// run historico. Sin fingerprint ni hash: la inmutabilidad es de APLICACION
+// (OBJECTIVE_SNAPSHOT_TAMPER_EVIDENT_AT_REST: NO), y una columna de hash
+// prometeria una deteccion de manipulacion que no existe.
+//
+// SIN `updatedAt`: nada se actualiza salvo los slots fill-once y las marcas de
+// lifecycle, y cada una tiene su propia columna. Sin score global del Objective,
+// sin porcentaje, sin ranking: la especificacion congelada los excluye.
+model ReasoningRun {
+  id                          String             @id @default(uuid())
+  ownerUserId                 String
+  objectiveId                 String
+  objectiveDefinitionSnapshot Json
+  // Metadata de UI para historial. FUERA del snapshot a proposito: `title` es
+  // ROW_METADATA_ONLY y no participa del razonamiento.
+  objectiveTitleSnapshot      String
+  status                      ReasoningRunStatus @default(pending)
+  objectiveAnalysisArtifact   Json?
+  evidenceUnitsArtifact       Json?
+  resultArtifact              Json?
+  // Contrato `reasoning_execution_metadata_v1`. Fill-once igual que los slots de
+  // etapa, pero NO es un cuarto stage artifact: describe la configuracion de
+  // ejecucion congelada antes de las llamadas, no un output de etapa.
+  executionMetadata           Json?
+  // Codigo operacional cerrado del lado de TypeScript, `String` en la base: los
+  // codigos de fallo operacional crecen sin que eso deba costar una migracion.
+  // Nunca un mensaje, un error crudo ni texto del proveedor.
+  failureCode                 String?
+  createdAt                   DateTime           @default(now())
+  startedAt                   DateTime?
+  completedAt                 DateTime?
+  failedAt                    DateTime?
+
+  owner     User      @relation("ReasoningRunOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  // Restrict: un Objective no puede desaparecer por debajo de un run que lo
+  // evaluo. El snapshot sobrevive igual, pero perder la fila romperia la
+  // trazabilidad de contra que se evaluo.
+  objective Objective @relation(fields: [objectiveId], references: [id], onDelete: Restrict)
+
+  inventory ReasoningRunInventoryItem[]
+
+  @@index([ownerUserId, createdAt])
+  @@index([ownerUserId, objectiveId])
+}
+
+// UNA FILA POR ITEM DEL INVENTARIO CONGELADO de un run.
+//
+// El inventario esta enraizado en la CREDENCIAL, no en la fuente, y por eso la
+// tabla no se llama `ReasoningRunSource`: hay filas que no tienen ninguna.
+//
+//   CREDENTIAL_LEVEL   la credencial queda fuera antes de mirar sus fuentes
+//                      EXCLUDED_CREDENTIAL_STATE_DRAFT / _REVOKED
+//                      EXCLUDED_NO_GROUNDING_SOURCE
+//                      -> credentialId; el resto NULL
+//
+//   SOURCE_LEVEL       una fila por representacion de fuente
+//                      -> credentialId + exactamente una entidad de evidencia
+//                         + sourceSha256
+//
+// Los CHECK que hacen cumplir esas dos formas viven en la migracion, igual que
+// `AnalysisRunSource_exactly_one_source`: schema.prisma no modela CHECKs.
+//
+// `selectedAnalysisRunSourceId` es EL CANDIDATO DETERMINISTA QUE ESTE RUN
+// SELECCIONO. No "alguna extraccion historica que existe para esta fuente", y
+// tampoco "la que uso con exito": HD-3 selecciona por tiempo y verifica despues,
+// asi que hay un candidato concreto incluso cuando la verificacion falla.
+//
+// QUE HAYA ENTRADO AL GROUNDING es un hecho DISTINTO y lo dicen otras columnas:
+//
+//   disposition = INCLUDED  +  runLocalSourceId presente
+//
+// Por eso una consulta de "que material entro al razonamiento" filtra por
+// disposition o por runLocalSourceId, NUNCA por la sola presencia del binding.
+//
+//   INCLUDED                              las tres columnas presentes
+//   BLOCKED_EXTRACTION_INTEGRITY_FAILURE  solo el id del candidato que fallo
+//   resto                                 las tres en NULL
+//
+// Las filas EXCLUDED_* lo llevan en NULL aunque esa fuente tenga extracciones
+// previas de F1 -- el caso del TextEvidence alterno de una credencial con PDF.
+// Ahi no se selecciono nada, que es distinto de haber seleccionado y fallado.
+//
+// Sin `exclusionReason` de texto libre: la disposicion es la razon. El unico dato
+// que no seria recuperable despues -- el estado de credencial observado, que
+// muta -- esta dentro del propio token.
+model ReasoningRunInventoryItem {
+  id                          String                           @id @default(uuid())
+  reasoningRunId              String
+  credentialId                String
+  documentEvidenceId          String?
+  textEvidenceId              String?
+  sourceSha256                String?
+  disposition                 ReasoningRunInventoryDisposition
+  selectedAnalysisRunSourceId String?
+  artifactBlobSha256          String?
+  // `src_01`, `src_02`, ... El `sourceId` local que ve el reasoner. Local al
+  // run: no es un identificador global y no se reutiliza entre runs.
+  runLocalSourceId            String?
+  createdAt                   DateTime                         @default(now())
+
+  reasoningRun              ReasoningRun       @relation(fields: [reasoningRunId], references: [id], onDelete: Cascade)
+  credential                Credential         @relation(fields: [credentialId], references: [id], onDelete: Restrict)
+  documentEvidence          DocumentEvidence?  @relation(fields: [documentEvidenceId], references: [id], onDelete: Restrict)
+  textEvidence              TextEvidence?      @relation(fields: [textEvidenceId], references: [id], onDelete: Restrict)
+  selectedAnalysisRunSource AnalysisRunSource? @relation(fields: [selectedAnalysisRunSourceId], references: [id], onDelete: Restrict)
+
+  // Mismo patron que `AnalysisRunSource`: un UNIQUE sobre el par con columna
+  // nullable. En Postgres los NULL no colisionan entre si, asi que esto dice
+  // exactamente "a lo sumo una fila por documento/texto dentro de un run" y deja
+  // libres todas las filas credential-level.
+  @@unique([reasoningRunId, documentEvidenceId])
+  @@unique([reasoningRunId, textEvidenceId])
+  @@unique([reasoningRunId, runLocalSourceId])
+  @@index([reasoningRunId])
+  @@index([reasoningRunId, credentialId])
+  @@index([selectedAnalysisRunSourceId])
 }

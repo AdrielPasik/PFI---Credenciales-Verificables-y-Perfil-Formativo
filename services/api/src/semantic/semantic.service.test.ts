@@ -13,11 +13,15 @@ function createSemanticServiceTestContext(options?: {
   credentialExists?: boolean;
   artifactCreateResult?: Record<string, unknown>;
   latestSemanticAnalysisResult?: Record<string, unknown> | null;
+  // F1.5: falla de autorizacion inyectable, para separar "no existe" de
+  // "existe pero el usuario no tiene autoridad sobre su issuer".
+  readScopeError?: Error;
 }) {
   const calls = {
     credentialFindUnique: [] as Array<Record<string, unknown>>,
     semanticAnalysisCreate: [] as Array<Record<string, unknown>>,
     semanticAnalysisFindFirst: [] as Array<Record<string, unknown>>,
+    readScopeChecks: [] as Array<{ userId: string; issuerId: string }>,
     credentialUpdate: 0,
     blockchainRecordCreate: 0
   };
@@ -31,7 +35,7 @@ function createSemanticServiceTestContext(options?: {
         }
 
         const where = args.where as { id?: string } | undefined;
-        return { id: where?.id ?? 'cred-123' };
+        return { id: where?.id ?? 'cred-123', issuerId: 'issuer-1' };
       },
       update: async () => {
         calls.credentialUpdate += 1;
@@ -67,7 +71,15 @@ function createSemanticServiceTestContext(options?: {
     }
   };
 
-  const service = new SemanticService(prisma as never);
+  const issuersService = {
+    async assertUserCanReadCredentialsForIssuer(userId: string, issuerId: string) {
+      calls.readScopeChecks.push({ userId, issuerId });
+      if (options?.readScopeError) throw options.readScopeError;
+      return { id: 'membership-1' };
+    }
+  };
+
+  const service = new SemanticService(prisma as never, issuersService as never);
 
   return {
     service,
@@ -81,11 +93,13 @@ test('getLatestForCredential fails when credential does not exist', async () => 
   });
 
   await assert.rejects(
-    () => service.getLatestForCredential('cred-missing'),
+    () => service.getLatestForCredential('cred-missing', 'user-1'),
     NotFoundException
   );
 
   assert.equal(calls.semanticAnalysisFindFirst.length, 0);
+  // Sin credencial no hay issuer contra el que comprobar autoridad.
+  assert.equal(calls.readScopeChecks.length, 0);
 });
 
 test('getLatestForCredential returns null when credential exists without semantic analysis', async () => {
@@ -93,7 +107,7 @@ test('getLatestForCredential returns null when credential exists without semanti
     latestSemanticAnalysisResult: null
   });
 
-  const response = await service.getLatestForCredential('cred-123');
+  const response = await service.getLatestForCredential('cred-123', 'user-1');
 
   assert.deepEqual(response, {
     credentialId: 'cred-123',
@@ -124,16 +138,27 @@ test('getLatestForCredential queries latest semantic analysis by analyzedAt desc
     }
   });
 
-  const response = await service.getLatestForCredential('cred-123');
+  const response = await service.getLatestForCredential('cred-123', 'user-1');
 
-  assert.deepEqual(calls.semanticAnalysisFindFirst[0], {
-    where: {
-      credentialId: 'cred-123'
-    },
-    orderBy: {
-      analyzedAt: 'desc'
-    }
-  });
+  const [findFirstArgs] = calls.semanticAnalysisFindFirst;
+  assert.deepEqual(findFirstArgs.where, { credentialId: 'cred-123' });
+  assert.deepEqual(findFirstArgs.orderBy, { analyzedAt: 'desc' });
+  // F1.5: la lectura NO trae la fila entera. Las tres columnas sensibles ni
+  // siquiera se cargan, asi que un mapper futuro no puede filtrarlas.
+  assert.deepEqual(Object.keys(findFirstArgs.select as object).sort(), [
+    'analyzedAt',
+    'areas',
+    'concepts',
+    'confidence',
+    'id',
+    'pipelineVersion',
+    'qualityFlags',
+    'schemaVersion',
+    'skills',
+    'status',
+    'taxonomyVersion'
+  ]);
+
   assert.deepEqual(response, {
     credentialId: 'cred-123',
     latestSemanticAnalysis: {
@@ -147,9 +172,6 @@ test('getLatestForCredential queries latest semantic analysis by analyzedAt desc
       skills: [],
       concepts: [],
       qualityFlags: ['semantic_quality_high'],
-      evidenceMap: {},
-      textForEmbedding: 'text',
-      analysisJson: { sourceRefs: { documentId: '3.4.080' } },
       analyzedAt: '2026-07-14T12:00:00.000Z'
     }
   });

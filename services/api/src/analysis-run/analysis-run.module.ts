@@ -6,6 +6,9 @@ import { DocumentEvidenceModule } from '../document-evidence/document-evidence.m
 import { IssuersModule } from '../issuers/issuers.module';
 import { ProfilesModule } from '../profiles/profiles.module';
 import { SemanticModule } from '../semantic/semantic.module';
+import { SourceExtractionOrchestrationService } from '../source-extraction/source-extraction-orchestration.service';
+import { SourceExtractionSlotService } from '../source-extraction/source-extraction-slot.service';
+import { SourceExtractionTrustGateService } from '../source-extraction/source-extraction-trust-gate.service';
 import { TextEvidenceModule } from '../text-evidence/text-evidence.module';
 import { AnalysisRunBackfillService } from './analysis-run-backfill.service';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
@@ -35,6 +38,21 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
   providers: [
     AnalysisRunService,
     AnalysisRunExecutionService,
+    // F1.6 -- MINIMUM_MODULE_DELTA. Los tres servicios de source extraction se
+    // registran aqui, sin modulo nuevo y sin un solo `imports` adicional: sus
+    // tres dependencias ya estan disponibles en este contexto.
+    //
+    //   PrismaService          PrismaModule es @Global()
+    //   AiServiceClient        exportado por AiModule, ya importado arriba
+    //   DOCUMENT_STORAGE_PORT  exportado por DocumentEvidenceModule, ya importado
+    //
+    // Un `SourceExtractionModule` no aportaria nada hoy: el unico consumidor
+    // productivo del orquestador es AnalysisRunExecutionService, que vive en este
+    // modulo. Se creara cuando exista un segundo consumidor fuera de aqui, no por
+    // prolijidad. No se exportan: nada fuera de este modulo debe inyectarlos.
+    SourceExtractionTrustGateService,
+    SourceExtractionSlotService,
+    SourceExtractionOrchestrationService,
     AutomaticDocumentAnalysisService,
     AutomaticCourseTextAnalysisService,
     // C2b.4: usado dentro de este modulo por

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/objective_analysis_v1.schema.json",
+  "title": "objective_analysis_v1",
+  "description": "Clasificacion epistemologica evidence-blind de los Requirements YA CONFIRMADOS de un Objective, congelada por un ReasoningRun. NO descompone el Objective: produccion no ejecuta segmentacion ni decision de ambiguedad, asi que este artifact no lleva decompositionStatus, candidateSegments ni ambiguityRationale. NO define requirementId ni duplica requirementText: la autoridad es objective_definition_v1 dentro de ReasoningRun.objectiveDefinitionSnapshot, y este artifact solo referencia. Vocabularios tomados del candidato congelado B2.4.1 / Target v1.5.1 (b24_schemas.py OBJECTIVE_SCHEMA, b24_versions.py EPISTEMIC_TARGETS). Contrato congelado por evidence-reasoning-f3.0-reasoning-run-product-contract.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requirements"],
+  "properties": {
+    "schemaVersion": {
+      "const": "objective_analysis_v1"
+    },
+    "requirements": {
+      "description": "Un item por requirementId confirmado del Objective snapshot: ni mas, ni menos, ni repetido, y en el mismo orden. Esa correspondencia no la puede expresar JSON Schema porque necesita el snapshot; la verifica verifyObjectiveAnalysisAgainstObjectiveSnapshot.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/requirementAnalysis" }
+    }
+  },
+  "$defs": {
+    "requirementAnalysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirementId",
+        "epistemicTarget",
+        "epistemicTargetRationale",
+        "atomicity",
+        "evaluability",
+        "qualifiers",
+        "normalizedRequirement",
+        "validations"
+      ],
+      "properties": {
+        "requirementId": {
+          "description": "REFERENCIA. Lo define objective_definition_v1, nunca este artifact.",
+          "type": "string",
+          "pattern": "^req_[0-9]{2,}$"
+        },
+        "epistemicTarget": {
+          "description": "DELTA_C: se produce aca, evidence-blind, y llega read-only al reasoning contextual. normalizedRequirement no puede modificarlo.",
+          "type": "string",
+          "enum": ["FORMATIVE_EVIDENCE", "INDIVIDUAL_ACHIEVEMENT", "UNRESOLVED"]
+        },
+        "epistemicTargetRationale": { "type": "string", "minLength": 1 },
+        "atomicity": {
+          "description": "Informativo. NEEDS_SPLIT no muta el Objective ni divide el Requirement: se registra y el razonamiento sigue sobre el Requirement tal como el usuario lo confirmo.",
+          "type": "string",
+          "enum": ["ATOMIC", "NEEDS_SPLIT", "UNRESOLVED"]
+        },
+        "evaluability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["requiredEvidenceType", "formativeEvidenceCapable", "rationale"],
+          "properties": {
+            "requiredEvidenceType": {
+              "type": "string",
+              "enum": [
+                "FORMATIVE_EVIDENCE",
+                "PROFESSIONAL_HISTORY",
+                "PERSONAL_OR_ADMINISTRATIVE_FACT",
+                "BEHAVIORAL_PERFORMANCE",
+                "UNRESOLVED"
+              ]
+            },
+            "formativeEvidenceCapable": {
+              "description": "Si es false, la policy determinista produce NOT_ASSESSABLE: el Requirement no es evaluable con evidencia formativa, y eso no es lo mismo que no tener evidencia suficiente.",
+              "type": "boolean"
+            },
+            "rationale": { "type": "string", "minLength": 1 }
+          }
+        },
+        "qualifiers": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/qualifier" }
+        },
+        "normalizedRequirement": {
+          "description": "Parafrasis auxiliar SIN autoridad. La autoridad semantica es el requirementText congelado por F2.",
+          "type": "string",
+          "minLength": 1
+        },
+        "validations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stageValidation" }
+        }
+      }
+    },
+    "qualifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["qualifierId", "kind", "value", "sourcePhrase", "role", "rationale"],
+      "properties": {
+        "qualifierId": {
+          "description": "Presente solo para MATERIAL_QUALIFIER; null para CONTEXTUAL y STRUCTURAL_WRAPPER. Es lo que hace que supportedQualifierIds del resultado siempre referencie algo material.",
+          "type": ["string", "null"],
+          "pattern": "^q_[0-9]{2,}$"
+        },
+        "kind": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 },
+        "sourcePhrase": { "type": "string", "minLength": 1 },
+        "role": {
+          "type": "string",
+          "enum": ["MATERIAL_QUALIFIER", "CONTEXTUAL", "STRUCTURAL_WRAPPER"]
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "stageValidation": {
+      "description": "Registro de validacion/reparacion DE ESTA ETAPA. Misma forma que validation() del codigo congelado. detail lleva ids o tokens acotados del pipeline, nunca contenido de la fuente.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taxonomy", "code", "status", "artifactRef", "detail", "affectsEpistemicState"],
+      "properties": {
+        "taxonomy": {
+          "type": "string",
+          "enum": ["HARD_FACTUAL_INVARIANT", "DETERMINISTIC_REPAIRABLE", "SEMANTIC_CONSISTENCY"]
+        },
+        "code": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "REPAIRED", "REJECTED", "MANUAL_ADJUDICATION_REQUIRED"]
+        },
+        "artifactRef": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string" },
+        "affectsEpistemicState": { "type": "boolean" }
+      }
+    }
+  }
+}

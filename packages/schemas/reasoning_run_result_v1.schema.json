@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/reasoning_run_result_v1.schema.json",
+  "title": "reasoning_run_result_v1",
+  "description": "Unica autoridad persistida de los outputs del reasoning contextual, del resultado de la policy determinista y del render historico de un ReasoningRun. NO recopia objective_analysis_v1 ni evidence_units_v1: los referencia por requirementId y evidenceUnitId. Estado final POR REQUIREMENT y nada mas: no hay estado final del Objective, ni score, ni porcentaje, ni ranking. Formas y vocabularios tomados del candidato congelado B2.4.1 / Target v1.5.1 (b24_schemas.py UNIFIED_SCHEMA, schemas.py RELATIONS, policy.py FinalState). Contrato congelado por evidence-reasoning-f3.0-reasoning-run-product-contract.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requirementResults", "validations"],
+  "properties": {
+    "schemaVersion": { "const": "reasoning_run_result_v1" },
+    "requirementResults": {
+      "description": "Exactamente uno por requirementId analizado. Esa correspondencia necesita los otros dos artifacts y la verifica verifyReasoningResultReferences.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/requirementResult" }
+    },
+    "validations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stageValidation" }
+    }
+  },
+  "$defs": {
+    "requirementResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirementId",
+        "finalState",
+        "evaluatedEvidence",
+        "facets",
+        "compositionAssessment",
+        "fullClaimAssessment",
+        "jointClaimCeiling",
+        "observabilityAssessment",
+        "weakerClaimSearch",
+        "semanticUnresolved",
+        "unresolvedReason",
+        "policyTrace",
+        "explanation"
+      ],
+      "properties": {
+        "requirementId": { "type": "string", "pattern": "^req_[0-9]{2,}$" },
+        "finalState": {
+          "description": "Los cinco estados epistemologicos POR REQUIREMENT. Ninguno pertenece a ReasoningRun.status, que es lifecycle operacional: un run que completa habiendo abstenido es 'completed'.",
+          "type": "string",
+          "enum": [
+            "SUPPORTED",
+            "PARTIALLY_SUPPORTED",
+            "INSUFFICIENT_EVIDENCE",
+            "NOT_ASSESSABLE",
+            "ABSTAIN"
+          ]
+        },
+        "evaluatedEvidence": { "type": "array", "items": { "$ref": "#/$defs/evaluatedEvidence" } },
+        "facets": { "type": "array", "items": { "$ref": "#/$defs/facet" } },
+        "compositionAssessment": { "$ref": "#/$defs/compositionAssessment" },
+        "fullClaimAssessment": { "$ref": "#/$defs/fullClaimAssessment" },
+        "jointClaimCeiling": { "$ref": "#/$defs/jointClaimCeiling" },
+        "observabilityAssessment": { "$ref": "#/$defs/observabilityAssessment" },
+        "weakerClaimSearch": { "$ref": "#/$defs/weakerClaimSearch" },
+        "semanticUnresolved": { "type": "boolean" },
+        "unresolvedReason": { "type": "string" },
+        "policyTrace": { "$ref": "#/$defs/policyTrace" },
+        "explanation": {
+          "description": "Render determinista, sin decision semantica nueva. CONTIENE citas renderizadas del catalogo: la autoridad de la cita sigue siendo evidence_units_v1 y el artifact de extraccion de F0, pero el string las lleva adentro. Se persiste exacto en vez de re-renderizar al leer, porque un renderer distinto cambiaria en silencio lo que un run historico dijo.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evaluatedEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceUnitId",
+        "relation",
+        "supportedQualifierIds",
+        "missingQualifierIds",
+        "evidenceContribution",
+        "rationale"
+      ],
+      "properties": {
+        "evidenceUnitId": { "type": "string", "pattern": "^eu_[0-9]{2,}$" },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "DIRECT_SUPPORT",
+            "SPECIFIC_SUPPORT",
+            "CONTRIBUTORY_SUPPORT",
+            "RELATED_NON_ENTAILING",
+            "LIMITED_SCOPE",
+            "CONFLICTING"
+          ]
+        },
+        "supportedQualifierIds": { "type": "array", "items": { "type": "string" } },
+        "missingQualifierIds": { "type": "array", "items": { "type": "string" } },
+        "evidenceContribution": { "type": "string", "minLength": 1 },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "facet": {
+      "description": "localFacetKey es LOCAL al Requirement de este run, no un identificador global. Unico dentro del Requirement porque coveredFacetLocalKeys y missingFacetLocalKeys lo usan como referencia.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "localFacetKey",
+        "facetText",
+        "requirementBasisPhrases",
+        "whyNecessary",
+        "essential",
+        "coverage",
+        "evidenceUnitIds",
+        "rationale"
+      ],
+      "properties": {
+        "localFacetKey": { "type": "string", "minLength": 1 },
+        "facetText": { "type": "string", "minLength": 1 },
+        "requirementBasisPhrases": { "type": "array", "items": { "type": "string" } },
+        "whyNecessary": { "type": "string", "minLength": 1 },
+        "essential": { "type": "boolean" },
+        "coverage": { "type": "string", "enum": ["FULL", "PARTIAL", "NONE"] },
+        "evidenceUnitIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "compositionAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "nonRedundantEvidenceUnitIds",
+        "jointlySupportsFullRequirement",
+        "integrationRequired",
+        "integrationDemonstrated",
+        "integrationEvidenceIds",
+        "missingFacetLocalKeys",
+        "unresolved",
+        "rationale"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["NONE", "COMPLEMENTARY_COVERAGE", "INTEGRATED_CAPABILITY"]
+        },
+        "nonRedundantEvidenceUnitIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "jointlySupportsFullRequirement": { "type": "boolean" },
+        "integrationRequired": { "type": "boolean" },
+        "integrationDemonstrated": { "type": "boolean" },
+        "integrationEvidenceIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "missingFacetLocalKeys": { "type": "array", "items": { "type": "string" } },
+        "unresolved": { "type": "boolean" },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fullClaimAssessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "supportedQualifierIds",
+        "missingQualifierIds",
+        "coveredFacetLocalKeys",
+        "missingFacetLocalKeys",
+        "rationale"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["REACHED", "NOT_REACHED", "UNRESOLVED"] },
+        "supportedQualifierIds": { "type": "array", "items": { "type": "string" } },
+        "missingQualifierIds": { "type": "array", "items": { "type": "string" } },
+        "coveredFacetLocalKeys": { "type": "array", "items": { "type": "string" } },
+        "missingFacetLocalKeys": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "jointClaimCeiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "supportingEvidenceUnitIds"],
+      "properties": {
+        "text": {
+          "description": "Puede ser vacio: 'no hay ningun claim conjunto sostenible' es una respuesta.",
+          "type": "string"
+        },
+        "supportingEvidenceUnitIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        }
+      }
+    },
+    "observabilityAssessment": {
+      "description": "JUICIO del reasoner, por Requirement. Distinto de sourceObservabilityFacts de evidence_units_v1, que es un hecho determinista por fuente.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "incompleteSourceAssessments",
+        "independentObservableSupport",
+        "observabilityStatus",
+        "rationale"
+      ],
+      "properties": {
+        "incompleteSourceAssessments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sourceId",
+              "affectedRequirementElements",
+              "missingMaterialRelevance",
+              "rationale"
+            ],
+            "properties": {
+              "sourceId": { "type": "string", "pattern": "^src_[0-9]{2,}$" },
+              "affectedRequirementElements": { "type": "array", "items": { "type": "string" } },
+              "missingMaterialRelevance": {
+                "type": "string",
+                "enum": ["RELEVANT", "NOT_RELEVANT", "UNRESOLVED"]
+              },
+              "rationale": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "independentObservableSupport": {
+          "type": "string",
+          "enum": ["FULL_CLAIM", "WEAKER_CLAIM", "NONE", "UNRESOLVED"]
+        },
+        "observabilityStatus": {
+          "type": "string",
+          "enum": ["SUFFICIENT", "MATERIAL_GAP", "UNRESOLVED"]
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "weakerClaimSearch": {
+      "description": "DELTA_A: la busqueda misma es observable. status FOUND obliga a candidate no nulo; cualquier otro estado obliga a candidate nulo — asi 'busque y no encontre' deja de confundirse con 'nunca busque'. Esa dependencia la verifica el validador de TypeScript.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "rationale", "candidate"],
+      "properties": {
+        "status": { "type": "string", "enum": ["FOUND", "NONE", "UNRESOLVED"] },
+        "rationale": { "type": "string", "minLength": 1 },
+        "candidate": {
+          "oneOf": [{ "$ref": "#/$defs/weakerClaimCandidate" }, { "type": "null" }]
+        }
+      }
+    },
+    "weakerClaimCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "supportingEvidenceUnitIds",
+        "derivedFromJointClaimCeiling",
+        "droppedQualifierIds",
+        "droppedFacetLocalKeys",
+        "continuityAssessment",
+        "materialUsefulness",
+        "usefulnessRationale"
+      ],
+      "properties": {
+        "text": { "type": "string", "minLength": 1 },
+        "supportingEvidenceUnitIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "derivedFromJointClaimCeiling": {
+          "type": "string",
+          "enum": ["YES", "NO", "UNRESOLVED"]
+        },
+        "droppedQualifierIds": { "type": "array", "items": { "type": "string" } },
+        "droppedFacetLocalKeys": { "type": "array", "items": { "type": "string" } },
+        "continuityAssessment": { "$ref": "#/$defs/continuityAssessment" },
+        "materialUsefulness": {
+          "type": "string",
+          "enum": ["YES", "NO", "UNRESOLVED", "NOT_EVALUATED"]
+        },
+        "usefulnessRationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "continuityAssessment": {
+      "description": "DELTA_B: reduccion constitutiva frente a desplazamiento semantico. Reemplaza al continuityCore de B2.1, que B2.4 no produce: la continuidad se evalua CON la evidencia delante y por eso vive en el resultado, no en el analisis evidence-blind del Objective.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "transformation",
+        "requirementBasisPhrases",
+        "constitutiveProjection",
+        "explicitlyRelaxed",
+        "externalTargetIntroduced",
+        "shiftReason",
+        "rationale"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["YES", "NO", "UNRESOLVED"] },
+        "transformation": {
+          "type": "string",
+          "enum": ["CONSTITUTIVE_REDUCTION", "SEMANTIC_SHIFT", "UNRESOLVED"]
+        },
+        "requirementBasisPhrases": { "type": "array", "items": { "type": "string" } },
+        "constitutiveProjection": { "type": "string" },
+        "explicitlyRelaxed": { "type": "array", "items": { "type": "string" } },
+        "externalTargetIntroduced": { "type": "string", "enum": ["YES", "NO", "UNRESOLVED"] },
+        "shiftReason": {
+          "type": ["string", "null"],
+          "enum": ["PREREQUISITE_OR_FOUNDATION", "NEIGHBOR_OR_SUBSTITUTION", "OTHER", null]
+        },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "policyTrace": {
+      "description": "Las entradas DETERMINISTAS con las que la policy produjo finalState. Se persisten para poder reconstruir por que salio ese estado sin re-ejecutar nada; el validador NO recomputa finalState a partir de ellas. preGuardState es el estado que habria salido sin fallo de guard factual duro: la diferencia entre los dos es exactamente lo que aporto el guard.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preGuardState",
+        "hardFactualFailure",
+        "formativeEvidenceCapable",
+        "epistemicTarget",
+        "unresolved",
+        "reachesFullRequirement",
+        "weakerSearchStatus",
+        "continuityStatus",
+        "materialUsefulness",
+        "hasMateriallyUsefulWeakerClaim",
+        "weakerClaimStillBelongsToRequirement",
+        "observabilityStatus"
+      ],
+      "properties": {
+        "preGuardState": {
+          "type": "string",
+          "enum": [
+            "SUPPORTED",
+            "PARTIALLY_SUPPORTED",
+            "INSUFFICIENT_EVIDENCE",
+            "NOT_ASSESSABLE",
+            "ABSTAIN"
+          ]
+        },
+        "hardFactualFailure": { "type": "boolean" },
+        "formativeEvidenceCapable": { "type": "boolean" },
+        "epistemicTarget": {
+          "type": "string",
+          "enum": ["FORMATIVE_EVIDENCE", "INDIVIDUAL_ACHIEVEMENT", "UNRESOLVED"]
+        },
+        "unresolved": { "type": "boolean" },
+        "reachesFullRequirement": { "type": "boolean" },
+        "weakerSearchStatus": { "type": "string", "enum": ["FOUND", "NONE", "UNRESOLVED"] },
+        "continuityStatus": {
+          "description": "null cuando no hubo candidato: no hay continuidad que evaluar.",
+          "type": ["string", "null"],
+          "enum": ["YES", "NO", "UNRESOLVED", null]
+        },
+        "materialUsefulness": {
+          "type": ["string", "null"],
+          "enum": ["YES", "NO", "UNRESOLVED", "NOT_EVALUATED", null]
+        },
+        "hasMateriallyUsefulWeakerClaim": { "type": "boolean" },
+        "weakerClaimStillBelongsToRequirement": { "type": "boolean" },
+        "observabilityStatus": {
+          "type": "string",
+          "enum": ["SUFFICIENT", "MATERIAL_GAP", "UNRESOLVED"]
+        }
+      }
+    },
+    "stageValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taxonomy", "code", "status", "artifactRef", "detail", "affectsEpistemicState"],
+      "properties": {
+        "taxonomy": {
+          "type": "string",
+          "enum": ["HARD_FACTUAL_INVARIANT", "DETERMINISTIC_REPAIRABLE", "SEMANTIC_CONSISTENCY"]
+        },
+        "code": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "REPAIRED", "REJECTED", "MANUAL_ADJUDICATION_REQUIRED"]
+        },
+        "artifactRef": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string" },
+        "affectsEpistemicState": { "type": "boolean" }
+      }
+    }
+  }
+}

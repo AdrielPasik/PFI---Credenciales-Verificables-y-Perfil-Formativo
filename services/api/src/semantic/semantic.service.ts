@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, type SemanticAnalysis } from '@prisma/client';
 
+import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CredentialLatestSemanticAnalysisResponseDto } from './dto/latest-semantic-analysis-response.dto';
 import { createSemanticAnalysisArtifactMapping } from './semantic-analysis-artifact.mapper';
@@ -14,21 +15,76 @@ import {
 } from './semantic-analysis-artifact.types';
 import { validateSemanticAnalysisArtifact } from './semantic-analysis-artifact.validator';
 
+/**
+ * Columnas que la lectura del ultimo analisis puede tocar — F1.5.
+ *
+ * Es un `select` explicito, no un `findFirst` que traiga la fila entera. La
+ * allowlist del DTO ya excluye `analysisJson`, `textForEmbedding` y
+ * `evidenceMap`; este select hace que ademas NO SE CARGUEN. Un campo que nunca
+ * sale de la base no puede filtrarse por un mapper futuro que se olvide de
+ * excluirlo, y `analysisJson` es una columna JSON grande que esta lectura no
+ * necesita para nada.
+ */
+const latestSemanticAnalysisSelect = {
+  id: true,
+  schemaVersion: true,
+  status: true,
+  pipelineVersion: true,
+  taxonomyVersion: true,
+  confidence: true,
+  areas: true,
+  skills: true,
+  concepts: true,
+  qualityFlags: true,
+  analyzedAt: true
+} as const;
+
+type LatestSemanticAnalysisRow = Pick<
+  SemanticAnalysis,
+  keyof typeof latestSemanticAnalysisSelect
+>;
+
 @Injectable()
 export class SemanticService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly issuersService: IssuersService
+  ) {}
 
+  /**
+   * Ultimo `SemanticAnalysis` de una credencial, para el emisor que la posee.
+   *
+   * AUTORIZACION — F1.5. Hasta este slice la ruta no tenia `AuthGuard` ni
+   * comprobacion de autoridad: conocer un `credentialId` bastaba para leer el
+   * analisis completo, `analysisJson` incluido. Conocer un id NO es autoridad
+   * sobre el recurso.
+   *
+   * El issuer se toma de la credencial PERSISTIDA, nunca de un parametro: es el
+   * mismo patron que ya usa la ruta hermana
+   * `POST /credentials/:id/semantic-analysis/from-pdf`
+   * (`AiIntegrationService.analyzeCredentialPdfForIssuerUser`), que carga
+   * `credential.issuerId` y delega en `IssuersService`.
+   *
+   * La audiencia NO se amplia. Esta ruta pertenece a la superficie de emisor
+   * —asi la documenta el handoff de frontend y asi la usa el script de demo—,
+   * de modo que F1.5 la restringe a esa audiencia y no agrega acceso de holder
+   * porque tecnicamente pudiera ser util. Si mas adelante el holder necesita ver
+   * su analisis semantico, eso es una ruta bajo `me/` con su propio contrato.
+   */
   async getLatestForCredential(
-    credentialId: string
+    credentialId: string,
+    userId: string
   ): Promise<CredentialLatestSemanticAnalysisResponseDto> {
     this.assertNonEmptyString(credentialId, 'credentialId');
+    this.assertNonEmptyString(userId, 'userId');
 
     const credential = await this.prisma.credential.findUnique({
       where: {
         id: credentialId
       },
       select: {
-        id: true
+        id: true,
+        issuerId: true
       }
     });
 
@@ -36,13 +92,22 @@ export class SemanticService {
       throw new NotFoundException(`Credential ${credentialId} no existe.`);
     }
 
+    // Membresia activa y con rol suficiente sobre el issuer de ESTA credencial.
+    // Se reutiliza el helper de lectura ya existente; F1.5 no crea un segundo
+    // sistema de permisos.
+    await this.issuersService.assertUserCanReadCredentialsForIssuer(
+      userId,
+      credential.issuerId
+    );
+
     const latestSemanticAnalysis = await this.prisma.semanticAnalysis.findFirst({
       where: {
         credentialId
       },
       orderBy: {
         analyzedAt: 'desc'
-      }
+      },
+      select: latestSemanticAnalysisSelect
     });
 
     return {
@@ -142,7 +207,14 @@ export class SemanticService {
     });
   }
 
-  private toLatestSemanticAnalysisResponse(semanticAnalysis: SemanticAnalysis) {
+  /**
+   * Mapper de allowlist. Construye el objeto campo por campo desde la fila; NO
+   * hace spread ni omite claves de un objeto Prisma. Una columna nueva en
+   * `SemanticAnalysis` no puede aparecer sola en la respuesta.
+   */
+  private toLatestSemanticAnalysisResponse(
+    semanticAnalysis: LatestSemanticAnalysisRow
+  ) {
     return {
       id: semanticAnalysis.id,
       schemaVersion: semanticAnalysis.schemaVersion,
@@ -157,11 +229,8 @@ export class SemanticService {
         semanticAnalysis.qualityFlags,
         'qualityFlags'
       ),
-      evidenceMap: this.toObject(semanticAnalysis.evidenceMap, 'evidenceMap'),
-      textForEmbedding: semanticAnalysis.textForEmbedding,
-      analysisJson: semanticAnalysis.analysisJson
-        ? this.toObject(semanticAnalysis.analysisJson, 'analysisJson')
-        : null,
+      // analysisJson / textForEmbedding / evidenceMap: ver la allowlist del DTO.
+      // No se cargan (select) y no se mapean.
       analyzedAt: semanticAnalysis.analyzedAt.toISOString()
     };
   }

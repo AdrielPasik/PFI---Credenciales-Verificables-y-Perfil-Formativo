@@ -12,6 +12,9 @@ import { IdentityModule } from './identity/identity.module';
 import { IssuerCourseTemplatesModule } from './issuer-course-templates/issuer-course-templates.module';
 import { IssuersModule } from './issuers/issuers.module';
 import { MeModule } from './me/me.module';
+import { ObjectivesModule } from './objectives/objectives.module';
+import { ObjectiveRequirementProposalModule } from './objective-requirement-proposal/objective-requirement-proposal.module';
+import { ReasoningRunModule } from './reasoning-run/reasoning-run.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { ProfileSharingModule } from './profile-sharing/profile-sharing.module';
@@ -28,6 +31,9 @@ import { VerificationModule } from './verification/verification.module';
     AuthModule,
     IdentityModule,
     MeModule,
+    ObjectivesModule,
+    ObjectiveRequirementProposalModule,
+    ReasoningRunModule,
     ProfilesModule,
     ProfileSharingModule,
     IssuersModule,

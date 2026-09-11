@@ -27,6 +27,7 @@ import {
 } from '../document-evidence/document-storage.port';
 import { PrismaService } from '../prisma/prisma.service';
 import { SemanticService } from '../semantic/semantic.service';
+import { SourceExtractionOrchestrationService } from '../source-extraction/source-extraction-orchestration.service';
 import { AnalysisRunExecutionSummary } from './analysis-run.types';
 
 type ClaimedRunBase = {
@@ -36,6 +37,18 @@ type ClaimedRunBase = {
   requestedTaxonomyVersion: string;
   sourceSha256: string;
   sourceCount: number;
+  /**
+   * F1.6: ids de las filas `AnalysisRunSource` CONGELADAS por este run que
+   * pertenecen al contrato del modo. No se vuelve a buscar la evidencia actual
+   * de la credencial en ningun momento: la fase de extraccion recibe estos ids
+   * y nada mas.
+   *
+   * Hoy siempre tiene exactamente un elemento, porque `document` y `text` ya
+   * exigen una unica fuente y `combined` sigue sin implementarse. Es una lista
+   * porque la fase aisla fallos POR FUENTE, y eso debe seguir siendo cierto el
+   * dia que un modo multi-fuente exista.
+   */
+  analysisRunSourceIds: readonly string[];
 };
 
 type ClaimedDocumentRun = ClaimedRunBase & {
@@ -68,7 +81,9 @@ export class AnalysisRunExecutionService {
     private readonly aiClient: AiServiceClient,
     private readonly semanticService: SemanticService,
     @Inject(DOCUMENT_STORAGE_PORT)
-    private readonly storage: DocumentStoragePort
+    private readonly storage: DocumentStoragePort,
+    // F1.6: unico consumidor productivo del pipeline de source extraction.
+    private readonly sourceExtraction: SourceExtractionOrchestrationService
   ) {}
 
   async executePendingDocumentRun(
@@ -98,6 +113,10 @@ export class AnalysisRunExecutionService {
       ) {
         throw new ConflictException('La fuente documental del analisis es inconsistente.');
       }
+
+      // F1.6: despues de la validacion autoritativa que este run ya exigia, y
+      // antes de invocar la IA semantica. Nunca lanza: ver attemptSourceExtraction.
+      await this.attemptSourceExtraction(claimed);
 
       const bytes = await this.storage.readDocument(document.storageKey);
       setStage('ai');
@@ -145,6 +164,9 @@ export class AnalysisRunExecutionService {
       ) {
         throw new ConflictException('La fuente textual del analisis es inconsistente.');
       }
+
+      // F1.6: mismo punto relativo que en el camino documental.
+      await this.attemptSourceExtraction(claimed);
 
       const credential = await this.prisma.credential.findUnique({
         where: { id: claimed.credentialId },
@@ -256,6 +278,147 @@ export class AnalysisRunExecutionService {
     }
   }
 
+  // -------------------------------------------------------------------------
+  // F1.6 -- Fase de source extraction (best-effort, no bloqueante)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Intenta poblar el extraction slot de cada fuente congelada de este run.
+   *
+   * POLITICA CONGELADA:
+   *
+   *     SOURCE_EXTRACTION_LIFECYCLE_POLICY:
+   *       BEST_EFFORT_NON_BLOCKING_FOR_CURRENT_SEMANTIC_RUN
+   *
+   * La source-addressability es infraestructura nueva para el Evidence Reasoning
+   * futuro. No puede hacer que el lifecycle de analisis semantico -- que ya
+   * funciona -- este menos disponible en F1. Por eso este metodo NUNCA lanza.
+   *
+   * EL ALCANCE DEL CATCH ES DELIBERADAMENTE MINIMO. Envuelve exclusivamente la
+   * llamada a `ensureExtractionForAnalysisRunSource` de UNA fuente, y ninguna
+   * otra etapa. Un `try` mas ancho convertiria en exito fallos que este run ya
+   * consideraba terminales, que es justo lo contrario de lo que best-effort
+   * significa.
+   *
+   * SECUENCIAL A PROPOSITO. Los modos soportados tienen exactamente una fuente,
+   * asi que no hay nada que paralelizar; y el aislamiento por fuente se lee mejor
+   * en un bucle que en una composicion de promesas. No se abre transaccion
+   * alguna sobre el conjunto: una extraccion valida ya persistida NO se revierte
+   * porque otra fuente falle despues.
+   *
+   * ORTOGONALIDAD (contrato F1.6.A). El estado del slot y el estado del run son
+   * independientes. Las cuatro combinaciones son validas:
+   *
+   *     run completed + slot PRESENT      run completed + slot ABSENT
+   *     run failed    + slot PRESENT      run failed    + slot ABSENT
+   *
+   * En particular NO se infiere disponibilidad de source-addressability desde
+   * `AnalysisRun.status`: quien vaya a razonar sobre una extraccion tiene que
+   * comprobarla explicitamente.
+   *
+   * SIN REINTENTOS NUEVOS. F1.6 no agrega scheduler, cola ni endpoint de retry.
+   * Si una extraccion best-effort falla y el run completa, el slot puede quedar
+   * ABSENT indefinidamente. El orquestador de F1.4 sigue siendo idempotente, asi
+   * que una capa futura podra volver a invocarlo antes de necesitar esa
+   * evidencia; F1.6 no ofrece ese mecanismo.
+   */
+  private async attemptSourceExtraction(claimed: ClaimedRunBase): Promise<void> {
+    for (const analysisRunSourceId of claimed.analysisRunSourceIds) {
+      try {
+        const persisted =
+          await this.sourceExtraction.ensureExtractionForAnalysisRunSource(
+            analysisRunSourceId
+          );
+
+        // Un artifact con coverage FAILED es un INTENTO EXITOSO: dice
+        // "identificamos la fuente y no pudimos observar su contenido", que es
+        // un hecho verdadero y persistible. FULL, PARTIAL y FAILED se loggean
+        // igual y ninguno toca el estado del run.
+        this.logExtractionSucceeded({
+          analysisRunId: claimed.id,
+          analysisRunSourceId,
+          sourceType: persisted.artifact.sourceType,
+          coverageStatus: persisted.artifact.coverageStatus,
+          extractionDerivationTrust: persisted.extractionDerivationTrust
+        });
+      } catch (error: unknown) {
+        // Fallo especifico de extraccion: se registra y se sigue. No se fabrica
+        // un artifact, no se llena el slot, y sobre todo NO se convierte en
+        // `coverageStatus = FAILED`, que significaria haber observado la fuente.
+        //
+        //     slot ABSENT  !=  coverage FAILED
+        this.logExtractionFailed(claimed.id, analysisRunSourceId, error);
+      }
+    }
+  }
+
+  /**
+   * Log de exito con SOLO metadata segura.
+   *
+   * Ni el artifact, ni `canonicalText`, ni `exactExcerpt`, ni el canonical JSON,
+   * ni `storageKey`, ni contenido de ninguna clase. `coverageStatus`,
+   * `sourceType` y `extractionDerivationTrust` son enums cerrados.
+   */
+  private logExtractionSucceeded(event: {
+    analysisRunId: string;
+    analysisRunSourceId: string;
+    sourceType: string;
+    coverageStatus: string;
+    extractionDerivationTrust: string;
+  }): void {
+    this.logger.log(
+      JSON.stringify({ event: 'source_extraction_persisted', ...event })
+    );
+  }
+
+  /**
+   * Log de fallo best-effort.
+   *
+   * NO se loggea `error.message`. F1.5 dejo documentado que el mensaje de
+   * `AiServiceClientError` incorpora el `detail` del upstream, y aunque las rutas
+   * de F1.3 no ponen material de fuente ahi, el mensaje no es una superficie que
+   * este borde deba dar por segura. Se loggea el nombre de la clase, un codigo
+   * acotado y -- cuando existe -- el nombre del invariante, que ya es un
+   * identificador estable y sin contenido, pasado ademas por el sanitizador que
+   * el run ya usaba.
+   */
+  private logExtractionFailed(
+    analysisRunId: string,
+    analysisRunSourceId: string,
+    error: unknown
+  ): void {
+    this.logger.warn(
+      JSON.stringify({
+        event: 'source_extraction_failed',
+        analysisRunId,
+        analysisRunSourceId,
+        errorClass: this.safeErrorClass(error),
+        errorCode: this.safeExtractionErrorCode(error),
+        invariant: this.safeExtractionInvariant(error)
+      })
+    );
+  }
+
+  private safeErrorClass(error: unknown): string {
+    const name = error instanceof Error ? error.name : '';
+    return /^[A-Za-z][A-Za-z0-9_]{1,63}$/.test(name) ? name : 'Error';
+  }
+
+  private safeExtractionErrorCode(error: unknown): string | null {
+    const code = (error as { code?: unknown } | null)?.code;
+    return typeof code === 'string' && /^[A-Za-z0-9_-]{2,64}$/.test(code)
+      ? code
+      : null;
+  }
+
+  private safeExtractionInvariant(error: unknown): string | null {
+    const invariant = (error as { detail?: { invariant?: unknown } } | null)?.detail
+      ?.invariant;
+    return typeof invariant === 'string'
+      ? this.sanitizeDiagnosticDetail(invariant)
+      : null;
+  }
+
   private buildTextAnalysisMetadata(credential: {
     type: CredentialType;
     hours: Prisma.Decimal | null;
@@ -313,6 +476,9 @@ export class AnalysisRunExecutionService {
             credential: { select: { status: true } },
             sources: {
               select: {
+                // F1.6: el id de la fila congelada es lo unico que la fase de
+                // extraccion necesita. Sigue sin traerse el slot.
+                id: true,
                 sourceType: true,
                 documentEvidenceId: true,
                 textEvidenceId: true,
@@ -367,7 +533,8 @@ export class AnalysisRunExecutionService {
           requestedTaxonomyVersion: run.requestedTaxonomyVersion,
           documentEvidenceId: documents[0].documentEvidenceId,
           sourceSha256: documents[0].sourceSha256,
-          sourceCount: run.sources.length
+          sourceCount: run.sources.length,
+          analysisRunSourceIds: [documents[0].id]
         };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
@@ -390,6 +557,9 @@ export class AnalysisRunExecutionService {
             credential: { select: { status: true } },
             sources: {
               select: {
+                // F1.6: el id de la fila congelada es lo unico que la fase de
+                // extraccion necesita. Sigue sin traerse el slot.
+                id: true,
                 sourceType: true,
                 documentEvidenceId: true,
                 textEvidenceId: true,
@@ -444,7 +614,8 @@ export class AnalysisRunExecutionService {
           requestedTaxonomyVersion: run.requestedTaxonomyVersion,
           textEvidenceId: texts[0].textEvidenceId,
           sourceSha256: texts[0].sourceSha256,
-          sourceCount: run.sources.length
+          sourceCount: run.sources.length,
+          analysisRunSourceIds: [texts[0].id]
         };
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }

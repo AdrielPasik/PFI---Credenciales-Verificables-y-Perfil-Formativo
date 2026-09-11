@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/evidence_units_v1.schema.json",
+  "title": "evidence_units_v1",
+  "description": "Catalogo exacto de EvidenceUnits de un ReasoningRun mas la capa DETERMINISTA de preparacion que se deriva de el. Unica autoridad persistida de ambas cosas: reasoning_run_result_v1 referencia evidenceUnitId, nunca recopia el catalogo. sourceObservabilityFacts vive aca y no en el resultado porque es una funcion pura de los snapshots de extraccion y del catalogo, corre antes del reasoning contextual y el prompt congelado la trata como entrada. Formas tomadas de b2_schemas.py EVIDENCE_UNIT_PROPOSAL y de la construccion del catalogo en b2_artifacts.py. sourceProvenance vive en sources[], UNA vez por fuente y no dentro de cada EvidenceUnit: en el candidato congelado nace como propiedad de la fuente y el builder la copia a cada unidad, asi que repetirla aca haria representable que dos unidades de la misma fuente tuvieran autoridades de asercion distintas. El contrato se completo dentro de la ventana pre-productiva (cero productores, cero artifacts persistidos), sin crear v2. NO INCLUYE lineageId (PRODUCT_LINEAGE_ID_V1: NONE) ni technicallyVerified (auditado SAFE_TO_DISCARD).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sources", "evidenceUnits", "preparation", "validations"],
+  "properties": {
+    "schemaVersion": { "const": "evidence_units_v1" },
+    "sources": {
+      "description": "Declaracion por FUENTE del grounding set del run. Una autoridad por hecho: los evidenceUnits la referencian por sourceTrace.sourceId. Que cada sourceId sea un item INCLUDED del inventario congelado no lo puede expresar JSON Schema: lo verifica verifyEvidenceUnitsAgainstRunInventory.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/sourceDeclaration" }
+    },
+    "evidenceUnits": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceUnit" }
+    },
+    "preparation": { "$ref": "#/$defs/preparation" },
+    "validations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stageValidation" }
+    }
+  },
+  "$defs": {
+    "sourceDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceProvenance"],
+      "properties": {
+        "sourceId": { "type": "string", "pattern": "^src_[0-9]{2,}$" },
+        "sourceProvenance": {
+          "description": "AUTORIDAD DE ASERCION: de quien provienen las afirmaciones formativas que esta fuente representa. NO es el mecanismo de creacion de la representacion. Los tres caminos productivos -DocumentEvidence subida por un emisor, TextEvidence manual, y TextEvidence construida por el backend desde campos que el emisor declaro al emitir- mapean al MISMO token: una transformacion del sistema no cambia la autoridad de asercion. Distinguir manual de generado NO es confiable en V1 (TextEvidence no tiene campo de origen, label es texto libre, y la generacion reutiliza cualquier current existente), y si algun dia hiciera falta seria un contrato de ORIGEN DE REPRESENTACION distinto de este. Sirve para autoridad y trazabilidad y NUNCA aumenta semantic support, ni fortalece relation, ni amplia facet coverage, ni sube el claim ceiling.",
+          "type": "string",
+          "enum": ["ISSUER_DECLARED"]
+        }
+      }
+    },
+    "evidenceUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceUnitId",
+        "normalizedProposition",
+        "claimType",
+        "semanticQualifiers",
+        "exactQuote",
+        "contextBefore",
+        "contextAfter",
+        "sectionLabel",
+        "sourceTrace",
+        "interpretationProvenance",
+        "extractionQuality"
+      ],
+      "properties": {
+        "evidenceUnitId": { "type": "string", "pattern": "^eu_[0-9]{2,}$" },
+        "normalizedProposition": { "type": "string", "minLength": 1 },
+        "claimType": {
+          "type": "string",
+          "enum": [
+            "DECLARED_CONTENT",
+            "DECLARED_LEARNING_OUTCOME",
+            "ASSESSED_OUTCOME",
+            "CREDENTIAL_LEVEL_CLAIM"
+          ]
+        },
+        "semanticQualifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "value"],
+            "properties": {
+              "kind": { "type": "string", "minLength": 1 },
+              "value": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "exactQuote": { "type": "string", "minLength": 1 },
+        "contextBefore": {
+          "description": "Puede ser vacio legitimamente: la cita empieza en el inicio de la fuente.",
+          "type": "string"
+        },
+        "contextAfter": { "type": "string" },
+        "sectionLabel": { "type": ["string", "null"], "minLength": 1 },
+        "sourceTrace": { "$ref": "#/$defs/sourceTrace" },
+        "interpretationProvenance": {
+          "description": "Constante en el codigo congelado. Enum de un solo valor y no string libre: el dia que exista interpretacion humana debe ser un cambio de contrato visible.",
+          "type": "string",
+          "enum": ["AI_INFERRED"]
+        },
+        "extractionQuality": {
+          "description": "El coverageStatus de source_extraction_v1 copiado tal cual. FAILED es input valido con limites de observabilidad, no ausencia de fuente.",
+          "type": "string",
+          "enum": ["FULL", "PARTIAL", "FAILED"]
+        }
+      }
+    },
+    "sourceTrace": {
+      "description": "Coordenadas autoritativas, asignadas por codigo confiable contra el artifact de extraccion de F0, NUNCA por el modelo. Sin credentialId: se llega por el item de inventario, que ya lo lleva como columna requerida.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "sourceSha256",
+        "segmentId",
+        "pageNumber",
+        "charStart",
+        "charEnd",
+        "exactExcerpt"
+      ],
+      "properties": {
+        "sourceId": {
+          "description": "runLocalSourceId de un ReasoningRunInventoryItem INCLUDED de este run. Que lo sea no lo puede expresar JSON Schema: lo verifica verifyEvidenceUnitsAgainstRunInventory.",
+          "type": "string",
+          "pattern": "^src_[0-9]{2,}$"
+        },
+        "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "segmentId": { "type": ["string", "null"], "minLength": 1 },
+        "pageNumber": { "type": ["integer", "null"], "minimum": 0 },
+        "charStart": { "type": "integer", "minimum": 0 },
+        "charEnd": {
+          "description": "Estrictamente mayor que charStart: un span vacio no ancla nada y el aligner congelado nunca lo produce.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "exactExcerpt": { "type": "string", "minLength": 1 }
+      }
+    },
+    "preparation": {
+      "description": "Capa determinista, sin llamada a proveedor. Depende solo del catalogo y de los snapshots de extraccion: NO depende del Objective Analysis, y por eso el slot de EvidenceUnits puede llenarse antes que el.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "evidenceUnitIds",
+        "exactRedundancyGroups",
+        "sourceObservabilityFacts",
+        "discardedEvidenceProposalCount"
+      ],
+      "properties": {
+        "mode": { "const": "FULL_SCAN" },
+        "evidenceUnitIds": {
+          "description": "Indice del propio catalogo. Debe coincidir exactamente con evidenceUnits[].evidenceUnitId.",
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "exactRedundancyGroups": {
+          "description": "Grupos de EvidenceUnits que citan EXACTAMENTE el mismo span de la misma fuente (sourceSha256:charStart:charEnd). En V1 no hay agrupacion por linaje: PRODUCT_LINEAGE_ID_V1 es NONE y el riesgo de doble conteo se previene aguas arriba con una sola representacion primaria por credencial.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+          }
+        },
+        "sourceObservabilityFacts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sourceObservabilityFact" }
+        },
+        "discardedEvidenceProposalCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "sourceObservabilityFact": {
+      "description": "HECHO determinista por fuente. No confundir con observabilityAssessment de reasoning_run_result_v1, que es un JUICIO del reasoner y es por Requirement.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "coverageStatus", "observedEvidenceUnitIds", "extractionDiagnostics"],
+      "properties": {
+        "sourceId": { "type": "string", "pattern": "^src_[0-9]{2,}$" },
+        "coverageStatus": { "type": "string", "enum": ["FULL", "PARTIAL", "FAILED"] },
+        "observedEvidenceUnitIds": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^eu_[0-9]{2,}$" }
+        },
+        "extractionDiagnostics": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "stageValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["taxonomy", "code", "status", "artifactRef", "detail", "affectsEpistemicState"],
+      "properties": {
+        "taxonomy": {
+          "type": "string",
+          "enum": ["HARD_FACTUAL_INVARIANT", "DETERMINISTIC_REPAIRABLE", "SEMANTIC_CONSISTENCY"]
+        },
+        "code": { "type": "string", "minLength": 1 },
+        "status": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "REPAIRED", "REJECTED", "MANUAL_ADJUDICATION_REQUIRED"]
+        },
+        "artifactRef": { "type": "string", "minLength": 1 },
+        "detail": { "type": "string" },
+        "affectsEpistemicState": { "type": "boolean" }
+      }
+    }
+  }
+}

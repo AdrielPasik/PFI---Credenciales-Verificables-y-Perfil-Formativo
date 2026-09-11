@@ -6,12 +6,22 @@ import { Injectable } from '@nestjs/common';
 
 import {
   AiServiceClientError,
+  ObjectiveAnalysisTransportError,
+  ObjectiveProposalTransportError,
+  readAiServiceErrorCode,
+  readObjectiveProposalErrorCode,
   type AiServiceHealthResponse,
+  type AnalyzeContextualReasoningWithAiInput,
+  type AnalyzeEvidenceUnitsWithAiInput,
+  type AnalyzeObjectiveWithAiInput,
   type AnalyzePdfWithAiInput,
   type AnalyzeTextWithAiInput,
   type AnalyzeTextWithAiMetadata,
   type AnalyzeTextWithAiSourceRefs,
-  type BuildFormativeProfileWithAiInput
+  type BuildFormativeProfileWithAiInput,
+  type ExtractPdfSourceInput,
+  type ExtractTextSourceInput,
+  type ProposeObjectiveRequirementsWithAiInput
 } from './ai-service.types';
 import { AiServiceInternalAuth } from './ai-service-internal-auth';
 
@@ -190,6 +200,277 @@ export class AiServiceClient {
     return Object.keys(result).length > 0 ? result : undefined;
   }
 
+  /**
+   * Transporte hacia el productor de extraccion de PDF (F0.2).
+   *
+   * Devuelve `unknown` A PROPOSITO. F1.3 es transporte y no tiene autoridad para
+   * afirmar que la respuesta es un artifact valido: eso lo establece F0.4 y el
+   * binding autoritativo lo establece F0.5. Un tipo de retorno mas fuerte
+   * permitiria al compilador saltarse esa verificacion.
+   *
+   * Los bytes viajan completos por multipart, igual que la ruta semantica. No hay
+   * truncamiento en ningun punto: si se excede el tope, FastAPI RECHAZA.
+   */
+  async extractPdfSource(input: ExtractPdfSourceInput): Promise<unknown> {
+    if (!(input.fileBytes instanceof Uint8Array) || input.fileBytes.byteLength === 0) {
+      throw new AiServiceClientError(
+        'fileBytes must contain the authoritative PDF bytes.',
+        'file'
+      );
+    }
+
+    const formData = new FormData();
+    formData.append(
+      'file',
+      new Blob([new Uint8Array(input.fileBytes)], { type: 'application/pdf' }),
+      'source.pdf'
+    );
+    formData.append(
+      'documentEvidenceId',
+      this.expectNonEmptyString(input.documentEvidenceId, 'documentEvidenceId')
+    );
+    formData.append(
+      'sourceSha256',
+      this.expectNonEmptyString(input.sourceSha256, 'sourceSha256')
+    );
+    formData.append('storageKey', this.expectNonEmptyString(input.storageKey, 'storageKey'));
+
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+
+    return this.requestJson(
+      '/v1/source-extraction/pdf',
+      {
+        method: 'POST',
+        body: formData,
+        headers: correlationId ? { 'x-analysis-run-id': correlationId } : undefined
+      },
+      true
+    );
+  }
+
+  /**
+   * Transporte hacia el productor de extraccion de TEXT (F0.3).
+   *
+   * El contenido viaja EXACTAMENTE como se recibe. No se normaliza, no se recorta
+   * y no se compone: F0.3 exige que ya sea punto fijo de
+   * `PRODUCT_NFC_LINEENDINGS_TRIM` y verifica esa precondicion. Arreglarlo aca
+   * esconderia un bug aguas arriba.
+   *
+   * Nota: se usa `content` sin `expectNonEmptyString`, porque el contenido vacio
+   * es un caso contractual valido de F0 —`FULL` con cero evidencia— y rechazarlo
+   * en el transporte lo volveria irrepresentable.
+   */
+  async extractTextSource(input: ExtractTextSourceInput): Promise<unknown> {
+    if (typeof input.content !== 'string') {
+      throw new AiServiceClientError('content must be a string.', 'configuration');
+    }
+
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+    const body = {
+      content: input.content,
+      textEvidenceId: this.expectNonEmptyString(input.textEvidenceId, 'textEvidenceId'),
+      sourceSha256: this.expectNonEmptyString(input.sourceSha256, 'sourceSha256')
+    };
+
+    return this.requestJson(
+      '/v1/source-extraction/text',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+        },
+        body: JSON.stringify(body)
+      },
+      true
+    );
+  }
+
+  /**
+   * Transporte hacia el Objective Analysis productivo (F3.3B).
+   *
+   * UNA sola llamada por Objective, con todos los Requirements: la granularidad
+   * congelada es `ONE_CALL_PER_OBJECTIVE`, y no existe una ruta por Requirement.
+   *
+   * Lo que viaja es EXACTAMENTE lo que el llamante ya cargo del snapshot
+   * congelado del run. Este metodo no lee la base, no consulta el Objective
+   * vigente y no completa nada: si algo falta, falta aguas arriba.
+   *
+   * Traduce el fallo a una taxonomia CERRADA derivada del status. La distincion
+   * importa de verdad porque de ella depende el desenlace del run: hay fallos que
+   * lo matan y fallos que lo dejan reintentable.
+   */
+  async analyzeObjective(input: AnalyzeObjectiveWithAiInput): Promise<unknown> {
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+    const body = {
+      schemaVersion: this.expectNonEmptyString(input.schemaVersion, 'schemaVersion'),
+      executionPlan: input.executionPlan,
+      objectiveType: this.expectNonEmptyString(input.objectiveType, 'objectiveType'),
+      // Sin `expectNonEmptyString`: un Objective sin contexto es un caso valido
+      // —la ausencia de contexto es informacion— y rechazarlo aca lo volveria
+      // irrepresentable.
+      objectiveContext: input.objectiveContext,
+      requirements: input.requirements
+    };
+
+    try {
+      return await this.requestJson(
+        '/v1/objective-analysis',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+          },
+          body: JSON.stringify(body)
+        },
+        true
+      );
+    } catch (error: unknown) {
+      throw this.toObjectiveAnalysisTransportError(error);
+    }
+  }
+
+  /**
+   * Clasificacion por CODIGO DE APLICACION VALIDADO — F3.3B.1.
+   *
+   * Antes se derivaba del status a secas, y eso hacia representable un hecho
+   * falso: un `502` de un proxy se leia como "el proveedor respondio entero y su
+   * salida no cumple el contrato", y el run moria. Un 502 opaco no demuestra que
+   * nadie haya ejecutado Objective Analysis.
+   *
+   *     un desenlace TERMINAL exige una afirmacion de NUESTRA aplicacion
+   *
+   * O sea: envelope `ai_service_error_v1` bien formado, con un codigo del
+   * vocabulario cerrado, y coherente con el status. Cualquier otra cosa —cuerpo
+   * vacio, HTML, JSON arbitrario, envelope malformado, codigo desconocido, par
+   * status/code inconsistente— es `INTERNAL_AI_SERVICE_FAILURE`: el run queda
+   * pendiente, el artifact ausente y el reintento tecnico disponible.
+   *
+   * En ningun caso se parsea texto: ni `detail`, ni `message`, ni HTML, ni
+   * substrings.
+   */
+  private toObjectiveAnalysisTransportError(
+    error: unknown
+  ): ObjectiveAnalysisTransportError {
+    if (!(error instanceof AiServiceClientError)) {
+      return new ObjectiveAnalysisTransportError('INTERNAL_AI_SERVICE_FAILURE');
+    }
+
+    if (error.code === 'timeout' || error.code === 'unavailable') {
+      // Nunca hubo respuesta. Es el unico caso en que se puede afirmar el fallo
+      // de transporte SIN envelope, porque la afirmacion no es sobre el
+      // proveedor: es sobre este cliente, que sabe que no obtuvo nada.
+      return new ObjectiveAnalysisTransportError(
+        'PROVIDER_TRANSPORT_FAILURE',
+        error.status
+      );
+    }
+
+    // `invalid_response` —cuerpo vacio o no-JSON— llega aca con `body` en null y
+    // cae, correctamente, en el fallo interno.
+    const applicationCode = readAiServiceErrorCode(error.body, error.status);
+
+    switch (applicationCode) {
+      case 'EXECUTION_PLAN_MISMATCH':
+      case 'PROVIDER_INVALID_OUTPUT':
+      case 'PROVIDER_TRANSPORT_FAILURE':
+      case 'PROVIDER_CONFIGURATION_FAILURE':
+        return new ObjectiveAnalysisTransportError(applicationCode, error.status);
+      default:
+        // Incluye el 422 de validacion de request de FastAPI: es un problema del
+        // borde, no un desenlace del run, y matar el run por eso destruiria
+        // trabajo por algo que se arregla redeployando.
+        return new ObjectiveAnalysisTransportError(
+          'INTERNAL_AI_SERVICE_FAILURE',
+          error.status
+        );
+    }
+  }
+
+  /**
+   * Transporte hacia el catalogo de EvidenceUnits productivo (F3.4).
+   *
+   * UNA sola llamada por run, con TODAS las fuentes: la granularidad congelada
+   * del stage es una llamada por ReasoningRun, y no existe una ruta por fuente.
+   *
+   * Objective-independent por construccion: el input no tiene forma de llevar el
+   * Objective, Requirements, analisis previo ni interpretaciones semanticas
+   * heredadas.
+   *
+   * Misma taxonomia cerrada de fallos que la etapa 1: la reutiliza en vez de
+   * definir una propia, porque el desenlace del run se decide igual.
+   */
+  async analyzeEvidenceUnits(
+    input: AnalyzeEvidenceUnitsWithAiInput
+  ): Promise<unknown> {
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+    const body = {
+      schemaVersion: this.expectNonEmptyString(input.schemaVersion, 'schemaVersion'),
+      executionPlan: input.executionPlan,
+      sources: input.sources
+    };
+
+    try {
+      return await this.requestJson(
+        '/v1/evidence-units',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+          },
+          body: JSON.stringify(body)
+        },
+        true
+      );
+    } catch (error: unknown) {
+      throw this.toObjectiveAnalysisTransportError(error);
+    }
+  }
+
+  /**
+   * Transporte hacia el razonamiento contextual productivo (F3.5).
+   *
+   * UNA llamada por Requirement: la granularidad congelada del stage. El
+   * recorrido de los N Requirements y el corte en el primero que falla viven en
+   * el servicio de orquestacion, que es quien puede decidir no gastar las
+   * llamadas restantes.
+   *
+   * Misma taxonomia cerrada de fallos que las etapas anteriores.
+   */
+  async analyzeContextualReasoning(
+    input: AnalyzeContextualReasoningWithAiInput
+  ): Promise<unknown> {
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+    const body = {
+      schemaVersion: this.expectNonEmptyString(input.schemaVersion, 'schemaVersion'),
+      executionPlan: input.executionPlan,
+      objectiveContext: input.objectiveContext,
+      requirement: input.requirement,
+      evidenceUnits: input.evidenceUnits,
+      sources: input.sources,
+      preparation: input.preparation
+    };
+
+    try {
+      return await this.requestJson(
+        '/v1/contextual-reasoning',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+          },
+          body: JSON.stringify(body)
+        },
+        true
+      );
+    } catch (error: unknown) {
+      throw this.toObjectiveAnalysisTransportError(error);
+    }
+  }
+
   async buildFormativeProfile(
     input: BuildFormativeProfileWithAiInput
   ): Promise<unknown> {
@@ -213,6 +494,88 @@ export class AiServiceClient {
       },
       true
     );
+  }
+
+  /**
+   * Transporte hacia Objective Understanding productivo (P2.2).
+   *
+   * UNA sola llamada por Objective: la granularidad evaluada en P2.1 es
+   * `ONE_CALL_PER_OBJECTIVE`, así que no hay ruta por sección, por Requirement,
+   * de reparación de anclaje ni de deduplicación.
+   *
+   * Evidence-blind por construcción: el input no tiene forma de llevar
+   * credenciales, perfil, skills, EvidenceUnits ni ReasoningRuns.
+   *
+   * Taxonomía de fallos PROPIA, no la de las etapas del ReasoningRun: acá ningún
+   * desenlace mata una fila porque no hay fila. Lo único que decide la
+   * clasificación es si repetir el pedido puede tener otro resultado.
+   */
+  async proposeObjectiveRequirements(
+    input: ProposeObjectiveRequirementsWithAiInput
+  ): Promise<unknown> {
+    const correlationId = this.optionalCorrelationId(input.correlationId);
+    const body = {
+      schemaVersion: this.expectNonEmptyString(input.schemaVersion, 'schemaVersion'),
+      objectiveType: this.expectNonEmptyString(input.objectiveType, 'objectiveType'),
+      // Sin `expectNonEmptyString`: un Objective sin título es un caso válido y el
+      // título no crea Requirements de todos modos.
+      title: input.title,
+      // NO se usa `expectNonEmptyString`: ese helper devuelve el valor RECORTADO,
+      // y recortar acá desplazaría en silencio cada offset del artefacto. Los
+      // `charStart`/`charEnd` se calculan sobre el texto que recibe el AI service
+      // y se verifican contra el que NestJS creyó enviar: si difieren en un solo
+      // espacio inicial, todas las referencias quedan corridas. Se comprueba que
+      // no esté en blanco, y se envía tal cual.
+      rawObjectiveText: this.expectNonBlankStringVerbatim(
+        input.rawObjectiveText,
+        'rawObjectiveText'
+      )
+    };
+
+    try {
+      return await this.requestJson(
+        '/v1/objective-requirement-proposal',
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            ...(correlationId ? { 'x-analysis-run-id': correlationId } : {})
+          },
+          body: JSON.stringify(body)
+        },
+        true
+      );
+    } catch (error: unknown) {
+      throw this.toObjectiveProposalTransportError(error);
+    }
+  }
+
+  /** Clasificación por CÓDIGO DE APLICACIÓN VALIDADO, nunca por status a secas. */
+  private toObjectiveProposalTransportError(
+    error: unknown
+  ): ObjectiveProposalTransportError {
+    if (!(error instanceof AiServiceClientError)) {
+      return new ObjectiveProposalTransportError('INTERNAL_AI_SERVICE_FAILURE');
+    }
+
+    if (error.code === 'timeout' || error.code === 'unavailable') {
+      // Nunca hubo respuesta. Es el único caso en que se puede afirmar el fallo
+      // de transporte SIN envelope, porque la afirmación es sobre este cliente.
+      return new ObjectiveProposalTransportError('PROVIDER_TRANSPORT_FAILURE');
+    }
+
+    const applicationCode = readObjectiveProposalErrorCode(error.body, error.status);
+    switch (applicationCode) {
+      case 'OBJECTIVE_TOO_LARGE':
+      case 'PROVIDER_INVALID_OUTPUT':
+      case 'PROVIDER_TRANSPORT_FAILURE':
+      case 'PROVIDER_CONFIGURATION_FAILURE':
+        return new ObjectiveProposalTransportError(applicationCode);
+      default:
+        // Incluye el 422 de validación de request de FastAPI: es un problema del
+        // borde entre servicios, no una afirmación sobre la propuesta.
+        return new ObjectiveProposalTransportError('INTERNAL_AI_SERVICE_FAILURE');
+    }
   }
 
   private async requestJson(
@@ -278,7 +641,11 @@ export class AiServiceClient {
         `AI Service request failed with status ${response.status}: ${detail}`,
         'http',
         response.status,
-        detail
+        detail,
+        null,
+        // El cuerpo ESTRUCTURADO viaja aparte de `detail`: clasificar leyendo la
+        // string formateada seria parsear prosa.
+        parsedBody
       );
     }
 
@@ -450,6 +817,21 @@ export class AiServiceClient {
       throw new AiServiceClientError(`${field} is required.`, 'configuration');
     }
     return normalized;
+  }
+
+  /**
+   * Exige una string con contenido y la devuelve SIN TOCAR.
+   *
+   * Es la contraparte de `expectNonEmptyString` para los payloads cuyo texto es
+   * autoridad de offsets: valida lo mismo, pero no normaliza. Un helper aparte y
+   * no un flag porque el comportamiento por defecto —recortar— es el correcto
+   * para el resto de los campos, y quien lea la llamada tiene que ver cuál usó.
+   */
+  private expectNonBlankStringVerbatim(value: unknown, field: string): string {
+    if (typeof value !== 'string' || value.trim().length === 0) {
+      throw new AiServiceClientError(`${field} is required.`, 'configuration');
+    }
+    return value;
   }
 
   private expectRecord(

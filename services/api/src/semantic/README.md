@@ -40,16 +40,27 @@ Este comando:
 Endpoint read-only actual:
 
 ```text
-GET /credentials/:id/semantic-analysis/latest
+GET /credentials/:id/semantic-analysis/latest   (JWT + membresia de emisor)
 ```
 
 Comportamiento:
 
+- exige `AuthGuard`: sin bearer token responde `401`;
 - verifica que la credencial exista;
 - si no existe, responde `404`;
+- exige membresia activa con rol `admin` u `operator` sobre el issuer DE ESA
+  credencial, tomado de la fila persistida y nunca de un parametro; si no la
+  hay, responde `403`;
 - si existe y no tiene analisis, devuelve `latestSemanticAnalysis: null`;
 - si existe y tiene analisis, devuelve el mas reciente por `analyzedAt desc`;
+- devuelve un RESUMEN con allowlist explicita. Desde F1.5 ya no incluye
+  `analysisJson`, `textForEmbedding` ni `evidenceMap`, y esas columnas tampoco
+  se cargan desde la base;
 - no modifica ninguna tabla ni dispara logica semantica nueva.
+
+Hasta F1.5 esta ruta no tenia `AuthGuard` ni comprobacion de autoridad, y
+devolvia el artifact crudo del pipeline: conocer un `credentialId` bastaba para
+leerlo. Ver `mejoras post 50%/evidence-reasoning-f1.5-privacy-hardening-record.md`.
 
 Principios:
 

@@ -11,13 +11,13 @@ GET  /health
 POST /auth/login
 GET  /credentials/:id
 GET  /credentials/:id/status
-GET  /credentials/:id/semantic-analysis/latest
 GET  /verify/credentials/:credentialId
 ```
 
 Protegidos por JWT:
 
 ```text
+GET  /credentials/:id/semantic-analysis/latest
 POST /credentials/draft
 GET  /auth/me
 POST /issuers/:issuerId/holders/resolve
