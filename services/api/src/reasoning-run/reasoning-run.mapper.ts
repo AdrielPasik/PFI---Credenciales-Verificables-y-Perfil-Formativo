@@ -34,6 +34,8 @@ import {
 import { toFailureCategory } from './reasoning-run-api.errors';
 import { type VerifiedObjectiveDefinition } from '../objectives/objective-definition.types';
 import { type VerifiedReasoningRunResult } from './reasoning-run-artifact.types';
+import { failEvidenceProjection } from './reasoning-run-evidence.errors';
+import { type ProjectedRequirementEvidence } from './reasoning-run-evidence.projection';
 
 /** Lo mínimo que el mapper necesita de la fila, ya releído y verificado. */
 export interface ReasoningRunView {
@@ -50,6 +52,18 @@ export interface ReasoningRunView {
   readonly definition: VerifiedObjectiveDefinition;
   /** Ya verificado con el validador de F3.1. `null` si el run no completó. */
   readonly result: VerifiedReasoningRunResult | null;
+  /**
+   * Evidencia YA PROYECTADA por Requirement — P2.4A.
+   *
+   * Llega resuelta, no resoluble: el mapper no consulta el inventario, no lee
+   * artefactos y no conoce `src_NN`. La cadena `eu_NN → src_NN → inventario
+   * congelado → credencial` vive entera en `reasoning-run-evidence.projection`,
+   * y acá sólo se copia campo por campo.
+   *
+   * `null` cuando el run no completó, que es exactamente cuando `result` es
+   * `null`. La lista no la necesita y no la pide: el resumen no lleva evidencia.
+   */
+  readonly evidence: ReadonlyMap<string, ProjectedRequirementEvidence> | null;
 }
 
 const iso = (value: Date | null): string | null =>
@@ -109,14 +123,12 @@ export function mapReasoningRunSummary(
  * Requirements por id y no recopia su texto: una sola autoridad por hecho, igual
  * que en persistencia.
  *
- * `explanation` se copia EXACTA. Es el render determinista de F3.6 y no se
- * reescribe, ni se resume, ni se le pasa otro modelo por encima: si se
- * reformulara, la explicación dejaría de ser la que el run realmente produjo.
- *
- * CONTIENE CITAS DEL PROPIO HOLDER —`src_01: "…"`— y eso es correcto acá: es su
- * material, en su superficie privada. Lo que todavía NO está resuelto es traducir
- * el `src_NN` local del run a una etiqueta legible de credencial/fuente; ver la
- * nota de citación en el registro del slice.
+ * `explanation` NO SALE — P2.4A.1. El render determinista de F3.6 se sigue
+ * persistiendo exacto, y no se reescribe ni se resume ni se le pasa otro modelo
+ * por encima: si se reformulara, dejaría de ser la explicación que el run
+ * realmente produjo. Pero es diagnóstico —`src_01: "…"`, tokens de enum— y por
+ * eso deja de viajar al cliente. La respuesta lleva en su lugar la cadena ya
+ * RESUELTA: `evidence[]` con la cita y su credencial.
  */
 function mapResult(view: ReasoningRunView): ReasoningRunResultResponseDto | null {
   if (view.result === null) return null;
@@ -129,14 +141,46 @@ function mapResult(view: ReasoningRunView): ReasoningRunResultResponseDto | null
   );
 
   return {
-    requirementResults: view.result.requirementResults.map((item) => ({
-      requirementId: item.requirementId,
-      // El cruce ya se verificó antes de llegar acá: el id existe en el snapshot.
-      requirementText: textByRequirementId.get(item.requirementId) as string,
-      // Token cerrado de los cinco. No se colapsa a pass/fail ni a porcentaje.
-      finalState: item.finalState,
-      explanation: item.explanation
-    }))
+    requirementResults: view.result.requirementResults.map((item) => {
+      // La proyección recorre EXACTAMENTE estos Requirements, así que una entrada
+      // ausente significa que el mapper recibió una evidencia de otro resultado.
+      // No se completa con una lista vacía: eso mostraría "sin evidencia" para un
+      // requisito que sí la tenía.
+      const projected = view.evidence?.get(item.requirementId);
+      if (projected === undefined) {
+        failEvidenceProjection('EVIDENCE_UNIT_NOT_IN_CATALOG');
+      }
+
+      return {
+        requirementId: item.requirementId,
+        // El cruce ya se verificó antes de llegar acá: el id existe en el snapshot.
+        requirementText: textByRequirementId.get(item.requirementId) as string,
+        // Token cerrado de los cinco. No se colapsa a pass/fail ni a porcentaje.
+        finalState: item.finalState,
+        // `item.explanation` NO se copia — P2.4A.1. Sigue en el artifact, exacta,
+        // pero es diagnóstico y no viaja al holder. Ver el DTO.
+        supportedWeakerClaim: projected.supportedWeakerClaim,
+        evidence: projected.evidence.map((evidence) => ({
+          excerpt: evidence.excerpt,
+          contextBefore: evidence.contextBefore,
+          contextAfter: evidence.contextAfter,
+          sectionLabel: evidence.sectionLabel,
+          pageNumber: evidence.pageNumber,
+          coverage: evidence.coverage,
+          sourceKind: evidence.sourceKind,
+          credential:
+            evidence.credential === null
+              ? null
+              : {
+                  credentialReference: evidence.credential.credentialReference,
+                  title: evidence.credential.title,
+                  credentialType: evidence.credential.credentialType,
+                  issuerName: evidence.credential.issuerName,
+                  currentStatus: evidence.credential.currentStatus
+                }
+        }))
+      };
+    })
   };
 }
 

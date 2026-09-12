@@ -16,6 +16,7 @@ import { ApiError } from '@/lib/errors/api-error';
 const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   get: vi.fn(),
+  listRuns: vi.fn(),
   requestAuthenticated: vi.fn(),
   params: { objectiveId: 'obj-1' } as Record<string, string>
 }));
@@ -32,6 +33,15 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/api/objectives-api', () => ({
   listMyObjectivesRequest: mocks.list,
   getMyObjectiveRequest: mocks.get
+}));
+
+// P2.4B: el detalle monta el panel de analisis. Por defecto, sin runs — asi
+// estos tests siguen describiendo el objetivo confirmado y no el analisis.
+vi.mock('@/lib/api/reasoning-runs-api', () => ({
+  listMyReasoningRunsRequest: mocks.listRuns,
+  getMyReasoningRunRequest: vi.fn(),
+  createMyReasoningRunRequest: vi.fn(),
+  executeMyReasoningRunRequest: vi.fn()
 }));
 
 const summary = {
@@ -71,6 +81,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.list.mockResolvedValue([summary]);
   mocks.get.mockResolvedValue(detail);
+  mocks.listRuns.mockResolvedValue([]);
   mocks.params = { objectiveId: 'obj-1' };
 });
 
@@ -143,12 +154,18 @@ describe('detalle de objetivo', () => {
     expect(body.includes('req_01')).toBe(false);
   });
 
-  it('no ofrece accion de P2.4 ni revision', async () => {
+  /*
+   * P2.4B invierte esta afirmacion a proposito: la accion de analisis YA existe
+   * y es real. Lo que sigue valiendo es que el objetivo confirmado no se edita.
+   */
+  it('ofrece la accion REAL de analisis y sigue sin permitir editar', async () => {
     render(<ObjectiveDetailRoute />);
     await screen.findByText('Experiencia con Python.');
 
+    const cta = await screen.findByRole('button', { name: 'Analizar mi trayectoria' });
+    expect(cta.hasAttribute('disabled')).toBe(false);
+
     const body = document.body.textContent ?? '';
-    expect(body.includes('Analizar mi trayectoria')).toBe(false);
     expect(body.includes('Proximamente')).toBe(false);
     expect(body.includes('Editar objetivo')).toBe(false);
   });
@@ -162,13 +179,19 @@ describe('detalle de objetivo', () => {
     ).toBeTruthy();
   });
 
-  it('nunca pide un ReasoningRun', async () => {
+  /*
+   * P2.4B: el detalle SI consulta runs, pero solo LEE. Abrir un objetivo no
+   * puede crear ni ejecutar nada — eso compraria llamadas al proveedor sin que
+   * nadie las pidiera.
+   */
+  it('al abrir el detalle solo LEE la lista de analisis, no crea ni ejecuta', async () => {
+    const api = await import('@/lib/api/reasoning-runs-api');
     render(<ObjectiveDetailRoute />);
     await screen.findByText('Experiencia con Python.');
 
-    await waitFor(() => expect(mocks.get).toHaveBeenCalled());
-    for (const call of mocks.requestAuthenticated.mock.calls) {
-      expect(String(call[0])).not.toContain('reasoning');
-    }
+    await waitFor(() => expect(mocks.listRuns).toHaveBeenCalledTimes(1));
+    expect(api.createMyReasoningRunRequest).not.toHaveBeenCalled();
+    expect(api.executeMyReasoningRunRequest).not.toHaveBeenCalled();
+    expect(api.getMyReasoningRunRequest).not.toHaveBeenCalled();
   });
 });

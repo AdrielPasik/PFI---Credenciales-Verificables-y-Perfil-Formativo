@@ -646,7 +646,7 @@ test('un plan de ejecucion COMPLETO es valido y sale congelado', () => {
   assert.equal(verified.objectiveAnalysis.provider?.reasoningEffort, 'medium');
   assert.equal(
     verified.contextualReasoning.promptVersion,
-    'product_contextual_reasoning_v1'
+    'product_contextual_reasoning_v2'
   );
   assert.ok(Object.isFrozen(verified));
   assert.ok(Object.isFrozen(verified.objectiveAnalysis.provider));

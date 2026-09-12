@@ -23,6 +23,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { ReasoningRunsController } from './reasoning-runs.controller';
 import { ReasoningRunPrivateService } from './reasoning-run-private.service';
+import { ReasoningRunApiError } from './reasoning-run-api.errors';
 import { ReasoningRunExecutionError } from './reasoning-run-execution.errors';
 import { ReasoningRunInputFreezeError } from './reasoning-run-input-freeze.errors';
 import {
@@ -141,8 +142,43 @@ function completedRunRow(overrides: Record<string, unknown> = {}) {
 // Dobles
 // ---------------------------------------------------------------------------
 
-function fakePrisma(rows: Record<string, any>[]) {
-  const state = { rows: rows.map((row) => ({ ...row })), queries: [] as any[] };
+/**
+ * Inventario CONGELADO por defecto — P2.4A.
+ *
+ * Una sola fila INCLUDED, con el `src_01` que citan las EvidenceUnits de la
+ * fixture. Si faltara, la proyeccion fallaria cerrado, que es justo lo que otro
+ * test comprueba a proposito.
+ */
+function defaultInventory(): Record<string, any>[] {
+  return [
+    {
+      runLocalSourceId: 'src_01',
+      documentEvidenceId: 'doc-1',
+      textEvidenceId: null,
+      // Columnas internas que la proyeccion NO debe pedir ni publicar.
+      sourceSha256: 'f'.repeat(64),
+      artifactBlobSha256: 'e'.repeat(64),
+      selectedAnalysisRunSourceId: 'ars-1',
+      credential: {
+        id: 'cred-1',
+        title: 'Analisis de datos con Python para negocios',
+        type: 'course',
+        status: 'issued',
+        issuer: { name: 'Plataforma de Cursos Demo' }
+      }
+    }
+  ];
+}
+
+function fakePrisma(
+  rows: Record<string, any>[],
+  inventory: Record<string, any>[] = defaultInventory()
+) {
+  const state = {
+    rows: rows.map((row) => ({ ...row })),
+    queries: [] as any[],
+    inventoryQueries: [] as any[]
+  };
   const matches = (row: any, where: any) =>
     Object.entries(where).every(([column, value]) => row[column] === value);
 
@@ -158,6 +194,14 @@ function fakePrisma(rows: Record<string, any>[]) {
         return state.rows
           .filter((item) => matches(item, where))
           .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .map((row) => project(row, select));
+      }
+    },
+    reasoningRunInventoryItem: {
+      findMany: async ({ where, select }: any) => {
+        state.inventoryQueries.push(where);
+        return inventory
+          .filter((item) => where.disposition === 'INCLUDED')
           .map((row) => project(row, select));
       }
     }
@@ -208,8 +252,9 @@ function controllerFor(options: {
   rows?: Record<string, any>[];
   freeze?: ReturnType<typeof fakeFreeze>;
   execution?: ReturnType<typeof fakeExecution>;
+  inventory?: Record<string, any>[];
 }) {
-  const { prisma, state } = fakePrisma(options.rows ?? []);
+  const { prisma, state } = fakePrisma(options.rows ?? [], options.inventory);
   const freeze = options.freeze ?? fakeFreeze();
   const execution = options.execution ?? fakeExecution();
   const service = new ReasoningRunPrivateService(
@@ -476,12 +521,85 @@ test('las claves del detalle son exactamente la allowlist', async () => {
     'requirements',
     'title'
   ]);
+  // P2.4A suma `evidence` y `supportedWeakerClaim`. La allowlist sigue siendo
+  // exacta: si alguien agrega un campo mas, este test lo dice.
   assert.deepEqual(Object.keys(detail.result!.requirementResults[0]).sort(), [
-    'explanation',
+    'evidence',
     'finalState',
     'requirementId',
-    'requirementText'
+    'requirementText',
+    'supportedWeakerClaim'
   ]);
+  assert.deepEqual(
+    Object.keys(detail.result!.requirementResults[0].evidence[0]).sort(),
+    [
+      'contextAfter',
+      'contextBefore',
+      'coverage',
+      'credential',
+      'excerpt',
+      'pageNumber',
+      'sectionLabel',
+      'sourceKind'
+    ]
+  );
+});
+
+/**
+ * El coste de la proyeccion no puede crecer con la cantidad de Requirements ni
+ * de evidencias — P2.4A.
+ */
+test('el detalle consulta el inventario UNA sola vez, y la lista ninguna', async () => {
+  const { controller, prisma } = controllerFor({
+    rows: [
+      completedRunRow({
+        objectiveDefinitionSnapshot: snapshot(['req_01', 'req_02']),
+        resultArtifact: resultArtifact(['req_01', 'req_02'])
+      })
+    ]
+  });
+
+  await controller.get(OWNER, 'run-1');
+  assert.equal(prisma.inventoryQueries.length, 1);
+  assert.equal(prisma.inventoryQueries[0].disposition, 'INCLUDED');
+  assert.equal(prisma.inventoryQueries[0].reasoningRunId, 'run-1');
+
+  await controller.list(OWNER);
+  assert.equal(prisma.inventoryQueries.length, 1);
+});
+
+test('un run sin resultado no consulta el inventario', async () => {
+  const { controller, prisma } = controllerFor({ rows: [runRow()] });
+
+  await controller.get(OWNER, 'run-1');
+  assert.equal(prisma.inventoryQueries.length, 0);
+});
+
+test('la evidencia llega con la credencial resuelta desde el inventario congelado', async () => {
+  const { controller } = controllerFor({ rows: [completedRunRow()] });
+
+  const detail = await controller.get(OWNER, 'run-1');
+  const evidence = detail.result!.requirementResults[0].evidence[0];
+  assert.equal(evidence.excerpt, 'diseno de APIs REST');
+  assert.equal(evidence.sourceKind, 'DOCUMENT');
+  assert.equal(evidence.credential!.credentialReference, 'cred-1');
+  assert.equal(evidence.credential!.issuerName, 'Plataforma de Cursos Demo');
+  assert.equal(evidence.credential!.currentStatus, 'issued');
+});
+
+test('si el src_NN no esta en el inventario congelado, el detalle falla cerrado', async () => {
+  const { controller } = controllerFor({
+    rows: [completedRunRow()],
+    // Inventario de otro universo: ningun `src_01`.
+    inventory: []
+  });
+
+  await assert.rejects(
+    () => controller.get(OWNER, 'run-1'),
+    (error: unknown) =>
+      error instanceof ReasoningRunApiError &&
+      error.code === 'REASONING_RUN_HISTORY_UNREADABLE'
+  );
 });
 
 test('mutar la respuesta no toca el artifact interno', async () => {
@@ -733,17 +851,39 @@ test('el resultado NO se resume, ni se puntua, ni se rankea', async () => {
   assert.equal('score' in (detail.result as any), false);
 });
 
-test('la explicacion es EXACTAMENTE la del artifact determinista', async () => {
+/**
+ * P2.4A.1 sobre el artifact REAL de la policy, no sobre una fixture escrita a
+ * mano: el string que se comprueba es el que `renderExplanation` produce de
+ * verdad, con sus `src_NN` y sus tokens de enum.
+ */
+test('la explicacion diagnostica queda EN EL ARTIFACT y no en la respuesta', async () => {
   const artifact = resultArtifact();
   const { controller } = controllerFor({
     rows: [completedRunRow({ resultArtifact: artifact })]
   });
   const detail = await controller.get(OWNER, 'run-1');
 
-  // Copiada literal: no se reescribe, no se resume, no pasa por otro modelo.
+  // El artifact la conserva literal: no se reescribe, no se resume, no pasa por
+  // otro modelo. Y lleva adentro material interno, que es justo el motivo.
+  const persisted = artifact.requirementResults[0].explanation as string;
+  assert.ok(persisted.includes('src_01'));
+  assert.ok(persisted.includes('FORMATIVE_EVIDENCE'));
+
+  // La respuesta del holder no la transporta. Que la web "no la renderice" no
+  // alcanzaba: viaja en el JSON y el inspector de red la muestra igual.
+  const serialized = JSON.stringify(detail);
   assert.equal(
-    detail.result!.requirementResults[0].explanation,
-    artifact.requirementResults[0].explanation
+    (detail.result!.requirementResults[0] as Mutable).explanation,
+    undefined
+  );
+  assert.ok(!serialized.includes(persisted));
+  assert.ok(!serialized.includes('src_01'));
+  assert.ok(!serialized.includes('FORMATIVE_EVIDENCE'));
+
+  // El estado final sobrevive: es contrato, no diagnostico.
+  assert.equal(
+    detail.result!.requirementResults[0].finalState,
+    artifact.requirementResults[0].finalState
   );
 });
 

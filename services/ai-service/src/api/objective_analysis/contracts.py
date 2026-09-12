@@ -32,7 +32,10 @@ REQUEST_SCHEMA_VERSION = "product_objective_analysis_request_v1"
 RESPONSE_SCHEMA_VERSION = "product_objective_analysis_response_v1"
 
 ARTIFACT_SCHEMA_VERSION = "objective_analysis_v1"
-PRODUCT_PROMPT_VERSION = "product_objective_analysis_v1"
+# V2 aclara la semántica de evaluabilidad sin cambiar el shape provider/artifact.
+# Los runs V1 ya congelados siguen siendo históricos y fallan cerrado si se
+# intentara ejecutarlos con esta implementación.
+PRODUCT_PROMPT_VERSION = "product_objective_analysis_v2"
 PRODUCT_ADAPTER_VERSION = "product_objective_analysis_adapter_v1"
 
 SUPPORTED_PROVIDER = "openai"

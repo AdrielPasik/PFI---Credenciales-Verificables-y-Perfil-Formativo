@@ -34,6 +34,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from src.api.contextual_reasoning.requirement_anchoring import (
+    derive_basis_phrases,
+    tokenize_requirement,
+)
 from src.api.contextual_reasoning.contracts import (
     CONTINUITY_TRANSFORMATION_BY_STATUS,
     FORBIDDEN_FINAL_STATE_TOKENS,
@@ -260,17 +264,26 @@ def validate_contextual_result(
     )
 
     requirement_text = analysis_requirement["requirementText"]
+    # P2.4: la tokenizacion es la MISMA que se le mostro al modelo en el prompt,
+    # asi que sus indices y estos coinciden por construccion.
+    tokens = tokenize_requirement(requirement_text)
+
+    # `requirementBasisPhrases` ya NO viene del modelo: se DERIVA recortando el
+    # Requirement por los rangos que eligio. Por eso la literalidad no se
+    # comprueba — es imposible no cumplirla.
+    anchored_facets: list[dict[str, Any]] = []
     for facet in facets:
         if not _subset(facet["evidenceUnitIds"], evidence_unit_ids):
             _fail("contextual_facet_evidence_reference_unknown")
-        # `requirementBasisPhrases` deben ser citas LITERALES del Requirement:
-        # una paráfrasis donde va una cita rompe la trazabilidad de por qué la
-        # facet existe.
-        if not facet["requirementBasisPhrases"]:
-            _fail("contextual_facet_basis_empty")
-        for phrase in facet["requirementBasisPhrases"]:
-            if phrase not in requirement_text:
-                _fail("contextual_facet_basis_not_literal")
+        phrases = derive_basis_phrases(
+            requirement_text, tokens, facet["requirementBasisRanges"]
+        )
+        anchored = {key: value for key, value in facet.items()
+                    if key != "requirementBasisRanges"}
+        anchored["requirementBasisPhrases"] = phrases
+        anchored_facets.append(anchored)
+    result["facets"] = anchored_facets
+    facets = anchored_facets
 
     # --- referencias semánticas a evidencia --------------------------------
     reference_fields = [
@@ -328,9 +341,21 @@ def validate_contextual_result(
             )
         )
 
-        for phrase in continuity["requirementBasisPhrases"]:
-            if phrase not in requirement_text:
-                _fail("contextual_continuity_basis_not_literal")
+        # Misma derivacion determinista que en las facets: el candidato mas
+        # debil tampoco escribe sus citas.
+        anchored_continuity = {
+            key: value
+            for key, value in continuity.items()
+            if key != "requirementBasisRanges"
+        }
+        anchored_continuity["requirementBasisPhrases"] = derive_basis_phrases(
+            requirement_text,
+            tokens,
+            continuity["requirementBasisRanges"],
+            allow_empty=True,
+        )
+        candidate["continuityAssessment"] = anchored_continuity
+        continuity = anchored_continuity
 
         # --- la puerta de B2.4.1: utilidad SÓLO si continuidad YES ---------
         if continuity["status"] != "YES" and candidate["materialUsefulness"] != "NOT_EVALUATED":

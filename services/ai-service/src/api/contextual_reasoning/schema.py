@@ -63,6 +63,23 @@ _EVALUATED_EVIDENCE: dict[str, Any] = {
     "additionalProperties": False,
 }
 
+_REQUIREMENT_BASIS_RANGE: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "startTokenIndex": {"type": "integer"},
+        "endTokenIndexExclusive": {"type": "integer"},
+    },
+    "required": ["startTokenIndex", "endTokenIndexExclusive"],
+    "additionalProperties": False,
+}
+
+#: Rango SEMIABIERTO sobre la vista indexada. El schema solo puede exigir la
+#: forma; que el rango exista dentro del Requirement lo comprueba el servidor.
+_REQUIREMENT_BASIS_RANGES: dict[str, Any] = {
+    "type": "array",
+    "items": _REQUIREMENT_BASIS_RANGE,
+}
+
 _FACET: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -70,7 +87,10 @@ _FACET: dict[str, Any] = {
         # productivo: con granularidad por Requirement no hace falta uno.
         "localFacetKey": {"type": "string"},
         "facetText": {"type": "string"},
-        "requirementBasisPhrases": _STRING_ARRAY,
+        # P2.4: el modelo YA NO escribe la cita. Elige posiciones sobre la
+        # vista indexada del Requirement y el servidor recorta el texto. La
+        # literalidad pasa a ser estructural en vez de instruida.
+        "requirementBasisRanges": _REQUIREMENT_BASIS_RANGES,
         "whyNecessary": {"type": "string"},
         "essential": {"type": "boolean"},
         "coverage": {"type": "string", "enum": list(FACET_COVERAGE_TOKENS)},
@@ -80,7 +100,7 @@ _FACET: dict[str, Any] = {
     "required": [
         "localFacetKey",
         "facetText",
-        "requirementBasisPhrases",
+        "requirementBasisRanges",
         "whyNecessary",
         "essential",
         "coverage",
@@ -200,7 +220,10 @@ _CONTINUITY: dict[str, Any] = {
             "type": "string",
             "enum": list(CONTINUITY_TRANSFORMATION_TOKENS),
         },
-        "requirementBasisPhrases": _STRING_ARRAY,
+        # P2.4: mismo anclaje determinista que en las facets. Es la MISMA
+        # invariante —cita literal del Requirement— y tenia el mismo modo de
+        # fallo (`contextual_continuity_basis_not_literal`).
+        "requirementBasisRanges": _REQUIREMENT_BASIS_RANGES,
         "constitutiveProjection": {"type": "string"},
         "explicitlyRelaxed": _STRING_ARRAY,
         "externalTargetIntroduced": {
@@ -216,7 +239,7 @@ _CONTINUITY: dict[str, Any] = {
     "required": [
         "status",
         "transformation",
-        "requirementBasisPhrases",
+        "requirementBasisRanges",
         "constitutiveProjection",
         "explicitlyRelaxed",
         "externalTargetIntroduced",

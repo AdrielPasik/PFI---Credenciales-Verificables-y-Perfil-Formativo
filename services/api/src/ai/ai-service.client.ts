@@ -5,6 +5,11 @@ import { basename } from 'node:path';
 import { Injectable } from '@nestjs/common';
 
 import {
+  readInvalidOutputSubcode,
+  type F3DiagnosticStage
+} from './ai-service-invalid-output-diagnostics';
+
+import {
   AiServiceClientError,
   ObjectiveAnalysisTransportError,
   ObjectiveProposalTransportError,
@@ -327,7 +332,7 @@ export class AiServiceClient {
         true
       );
     } catch (error: unknown) {
-      throw this.toObjectiveAnalysisTransportError(error);
+      throw this.toObjectiveAnalysisTransportError('objective_analysis', error);
     }
   }
 
@@ -351,6 +356,12 @@ export class AiServiceClient {
    * substrings.
    */
   private toObjectiveAnalysisTransportError(
+    /**
+     * La etapa la pone el LLAMANTE desde su propia identidad — P2.4 OBS. Nunca
+     * se deduce del mensaje, ni de la URL, ni del stack: eso convertiria una
+     * cadena del otro lado en la fuente de un campo de diagnostico.
+     */
+    stage: F3DiagnosticStage,
     error: unknown
   ): ObjectiveAnalysisTransportError {
     if (!(error instanceof AiServiceClientError)) {
@@ -372,8 +383,15 @@ export class AiServiceClient {
     const applicationCode = readAiServiceErrorCode(error.body, error.status);
 
     switch (applicationCode) {
-      case 'EXECUTION_PLAN_MISMATCH':
       case 'PROVIDER_INVALID_OUTPUT':
+        // El unico codigo que arrastra subcodigo. La clasificacion NO cambia:
+        // se sigue devolviendo el mismo `code` y el mismo `status`.
+        return new ObjectiveAnalysisTransportError(
+          applicationCode,
+          error.status,
+          readInvalidOutputSubcode(stage, error.body)
+        );
+      case 'EXECUTION_PLAN_MISMATCH':
       case 'PROVIDER_TRANSPORT_FAILURE':
       case 'PROVIDER_CONFIGURATION_FAILURE':
         return new ObjectiveAnalysisTransportError(applicationCode, error.status);
@@ -425,7 +443,7 @@ export class AiServiceClient {
         true
       );
     } catch (error: unknown) {
-      throw this.toObjectiveAnalysisTransportError(error);
+      throw this.toObjectiveAnalysisTransportError('evidence_units', error);
     }
   }
 
@@ -467,7 +485,7 @@ export class AiServiceClient {
         true
       );
     } catch (error: unknown) {
-      throw this.toObjectiveAnalysisTransportError(error);
+      throw this.toObjectiveAnalysisTransportError('contextual_reasoning', error);
     }
   }
 

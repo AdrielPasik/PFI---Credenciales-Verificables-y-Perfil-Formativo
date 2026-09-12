@@ -125,7 +125,8 @@ def continuity(status: str = "YES", **overrides: Any) -> dict[str, Any]:
     base = {
         "status": status,
         "transformation": contracts.CONTINUITY_TRANSFORMATION_BY_STATUS[status],
-        "requirementBasisPhrases": ["APIs REST"],
+        # P2.4: rangos sobre el Requirement tokenizado. [2,4) == "APIs REST".
+        "requirementBasisRanges": [{"startTokenIndex": 2, "endTokenIndexExclusive": 4}],
         "constitutiveProjection": "Version mas general del mismo objeto.",
         "explicitlyRelaxed": ["manejo de errores"],
         "externalTargetIntroduced": "NO",
@@ -303,6 +304,9 @@ def test_prompt_carries_no_raw_source_or_legacy_semantics() -> None:
     assert set(payload) == {
         "objectiveContext",
         "requirement",
+        # P2.4: el Requirement segmentado y numerado, para que el modelo elija
+        # posiciones en vez de escribir la cita.
+        "requirementTokens",
         "authorityOrder",
         "epistemicTarget",
         "epistemicTargetIsReadOnly",
@@ -547,7 +551,8 @@ def facet(key: str = "facet_01", **overrides: Any) -> dict[str, Any]:
     base = {
         "localFacetKey": key,
         "facetText": "Manejo de errores",
-        "requirementBasisPhrases": ["manejo de errores"],
+        # [5,8) == "manejo de errores".
+        "requirementBasisRanges": [{"startTokenIndex": 5, "endTokenIndexExclusive": 8}],
         "whyNecessary": "El Requirement lo pide explicitamente.",
         "essential": True,
         "coverage": "PARTIAL",
@@ -577,10 +582,34 @@ def test_dangling_facet_reference_is_rejected() -> None:
     assert str(exc.value) == "contextual_facet_reference_dangling"
 
 
-def test_facet_basis_must_be_literal_from_the_requirement() -> None:
+def test_facet_basis_is_derived_by_the_server_not_written_by_the_model() -> None:
+    """P2.4: la cita ya no la escribe el modelo, la recorta el servidor.
+
+    `contextual_facet_basis_not_literal` dejo de ser alcanzable: no hay ningun
+    campo por el que el proveedor pueda escribir una parafrasis.
+    """
+    result = run(FakeProvider(output(facets=[facet()])))
+    produced = result["contextualResult"]["facets"][0]
+    assert produced["requirementBasisPhrases"] == ["manejo de errores"]
+    assert "requirementBasisRanges" not in produced
+
+
+def test_facet_basis_range_out_of_bounds_is_rejected() -> None:
     with pytest.raises(ProviderInvalidOutputError) as exc:
-        run(FakeProvider(output(facets=[facet(requirementBasisPhrases=["algo inventado"])])))
-    assert str(exc.value) == "contextual_facet_basis_not_literal"
+        run(
+            FakeProvider(
+                output(
+                    facets=[
+                        facet(
+                            requirementBasisRanges=[
+                                {"startTokenIndex": 0, "endTokenIndexExclusive": 999}
+                            ]
+                        )
+                    ]
+                )
+            )
+        )
+    assert str(exc.value) == "contextual_facet_basis_range_out_of_bounds"
 
 
 def test_facet_evidence_reference_must_exist() -> None:
@@ -624,19 +653,39 @@ def test_continuity_no_requires_shift_reason() -> None:
     assert str(exc.value) == "contextual_continuity_shift_reason_missing"
 
 
-def test_continuity_basis_must_be_literal() -> None:
+def test_continuity_basis_is_also_server_derived() -> None:
+    """La continuidad tenia la MISMA invariante y el MISMO modo de fallo."""
+    valid = output(
+        weakerClaimSearch={
+            "status": "FOUND",
+            "rationale": "x",
+            "candidate": candidate(continuityAssessment=continuity("YES")),
+        }
+    )
+    result = run(FakeProvider(valid))
+    produced = result["contextualResult"]["weakerClaimSearch"]["candidate"]["continuityAssessment"]
+    assert produced["requirementBasisPhrases"] == ["APIs REST"]
+    assert "requirementBasisRanges" not in produced
+
+
+def test_continuity_basis_range_out_of_bounds_is_rejected() -> None:
     invalid = output(
         weakerClaimSearch={
             "status": "FOUND",
             "rationale": "x",
             "candidate": candidate(
-                continuityAssessment=continuity("YES", requirementBasisPhrases=["inventado"])
+                continuityAssessment=continuity(
+                    "YES",
+                    requirementBasisRanges=[
+                        {"startTokenIndex": 99, "endTokenIndexExclusive": 100}
+                    ],
+                )
             ),
         }
     )
     with pytest.raises(ProviderInvalidOutputError) as exc:
         run(FakeProvider(invalid))
-    assert str(exc.value) == "contextual_continuity_basis_not_literal"
+    assert str(exc.value) == "contextual_facet_basis_range_out_of_bounds"
 
 
 def test_external_target_introduced_is_preserved() -> None:

@@ -49,6 +49,10 @@ from src.api.contextual_reasoning.contracts import (
     StageExecutionPlan,
 )
 from src.api.contextual_reasoning.prompt import build_contextual_reasoning_prompt
+from src.api.contextual_reasoning.requirement_anchoring import (
+    indexed_requirement_view,
+    tokenize_requirement,
+)
 from src.api.contextual_reasoning.provider import (
     OpenAIContextualReasoningProvider,
     configured_model,
@@ -167,6 +171,12 @@ def _build_context(
     return {
         "objectiveContext": objective_context,
         "requirement": requirement,
+        # P2.4: el Requirement segmentado y numerado. Es la MISMA tokenizacion
+        # que usa el validador, asi que los indices que elija el modelo son los
+        # que el servidor va a recortar.
+        "requirementTokens": indexed_requirement_view(
+            tokenize_requirement(requirement["requirementText"])
+        ),
         "authorityOrder": list(AUTHORITY_ORDER),
         "epistemicTarget": requirement["epistemicTarget"],
         "epistemicTargetIsReadOnly": True,

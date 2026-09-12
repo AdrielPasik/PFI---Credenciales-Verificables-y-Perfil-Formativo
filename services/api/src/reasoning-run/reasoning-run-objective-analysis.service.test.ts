@@ -91,8 +91,8 @@ function frozenPlan(overrides: Record<string, unknown> = {}) {
     }),
     contextualReasoning: stage({
       artifactSchemaVersion: 'reasoning_run_result_v1',
-      promptVersion: 'product_contextual_reasoning_v1',
-      adapterVersion: 'product_contextual_reasoning_adapter_v1'
+      promptVersion: 'product_contextual_reasoning_v2',
+      adapterVersion: 'product_contextual_reasoning_adapter_v2'
     })
   };
 }
@@ -260,11 +260,11 @@ test('el plan congela las TRES etapas, incluidas las que no existen', async (con
   await service(prisma, ai).ensureObjectiveAnalysisForRun(RUN_ID);
 
   const plan = state.run!.executionMetadata as Record<string, any>;
-  assert.equal(plan.objectiveAnalysis.promptVersion, 'product_objective_analysis_v1');
+  assert.equal(plan.objectiveAnalysis.promptVersion, 'product_objective_analysis_v2');
   assert.equal(plan.evidenceUnits.promptVersion, 'product_evidence_units_v1');
   assert.equal(
     plan.contextualReasoning.promptVersion,
-    'product_contextual_reasoning_v1'
+    'product_contextual_reasoning_v2'
   );
   // Un plan parcial no es escribible: con fill-once, una etapa indeterminada no
   // podría completarse nunca.

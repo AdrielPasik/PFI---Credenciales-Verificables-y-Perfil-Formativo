@@ -25,7 +25,7 @@
  * SIN CONTROLLER. La API privada sigue siendo F3.7.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { AiServiceClient } from '../ai/ai-service.client';
@@ -78,6 +78,8 @@ import {
   verifyEvidenceUnitsAgainstSourceExtractions,
   type VerifiedExtractionsByRunLocalSourceId
 } from './evidence-units-source-addressable.verifier';
+import { UNKNOWN_INVALID_OUTPUT_SUBCODE } from '../ai/ai-service-invalid-output-diagnostics';
+import { logReasoningAiServiceFailure } from './reasoning-run-diagnostics';
 
 const INCLUDED = 'INCLUDED';
 
@@ -110,6 +112,8 @@ export interface EvidenceUnitsOutcome {
 
 @Injectable()
 export class ReasoningRunEvidenceUnitsService {
+  private readonly logger = new Logger(ReasoningRunEvidenceUnitsService.name);
+
   public constructor(
     private readonly prisma: PrismaService,
     private readonly slots: ReasoningRunArtifactSlotService,
@@ -415,6 +419,15 @@ export class ReasoningRunEvidenceUnitsService {
           'ai_service_rejected_the_frozen_plan'
         );
       case 'PROVIDER_INVALID_OUTPUT':
+        // Diagnostico interno. NO cambia la clasificacion ni el desenlace:
+        // el `failTerminally` de abajo es exactamente el que ya estaba.
+        logReasoningAiServiceFailure(this.logger, {
+          stage: 'evidence_units',
+          operationalCode: REASONING_EVIDENCE_UNITS_INVALID_OUTPUT,
+          upstreamCode: 'PROVIDER_INVALID_OUTPUT',
+          upstreamSubcode: error.invalidOutputSubcode ?? UNKNOWN_INVALID_OUTPUT_SUBCODE,
+          reasoningRunReference: reasoningRunId,
+        });
         return await this.failTerminally(
           reasoningRunId,
           REASONING_EVIDENCE_UNITS_INVALID_OUTPUT,

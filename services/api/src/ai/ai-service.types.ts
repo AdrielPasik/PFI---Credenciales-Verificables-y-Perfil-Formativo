@@ -173,7 +173,20 @@ export type ObjectiveAnalysisTransportCode =
 export class ObjectiveAnalysisTransportError extends Error {
   constructor(
     readonly code: ObjectiveAnalysisTransportCode,
-    readonly status: number | null = null
+    readonly status: number | null = null,
+    /**
+     * Subcodigo de DIAGNOSTICO cuando `code` es `PROVIDER_INVALID_OUTPUT`.
+     *
+     * Ya viene allowlisted por `readInvalidOutputSubcode`: es un token del
+     * vocabulario cerrado del ai-service o el centinela. `null` en cualquier
+     * otro codigo.
+     *
+     * NO PARTICIPA DE NINGUNA DECISION. El desenlace del run lo sigue
+     * decidiendo `code` y nada mas; esto existe para que un fallo se pueda
+     * diagnosticar sin reproducirlo. Tampoco entra en `message`: el mensaje del
+     * Error se imprime en cualquier log accidental y se mantiene minimo.
+     */
+    readonly invalidOutputSubcode: string | null = null
   ) {
     // El mensaje lleva SOLO el codigo cerrado y el status. Nunca el detail del
     // AI service: podria arrastrar texto del proveedor a un log.

@@ -294,6 +294,42 @@ test('NOT_ASSESSABLE: el Requirement no admite evidencia formativa', () => {
   );
 });
 
+test('V2 REST: una salida formativa evita el primer guard y deja actuar la policy', () => {
+  assert.equal(
+    stateForAnalysis(
+      (requirement) => {
+        requirement.epistemicTarget = 'FORMATIVE_EVIDENCE';
+        requirement.evaluability.requiredEvidenceType = 'FORMATIVE_EVIDENCE';
+        requirement.evaluability.formativeEvidenceCapable = true;
+      },
+      (result) => {
+        result.fullClaimAssessment.status = 'REACHED';
+        result.fullClaimAssessment.supportedQualifierIds = ['q_01'];
+        result.fullClaimAssessment.missingQualifierIds = [];
+        result.fullClaimAssessment.coveredFacetLocalKeys = ['facet_api_design'];
+        result.fullClaimAssessment.missingFacetLocalKeys = [];
+        result.weakerClaimSearch = {
+          status: 'NONE',
+          rationale: 'El Requirement completo fue alcanzado.',
+          candidate: null
+        };
+      }
+    ),
+    'SUPPORTED'
+  );
+});
+
+test('V2 Kubernetes: ambigüedad evaluable conserva ABSTAIN sin soporte temático', () => {
+  assert.equal(
+    stateForAnalysis((requirement) => {
+      requirement.epistemicTarget = 'UNRESOLVED';
+      requirement.evaluability.requiredEvidenceType = 'UNRESOLVED';
+      requirement.evaluability.formativeEvidenceCapable = true;
+    }),
+    'ABSTAIN'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Los ocho aportantes de `unresolved`
 // ---------------------------------------------------------------------------

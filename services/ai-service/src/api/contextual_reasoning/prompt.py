@@ -71,7 +71,7 @@ relations → facets → composition → fullClaimAssessment → jointClaimCeili
 
 RELATIONS: evaluá cada EU material con la taxonomy congelada. evidenceContribution es diagnóstico, no ceiling individual. RELATED_NON_ENTAILING si la evidencia vecina no habilita ningún claim del Requirement. LIMITED_SCOPE si pertenece al mismo núcleo con alcance inferior. Ninguna relation decide por sí sola weakerClaimSearch ni el estado.
 
-FACETS: deben derivarse del Requirement. localFacetKey único; todas las referencias downstream usan esas keys locales. requirementBasisPhrases deben ser frases literales del requirementText. Explicá whyNecessary desde el Requirement; la evidencia responde coverage, nunca por qué la facet existe. No inventes facets para acomodar evidencia.
+FACETS: deben derivarse del Requirement. localFacetKey único; todas las referencias downstream usan esas keys locales. requirementBasisRanges señala QUÉ parte del Requirement funda la facet, eligiendo rangos sobre requirementTokens. Explicá whyNecessary desde el Requirement; la evidencia responde coverage, nunca por qué la facet existe. No inventes facets para acomodar evidencia.
 
 COMPOSITION: COMPLEMENTARY_COVERAGE permite que EUs no redundantes cubran componentes distintos sin bridge artificial. INTEGRATED_CAPABILITY requiere integración evidence solo cuando el Requirement exige explícitamente aplicación/integración conjunta. No exijas bridge por la mera pluralidad de EUs.
 
@@ -92,7 +92,7 @@ CONTINUITY (DELTA_B, solo si FOUND): pregunta central: ¿el candidate describe u
 - C4 constitutive vs merely preparatory: ¿es todavía una versión reducida de lo pedido, o algo útil para llegar a ello? Las palabras fundamento, introductorio o general NO deciden por sí solas. Una versión introductoria del MISMO objeto puede ser constitutiva; un prerequisito externo puede ser meramente preparatorio.
 Un status=YES debe poder justificar: qué exige R, qué afirma W, por qué W sigue siendo parte/nivel/alcance constitutivo de R, qué se relaja explícitamente, y que no se introduce un target externo. Un status=NO debe poder justificar qué capacidad/objeto nuevo haría falta introducir para llegar de X a R.
 transformation=CONSTITUTIVE_REDUCTION acompaña YES; SEMANTIC_SHIFT acompaña NO con shiftReason.
-requirementBasisPhrases: frases LITERALES del requirementText. El código las alinea determinísticamente. Nunca escribas una paráfrasis donde va una cita.
+requirementBasisRanges: NO escribas la cita. Elegí su posición en requirementTokens, que es el Requirement segmentado y numerado. Cada rango es semiabierto: startTokenIndex incluye ese token y endTokenIndexExclusive excluye el suyo. El servidor recorta el texto exacto de esa posición, así que la cita coincide carácter por carácter con el Requirement —incluidos números, acentos y puntuación— sin que tengas que copiarla. Elegí el rango más ajustado que funde la facet. La base de continuityAssessment usa el mismo mecanismo.
 
 MATERIAL USEFULNESS (solo si continuity=YES): si continuity no es YES, devolvé NOT_EVALUATED. La utilidad nunca rescata un semantic shift. {B241_RESTORED_CLAUSE}
 

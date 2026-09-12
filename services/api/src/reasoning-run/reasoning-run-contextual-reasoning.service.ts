@@ -33,7 +33,7 @@
  * todavía: F3.6 es el consumidor previsto.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { AiServiceClient } from '../ai/ai-service.client';
@@ -96,6 +96,8 @@ import {
   REASONING_EXECUTION_PLAN_MISMATCH,
   REASONING_PROVIDER_CONFIGURATION_INVALID
 } from './reasoning-run-objective-analysis.errors';
+import { UNKNOWN_INVALID_OUTPUT_SUBCODE } from '../ai/ai-service-invalid-output-diagnostics';
+import { logReasoningAiServiceFailure } from './reasoning-run-diagnostics';
 
 const RUN_SELECT = {
   id: true,
@@ -132,6 +134,8 @@ export interface ContextualReasoningOutcome {
 
 @Injectable()
 export class ReasoningRunContextualReasoningService {
+  private readonly logger = new Logger(ReasoningRunContextualReasoningService.name);
+
   public constructor(
     private readonly prisma: PrismaService,
     private readonly slots: ReasoningRunArtifactSlotService,
@@ -598,6 +602,16 @@ export class ReasoningRunContextualReasoningService {
           callsMade
         );
       case 'PROVIDER_INVALID_OUTPUT':
+        // Diagnostico interno. NO cambia la clasificacion ni el desenlace:
+        // el `failTerminally` de abajo es exactamente el que ya estaba.
+        logReasoningAiServiceFailure(this.logger, {
+          stage: 'contextual_reasoning',
+          operationalCode: REASONING_CONTEXTUAL_REASONING_INVALID_OUTPUT,
+          upstreamCode: 'PROVIDER_INVALID_OUTPUT',
+          upstreamSubcode: error.invalidOutputSubcode ?? UNKNOWN_INVALID_OUTPUT_SUBCODE,
+          reasoningRunReference: reasoningRunId,
+          requirementReference: requirementId,
+        });
         return await this.failTerminally(
           reasoningRunId,
           REASONING_CONTEXTUAL_REASONING_INVALID_OUTPUT,

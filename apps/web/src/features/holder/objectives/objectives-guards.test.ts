@@ -39,6 +39,26 @@ const objectivesSupport = [
 
 const allSources = [...sliceSources, ...objectivesSupport];
 
+/**
+ * Modulos que P2.4B incorporo al slice: el analisis de trayectoria.
+ *
+ * Se nombran UNO POR UNO, no por patron. Un guard que dijera "todo lo que se
+ * llame *reasoning* puede hablar con P2.4" se desactivaria solo con renombrar un
+ * archivo; asi, sumar un modulo al analisis obliga a declararlo aca.
+ */
+const REASONING_MODULES = [
+  'objective-reasoning-panel.tsx',
+  'requirement-result-card.tsx',
+  'reasoning-evidence-list.tsx',
+  'reasoning-run-selection.ts',
+  'evidence-presentation.ts'
+];
+
+/** Intake, revision, lista y soporte: el nucleo de P2.3. */
+const p23Sources = allSources.filter(
+  (file) => !REASONING_MODULES.includes(file.name)
+);
+
 /** Comentarios fuera: explican los invariantes y los nombran a proposito. */
 function withoutComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
@@ -53,16 +73,66 @@ describe('guards del slice de objetivos', () => {
     expect(names).toContain('objective-detail-route.tsx');
   });
 
-  it('P2.3 no toca ninguna ruta de razonamiento', () => {
-    for (const { name, source } of allSources) {
+  /*
+   * P2.4B agrega el analisis al DETALLE, y solo ahi. El intake y la revision
+   * siguen sin poder tocarlo: si el flujo de confirmacion pudiera disparar un
+   * run, confirmar un objetivo compraria llamadas al proveedor sin pedirlo.
+   */
+  it('el intake y la revision siguen sin tocar ninguna ruta de razonamiento', () => {
+    const intakeAndReview = p23Sources.filter(
+      (file) => file.name !== 'objective-detail-route.tsx'
+    );
+    for (const { name, source } of intakeAndReview) {
       for (const forbidden of ['reasoning-run', 'reasoningRun', '/execute', 'evidence-unit']) {
         expect(source.includes(forbidden), `${name} menciona ${forbidden}`).toBe(false);
       }
     }
   });
 
-  it('no llama endpoints fuera de los dos contratos de objetivos', () => {
-    const allowed = ['/me/objective-requirement-proposals', '/me/objectives'];
+  it('los modulos de analisis declarados existen', () => {
+    const names = sliceSources.map((file) => file.name);
+    for (const declared of REASONING_MODULES) {
+      expect(names, `falta ${declared}`).toContain(declared);
+    }
+  });
+
+  /*
+   * La evidencia que se muestra viene RESUELTA del servidor. El navegador no
+   * puede volver a tocar los identificadores internos del razonador, ni resolver
+   * `src_NN`, ni leer el diagnostico.
+   */
+  it('el analisis no manipula identificadores internos del razonador', () => {
+    const reasoning = sliceSources.filter((file) =>
+      REASONING_MODULES.includes(file.name)
+    );
+    expect(reasoning.length).toBe(REASONING_MODULES.length);
+    for (const { name, source } of reasoning) {
+      const code = withoutComments(source);
+      for (const forbidden of [
+        'evidenceUnitId',
+        'sourceId',
+        'sourceSha256',
+        'charStart',
+        'charEnd',
+        'segmentId',
+        'artifactBlobSha256',
+        'explanation',
+        'policyTrace',
+        'jointClaimCeiling'
+      ]) {
+        expect(code.includes(forbidden), `${name} usa ${forbidden}`).toBe(false);
+      }
+    }
+  });
+
+  it('no llama endpoints fuera de los contratos previstos', () => {
+    // P2.4B suma `/me/reasoning-runs`. Sigue siendo una lista cerrada: el
+    // navegador nunca habla con el servicio de IA ni pide artifacts crudos.
+    const allowed = [
+      '/me/objective-requirement-proposals',
+      '/me/objectives',
+      '/me/reasoning-runs'
+    ];
     for (const { name, source } of allSources) {
       const paths = [...source.matchAll(/['"`](\/me\/[^'"`$]*)/g)].map((m) => m[1]);
       for (const found of paths) {

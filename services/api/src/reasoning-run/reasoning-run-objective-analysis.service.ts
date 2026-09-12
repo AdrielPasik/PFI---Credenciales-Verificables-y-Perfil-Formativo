@@ -22,7 +22,7 @@
  * condicionales, específicas de esta etapa, y no hay `startRun`/`completeRun`.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { AiServiceClient } from '../ai/ai-service.client';
@@ -62,6 +62,8 @@ import {
   REASONING_PROVIDER_CONFIGURATION_INVALID,
   failStage
 } from './reasoning-run-objective-analysis.errors';
+import { UNKNOWN_INVALID_OUTPUT_SUBCODE } from '../ai/ai-service-invalid-output-diagnostics';
+import { logReasoningAiServiceFailure } from './reasoning-run-diagnostics';
 
 const RUN_SELECT = {
   id: true,
@@ -98,6 +100,8 @@ export interface ObjectiveAnalysisOutcome {
 
 @Injectable()
 export class ReasoningRunObjectiveAnalysisService {
+  private readonly logger = new Logger(ReasoningRunObjectiveAnalysisService.name);
+
   public constructor(
     private readonly prisma: PrismaService,
     private readonly slots: ReasoningRunArtifactSlotService,
@@ -371,6 +375,15 @@ export class ReasoningRunObjectiveAnalysisService {
           'ai_service_rejected_the_frozen_plan'
         );
       case 'PROVIDER_INVALID_OUTPUT':
+        // Diagnostico interno. NO cambia la clasificacion ni el desenlace:
+        // el `failTerminally` de abajo es exactamente el que ya estaba.
+        logReasoningAiServiceFailure(this.logger, {
+          stage: 'objective_analysis',
+          operationalCode: REASONING_OBJECTIVE_ANALYSIS_INVALID_OUTPUT,
+          upstreamCode: 'PROVIDER_INVALID_OUTPUT',
+          upstreamSubcode: error.invalidOutputSubcode ?? UNKNOWN_INVALID_OUTPUT_SUBCODE,
+          reasoningRunReference: reasoningRunId,
+        });
         return await this.failTerminally(
           reasoningRunId,
           REASONING_OBJECTIVE_ANALYSIS_INVALID_OUTPUT,

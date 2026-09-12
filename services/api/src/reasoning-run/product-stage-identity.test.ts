@@ -38,7 +38,7 @@ import {
 test('las nueve identidades congeladas son exactamente estas', () => {
   assert.deepEqual(OBJECTIVE_ANALYSIS_STAGE_IDENTITY, {
     artifactSchemaVersion: 'objective_analysis_v1',
-    promptVersion: 'product_objective_analysis_v1',
+    promptVersion: 'product_objective_analysis_v2',
     adapterVersion: 'product_objective_analysis_adapter_v1'
   });
   assert.deepEqual(EVIDENCE_UNITS_STAGE_IDENTITY, {
@@ -48,8 +48,8 @@ test('las nueve identidades congeladas son exactamente estas', () => {
   });
   assert.deepEqual(CONTEXTUAL_REASONING_STAGE_IDENTITY, {
     artifactSchemaVersion: 'reasoning_run_result_v1',
-    promptVersion: 'product_contextual_reasoning_v1',
-    adapterVersion: 'product_contextual_reasoning_adapter_v1'
+    promptVersion: 'product_contextual_reasoning_v2',
+    adapterVersion: 'product_contextual_reasoning_adapter_v2'
   });
 });
 

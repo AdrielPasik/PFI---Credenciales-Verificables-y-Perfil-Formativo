@@ -234,7 +234,7 @@ export function validExecutionMetadata(): Mutable {
     deterministicPolicyVersion: 'product_epistemic_policy_v1',
     objectiveAnalysis: {
       artifactSchemaVersion: 'objective_analysis_v1',
-      promptVersion: 'product_objective_analysis_v1',
+      promptVersion: 'product_objective_analysis_v2',
       adapterVersion: 'product_objective_analysis_adapter_v1',
       provider: openai('test-model')
     },
@@ -246,8 +246,8 @@ export function validExecutionMetadata(): Mutable {
     },
     contextualReasoning: {
       artifactSchemaVersion: 'reasoning_run_result_v1',
-      promptVersion: 'product_contextual_reasoning_v1',
-      adapterVersion: 'product_contextual_reasoning_adapter_v1',
+      promptVersion: 'product_contextual_reasoning_v2',
+      adapterVersion: 'product_contextual_reasoning_adapter_v2',
       provider: openai('test-model')
     }
   };

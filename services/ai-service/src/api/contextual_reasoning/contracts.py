@@ -52,8 +52,8 @@ STAGE_ARTIFACT_SCHEMA_VERSION = "reasoning_run_result_v1"
 #: `product_objective_analysis_response_v1` en F3.3B.
 CONTEXTUAL_RESULT_SCHEMA_VERSION = "contextual_reasoning_v1"
 
-PRODUCT_PROMPT_VERSION = "product_contextual_reasoning_v1"
-PRODUCT_ADAPTER_VERSION = "product_contextual_reasoning_adapter_v1"
+PRODUCT_PROMPT_VERSION = "product_contextual_reasoning_v2"
+PRODUCT_ADAPTER_VERSION = "product_contextual_reasoning_adapter_v2"
 
 SUPPORTED_PROVIDER = "openai"
 SUPPORTED_REASONING_EFFORT = "medium"

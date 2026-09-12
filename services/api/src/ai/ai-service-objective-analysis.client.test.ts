@@ -82,7 +82,7 @@ const input = (overrides: Partial<AnalyzeObjectiveWithAiInput> = {}) =>
     schemaVersion: 'product_objective_analysis_request_v1',
     executionPlan: {
       artifactSchemaVersion: 'objective_analysis_v1',
-      promptVersion: 'product_objective_analysis_v1',
+      promptVersion: 'product_objective_analysis_v2',
       adapterVersion: 'product_objective_analysis_adapter_v1',
       provider: 'openai',
       model: 'test-model',
@@ -464,8 +464,8 @@ const contextualInput = {
   schemaVersion: 'product_contextual_reasoning_request_v1',
   executionPlan: {
     artifactSchemaVersion: 'reasoning_run_result_v1',
-    promptVersion: 'product_contextual_reasoning_v1',
-    adapterVersion: 'product_contextual_reasoning_adapter_v1',
+    promptVersion: 'product_contextual_reasoning_v2',
+    adapterVersion: 'product_contextual_reasoning_adapter_v2',
     provider: 'openai',
     model: 'test-model',
     reasoningEffort: 'medium'

@@ -1,14 +1,25 @@
 'use client';
 
 /**
- * Objetivo confirmado — P2.3.
+ * Objetivo confirmado — P2.3 + P2.4B.
  *
- * Solo lectura. Una fila finalizada no se edita: el backend no expone `PATCH` y
- * una revision crea SIEMPRE una fila nueva.
+ * CAMBIO DE PROPOSITO DE LA PAGINA. En P2.3 esta pantalla era un volcado de lo
+ * confirmado: titulo, lista de requisitos, texto original. Leia como una fila de
+ * base de datos porque, literalmente, eso mostraba.
  *
- * SIN accion de P2.4. No se dibuja "Analizar mi trayectoria" deshabilitado ni
- * "Proximamente": un boton muerto es una promesa que esta pantalla todavia no
- * puede cumplir. P2.4 pondra el suyo cuando exista.
+ * Ahora la pregunta que la pagina responde es otra: "¿que puede justificar mi
+ * trayectoria frente a esto?". La jerarquia cambia en consecuencia:
+ *
+ *     1. de que objetivo se trata
+ *     2. que concluyo Scope para cada requisito, y con que evidencia
+ *     3. los requisitos confirmados, como referencia
+ *     4. el texto original, plegado
+ *
+ * El objetivo confirmado sigue siendo de SOLO LECTURA: el backend no expone
+ * `PATCH` y una revision crea siempre una fila nueva.
+ *
+ * ANCHO CONTENIDO. `max-w-3xl` centrado: los fragmentos de evidencia son texto
+ * para leer, y a 1440px una linea de borde a borde es ilegible.
  */
 
 import Link from 'next/link';
@@ -17,6 +28,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
+import { ObjectiveReasoningPanel } from '@/features/holder/objectives/objective-reasoning-panel';
 import { getMyObjectiveRequest } from '@/lib/api/objectives-api';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
@@ -57,7 +69,7 @@ export function ObjectiveDetailRoute() {
   }, []);
 
   return (
-    <div className="grid min-w-0 gap-8">
+    <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-10">
       <nav aria-label="Ubicacion" className="text-sm text-text-muted">
         <Link href="/wallet" className="underline underline-offset-2">
           Mi perfil formativo
@@ -90,36 +102,57 @@ export function ObjectiveDetailRoute() {
 
       {state.status === 'ready' ? (
         <>
-          <header className="grid gap-3 border-b border-border-default pb-6">
+          <header className="grid min-w-0 gap-3 border-b border-border-default pb-6">
             <p className="text-sm font-semibold text-teal-700">
               {state.objective.objectiveTypeLabel}
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
+            <h1 className="min-w-0 break-words text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
               {state.objective.title}
             </h1>
             <p className="text-sm text-text-muted">
-              Objetivo confirmado el {state.objective.createdAtLabel}
+              Objetivo confirmado el {state.objective.createdAtLabel} ·{' '}
+              {state.objective.requirements.length}{' '}
+              {state.objective.requirements.length === 1
+                ? 'requisito'
+                : 'requisitos'}
             </p>
           </header>
 
-          <section aria-labelledby="objective-requirements-title" className="grid gap-4">
-            <h2
-              id="objective-requirements-title"
-              className="text-2xl font-bold tracking-tight text-text-strong"
-            >
-              Requisitos del objetivo
-            </h2>
+          {/*
+            EL ANALISIS VA PRIMERO. Es la capacidad de esta pantalla; los
+            requisitos confirmados pasan a ser la referencia que la sostiene.
+            El panel se monta con la referencia del objetivo y resuelve solo el
+            estado real del run — no recibe nada precalculado desde aca.
+          */}
+          <ObjectiveReasoningPanel objectiveReference={objectiveReference} />
+
+          <section
+            aria-labelledby="objective-requirements-title"
+            className="grid min-w-0 gap-4 border-t border-border-default pt-8"
+          >
+            <div className="grid gap-1">
+              <h2
+                id="objective-requirements-title"
+                className="text-xl font-bold tracking-tight text-text-strong"
+              >
+                Requisitos confirmados
+              </h2>
+              <p className="text-sm text-text-muted">
+                Los requisitos que confirmaste para este objetivo, en el orden en
+                que los dejaste.
+              </p>
+            </div>
             <ol className="grid list-none gap-0">
               {state.objective.requirements.map((requirement, index) => (
                 <li
                   key={requirement.requirementId}
-                  className="grid gap-2 border-b border-border-default py-4 last:border-b-0"
+                  className="grid min-w-0 gap-2 border-b border-border-default py-4 last:border-b-0"
                 >
-                  <div className="flex gap-3">
+                  <div className="flex min-w-0 gap-3">
                     <span className="text-sm font-semibold text-text-muted">
                       {index + 1}.
                     </span>
-                    <p className="min-w-0 leading-7 text-text-default">
+                    <p className="min-w-0 break-words leading-7 text-text-default">
                       {requirement.requirementText}
                     </p>
                   </div>

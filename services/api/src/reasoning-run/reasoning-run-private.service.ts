@@ -24,7 +24,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ReasoningRunStatus } from '@prisma/client';
+import {
+  ReasoningRunInventoryDisposition,
+  ReasoningRunStatus
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-definition.validator';
@@ -46,6 +49,11 @@ import { ReasoningRunExecutionError } from './reasoning-run-execution.errors';
 import { ReasoningRunInputFreezeService } from './reasoning-run-input-freeze.service';
 import { ReasoningRunInputFreezeError } from './reasoning-run-input-freeze.errors';
 import { verifyReasoningRunResultArtifact } from './reasoning-run-result-artifact.validator';
+import { verifyEvidenceUnitsArtifact } from './evidence-units-artifact.validator';
+import {
+  projectReasoningRunEvidence,
+  type FrozenInventorySourceView
+} from './reasoning-run-evidence.projection';
 
 /**
  * Columnas que la API necesita. Explícitas, no `select: *`: una columna futura
@@ -63,6 +71,46 @@ const RUN_SELECT = {
   startedAt: true,
   completedAt: true,
   failedAt: true
+} as const;
+
+/**
+ * El detalle además necesita el catálogo de EvidenceUnits — P2.4A.
+ *
+ * Se separa del `SELECT` de la lista a propósito: `evidenceUnitsArtifact` es el
+ * artefacto más grande de la fila, y el resumen no proyecta evidencia. Traerlo en
+ * `findMany` cargaría el catálogo completo de cada run del historial para después
+ * descartarlo.
+ */
+const RUN_DETAIL_SELECT = {
+  ...RUN_SELECT,
+  evidenceUnitsArtifact: true
+} as const;
+
+/**
+ * Columnas del inventario CONGELADO que la proyección puede ver, y la etiqueta de
+ * la credencial.
+ *
+ * Allowlist explícita, igual que el `SELECT` del run. NO entran acá
+ * `selectedAnalysisRunSourceId`, `artifactBlobSha256` ni `sourceSha256`: la
+ * proyección no los necesita y traerlos sería dejarlos a un `spread` de distancia
+ * de la respuesta.
+ *
+ * Del `Issuer` sale SÓLO `name`. Ni `did`, ni `legalName`, ni estado de
+ * autorización: son datos del emisor, no de la evidencia del holder.
+ */
+const INVENTORY_SELECT = {
+  runLocalSourceId: true,
+  documentEvidenceId: true,
+  textEvidenceId: true,
+  credential: {
+    select: {
+      id: true,
+      title: true,
+      type: true,
+      status: true,
+      issuer: { select: { name: true } }
+    }
+  }
 } as const;
 
 /**
@@ -145,7 +193,9 @@ export class ReasoningRunPrivateService {
     });
 
     return Object.freeze(
-      rows.map((row) => mapReasoningRunSummary(this.toVerifiedView(row)))
+      // El resumen no lleva evidencia, así que no se consulta el inventario: la
+      // lista sigue costando UNA sola consulta, sin importar cuántos runs haya.
+      rows.map((row) => mapReasoningRunSummary(this.toVerifiedView(row, null)))
     );
   }
 
@@ -153,8 +203,60 @@ export class ReasoningRunPrivateService {
     ownerUserId: string,
     reasoningRunId: string
   ): Promise<ReasoningRunDetailResponseDto> {
-    return mapReasoningRunDetail(
-      this.toVerifiedView(await this.requireOwnedRun(ownerUserId, reasoningRunId))
+    const row = await this.requireOwnedRun(ownerUserId, reasoningRunId);
+
+    // UNA consulta de inventario por detalle, y sólo si hay resultado que
+    // proyectar. No una por Requirement, no una por evidencia, no una por
+    // credencial: el `include` trae la etiqueta en el mismo viaje.
+    const inventory =
+      row.status === ReasoningRunStatus.completed
+        ? await this.frozenInventoryFor(row.id)
+        : null;
+
+    return mapReasoningRunDetail(this.toVerifiedView(row, inventory));
+  }
+
+  /**
+   * El inventario CONGELADO de este run, sólo las filas que entraron al
+   * grounding set.
+   *
+   * `disposition: INCLUDED` no es una optimización: son las únicas filas con
+   * `runLocalSourceId`, y proyectar una excluida significaría citar una fuente
+   * que el run decidió no usar.
+   */
+  private async frozenInventoryFor(
+    reasoningRunId: string
+  ): Promise<readonly FrozenInventorySourceView[]> {
+    const rows = await this.prisma.reasoningRunInventoryItem.findMany({
+      where: {
+        reasoningRunId,
+        disposition: ReasoningRunInventoryDisposition.INCLUDED
+      },
+      select: INVENTORY_SELECT
+    });
+
+    return rows.flatMap((row) =>
+      // Una fila INCLUDED sin `runLocalSourceId` no es citable por nadie: el
+      // catálogo referencia fuentes por ese id. No se inventa uno.
+      row.runLocalSourceId === null
+        ? []
+        : [
+            {
+              runLocalSourceId: row.runLocalSourceId,
+              documentEvidenceId: row.documentEvidenceId,
+              textEvidenceId: row.textEvidenceId,
+              credential:
+                row.credential === null
+                  ? null
+                  : {
+                      id: row.credential.id,
+                      title: row.credential.title,
+                      credentialType: row.credential.type,
+                      issuerName: row.credential.issuer.name,
+                      currentStatus: row.credential.status
+                    }
+            }
+          ]
     );
   }
 
@@ -209,7 +311,7 @@ export class ReasoningRunPrivateService {
   private async requireOwnedRun(ownerUserId: string, reasoningRunId: string) {
     const row = await this.prisma.reasoningRun.findFirst({
       where: { id: reasoningRunId, ownerUserId },
-      select: RUN_SELECT
+      select: RUN_DETAIL_SELECT
     });
     if (row === null) {
       failReasoningRunApi('REASONING_RUN_NOT_FOUND');
@@ -232,19 +334,24 @@ export class ReasoningRunPrivateService {
    * y no se devuelve un resultado a medias: un resultado parcialmente confiable
    * presentado como confiable es peor que no poder mostrarlo.
    */
-  private toVerifiedView(row: {
-    id: string;
-    objectiveId: string;
-    objectiveTitleSnapshot: string;
-    objectiveDefinitionSnapshot: unknown;
-    status: ReasoningRunStatus;
-    failureCode: string | null;
-    resultArtifact: unknown;
-    createdAt: Date;
-    startedAt: Date | null;
-    completedAt: Date | null;
-    failedAt: Date | null;
-  }): ReasoningRunView {
+  private toVerifiedView(
+    row: {
+      id: string;
+      objectiveId: string;
+      objectiveTitleSnapshot: string;
+      objectiveDefinitionSnapshot: unknown;
+      status: ReasoningRunStatus;
+      failureCode: string | null;
+      resultArtifact: unknown;
+      evidenceUnitsArtifact?: unknown;
+      createdAt: Date;
+      startedAt: Date | null;
+      completedAt: Date | null;
+      failedAt: Date | null;
+    },
+    /** `null` en la lista, que no proyecta evidencia. */
+    inventory: readonly FrozenInventorySourceView[] | null
+  ): ReasoningRunView {
     let definition;
     try {
       definition = verifyObjectiveDefinitionArtifact(row.objectiveDefinitionSnapshot);
@@ -272,6 +379,25 @@ export class ReasoningRunPrivateService {
       }
     }
 
+    // --- P2.4A: proyección de evidencia -------------------------------------
+    //
+    // Sólo cuando hay resultado Y se pidió el detalle. Falla CERRADO por el mismo
+    // camino que el resto de la verificación de historia: si el catálogo no
+    // verifica, o una cita no resuelve contra el inventario congelado, no se
+    // muestra un resultado con menos respaldo del que el run encontró.
+    let evidence = null;
+    if (result !== null && inventory !== null) {
+      try {
+        evidence = projectReasoningRunEvidence(
+          result.requirementResults,
+          verifyEvidenceUnitsArtifact(row.evidenceUnitsArtifact),
+          inventory
+        );
+      } catch {
+        failReasoningRunApi('REASONING_RUN_HISTORY_UNREADABLE');
+      }
+    }
+
     return {
       id: row.id,
       objectiveId: row.objectiveId,
@@ -283,7 +409,8 @@ export class ReasoningRunPrivateService {
       completedAt: row.completedAt,
       failedAt: row.failedAt,
       definition,
-      result
+      result,
+      evidence
     };
   }
 

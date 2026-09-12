@@ -44,7 +44,7 @@ export interface ProductStageIdentity {
 /** Etapa 1 — clasificación evidence-blind de los Requirements confirmados. */
 export const OBJECTIVE_ANALYSIS_STAGE_IDENTITY: ProductStageIdentity = {
   artifactSchemaVersion: OBJECTIVE_ANALYSIS_SCHEMA_VERSION,
-  promptVersion: 'product_objective_analysis_v1',
+  promptVersion: 'product_objective_analysis_v2',
   adapterVersion: 'product_objective_analysis_adapter_v1'
 } as const;
 
@@ -55,11 +55,24 @@ export const EVIDENCE_UNITS_STAGE_IDENTITY: ProductStageIdentity = {
   adapterVersion: 'product_evidence_units_adapter_v1'
 } as const;
 
-/** Etapa 3 — razonamiento contextual unificado. F3.5 importa esto. */
+/**
+ * Etapa 3 — razonamiento contextual unificado. F3.5 importa esto.
+ *
+ * v2 — P2.4. El prompt y el adapter cambiaron de forma material: la base de una
+ * facet dejó de ser una cita que el modelo escribe y pasó a ser una POSICIÓN que
+ * el modelo elige sobre el Requirement tokenizado, con el servidor recortando el
+ * texto. Sostener `v1` sobre dos prompts distintos rompería la promesa del plan
+ * congelado —que dice exactamente qué se ejecutó— y dejaría runs históricos
+ * declarando una identidad que ya no existe.
+ *
+ * La tarea semántica NO cambió: mismas relations, mismas facets, mismos estados
+ * finales, misma prohibición de emitir `finalState`. Cambió cómo se ancla una
+ * cita, no qué se razona.
+ */
 export const CONTEXTUAL_REASONING_STAGE_IDENTITY: ProductStageIdentity = {
   artifactSchemaVersion: REASONING_RUN_RESULT_SCHEMA_VERSION,
-  promptVersion: 'product_contextual_reasoning_v1',
-  adapterVersion: 'product_contextual_reasoning_adapter_v1'
+  promptVersion: 'product_contextual_reasoning_v2',
+  adapterVersion: 'product_contextual_reasoning_adapter_v2'
 } as const;
 
 /**
