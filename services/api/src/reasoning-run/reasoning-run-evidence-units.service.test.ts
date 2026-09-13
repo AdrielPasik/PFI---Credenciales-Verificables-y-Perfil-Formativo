@@ -881,3 +881,182 @@ test('los errores no filtran texto canonico ni excerpts', async (context) => {
   assert.ok(!error.message.includes('Curso de APIs REST'));
   assert.equal(error.runLocalSourceId, 'src_01');
 });
+
+// ---------------------------------------------------------------------------
+// Marco de direccionamiento de los segmentos — P2.4 / F3.4
+// ---------------------------------------------------------------------------
+
+const PAGE_ONE = 'Pagina uno del documento.';
+const PAGE_TWO = 'Pagina dos del documento.';
+const PDF_CANONICAL = `${PAGE_ONE}\n\n${PAGE_TWO}`;
+
+/**
+ * Artifact de PDF de DOS paginas, con el direccionamiento normativo de F0:
+ * cada segmento es relativo A SU PAGINA. El de la pagina 2 arranca en 0 aunque
+ * su texto viva en el offset 27 del documento.
+ */
+function pdfExtractionArtifact(): Record<string, unknown> {
+  return withFingerprint({
+    schemaVersion: 'source_extraction_v1',
+    sourceType: 'PDF_DOCUMENT',
+    source: { documentEvidenceId: 'de_1', sourceSha256: SOURCE_SHA, storageKey: 'k/1.pdf' },
+    extractionIdentity: {
+      schemaVersion: 'source_extraction_v1',
+      implementationVersion: 'test',
+      parserProfile: 'PDFPLUMBER',
+      dependencyFingerprint: 'b'.repeat(64)
+    },
+    sourceNormalizationApplied: 'NONE',
+    offsetUnit: 'UNICODE_CODE_POINT',
+    coverageStatus: 'FULL',
+    pages: [
+      {
+        pageIndex: 0,
+        pageNumber: 1,
+        canonicalText: PAGE_ONE,
+        pageOffsetStart: 0,
+        pageOffsetEnd: PAGE_ONE.length,
+        pageObservationStatus: 'EXTRACTED'
+      },
+      {
+        pageIndex: 1,
+        pageNumber: 2,
+        canonicalText: PAGE_TWO,
+        pageOffsetStart: PAGE_ONE.length + 2,
+        pageOffsetEnd: PAGE_ONE.length + 2 + PAGE_TWO.length,
+        pageObservationStatus: 'EXTRACTED'
+      }
+    ],
+    documentCanonicalText: PDF_CANONICAL,
+    artifactContentFingerprint: '0'.repeat(64),
+    segments: [
+      {
+        segmentId: `p0:0-${PAGE_ONE.length}`,
+        pageIndex: 0,
+        charStart: 0,
+        charEnd: PAGE_ONE.length,
+        exactExcerpt: PAGE_ONE
+      },
+      {
+        segmentId: `p1:0-${PAGE_TWO.length}`,
+        pageIndex: 1,
+        charStart: 0,
+        charEnd: PAGE_TWO.length,
+        exactExcerpt: PAGE_TWO
+      }
+    ],
+    diagnostics: []
+  });
+}
+
+/**
+ * Catalogo que corresponde al PDF de dos paginas.
+ *
+ * `sourceTrace` va en coordenadas del DOCUMENTO —27..52 para la pagina 2—,
+ * que es lo que `evidence_units_v1` persiste y lo que el ai-service deriva
+ * despues de resolver el contenedor. El `segmentId` sigue siendo relativo.
+ */
+function pdfEnvelope(): any {
+  return envelope(
+    catalogArtifact([
+      evidenceUnit({
+        sourceTrace: {
+          segmentId: `p1:0-${PAGE_TWO.length}`,
+          pageNumber: 2,
+          charStart: PAGE_ONE.length + 2,
+          charEnd: PAGE_ONE.length + 2 + PAGE_TWO.length,
+          exactExcerpt: PAGE_TWO
+        }
+      })
+    ])
+  );
+}
+
+function pdfSlots() {
+  const json = canonicalJson(pdfExtractionArtifact());
+  const blobSha = sha256(json);
+  return {
+    extractionSlots: {
+      [ANALYSIS_RUN_SOURCE_ID]: {
+        extractionArtifactCanonicalJson: json,
+        artifactBlobSha256: blobSha,
+        extractionDerivationTrust: 'PRIMARY_EXTRACTION'
+      }
+    },
+    inventory: [
+      {
+        disposition: 'INCLUDED',
+        runLocalSourceId: 'src_01',
+        sourceSha256: SOURCE_SHA,
+        selectedAnalysisRunSourceId: ANALYSIS_RUN_SOURCE_ID,
+        artifactBlobSha256: blobSha
+      }
+    ]
+  };
+}
+
+/**
+ * `pageIndex` es el CONTENEDOR de `charStart`/`charEnd`, no un adorno.
+ *
+ * Sin el, un segmento de la pagina 2 dice `charStart: 0` y quien lo mida contra
+ * el canonico del documento mide otra cosa. Eso fue exactamente el 422 que
+ * rompio el primer run remoto que incluyo un PDF.
+ */
+test('el transporte lleva el contenedor de cada segmento de PDF', async (context) => {
+  withModel(context);
+  const { prisma } = fakePrisma(pdfSlots());
+  const { ai, calls } = fakeAi({ response: pdfEnvelope() });
+
+  await service(prisma, ai).ensureEvidenceUnitsForRun(RUN_ID);
+
+  const sent = calls[0].sources[0].segments;
+  assert.deepEqual(
+    sent.map((segment: any) => segment.pageIndex),
+    [0, 1],
+    'cada segmento declara la pagina a la que esta referido'
+  );
+
+  // COPIADOS, no trasladados. Si NestJS sumara `pageOffsetStart` aca, el
+  // segundo diria 27 mientras su `segmentId` seguiria diciendo `p1:0-25`:
+  // identidad y coordenadas en marcos distintos.
+  assert.deepEqual(
+    sent.map((segment: any) => [segment.charStart, segment.charEnd]),
+    [
+      [0, PAGE_ONE.length],
+      [0, PAGE_TWO.length]
+    ]
+  );
+  assert.deepEqual(
+    sent.map((segment: any) => segment.segmentId),
+    [`p0:0-${PAGE_ONE.length}`, `p1:0-${PAGE_TWO.length}`]
+  );
+});
+
+test('una fuente de texto viaja sin pagina', async (context) => {
+  withModel(context);
+  const { prisma } = fakePrisma();
+  const { ai, calls } = fakeAi();
+
+  await service(prisma, ai).ensureEvidenceUnitsForRun(RUN_ID);
+
+  for (const segment of calls[0].sources[0].segments) {
+    assert.equal(segment.pageIndex, null, 'TEXT direcciona contra el documento');
+  }
+});
+
+test('el segmento sigue sin exponer identidad de nuestra base', async (context) => {
+  // El campo nuevo no puede convertirse en un canal para topologia interna.
+  withModel(context);
+  const { prisma } = fakePrisma(pdfSlots());
+  const { ai, calls } = fakeAi({ response: pdfEnvelope() });
+
+  await service(prisma, ai).ensureEvidenceUnitsForRun(RUN_ID);
+
+  assert.deepEqual(Object.keys(calls[0].sources[0].segments[0]).sort(), [
+    'charEnd',
+    'charStart',
+    'exactExcerpt',
+    'pageIndex',
+    'segmentId'
+  ]);
+});

@@ -139,15 +139,52 @@ function verifySegment(
     });
   }
 
-  if (charStart < segment.charStart || charEnd > segment.charEnd) {
+  // EL SEGMENTO SE TRAE A COORDENADAS DEL DOCUMENTO ANTES DE COMPARAR.
+  //
+  // `charStart`/`charEnd` del trace son del documento entero; los del segmento
+  // son RELATIVOS A SU CONTENEDOR —la página para PDF, el documento para TEXT—,
+  // que es lo que F0 fijó como normativo. Compararlos crudos solo acierta en
+  // TEXT y en la primera página: un segmento de la página 2 declara
+  // `charStart: 0`, así que cualquier cita real de esa página parecía salirse
+  // de su segmento. Es la otra mitad del defecto que rompió el primer run
+  // remoto con un PDF multipágina.
+  const container = containerOffset(artifact, segment.pageIndex);
+  const segmentStart = container + segment.charStart;
+  const segmentEnd = container + segment.charEnd;
+
+  if (charStart < segmentStart || charEnd > segmentEnd) {
     // Un span que se sale de su segmento cruzaría un límite estructural que la
     // fuente no tiene: el segmento dejaría de describir dónde está la cita.
     failArtifact('SPAN_INVALID', {
       invariant: 'span_must_be_contained_in_its_declared_segment',
       path: `${path}.sourceTrace.segmentId`,
-      observed: `${charStart}:${charEnd}!⊆${segment.charStart}:${segment.charEnd}`
+      observed: `${charStart}:${charEnd}!⊆${segmentStart}:${segmentEnd}`
     });
   }
+}
+
+/**
+ * Dónde empieza, dentro del canónico del documento, el contenedor del segmento.
+ *
+ * `pageIndex === null` es TEXT: el contenedor ES el documento, así que el
+ * desplazamiento es 0. Para PDF es el inicio de su página. Una página declarada
+ * que no existe no se interpreta —no se asume la 0—: se falla.
+ */
+function containerOffset(
+  artifact: VerifiedSourceExtractionArtifact,
+  pageIndex: number | null
+): number {
+  if (pageIndex === null) return 0;
+
+  const page = artifact.pages.find((item) => item.pageIndex === pageIndex);
+  if (!page) {
+    failArtifact('SPAN_INVALID', {
+      invariant: 'segment_page_must_exist_in_the_referenced_source',
+      path: 'sourceTrace.segmentId',
+      observed: `pageIndex=${pageIndex}`
+    });
+  }
+  return page.pageOffsetStart;
 }
 
 /**

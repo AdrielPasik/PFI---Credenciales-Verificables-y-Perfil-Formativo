@@ -301,8 +301,13 @@ export class ReasoningRunEvidenceUnitsService {
       sourceSha256: source.sourceSha256,
       coverageStatus: artifact.coverageStatus,
       canonicalText: artifact.documentCanonicalText,
+      // `pageIndex` viaja porque es el CONTENEDOR de `charStart`/`charEnd`. Se
+      // copia del artifact verificado; no se convierte a coordenadas globales
+      // aca. Traducirlas dejaria un `segmentId` `p1:0-55` junto a offsets
+      // globales, o sea identidad y coordenadas en marcos distintos.
       segments: artifact.segments.map((segment) => ({
         segmentId: segment.segmentId,
+        pageIndex: segment.pageIndex,
         charStart: segment.charStart,
         charEnd: segment.charEnd,
         exactExcerpt: segment.exactExcerpt

@@ -355,6 +355,16 @@ export function readObjectiveProposalErrorCode(
 
 export interface AnalyzeEvidenceUnitsSegment {
   readonly segmentId: string;
+  /**
+   * Pagina a la que estan referidas `charStart`/`charEnd`. `null` en TEXT.
+   *
+   * ES EL CONTENEDOR, NO UN ADORNO. F0 direcciona relativo al contenedor: la
+   * pagina para PDF, el documento entero para TEXT. Sin este campo, un segmento
+   * de la pagina 2 dice `charStart: 0` y quien lo lea contra el canonico del
+   * documento mide otra cosa. Viaja tal cual sale del artifact congelado; las
+   * coordenadas NO se traducen aca.
+   */
+  readonly pageIndex: number | null;
   readonly charStart: number;
   readonly charEnd: number;
   readonly exactExcerpt: string;

@@ -96,6 +96,38 @@ def assert_plan_matches_local_configuration(plan: StageExecutionPlan) -> None:
         raise ExecutionPlanMismatchError("model_mismatch")
 
 
+#: Centinela: el `segmentId` no sigue la gramatica de F0 y no hay `pageIndex`.
+#: Se distingue de `None` —que es TEXT y es un contenedor valido— a proposito.
+_UNRESOLVED_PAGE = -1
+
+
+def resolve_segment_page_index(segment: dict[str, Any]) -> int | None:
+    """El contenedor del segmento: la pagina para PDF, `None` para TEXT.
+
+    PUENTE DE DESPLIEGUE ESCALONADO. Una API anterior no manda `pageIndex`, asi
+    que cuando falta se deriva de la gramatica del `segmentId`, que F0 hace
+    AUTORITATIVA y deterministica: el propio productor la impone en
+    `_assert_segments` y falla cerrado si no coincide.
+
+        TEXT  ->  d:{charStart}-{charEnd}
+        PDF   ->  p{pageIndex}:{charStart}-{charEnd}
+
+    Las dos formas son disjuntas, asi que no hay ambiguedad. Un `segmentId` que
+    no encaje en ninguna NO se interpreta: se rechaza. NUNCA se asume la pagina
+    0 — eso es exactamente el defecto que este modulo existe para cerrar.
+    """
+    declared = segment.get("pageIndex")
+    if declared is not None:
+        return int(declared)
+
+    head = segment["segmentId"].split(":", 1)[0]
+    if head == "d":
+        return None
+    if head.startswith("p") and head[1:].isdigit():
+        return int(head[1:])
+    return _UNRESOLVED_PAGE
+
+
 def assert_grounding_set_usable(sources: list[dict[str, Any]]) -> None:
     """Verifica el material de grounding COMPLETO antes de la primera llamada.
 
@@ -104,6 +136,12 @@ def assert_grounding_set_usable(sources: list[dict[str, Any]]) -> None:
     que llego tenga la forma que el grounding necesita, porque anclar contra un
     canonico ausente o contra segmentos fuera de rango produciria coordenadas sin
     sentido.
+
+    EL CONTENEDOR SE RESUELVE, NO SE ASUME. Hasta P2.4 esta funcion comparaba
+    todo contra el canonico del DOCUMENTO, lo cual solo acierta para TEXT y para
+    PDF de una pagina. Un segmento de la pagina 2 dice `charStart: 0`, y medirlo
+    contra el documento entero rechazaba material perfectamente valido: es el 422
+    que rompio el primer run remoto con un PDF multipagina.
     """
     seen: set[str] = set()
     for index, source in enumerate(sources):
@@ -126,22 +164,88 @@ def assert_grounding_set_usable(sources: list[dict[str, Any]]) -> None:
         if not isinstance(source["sourceSha256"], str) or not source["sourceSha256"]:
             raise GroundingInputError(f"grounding_source_sha_invalid:{source_id}")
 
+        # Las paginas se validan ANTES que los segmentos: son el contenedor
+        # contra el que se van a medir, y medir contra una pagina malformada
+        # seria peor que rechazarla.
+        for page in source["pages"]:
+            if not isinstance(page, dict) or not _PAGE_KEYS.issubset(page):
+                raise GroundingInputError(f"grounding_page_shape_invalid:{source_id}")
+            if not isinstance(page["pageOffsetStart"], int):
+                raise GroundingInputError(f"grounding_page_offset_invalid:{source_id}")
+
+        # Indexado por POSICION en el array. F0 congela `pageNumber == pageIndex
+        # + 1`, asi que la posicion ES el `pageIndex`; se usa eso y no una
+        # aritmetica sobre `pageNumber`, que seria una segunda fuente de verdad.
+        page_offsets = [page["pageOffsetStart"] for page in source["pages"]]
+
         for segment in source["segments"]:
             if not isinstance(segment, dict) or not _SEGMENT_KEYS.issubset(segment):
                 raise GroundingInputError(f"grounding_segment_shape_invalid:{source_id}")
             start, end = segment["charStart"], segment["charEnd"]
             if not isinstance(start, int) or not isinstance(end, int):
                 raise GroundingInputError(f"grounding_segment_offsets_invalid:{source_id}")
-            if not 0 <= start <= end <= len(canonical):
+
+            page_index = resolve_segment_page_index(segment)
+            if page_index == _UNRESOLVED_PAGE:
+                raise GroundingInputError(
+                    f"grounding_segment_page_unresolvable:{source_id}"
+                )
+            if page_index is None:
+                offset = 0
+            else:
+                if not 0 <= page_index < len(page_offsets):
+                    raise GroundingInputError(
+                        f"grounding_segment_page_out_of_range:{source_id}"
+                    )
+                offset = page_offsets[page_index]
+
+            # Coordenada absoluta DERIVADA. `pageOffsetStart` es exactamente
+            # donde empieza el texto de esa pagina dentro del canonico del
+            # documento, asi que la suma es aritmetica, no una heuristica.
+            absolute_start, absolute_end = offset + start, offset + end
+            if not 0 <= absolute_start <= absolute_end <= len(canonical):
                 raise GroundingInputError(f"grounding_segment_out_of_range:{source_id}")
-            if canonical[start:end] != segment["exactExcerpt"]:
-                # El segmento no describe el canonico que vino con el: uno de los
-                # dos esta corrupto, y anclar contra cualquiera seria adivinar.
+            if canonical[absolute_start:absolute_end] != segment["exactExcerpt"]:
+                # El segmento no describe el contenedor que vino con el: uno de
+                # los dos esta corrupto, y anclar contra cualquiera seria adivinar.
                 raise GroundingInputError(f"grounding_segment_excerpt_mismatch:{source_id}")
 
-        for page in source["pages"]:
-            if not isinstance(page, dict) or not _PAGE_KEYS.issubset(page):
-                raise GroundingInputError(f"grounding_page_shape_invalid:{source_id}")
+
+def to_document_absolute_sources(sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Reexpresa los segmentos en coordenadas del DOCUMENTO, una sola vez.
+
+    POR QUE ACA Y NO EN NESTJS. Todo el resto de la etapa —el aligner, el scope
+    del segmento propuesto, la derivacion de `pageNumber` y el `sourceTrace` que
+    se persiste— trabaja sobre el canonico del documento entero, y eso es
+    correcto: la cita se busca en el documento completo. Lo unico que faltaba era
+    traducir el marco UNA vez, en el borde, con la autoridad de F0 a mano.
+
+    Hacerlo en NestJS habria puesto en el cable un `segmentId` `p1:0-55` junto a
+    offsets globales: identidad y coordenadas en marcos distintos.
+
+    `segmentId` NO se toca. Sigue siendo la direccion relativa al contenedor, y
+    es lo que el proveedor cita.
+
+    Precondicion: `assert_grounding_set_usable` ya paso. Por eso aca no se vuelve
+    a validar nada.
+    """
+    absolute: list[dict[str, Any]] = []
+    for source in sources:
+        page_offsets = [page["pageOffsetStart"] for page in source["pages"]]
+        segments = []
+        for segment in source["segments"]:
+            page_index = resolve_segment_page_index(segment)
+            offset = 0 if page_index is None else page_offsets[page_index]
+            segments.append(
+                {
+                    "segmentId": segment["segmentId"],
+                    "charStart": segment["charStart"] + offset,
+                    "charEnd": segment["charEnd"] + offset,
+                    "exactExcerpt": segment["exactExcerpt"],
+                }
+            )
+        absolute.append({**source, "segments": segments})
+    return absolute
 
 
 def _verify_reported_model(plan: StageExecutionPlan, reported: str | None) -> str:
@@ -233,6 +337,10 @@ def run_evidence_units(
     """
     assert_plan_matches_local_configuration(plan)
     assert_grounding_set_usable(sources)
+    # A partir de aca la etapa trabaja en coordenadas del DOCUMENTO. La
+    # traduccion ocurre UNA vez, aca, y no se propaga hacia atras: `sources`
+    # sigue siendo lo que mando NestJS.
+    sources = to_document_absolute_sources(sources)
 
     execution: dict[str, Any] = {
         "artifactSchemaVersion": ARTIFACT_SCHEMA_VERSION,

@@ -182,11 +182,22 @@ class EvidenceUnitsStagePlan(BaseModel):
 
 
 class EvidenceUnitsSegment(BaseModel):
-    """Segmento del artifact `source_extraction_v1` verificado."""
+    """Segmento del artifact `source_extraction_v1` verificado.
+
+    `charStart`/`charEnd` son RELATIVOS A SU CONTENEDOR, que es lo que F0 fijo
+    como normativo: la pagina para PDF, el documento entero para TEXT. Una
+    direccion relativa a la pagina sobrevive cualquier cambio en la convencion
+    de union; una global no.
+
+    `pageIndex` es ese contenedor. Es opcional SOLO como puente de despliegue
+    escalonado —una API vieja no lo manda—; cuando falta se deriva de la
+    gramatica autoritativa del `segmentId`, nunca se asume la pagina 0.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     segmentId: str = Field(min_length=1)
+    pageIndex: int | None = Field(default=None, ge=0)
     charStart: int = Field(ge=0)
     charEnd: int = Field(ge=0)
     exactExcerpt: str
