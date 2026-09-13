@@ -19,19 +19,25 @@ import {
 // Dobles
 // ---------------------------------------------------------------------------
 
-const EMPTY_SLOT = {
+interface Slot {
+  extractionArtifactCanonicalJson: string | null;
+  artifactBlobSha256: string | null;
+  extractionDerivationTrust: string | null;
+}
+
+const EMPTY_SLOT: Slot = {
   extractionArtifactCanonicalJson: null,
   artifactBlobSha256: null,
   extractionDerivationTrust: null
 };
 
-const COMPLETE_SLOT = {
+const COMPLETE_SLOT: Slot = {
   extractionArtifactCanonicalJson: '{"schemaVersion":"x"}',
   artifactBlobSha256: 'a'.repeat(64),
   extractionDerivationTrust: 'AUTHORITATIVE_CONTENT_MATCHED'
 };
 
-const PARTIAL_SLOT = {
+const PARTIAL_SLOT: Slot = {
   extractionArtifactCanonicalJson: '{"schemaVersion":"x"}',
   artifactBlobSha256: null,
   extractionDerivationTrust: null
@@ -45,7 +51,7 @@ interface Row {
   extractionDerivationTrust: string | null;
 }
 
-function row(id: string, sourceType: string, slot: typeof EMPTY_SLOT): Row {
+function row(id: string, sourceType: string, slot: Slot): Row {
   return { id, sourceType, ...slot };
 }
 
