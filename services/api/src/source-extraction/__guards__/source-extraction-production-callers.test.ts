@@ -319,9 +319,12 @@ test('lifecycle: the three extraction services are providers, never exports', ()
   }
 });
 
-test('lifecycle: the execution service is the only one importing the orchestrator', () => {
+test('lifecycle: only the declared files import the orchestrator', () => {
   // Complementa el guard de llamadas: tampoco basta con no invocarlo si alguien
   // lo importa para envolverlo o re-exportarlo desde otro sitio.
+  //
+  // P2.4 suma el backfill de operador. La lista sigue siendo CERRADA y escrita a
+  // mano: el modulo que lo registra y los dos servicios que lo usan. Nada mas.
   const importers = productionSourceFiles().filter((file) => {
     const code = readFileSync(join(SRC, file), 'utf8');
     const source = ts.createSourceFile(file, code, ts.ScriptTarget.Latest, true);
@@ -338,7 +341,10 @@ test('lifecycle: the execution service is the only one importing the orchestrato
     return imports;
   });
 
-  assert.deepEqual(importers.sort(), [LIFECYCLE_MODULE, LIFECYCLE_CALLER].sort());
+  assert.deepEqual(
+    importers.sort(),
+    [LIFECYCLE_MODULE, LIFECYCLE_CALLER, MAINTENANCE_CALLER].sort()
+  );
 });
 
 // ---------------------------------------------------------------------------
