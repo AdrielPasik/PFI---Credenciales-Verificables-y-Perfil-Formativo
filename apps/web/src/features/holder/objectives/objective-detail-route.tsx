@@ -28,6 +28,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
+import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { ObjectiveReasoningPanel } from '@/features/holder/objectives/objective-reasoning-panel';
 import { getMyObjectiveRequest } from '@/lib/api/objectives-api';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
@@ -70,15 +71,13 @@ export function ObjectiveDetailRoute() {
 
   return (
     <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-10">
-      <nav aria-label="Ubicacion" className="text-sm text-text-muted">
-        <Link href="/wallet" className="underline underline-offset-2">
-          Mi perfil formativo
-        </Link>
-        <span aria-hidden="true"> / </span>
-        <Link href="/wallet/objectives" className="underline underline-offset-2">
-          Objetivos
-        </Link>
-      </nav>
+      <HolderBreadcrumbs
+        items={[
+          { label: 'Mi perfil formativo', href: '/wallet' },
+          { label: 'Objetivos', href: '/wallet/objectives' },
+          { label: state.status === 'ready' ? state.objective.title : 'Objetivo' }
+        ]}
+      />
 
       {state.status === 'loading' ? (
         <p className="text-sm text-text-muted">Cargando el objetivo...</p>
@@ -102,7 +101,7 @@ export function ObjectiveDetailRoute() {
 
       {state.status === 'ready' ? (
         <>
-          <header className="grid min-w-0 gap-3 border-b border-border-default pb-6">
+          <header className="grid min-w-0 gap-3 border-b border-border-default pb-7">
             <p className="text-sm font-semibold text-teal-700">
               {state.objective.objectiveTypeLabel}
             </p>
@@ -142,15 +141,15 @@ export function ObjectiveDetailRoute() {
                 que los dejaste.
               </p>
             </div>
-            <ol className="grid list-none gap-0">
+            <ol className="grid list-none gap-3">
               {state.objective.requirements.map((requirement, index) => (
                 <li
                   key={requirement.requirementId}
-                  className="grid min-w-0 gap-2 border-b border-border-default py-4 last:border-b-0"
+                  className="grid min-w-0 gap-2 rounded-card border border-border-default bg-surface p-4"
                 >
                   <div className="flex min-w-0 gap-3">
                     <span className="text-sm font-semibold text-text-muted">
-                      {index + 1}.
+                      {index + 1}
                     </span>
                     <p className="min-w-0 break-words leading-7 text-text-default">
                       {requirement.requirementText}

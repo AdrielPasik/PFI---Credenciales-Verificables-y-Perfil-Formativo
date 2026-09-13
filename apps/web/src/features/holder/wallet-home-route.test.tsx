@@ -80,7 +80,7 @@ describe('WalletHomeView', () => {
 
   it('uses neutral profile skills and human-readable quality flags', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Habilidades del perfil' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toBeTruthy();
     expect(screen.getByText(/Información parcial/)).toBeTruthy();
     expect(screen.queryByText(/proviene de esta credencial/i)).toBeNull();
   });
@@ -93,7 +93,7 @@ describe('WalletHomeView', () => {
 
   it('shows the declared-by-institutions section when emitted data is present', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Información declarada por instituciones' })).toBeTruthy();
+    expect(screen.getByText('Información declarada por instituciones')).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Habilidades declaradas' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Competencias declaradas' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Contenido adicional declarado' })).toBeTruthy();
@@ -104,7 +104,7 @@ describe('WalletHomeView', () => {
 
   it('hides the declared-by-institutions section when the three emitted arrays are empty', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
-    expect(screen.queryByRole('heading', { level: 2, name: 'Información declarada por instituciones' })).toBeNull();
+    expect(screen.queryByText('Información declarada por instituciones')).toBeNull();
   });
 
   it('shows only the blocks with data inside the declared-by-institutions section', () => {
@@ -117,8 +117,22 @@ describe('WalletHomeView', () => {
 
   it('keeps profile skills and declared-by-institutions skills visually separate', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
-    expect(screen.getByRole('heading', { level: 2, name: 'Habilidades del perfil' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Habilidades declaradas' })).toBeTruthy();
+  });
+
+  it('places objectives before credentials and profile taxonomy while keeping the detail available on demand', () => {
+    render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
+
+    const pageText = document.body.textContent ?? '';
+    expect(pageText.indexOf('Analizá tu trayectoria en contexto')).toBeLessThan(
+      pageText.indexOf('Tus credenciales')
+    );
+    expect(pageText.indexOf('Tus credenciales')).toBeLessThan(
+      pageText.indexOf('Áreas y capacidades')
+    );
+    const profileDetails = screen.getByText('Explorar el detalle del perfil').closest('details');
+    expect(profileDetails?.open).toBe(false);
   });
 
   it('never implies AI certified or built the profile from emitted institutional data', () => {
@@ -228,7 +242,7 @@ describe('WalletHomeView', () => {
     const profileManySkills = { ...profile, skills: manySkills };
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileManySkills }} credentialsState={credentialsReady} />);
     // Una sola tarjeta/heading para toda la lista, no una por skill.
-    expect(screen.getAllByRole('heading', { level: 2, name: 'Habilidades del perfil' })).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toHaveLength(1);
     expect(screen.getAllByText('Habilidad 0', { exact: false }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Emisor', { selector: 'span' }).length).toBe(10);
     expect(screen.getAllByText('IA', { selector: 'span' }).length).toBe(10);

@@ -53,9 +53,9 @@ export function RequirementReviewItem({
   const originLabel = item.origin === 'MANUAL' ? 'Agregado por vos' : 'Del objetivo';
 
   return (
-    <li className="grid gap-3 border-b border-border-default py-5 last:border-b-0">
+    <li className="grid min-w-0 gap-3 rounded-card border border-border-default bg-surface p-4 shadow-xs sm:p-5">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-semibold text-text-strong">{position}.</span>
+        <span className="text-sm font-semibold text-text-strong">Requisito {position}</span>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -94,7 +94,7 @@ export function RequirementReviewItem({
         aria-label={`Requisito ${position}`}
         aria-invalid={isBlank || undefined}
         aria-describedby={isBlank ? `${item.localKey}-blank` : undefined}
-        className="min-h-16 w-full"
+        className="min-h-20 w-full"
       />
       {isBlank ? (
         <p id={`${item.localKey}-blank`} className="text-xs text-status-error">
@@ -102,7 +102,7 @@ export function RequirementReviewItem({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-muted">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-control bg-surface-muted px-3 py-2 text-xs text-text-muted">
         <span>{originLabel}</span>
         {item.wasEverEdited ? <span aria-label="Editado">· Editado</span> : null}
         {item.isExactDuplicate ? <span>· Repetido</span> : null}

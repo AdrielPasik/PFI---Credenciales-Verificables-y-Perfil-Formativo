@@ -16,6 +16,7 @@ import { AnalysisRunService } from './analysis-run.service';
 import { AutomaticCourseTextAnalysisService } from './automatic-course-text-analysis.service';
 import { AutomaticDocumentAnalysisService } from './automatic-document-analysis.service';
 import { AutomaticProfileRebuildService } from './automatic-profile-rebuild.service';
+import { SourceExtractionBackfillService } from './source-extraction-backfill.service';
 import { IssuerAnalysisRunController } from './issuer-analysis-run.controller';
 import { IssuerAnalysisRunReadService } from './issuer-analysis-run-read.service';
 import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
@@ -64,6 +65,11 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
     // IA-Q1c: herramienta interna de backfill/reanalysis, sin controller
     // asociado -- no crea ningun endpoint HTTP nuevo.
     AnalysisRunBackfillService,
+    // P2.4: backfill del slot de extraccion F1 sobre filas ya existentes. Vive
+    // en ESTE modulo porque necesita el orquestador, que no se exporta —y no se
+    // exporta a proposito—. Tampoco tiene controller: es herramienta de
+    // operador, no capacidad de producto, y no debe poder dispararse por HTTP.
+    SourceExtractionBackfillService,
     IssuerAnalysisRunReadService,
     IssuerAnalysisRunService
   ],

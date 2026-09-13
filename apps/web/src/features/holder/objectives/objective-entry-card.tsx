@@ -22,7 +22,7 @@ export function ObjectiveEntryCard() {
   return (
     <section
       aria-labelledby="wallet-objectives-title"
-      className="grid min-w-0 gap-5 border-t border-border-default pt-8"
+      className="grid min-w-0 gap-5 rounded-card border border-brand-700/20 bg-surface p-5 shadow-xs sm:p-7"
     >
       <div className="min-w-0 max-w-2xl">
         <p className="text-sm font-semibold text-teal-700">Objetivos</p>
@@ -30,12 +30,11 @@ export function ObjectiveEntryCard() {
           id="wallet-objectives-title"
           className="mt-1 text-2xl font-bold tracking-tight text-text-strong"
         >
-          Prepara un objetivo para analizar tu trayectoria
+          Analizá tu trayectoria en contexto
         </h2>
         <p className="mt-2 text-sm leading-6 text-text-muted">
-          Pega una busqueda laboral, una convocatoria o los requisitos de un programa.
-          Scope va a identificar que pide para que puedas revisarlo antes de comparar
-          tu trayectoria.
+          Usá una búsqueda laboral, beca, admisión u otro objetivo para entender qué
+          podés justificar con la evidencia de tus credenciales.
         </p>
       </div>
       <div className="flex flex-wrap gap-3">

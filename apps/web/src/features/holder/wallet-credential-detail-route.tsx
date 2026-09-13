@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { ContractDiagnostic, useContractDebugEnabled } from '@/features/holder/contract-diagnostic';
 import { HolderDeclaredTextList, HolderTaxonomyList } from '@/features/holder/holder-content-lists';
-import { WalletRouteBoundary } from '@/features/holder/wallet-route-boundary';
 import { getMyCredentialRequest } from '@/lib/api/holder-api';
 import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
@@ -20,7 +19,7 @@ import { LoadingState } from './wallet-home-route';
 import { PublicSharePanel } from './public-share-panel';
 
 export function WalletCredentialDetailRoute() {
-  return <WalletRouteBoundary><WalletCredentialDetailContent /></WalletRouteBoundary>;
+  return <WalletCredentialDetailContent />;
 }
 
 interface HolderCredentialDetailError {

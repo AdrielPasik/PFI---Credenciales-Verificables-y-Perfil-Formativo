@@ -9,11 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { HolderCredentialCard } from '@/features/holder/holder-credential-card';
 import { ContractDiagnostic, useContractDebugEnabled } from '@/features/holder/contract-diagnostic';
-import { HolderProfileEmptyPanel, HolderProfilePanel } from '@/features/holder/holder-profile-panel';
+import { HolderProfileDetails, HolderProfileEmptyPanel, HolderProfileSummary } from '@/features/holder/holder-profile-panel';
 import { ObjectiveEntryCard } from '@/features/holder/objectives/objective-entry-card';
 import { ProfileRebuildAction } from '@/features/holder/profile-rebuild-action';
 import { ProfileShareAction } from '@/features/holder/profile-share-action';
-import { WalletRouteBoundary } from '@/features/holder/wallet-route-boundary';
 import { getMyCredentialsRequest, getMyCurrentProfileRequest } from '@/lib/api/holder-api';
 import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
@@ -31,7 +30,7 @@ export type HolderCredentialsLoadState =
   | { status: 'error'; message: string };
 
 export function WalletHomeRoute() {
-  return <WalletRouteBoundary><WalletHomeContent /></WalletRouteBoundary>;
+  return <WalletHomeContent />;
 }
 
 export function WalletHomeContent() {
@@ -99,13 +98,13 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
         {profileState.status === 'ready' && showProfileShare ? <>{rebuildAction ? <div data-testid="profile-rebuild-header-action" className="order-2 min-w-0 lg:col-start-3 lg:row-start-1">{rebuildAction}</div> : null}<ProfileShareAction /></> : null}
       </header>
       {profileState.status === 'loading' ? <LoadingState label="Cargando tu perfil formativo" /> : null}
-      {profileState.status === 'ready' ? <HolderProfilePanel profile={profileState.profile} /> : null}
+      {profileState.status === 'ready' ? <HolderProfileSummary profile={profileState.profile} /> : null}
       {profileState.status === 'empty' ? <HolderProfileEmptyPanel action={canOfferManualRebuild ? rebuildAction : null} /> : null}
       {profileState.status === 'error' ? <div className="grid gap-4"><FeedbackAlert variant="warning" title="No pudimos cargar tu perfil formativo">Tus credenciales siguen disponibles. Podés volver a intentar ahora.{contractDebug && profileState.diagnostic ? <ContractDiagnostic diagnostic={profileState.diagnostic} /> : null}</FeedbackAlert><div className="flex flex-wrap gap-3">{onRetryProfile ? <Button type="button" variant="secondary" onClick={onRetryProfile}>Reintentar</Button> : null}{canOfferManualRebuild ? rebuildAction : null}</div></div> : null}
       <ObjectiveEntryCard />
       <section aria-labelledby="wallet-credentials-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
         <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 max-w-2xl"><p className="text-sm font-semibold text-teal-700">Tu biblioteca</p><h2 id="wallet-credentials-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Tus credenciales</h2><p className="mt-2 text-sm leading-6 text-text-muted">Consultá las credenciales formativas disponibles en tu espacio personal.</p></div>
+          <div className="min-w-0 max-w-2xl"><p className="text-sm font-semibold text-teal-700">Base de evidencia</p><h2 id="wallet-credentials-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Tus credenciales</h2><p className="mt-2 text-sm leading-6 text-text-muted">Estas credenciales forman la base de evidencia de tu trayectoria.</p></div>
           <Button asChild variant="secondary"><Link href="/wallet/credentials">Ver todas <ArrowRight aria-hidden="true" /></Link></Button>
         </div>
         {credentialsState.status === 'loading' ? <LoadingState label="Cargando credenciales" /> : null}
@@ -113,6 +112,7 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
         {credentialsState.status === 'ready' && credentials.length === 0 ? <EmptyCredentials /> : null}
         {credentialsState.status === 'ready' && credentials.length > 0 ? <><div className="grid min-w-0 gap-3 sm:grid-cols-3"><SummaryCard label="Emitidas" value={issued.length} /><SummaryCard label="Revocadas" value={revoked.length} /><SummaryCard label="Con análisis disponible" value={credentials.filter((credential) => credential.hasAnalysis).length} /></div><div className="grid min-w-0 gap-5 md:grid-cols-2">{credentials.slice(0, 2).map((credential) => <HolderCredentialCard key={credential.credentialReference} credential={credential} />)}</div></> : null}
       </section>
+      {profileState.status === 'ready' ? <HolderProfileDetails profile={profileState.profile} /> : null}
     </div>
   );
 }

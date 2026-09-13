@@ -86,6 +86,15 @@ beforeEach(() => {
 });
 
 describe('lista de objetivos', () => {
+  it('keeps objectives inside the Holder navigation hierarchy', async () => {
+    render(<ObjectivesListRoute />);
+
+    await screen.findByText('Backend Engineer');
+    expect(screen.getByRole('navigation', { name: 'Ubicacion' })).toBeTruthy();
+    expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
+    expect(screen.getAllByText('Objetivos').length).toBeGreaterThan(0);
+  });
+
   it('muestra solo lo que trae el contrato de resumen', async () => {
     render(<ObjectivesListRoute />);
 
@@ -113,7 +122,7 @@ describe('lista de objetivos', () => {
     mocks.list.mockResolvedValue([]);
     render(<ObjectivesListRoute />);
 
-    expect(await screen.findByText('Todavia no analizaste ningun objetivo.')).toBeTruthy();
+    expect(await screen.findByText('Todavía no analizaste un objetivo.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Analizar un objetivo' })).toBeTruthy();
   });
 

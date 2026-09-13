@@ -11,7 +11,6 @@
  * El snapshot analizado y el borrador viven aca y mueren juntos.
  */
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
@@ -21,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { ObjectiveSourceDialog } from '@/features/holder/objectives/objective-source-dialog';
 import { RequirementReviewItem } from '@/features/holder/objectives/requirement-review-item';
 import {
@@ -205,16 +205,14 @@ export function ObjectiveIntakeRoute() {
   const nearLimit = codePoints > MAX_OBJECTIVE_CODE_POINTS * 0.8;
 
   return (
-    <div className="grid min-w-0 gap-8">
-      <nav aria-label="Ubicacion" className="text-sm text-text-muted">
-        <Link href="/wallet" className="underline underline-offset-2">
-          Mi perfil formativo
-        </Link>
-        <span aria-hidden="true"> / </span>
-        <Link href="/wallet/objectives" className="underline underline-offset-2">
-          Objetivos
-        </Link>
-      </nav>
+    <div className="mx-auto grid w-full min-w-0 max-w-5xl gap-8">
+      <HolderBreadcrumbs
+        items={[
+          { label: 'Mi perfil formativo', href: '/wallet' },
+          { label: 'Objetivos', href: '/wallet/objectives' },
+          { label: reviewActive ? 'Revisar requisitos' : 'Nuevo objetivo' }
+        ]}
+      />
 
       <p aria-live="polite" className="sr-only">
         {liveMessage}
@@ -237,8 +235,8 @@ export function ObjectiveIntakeRoute() {
       ) : null}
 
       {reviewActive && state.draft ? (
-        <section aria-labelledby="requirement-review-title" className="grid gap-6">
-          <header className="grid gap-3 border-b border-border-default pb-6">
+        <section aria-labelledby="requirement-review-title" className="mx-auto grid w-full max-w-5xl gap-6">
+          <header className="grid gap-4 border-b border-border-default pb-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 max-w-2xl">
                 <p className="text-sm font-semibold text-teal-700">
@@ -251,9 +249,9 @@ export function ObjectiveIntakeRoute() {
                   Revisa los requisitos
                 </h1>
                 <p className="mt-3 leading-7 text-text-muted">
-                  Scope identifico estos requisitos a partir del texto del objetivo.
-                  Revisalos, editalos o elimina los que no correspondan. Vos decidis
-                  cuales quedan.
+                  Scope identificó estos requisitos a partir del texto del objetivo.
+                  Revisalos, editalos o eliminá los que no correspondan. Vos decidís
+                  cuáles quedan.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -291,12 +289,16 @@ export function ObjectiveIntakeRoute() {
             </FeedbackAlert>
           ) : null}
 
+          <p className="rounded-control border border-border-default bg-surface-muted px-4 py-3 text-sm text-text-muted">
+            {summarizeReview(state.draft, state.proposedCount)}
+          </p>
+
           {state.draft.items.length === 0 ? (
             <p className="rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted">
               No identificamos requisitos en este objetivo. Podes agregarlos a mano.
             </p>
           ) : (
-            <ul className="grid list-none gap-0">
+            <ul className="grid list-none gap-3">
               {state.draft.items.map((item, index) => (
                 <RequirementReviewItem
                   key={item.localKey}
@@ -345,9 +347,7 @@ export function ObjectiveIntakeRoute() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border-default pt-6">
-            <p className="text-sm text-text-muted">
-              {summarizeReview(state.draft, state.proposedCount)}
-            </p>
+            <p className="text-sm text-text-muted">Confirmá únicamente los requisitos que quieras conservar.</p>
             <Button type="button" onClick={() => void confirm()} disabled={state.confirming}>
               {state.confirming ? 'Confirmando...' : 'Confirmar objetivo'}
             </Button>
@@ -392,7 +392,7 @@ function IntakeForm({
   const disabled = state.analyzing;
 
   return (
-    <section aria-labelledby="objective-intake-title" className="grid gap-8">
+    <section aria-labelledby="objective-intake-title" className="mx-auto grid w-full max-w-4xl gap-7">
       <header className="grid gap-3 border-b border-border-default pb-6">
         <p className="text-sm font-semibold text-teal-700">Objetivos</p>
         <h1
@@ -407,7 +407,7 @@ function IntakeForm({
         </p>
       </header>
 
-      <fieldset disabled={disabled} className="grid gap-3">
+      <fieldset disabled={disabled} className="grid gap-3 rounded-card border border-border-default bg-surface p-5 sm:p-6">
         <legend className="text-sm font-semibold text-text-strong">
           Tipo de objetivo
         </legend>
@@ -431,7 +431,7 @@ function IntakeForm({
         </div>
       </fieldset>
 
-      <div className="grid gap-2">
+      <div className="grid max-w-2xl gap-2">
         <Label htmlFor="objective-title">Nombre del objetivo</Label>
         <Input
           id="objective-title"
@@ -446,16 +446,16 @@ function IntakeForm({
         </p>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid gap-2 rounded-card border border-border-default bg-surface p-5 sm:p-6">
         <Label htmlFor="objective-text">Texto del objetivo</Label>
         <Textarea
           id="objective-text"
           value={state.intake.rawObjectiveText}
           onChange={(event) => onFieldChange('rawObjectiveText', event.target.value)}
           disabled={disabled}
-          rows={16}
+          rows={10}
           aria-describedby="objective-text-help"
-          className="min-h-80"
+          className="min-h-56"
         />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p id="objective-text-help" className="text-xs text-text-muted">
@@ -471,7 +471,7 @@ function IntakeForm({
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div className="grid gap-3 rounded-card border border-brand-700/15 bg-surface-muted p-5 sm:p-6">
         <div>
           <Button type="button" onClick={onAnalyze} disabled={disabled}>
             {disabled ? (
@@ -485,7 +485,10 @@ function IntakeForm({
           </Button>
         </div>
         {disabled ? (
-          <p className="text-sm text-text-muted">Puede tardar hasta un minuto.</p>
+          <p className="flex items-center gap-2 text-sm text-text-muted">
+            <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+            Puede tardar hasta un minuto.
+          </p>
         ) : null}
         <p className="text-xs text-text-subtle">
           Tu objetivo es privado. No se comparte ni se publica.

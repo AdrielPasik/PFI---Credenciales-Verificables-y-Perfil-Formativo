@@ -188,24 +188,85 @@ for (const method of GUARDED_METHODS) {
 const LIFECYCLE_CALLER = join('analysis-run', 'analysis-run-execution.service.ts');
 const LIFECYCLE_MODULE = join('analysis-run', 'analysis-run.module.ts');
 
-test('lifecycle: exactly one productive caller of ensureExtractionForAnalysisRunSource', () => {
+/**
+ * Backfill de operador — P2.4.
+ *
+ * SEGUNDO llamador autorizado, y se nombra UNO POR UNO igual que el primero.
+ *
+ * F1.6 dejo la extraccion como best-effort no bloqueante y escribio que no
+ * ofrecia mecanismo de reintento: "una capa futura podra volver a invocarlo
+ * antes de necesitar esa evidencia". F3.2 volvio esa deuda visible —una fuente
+ * sin slot hace nacer `failed` a un ReasoningRun— y esta es esa capa.
+ *
+ * NO se relajo el guard: no hay comodin, no hay excepcion por directorio y
+ * `scripts/` NO quedo exento. Un tercer llamador sigue rompiendo el test, y hay
+ * un control negativo mas abajo que lo demuestra en vez de suponerlo.
+ */
+const MAINTENANCE_CALLER = join('analysis-run', 'source-extraction-backfill.service.ts');
+
+const AUTHORIZED_LIFECYCLE_CALLERS = [LIFECYCLE_CALLER, MAINTENANCE_CALLER].sort();
+
+function lifecycleCallersIn(files: readonly string[]): string[] {
+  return files
+    .filter((file) =>
+      calledMethodNames(readFileSync(join(SRC, file), 'utf8'), file).has(
+        'ensureExtractionForAnalysisRunSource'
+      )
+    )
+    .sort();
+}
+
+test('lifecycle: only the two authorized callers of ensureExtractionForAnalysisRunSource', () => {
   // La propiedad que sostiene
   //
   //     PRODUCTIVE_ANALYSIS_RUN_PROVENANCE_PATH: CAUSALLY_ENFORCED
   //
-  // es que el lifecycle entra al pipeline por un unico sitio. Si mañana otro
-  // servicio invoca la orquestacion por su cuenta, este test lo dice en voz alta.
-  const callers = productionSourceFiles().filter((file) =>
-    calledMethodNames(readFileSync(join(SRC, file), 'utf8'), file).has(
-      'ensureExtractionForAnalysisRunSource'
-    )
+  // es que se entra al pipeline por sitios CONTADOS Y NOMBRADOS. Sumar el
+  // backfill no la debilita: sigue siendo una lista cerrada de dos, y ninguno de
+  // los dos reproduce la extraccion —ambos delegan en el orquestador—.
+  assert.deepEqual(
+    lifecycleCallersIn(productionSourceFiles()),
+    AUTHORIZED_LIFECYCLE_CALLERS,
+    'llamadores productivos inesperados'
+  );
+});
+
+test('lifecycle: an unauthorized third caller is still rejected', () => {
+  // CONTROL NEGATIVO. Sin esto, ampliar el allowlist a dos podria haberlo
+  // convertido en "cualquiera": este test prueba que el guard sigue mordiendo.
+  const intruder = join('semantic', 'pretend-rogue-caller.service.ts');
+  const detected = calledMethodNames(
+    'declare const o: any;\no.ensureExtractionForAnalysisRunSource("x");',
+    intruder
   );
 
-  assert.deepEqual(
-    callers,
-    [LIFECYCLE_CALLER],
-    `llamadores productivos inesperados: ${callers.join(', ')}`
+  assert.ok(
+    detected.has('ensureExtractionForAnalysisRunSource'),
+    'el detector ve la llamada del intruso'
   );
+  assert.ok(
+    !AUTHORIZED_LIFECYCLE_CALLERS.includes(intruder),
+    'un archivo cualquiera NO esta autorizado'
+  );
+  // Y con el intruso en el barrido, la asercion real fallaria.
+  assert.notDeepEqual(
+    [...AUTHORIZED_LIFECYCLE_CALLERS, intruder].sort(),
+    AUTHORIZED_LIFECYCLE_CALLERS
+  );
+});
+
+test('lifecycle: the maintenance caller exists and delegates instead of extracting', () => {
+  // Un allowlist que nombre un archivo inexistente se degrada en silencio.
+  const code = readFileSync(join(SRC, MAINTENANCE_CALLER), 'utf8');
+  const called = calledMethodNames(code, MAINTENANCE_CALLER);
+
+  assert.ok(called.has('ensureExtractionForAnalysisRunSource'), 'delega en el orquestador');
+  for (const forbidden of GUARDED_METHODS) {
+    assert.ok(
+      !called.has(forbidden),
+      `el backfill no puede llamar a ${forbidden}: eso es reproducir el camino de escritura`
+    );
+  }
 });
 
 test('lifecycle: the orchestrator is registered only where the lifecycle needs it', () => {

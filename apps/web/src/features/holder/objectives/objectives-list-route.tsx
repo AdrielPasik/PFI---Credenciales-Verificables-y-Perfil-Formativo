@@ -19,6 +19,7 @@ import { ArrowRight } from 'lucide-react';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { listMyObjectivesRequest } from '@/lib/api/objectives-api';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
@@ -56,22 +57,23 @@ export function ObjectivesListRoute() {
   }, []);
 
   return (
-    <div className="grid min-w-0 gap-8">
-      <nav aria-label="Ubicacion" className="text-sm text-text-muted">
-        <Link href="/wallet" className="underline underline-offset-2">
-          Mi perfil formativo
-        </Link>
-      </nav>
+    <div className="mx-auto grid w-full min-w-0 max-w-5xl gap-8">
+      <HolderBreadcrumbs
+        items={[
+          { label: 'Mi perfil formativo', href: '/wallet' },
+          { label: 'Objetivos' }
+        ]}
+      />
 
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border-default pb-6">
+      <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
         <div className="min-w-0 max-w-2xl">
           <p className="text-sm font-semibold text-teal-700">Objetivos</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
             Mis objetivos
           </h1>
           <p className="mt-3 leading-7 text-text-muted">
-            Los objetivos que confirmaste quedan disponibles para consultarlos cuando
-            los necesites.
+            Consultá el análisis de tu trayectoria frente a los objetivos que ya
+            confirmaste.
           </p>
         </div>
         <Button asChild>
@@ -98,9 +100,11 @@ export function ObjectivesListRoute() {
 
       {state.status === 'ready' && state.objectives.length === 0 ? (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="grid gap-2 pt-6">
+            <p className="font-semibold text-text-strong">Todavía no analizaste un objetivo.</p>
             <p className="text-sm leading-6 text-text-muted">
-              Todavia no analizaste ningun objetivo.
+              Empezá con una búsqueda laboral, beca, admisión u otro contexto que
+              quieras revisar con tu trayectoria.
             </p>
           </CardContent>
         </Card>

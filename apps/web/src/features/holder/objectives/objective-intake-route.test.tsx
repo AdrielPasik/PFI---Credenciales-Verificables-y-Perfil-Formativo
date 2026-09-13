@@ -88,6 +88,14 @@ async function reachReview() {
 // ---------------------------------------------------------------------------
 
 describe('intake', () => {
+  it('keeps the objective flow inside the Holder breadcrumb hierarchy', () => {
+    render(<ObjectiveIntakeRoute />);
+
+    expect(screen.getByRole('navigation', { name: 'Ubicacion' })).toBeTruthy();
+    expect(screen.getAllByText('Mi perfil formativo').length).toBeGreaterThan(0);
+    expect(screen.getByText('Nuevo objetivo')).toBeTruthy();
+  });
+
   it('exige tipo, nombre y texto antes de tocar la red', async () => {
     render(<ObjectiveIntakeRoute />);
     analyze();

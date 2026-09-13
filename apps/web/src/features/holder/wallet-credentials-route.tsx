@@ -8,13 +8,12 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import { HolderCredentialCard } from '@/features/holder/holder-credential-card';
 import { EmptyCredentials, LoadingState } from '@/features/holder/wallet-home-route';
-import { WalletRouteBoundary } from '@/features/holder/wallet-route-boundary';
 import { getMyCredentialsRequest } from '@/lib/api/holder-api';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderCredentialListItemVM } from '@/models/holder';
 
 export function WalletCredentialsRoute() {
-  return <WalletRouteBoundary><WalletCredentialsContent /></WalletRouteBoundary>;
+  return <WalletCredentialsContent />;
 }
 
 function WalletCredentialsContent() {
