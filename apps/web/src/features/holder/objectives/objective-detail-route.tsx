@@ -40,12 +40,68 @@ type DetailState =
   | { status: 'ready'; objective: ObjectiveDetailVM }
   | { status: 'error'; message: string };
 
+function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailVM }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = 'objective-context-content';
+
+  return (
+    <section className="rounded-card border border-border-default bg-surface p-5">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={contentId}
+        onClick={() => setIsOpen((current) => !current)}
+        className="text-left text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+      >
+        {isOpen ? 'Ocultar contexto del objetivo' : 'Ver contexto del objetivo'}
+      </button>
+      <div id={contentId} hidden={!isOpen} className="mt-5 grid min-w-0 gap-6">
+          <div className="grid min-w-0 gap-3">
+            <h2 className="text-lg font-bold tracking-tight text-text-strong">
+              Requisitos confirmados
+            </h2>
+            <ol className="grid list-none gap-3">
+              {objective.requirements.map((requirement, index) => (
+                <li
+                  key={requirement.requirementId}
+                  className="grid min-w-0 gap-2 rounded-card border border-border-default bg-surface-muted p-4"
+                >
+                  <div className="flex min-w-0 gap-3">
+                    <span className="text-sm font-semibold text-text-muted">{index + 1}</span>
+                    <p className="min-w-0 break-words leading-7 text-text-default">
+                      {requirement.requirementText}
+                    </p>
+                  </div>
+                  <p className="pl-7 text-xs text-text-muted">{requirement.originLabel}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {objective.sourceOriginalText !== null ? (
+            <div className="grid min-w-0 gap-2 border-t border-border-default pt-5">
+              <h2 className="text-lg font-bold tracking-tight text-text-strong">
+                Texto original del objetivo
+              </h2>
+              <p className="whitespace-pre-wrap break-words text-sm leading-6 text-text-muted">
+                {objective.sourceOriginalText}
+              </p>
+            </div>
+          ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function ObjectiveDetailRoute() {
   const params = useParams<{ objectiveId: string }>();
   const objectiveReference =
     typeof params.objectiveId === 'string' ? params.objectiveId : '';
   const { requestAuthenticated } = useSession();
   const [state, setState] = useState<DetailState>({ status: 'loading' });
+  const [hasCompletedSynthesis, setHasCompletedSynthesis] = useState(false);
+  const [reasoningPresentationResolved, setReasoningPresentationResolved] =
+    useState(false);
 
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -67,6 +123,11 @@ export function ObjectiveDetailRoute() {
   const retry = useCallback(() => {
     setState({ status: 'loading' });
     setReloadToken((token) => token + 1);
+  }, []);
+
+  const handleCompletedSynthesisChange = useCallback((value: boolean) => {
+    setHasCompletedSynthesis(value);
+    setReasoningPresentationResolved(true);
   }, []);
 
   return (
@@ -109,11 +170,13 @@ export function ObjectiveDetailRoute() {
               {state.objective.title}
             </h1>
             <p className="text-sm text-text-muted">
-              Objetivo confirmado el {state.objective.createdAtLabel} ·{' '}
-              {state.objective.requirements.length}{' '}
-              {state.objective.requirements.length === 1
-                ? 'requisito'
-                : 'requisitos'}
+              {hasCompletedSynthesis
+                ? `${state.objective.requirements.length} ${
+                    state.objective.requirements.length === 1 ? 'requisito confirmado' : 'requisitos confirmados'
+                  }`
+                : `Objetivo confirmado el ${state.objective.createdAtLabel} · ${
+                    state.objective.requirements.length
+                  } ${state.objective.requirements.length === 1 ? 'requisito' : 'requisitos'}`}
             </p>
           </header>
 
@@ -123,55 +186,63 @@ export function ObjectiveDetailRoute() {
             El panel se monta con la referencia del objetivo y resuelve solo el
             estado real del run — no recibe nada precalculado desde aca.
           */}
-          <ObjectiveReasoningPanel objectiveReference={objectiveReference} />
+          <ObjectiveReasoningPanel
+            objectiveReference={objectiveReference}
+            onCompletedSynthesisChange={handleCompletedSynthesisChange}
+            completedSynthesisContext={<ObjectiveContextDisclosure objective={state.objective} />}
+          />
 
-          <section
-            aria-labelledby="objective-requirements-title"
-            className="grid min-w-0 gap-4 border-t border-border-default pt-8"
-          >
-            <div className="grid gap-1">
-              <h2
-                id="objective-requirements-title"
-                className="text-xl font-bold tracking-tight text-text-strong"
+          {reasoningPresentationResolved && !hasCompletedSynthesis ? (
+            <>
+              <section
+                aria-labelledby="objective-requirements-title"
+                className="grid min-w-0 gap-4 border-t border-border-default pt-8"
               >
-                Requisitos confirmados
-              </h2>
-              <p className="text-sm text-text-muted">
-                Los requisitos que confirmaste para este objetivo, en el orden en
-                que los dejaste.
-              </p>
-            </div>
-            <ol className="grid list-none gap-3">
-              {state.objective.requirements.map((requirement, index) => (
-                <li
-                  key={requirement.requirementId}
-                  className="grid min-w-0 gap-2 rounded-card border border-border-default bg-surface p-4"
-                >
-                  <div className="flex min-w-0 gap-3">
-                    <span className="text-sm font-semibold text-text-muted">
-                      {index + 1}
-                    </span>
-                    <p className="min-w-0 break-words leading-7 text-text-default">
-                      {requirement.requirementText}
-                    </p>
-                  </div>
-                  <p className="pl-7 text-xs text-text-muted">
-                    {requirement.originLabel}
+                <div className="grid gap-1">
+                  <h2
+                    id="objective-requirements-title"
+                    className="text-xl font-bold tracking-tight text-text-strong"
+                  >
+                    Requisitos confirmados
+                  </h2>
+                  <p className="text-sm text-text-muted">
+                    Los requisitos que confirmaste para este objetivo, en el orden en
+                    que los dejaste.
                   </p>
-                </li>
-              ))}
-            </ol>
-          </section>
+                </div>
+                <ol className="grid list-none gap-3">
+                  {state.objective.requirements.map((requirement, index) => (
+                    <li
+                      key={requirement.requirementId}
+                      className="grid min-w-0 gap-2 rounded-card border border-border-default bg-surface p-4"
+                    >
+                      <div className="flex min-w-0 gap-3">
+                        <span className="text-sm font-semibold text-text-muted">
+                          {index + 1}
+                        </span>
+                        <p className="min-w-0 break-words leading-7 text-text-default">
+                          {requirement.requirementText}
+                        </p>
+                      </div>
+                      <p className="pl-7 text-xs text-text-muted">
+                        {requirement.originLabel}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
 
-          {state.objective.sourceOriginalText !== null ? (
-            <details className="rounded-card border border-border-default bg-surface p-5">
-              <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
-                Texto original del objetivo
-              </summary>
-              <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-text-muted">
-                {state.objective.sourceOriginalText}
-              </p>
-            </details>
+              {state.objective.sourceOriginalText !== null ? (
+                <details className="rounded-card border border-border-default bg-surface p-5">
+                  <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                    Texto original del objetivo
+                  </summary>
+                  <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-text-muted">
+                    {state.objective.sourceOriginalText}
+                  </p>
+                </details>
+              ) : null}
+            </>
           ) : null}
         </>
       ) : null}

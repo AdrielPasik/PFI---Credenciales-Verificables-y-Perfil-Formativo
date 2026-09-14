@@ -19,11 +19,12 @@
  * llamadas al proveedor sin que nadie las pidiera.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import { RequirementResultCard } from '@/features/holder/objectives/requirement-result-card';
+import { ObjectiveSynthesisOverview } from '@/features/holder/objectives/objective-synthesis-overview';
 import {
   reconcileCompletedHistory,
   selectObjectiveReasoningRun
@@ -57,14 +58,27 @@ type PanelState =
   | { phase: 'error'; message: string; retryable: boolean };
 
 export function ObjectiveReasoningPanel({
-  objectiveReference
+  objectiveReference,
+  onCompletedSynthesisChange,
+  completedSynthesisContext
 }: {
   objectiveReference: string;
+  onCompletedSynthesisChange?: (hasCompletedSynthesis: boolean) => void;
+  completedSynthesisContext?: ReactNode;
 }) {
   const { requestAuthenticated } = useSession();
   const [state, setState] = useState<PanelState>({ phase: 'loading' });
   const [history, setHistory] = useState<readonly ReasoningRunSummaryVM[]>([]);
   const [reloadToken, setReloadToken] = useState(0);
+
+  const hasCompletedSynthesis =
+    state.phase === 'ready' &&
+    state.run.status === 'completed' &&
+    state.run.synthesis !== null;
+
+  useEffect(() => {
+    onCompletedSynthesisChange?.(hasCompletedSynthesis);
+  }, [hasCompletedSynthesis, onCompletedSynthesisChange]);
 
   /**
    * Cerrojo de una sola operacion en vuelo.
@@ -258,18 +272,20 @@ export function ObjectiveReasoningPanel({
 
   return (
     <section aria-labelledby="objective-reasoning-title" className="grid min-w-0 gap-6">
-      <div className="grid min-w-0 gap-2">
-        <h2
-          id="objective-reasoning-title"
-          className="text-2xl font-bold tracking-tight text-text-strong"
-        >
-          Analisis de tu trayectoria
-        </h2>
-        <p className="max-w-2xl text-sm leading-6 text-text-muted">
-          Scope revisa la evidencia disponible en tus credenciales frente a cada
-          requisito confirmado de este objetivo.
-        </p>
-      </div>
+      {!hasCompletedSynthesis ? (
+        <div className="grid min-w-0 gap-2">
+          <h2
+            id="objective-reasoning-title"
+            className="text-2xl font-bold tracking-tight text-text-strong"
+          >
+            Analisis de tu trayectoria
+          </h2>
+          <p className="max-w-2xl text-sm leading-6 text-text-muted">
+            Scope revisa la evidencia disponible en tus credenciales frente a cada
+            requisito confirmado de este objetivo.
+          </p>
+        </div>
+      ) : null}
 
       {/*
         `aria-live` para que el cambio de estado se anuncie: la ejecucion es
@@ -312,6 +328,7 @@ export function ObjectiveReasoningPanel({
             history={history}
             onContinue={continueAnalysis}
             onStartNew={startAnalysis}
+            completedSynthesisContext={completedSynthesisContext}
           />
         ) : null}
       </div>
@@ -366,12 +383,14 @@ function RunState({
   run,
   history,
   onContinue,
-  onStartNew
+  onStartNew,
+  completedSynthesisContext
 }: {
   run: ReasoningRunDetailVM;
   history: readonly ReasoningRunSummaryVM[];
   onContinue: (reasoningRunReference: string) => void;
   onStartNew: () => void;
+  completedSynthesisContext?: ReactNode;
 }) {
   if (run.status === 'pending') {
     return (
@@ -436,6 +455,17 @@ function RunState({
   }
 
   // completed
+  if (run.synthesis !== null) {
+    return (
+      <CompletedSynthesisState
+        run={run}
+        history={history}
+        onStartNew={onStartNew}
+        context={completedSynthesisContext}
+      />
+    );
+  }
+
   const results = run.requirementResults ?? [];
   const counts = countByFinalState(results);
 
@@ -502,6 +532,81 @@ function RunState({
           </ul>
         </details>
       ) : null}
+    </div>
+  );
+}
+
+function CompletedSynthesisState({
+  run,
+  history,
+  onStartNew,
+  context
+}: {
+  run: ReasoningRunDetailVM;
+  history: readonly ReasoningRunSummaryVM[];
+  onStartNew: () => void;
+  context?: ReactNode;
+}) {
+  const results = run.requirementResults ?? [];
+
+  return (
+    <div className="grid min-w-0 gap-8">
+      <ObjectiveSynthesisOverview
+        synthesis={run.synthesis!}
+        completedAtLabel={run.completedAtLabel}
+      />
+
+      <section
+        aria-labelledby="analyzed-requirements-title"
+        className="grid min-w-0 gap-4 border-t border-border-default pt-8"
+      >
+        <div className="grid gap-1">
+          <h3
+            id="analyzed-requirements-title"
+            className="text-xl font-bold tracking-tight text-text-strong"
+          >
+            Requisitos analizados
+          </h3>
+          <p className="text-sm text-text-muted">
+            Cada resultado conserva el orden de los requisitos confirmados para este objetivo.
+          </p>
+        </div>
+        <ol className="grid min-w-0 list-none gap-5">
+          {results.map((result, index) => (
+            <li key={result.requirementId} className="min-w-0">
+              <RequirementResultCard result={result} order={index + 1} />
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {context ?? null}
+
+      {history.length > 1 ? (
+        <details className="rounded-card border border-border-default bg-surface p-5">
+          <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+            Analisis anteriores ({history.length - 1})
+          </summary>
+          <ul className="mt-4 grid list-none gap-2 text-sm text-text-muted">
+            {history
+              .filter((entry) => entry.reasoningRunReference !== run.reasoningRunReference)
+              .map((entry) => (
+                <li key={entry.reasoningRunReference}>
+                  Analisis del {entry.createdAtLabel} · {entry.requirementCount} requisitos
+                </li>
+              ))}
+          </ul>
+        </details>
+      ) : null}
+
+      <div className="flex flex-wrap items-center gap-3 border-t border-border-default pt-5">
+        <Button type="button" variant="secondary" onClick={onStartNew}>
+          Volver a analizar
+        </Button>
+        <p className="text-xs text-text-muted">
+          Un analisis nuevo no reemplaza a este: cada uno queda como una observacion con su fecha.
+        </p>
+      </div>
     </div>
   );
 }

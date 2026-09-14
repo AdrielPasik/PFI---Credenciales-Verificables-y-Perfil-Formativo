@@ -6,7 +6,7 @@
  * N+1 por un dato decorativo.
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ObjectiveDetailRoute } from '@/features/holder/objectives/objective-detail-route';
@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   list: vi.fn(),
   get: vi.fn(),
   listRuns: vi.fn(),
+  getRun: vi.fn(),
   requestAuthenticated: vi.fn(),
   params: { objectiveId: 'obj-1' } as Record<string, string>
 }));
@@ -39,7 +40,7 @@ vi.mock('@/lib/api/objectives-api', () => ({
 // estos tests siguen describiendo el objetivo confirmado y no el analisis.
 vi.mock('@/lib/api/reasoning-runs-api', () => ({
   listMyReasoningRunsRequest: mocks.listRuns,
-  getMyReasoningRunRequest: vi.fn(),
+  getMyReasoningRunRequest: mocks.getRun,
   createMyReasoningRunRequest: vi.fn(),
   executeMyReasoningRunRequest: vi.fn()
 }));
@@ -82,6 +83,7 @@ beforeEach(() => {
   mocks.list.mockResolvedValue([summary]);
   mocks.get.mockResolvedValue(detail);
   mocks.listRuns.mockResolvedValue([]);
+  mocks.getRun.mockResolvedValue(null);
   mocks.params = { objectiveId: 'obj-1' };
 });
 
@@ -202,5 +204,114 @@ describe('detalle de objetivo', () => {
     expect(api.createMyReasoningRunRequest).not.toHaveBeenCalled();
     expect(api.executeMyReasoningRunRequest).not.toHaveBeenCalled();
     expect(api.getMyReasoningRunRequest).not.toHaveBeenCalled();
+  });
+
+  it('con sintesis completada deja los requisitos originales como contexto secundario', async () => {
+    mocks.listRuns.mockResolvedValue([
+      {
+        reasoningRunReference: 'run-1',
+        objectiveReference: 'obj-1',
+        objectiveTitle: 'Backend Engineer',
+        status: 'completed',
+        requirementCount: 2,
+        failureCategory: null,
+        createdAt: '2026-09-11T10:00:00.000Z',
+        createdAtLabel: '11 de septiembre de 2026'
+      }
+    ]);
+    mocks.getRun.mockResolvedValue({
+      reasoningRunReference: 'run-1',
+      status: 'completed',
+      objectiveReference: 'obj-1',
+      objectiveTitle: 'Backend Engineer',
+      failureCategory: null,
+      createdAt: '2026-09-11T10:00:00.000Z',
+      createdAtLabel: '11 de septiembre de 2026',
+      completedAtLabel: '11 de septiembre de 2026',
+      requirementResults: [
+        {
+          requirementId: 'req_01',
+          requirementText: 'Experiencia con Python.',
+          finalState: 'PARTIALLY_SUPPORTED',
+          supportedWeakerClaim: 'Formación introductoria en Python.',
+          evidence: []
+        },
+        {
+          requirementId: 'req_02',
+          requirementText: 'Disponibilidad para viajar.',
+          finalState: 'NOT_ASSESSABLE',
+          supportedWeakerClaim: null,
+          evidence: []
+        }
+      ],
+      synthesis: {
+        schemaVersion: 'objective_synthesis_v1',
+        reasoningRunReference: 'run-1',
+        objectiveReference: 'obj-1',
+        stateSummary: {
+          supportedCount: 0,
+          partiallySupportedCount: 1,
+          insufficientEvidenceCount: 0,
+          abstainCount: 0,
+          notAssessableCount: 1
+        },
+        requirements: [
+          {
+            requirementId: 'req_01',
+            order: 1,
+            requirementText: 'Experiencia con Python.',
+            finalState: 'PARTIALLY_SUPPORTED'
+          },
+          {
+            requirementId: 'req_02',
+            order: 2,
+            requirementText: 'Disponibilidad para viajar.',
+            finalState: 'NOT_ASSESSABLE'
+          }
+        ],
+        positiveConclusions: [
+          {
+            requirementId: 'req_01',
+            requirementText: 'Experiencia con Python.',
+            finalState: 'PARTIALLY_SUPPORTED',
+            supportedWeakerClaim: 'Formación introductoria en Python.',
+            supportingCredentialReferences: ['cred-python']
+          }
+        ],
+        credentialsSupportingPositiveConclusions: [
+          {
+            credentialReference: 'cred-python',
+            credentialDisplay: {
+              title: 'Análisis de datos con Python para negocios',
+              credentialType: 'course',
+              issuerName: 'Plataforma de Cursos Demo',
+              currentStatus: 'issued'
+            },
+            supportedRequirementIds: [],
+            partiallySupportedRequirementIds: ['req_01']
+          }
+        ]
+      }
+    });
+
+    render(<ObjectiveDetailRoute />);
+
+    await screen.findByRole('heading', { name: 'Tu trayectoria frente a este objetivo' });
+    expect(screen.getByRole('heading', { name: 'Requisitos analizados' })).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.queryByRole('heading', { name: 'Requisitos confirmados' })).toBeNull()
+    );
+    expect(
+      Array.from(document.querySelectorAll('[id^="requirement-result-"]')).map(
+        (element) => element.textContent
+      )
+    ).toEqual(['Experiencia con Python.', 'Disponibilidad para viajar.']);
+
+    const contextButton = screen.getByRole('button', { name: 'Ver contexto del objetivo' });
+    expect(contextButton.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(contextButton);
+    expect(contextButton.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getByRole('heading', { name: 'Requisitos confirmados' })).toBeTruthy();
+    expect(screen.getByText('- Experiencia con Python.')).toBeTruthy();
   });
 });
