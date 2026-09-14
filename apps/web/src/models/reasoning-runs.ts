@@ -143,6 +143,60 @@ export interface RequirementResultVM {
   evidence: ReasoningEvidenceVM[];
 }
 
+/** Agregacion determinista ya resuelta por el backend en P2.4C. */
+export interface ObjectiveSynthesisStateSummaryVM {
+  supportedCount: number;
+  partiallySupportedCount: number;
+  insufficientEvidenceCount: number;
+  abstainCount: number;
+  notAssessableCount: number;
+}
+
+export interface ObjectiveSynthesisRequirementVM {
+  requirementId: string;
+  order: number;
+  requirementText: string;
+  finalState: RequirementFinalState;
+}
+
+export interface ObjectiveSynthesisPositiveConclusionVM {
+  requirementId: string;
+  requirementText: string;
+  finalState: Extract<
+    RequirementFinalState,
+    'SUPPORTED' | 'PARTIALLY_SUPPORTED'
+  >;
+  supportedWeakerClaim: string | null;
+  supportingCredentialReferences: string[];
+}
+
+export interface ObjectiveSynthesisSupportingCredentialVM {
+  credentialReference: string;
+  credentialDisplay: {
+    title: string;
+    credentialType: string;
+    issuerName: string;
+    /** Estado actual de presentacion; no reescribe el resultado historico. */
+    currentStatus: string;
+  };
+  supportedRequirementIds: string[];
+  partiallySupportedRequirementIds: string[];
+}
+
+/**
+ * Read model aditivo de P2.4C. No se reconstruye en el navegador: conserva
+ * exactamente la forma y el orden que entrega el backend.
+ */
+export interface ObjectiveSynthesisVM {
+  schemaVersion: 'objective_synthesis_v1';
+  reasoningRunReference: string;
+  objectiveReference: string;
+  stateSummary: ObjectiveSynthesisStateSummaryVM;
+  requirements: ObjectiveSynthesisRequirementVM[];
+  positiveConclusions: ObjectiveSynthesisPositiveConclusionVM[];
+  credentialsSupportingPositiveConclusions: ObjectiveSynthesisSupportingCredentialVM[];
+}
+
 /**
  * Evidencias AGRUPADAS por credencial para presentarlas.
  *
@@ -184,6 +238,11 @@ export interface ReasoningRunDetailVM {
   completedAtLabel: string | null;
   /** Presente SOLO cuando el run completo. */
   requirementResults: RequirementResultVM[] | null;
+  /**
+   * Ausente en APIs previas compatibles y `null` en runs no completados. Ambos
+   * casos se representan como `null`; nunca se reconstruye desde `result`.
+   */
+  synthesis: ObjectiveSynthesisVM | null;
 }
 
 // ---------------------------------------------------------------------------

@@ -120,6 +120,7 @@ const detail = (
   createdAtLabel: '11 de septiembre de 2026',
   completedAtLabel: '11 de septiembre de 2026',
   requirementResults: [],
+  synthesis: null,
   ...overrides
 });
 

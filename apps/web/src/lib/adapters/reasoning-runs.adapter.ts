@@ -20,6 +20,9 @@ import {
   RUN_FAILURE_CATEGORIES,
   type EvidenceCoverage,
   type EvidenceSourceKind,
+  type ObjectiveSynthesisPositiveConclusionVM,
+  type ObjectiveSynthesisSupportingCredentialVM,
+  type ObjectiveSynthesisVM,
   type ReasoningEvidenceCredentialVM,
   type ReasoningEvidenceVM,
   type ReasoningRunDetailVM,
@@ -200,6 +203,169 @@ function requirementResult(value: unknown, path: string): RequirementResultVM {
 }
 
 // ---------------------------------------------------------------------------
+// Sintesis determinista del Objective (P2.4C)
+// ---------------------------------------------------------------------------
+
+function positiveFinalState(
+  value: unknown,
+  path: string
+): ObjectiveSynthesisPositiveConclusionVM['finalState'] {
+  const finalState = enumValue<RequirementFinalState>(
+    value,
+    REQUIREMENT_FINAL_STATES,
+    path
+  );
+  if (finalState !== 'SUPPORTED' && finalState !== 'PARTIALLY_SUPPORTED') {
+    invalid(path, 'SUPPORTED or PARTIALLY_SUPPORTED', value);
+  }
+  return finalState;
+}
+
+function stringArray(value: unknown, path: string): string[] {
+  return array(value, path).map((item, index) =>
+    verbatimString(item, `${path}[${index}]`)
+  );
+}
+
+function synthesisSupportingCredential(
+  value: unknown,
+  path: string
+): ObjectiveSynthesisSupportingCredentialVM {
+  const raw = record(value, path);
+  const display = record(raw.credentialDisplay, `${path}.credentialDisplay`);
+
+  return {
+    credentialReference: verbatimString(
+      raw.credentialReference,
+      `${path}.credentialReference`
+    ),
+    credentialDisplay: {
+      title: verbatimString(display.title, `${path}.credentialDisplay.title`),
+      credentialType: verbatimString(
+        display.credentialType,
+        `${path}.credentialDisplay.credentialType`
+      ),
+      issuerName: verbatimString(
+        display.issuerName,
+        `${path}.credentialDisplay.issuerName`
+      ),
+      currentStatus: verbatimString(
+        display.currentStatus,
+        `${path}.credentialDisplay.currentStatus`
+      )
+    },
+    supportedRequirementIds: stringArray(
+      raw.supportedRequirementIds,
+      `${path}.supportedRequirementIds`
+    ),
+    partiallySupportedRequirementIds: stringArray(
+      raw.partiallySupportedRequirementIds,
+      `${path}.partiallySupportedRequirementIds`
+    )
+  };
+}
+
+function objectiveSynthesis(value: unknown, path: string): ObjectiveSynthesisVM | null {
+  // Los adapters web usan `null` para ausencia compatible y null explicito en
+  // campos aditivos. Mantenerlos colapsados permite rolling deploy sin inventar
+  // una sintesis para respuestas anteriores.
+  if (value === null || value === undefined) return null;
+
+  const raw = record(value, path);
+  if (raw.schemaVersion !== 'objective_synthesis_v1') {
+    invalid(`${path}.schemaVersion`, 'objective_synthesis_v1', raw.schemaVersion);
+  }
+  const summary = record(raw.stateSummary, `${path}.stateSummary`);
+
+  return {
+    schemaVersion: 'objective_synthesis_v1',
+    reasoningRunReference: verbatimString(
+      raw.reasoningRunReference,
+      `${path}.reasoningRunReference`
+    ),
+    objectiveReference: verbatimString(raw.objectiveReference, `${path}.objectiveReference`),
+    stateSummary: {
+      supportedCount: nonNegativeInteger(
+        summary.supportedCount,
+        `${path}.stateSummary.supportedCount`
+      ),
+      partiallySupportedCount: nonNegativeInteger(
+        summary.partiallySupportedCount,
+        `${path}.stateSummary.partiallySupportedCount`
+      ),
+      insufficientEvidenceCount: nonNegativeInteger(
+        summary.insufficientEvidenceCount,
+        `${path}.stateSummary.insufficientEvidenceCount`
+      ),
+      abstainCount: nonNegativeInteger(
+        summary.abstainCount,
+        `${path}.stateSummary.abstainCount`
+      ),
+      notAssessableCount: nonNegativeInteger(
+        summary.notAssessableCount,
+        `${path}.stateSummary.notAssessableCount`
+      )
+    },
+    requirements: array(raw.requirements, `${path}.requirements`).map((item, index) => {
+      const requirement = record(item, `${path}.requirements[${index}]`);
+      return {
+        requirementId: verbatimString(
+          requirement.requirementId,
+          `${path}.requirements[${index}].requirementId`
+        ),
+        order: nonNegativeInteger(requirement.order, `${path}.requirements[${index}].order`),
+        requirementText: verbatimString(
+          requirement.requirementText,
+          `${path}.requirements[${index}].requirementText`
+        ),
+        finalState: enumValue<RequirementFinalState>(
+          requirement.finalState,
+          REQUIREMENT_FINAL_STATES,
+          `${path}.requirements[${index}].finalState`
+        )
+      };
+    }),
+    positiveConclusions: array(
+      raw.positiveConclusions,
+      `${path}.positiveConclusions`
+    ).map((item, index) => {
+      const conclusion = record(item, `${path}.positiveConclusions[${index}]`);
+      return {
+        requirementId: verbatimString(
+          conclusion.requirementId,
+          `${path}.positiveConclusions[${index}].requirementId`
+        ),
+        requirementText: verbatimString(
+          conclusion.requirementText,
+          `${path}.positiveConclusions[${index}].requirementText`
+        ),
+        finalState: positiveFinalState(
+          conclusion.finalState,
+          `${path}.positiveConclusions[${index}].finalState`
+        ),
+        supportedWeakerClaim: nullableVerbatimString(
+          conclusion.supportedWeakerClaim,
+          `${path}.positiveConclusions[${index}].supportedWeakerClaim`
+        ),
+        supportingCredentialReferences: stringArray(
+          conclusion.supportingCredentialReferences,
+          `${path}.positiveConclusions[${index}].supportingCredentialReferences`
+        )
+      };
+    }),
+    credentialsSupportingPositiveConclusions: array(
+      raw.credentialsSupportingPositiveConclusions,
+      `${path}.credentialsSupportingPositiveConclusions`
+    ).map((item, index) =>
+      synthesisSupportingCredential(
+        item,
+        `${path}.credentialsSupportingPositiveConclusions[${index}]`
+      )
+    )
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Entradas publicas
 // ---------------------------------------------------------------------------
 
@@ -281,6 +447,9 @@ export function adaptReasoningRunDetail(payload: unknown): ReasoningRunDetailVM 
       raw.completedAt,
       'reasoningRun.completedAt'
     ),
-    requirementResults
+    requirementResults,
+    // Las identidades interiores son metadata transportada: no reemplazan las
+    // referencias autoritativas del run exterior ni agregan reconciliacion.
+    synthesis: objectiveSynthesis(raw.synthesis, 'reasoningRun.synthesis')
   };
 }

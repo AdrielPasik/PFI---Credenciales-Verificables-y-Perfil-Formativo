@@ -69,6 +69,59 @@ const detailPayload = (patch: Patch = {}): Json => ({
   ...patch
 });
 
+const synthesisRequirement = (index: number, patch: Patch = {}): Json => ({
+  requirementId: `req_${String(index).padStart(2, '0')}`,
+  order: index,
+  requirementText: `Requisito confirmado ${index}`,
+  finalState: 'INSUFFICIENT_EVIDENCE',
+  ...patch
+});
+
+const realFourteenRequirementSynthesis = (): Json => ({
+  schemaVersion: 'objective_synthesis_v1',
+  reasoningRunReference: 'run-1',
+  objectiveReference: 'obj-1',
+  stateSummary: {
+    supportedCount: 0,
+    partiallySupportedCount: 1,
+    insufficientEvidenceCount: 5,
+    abstainCount: 2,
+    notAssessableCount: 6
+  },
+  requirements: Array.from({ length: 14 }, (_, offset) => {
+    const index = offset + 1;
+    if (index === 4) {
+      return synthesisRequirement(index, { finalState: 'PARTIALLY_SUPPORTED' });
+    }
+    if (index <= 6) return synthesisRequirement(index);
+    if (index <= 8) return synthesisRequirement(index, { finalState: 'ABSTAIN' });
+    return synthesisRequirement(index, { finalState: 'NOT_ASSESSABLE' });
+  }),
+  positiveConclusions: [
+    {
+      requirementId: 'req_04',
+      requirementText: 'Aplicar programacion para el manejo de datos empresariales',
+      finalState: 'PARTIALLY_SUPPORTED',
+      supportedWeakerClaim:
+        'Formacion introductoria en programacion con Python para el manejo de datos empresariales.',
+      supportingCredentialReferences: ['cred-python']
+    }
+  ],
+  credentialsSupportingPositiveConclusions: [
+    {
+      credentialReference: 'cred-python',
+      credentialDisplay: {
+        title: 'Analisis de datos con Python para negocios',
+        credentialType: 'course',
+        issuerName: 'Plataforma de Cursos Demo',
+        currentStatus: 'revoked'
+      },
+      supportedRequirementIds: [],
+      partiallySupportedRequirementIds: ['req_04']
+    }
+  ]
+});
+
 /** Atajo: un run completado con estos resultados. */
 const withResults = (...results: Json[]): Json =>
   detailPayload({ result: { requirementResults: results } });
@@ -96,18 +149,201 @@ describe('adapter del analisis', () => {
     expect(run.requirementResults?.[0].finalState).toBe('SUPPORTED');
   });
 
-  it('tolera synthesis aditiva sin incorporarla al modelo P2.4B todavía', () => {
+  it('adapta la sintesis real de catorce requisitos sin derivar promociones negativas', () => {
+    const run = adaptReasoningRunDetail(
+      detailPayload({
+        result: {
+          requirementResults: [
+            requirementResult({
+              finalState: 'INSUFFICIENT_EVIDENCE',
+              evidence: [
+                evidence({
+                  credential: credential({ credentialReference: 'cred-insufficient' })
+                })
+              ]
+            }),
+            requirementResult({
+              finalState: 'ABSTAIN',
+              evidence: [
+                evidence({ credential: credential({ credentialReference: 'cred-abstain' }) })
+              ]
+            }),
+            requirementResult({
+              finalState: 'NOT_ASSESSABLE',
+              evidence: [
+                evidence({
+                  credential: credential({ credentialReference: 'cred-not-assessable' })
+                })
+              ]
+            })
+          ]
+        },
+        synthesis: realFourteenRequirementSynthesis()
+      })
+    );
+
+    expect(run.synthesis).toMatchObject({
+      schemaVersion: 'objective_synthesis_v1',
+      stateSummary: {
+        supportedCount: 0,
+        partiallySupportedCount: 1,
+        insufficientEvidenceCount: 5,
+        abstainCount: 2,
+        notAssessableCount: 6
+      }
+    });
+    expect(run.synthesis?.requirements).toHaveLength(14);
+    expect(run.synthesis?.positiveConclusions).toEqual([
+      expect.objectContaining({
+        requirementId: 'req_04',
+        finalState: 'PARTIALLY_SUPPORTED',
+        supportedWeakerClaim:
+          'Formacion introductoria en programacion con Python para el manejo de datos empresariales.',
+        supportingCredentialReferences: ['cred-python']
+      })
+    ]);
+    expect(run.synthesis?.credentialsSupportingPositiveConclusions).toEqual([
+      expect.objectContaining({
+        credentialReference: 'cred-python',
+        credentialDisplay: expect.objectContaining({
+          title: 'Analisis de datos con Python para negocios',
+          currentStatus: 'revoked'
+        }),
+        supportedRequirementIds: [],
+        partiallySupportedRequirementIds: ['req_04']
+      })
+    ]);
+    // El adapter no reconstruye promociones: credenciales que solo aparecen en
+    // estados no positivos no pueden entrar a la sintesis por derivacion local.
+    expect(run.synthesis?.credentialsSupportingPositiveConclusions).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ credentialReference: 'cred-insufficient' }),
+        expect.objectContaining({ credentialReference: 'cred-abstain' }),
+        expect.objectContaining({ credentialReference: 'cred-not-assessable' })
+      ])
+    );
+  });
+
+  it('colapsa synthesis ausente y null explicito a null para compatibilidad aditiva', () => {
+    expect(adaptReasoningRunDetail(detailPayload()).synthesis).toBeNull();
+    expect(adaptReasoningRunDetail(detailPayload({ synthesis: null })).synthesis).toBeNull();
+  });
+
+  it('conserva el orden del backend y no reemplaza la identidad exterior', () => {
     const run = adaptReasoningRunDetail(
       detailPayload({
         synthesis: {
-          schemaVersion: 'objective_synthesis_v1',
-          stateSummary: { supportedCount: 1 }
+          ...(realFourteenRequirementSynthesis() as Record<string, Json>),
+          reasoningRunReference: 'run-historic',
+          objectiveReference: 'obj-historic'
         }
       })
     );
 
-    expect(JSON.stringify(run)).not.toContain('objective_synthesis_v1');
-    expect(run.requirementResults?.[0].finalState).toBe('SUPPORTED');
+    expect(run.reasoningRunReference).toBe('run-1');
+    expect(run.objectiveReference).toBe('obj-1');
+    expect(run.synthesis?.reasoningRunReference).toBe('run-historic');
+    expect(run.synthesis?.requirements.map((item) => item.requirementId)).toEqual([
+      'req_01',
+      'req_02',
+      'req_03',
+      'req_04',
+      'req_05',
+      'req_06',
+      'req_07',
+      'req_08',
+      'req_09',
+      'req_10',
+      'req_11',
+      'req_12',
+      'req_13',
+      'req_14'
+    ]);
+  });
+
+  it('acepta conclusiones positivas supported y parcialmente supported', () => {
+    const synthesis = realFourteenRequirementSynthesis() as Record<string, Json>;
+    const run = adaptReasoningRunDetail(
+      detailPayload({
+        synthesis: {
+          ...synthesis,
+          positiveConclusions: [
+            ...(synthesis.positiveConclusions as Json[]),
+            {
+              requirementId: 'req_01',
+              requirementText: 'Requisito respaldado',
+              finalState: 'SUPPORTED',
+              supportedWeakerClaim: null,
+              supportingCredentialReferences: ['cred-python', 'cred-2']
+            }
+          ],
+          credentialsSupportingPositiveConclusions: [
+            ...(synthesis.credentialsSupportingPositiveConclusions as Json[]),
+            {
+              credentialReference: 'cred-2',
+              credentialDisplay: {
+                title: 'Otra credencial',
+                credentialType: 'course',
+                issuerName: 'Emisor Demo',
+                currentStatus: 'issued'
+              },
+              supportedRequirementIds: ['req_01'],
+              partiallySupportedRequirementIds: ['req_04']
+            }
+          ]
+        }
+      })
+    );
+
+    expect(run.synthesis?.positiveConclusions.map((item) => item.finalState)).toEqual([
+      'PARTIALLY_SUPPORTED',
+      'SUPPORTED'
+    ]);
+    expect(
+      run.synthesis?.credentialsSupportingPositiveConclusions[1]
+        .partiallySupportedRequirementIds
+    ).toEqual(['req_04']);
+  });
+
+  it.each([
+    [
+      'schemaVersion invalido',
+      (value: Record<string, Json>) => ({ ...value, schemaVersion: 'objective_synthesis_v2' })
+    ],
+    [
+      'estado desconocido',
+      (value: Record<string, Json>) => ({
+        ...value,
+        requirements: [synthesisRequirement(1, { finalState: 'RANKED' })]
+      })
+    ],
+    [
+      'conteo negativo',
+      (value: Record<string, Json>) => ({
+        ...value,
+        stateSummary: { ...(value.stateSummary as Record<string, Json>), abstainCount: -1 }
+      })
+    ],
+    [
+      'conteo no entero',
+      (value: Record<string, Json>) => ({
+        ...value,
+        stateSummary: { ...(value.stateSummary as Record<string, Json>), abstainCount: 1.5 }
+      })
+    ],
+    [
+      'credencial sin metadata requerida',
+      (value: Record<string, Json>) => ({
+        ...value,
+        credentialsSupportingPositiveConclusions: [
+          { credentialReference: 'cred-python' }
+        ]
+      })
+    ]
+  ])('rechaza synthesis con %s', (_label, patch) => {
+    expect(() =>
+      adaptReasoningRunDetail(detailPayload({ synthesis: patch(realFourteenRequirementSynthesis() as Record<string, Json>) }))
+    ).toThrow(IncompatiblePayloadError);
   });
 
   it('valida el estado final contra los cinco congelados', () => {
