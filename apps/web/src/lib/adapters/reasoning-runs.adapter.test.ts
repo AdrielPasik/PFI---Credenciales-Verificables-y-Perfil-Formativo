@@ -96,6 +96,20 @@ describe('adapter del analisis', () => {
     expect(run.requirementResults?.[0].finalState).toBe('SUPPORTED');
   });
 
+  it('tolera synthesis aditiva sin incorporarla al modelo P2.4B todavía', () => {
+    const run = adaptReasoningRunDetail(
+      detailPayload({
+        synthesis: {
+          schemaVersion: 'objective_synthesis_v1',
+          stateSummary: { supportedCount: 1 }
+        }
+      })
+    );
+
+    expect(JSON.stringify(run)).not.toContain('objective_synthesis_v1');
+    expect(run.requirementResults?.[0].finalState).toBe('SUPPORTED');
+  });
+
   it('valida el estado final contra los cinco congelados', () => {
     expect(() =>
       adaptReasoningRunDetail(withResults(requirementResult({ finalState: 'APROBADO' })))

@@ -54,6 +54,7 @@ import {
   projectReasoningRunEvidence,
   type FrozenInventorySourceView
 } from './reasoning-run-evidence.projection';
+import { ObjectiveSynthesisInvariantError } from './objective-synthesis';
 
 /**
  * Columnas que la API necesita. Explícitas, no `select: *`: una columna futura
@@ -213,7 +214,16 @@ export class ReasoningRunPrivateService {
         ? await this.frozenInventoryFor(row.id)
         : null;
 
-    return mapReasoningRunDetail(this.toVerifiedView(row, inventory));
+    try {
+      return mapReasoningRunDetail(this.toVerifiedView(row, inventory));
+    } catch (error: unknown) {
+      // Una síntesis inconsistente no puede degradarse a una respuesta parcial ni
+      // publicar su detalle interno; coincide con la semántica de historia ilegible.
+      if (error instanceof ObjectiveSynthesisInvariantError) {
+        failReasoningRunApi('REASONING_RUN_HISTORY_UNREADABLE');
+      }
+      throw error;
+    }
   }
 
   /**

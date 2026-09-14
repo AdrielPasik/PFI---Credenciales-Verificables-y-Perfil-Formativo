@@ -36,6 +36,7 @@ import { type VerifiedObjectiveDefinition } from '../objectives/objective-defini
 import { type VerifiedReasoningRunResult } from './reasoning-run-artifact.types';
 import { failEvidenceProjection } from './reasoning-run-evidence.errors';
 import { type ProjectedRequirementEvidence } from './reasoning-run-evidence.projection';
+import { buildObjectiveSynthesisV1 } from './objective-synthesis';
 
 /** Lo mínimo que el mapper necesita de la fila, ya releído y verificado. */
 export interface ReasoningRunView {
@@ -187,15 +188,26 @@ function mapResult(view: ReasoningRunView): ReasoningRunResultResponseDto | null
 export function mapReasoningRunDetail(
   view: ReasoningRunView
 ): ReasoningRunDetailResponseDto {
+  const objective = mapObjectiveSnapshot(view);
+  const result = mapResult(view);
+
   return {
     reasoningRunReference: view.id,
     status: view.status,
-    objective: mapObjectiveSnapshot(view),
+    objective,
     failureCategory: toFailureCategory(view.failureCode),
     createdAt: view.createdAt.toISOString(),
     startedAt: iso(view.startedAt),
     completedAt: iso(view.completedAt),
     failedAt: iso(view.failedAt),
-    result: mapResult(view)
+    result,
+    synthesis:
+      view.status === 'completed' && result !== null
+        ? buildObjectiveSynthesisV1({
+            reasoningRunReference: view.id,
+            objective,
+            result
+          })
+        : null
   };
 }

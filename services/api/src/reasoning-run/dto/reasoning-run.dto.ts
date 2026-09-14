@@ -167,6 +167,58 @@ export class ReasoningRunResultResponseDto {
   requirementResults!: ReasoningRunRequirementResultResponseDto[];
 }
 
+/**
+ * Agregación determinista de los hechos YA resueltos por F3.
+ *
+ * No es un segundo razonador: organiza el snapshot de Requirements, sus estados
+ * finales y las referencias de credenciales que la proyección safe ya vinculó a
+ * conclusiones positivas. La evidencia detallada sigue en `result`.
+ */
+export type ObjectiveSynthesisFinalState =
+  | 'SUPPORTED'
+  | 'PARTIALLY_SUPPORTED'
+  | 'INSUFFICIENT_EVIDENCE'
+  | 'ABSTAIN'
+  | 'NOT_ASSESSABLE';
+
+export class ObjectiveSynthesisV1ResponseDto {
+  schemaVersion!: 'objective_synthesis_v1';
+  reasoningRunReference!: string;
+  objectiveReference!: string;
+  stateSummary!: {
+    supportedCount: number;
+    partiallySupportedCount: number;
+    insufficientEvidenceCount: number;
+    abstainCount: number;
+    notAssessableCount: number;
+  };
+  requirements!: Array<{
+    requirementId: string;
+    order: number;
+    requirementText: string;
+    finalState: ObjectiveSynthesisFinalState;
+  }>;
+  positiveConclusions!: Array<{
+    requirementId: string;
+    requirementText: string;
+    finalState: 'SUPPORTED' | 'PARTIALLY_SUPPORTED';
+    supportedWeakerClaim: string | null;
+    supportingCredentialReferences: string[];
+  }>;
+  credentialsSupportingPositiveConclusions!: Array<{
+    credentialReference: string;
+    /** Etiquetas actuales; no son una instantánea histórica del run. */
+    credentialDisplay: {
+      title: string;
+      credentialType: string;
+      issuerName: string;
+      currentStatus: string;
+    };
+    supportedRequirementIds: string[];
+    partiallySupportedRequirementIds: string[];
+  }>;
+}
+
 export class ReasoningRunDetailResponseDto {
   reasoningRunReference!: string;
   status!: string;
@@ -178,4 +230,6 @@ export class ReasoningRunDetailResponseDto {
   failedAt!: string | null;
   /** Presente SOLO cuando el run esta `completed`. `null` en cualquier otro caso. */
   result!: ReasoningRunResultResponseDto | null;
+  /** `null` hasta que exista un resultado completo y verificado. */
+  synthesis!: ObjectiveSynthesisV1ResponseDto | null;
 }

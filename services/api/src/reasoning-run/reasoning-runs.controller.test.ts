@@ -512,7 +512,8 @@ test('las claves del detalle son exactamente la allowlist', async () => {
     'reasoningRunReference',
     'result',
     'startedAt',
-    'status'
+    'status',
+    'synthesis'
   ]);
   assert.deepEqual(Object.keys(detail.objective).sort(), [
     'objectiveContext',
@@ -812,6 +813,7 @@ test('ejecutar un run ya completado devuelve el mismo resultado persistido', asy
   const second = await controller.execute(OWNER, 'run-1');
 
   assert.equal(second.status, 'completed');
+  assert.equal(second.synthesis?.schemaVersion, 'objective_synthesis_v1');
   assert.deepEqual(second, first);
   // El orquestador se llama —y él decide devolver lo persistido con 0 llamadas
   // al proveedor—, pero la respuesta HTTP es estable.
@@ -833,6 +835,15 @@ test('los CINCO estados finales se preservan exactos', async () => {
   for (const state of states) {
     const artifact = clone(resultArtifact()) as Mutable;
     artifact.requirementResults[0].finalState = state;
+    if (state === 'SUPPORTED') {
+      // Un resultado plenamente respaldado no puede conservar el claim débil
+      // propio de la fixture parcial que usamos como base.
+      artifact.requirementResults[0].weakerClaimSearch = {
+        status: 'NONE',
+        rationale: 'El requisito completo ya está respaldado.',
+        candidate: null
+      };
+    }
     const { controller } = controllerFor({
       rows: [completedRunRow({ resultArtifact: artifact })]
     });
@@ -892,6 +903,7 @@ test('un run no completado no expone resultado', async () => {
     const { controller } = controllerFor({ rows: [runRow({ status })] });
     const detail = await controller.get(OWNER, 'run-1');
     assert.equal(detail.result, null, status);
+    assert.equal(detail.synthesis, null, status);
   }
 });
 

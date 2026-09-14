@@ -1979,3 +1979,34 @@ sin mostrar perfil ni interpretacion semantica. Pendiente todavia:
   primera vez, este campo pasa de estar casi siempre vacío a mostrar datos
   reales con mas frecuencia. Nunca cae a email (a diferencia de
   `holder-display-label.ts`, usado solo en superficies autenticadas).
+
+## P2.4C: síntesis determinista de Objective
+
+`GET /me/reasoning-runs/:reasoningRunId` y la respuesta de
+`POST /me/reasoning-runs/:reasoningRunId/execute` incluyen el campo aditivo
+`synthesis`. No hay endpoint nuevo ni una llamada adicional: se deriva en la
+misma frontera privada después de verificar el snapshot histórico del Objective,
+el resultado de F3 y la proyección Holder-safe de evidencia.
+
+- Run `completed` con resultado verificable: `synthesis` es
+  `objective_synthesis_v1`.
+- Run `pending`, `running` o `failed`: `synthesis` es `null`.
+- `stateSummary` cuenta exactamente los cinco `finalState` por Requirement. No
+  es score, porcentaje, ranking ni recomendación.
+- `positiveConclusions` contiene únicamente Requirements `SUPPORTED` y
+  `PARTIALLY_SUPPORTED`. El segundo conserva su `supportedWeakerClaim` ya
+  persistido; no se crea ni se reescribe texto.
+- `credentialsSupportingPositiveConclusions` reúne referencias de credenciales
+  sólo cuando aparecen en evidencia safe de una conclusión positiva. Se
+  deduplica por referencia y conserva el orden de Requirement y luego de
+  evidencia, sin ordenar por frecuencia, título o importancia.
+- `credentialDisplay` contiene etiquetas actuales de presentación. No altera el
+  hecho histórico del run ni decide inclusión, estado final o relaciones de
+  respaldo.
+
+La evidencia detallada y su provenance permanecen exclusivamente en
+`result.requirementResults[].evidence[]`; la síntesis no duplica excerpts ni
+expone artifacts, IDs internos, `policyTrace`, evidencia evaluada, prompts ni
+metadata de proveedor o storage. En V1 no existe un campo de "evidencia
+considerada": el contrato Holder-safe no la distingue autoritativamente de la
+evidencia proyectada.
