@@ -72,22 +72,6 @@ function overviewCopy(synthesis: ObjectiveSynthesisVM): string[] {
     );
   }
 
-  const otherStates = [
-    summary.insufficientEvidenceCount > 0
-      ? `${summary.insufficientEvidenceCount} con evidencia insuficiente`
-      : null,
-    summary.abstainCount > 0
-      ? `${summary.abstainCount} sin una conclusión confiable`
-      : null,
-    summary.notAssessableCount > 0
-      ? `${summary.notAssessableCount} no evaluables con evidencia formativa`
-      : null
-  ].filter((value): value is string => value !== null);
-
-  if (otherStates.length > 0 && (summary.supportedCount > 0 || summary.partiallySupportedCount > 0)) {
-    paragraphs.push(`En otros requisitos, se registraron ${otherStates.join(', ')}.`);
-  }
-
   return paragraphs;
 }
 
@@ -97,10 +81,12 @@ function statusLabel(status: string): string {
 
 function PositiveConclusion({
   conclusion,
-  synthesis
+  synthesis,
+  onRequirementDetail
 }: {
   conclusion: ObjectiveSynthesisVM['positiveConclusions'][number];
   synthesis: ObjectiveSynthesisVM;
+  onRequirementDetail?: (requirementId: string) => void;
 }) {
   const supportingCredentials = conclusion.supportingCredentialReferences.flatMap(
     (reference) => {
@@ -151,13 +137,14 @@ function PositiveConclusion({
       ) : null}
 
       <p>
-        <a
-          href={`#requirement-result-${conclusion.requirementId}`}
+        <button
+          type="button"
+          onClick={() => onRequirementDetail?.(conclusion.requirementId)}
           className="text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
           aria-label={`Ver el detalle del requisito: ${conclusion.requirementText}`}
         >
           Ver detalle del requisito
-        </a>
+        </button>
       </p>
     </article>
   );
@@ -165,10 +152,14 @@ function PositiveConclusion({
 
 export function ObjectiveSynthesisOverview({
   synthesis,
-  completedAtLabel
+  completedAtLabel,
+  onRequirementDetail,
+  showMetadata = true
 }: {
   synthesis: ObjectiveSynthesisVM;
   completedAtLabel: string | null;
+  onRequirementDetail?: (requirementId: string) => void;
+  showMetadata?: boolean;
 }) {
   const [showRemaining, setShowRemaining] = useState(false);
   const visibleConclusions = showRemaining
@@ -185,9 +176,6 @@ export function ObjectiveSynthesisOverview({
         >
           Tu trayectoria frente a este objetivo
         </h2>
-        {completedAtLabel ? (
-          <p className="text-sm text-text-muted">Analizado el {completedAtLabel}.</p>
-        ) : null}
         {overviewCopy(synthesis).map((paragraph) => (
           <p key={paragraph} className="max-w-2xl text-sm leading-6 text-text-muted">
             {paragraph}
@@ -195,20 +183,12 @@ export function ObjectiveSynthesisOverview({
         ))}
       </div>
 
-      <ul aria-label="Resumen descriptivo del análisis" className="flex min-w-0 flex-wrap gap-2">
-        {STATE_DESCRIPTORS.map(({ key, label }) => {
-          const count = synthesis.stateSummary[key];
-          if (count === 0) return null;
-          return (
-            <li
-              key={key}
-              className="rounded-control border border-border-default bg-surface-muted px-3 py-2 text-sm text-text-default"
-            >
-              {label(count)}
-            </li>
-          );
-        })}
-      </ul>
+      {showMetadata ? (
+        <ObjectiveSynthesisMetadata
+          synthesis={synthesis}
+          completedAtLabel={completedAtLabel}
+        />
+      ) : null}
 
       {synthesis.positiveConclusions.length > 0 ? (
         <section aria-labelledby="positive-conclusions-title" className="grid min-w-0 gap-4">
@@ -226,7 +206,11 @@ export function ObjectiveSynthesisOverview({
           <ol id="remaining-positive-conclusions" className="grid min-w-0 list-none gap-4">
             {visibleConclusions.map((conclusion) => (
               <li key={conclusion.requirementId} className="min-w-0">
-                <PositiveConclusion conclusion={conclusion} synthesis={synthesis} />
+                <PositiveConclusion
+                  conclusion={conclusion}
+                  synthesis={synthesis}
+                  onRequirementDetail={onRequirementDetail}
+                />
               </li>
             ))}
           </ol>
@@ -244,5 +228,35 @@ export function ObjectiveSynthesisOverview({
         </section>
       ) : null}
     </section>
+  );
+}
+
+export function ObjectiveSynthesisMetadata({
+  synthesis,
+  completedAtLabel
+}: {
+  synthesis: ObjectiveSynthesisVM;
+  completedAtLabel: string | null;
+}) {
+  return (
+    <div className="grid min-w-0 gap-3">
+      {completedAtLabel ? (
+        <p className="text-sm text-text-muted">Analizado el {completedAtLabel}.</p>
+      ) : null}
+      <ul aria-label="Resumen descriptivo del análisis" className="flex min-w-0 flex-wrap gap-2">
+        {STATE_DESCRIPTORS.map(({ key, label }) => {
+          const count = synthesis.stateSummary[key];
+          if (count === 0) return null;
+          return (
+            <li
+              key={key}
+              className="rounded-control border border-border-default bg-surface-muted px-3 py-2 text-sm text-text-default"
+            >
+              {label(count)}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

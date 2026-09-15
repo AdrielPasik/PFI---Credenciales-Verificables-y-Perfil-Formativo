@@ -910,10 +910,10 @@ describe('semantica de la evidencia por estado final', () => {
     expect(screen.queryByText('Evidencia que respalda este requisito')).toBeNull();
   });
 
-  it('INSUFFICIENT_EVIDENCE con evidencia la llama considerada, no respaldo', async () => {
+  it('INSUFFICIENT_EVIDENCE muestra evidencia disponible, no respaldo', async () => {
     renderWith({ finalState: 'INSUFFICIENT_EVIDENCE' });
 
-    expect(await screen.findByText('Evidencia considerada')).toBeTruthy();
+    expect(await screen.findByText('Evidencia disponible')).toBeTruthy();
     expect(
       screen.getByText(
         'La evidencia disponible no alcanza para justificar este requisito.'
@@ -932,7 +932,7 @@ describe('semantica de la evidencia por estado final', () => {
     renderWith({ finalState: 'INSUFFICIENT_EVIDENCE', evidence: [] });
 
     await screen.findByText('Evidencia insuficiente');
-    expect(screen.queryByText('Evidencia considerada')).toBeNull();
+    expect(screen.queryByText('Evidencia disponible')).toBeNull();
     expect(
       screen.getByText(
         'No encontramos evidencia suficiente en las credenciales disponibles para justificar este requisito.'
@@ -971,7 +971,7 @@ describe('semantica de la evidencia por estado final', () => {
     for (const forbidden of [
       'Evidencia utilizada',
       'Evidencia que respalda este requisito',
-      'Evidencia considerada',
+      'Evidencia disponible',
       'Evidencia relacionada'
     ]) {
       expect(screen.queryByText(forbidden), forbidden).toBeNull();
@@ -989,7 +989,7 @@ describe('semantica de la evidencia por estado final', () => {
     });
 
     await screen.findByText('Kubernetes');
-    expect(screen.getByText('Evidencia considerada')).toBeTruthy();
+    expect(screen.getByText('Evidencia disponible')).toBeTruthy();
     expect(screen.queryByText('Evidencia que respalda este requisito')).toBeNull();
     expect(
       screen.queryByText('Evidencia que respalda parcialmente este requisito')

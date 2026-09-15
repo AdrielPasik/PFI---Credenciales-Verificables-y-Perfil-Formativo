@@ -23,8 +23,16 @@ import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
+import {
+  CompactRequirementList,
+  requirementMatchesFilter,
+  type RequirementFilter
+} from '@/features/holder/objectives/compact-requirement-list';
 import { RequirementResultCard } from '@/features/holder/objectives/requirement-result-card';
-import { ObjectiveSynthesisOverview } from '@/features/holder/objectives/objective-synthesis-overview';
+import {
+  ObjectiveSynthesisMetadata,
+  ObjectiveSynthesisOverview
+} from '@/features/holder/objectives/objective-synthesis-overview';
 import {
   reconcileCompletedHistory,
   selectObjectiveReasoningRun
@@ -548,17 +556,80 @@ function CompletedSynthesisState({
   context?: ReactNode;
 }) {
   const results = run.requirementResults ?? [];
+  const [activeRequirementFilter, setActiveRequirementFilter] =
+    useState<RequirementFilter>('ALL');
+  const [expandedRequirementIds, setExpandedRequirementIds] = useState<ReadonlySet<string>>(
+    new Set()
+  );
+  const focusTargetRef = useRef<string | null>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
+
+  const changeRequirementFilter = (filter: RequirementFilter) => {
+    setActiveRequirementFilter(filter);
+    setExpandedRequirementIds(
+      (current) =>
+        new Set(
+          [...current].filter((requirementId) => {
+            const result = results.find((candidate) => candidate.requirementId === requirementId);
+            return result !== undefined && requirementMatchesFilter(result, filter);
+          })
+        )
+    );
+  };
+
+  const toggleRequirement = (requirementId: string) => {
+    setExpandedRequirementIds((current) => {
+      const next = new Set(current);
+      if (next.has(requirementId)) next.delete(requirementId);
+      else next.add(requirementId);
+      return next;
+    });
+  };
+
+  const showRequirementDetail = (requirementId: string) => {
+    setActiveRequirementFilter('ALL');
+    setExpandedRequirementIds((current) => new Set(current).add(requirementId));
+    focusTargetRef.current = requirementId;
+    setFocusRequest((current) => current + 1);
+  };
+
+  useEffect(() => {
+    const requirementId = focusTargetRef.current;
+    if (focusRequest === 0 || requirementId === null) return;
+    const target = document.getElementById(`requirement-result-${requirementId}`);
+    if (target === null) return;
+    target.scrollIntoView?.({ block: 'start' });
+    target.focus({ preventScroll: true });
+    focusTargetRef.current = null;
+  }, [focusRequest]);
 
   return (
-    <div className="grid min-w-0 gap-8">
-      <ObjectiveSynthesisOverview
-        synthesis={run.synthesis!}
-        completedAtLabel={run.completedAtLabel}
-      />
+    <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-x-10 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+        <ObjectiveSynthesisOverview
+          synthesis={run.synthesis!}
+          completedAtLabel={run.completedAtLabel}
+          onRequirementDetail={showRequirementDetail}
+          showMetadata={false}
+        />
+      </div>
+
+      <aside
+        aria-labelledby="analysis-summary-title"
+        className="grid min-w-0 gap-4 rounded-card border border-border-default bg-surface p-5 lg:col-start-2 lg:row-start-1"
+      >
+        <h3 id="analysis-summary-title" className="text-base font-semibold text-text-strong">
+          Resumen del análisis
+        </h3>
+        <ObjectiveSynthesisMetadata
+          synthesis={run.synthesis!}
+          completedAtLabel={run.completedAtLabel}
+        />
+      </aside>
 
       <section
         aria-labelledby="analyzed-requirements-title"
-        className="grid min-w-0 gap-4 border-t border-border-default pt-8"
+        className="grid min-w-0 gap-4 border-t border-border-default pt-8 lg:col-start-1 lg:row-start-2"
       >
         <div className="grid gap-1">
           <h3
@@ -568,45 +639,50 @@ function CompletedSynthesisState({
             Requisitos analizados
           </h3>
           <p className="text-sm text-text-muted">
-            Cada resultado conserva el orden de los requisitos confirmados para este objetivo.
+            Abrí un requisito para consultar su conclusión y la evidencia disponible.
           </p>
         </div>
-        <ol className="grid min-w-0 list-none gap-5">
-          {results.map((result, index) => (
-            <li key={result.requirementId} className="min-w-0">
-              <RequirementResultCard result={result} order={index + 1} />
-            </li>
-          ))}
-        </ol>
+        <CompactRequirementList
+          results={results}
+          synthesis={run.synthesis!}
+          activeFilter={activeRequirementFilter}
+          expandedIds={expandedRequirementIds}
+          onFilterChange={changeRequirementFilter}
+          onToggle={toggleRequirement}
+        />
       </section>
 
-      {context ?? null}
+      <aside className="grid min-w-0 gap-5 lg:col-start-2 lg:row-start-2">
+        {context ?? null}
 
-      {history.length > 1 ? (
-        <details className="rounded-card border border-border-default bg-surface p-5">
-          <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
-            Analisis anteriores ({history.length - 1})
-          </summary>
-          <ul className="mt-4 grid list-none gap-2 text-sm text-text-muted">
-            {history
-              .filter((entry) => entry.reasoningRunReference !== run.reasoningRunReference)
-              .map((entry) => (
-                <li key={entry.reasoningRunReference}>
-                  Analisis del {entry.createdAtLabel} · {entry.requirementCount} requisitos
-                </li>
-              ))}
-          </ul>
-        </details>
-      ) : null}
+        {history.length > 1 ? (
+          <details className="rounded-card border border-border-default bg-surface p-5">
+            <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+              Analisis anteriores ({history.length - 1})
+            </summary>
+            <ul className="mt-4 grid list-none gap-2 text-sm text-text-muted">
+              {history
+                .filter((entry) => entry.reasoningRunReference !== run.reasoningRunReference)
+                .map((entry) => (
+                  <li key={entry.reasoningRunReference}>
+                    Analisis del {entry.createdAtLabel} · {entry.requirementCount} requisitos
+                  </li>
+                ))}
+            </ul>
+          </details>
+        ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border-default pt-5">
-        <Button type="button" variant="secondary" onClick={onStartNew}>
-          Volver a analizar
-        </Button>
-        <p className="text-xs text-text-muted">
-          Un analisis nuevo no reemplaza a este: cada uno queda como una observacion con su fecha.
-        </p>
-      </div>
+        <div className="grid gap-3 border-t border-border-default pt-5">
+          <div>
+            <Button type="button" variant="secondary" onClick={onStartNew}>
+              Volver a analizar
+            </Button>
+          </div>
+          <p className="text-xs leading-5 text-text-muted">
+            Un analisis nuevo no reemplaza a este: cada uno queda como una observacion con su fecha.
+          </p>
+        </div>
+      </aside>
     </div>
   );
 }

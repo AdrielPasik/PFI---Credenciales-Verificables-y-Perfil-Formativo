@@ -74,11 +74,11 @@ describe('quien puede decir "respalda"', () => {
 });
 
 describe('estados sin respaldo', () => {
-  it('INSUFFICIENT_EVIDENCE muestra la evidencia como considerada', () => {
+  it('INSUFFICIENT_EVIDENCE muestra evidencia disponible, sin sugerir exhaustividad', () => {
     const presentation = evidencePresentationFor('INSUFFICIENT_EVIDENCE', 1);
     expect(presentation.mode).toBe('CONSIDERED_INSUFFICIENT');
     expect(presentation.visible).toBe(true);
-    expect(presentation.heading).toBe('Evidencia considerada');
+    expect(presentation.heading).toBe('Evidencia disponible');
     expect(presentation.clarification).toBe(
       'La evidencia disponible no alcanza para justificar este requisito.'
     );

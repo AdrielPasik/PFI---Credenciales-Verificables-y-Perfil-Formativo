@@ -70,7 +70,7 @@ export interface EvidencePresentation {
 const HEADINGS: Record<EvidencePresentationMode, string | null> = {
   SUPPORTING: 'Evidencia que respalda este requisito',
   PARTIAL_SUPPORT: 'Evidencia que respalda parcialmente este requisito',
-  CONSIDERED_INSUFFICIENT: 'Evidencia considerada',
+  CONSIDERED_INSUFFICIENT: 'Evidencia disponible',
   RELATED_UNCERTAIN: 'Evidencia relacionada',
   HIDDEN_NON_ASSESSABLE: null
 };

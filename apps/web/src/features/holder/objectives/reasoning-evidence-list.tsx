@@ -122,7 +122,7 @@ function EvidenceExcerpt({ evidence }: { evidence: ReasoningEvidenceVM }) {
         el backend preserva exacta, y `break-words` para que un fragmento largo
         no desborde la tarjeta en pantallas angostas.
       */}
-      <blockquote className="min-w-0 border-l-2 border-teal-700 pl-3 text-sm leading-6 text-text-default">
+      <blockquote className="min-w-0 max-w-2xl border-l-2 border-teal-700 pl-3 text-sm leading-6 text-text-default">
         <p className="min-w-0 whitespace-pre-wrap break-words">
           &ldquo;{evidence.excerpt}&rdquo;
         </p>
@@ -162,7 +162,7 @@ function EvidenceExcerpt({ evidence }: { evidence: ReasoningEvidenceVM }) {
           <summary className="cursor-pointer text-xs font-semibold text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
             Ver el fragmento en contexto
           </summary>
-          <p className="mt-2 min-w-0 whitespace-pre-wrap break-words text-xs leading-6 text-text-muted">
+          <p className="mt-2 min-w-0 max-w-2xl whitespace-pre-wrap break-words text-xs leading-6 text-text-muted">
             {evidence.contextBefore}
             <mark className="bg-teal-50 font-semibold text-text-strong">
               {evidence.excerpt}

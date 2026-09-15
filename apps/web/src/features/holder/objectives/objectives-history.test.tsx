@@ -6,7 +6,7 @@
  * N+1 por un dato decorativo.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ObjectiveDetailRoute } from '@/features/holder/objectives/objective-detail-route';
@@ -298,11 +298,23 @@ describe('detalle de objetivo', () => {
 
     await screen.findByRole('heading', { name: 'Tu trayectoria frente a este objetivo' });
     expect(screen.getByRole('heading', { name: 'Requisitos analizados' })).toBeTruthy();
+    const summary = screen.getByRole('complementary', { name: 'Resumen del análisis' });
+    expect(within(summary).getByText('1 respaldado parcialmente')).toBeTruthy();
+    expect(screen.getAllByText('1 respaldado parcialmente')).toHaveLength(1);
+    const pageText = document.body.textContent ?? '';
+    expect(pageText.indexOf('Tu trayectoria frente a este objetivo')).toBeLessThan(
+      pageText.indexOf('Resumen del análisis')
+    );
+    expect(pageText.indexOf('Resumen del análisis')).toBeLessThan(
+      pageText.indexOf('Requisitos analizados')
+    );
     await waitFor(() =>
       expect(screen.queryByRole('heading', { name: 'Requisitos confirmados' })).toBeNull()
     );
     expect(
-      Array.from(document.querySelectorAll('[id^="requirement-result-"]')).map(
+      Array.from(
+        document.querySelectorAll('[id^="requirement-result-"][id$="-title"]')
+      ).map(
         (element) => element.textContent
       )
     ).toEqual(['Experiencia con Python.', 'Disponibilidad para viajar.']);

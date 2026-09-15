@@ -86,6 +86,19 @@ describe('overview determinista de objetivo', () => {
     ).toBeTruthy();
   });
 
+  it('puede ceder la metadata a una composición externa sin duplicarla', () => {
+    render(
+      <ObjectiveSynthesisOverview
+        synthesis={synthesis()}
+        completedAtLabel="11 de septiembre de 2026"
+        showMetadata={false}
+      />
+    );
+
+    expect(screen.queryByText(/Analizado el/i)).toBeNull();
+    expect(screen.queryByLabelText('Resumen descriptivo del análisis')).toBeNull();
+  });
+
   it('presenta el caso real de catorce requisitos sin puntaje ni promociones negativas', () => {
     render(
       <ObjectiveSynthesisOverview

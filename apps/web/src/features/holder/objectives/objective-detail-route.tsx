@@ -18,8 +18,8 @@
  * El objetivo confirmado sigue siendo de SOLO LECTURA: el backend no expone
  * `PATCH` y una revision crea siempre una fila nueva.
  *
- * ANCHO CONTENIDO. `max-w-3xl` centrado: los fragmentos de evidencia son texto
- * para leer, y a 1440px una linea de borde a borde es ilegible.
+ * COMPOSICION RESPONSIVA. La pagina comparte el ancho de Wallet y reserva la
+ * medida de lectura para el contenido narrativo y las evidencias anidadas.
  */
 
 import Link from 'next/link';
@@ -131,7 +131,7 @@ export function ObjectiveDetailRoute() {
   }, []);
 
   return (
-    <div className="mx-auto grid w-full min-w-0 max-w-3xl gap-10">
+    <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-10 lg:gap-12">
       <HolderBreadcrumbs
         items={[
           { label: 'Mi perfil formativo', href: '/wallet' },
