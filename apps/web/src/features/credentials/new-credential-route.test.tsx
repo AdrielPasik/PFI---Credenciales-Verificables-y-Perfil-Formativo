@@ -630,8 +630,10 @@ describe('NewCredentialController reusable templates', () => {
     expect(
       screen.getByText('Contenido reutilizable')
     ).toBeTruthy();
+    // Con una plantilla aplicada, el nombre se MUESTRA (texto de solo lectura),
+    // no se ofrece como campo editable.
     expect(
-      (screen.getByLabelText('Nombre del logro') as HTMLInputElement).value
+      screen.getByLabelText('Nombre del logro').textContent
     ).toBe('Curso de Python');
 
     fireEvent.click(screen.getByRole('button', { name: 'Crear borrador' }));
@@ -840,15 +842,14 @@ describe('NewCredentialController reusable templates', () => {
       await screen.findByRole('button', { name: 'Usar este contenido' })
     );
 
-    const name = screen.getByLabelText(
-      'Nombre del logro'
-    ) as HTMLInputElement;
-    expect(name.disabled).toBe(true);
-
-    fireEvent.change(name, {
-      target: { value: 'Curso de Python (editado)' }
-    });
-    expect(name.value).toBe('Curso de Python');
+    // No alcanza con un input deshabilitado: mientras la plantilla esta
+    // aplicada NO se renderiza ningun campo editable para el nombre.
+    const name = screen.getByLabelText('Nombre del logro');
+    expect(name.tagName).not.toBe('INPUT');
+    expect(name.textContent).toBe('Curso de Python');
+    expect(
+      screen.queryByRole('textbox', { name: 'Nombre del logro' })
+    ).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: 'Crear borrador' }));
 

@@ -145,9 +145,9 @@ describe('DocumentAnalysisSection', () => {
     });
 
     expect(screen.getAllByText('Análisis parcial').length).toBeGreaterThan(0);
-    expect(screen.getByText('Áreas detectadas').nextSibling?.textContent).toBe('0');
-    expect(screen.getByText('Habilidades detectadas').nextSibling?.textContent).toBe('0');
-    expect(screen.getByText('Conceptos detectados').nextSibling?.textContent).toBe('0');
+    expect(screen.getByText('Áreas identificadas').nextSibling?.textContent).toBe('0');
+    expect(screen.getByText('Habilidades identificadas').nextSibling?.textContent).toBe('0');
+    expect(screen.getByText('Conceptos identificados').nextSibling?.textContent).toBe('0');
     expect(screen.getByText('No informada')).toBeTruthy();
     expect(screen.queryByText('Observaciones de calidad')).toBeNull();
     expect(screen.queryByText(/falló|error técnico/i)).toBeNull();
@@ -156,9 +156,9 @@ describe('DocumentAnalysisSection', () => {
   it('renders completed metrics, confidence and human quality flags without IDs or raw fields', () => {
     renderSection({ currentState: state({ currentRun: runFixture() }) });
 
-    expect(screen.getByText('Áreas detectadas')).toBeTruthy();
-    expect(screen.getByText('Habilidades detectadas')).toBeTruthy();
-    expect(screen.getByText('Conceptos detectados')).toBeTruthy();
+    expect(screen.getByText('Áreas identificadas')).toBeTruthy();
+    expect(screen.getByText('Habilidades identificadas')).toBeTruthy();
+    expect(screen.getByText('Conceptos identificados')).toBeTruthy();
     expect(screen.getByText('75 %')).toBeTruthy();
     expect(screen.getByText('Cobertura limitada')).toBeTruthy();
     expect(document.body.textContent).not.toMatch(
@@ -387,7 +387,7 @@ describe('DocumentAnalysisSection', () => {
         latestError: 'No pudimos conectarnos para consultar el análisis.'
       })
     });
-    expect(screen.getByText('Habilidades detectadas')).toBeTruthy();
+    expect(screen.getByText('Habilidades identificadas')).toBeTruthy();
     expect(screen.getByText(/No pudimos conectarnos/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Consultar último análisis' })).toBeNull();
     expect(document.body.textContent).not.toContain('La actualización es manual');

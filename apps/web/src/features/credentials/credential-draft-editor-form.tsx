@@ -820,13 +820,11 @@ function DeclaredInstitutionalContentFields({
           id="declared-institutional-content-title"
           className="mt-1 text-lg font-semibold text-text-strong"
         >
-          {isAcademicSubject
-            ? 'Capacidades declaradas por la institución'
-            : 'Contenido declarado por la institución'}
+          Contenido declarado por la institución
         </h3>
         <p className="mt-1 text-sm leading-6 text-text-muted">
           {isAcademicSubject
-            ? 'Registrá únicamente capacidades explícitamente respaldadas por esta fuente institucional.'
+            ? 'Registrá únicamente información explícitamente respaldada por esta fuente institucional.'
             : 'Completá únicamente información declarada y respaldada por la institución emisora.'}
         </p>
       </div>

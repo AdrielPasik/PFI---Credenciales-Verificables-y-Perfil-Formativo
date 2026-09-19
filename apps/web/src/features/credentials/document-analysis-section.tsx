@@ -226,13 +226,13 @@ function AnalysisRunSummary({
       {semantic ? (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Metric label="Áreas detectadas" value={semantic.areasCount} />
+            <Metric label="Áreas identificadas" value={semantic.areasCount} />
             <Metric
-              label="Habilidades detectadas"
+              label="Habilidades identificadas"
               value={semantic.skillsCount}
             />
             <Metric
-              label="Conceptos detectados"
+              label="Conceptos identificados"
               value={semantic.conceptsCount}
             />
           </div>

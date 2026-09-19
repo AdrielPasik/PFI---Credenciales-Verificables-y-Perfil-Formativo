@@ -274,6 +274,22 @@ it('never shows issuer-facing semantic approval copy in the holder wallet', () =
   );
 });
 
+it('renders several unknown analysis flags as one Holder-safe observation', () => {
+  render(<WalletCredentialDetailView detail={{
+    ...detail,
+    analysis: {
+      ...detail.analysis!,
+      qualityFlags: [
+        'El análisis incluye observaciones técnicas que requieren revisión.'
+      ]
+    }
+  }} />);
+
+  expect(
+    screen.getAllByText(/Observaciones: El análisis incluye observaciones técnicas que requieren revisión\./)
+  ).toHaveLength(1);
+});
+
 it('renders a backend-equivalent issued Course with evidence, semantic descriptors and integrity', () => {
   const backendPayload = {
     id: 'credential-reference',

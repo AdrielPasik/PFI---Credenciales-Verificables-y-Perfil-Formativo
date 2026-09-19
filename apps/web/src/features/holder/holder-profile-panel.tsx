@@ -68,14 +68,14 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
     <section aria-labelledby="holder-profile-detail-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
       <div className="max-w-2xl">
         <p className="text-sm font-semibold text-teal-700">Tu trayectoria en detalle</p>
-        <h2 id="holder-profile-detail-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Áreas y capacidades</h2>
+        <h2 id="holder-profile-detail-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Áreas y habilidades</h2>
         <p className="mt-2 text-sm leading-6 text-text-muted">Una vista resumida de los contenidos que aparecen en las credenciales y análisis disponibles.</p>
       </div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-2">
         <ProfileList title="Áreas principales" icon={<BookOpenCheck aria-hidden="true" className="size-5" />} items={areas} limit={PRIMARY_AREAS_LIMIT} empty="Sin estimación horaria por área todavía." />
-        <ProfileList title="Capacidades destacadas" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={skills} limit={PRIMARY_SKILLS_LIMIT} empty="Todavía no hay habilidades disponibles." />
+        <ProfileList title="Habilidades identificadas" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={skills} limit={PRIMARY_SKILLS_LIMIT} empty="Todavía no hay habilidades disponibles." />
       </div>
-      {hasVisibleProvenance ? <p className="-mt-2 text-xs leading-5 text-text-muted">En las áreas y capacidades, <strong className="font-semibold text-text-strong">Emisor</strong> indica una interpretación revisada por el emisor, e <strong className="font-semibold text-text-strong">IA</strong> indica una interpretación realizada con inteligencia artificial.</p> : null}
+      {hasVisibleProvenance ? <p className="-mt-2 text-xs leading-5 text-text-muted">En las áreas y habilidades, <strong className="font-semibold text-text-strong">Emisor</strong> indica una interpretación revisada por el emisor, e <strong className="font-semibold text-text-strong">IA</strong> indica una interpretación realizada con inteligencia artificial.</p> : null}
 
       <details className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:px-6">
@@ -84,7 +84,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
         </summary>
         <div className="grid min-w-0 gap-6 border-t border-border-default px-5 py-5 sm:px-6 sm:py-6">
           {profile.areas.length > PRIMARY_AREAS_LIMIT ? <ProfileList title="Más áreas" icon={<BookOpenCheck aria-hidden="true" className="size-5" />} items={areas.slice(PRIMARY_AREAS_LIMIT)} empty="Sin áreas disponibles." /> : null}
-          {profile.skills.length > PRIMARY_SKILLS_LIMIT ? <ProfileList title="Más capacidades" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={skills.slice(PRIMARY_SKILLS_LIMIT)} empty="Sin capacidades disponibles." /> : null}
+          {profile.skills.length > PRIMARY_SKILLS_LIMIT ? <ProfileList title="Más habilidades" icon={<BrainCircuit aria-hidden="true" className="size-5" />} items={skills.slice(PRIMARY_SKILLS_LIMIT)} empty="Sin habilidades disponibles." /> : null}
           <ProfileList title="Conceptos relacionados" icon={<Sparkles aria-hidden="true" className="size-5" />} items={concepts} empty="Todavía no hay conceptos disponibles." />
 
           {hasDeclaredInstitutionalInfo ? (

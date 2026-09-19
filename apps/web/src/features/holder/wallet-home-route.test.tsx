@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WalletHomeContent, WalletHomeView, type HolderCredentialsLoadState, type HolderProfileLoadState } from '@/features/holder/wallet-home-route';
+import { adaptMyCurrentProfile } from '@/lib/adapters/holder.adapter';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { HolderProfileVM } from '@/models/holder';
 
@@ -18,7 +19,12 @@ const holderApiMocks = vi.hoisted(() => ({
 }));
 
 const profileSharingMocks = vi.hoisted(() => ({
-  createProfileShareRequest: vi.fn()
+  createProfileShareRequest: vi.fn(),
+  // La gestion de enlaces se monta dentro de la home. Estas vistas no la
+  // ejercitan (tiene su propia suite), asi que el mock la deja sin enlaces.
+  listMyProfileSharesRequest: vi.fn(async () => []),
+  revokeProfileShareRequest: vi.fn(),
+  replaceShareVerificationPolicyRequest: vi.fn()
 }));
 
 vi.mock('@/lib/session/session-provider', () => ({
@@ -32,7 +38,11 @@ vi.mock('@/lib/api/holder-api', () => ({
 }));
 
 vi.mock('@/lib/api/profile-sharing-api', () => ({
-  createProfileShareRequest: profileSharingMocks.createProfileShareRequest
+  createProfileShareRequest: profileSharingMocks.createProfileShareRequest,
+  listMyProfileSharesRequest: profileSharingMocks.listMyProfileSharesRequest,
+  revokeProfileShareRequest: profileSharingMocks.revokeProfileShareRequest,
+  replaceShareVerificationPolicyRequest:
+    profileSharingMocks.replaceShareVerificationPolicyRequest
 }));
 
 const credential = {
@@ -80,7 +90,7 @@ describe('WalletHomeView', () => {
 
   it('uses neutral profile skills and human-readable quality flags', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} />);
-    expect(screen.getByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Habilidades identificadas' })).toBeTruthy();
     expect(screen.getByText(/Información parcial/)).toBeTruthy();
     expect(screen.queryByText(/proviene de esta credencial/i)).toBeNull();
   });
@@ -117,8 +127,27 @@ describe('WalletHomeView', () => {
 
   it('keeps profile skills and declared-by-institutions skills visually separate', () => {
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileWithDeclaredInfo }} credentialsState={credentialsReady} />);
-    expect(screen.getByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 3, name: 'Habilidades identificadas' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Habilidades declaradas' })).toBeTruthy();
+  });
+
+  it('renders the profile unknown-quality fallback once after the shared Holder adaptation', () => {
+    const adaptedProfile = adaptMyCurrentProfile({ currentProfile: {
+      profileVersion: 'formative_profile_result_v0', credentialsCount: 1, totalHours: 64,
+      areas: [], skills: [], concepts: [], confidence: null,
+      qualityFlags: ['future_safe_flag', 'another_unknown_code'],
+      generatedAt: '2026-08-01T10:00:00.000Z'
+    } });
+
+    expect(adaptedProfile).not.toBeNull();
+    render(<WalletHomeView profileState={{ status: 'ready', profile: adaptedProfile! }} credentialsState={credentialsReady} />);
+    fireEvent.click(screen.getByText('Explorar el detalle del perfil'));
+    fireEvent.click(screen.getByText('Acerca de este perfil'));
+    expect(
+      screen.getAllByText(/Observaciones: El análisis incluye observaciones técnicas que requieren revisión\./)
+    ).toHaveLength(1);
+    expect(document.body.textContent).not.toContain('future_safe_flag');
+    expect(document.body.textContent).not.toContain('another_unknown_code');
   });
 
   it('places objectives before credentials and profile taxonomy while keeping the detail available on demand', () => {
@@ -129,7 +158,7 @@ describe('WalletHomeView', () => {
       pageText.indexOf('Tus credenciales')
     );
     expect(pageText.indexOf('Tus credenciales')).toBeLessThan(
-      pageText.indexOf('Áreas y capacidades')
+      pageText.indexOf('Áreas y habilidades')
     );
     const profileDetails = screen.getByText('Explorar el detalle del perfil').closest('details');
     expect(profileDetails?.open).toBe(false);
@@ -242,7 +271,7 @@ describe('WalletHomeView', () => {
     const profileManySkills = { ...profile, skills: manySkills };
     render(<WalletHomeView profileState={{ status: 'ready', profile: profileManySkills }} credentialsState={credentialsReady} />);
     // Una sola tarjeta/heading para toda la lista, no una por skill.
-    expect(screen.getAllByRole('heading', { level: 3, name: 'Capacidades destacadas' })).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { level: 3, name: 'Habilidades identificadas' })).toHaveLength(1);
     expect(screen.getAllByText('Habilidad 0', { exact: false }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Emisor', { selector: 'span' }).length).toBe(10);
     expect(screen.getAllByText('IA', { selector: 'span' }).length).toBe(10);

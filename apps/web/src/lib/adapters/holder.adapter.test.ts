@@ -183,6 +183,39 @@ describe('holder adapters', () => {
     expect(JSON.stringify(result)).not.toContain('analysisJson');
   });
 
+  it('projects several unknown analysis flags as one Holder-safe observation while preserving known order', () => {
+    const detail = adaptMyCredential({
+      ...issuedCoursePayload(),
+      latestSemanticAnalysis: {
+        ...issuedCoursePayload().latestSemanticAnalysis as Record<string, unknown>,
+        qualityFlags: [
+          'partial_evidence',
+          'future_safe_flag',
+          'low_coverage',
+          'another_unknown_code',
+          'partial_evidence'
+        ]
+      }
+    });
+    const profile = adaptMyCurrentProfile({
+      currentProfile: {
+        ...legacyDomainProfile(),
+        qualityFlags: ['future_safe_flag', 'another_unknown_code']
+      }
+    });
+
+    expect(detail.analysis?.qualityFlags).toEqual([
+      'Información parcial',
+      'El análisis incluye observaciones técnicas que requieren revisión.',
+      'Cobertura limitada'
+    ]);
+    expect(profile?.qualityFlags).toEqual([
+      'El análisis incluye observaciones técnicas que requieren revisión.'
+    ]);
+    expect(JSON.stringify({ detail, profile })).not.toContain('future_safe_flag');
+    expect(JSON.stringify({ detail, profile })).not.toContain('another_unknown_code');
+  });
+
   it('accepts the backend semantic descriptor shape for an issued Course without weakening the allowlist', () => {
     const result = adaptMyCredential({
       ...listPayload()[0],

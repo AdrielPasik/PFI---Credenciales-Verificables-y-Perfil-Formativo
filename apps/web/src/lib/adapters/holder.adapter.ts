@@ -6,7 +6,7 @@ import {
   formatIntegrityDate
 } from '@/lib/formatters/credential-integrity';
 import { formatDisplayValue } from '@/lib/formatters/display-value';
-import { formatHolderQualityFlag } from '@/lib/formatters/holder-quality-flags';
+import { formatHolderQualityFlags } from '@/lib/formatters/holder-quality-flags';
 import type {
   HolderCredentialDetailVM,
   HolderCredentialListItemVM,
@@ -345,7 +345,11 @@ function optionalEmittedLabelArray(value: unknown, path: string): string[] {
     return safeString(descriptor.label, DECLARED_ARRAY_ITEM_MAX_LENGTH, `${itemPath}.label`);
   });
 }
-function qualityFlags(value: unknown, path: string): string[] { return array(value, path).map((entry, index) => formatHolderQualityFlag(safeString(entry, 120, `${path}[${index}]`))); }
+function qualityFlags(value: unknown, path: string): string[] {
+  return formatHolderQualityFlags(
+    array(value, path).map((entry, index) => safeString(entry, 120, `${path}[${index}]`))
+  );
+}
 function safeString(value: unknown, maxLength: number, path: string): string { const normalized = requiredString(value, path); if (normalized.length > maxLength || /[\u0000-\u001f\u007f]/.test(normalized)) invalid(path, `safe string up to ${maxLength} characters`, value); return normalized; }
 function nonNegativeInteger(value: unknown, path: string): number { if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) invalid(path, 'non-negative integer', value); return value; }
 function nullableNumber(value: unknown, path: string): number | null { if (value === null || value === undefined) return null; if (typeof value !== 'number' || !Number.isFinite(value)) invalid(path, 'finite number or null', value); return value; }

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, FileCheck2, LoaderCircle } from 'lucide-react';
+import { ArrowRight, ChevronDown, FileCheck2, LoaderCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -13,6 +13,7 @@ import { HolderProfileDetails, HolderProfileEmptyPanel, HolderProfileSummary } f
 import { ObjectiveEntryCard } from '@/features/holder/objectives/objective-entry-card';
 import { ProfileRebuildAction } from '@/features/holder/profile-rebuild-action';
 import { ProfileShareAction } from '@/features/holder/profile-share-action';
+import { ProfileShareManagement } from '@/features/holder/profile-share-management';
 import { getMyCredentialsRequest, getMyCurrentProfileRequest } from '@/lib/api/holder-api';
 import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
@@ -99,6 +100,20 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
       </header>
       {profileState.status === 'loading' ? <LoadingState label="Cargando tu perfil formativo" /> : null}
       {profileState.status === 'ready' ? <HolderProfileSummary profile={profileState.profile} /> : null}
+      {/* Administracion de enlaces: cerrado por defecto para no competir con el
+          perfil, pero presente. Hasta esta version no habia NINGUNA forma de
+          ver los enlaces abiertos ni de darlos de baja. */}
+      {profileState.status === 'ready' && showProfileShare ? (
+        <details className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:px-6">
+            Enlaces compartidos y permisos
+            <ChevronDown aria-hidden="true" className="size-4 text-text-muted transition group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-border-default px-5 py-5 sm:px-6">
+            <ProfileShareManagement />
+          </div>
+        </details>
+      ) : null}
       {profileState.status === 'empty' ? <HolderProfileEmptyPanel action={canOfferManualRebuild ? rebuildAction : null} /> : null}
       {profileState.status === 'error' ? <div className="grid gap-4"><FeedbackAlert variant="warning" title="No pudimos cargar tu perfil formativo">Tus credenciales siguen disponibles. Podés volver a intentar ahora.{contractDebug && profileState.diagnostic ? <ContractDiagnostic diagnostic={profileState.diagnostic} /> : null}</FeedbackAlert><div className="flex flex-wrap gap-3">{onRetryProfile ? <Button type="button" variant="secondary" onClick={onRetryProfile}>Reintentar</Button> : null}{canOfferManualRebuild ? rebuildAction : null}</div></div> : null}
       <ObjectiveEntryCard />

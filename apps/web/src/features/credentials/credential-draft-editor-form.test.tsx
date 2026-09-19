@@ -268,7 +268,7 @@ describe('CredentialDraftEditorForm', () => {
     expect(screen.getByRole('heading', { name: 'Datos de aprobación' })).toBeTruthy();
     expect(
       screen.getByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
+        name: 'Contenido declarado por la institución'
       })
     ).toBeTruthy();
     expect(screen.queryByText('Perfil formativo')).toBeNull();

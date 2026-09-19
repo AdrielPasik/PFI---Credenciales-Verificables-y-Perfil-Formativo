@@ -2092,7 +2092,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
+        name: 'Contenido declarado por la institución'
       })
     ).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
@@ -2118,7 +2118,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
+        name: 'Contenido declarado por la institución'
       })
     ).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
@@ -2218,7 +2218,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
 
     expect(
       await screen.findByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
+        name: 'Contenido declarado por la institución'
       })
     ).toBeTruthy();
     expect(screen.queryByText('Perfil formativo')).toBeNull();
@@ -2236,7 +2236,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       screen
         .getByRole('heading', {
           hidden: true,
-          name: 'Capacidades declaradas por la institución'
+          name: 'Contenido declarado por la institución'
         })
         .closest('[hidden]')
     ).toBeTruthy();
