@@ -434,10 +434,13 @@ def upstream_error(error_type: str | None = None, code: str | None = None) -> st
         (401, upstream_error("authentication_error", "invalid_api_key")),
         (403, upstream_error("permission_error")),
         (400, upstream_error("invalid_request_error")),
-        # Sin cuerpo estructurado: un 4xx sigue siendo determinista para ESTE plan.
-        (404, ""),
+        # Sin cuerpo estructurado: el resto de los 4xx sigue siendo determinista.
         (400, "not json at all"),
-        (404, "<html>404 Not Found</html>"),
+        (403, ""),
+        # 404 con codigo que PRUEBA que el recurso configurado no existe, aunque
+        # el proveedor no mande `type`.
+        (404, upstream_error(code="model_not_found")),
+        (404, upstream_error(code="deployment_not_found")),
     ],
 )
 def test_deterministic_provider_rejections_are_not_retryable(
@@ -448,6 +451,46 @@ def test_deterministic_provider_rejections_are_not_retryable(
     assert isinstance(
         classify_provider_http_failure(status, body), ProviderConfigurationError
     )
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "",
+        "<html>404 Not Found</html>",
+        "not json at all",
+        json.dumps({"error": {"message": "solo prosa, sin type ni code"}}),
+        json.dumps({"error": {"code": "algo_que_no_conocemos"}}),
+        json.dumps({"detail": "forma que no reconocemos"}),
+        # Prosa libre que DICE "not found" sin codigo ni tipo reconocido: la
+        # autoridad es el token estructurado, nunca el texto del mensaje.
+        json.dumps({"error": {"message": "The model gpt-x was not found"}}),
+    ],
+)
+def test_unstructured_404_is_transient_not_a_configuration_proof(body: str) -> None:
+    """Un 404 OPACO no prueba que la configuracion sea invalida.
+
+    Observado en el smoke E2E: la MISMA peticion —mismo modelo, misma clave,
+    mismo esquema, mismo effort y las mismas versiones de plan— devolvio 404 y,
+    minutos despues, 200 dos veces. Tratar ese 404 como prueba de configuracion
+    mataba el run del verificador por un fallo pasajero del borde del proveedor.
+    """
+    assert isinstance(classify_provider_http_failure(404, body), ProviderTransportError)
+
+
+def test_structured_404_model_not_found_stays_terminal() -> None:
+    # No se esconde una configuracion mal puesta detras de reintentos.
+    error = classify_provider_http_failure(
+        404, upstream_error("invalid_request_error", "model_not_found")
+    )
+    assert isinstance(error, ProviderConfigurationError)
+
+
+def test_no_404_detail_carries_provider_prose() -> None:
+    # El detalle sigue siendo un token cerrado, tambien en el camino nuevo.
+    error = classify_provider_http_failure(404, "<html>404 Not Found</html>")
+    assert str(error) == "provider_http_404"
+    assert "prosa" not in str(error)
 
 
 @pytest.mark.parametrize(

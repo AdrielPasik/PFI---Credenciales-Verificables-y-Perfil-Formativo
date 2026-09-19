@@ -73,6 +73,20 @@ y actor desde JWT, valida el contexto institucional antes del lookup y
 reutiliza la emision existente. Devuelve el read model institucional actualizado.
 `POST /credentials/:id/issue` permanece disponible como endpoint legacy.
 
+`POST /issuers/:issuerId/credentials/:credentialId/revoke` es el flujo
+issuer-facing coordinado de revocacion. Requiere el mismo contexto institucional
+operativo (`admin`/`operator` activo e issuer autorizado) y admite solamente un
+body opcional `{ "reason": string }` normalizado y acotado. El backend resuelve
+el `BlockchainRecord` mas reciente contra el deployment exacto, verifica cadena,
+bytecode, hash y registrante, y exige que el signer configurado sea ese mismo
+registrante antes de escribir. Solo escribe desde `issued + chain active`; luego
+relee la cadena y persiste en una transaccion corta `Credential` y
+`BlockchainRecord` como `revoked`, usando el timestamp on-chain. Si la cadena ya
+estaba revocada, recupera el estado local sin reenviar transaccion. Un fallo de
+rebuild del perfil posterior no revierte la revocacion: responde un error seguro
+reintentable. No existe fallback de DB-only, no se modifica canon/hash y
+`/verify` publico sigue sin RPC en vivo.
+
 `GET /auth/me` devuelve solo memberships activas y agrega para cada una un
 resumen seguro del issuer: `issuerId`, `issuerName`, `issuerDid` e
 `issuerAuthorizationStatus`. Una membership activa solo es un contexto emisor

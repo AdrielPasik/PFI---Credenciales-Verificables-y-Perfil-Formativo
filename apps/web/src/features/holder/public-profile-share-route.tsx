@@ -1,6 +1,6 @@
 'use client';
 
-import { BookOpenCheck, Landmark, LoaderCircle, UserRound } from 'lucide-react';
+import { BookOpenCheck, Landmark, LoaderCircle, Sparkles, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -23,10 +23,10 @@ export function PublicProfileShareRoute({ token }: { token: string }) {
     return () => { active = false; };
   }, [token]);
 
-  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} /> : null}</div></main>;
+  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} token={token} /> : null}</div></main>;
 }
 
-function PublicProfileView({ profile }: { profile: PublicProfileShareVM }) {
+function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; token: string }) {
   const metrics: Array<{ label: string; value: string }> = [
     { label: 'Credenciales incluidas', value: String(profile.credentialsCount) },
     ...(profile.totalOfficialHoursLabel ? [{ label: 'Horas oficiales', value: profile.totalOfficialHoursLabel }] : [])
@@ -43,9 +43,19 @@ function PublicProfileView({ profile }: { profile: PublicProfileShareVM }) {
       </CardHeader>
     </Card>
 
+    {profile.contextualVerificationEnabled ? (
+      <Card className="min-w-0 border-teal-700">
+        <CardHeader className="gap-2">
+          <div className="flex items-center gap-3"><Sparkles aria-hidden="true" className="size-5 text-teal-700" /><h2 className="text-lg font-semibold text-text-strong">Analizar esta trayectoria frente a un objetivo</h2></div>
+          <p className="max-w-3xl text-sm leading-6 text-text-muted">Scope analizará únicamente las credenciales que la persona autorizó para esta función, frente al objetivo que definas. Es distinto de verificar una credencial: no certifica aptitud ni puntúa personas.</p>
+        </CardHeader>
+        <CardContent><Button asChild><Link href={`/share/profile/${encodeURIComponent(token)}/analysis`}>Analizar esta trayectoria frente a un objetivo</Link></Button></CardContent>
+      </Card>
+    ) : null}
+
     <div className="grid gap-5 lg:grid-cols-3">
       <LabelList title="Áreas principales" items={profile.areas.map((area) => area.estimatedHoursLabel ? `${area.label} · ${area.estimatedHoursLabel}` : area.label)} />
-      <LabelList title="Habilidades principales" items={profile.skills} />
+      <LabelList title="Habilidades identificadas" items={profile.skills} />
       <LabelList title="Conceptos relevantes" items={profile.concepts} />
     </div>
 

@@ -25,9 +25,10 @@
  * porque el hecho es el mismo pero la etapa que lo descubrió no.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { REASONING_RUN_TABLE, holderReasoningRunTable, type ReasoningRunTable } from './reasoning-run-table';
 import { SourceExtractionSlotService } from '../source-extraction/source-extraction-slot.service';
 import { type VerifiedSourceExtractionArtifact } from '../source-extraction/source-extraction-artifact.types';
 
@@ -72,10 +73,15 @@ export class GroundingUnusableError extends Error {
 
 @Injectable()
 export class ReasoningRunGroundingLoader {
+  private readonly table: ReasoningRunTable;
+
   public constructor(
     private readonly prisma: PrismaService,
-    private readonly extractionSlots: SourceExtractionSlotService
-  ) {}
+    private readonly extractionSlots: SourceExtractionSlotService,
+    @Optional() @Inject(REASONING_RUN_TABLE) table?: ReasoningRunTable
+  ) {
+    this.table = table ?? holderReasoningRunTable(prisma);
+  }
 
   /**
    * Carga y verifica TODAS las fuentes INCLUIDAS del run.
@@ -87,7 +93,7 @@ export class ReasoningRunGroundingLoader {
   public async loadVerifiedGroundingSet(
     reasoningRunId: string
   ): Promise<readonly GroundedSource[]> {
-    const inventory = await this.prisma.reasoningRunInventoryItem.findMany({
+    const inventory = await this.table.inventory.findMany({
       where: { reasoningRunId, disposition: INCLUDED as never },
       select: INVENTORY_SELECT,
       orderBy: { runLocalSourceId: 'asc' }

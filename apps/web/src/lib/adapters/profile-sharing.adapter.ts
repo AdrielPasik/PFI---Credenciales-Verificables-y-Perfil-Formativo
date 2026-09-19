@@ -1,6 +1,18 @@
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 import { formatDisplayValue } from '@/lib/formatters/display-value';
-import type { ProfileShareLinkVM, PublicProfileShareVM } from '@/models/profile-sharing';
+import type {
+  HolderProfileShareVM,
+  ProfileShareLinkVM,
+  PublicProfileShareVM,
+  ShareStatus,
+  ShareVerificationPolicyVM
+} from '@/models/profile-sharing';
+
+const SHARE_STATUS_LABELS: Record<ShareStatus, string> = {
+  ACTIVE: 'Activo',
+  REVOKED: 'Revocado',
+  EXPIRED: 'Vencido'
+};
 
 const typeLabels = new Set([
   'Asignatura académica',
@@ -48,7 +60,45 @@ export function adaptPublicProfileShare(payload: unknown): PublicProfileShareVM 
         issuerName: requiredString(credential.issuerName),
         issuedAtLabel: optionalDateLabel(credential.issuedAt)
       };
-    })
+    }),
+    // Ausente en un backend anterior se lee como NO habilitado. El default
+    // seguro es el unico aceptable para un permiso.
+    contextualVerificationEnabled: optionalBoolean(value.contextualVerificationEnabled)
+  };
+}
+
+export function adaptHolderProfileShares(payload: unknown): HolderProfileShareVM[] {
+  return array(payload).map((entry) => {
+    const share = record(entry);
+    const status = requiredString(share.status);
+    if (status !== 'ACTIVE' && status !== 'REVOKED' && status !== 'EXPIRED') invalid();
+    return {
+      shareId: requiredString(share.shareId),
+      status,
+      statusLabel: SHARE_STATUS_LABELS[status],
+      createdAtLabel: requiredDateLabel(share.createdAt),
+      expiresAtLabel: optionalDateLabel(share.expiresAt),
+      revokedAtLabel: optionalDateLabel(share.revokedAt),
+      lastUsedAtLabel: optionalDateLabel(share.lastUsedAt),
+      contextualVerificationEnabled: optionalBoolean(share.contextualVerificationEnabled),
+      authorizedCredentialCount: nonNegativeInteger(share.authorizedCredentialCount),
+      effectiveAuthorizedCredentialCount: nonNegativeInteger(
+        share.effectiveAuthorizedCredentialCount
+      )
+    };
+  });
+}
+
+export function adaptShareVerificationPolicy(payload: unknown): ShareVerificationPolicyVM {
+  const value = record(payload);
+  if (typeof value.enabled !== 'boolean') invalid();
+  return {
+    enabled: value.enabled,
+    policyVersion: nonNegativeInteger(value.policyVersion),
+    authorizedCredentialIds: array(value.authorizedCredentialIds).map(requiredString),
+    effectiveAuthorizedCredentialIds: array(value.effectiveAuthorizedCredentialIds).map(
+      requiredString
+    )
   };
 }
 
@@ -58,5 +108,7 @@ function requiredString(value: unknown): string { const normalized = nullableStr
 function nullableString(value: unknown): string | null { if (value === null || value === undefined) return null; if (typeof value !== 'string') invalid(); const normalized = value.trim().replace(/\s+/g, ' '); return normalized || null; }
 function nullableNumber(value: unknown): number | null { if (value === null || value === undefined) return null; if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) invalid(); return value; }
 function nonNegativeInteger(value: unknown): number { if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) invalid(); return value; }
+function optionalBoolean(value: unknown): boolean { if (value === undefined || value === null) return false; if (typeof value !== 'boolean') invalid(); return value; }
+function requiredDateLabel(value: unknown): string { const label = optionalDateLabel(value); if (label === null) invalid(); return label; }
 function optionalDateLabel(value: unknown): string | null { if (value === null || value === undefined) return null; const text = requiredString(value); const date = new Date(text); if (Number.isNaN(date.valueOf())) invalid(); return new Intl.DateTimeFormat('es-AR', { dateStyle: 'medium' }).format(date); }
 function invalid(): never { throw new IncompatiblePayloadError('El perfil compartido no tiene el formato esperado.'); }

@@ -147,3 +147,394 @@ test('a grant cannot expose a profile belonging to another holder', async () => 
 
   await assert.rejects(() => service.getPublicProfile('a'.repeat(43)), /No encontramos un perfil compartido disponible/);
 });
+
+// ---------------------------------------------------------------------------
+// Ciclo de vida del enlace y consentimiento de computo
+// ---------------------------------------------------------------------------
+
+const CRED = {
+  id: 'credential-1',
+  title: 'Curso ágil',
+  type: 'course',
+  issuedAt: new Date(),
+  issuer: { name: 'Institución Demo' }
+};
+
+/** Prisma falso para el lector publico, con politica configurable. */
+function publicPrisma(grantOverrides: Record<string, unknown>, issuedAuthorizedCount = 0) {
+  const counted: Record<string, unknown>[] = [];
+  return {
+    counted,
+    prisma: {
+      sharingGrant: {
+        findUnique: async () => ({
+          scope: 'profile',
+          expiresAt: null,
+          revokedAt: null,
+          userId: 'holder-1',
+          verificationPolicy: null,
+          user: { displayName: 'Holder Demo', firstName: null, lastName: null },
+          profile: {
+            ...currentProfile,
+            userId: 'holder-1',
+            totalHours: { toString: () => '12' },
+            generatedAt: new Date(currentProfile.generatedAt)
+          },
+          ...grantOverrides
+        })
+      },
+      credential: {
+        findMany: async () => [CRED],
+        count: async ({ where }: { where: Record<string, unknown> }) => {
+          counted.push(where);
+          return issuedAuthorizedCount;
+        }
+      }
+    } as never
+  };
+}
+
+const TOKEN = 'c'.repeat(43);
+
+test('sin politica, el perfil publico declara la verificacion contextual deshabilitada', async () => {
+  // El default de TODO grant preexistente: compartir el perfil nunca significo
+  // autorizar razonamiento de terceros.
+  const { prisma } = publicPrisma({});
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, false);
+});
+
+test('una politica deshabilitada tampoco habilita', async () => {
+  const { prisma } = publicPrisma(
+    { verificationPolicy: { enabled: false, authorizedCredentials: [{ credentialId: 'credential-1' }] } },
+    1
+  );
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, false);
+});
+
+test('una politica habilitada sin credenciales autorizadas no habilita', async () => {
+  const { prisma } = publicPrisma({
+    verificationPolicy: { enabled: true, authorizedCredentials: [] }
+  });
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, false);
+});
+
+test('enlace activo + politica habilitada + evidencia vigente habilita', async () => {
+  const { prisma } = publicPrisma(
+    { verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] } },
+    1
+  );
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, true);
+});
+
+test('si todas las credenciales autorizadas dejaron de estar emitidas, deja de habilitar', async () => {
+  // El consentimiento sigue guardado; lo que falta es evidencia utilizable.
+  const { prisma } = publicPrisma(
+    { verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] } },
+    0
+  );
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, false);
+});
+
+test('la elegibilidad se cuenta contra la base, no contra las 10 tarjetas visibles', async () => {
+  // El perfil publico muestra `take: 10` por PRESENTACION. El holder puede haber
+  // autorizado una credencial que no esta entre esas tarjetas, y eso no puede
+  // invalidar su consentimiento.
+  const { prisma, counted } = publicPrisma(
+    { verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'fuera-de-las-10' }] } },
+    1
+  );
+  await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  const where = counted[0] as Record<string, { in: string[] }> & Record<string, unknown>;
+  assert.deepEqual((where.id as { in: string[] }).in, ['fuera-de-las-10']);
+  assert.equal(where.status, 'issued');
+  assert.equal(where.subjectUserId, 'holder-1');
+});
+
+test('un enlace revocado no se lee aunque su politica este habilitada', async () => {
+  const { prisma } = publicPrisma(
+    {
+      revokedAt: new Date('2026-01-01T00:00:00Z'),
+      verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] }
+    },
+    1
+  );
+  await assert.rejects(() => new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN));
+});
+
+test('un enlace vencido no se lee aunque su politica este habilitada', async () => {
+  const { prisma } = publicPrisma(
+    {
+      expiresAt: new Date('2020-01-01T00:00:00Z'),
+      verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] }
+    },
+    1
+  );
+  await assert.rejects(() => new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN));
+});
+
+test('la respuesta publica nunca expone los ids autorizados ni la politica', async () => {
+  const { prisma } = publicPrisma(
+    { verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'secreta-1' }] } },
+    1
+  );
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  const serialized = JSON.stringify(response);
+
+  assert.equal(serialized.includes('secreta-1'), false);
+  assert.equal(serialized.includes('policyVersion'), false);
+  assert.equal(serialized.includes('authorizedCredential'), false);
+  assert.equal(serialized.includes('tokenHash'), false);
+  assert.equal(serialized.includes('verificationPolicy'), false);
+});
+
+// --- listado del holder ---
+
+function listPrisma(grants: Array<Record<string, unknown>>, issuedIds: string[] = []) {
+  const queries: Record<string, unknown>[] = [];
+  return {
+    queries,
+    prisma: {
+      sharingGrant: {
+        findMany: async ({ where }: { where: Record<string, unknown> }) => {
+          queries.push(where);
+          return grants;
+        }
+      },
+      credential: {
+        findMany: async () => issuedIds.map((id) => ({ id }))
+      }
+    } as never
+  };
+}
+
+function grantRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'share-1',
+    scope: 'profile',
+    createdAt: new Date('2026-09-01T00:00:00Z'),
+    expiresAt: null,
+    revokedAt: null,
+    lastUsedAt: null,
+    verificationPolicy: null,
+    ...overrides
+  };
+}
+
+test('el listado esta acotado al holder y nunca devuelve el tokenHash', async () => {
+  const { prisma, queries } = listPrisma([grantRow()]);
+  const list = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
+
+  // El scope va en el WHERE: no se filtra despues en memoria.
+  assert.deepEqual(queries[0], { userId: 'holder-1' });
+  assert.equal(JSON.stringify(list).includes('tokenHash'), false);
+  assert.deepEqual(Object.keys(list[0]).sort(), [
+    'authorizedCredentialCount',
+    'contextualVerificationEnabled',
+    'createdAt',
+    'effectiveAuthorizedCredentialCount',
+    'expiresAt',
+    'lastUsedAt',
+    'revokedAt',
+    'scope',
+    'shareId',
+    'status'
+  ]);
+});
+
+test('el listado distingue activo, revocado y vencido', async () => {
+  const { prisma } = listPrisma([
+    grantRow({ id: 'a' }),
+    grantRow({ id: 'b', revokedAt: new Date('2026-09-02T00:00:00Z') }),
+    grantRow({ id: 'c', expiresAt: new Date('2020-01-01T00:00:00Z') })
+  ]);
+  const list = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
+  assert.deepEqual(
+    list.map((item) => [item.shareId, item.status]),
+    [
+      ['a', 'ACTIVE'],
+      ['b', 'REVOKED'],
+      ['c', 'EXPIRED']
+    ]
+  );
+});
+
+test('el listado informa el permiso EFECTIVO, no solo el flag guardado', async () => {
+  // Un enlace revocado con politica habilitada NO puede reportarse como
+  // habilitado: el grant es la autoridad de orden superior.
+  const policy = { enabled: true, authorizedCredentials: [{ credentialId: 'cred-a' }] };
+  const { prisma } = listPrisma(
+    [
+      grantRow({ id: 'activo', verificationPolicy: policy }),
+      grantRow({ id: 'revocado', revokedAt: new Date(), verificationPolicy: policy })
+    ],
+    ['cred-a']
+  );
+  const list = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
+  assert.deepEqual(
+    list.map((item) => [item.shareId, item.contextualVerificationEnabled]),
+    [
+      ['activo', true],
+      ['revocado', false]
+    ]
+  );
+});
+
+test('el listado separa lo consentido de lo todavia utilizable', async () => {
+  // Que los dos numeros difieran es la señal de que a una credencial elegida le
+  // cambio el ciclo de vida. No se borra el consentimiento por eso.
+  const { prisma } = listPrisma(
+    [
+      grantRow({
+        verificationPolicy: {
+          enabled: true,
+          authorizedCredentials: [{ credentialId: 'cred-a' }, { credentialId: 'cred-revocada' }]
+        }
+      })
+    ],
+    ['cred-a']
+  );
+  const list = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
+  assert.equal(list[0].authorizedCredentialCount, 2);
+  assert.equal(list[0].effectiveAuthorizedCredentialCount, 1);
+  assert.equal(list[0].contextualVerificationEnabled, true);
+});
+
+// --- revocacion ---
+
+function revokePrisma(grant: Record<string, unknown> | null, afterUpdate?: Date | null) {
+  const updates: Record<string, unknown>[] = [];
+  let reads = 0;
+  return {
+    updates,
+    prisma: {
+      sharingGrant: {
+        findFirst: async ({ where }: { where: Record<string, unknown> }) => {
+          reads += 1;
+          if (!grant) return null;
+          if (grant.userId !== undefined && grant.userId !== where.userId) return null;
+          return reads === 1 ? grant : { revokedAt: afterUpdate ?? grant.revokedAt };
+        },
+        updateMany: async ({
+          where,
+          data
+        }: {
+          where: Record<string, unknown>;
+          data: Record<string, unknown>;
+        }) => {
+          updates.push({ where, data });
+          return { count: 1 };
+        }
+      }
+    } as never
+  };
+}
+
+test('revocar un enlace activo escribe revokedAt una sola vez', async () => {
+  const { prisma, updates } = revokePrisma({ id: 'share-1', userId: 'holder-1', revokedAt: null });
+  const result = await new ProfileSharingService(prisma, {} as never).revokeForUser(
+    'holder-1',
+    'share-1'
+  );
+
+  assert.equal(result.status, 'REVOKED');
+  assert.equal(updates.length, 1);
+  // Compare-and-set: solo escribe si seguia sin revocar.
+  const where = updates[0].where as Record<string, unknown>;
+  assert.equal(where.revokedAt, null);
+  assert.equal(where.userId, 'holder-1');
+});
+
+test('revocar dos veces es idempotente y no reescribe la fecha', async () => {
+  const already = new Date('2026-09-10T00:00:00Z');
+  const { prisma, updates } = revokePrisma({
+    id: 'share-1',
+    userId: 'holder-1',
+    revokedAt: already
+  });
+  const result = await new ProfileSharingService(prisma, {} as never).revokeForUser(
+    'holder-1',
+    'share-1'
+  );
+
+  assert.equal(result.status, 'REVOKED');
+  assert.equal(result.revokedAt, already.toISOString());
+  assert.equal(updates.length, 0, 'no vuelve a escribir');
+});
+
+test('un holder no puede revocar el enlace de otro', async () => {
+  const { prisma, updates } = revokePrisma({ id: 'share-1', userId: 'holder-2', revokedAt: null });
+  await assert.rejects(
+    () => new ProfileSharingService(prisma, {} as never).revokeForUser('holder-1', 'share-1'),
+    /No se encontro el enlace compartido/
+  );
+  assert.equal(updates.length, 0);
+});
+
+test('revocar un enlace inexistente no revela nada', async () => {
+  const { prisma } = revokePrisma(null);
+  await assert.rejects(
+    () => new ProfileSharingService(prisma, {} as never).revokeForUser('holder-1', 'no-existe'),
+    /No se encontro el enlace compartido/
+  );
+});
+
+test('no existe reactivacion: el servicio no expone ninguna via', () => {
+  // Regresion de API: si alguna vez apareciera un "reactivar", un token filtrado
+  // volveria a valer.
+  const methods = Object.getOwnPropertyNames(ProfileSharingService.prototype);
+  for (const forbidden of ['reactivateForUser', 'unrevokeForUser', 'restoreForUser']) {
+    assert.equal(methods.includes(forbidden), false, forbidden);
+  }
+});
+
+// --- alcance soportado ---
+
+test('un enlace "credential" ni siquiera produce perfil publico, asi que no puede anunciar computo', async () => {
+  // El guard existente del lector ya lo rechaza antes de mirar la politica.
+  const { prisma, counted } = publicPrisma(
+    {
+      scope: 'credential',
+      verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] }
+    },
+    1
+  );
+  await assert.rejects(() => new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN));
+  assert.equal(counted.length, 0);
+});
+
+test('un enlace "credential_and_profile" se lee pero NO anuncia computo aunque haya politica habilitada', async () => {
+  // Este SI es el caso real: el lector acepta el alcance para mostrar el perfil,
+  // y ahi una politica habilitada con evidencia vigente -- estado heredado o
+  // inconsistente -- podria anunciar un analisis que el VerificationRun rechaza.
+  const { prisma, counted } = publicPrisma(
+    {
+      scope: 'credential_and_profile',
+      verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'credential-1' }] }
+    },
+    1
+  );
+  const response = await new ProfileSharingService(prisma, {} as never).getPublicProfile(TOKEN);
+  assert.equal(response.contextualVerificationEnabled, false);
+  assert.equal(counted.length, 0, 'ni siquiera consulta la evidencia');
+});
+
+for (const scope of ['credential', 'credential_and_profile'] as const) {
+  test(`el listado del holder tampoco reporta computo para un alcance "${scope}"`, async () => {
+    const { prisma } = listPrisma(
+      [
+        grantRow({
+          scope,
+          verificationPolicy: { enabled: true, authorizedCredentials: [{ credentialId: 'cred-a' }] }
+        })
+      ],
+      ['cred-a']
+    );
+    const [item] = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
+    assert.equal(item.contextualVerificationEnabled, false);
+  });
+}

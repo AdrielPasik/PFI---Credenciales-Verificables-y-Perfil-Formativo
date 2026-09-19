@@ -4,7 +4,9 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly kind: ApiErrorKind,
-    readonly status: number | null = null
+    readonly status: number | null = null,
+    /** Codigo estable del backend cuando existe, p. ej. `SHARE_NOT_AVAILABLE`. */
+    readonly code: string | null = null
   ) {
     super(message);
     this.name = 'ApiError';

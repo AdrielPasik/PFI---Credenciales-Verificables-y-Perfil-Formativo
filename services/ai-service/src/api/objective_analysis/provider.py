@@ -104,6 +104,18 @@ _TRANSIENT_ERROR_TYPES = frozenset(
 #: lado del proveedor y rate limit—, asi que no basta con "4xx es determinista".
 _TRANSIENT_STATUSES = frozenset({408, 409, 425, 429})
 
+#: CODIGOS que prueban por si solos que el recurso configurado NO existe, aunque
+#: el proveedor no mande `error.type`. Es la UNICA forma de que un 404 siga siendo
+#: terminal: la prueba tiene que venir del proveedor, no del status.
+_DETERMINISTIC_ERROR_CODES = frozenset(
+    {
+        "model_not_found",
+        "deployment_not_found",
+        "unknown_model",
+    }
+)
+
+
 #: Solo tokens de maquina. Un valor que no tenga esta forma se descarta en vez de
 #: viajar: el cuerpo de error del proveedor puede traer prosa.
 _SAFE_TOKEN = re.compile(r"[a-z0-9_]{1,64}")
@@ -153,13 +165,32 @@ def classify_provider_http_failure(status: int, raw_body: str) -> ObjectiveAnaly
         return ProviderTransportError(detail)
     if error_type in _DETERMINISTIC_ERROR_TYPES:
         return ProviderConfigurationError(detail)
+    if error_code in _DETERMINISTIC_ERROR_CODES:
+        # El codigo alcanza como prueba aunque falte el tipo.
+        return ProviderConfigurationError(detail)
 
     if status in _TRANSIENT_STATUSES:
         return ProviderTransportError(detail)
+    if status == 404 and error_type is None and error_code not in _DETERMINISTIC_ERROR_CODES:
+        # 404 SIN SENAL ESTRUCTURADA RECONOCIDA — corregido tras el smoke E2E.
+        #
+        # Un 404 opaco se trataba como prueba de configuracion invalida y mataba
+        # el run. El smoke observo lo contrario: la MISMA peticion —mismo modelo,
+        # misma clave, mismo esquema, mismo effort, mismas versiones de plan—
+        # devolvio 404 y, minutos despues, 200 dos veces. Un 404 sin cuerpo
+        # estructurado no distingue "el recurso no existe" de un fallo pasajero
+        # del borde del proveedor, asi que afirmar lo primero es afirmar mas de lo
+        # que se observo.
+        #
+        # Cuando el proveedor SI lo prueba —`error.type` reconocido, o un codigo
+        # como `model_not_found`— el 404 sigue siendo terminal: eso no cambia. No
+        # se esconde una configuracion mal puesta detras de reintentos, y el
+        # presupuesto de intentos del run acota el bucle.
+        return ProviderTransportError(detail)
     if 400 <= status < 500:
-        # Un 4xx sin tipo estructurado igual es determinista para ESTE plan: el
-        # mismo request va a ser rechazado igual. Incluye el caso de una base URL
-        # mal configurada que devuelve 404 opaco.
+        # El resto de los 4xx sin tipo estructurado sigue siendo determinista para
+        # ESTE plan: el mismo request va a ser rechazado igual. El 404 opaco es la
+        # excepcion tratada arriba.
         return ProviderConfigurationError(detail)
     return ProviderTransportError(detail)
 

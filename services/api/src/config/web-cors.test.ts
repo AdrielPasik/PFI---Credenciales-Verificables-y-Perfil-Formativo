@@ -9,7 +9,7 @@ test('WEB_ORIGIN creates a restricted CORS configuration for one origin', () => 
   assert.deepEqual(options, {
     origin: 'http://127.0.0.1:3000',
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-Verification-Request-Token'],
     credentials: false
   });
   assert.equal(options?.origin.includes('*'), false);
@@ -35,4 +35,13 @@ test('invalid, wildcard and non-origin WEB_ORIGIN values fail clearly', () => {
       /WEB_ORIGIN debe contener un origen HTTP o HTTPS valido/
     );
   }
+});
+
+test('el header de sesion del verificador esta permitido, y NO se abre ningun otro', () => {
+  // Sin esta entrada el preflight bloquea el token de sesion, y la unica salida
+  // seria mandarlo en la URL -- que es justo lo que se evita.
+  const options = resolveWebCorsOptions('http://127.0.0.1:3000');
+  assert.ok(options?.allowedHeaders.includes('X-Verification-Request-Token'));
+  assert.equal(options?.allowedHeaders.includes('*'), false);
+  assert.equal(options?.allowedHeaders.length, 3);
 });

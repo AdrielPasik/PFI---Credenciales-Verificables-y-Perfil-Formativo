@@ -180,6 +180,14 @@ test('los ficheros de F3 no fueron tocados por este slice', () => {
     // puntos de acoplamiento previstos.
     .filter((full) => !full.endsWith('app.module.ts'))
     .filter((full) => !full.startsWith(path.join(apiSrc, 'ai')))
+    // Verificacion contextual publica: consumidor DECIDIDO del nucleo de
+    // propuesta. Se nombran los DOS archivos exactos, no el directorio: un tercer
+    // archivo publico que importe este slice vuelve a hacer fallar esta guarda.
+    .filter(
+      (full) =>
+        full !== path.join(apiSrc, 'public-verification', 'public-verification.module.ts') &&
+        full !== path.join(apiSrc, 'public-verification', 'verification-proposal.service.ts')
+    )
     .filter((full) =>
       readFileSync(full, 'utf8').includes('objective-requirement-proposal')
     )

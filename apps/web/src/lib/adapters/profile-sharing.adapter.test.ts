@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 
-import { adaptProfileShareLink, adaptPublicProfileShare } from './profile-sharing.adapter';
+import { adaptHolderProfileShares, adaptProfileShareLink, adaptPublicProfileShare, adaptShareVerificationPolicy } from './profile-sharing.adapter';
 
 it('adapts a public profile share through a bounded allowlist', () => {
   const profile = adaptPublicProfileShare({
@@ -60,4 +60,115 @@ it('C5b.2: never carries provenanceSummary or internal ids into the public profi
 it('accepts only an opaque profile share path', () => {
   expect(adaptProfileShareLink({ sharePath: `/share/profile/${'a'.repeat(43)}`, expiresAt: null }).sharePath).toContain('/share/profile/');
   expect(() => adaptProfileShareLink({ sharePath: '/share/profile/profile-id', expiresAt: null })).toThrow();
+});
+
+// ---------------------------------------------------------------------------
+// Ciclo de vida del enlace y consentimiento de computo
+// ---------------------------------------------------------------------------
+
+const PUBLIC_PAYLOAD = {
+  holder: { displayLabel: 'Holder Demo' },
+  profile: {
+    narrative: null,
+    areas: [],
+    skills: [],
+    concepts: [],
+    totalOfficialHours: null,
+    credentialsCount: 0
+  },
+  credentials: []
+};
+
+it('un backend sin el campo de verificacion contextual se lee como NO habilitado', () => {
+  // El default seguro es el unico aceptable para un permiso: ausente nunca
+  // puede interpretarse como consentimiento.
+  expect(adaptPublicProfileShare(PUBLIC_PAYLOAD).contextualVerificationEnabled).toBe(false);
+});
+
+it('respeta el booleano cuando viene', () => {
+  expect(
+    adaptPublicProfileShare({ ...PUBLIC_PAYLOAD, contextualVerificationEnabled: true })
+      .contextualVerificationEnabled
+  ).toBe(true);
+  expect(
+    adaptPublicProfileShare({ ...PUBLIC_PAYLOAD, contextualVerificationEnabled: false })
+      .contextualVerificationEnabled
+  ).toBe(false);
+});
+
+it('rechaza un valor que no sea booleano', () => {
+  expect(() =>
+    adaptPublicProfileShare({ ...PUBLIC_PAYLOAD, contextualVerificationEnabled: 'true' })
+  ).toThrow();
+});
+
+const SHARE_ROW = {
+  shareId: 'share-1',
+  scope: 'profile',
+  status: 'ACTIVE',
+  createdAt: '2026-09-01T00:00:00.000Z',
+  expiresAt: null,
+  revokedAt: null,
+  lastUsedAt: null,
+  contextualVerificationEnabled: false,
+  authorizedCredentialCount: 0,
+  effectiveAuthorizedCredentialCount: 0
+};
+
+it('adapta los tres estados de un enlace con su etiqueta', () => {
+  const shares = adaptHolderProfileShares([
+    SHARE_ROW,
+    { ...SHARE_ROW, shareId: 'b', status: 'REVOKED', revokedAt: '2026-09-02T00:00:00.000Z' },
+    { ...SHARE_ROW, shareId: 'c', status: 'EXPIRED', expiresAt: '2026-09-03T00:00:00.000Z' }
+  ]);
+
+  expect(shares.map((share) => [share.status, share.statusLabel])).toEqual([
+    ['ACTIVE', 'Activo'],
+    ['REVOKED', 'Revocado'],
+    ['EXPIRED', 'Vencido']
+  ]);
+});
+
+it('rechaza un estado desconocido en lugar de inventarle una etiqueta', () => {
+  expect(() => adaptHolderProfileShares([{ ...SHARE_ROW, status: 'PAUSED' }])).toThrow();
+});
+
+it('conserva la diferencia entre lo consentido y lo utilizable', () => {
+  const [share] = adaptHolderProfileShares([
+    { ...SHARE_ROW, authorizedCredentialCount: 3, effectiveAuthorizedCredentialCount: 1 }
+  ]);
+  expect(share.authorizedCredentialCount).toBe(3);
+  expect(share.effectiveAuthorizedCredentialCount).toBe(1);
+});
+
+it('el listado nunca transporta un token', () => {
+  const serialized = JSON.stringify(
+    adaptHolderProfileShares([{ ...SHARE_ROW, tokenHash: 'no-deberia-estar' }])
+  );
+  expect(serialized.includes('no-deberia-estar')).toBe(false);
+  expect(serialized.includes('tokenHash')).toBe(false);
+});
+
+it('adapta el estado de la politica sin perder la version', () => {
+  const policy = adaptShareVerificationPolicy({
+    enabled: true,
+    policyVersion: 4,
+    authorizedCredentialIds: ['cred-a', 'cred-b'],
+    effectiveAuthorizedCredentialIds: ['cred-a']
+  });
+
+  expect(policy.enabled).toBe(true);
+  expect(policy.policyVersion).toBe(4);
+  expect(policy.authorizedCredentialIds).toEqual(['cred-a', 'cred-b']);
+  expect(policy.effectiveAuthorizedCredentialIds).toEqual(['cred-a']);
+});
+
+it('rechaza una politica sin booleano explicito', () => {
+  expect(() =>
+    adaptShareVerificationPolicy({
+      policyVersion: 1,
+      authorizedCredentialIds: [],
+      effectiveAuthorizedCredentialIds: []
+    })
+  ).toThrow();
 });

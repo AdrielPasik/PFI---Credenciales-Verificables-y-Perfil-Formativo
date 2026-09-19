@@ -25,10 +25,11 @@
  * autoriza a construir aca un `startRun`/`completeRun`: eso es F3.2/F3.6.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { REASONING_RUN_TABLE, holderReasoningRunTable, type ReasoningRunTable } from './reasoning-run-table';
 import { canonicalJson } from '../source-extraction/canonical-json';
 import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-definition.validator';
 import { verifyEvidenceUnitsArtifact } from './evidence-units-artifact.validator';
@@ -108,7 +109,14 @@ type SlotColumn =
 
 @Injectable()
 export class ReasoningRunArtifactSlotService {
-  public constructor(private readonly prisma: PrismaService) {}
+  private readonly table: ReasoningRunTable;
+
+  public constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(REASONING_RUN_TABLE) table?: ReasoningRunTable
+  ) {
+    this.table = table ?? holderReasoningRunTable(prisma);
+  }
 
   /**
    * Lee los cuatro slots y los verifica.
@@ -311,7 +319,7 @@ export class ReasoningRunArtifactSlotService {
   // -------------------------------------------------------------------------
 
   private async loadRun(reasoningRunId: string): Promise<RunRow> {
-    const run = await this.prisma.reasoningRun.findUnique({
+    const run = await this.table.runs.findUnique({
       where: { id: reasoningRunId },
       select: RUN_SELECT
     });
@@ -327,7 +335,7 @@ export class ReasoningRunArtifactSlotService {
   private async loadInventory(
     reasoningRunId: string
   ): Promise<readonly FrozenInventoryItem[]> {
-    const items = await this.prisma.reasoningRunInventoryItem.findMany({
+    const items = await this.table.inventory.findMany({
       where: { reasoningRunId },
       select: INVENTORY_SELECT
     });
@@ -427,7 +435,7 @@ export class ReasoningRunArtifactSlotService {
     // ese tipo Prisma NO acepta `null` como filtro: exige el sentinel. Con clave
     // computada TypeScript no lo veia —la clave ensancha el tipo—, asi que el
     // CAS habria fallado en runtime en vez de en compilacion.
-    const filled = await this.prisma.reasoningRun.updateMany({
+    const filled = await this.table.runs.updateMany({
       where: { id: reasoningRunId, [slot]: { equals: Prisma.DbNull }, ...eligible },
       data: { [slot]: verified as never }
     });

@@ -46,3 +46,33 @@ it('shows a container wide enough for a desktop layout and no dedicated mobile-o
 
   expect(container.querySelector('.max-w-7xl')).toBeTruthy();
 });
+
+it('ofrece analizar la trayectoria SOLO cuando el titular lo habilitó', async () => {
+  api.getPublicProfileShareRequest.mockResolvedValue({
+    holderLabel: 'Titular Demo', narrative: null,
+    areas: [], skills: [], concepts: [], totalOfficialHoursLabel: null, credentialsCount: 0,
+    credentials: [], contextualVerificationEnabled: true
+  });
+
+  render(<PublicProfileShareRoute token={'a'.repeat(43)} />);
+  await screen.findByRole('heading', { name: 'Titular Demo' });
+
+  const cta = screen.getByRole('link', { name: 'Analizar esta trayectoria frente a un objetivo' }) as HTMLAnchorElement;
+  expect(cta.getAttribute('href')).toBe(`/share/profile/${'a'.repeat(43)}/analysis`);
+  // Verificar una credencial y analizar una trayectoria son acciones distintas.
+  expect(cta.textContent).not.toMatch(/^Verificar$/);
+});
+
+it('sin permiso de análisis no muestra el CTA ni un control deshabilitado', async () => {
+  api.getPublicProfileShareRequest.mockResolvedValue({
+    holderLabel: 'Titular Demo', narrative: null,
+    areas: [], skills: [], concepts: [], totalOfficialHoursLabel: null, credentialsCount: 0,
+    credentials: [], contextualVerificationEnabled: false
+  });
+
+  render(<PublicProfileShareRoute token={'a'.repeat(43)} />);
+  await screen.findByRole('heading', { name: 'Titular Demo' });
+
+  expect(screen.queryByRole('link', { name: /Analizar esta trayectoria/ })).toBeNull();
+  expect(document.body.textContent).not.toMatch(/Analizar esta trayectoria/);
+});

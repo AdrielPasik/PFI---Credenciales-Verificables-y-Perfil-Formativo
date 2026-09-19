@@ -7,10 +7,11 @@ import {
   PublicProfileSharingController
 } from './profile-sharing.controller';
 import { ProfileSharingService } from './profile-sharing.service';
+import { ShareVerificationPolicyService } from './share-verification-policy.service';
 
 @Module({
   imports: [AuthModule, ProfilesModule],
   controllers: [MyProfileSharingController, PublicProfileSharingController],
-  providers: [ProfileSharingService]
+  providers: [ProfileSharingService, ShareVerificationPolicyService]
 })
 export class ProfileSharingModule {}

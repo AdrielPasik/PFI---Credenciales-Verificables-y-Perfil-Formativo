@@ -204,4 +204,97 @@ describe('ApiClient', () => {
       status: 200
     });
   });
+
+  // --- regresion del transporte compartido del verificador publico ---------
+  //
+  // `headers` y `ApiError.code` son ADITIVOS: lo de arriba (Accept,
+  // Content-Type, Authorization, FormData) tiene que seguir valiendo igual.
+
+  it('agrega headers propios sin perder Accept, Content-Type ni Authorization', async () => {
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(null, { status: 200 });
+    });
+    const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+
+    await client.request('/share/profile/abc/verification-requirements', {
+      method: 'PUT',
+      token: 'session-token',
+      body: { requirements: [] },
+      headers: { 'X-Verification-Request-Token': 'request-token' }
+    });
+
+    const headers = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(headers.get('Accept')).toBe('application/json');
+    expect(headers.get('Content-Type')).toBe('application/json');
+    expect(headers.get('Authorization')).toBe('Bearer session-token');
+    expect(headers.get('X-Verification-Request-Token')).toBe('request-token');
+  });
+
+  it('sin `headers` el pedido es byte a byte el de antes', async () => {
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(null, { status: 200 });
+    });
+    const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+
+    await client.request('/health');
+    await client.request('/health', { headers: {} });
+
+    const first = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    const second = new Headers(fetchMock.mock.calls[1][1]?.headers);
+    expect([...second.entries()].sort()).toEqual([...first.entries()].sort());
+  });
+
+  it('expone el `code` estable del backend cuando viene, y null cuando no', async () => {
+    async function codeOf(payload: unknown, status = 409): Promise<string | null> {
+      const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+        void args;
+        return new Response(payload === undefined ? null : JSON.stringify(payload), {
+          status,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      });
+      const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+      try {
+        await client.request('/share/profile/abc/verification-execute', { method: 'POST' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(ApiError);
+        return (error as ApiError).code;
+      }
+      throw new Error('se esperaba un rechazo');
+    }
+
+    expect(await codeOf({ code: 'EXECUTION_IN_PROGRESS', message: 'x' })).toBe('EXECUTION_IN_PROGRESS');
+    // Fail-safe: sin code, con code no-string, con forma sospechosa o sin body.
+    expect(await codeOf({ message: 'x' })).toBeNull();
+    expect(await codeOf({ code: 42 })).toBeNull();
+    expect(await codeOf({ code: 'select * from users' })).toBeNull();
+    expect(await codeOf(undefined)).toBeNull();
+    expect(await codeOf('texto plano')).toBeNull();
+  });
+
+  it('el error no transporta el body ni los headers del pedido', async () => {
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
+      void args;
+      return new Response(JSON.stringify({ code: 'SHARE_NOT_AVAILABLE', detail: 'interno' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    });
+    const client = new ApiClient(baseUrl, fetchMock as typeof fetch);
+
+    const error = await client
+      .request('/share/profile/abc/verification-result', {
+        headers: { 'X-Verification-Request-Token': 'request-token' }
+      })
+      .catch((caught: unknown) => caught);
+
+    expect(error).toBeInstanceOf(ApiError);
+    const apiError = error as ApiError;
+    const serialized = `${apiError.message} ${JSON.stringify(apiError)} ${apiError.stack ?? ''}`;
+    expect(serialized).not.toContain('request-token');
+    expect(serialized).not.toContain('X-Verification-Request-Token');
+    expect(serialized).not.toContain('interno');
+  });
 });

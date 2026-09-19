@@ -2,10 +2,18 @@ import { readClientEnv } from '@/lib/env/client-env';
 import { ApiError } from '@/lib/errors/api-error';
 
 export interface ApiRequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT';
   body?: unknown;
   token?: string;
   signal?: AbortSignal;
+  /**
+   * Headers adicionales. Existe para el token de sesion del verificador
+   * publico, que viaja en `X-Verification-Request-Token` y NUNCA en la URL.
+   *
+   * No se registran en logs ni en diagnosticos: el cliente nunca serializa los
+   * headers de una peticion en un error.
+   */
+  headers?: Record<string, string>;
 }
 
 export type AuthenticatedApiRequestOptions = Omit<
@@ -42,6 +50,10 @@ export class ApiClient {
 
     if (options.token) {
       headers.set('Authorization', `Bearer ${options.token}`);
+    }
+
+    for (const [name, value] of Object.entries(options.headers ?? {})) {
+      headers.set(name, value);
     }
 
     let response: Response;
@@ -85,7 +97,11 @@ export class ApiClient {
       throw new ApiError(
         'El servicio rechazó la operación.',
         'http',
-        response.status
+        response.status,
+        // Codigo estable del backend, cuando lo trae. Es un token de producto
+        // (`SHARE_NOT_AVAILABLE`, `PROPOSAL_IN_PROGRESS`, ...), nunca un detalle
+        // interno: el backend ya decide que codigos son publicables.
+        safeErrorCode(payload)
       );
     }
 
@@ -107,4 +123,11 @@ function serializeRequestBody(body: unknown): BodyInit | undefined {
 
 export function createApiClient() {
   return new ApiClient(readClientEnv().apiBaseUrl);
+}
+
+/** Solo un `code` string y corto. Cualquier otra cosa se descarta. */
+function safeErrorCode(payload: unknown): string | null {
+  if (typeof payload !== 'object' || payload === null) return null;
+  const code = (payload as { code?: unknown }).code;
+  return typeof code === 'string' && /^[A-Z][A-Z0-9_]{2,63}$/.test(code) ? code : null;
 }

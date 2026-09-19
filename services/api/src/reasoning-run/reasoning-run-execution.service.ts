@@ -34,10 +34,11 @@
  * rationale ni la explicación final.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { ReasoningRunStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { REASONING_RUN_TABLE, holderReasoningRunTable, type ReasoningRunTable } from './reasoning-run-table';
 import { canonicalJson } from '../source-extraction/canonical-json';
 import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-definition.validator';
 import { applyDeterministicReasoningPolicy, DeterministicPolicyInputError } from './deterministic-epistemic-policy';
@@ -73,8 +74,30 @@ const TERMINAL_STAGE_FAILURE_CODES: Readonly<Record<string, string>> = {
   PROVIDER_INVALID_OUTPUT: 'reasoning_provider_invalid_output',
   PERSISTED_AUTHORITY_UNUSABLE: 'reasoning_contextual_authority_unusable',
   GROUNDING_UNUSABLE: 'reasoning_evidence_units_grounding_unusable',
-  PREVIOUS_STAGE_ARTIFACT_MISSING: 'reasoning_previous_stage_artifact_missing'
+  PREVIOUS_STAGE_ARTIFACT_MISSING: 'reasoning_previous_stage_artifact_missing',
+  // Solo lo produce un `beforeProviderStage` de un llamante (verificacion
+  // publica). El holder no pasa ese control, asi que nunca lo alcanza.
+  EXECUTION_AUTHORIZATION_WITHDRAWN: 'execution_authorization_withdrawn'
 };
+
+/** Etapas con proveedor, en el orden en que el orquestador las inicia. */
+export type ProviderStage = 'OBJECTIVE_ANALYSIS' | 'EVIDENCE_UNITS' | 'CONTEXTUAL_REASONING';
+
+export interface ReasoningRunExecutionOptions {
+  /**
+   * Control ANTES de iniciar cada etapa con proveedor, bajo la claim.
+   *
+   * Responde "puede este run YA CONGELADO seguir procesando?", nunca "que
+   * evidencia esta autorizada ahora": no reconstruye inventario ni snapshot.
+   * Para detener, lanza un error con `code = 'EXECUTION_AUTHORIZATION_WITHDRAWN'`:
+   * el run queda `failed` sin iniciar la etapa y conserva los artifacts ya
+   * producidos. No cancela una llamada que ya esta en vuelo: eso no se puede
+   * garantizar.
+   *
+   * Sin esta opcion el orquestador se comporta exactamente como antes.
+   */
+  readonly beforeProviderStage?: (stage: ProviderStage) => Promise<void>;
+}
 
 export interface ReasoningRunExecutionOutcome {
   readonly reasoningRunId: string;
@@ -88,14 +111,19 @@ export interface ReasoningRunExecutionOutcome {
 
 @Injectable()
 export class ReasoningRunExecutionService {
+  private readonly table: ReasoningRunTable;
+
   public constructor(
     private readonly prisma: PrismaService,
     private readonly claims: ReasoningRunExecutionClaimService,
     private readonly slots: ReasoningRunArtifactSlotService,
     private readonly objectiveAnalysis: ReasoningRunObjectiveAnalysisService,
     private readonly evidenceUnits: ReasoningRunEvidenceUnitsService,
-    private readonly contextual: ReasoningRunContextualReasoningService
-  ) {}
+    private readonly contextual: ReasoningRunContextualReasoningService,
+    @Optional() @Inject(REASONING_RUN_TABLE) table?: ReasoningRunTable
+  ) {
+    this.table = table ?? holderReasoningRunTable(prisma);
+  }
 
   /**
    * Ejecuta el run entero, o devuelve el resultado que ya tenía.
@@ -105,7 +133,8 @@ export class ReasoningRunExecutionService {
    * que este run se evalúa.
    */
   public async executeReasoningRun(
-    reasoningRunId: string
+    reasoningRunId: string,
+    options: ReasoningRunExecutionOptions = {}
   ): Promise<ReasoningRunExecutionOutcome> {
     // --- 1. PREFLIGHT: todo lo que no necesita claim ni proveedor -----------
     const terminal = await this.preflight(reasoningRunId);
@@ -128,7 +157,7 @@ export class ReasoningRunExecutionService {
       });
     }
 
-    return await this.runClaimed(outcome.claim);
+    return await this.runClaimed(outcome.claim, options);
   }
 
   // -------------------------------------------------------------------------
@@ -148,7 +177,7 @@ export class ReasoningRunExecutionService {
   private async preflight(
     reasoningRunId: string
   ): Promise<ReasoningRunExecutionOutcome | null> {
-    const run = await this.prisma.reasoningRun.findUnique({
+    const run = await this.table.runs.findUnique({
       where: { id: reasoningRunId },
       select: {
         id: true,
@@ -238,7 +267,7 @@ export class ReasoningRunExecutionService {
     if (planned === undefined) return;
 
     if (planned !== PRODUCT_DETERMINISTIC_POLICY_VERSION) {
-      await this.prisma.reasoningRun.updateMany({
+      await this.table.runs.updateMany({
         where: {
           id: reasoningRunId,
           status: ReasoningRunStatus.pending,
@@ -263,7 +292,8 @@ export class ReasoningRunExecutionService {
   // -------------------------------------------------------------------------
 
   private async runClaimed(
-    claim: ReasoningRunExecutionClaim
+    claim: ReasoningRunExecutionClaim,
+    options: ReasoningRunExecutionOptions = {}
   ): Promise<ReasoningRunExecutionOutcome> {
     const reasoningRunId = claim.reasoningRunId;
     let providerLogicalCalls = 0;
@@ -274,12 +304,14 @@ export class ReasoningRunExecutionService {
       // F3.3 y F3.4 son semánticamente independientes; se ejecutan en este orden
       // porque es el de los slots y el de las etapas 1 y 2 del contrato. Ninguna
       // se re-compra si su artifact fill-once ya existe.
+      await options.beforeProviderStage?.('OBJECTIVE_ANALYSIS');
       const analysis = await this.objectiveAnalysis.ensureObjectiveAnalysisForRun(
         reasoningRunId,
         claim
       );
       if (analysis.providerCalled) providerLogicalCalls += 1;
 
+      await options.beforeProviderStage?.('EVIDENCE_UNITS');
       const evidence = await this.evidenceUnits.ensureEvidenceUnitsForRun(
         reasoningRunId,
         claim
@@ -288,6 +320,7 @@ export class ReasoningRunExecutionService {
 
       // FAIL_FAST intacto: si un Requirement corta, F3.5 lanza y acá NO se
       // construye un agregado parcial.
+      await options.beforeProviderStage?.('CONTEXTUAL_REASONING');
       const contextual = await this.contextual.generateContextualReasoningForRun(
         reasoningRunId,
         claim
@@ -299,7 +332,7 @@ export class ReasoningRunExecutionService {
       // Relectura AUTORITATIVA bajo la claim. El snapshot se relee de la fila y
       // los dos artifacts del servicio de slots, que los revalida: entre el
       // preflight y este punto hubo llamadas de red enteras.
-      const run = await this.prisma.reasoningRun.findUnique({
+      const run = await this.table.runs.findUnique({
         where: { id: reasoningRunId },
         select: { objectiveDefinitionSnapshot: true }
       });
@@ -426,7 +459,7 @@ export class ReasoningRunExecutionService {
       throw error;
     }
 
-    const completed = await this.prisma.reasoningRun.updateMany({
+    const completed = await this.table.runs.updateMany({
       where: {
         id: reasoningRunId,
         status: ReasoningRunStatus.running,
@@ -442,7 +475,7 @@ export class ReasoningRunExecutionService {
     if (completed.count === 1) return verified;
 
     // --- CAS = 0: se relee y se CLASIFICA, sin sobreescribir nada -----------
-    const run = await this.prisma.reasoningRun.findUnique({
+    const run = await this.table.runs.findUnique({
       where: { id: reasoningRunId },
       select: { status: true, failureCode: true, resultArtifact: true }
     });

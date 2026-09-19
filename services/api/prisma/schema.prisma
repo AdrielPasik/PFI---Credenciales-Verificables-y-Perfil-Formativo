@@ -316,7 +316,9 @@ model Credential {
   textEvidences                   TextEvidence[]
   analysisRuns                    AnalysisRun[]
   reasoningRunInventoryItems      ReasoningRunInventoryItem[]
+  verificationRunInventoryItems   VerificationRunInventoryItem[]
   reusableSemanticInterpretations CredentialReusableSemanticInterpretation[]
+  shareVerificationAuthorizations ShareVerificationCredentialAuthorization[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -372,6 +374,7 @@ model DocumentEvidence {
   uploadedBy                 User                        @relation("DocumentEvidenceUploader", fields: [uploadedByUserId], references: [id], onDelete: Restrict)
   analysisRunSources         AnalysisRunSource[]
   reasoningRunInventoryItems ReasoningRunInventoryItem[]
+  verificationRunInventoryItems VerificationRunInventoryItem[]
 
   @@index([credentialId])
   @@index([uploadedByUserId])
@@ -392,6 +395,7 @@ model TextEvidence {
   submittedBy                User                        @relation("TextEvidenceSubmitter", fields: [submittedByUserId], references: [id], onDelete: Restrict)
   analysisRunSources         AnalysisRunSource[]
   reasoningRunInventoryItems ReasoningRunInventoryItem[]
+  verificationRunInventoryItems VerificationRunInventoryItem[]
 
   @@index([credentialId])
   @@index([submittedByUserId])
@@ -442,6 +446,7 @@ model AnalysisRunSource {
   // F3.1: los items de inventario que SELECCIONARON esta representacion de
   // extraccion. Solo filas INCLUDED pueden apuntar aca.
   selectedByReasoningRunInventoryItems ReasoningRunInventoryItem[]
+  selectedByVerificationRunInventoryItems VerificationRunInventoryItem[]
 
   // F1.1 -- EXTRACTION SLOT. Ver evidence-reasoning-f0.6-persistence-design.md.
   //
@@ -804,10 +809,79 @@ model SharingGrant {
   profile            FormativeProfile?   @relation(fields: [profileId], references: [id], onDelete: SetNull)
   createdByUser      User?               @relation("SharingGrantCreator", fields: [createdByUserId], references: [id], onDelete: SetNull)
   verificationEvents VerificationEvent[]
+  verificationPolicy ShareVerificationPolicy?
+  verificationRequests VerificationRequest[]
+  verificationRuns     VerificationRun[]
+  verificationProposalAttempts VerificationProposalAttempt[]
+  verificationExecutionLease   VerificationExecutionLease?
 
   @@index([userId])
   @@index([credentialId])
   @@index([profileId])
+}
+
+// CONSENTIMIENTO DE COMPUTO. Responde UNA pregunta: "el holder autoriza que un
+// tercero, a traves de ESTE SharingGrant, pida un analisis contextual sobre su
+// evidencia?".
+//
+// POR QUE UNA TABLA Y NO UN CAMPO EN `SharingGrant.metadata`. Es estado de
+// seguridad: tiene que ser tipado, consultable e indexable, y `policyVersion`
+// tiene que poder congelarse mas adelante dentro de un VerificationRun. Un JSON
+// libre no da ninguna de las tres cosas.
+//
+// VER EL PERFIL Y COMPUTAR SOBRE EL SON PERMISOS DISTINTOS. Un SharingGrant
+// activo autoriza LEER la proyeccion publica. Nunca autoriza razonamiento: eso
+// exige ademas esta fila con `enabled = true`. El grant sigue siendo la
+// autoridad de orden superior -- revocado o vencido, esta politica no habilita
+// nada, y por eso revocar un enlace NO necesita tocar esta tabla.
+model ShareVerificationPolicy {
+  id             String   @id @default(uuid())
+  sharingGrantId String   @unique
+  // Deshabilitado por defecto, SIEMPRE. Ningun grant preexistente gana
+  // autoridad de computo por existir esta tabla.
+  enabled        Boolean  @default(false)
+  // Arranca en 1 y solo avanza cuando el HOLDER cambia su politica: `enabled` o
+  // el conjunto autorizado. NUNCA por ciclo de vida externo (una credencial
+  // revocada despues no es un cambio de intencion del holder).
+  policyVersion  Int      @default(1)
+  enabledAt      DateTime?
+  disabledAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Cascade: la politica no tiene sentido sin su grant.
+  sharingGrant           SharingGrant                            @relation(fields: [sharingGrantId], references: [id], onDelete: Cascade)
+  authorizedCredentials  ShareVerificationCredentialAuthorization[]
+}
+
+// UNA FILA POR CREDENCIAL QUE EL HOLDER ELIGIO EXPLICITAMENTE.
+//
+// Existe porque `scope = profile` NO enumera evidencia: el perfil publico
+// resuelve sus credenciales en vivo (`issued`, `take 10`) y eso es una
+// PROYECCION DE PRESENTACION, no un contrato de autorizacion. Para que un
+// tercero dispare razonamiento hace falta una eleccion deliberada, credencial
+// por credencial.
+//
+// CONSENTIMIENTO != ELEGIBILIDAD DE EJECUCION. Esta fila dice "el holder
+// permite usar esta credencial". No dice que hoy tenga extraccion, analisis
+// semantico ni evidence units: eso se resuelve --y se congela-- recien al crear
+// un VerificationRun, intersectando este conjunto con la evidencia realmente
+// ejecutable. Por eso aca no se guarda ningun estado transitorio del pipeline.
+model ShareVerificationCredentialAuthorization {
+  id           String   @id @default(uuid())
+  policyId     String
+  credentialId String
+  authorizedAt DateTime @default(now())
+
+  policy     ShareVerificationPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  // Restrict: una credencial no puede desaparecer por debajo de un
+  // consentimiento otorgado. Borrar la credencial exige retirar antes la
+  // autorizacion, de forma explicita.
+  credential Credential              @relation(fields: [credentialId], references: [id], onDelete: Restrict)
+
+  @@unique([policyId, credentialId])
+  @@index([policyId])
+  @@index([credentialId])
 }
 
 // F2 -- OBJECTIVE / REQUIREMENT.
@@ -1068,4 +1142,238 @@ model ReasoningRunInventoryItem {
   @@index([reasoningRunId])
   @@index([reasoningRunId, credentialId])
   @@index([selectedAnalysisRunSourceId])
+}
+
+// =============================================================================
+// VERIFICACION CONTEXTUAL PUBLICA — fundacion de persistencia y congelamiento.
+//
+// Producto DISTINTO del ReasoningRun del holder. Un tercero anonimo, a traves de
+// un enlace compartido cuyo holder habilito el analisis contextual, define SU
+// objetivo y obtiene una observacion sobre la evidencia que el holder autorizo.
+//
+// POR QUE NO SE REUSA ReasoningRun. Tiene `ownerUserId` y `objectiveId` NOT NULL,
+// con `objective` en RESTRICT: no existe un ReasoningRun sin un Objective del
+// holder. Reusarlo obligaria a crear un Objective privado que el holder nunca
+// pidio, o a volver nullable una invariante de su dominio.
+//
+// LO QUE SI SE REUSA, A PROPOSITO:
+//   - `ReasoningRunInventoryDisposition` como tipo de las filas de inventario.
+//     El nombre del enum es historico; la semantica es identica y DEBE serlo:
+//     una segunda enumeracion terminaria significando otra cosa en silencio.
+//   - `ReasoningRunStatus` como ciclo de vida del run, por la misma razon.
+//   - `objective_definition_v1` como contrato del objetivo confirmado. Ese
+//     contrato ya rechaza como ESTRUCTURA cualquier clave que ligue el objetivo a
+//     una persona, asi que es exactamente el adecuado para un tercero.
+//   - la clasificacion de evidencia (`credential-inventory.classifier.ts`).
+// =============================================================================
+
+// Ciclo de vida PERSISTIDO de la sesion anonima del verificador.
+//
+// No existe un estado `expired`: nada lo produciria sin un scheduler, y un estado
+// que ningun codigo escribe es una mentira del esquema. El vencimiento se DERIVA
+// de `expiresAt` en cada lectura y en cada accion.
+enum VerificationRequestStatus {
+  draft
+  requirements_proposed
+  requirements_confirmed
+  consumed
+}
+
+// Sesion anonima de un verificador, previa a cualquier razonamiento.
+//
+// Se direcciona por un token opaco cuyo valor crudo se entrega UNA sola vez al
+// crearla; aca solo vive su SHA-256. El id de la fila nunca es autoridad publica.
+//
+// ESE TOKEN ES LA UNICA AUTORIDAD DE LA SESION: lee la solicitud, confirma
+// requisitos, congela una vez y, despues, resuelve el run que produjo. Su
+// `expiresAt` limita la etapa PREVIA al run; no es la vida del resultado. El
+// acceso a un run ya congelado queda subordinado al enlace, no a este vencimiento.
+model VerificationRequest {
+  id                           String                    @id @default(uuid())
+  sharingGrantId               String
+  requestTokenHash             String                    @unique
+  status                       VerificationRequestStatus @default(draft)
+  // VERBATIM. Sin trim ni normalizacion: los offsets de la propuesta se calculan
+  // sobre este texto exacto, igual que en el intake del holder.
+  rawObjectiveText             String
+  // Lo declara el verificador. Lo exigen el contrato de propuesta y
+  // `objective_definition_v1`; el servidor lo copia a la definicion confirmada.
+  objectiveType                ObjectiveType
+  objectiveTitle               String?
+  proposedRequirements         Json?
+  // `objective_definition_v1`, el MISMO contrato que un Objective del holder. No
+  // hay un segundo contrato de Requirement.
+  confirmedObjectiveDefinition Json?
+  createdAt                    DateTime                  @default(now())
+  expiresAt                    DateTime
+  confirmedAt                  DateTime?
+  consumedAt                   DateTime?
+
+  // Cascade, a diferencia del run. Una solicitud sin consumir es una sesion
+  // anonima efimera y no es registro de nada. Una solicitud CONSUMIDA queda
+  // protegida igual: su run la referencia en RESTRICT y el run referencia al
+  // enlace en RESTRICT, asi que el borrado del enlace falla antes de tocarla.
+  sharingGrant SharingGrant     @relation(fields: [sharingGrantId], references: [id], onDelete: Cascade)
+  run          VerificationRun?
+  proposalAttempts VerificationProposalAttempt[]
+
+  @@index([sharingGrantId, createdAt])
+}
+
+// Observacion contextual CONGELADA sobre evidencia que el holder autorizo.
+//
+// No tiene `ownerUserId` ni `objectiveId`: no pertenece a una cuenta y no escribe
+// en el historial privado de Objectives del holder.
+//
+// Tampoco tiene score, porcentaje, ranking, respuesta cruda del proveedor, prompt
+// ni cadena de razonamiento. No hay columna donde ponerlos.
+model VerificationRun {
+  id                          String             @id @default(uuid())
+  // UNIQUE: una solicitud produce A LO SUMO un run. Estructural, no solo de
+  // aplicacion.
+  verificationRequestId       String             @unique
+  sharingGrantId              String
+  // SIN token propio. La autoridad publica sobre el resultado es el MISMO token
+  // de la VerificationRequest que lo produjo: una sola sesion de verificador, y
+  // una respuesta perdida de la ejecucion nunca deja al tercero sin acceso.
+  // El `ShareVerificationPolicy.policyVersion` que autorizo este run. Es
+  // PROCEDENCIA DEL CONSENTIMIENTO, nada mas: no es un hash de evidencia, ni una
+  // huella de inventario, ni una version de plan de F3. El snapshot de evidencia
+  // son las filas de inventario.
+  policyVersionSnapshot       Int
+  objectiveDefinitionSnapshot Json
+  objectiveTitleSnapshot      String?
+  status                      ReasoningRunStatus @default(pending)
+
+  // Slots de etapa, fill-once, con los MISMOS contratos que el ReasoningRun. La
+  // fundacion los deja en null: no hay productor todavia.
+  objectiveAnalysisArtifact Json?
+  evidenceUnitsArtifact     Json?
+  resultArtifact            Json?
+  executionMetadata         Json?
+  failureCode               String?
+  // Intentos de ejecucion INICIADOS sobre este run (primero + reintentos). Tope
+  // publico: 3 (2 reintentos). Se incrementa con CAS antes de reclamar el run.
+  executionAttempts         Int                @default(0)
+
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  failedAt    DateTime?
+
+  // Restrict: una solicitud no puede desaparecer por debajo del run que produjo.
+  verificationRequest VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Restrict)
+  // RESTRICT, NO cascade. Un run congelado es registro de auditoria: un borrado
+  // del enlace --o del usuario, que cascadea hacia sus enlaces-- no puede
+  // llevarselo en silencio. Hoy no existe ningun camino ejecutable que borre un
+  // enlace o un usuario, asi que esto no tiene costo operativo; convierte un
+  // borrado futuro en una decision explicita de retencion. Revocar el enlace NO
+  // borra nada: solo corta el acceso publico.
+  sharingGrant        SharingGrant        @relation(fields: [sharingGrantId], references: [id], onDelete: Restrict)
+
+  inventory VerificationRunInventoryItem[]
+
+  @@index([sharingGrantId, createdAt])
+}
+
+// Espejo EXACTO de ReasoningRunInventoryItem: mismas columnas, misma disposicion,
+// mismos UNIQUE parciales y mismos CHECK (en la migracion). La unica diferencia es
+// a que run pertenece.
+//
+// El universo del que salen estas filas es el conjunto que el holder AUTORIZO, no
+// su Wallet completo ni las 10 tarjetas del perfil publico. Una credencial
+// autorizada que ya estaba revocada al congelar queda REGISTRADA con su
+// disposicion de exclusion: distingue "el holder la autorizo" de "fue evidencia
+// utilizable para este run".
+model VerificationRunInventoryItem {
+  id                          String                           @id @default(uuid())
+  verificationRunId           String
+  credentialId                String
+  documentEvidenceId          String?
+  textEvidenceId              String?
+  sourceSha256                String?
+  disposition                 ReasoningRunInventoryDisposition
+  selectedAnalysisRunSourceId String?
+  artifactBlobSha256          String?
+  // `src_01`, `src_02`, ... INTERNO. Nunca sale por ninguna proyeccion publica.
+  runLocalSourceId            String?
+  createdAt                   DateTime                         @default(now())
+
+  verificationRun           VerificationRun    @relation(fields: [verificationRunId], references: [id], onDelete: Cascade)
+  credential                Credential         @relation(fields: [credentialId], references: [id], onDelete: Restrict)
+  documentEvidence          DocumentEvidence?  @relation(fields: [documentEvidenceId], references: [id], onDelete: Restrict)
+  textEvidence              TextEvidence?      @relation(fields: [textEvidenceId], references: [id], onDelete: Restrict)
+  selectedAnalysisRunSource AnalysisRunSource? @relation(fields: [selectedAnalysisRunSourceId], references: [id], onDelete: Restrict)
+
+  @@unique([verificationRunId, documentEvidenceId])
+  @@unique([verificationRunId, textEvidenceId])
+  @@unique([verificationRunId, runLocalSourceId])
+  @@index([verificationRunId])
+  @@index([verificationRunId, credentialId])
+  @@index([selectedAnalysisRunSourceId])
+}
+
+// Como termino un intento de propuesta que efectivamente arranco.
+//
+// NO hay un valor para "fallo de transporte". Ese caso NO se cierra: el cliente
+// de IA colapsa en un mismo codigo el timeout de NestJS y el fallo reportado por
+// el ai-service, asi que no se puede saber si la llamada al proveedor sigue en
+// curso. El intento queda ABIERTO y el lease decide cuando puede reclamarse.
+enum VerificationProposalAttemptOutcome {
+  // La propuesta verificada se persistio en la solicitud.
+  SUCCEEDED
+  // Hubo respuesta y no sirve: el trabajo del proveedor TERMINO.
+  FAILED
+  // Supersedido por un reclamo posterior, o la autoridad (enlace, politica,
+  // solicitud) se perdio antes de persistir. Su resultado nunca se acepta.
+  DISCARDED
+}
+
+// UN INTENTO DE TRABAJO DE PROVEEDOR para proponer requisitos.
+//
+// Dos funciones, y solo dos:
+//
+//   CLAIM persistente   a lo sumo un intento ABIERTO por solicitud (indice
+//                       unico parcial, en la migracion); sobrevive a un crash y
+//                       a varias instancias de la API.
+//   LIBRO DE CUOTA      cada fila es un arranque de proveedor. Cuota y cooldown
+//                       por enlace se cuentan sobre `startedAt`.
+//
+// NO es una plataforma de analitica: no guarda IP, ni respuesta del proveedor, ni
+// prompt, ni detalle de error. La propuesta autoritativa vive en
+// `VerificationRequest.proposedRequirements`, nunca aca.
+model VerificationProposalAttempt {
+  id                    String                              @id @default(uuid())
+  verificationRequestId String
+  // Denormalizado a proposito: la cuota se cuenta por enlace sin join.
+  sharingGrantId        String
+  startedAt             DateTime                            @default(now())
+  // Hasta cuando este intento es dueño exclusivo de la solicitud. Vencido, otro
+  // intento puede reclamarla; el vencimiento NO invalida por si solo un
+  // resultado tardio -- lo invalida quedar supersedido.
+  leaseExpiresAt        DateTime
+  outcome               VerificationProposalAttemptOutcome?
+  finishedAt            DateTime?
+
+  verificationRequest VerificationRequest @relation(fields: [verificationRequestId], references: [id], onDelete: Cascade)
+  sharingGrant        SharingGrant        @relation(fields: [sharingGrantId], references: [id], onDelete: Cascade)
+
+  @@index([sharingGrantId, startedAt])
+  @@index([verificationRequestId])
+}
+
+// LEASE DE EJECUCION POR ENLACE. A lo sumo UNA ejecucion publica activa por
+// SharingGrant. Una fila por enlace (PK = sharingGrantId); libre cuando
+// `ownerToken` es null o `expiresAt` ya paso. Se adquiere con un UPDATE
+// condicional sobre ESTA fila (lock de fila, no depende de SSI) y la libera solo
+// quien tiene el `ownerToken`. Un proceso muerto no bloquea para siempre: el
+// lease vence.
+model VerificationExecutionLease {
+  sharingGrantId    String    @id
+  ownerToken        String?
+  verificationRunId String?
+  acquiredAt        DateTime?
+  expiresAt         DateTime?
+
+  sharingGrant SharingGrant @relation(fields: [sharingGrantId], references: [id], onDelete: Cascade)
 }

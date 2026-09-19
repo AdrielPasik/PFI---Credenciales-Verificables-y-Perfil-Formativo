@@ -54,10 +54,11 @@
  * que la fila no puede sostener.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { REASONING_RUN_TABLE, holderReasoningRunTable, type ReasoningRunTable } from './reasoning-run-table';
 
 /**
  * Testigo de que ESTA ejecución ganó el CAS.
@@ -120,7 +121,14 @@ export type ClaimOutcome =
 
 @Injectable()
 export class ReasoningRunExecutionClaimService {
-  public constructor(private readonly prisma: PrismaService) {}
+  private readonly table: ReasoningRunTable;
+
+  public constructor(
+    private readonly prisma: PrismaService,
+    @Optional() @Inject(REASONING_RUN_TABLE) table?: ReasoningRunTable
+  ) {
+    this.table = table ?? holderReasoningRunTable(prisma);
+  }
 
   /**
    * CAS `pending → running`. Exactamente un llamante concurrente gana.
@@ -133,7 +141,7 @@ export class ReasoningRunExecutionClaimService {
    */
   public async claim(reasoningRunId: string): Promise<ClaimOutcome> {
     const claimedAt = new Date();
-    const won = await this.prisma.reasoningRun.updateMany({
+    const won = await this.table.runs.updateMany({
       where: {
         id: reasoningRunId,
         status: ReasoningRunStatus.pending,
@@ -144,7 +152,7 @@ export class ReasoningRunExecutionClaimService {
     });
 
     if (won.count !== 1) {
-      const run = await this.prisma.reasoningRun.findUnique({
+      const run = await this.table.runs.findUnique({
         where: { id: reasoningRunId },
         select: { status: true }
       });
@@ -156,7 +164,7 @@ export class ReasoningRunExecutionClaimService {
     // no expresa eso en el mismo `updateMany` que ya usa `status` como condición.
     // Es seguro porque sólo el ganador llega acá y nadie más puede estar en
     // `running` para esta fila.
-    await this.prisma.reasoningRun.updateMany({
+    await this.table.runs.updateMany({
       where: {
         id: reasoningRunId,
         status: ReasoningRunStatus.running,
@@ -165,7 +173,7 @@ export class ReasoningRunExecutionClaimService {
       data: { startedAt: claimedAt }
     });
 
-    const run = await this.prisma.reasoningRun.findUnique({
+    const run = await this.table.runs.findUnique({
       where: { id: reasoningRunId },
       select: { startedAt: true }
     });
@@ -194,7 +202,7 @@ export class ReasoningRunExecutionClaimService {
   public async releaseForRetry(
     claim: ReasoningRunExecutionClaim
   ): Promise<void> {
-    await this.prisma.reasoningRun.updateMany({
+    await this.table.runs.updateMany({
       where: {
         id: claim.reasoningRunId,
         status: ReasoningRunStatus.running,
@@ -215,7 +223,7 @@ export class ReasoningRunExecutionClaimService {
     claim: ReasoningRunExecutionClaim,
     failureCode: string
   ): Promise<void> {
-    await this.prisma.reasoningRun.updateMany({
+    await this.table.runs.updateMany({
       where: {
         id: claim.reasoningRunId,
         status: ReasoningRunStatus.running,

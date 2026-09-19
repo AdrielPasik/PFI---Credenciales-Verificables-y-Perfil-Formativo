@@ -25,7 +25,7 @@
  * SIN CONTROLLER. La API privada sigue siendo F3.7.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { Prisma, ReasoningRunStatus } from '@prisma/client';
 
 import { AiServiceClient } from '../ai/ai-service.client';
@@ -35,6 +35,7 @@ import {
   type AnalyzeObjectiveExecutionPlan
 } from '../ai/ai-service.types';
 import { PrismaService } from '../prisma/prisma.service';
+import { REASONING_RUN_TABLE, holderReasoningRunTable, type ReasoningRunTable } from './reasoning-run-table';
 import {
   eligibleRunStatusFor,
   type ReasoningRunExecutionClaim
@@ -114,12 +115,17 @@ export interface EvidenceUnitsOutcome {
 export class ReasoningRunEvidenceUnitsService {
   private readonly logger = new Logger(ReasoningRunEvidenceUnitsService.name);
 
+  private readonly table: ReasoningRunTable;
+
   public constructor(
     private readonly prisma: PrismaService,
     private readonly slots: ReasoningRunArtifactSlotService,
     private readonly grounding: ReasoningRunGroundingLoader,
-    private readonly ai: AiServiceClient
-  ) {}
+    private readonly ai: AiServiceClient,
+    @Optional() @Inject(REASONING_RUN_TABLE) table?: ReasoningRunTable
+  ) {
+    this.table = table ?? holderReasoningRunTable(prisma);
+  }
 
   public async ensureEvidenceUnitsForRun(
     reasoningRunId: string,
@@ -196,7 +202,7 @@ export class ReasoningRunEvidenceUnitsService {
   // -------------------------------------------------------------------------
 
   private async loadRun(reasoningRunId: string): Promise<RunRow> {
-    const run = await this.prisma.reasoningRun.findUnique({
+    const run = await this.table.runs.findUnique({
       where: { id: reasoningRunId },
       select: RUN_SELECT
     });
@@ -569,7 +575,7 @@ export class ReasoningRunEvidenceUnitsService {
     reasoningRunId: string,
     failureCode: string
   ): Promise<void> {
-    await this.prisma.reasoningRun.updateMany({
+    await this.table.runs.updateMany({
       where: {
         id: reasoningRunId,
         status: ReasoningRunStatus.pending,

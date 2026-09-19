@@ -447,3 +447,28 @@ def test_sin_puntaje_global_en_ninguna_parte(monkeypatch: pytest.MonkeyPatch) ->
                 walk(item)
 
     walk(result)
+
+# ---------------------------------------------------------------------------
+# Taxonomia de fallos HTTP — el 404 opaco tampoco es prueba de configuracion
+# ---------------------------------------------------------------------------
+
+from src.api.objective_understanding.contracts import (  # noqa: E402
+    ProviderConfigurationError as _UnderstandingConfigurationError,
+    ProviderTransportError as _UnderstandingTransportError,
+)
+from src.api.objective_understanding.provider import (  # noqa: E402
+    classify_provider_http_failure as _classify_understanding,
+)
+
+
+@pytest.mark.parametrize("body", ["", "<html>404 Not Found</html>", '{"error": {"message": "prosa"}}'])
+def test_unstructured_404_is_transient_for_the_proposal_stage(body: str) -> None:
+    # Esta etapa tiene su propia taxonomia, con el MISMO defecto y el MISMO
+    # arreglo: un 404 opaco dejaba la sesion publica sin propuesta y sin
+    # reintento legitimo.
+    assert isinstance(_classify_understanding(404, body), _UnderstandingTransportError)
+
+
+def test_structured_404_model_not_found_stays_terminal_for_the_proposal_stage() -> None:
+    body = '{"error": {"type": "invalid_request_error", "code": "model_not_found"}}'
+    assert isinstance(_classify_understanding(404, body), _UnderstandingConfigurationError)

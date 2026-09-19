@@ -6,6 +6,11 @@ import { CredentialStatus, SharingGrantScope } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { FormativeProfileService } from '../profiles/formative-profile.service';
 import { mapHolderCurrentProfileResponse } from '../profiles/holder-current-profile.mapper';
+import {
+  shareEffectiveStatus,
+  supportsContextualVerification,
+  type ShareEffectiveStatus
+} from './share-lifecycle';
 
 export interface CreateProfileShareResponseDto {
   sharePath: string;
@@ -30,6 +35,30 @@ export interface PublicProfileShareResponseDto {
     issuerName: string;
     issuedAt: string | null;
   }>;
+  /**
+   * UNICO dato nuevo del contrato publico. Es un booleano y nada mas: nunca los
+   * ids autorizados, nunca `policyVersion`, nunca el id de la politica.
+   *
+   * Que sea `true` NO significa que exista todavia un endpoint publico de
+   * analisis -- en esta version no existe. Significa que el holder dio su
+   * permiso y que el enlace sigue valiendo.
+   */
+  contextualVerificationEnabled: boolean;
+}
+
+export interface HolderProfileShareListItemDto {
+  shareId: string;
+  scope: SharingGrantScope;
+  status: ShareEffectiveStatus;
+  createdAt: string;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  lastUsedAt: string | null;
+  contextualVerificationEnabled: boolean;
+  /** Lo que el holder eligio. */
+  authorizedCredentialCount: number;
+  /** Cuantas de esas siguen `issued` hoy. Menor que la anterior = alguna se revoco. */
+  effectiveAuthorizedCredentialCount: number;
 }
 
 @Injectable()
@@ -67,6 +96,12 @@ export class ProfileSharingService {
         scope: true,
         expiresAt: true,
         revokedAt: true,
+        verificationPolicy: {
+          select: {
+            enabled: true,
+            authorizedCredentials: { select: { credentialId: true } }
+          }
+        },
         user: {
           select: {
             displayName: true,
@@ -165,7 +200,170 @@ export class ProfileSharingService {
         typeLabel: credentialTypeLabel(credential.type),
         issuerName: credential.issuer.name,
         issuedAt: credential.issuedAt?.toISOString() ?? null
-      }))
+      })),
+      contextualVerificationEnabled: await this.contextualVerificationAvailable(
+        grant.userId,
+        grant.scope,
+        grant.verificationPolicy
+      )
+    };
+  }
+
+  /**
+   * El permiso EFECTIVO de computo. Llegar aca ya implica que el grant esta
+   * activo: el guard de mas arriba tira 404 para revocado o vencido, asi que
+   * este metodo solo decide sobre la politica y su evidencia.
+   *
+   * NO depende de que F3 este listo. Que exista extraccion, analisis semantico o
+   * evidence units es estado transitorio; mezclarlo aca haria que el CTA
+   * parpadeara segun el pipeline. Si al crear un run no hubiera evidencia
+   * utilizable, eso se resuelve ahi con un resultado controlado -- no fingiendo
+   * que el holder nunca dio permiso.
+   */
+  private async contextualVerificationAvailable(
+    ownerUserId: string,
+    scope: SharingGrantScope,
+    policy: { enabled: boolean; authorizedCredentials: Array<{ credentialId: string }> } | null
+  ): Promise<boolean> {
+    // El lector publico NUNCA anuncia computo que el VerificationRun despues
+    // rechazaria. Una politica habilitada sobre un alcance no soportado --estado
+    // heredado o inconsistente-- no habilita nada.
+    if (!supportsContextualVerification(scope)) return false;
+    if (!policy || !policy.enabled) return false;
+    const authorizedIds = policy.authorizedCredentials.map((row) => row.credentialId);
+    if (authorizedIds.length === 0) return false;
+
+    // Se cuenta contra la BASE, no contra las 10 tarjetas que muestra el perfil:
+    // esa lista es una proyeccion de presentacion y el holder puede haber
+    // autorizado una credencial que no aparece entre ellas.
+    const stillIssued = await this.prisma.credential.count({
+      where: {
+        id: { in: authorizedIds },
+        subjectUserId: ownerUserId,
+        status: CredentialStatus.issued
+      }
+    });
+    return stillIssued > 0;
+  }
+
+  /**
+   * Los enlaces del holder. Hasta esta version no habia forma de ver cuantos
+   * enlaces tenia abiertos: cada click en "Compartir perfil" creaba uno nuevo,
+   * permanente e invisible.
+   *
+   * El token crudo NO esta aca y no puede estarlo: solo se guarda su SHA-256, y
+   * se muestra una unica vez al crearlo. Eso es deliberado y no se debilita.
+   */
+  async listForUser(userId: string): Promise<HolderProfileShareListItemDto[]> {
+    const grants = await this.prisma.sharingGrant.findMany({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+      select: {
+        id: true,
+        scope: true,
+        createdAt: true,
+        expiresAt: true,
+        revokedAt: true,
+        lastUsedAt: true,
+        verificationPolicy: {
+          select: {
+            enabled: true,
+            authorizedCredentials: { select: { credentialId: true } }
+          }
+        }
+      }
+    });
+
+    const authorizedIds = [
+      ...new Set(
+        grants.flatMap((grant) =>
+          (grant.verificationPolicy?.authorizedCredentials ?? []).map((row) => row.credentialId)
+        )
+      )
+    ];
+    // Una sola consulta para todos los enlaces, no una por enlace.
+    const issuedIds = new Set(
+      authorizedIds.length === 0
+        ? []
+        : (
+            await this.prisma.credential.findMany({
+              where: {
+                id: { in: authorizedIds },
+                subjectUserId: userId,
+                status: CredentialStatus.issued
+              },
+              select: { id: true }
+            })
+          ).map((row) => row.id)
+    );
+
+    const now = new Date();
+    return grants.map((grant) => {
+      const authorized = (grant.verificationPolicy?.authorizedCredentials ?? []).map(
+        (row) => row.credentialId
+      );
+      const effective = authorized.filter((id) => issuedIds.has(id));
+      const status = shareEffectiveStatus(grant, now);
+      return {
+        shareId: grant.id,
+        scope: grant.scope,
+        status,
+        createdAt: grant.createdAt.toISOString(),
+        expiresAt: grant.expiresAt?.toISOString() ?? null,
+        revokedAt: grant.revokedAt?.toISOString() ?? null,
+        lastUsedAt: grant.lastUsedAt?.toISOString() ?? null,
+        // El permiso que ve el holder es el EFECTIVO, el mismo que resolveria el
+        // lector publico: politica encendida, enlace vigente y al menos una
+        // credencial autorizada todavia emitida.
+        contextualVerificationEnabled:
+          status === 'ACTIVE' &&
+          supportsContextualVerification(grant.scope) &&
+          (grant.verificationPolicy?.enabled ?? false) &&
+          effective.length > 0,
+        authorizedCredentialCount: authorized.length,
+        effectiveAuthorizedCredentialCount: effective.length
+      };
+    });
+  }
+
+  /**
+   * Revocacion, terminal e idempotente.
+   *
+   * `updateMany` con `revokedAt: null` en el WHERE es un compare-and-set: dos
+   * pedidos simultaneos solo pueden escribir uno, y el segundo no pisa la marca
+   * de tiempo del primero. Revocar algo ya revocado devuelve exito sin escribir.
+   *
+   * No hay borrado ni reactivacion: la fila queda como registro historico y un
+   * token filtrado nunca vuelve a valer.
+   */
+  async revokeForUser(userId: string, shareId: string): Promise<{ status: ShareEffectiveStatus; revokedAt: string }> {
+    const grant = await this.prisma.sharingGrant.findFirst({
+      // El scope del holder va en el WHERE: un enlace ajeno responde igual que
+      // uno inexistente y no confirma su existencia.
+      where: { id: shareId, userId },
+      select: { id: true, revokedAt: true }
+    });
+    if (!grant) throw new NotFoundException('No se encontro el enlace compartido solicitado.');
+
+    if (grant.revokedAt) {
+      return { status: 'REVOKED', revokedAt: grant.revokedAt.toISOString() };
+    }
+
+    const revokedAt = new Date();
+    await this.prisma.sharingGrant.updateMany({
+      where: { id: grant.id, userId, revokedAt: null },
+      data: { revokedAt }
+    });
+
+    // Se relee en lugar de asumir: si otro pedido gano la carrera, la marca
+    // autoritativa es la suya.
+    const persisted = await this.prisma.sharingGrant.findFirst({
+      where: { id: grant.id, userId },
+      select: { revokedAt: true }
+    });
+    return {
+      status: 'REVOKED',
+      revokedAt: (persisted?.revokedAt ?? revokedAt).toISOString()
     };
   }
 }

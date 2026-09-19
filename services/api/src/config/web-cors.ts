@@ -15,7 +15,12 @@ const ALLOWED_METHODS = [
   'OPTIONS'
 ];
 
-const ALLOWED_HEADERS = ['Authorization', 'Content-Type'];
+/**
+ * `X-Verification-Request-Token` transporta el token de sesion del verificador
+ * anonimo. Va en un header y no en la URL para que no quede en historial, logs de
+ * acceso ni `Referer`; sin esta entrada, el preflight del navegador lo bloquea.
+ */
+const ALLOWED_HEADERS = ['Authorization', 'Content-Type', 'X-Verification-Request-Token'];
 
 export function resolveWebCorsOptions(
   configuredOrigin: string | undefined

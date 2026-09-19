@@ -18,6 +18,7 @@ import { ReasoningRunModule } from './reasoning-run/reasoning-run.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { ProfileSharingModule } from './profile-sharing/profile-sharing.module';
+import { PublicVerificationModule } from './public-verification/public-verification.module';
 import { ReusableSemanticInterpretationModule } from './reusable-semantic-interpretation/reusable-semantic-interpretation.module';
 import { SemanticModule } from './semantic/semantic.module';
 import { TextEvidenceModule } from './text-evidence/text-evidence.module';
@@ -36,6 +37,7 @@ import { VerificationModule } from './verification/verification.module';
     ReasoningRunModule,
     ProfilesModule,
     ProfileSharingModule,
+    PublicVerificationModule,
     IssuersModule,
     BlockchainModule,
     CatalogModule,
