@@ -201,6 +201,24 @@ Requiere:
 - puede motivar constraints adicionales en schema mas adelante si la logica queda estable;
 - evita APIs ambiguas entre borrador, emision y revocacion.
 
+### Revocación coordinada issuer-scoped
+
+- Una `Credential` solo pasa de `issued` a `revoked` mediante reconciliación
+  record-bound con su evidencia técnica; nunca hay fallback a una mutación
+  PostgreSQL aislada.
+- La autorización institucional del actor y la autorización del signer on-chain
+  son controles distintos: la primera exige membership activa `admin`/`operator`
+  e issuer autorizado; la segunda exige que el signer del servidor coincida con
+  el registrante persistido y confirmado on-chain.
+- El timestamp de revocación es la marca temporal reportada por el contrato. Un
+  motivo opcional solo se persiste si la invocación confirmó la escritura; no se
+  infiere ni reemplaza durante una reconciliación de reintento.
+- Después de la persistencia, se intenta regenerar el perfil del titular en modo
+  best-effort. El fallo tiene resultado seguro y reintentable, pero no revierte
+  una revocación ya confirmada.
+- `mock`, records Anvil legacy/no correlacionables, deployment no resuelto y el
+  estado `DB_REVOKED_CHAIN_ACTIVE` son condiciones fail-closed.
+
 ## 11. Campos controlados de Credential por tipo
 
 P2b1 define un contrato v0 de edicion de drafts para los tipos existentes:
@@ -2016,3 +2034,358 @@ gitignored) confirmo la causa exacta:
   credencial"), nunca por un debounce en cada cambio de input.
 - Sin cambios de contrato HTTP: `flush()` reusa el mismo
   `PATCH .../draft` que ya existia; no se agrego ningun endpoint nuevo.
+
+## 30. Permiso de vista vs. permiso de cómputo en enlaces compartidos
+
+Fundación de la verificación contextual pública. Esta sección define **autoridad**,
+no razonamiento: en esta versión no existe todavía ningún endpoint público que
+ejecute un análisis.
+
+1. **Son dos permisos distintos, y nunca se infieren uno del otro.** Un
+   `SharingGrant` activo autoriza **leer** la proyección pública del perfil.
+   Jamás autoriza que un tercero dispare razonamiento sobre la evidencia del
+   holder. Ese segundo permiso exige una `ShareVerificationPolicy` con
+   `enabled = true` sobre ese mismo grant.
+
+   El motivo es concreto: `scope = profile` no enumera evidencia. El perfil
+   público resuelve sus credenciales **en vivo** (`issued`, `take: 10`), que es
+   una proyección de presentación, no un contrato de autorización. Leer eso como
+   "todas mis credenciales emitidas pueden procesarse con IA" sería inventar un
+   consentimiento que el holder nunca dio.
+
+2. **La verificación contextual está deshabilitada por defecto.** La columna
+   `enabled` nace en `false` y la migración no inserta ninguna fila. Ningún
+   enlace preexistente gana autoridad de cómputo al desplegarse.
+
+3. **El holder elige explícitamente qué credenciales pueden usarse.** El
+   conjunto autorizado es relacional
+   (`ShareVerificationCredentialAuthorization`), una fila por credencial, con
+   `UNIQUE (policyId, credentialId)` y FK real contra `Credential` — no un
+   arreglo JSON de IDs sin validar. Una credencial solo puede **incorporarse**
+   si existe, pertenece al holder y está `issued`.
+
+4. **Un `SharingGrant` activo es necesario pero no suficiente.** El permiso
+   efectivo de cómputo requiere grant vigente **y** política habilitada **y** al
+   menos una credencial autorizada todavía `issued`.
+
+5. **La revocación del enlace manda sobre la política.** Revocar un
+   `SharingGrant` invalida el acceso público y, con él, cualquier permiso de
+   cómputo derivado — sin necesidad de tocar la política. El grant es la
+   autoridad de orden superior. La revocación es terminal: no hay reactivación,
+   y un token filtrado nunca vuelve a valer. La fila se conserva; no hay borrado.
+
+6. **Una credencial revocada o vencida no puede autorizar cómputo nuevo.** Deja
+   de contar como evidencia efectiva de inmediato. Pero su fila de
+   consentimiento **se conserva**: describe lo que el holder quiso cuando la
+   credencial era elegible, y borrarla en silencio le reescribiría la intención.
+   Por la misma razón, un cambio de ciclo de vida ajeno **no** mueve
+   `policyVersion`.
+
+7. **`policyVersion` rastrea la política del holder, no el mundo exterior.**
+   Avanza solo cuando el holder cambia `enabled` o el conjunto autorizado.
+   Reenviar exactamente el mismo estado es idempotente y no lo mueve. No avanza
+   por revocaciones de credenciales, cambios de análisis ni de perfil. Un
+   `VerificationRun` futuro deberá congelar **ambas** cosas: el
+   `policyVersion` y el inventario de evidencia realmente resuelto —
+   `policyVersion` por sí solo no es el snapshot de evidencia.
+
+8. **Consentimiento no es elegibilidad de ejecución.** La política responde
+   "¿puede Scope usar esta credencial?". No responde "¿está hoy técnicamente
+   lista?". Por eso la validación de consentimiento no mira extracción, análisis
+   semántico, `AnalysisRun` ni evidence units: es estado transitorio del
+   pipeline y ataría el permiso a algo que cambia solo. La intersección entre el
+   conjunto autorizado y la evidencia ejecutable se resuelve —y se congela— al
+   crear un `VerificationRun`.
+
+9. **Solo un enlace de alcance `profile` admite verificación contextual.** Es una
+   allowlist explícita (`CONTEXTUAL_VERIFICATION_SUPPORTED_SCOPES`), definida una
+   sola vez y aplicada en los tres puntos: el PUT de política la rechaza antes de
+   crear o actualizar nada (`SHARE_SCOPE_NOT_SUPPORTED`); el lector público y el
+   listado del holder devuelven `contextualVerificationEnabled = false` para
+   cualquier otro alcance aunque exista una política habilitada heredada o
+   inconsistente; y la autoridad del `VerificationRun` falla cerrado. El perfil
+   público nunca anuncia un cómputo que el congelamiento después rechazaría. No se
+   confía en que un alcance hoy no tenga productor, y un alcance futuro no entra
+   por omisión.
+
+10. **El vencimiento se respeta, pero no se inventa.** La creación de enlaces
+   sigue dejando `expiresAt = null` (no vence). Todo lector nuevo honra un
+   `expiresAt` no nulo si estuviera cargado, y la verificación contextual hereda
+   siempre el vencimiento del enlace. Un vencimiento elegible por el holder
+   queda como mejora de privacidad posterior; **hoy el sistema no permite
+   configurar caducidad y no debe describirse como si la tuviera**.
+
+## 31. Verificación contextual pública — fundación de persistencia y congelamiento
+
+Esta sección define **persistencia y congelamiento**. No hay ejecución de
+proveedor, propuesta de requisitos, razonamiento ni superficie pública: el módulo
+`PublicVerificationModule` no registra ningún controller.
+
+1. **Es un producto distinto del `ReasoningRun` del holder.** `ReasoningRun`
+   exige `ownerUserId` y `objectiveId` NOT NULL, con `objectiveId` en RESTRICT: no
+   existe sin un Objective privado del holder. La verificación pública tiene sus
+   propias entidades — `VerificationRequest`, `VerificationRun`,
+   `VerificationRunInventoryItem` — y **nunca** crea un Objective del holder ni
+   escribe en su historial.
+
+2. **`VerificationRequest` es la sesión anónima del verificador.** Guarda el texto
+   del objetivo que trajo el tercero, los requisitos propuestos y, cuando existan,
+   la definición confirmada. Su ciclo persistido es
+   `draft → requirements_proposed → requirements_confirmed → consumed`. **No existe
+   un estado `expired`**: ningún código lo escribiría sin un scheduler. El
+   vencimiento (24 h desde la creación) se deriva de `expiresAt` en cada lectura y
+   acción.
+
+3. **La definición confirmada usa `objective_definition_v1`, el mismo contrato del
+   holder.** No hay un segundo contrato de Requirement. Ese contrato ya rechaza
+   como estructura cualquier clave que ligue el objetivo a una persona
+   (`ownerUserId`, `credentialIds`, …), así que es exactamente el adecuado para un
+   tercero. Se re-verifica con `verifyObjectiveDefinitionArtifact` al congelar.
+
+4. **Una solicitud produce a lo sumo un run.** Garantizado estructuralmente por
+   `UNIQUE (verificationRequestId)`. Repetir el congelamiento de una solicitud ya
+   consumida devuelve el run existente y no crea otro. La solicitud se consume
+   **solo** dentro de la misma transacción que crea el run: no existe un estado de
+   consumo a medias (CHECK `VerificationRequest_consumed_shape`).
+
+5. **Un único secreto de sesión: el token de la solicitud.** Mismo patrón que
+   `SharingGrant`: 256 bits en base64url, persistido solo como SHA-256 y entregado
+   una única vez al crear la solicitud. Ese mismo token lee la solicitud, confirma
+   requisitos, congela el run una sola vez y, después, resuelve el run que produjo.
+   **No existe un token de resultado aparte**: si el verificador pierde la
+   respuesta de la ejecución, repetirla con el mismo token devuelve el mismo run
+   lógico y no crea otro. Ningún id de base (solicitud, run, enlace) es autoridad
+   pública. Compartir un resultado de forma independiente queda diferido.
+
+   **Dos vencimientos distintos.** `VerificationRequest.expiresAt` (24 h) limita la
+   etapa **previa** al run: vencida y sin consumir, no hay confirmación ni
+   ejecución. No es la vida del resultado: una solicitud consumida con su run se
+   sigue resolviendo con el mismo token aunque su `expiresAt` haya pasado. Ese
+   acceso queda subordinado al **enlace** — activo, no revocado, no vencido — y no
+   a la política: deshabilitarla impide runs nuevos, no oculta uno existente. No se
+   reescribe ni se extiende `expiresAt` para lograrlo.
+
+6. **Solo el alcance `profile` autoriza verificación contextual.** Es una allowlist
+   explícita, no una deducción de que la UI hoy solo crea enlaces de perfil.
+   `credential` y `credential_and_profile` fallan cerrado, y un alcance futuro
+   también, hasta que se agregue a propósito.
+
+7. **`policyVersionSnapshot` es procedencia del consentimiento, nada más.** Es el
+   `ShareVerificationPolicy.policyVersion` que autorizó el run. No es un hash de
+   evidencia, ni una huella de inventario, ni una versión de plan de F3. **El
+   snapshot de evidencia son las filas de inventario.**
+
+8. **Un run nunca mezcla estados de consentimiento.** El congelamiento es en dos
+   fases. `prepare()` lee enlace, política, versión y conjunto autorizado como un
+   único snapshot, sin escribir. `commit()` abre una transacción SERIALIZABLE y
+   corta, **relee** enlace y política, y exige que la política siga habilitada, que
+   `policyVersion` sea la del snapshot **y** que el conjunto autorizado sea el del
+   snapshot. Solo entonces clasifica, consume y persiste. Si la versión cambió no se
+   reconstruye con la política nueva dentro del mismo intento: responde
+   `AUTHORIZATION_CHANGED`, reintentable. Un PUT idéntico del holder, que no mueve
+   la versión, no invalida un congelamiento legítimo.
+
+9. **Revocar el enlace durante el congelamiento impide el run.** Una lectura
+   anterior del token no es autoridad permanente: `commit()` relee el grant y falla
+   cerrado si fue revocado o venció. La revocación también corta la consulta
+   idempotente de un run ya congelado. Deshabilitar la política, en cambio, solo
+   impide runs **nuevos**: no vuelve inexistente uno ya congelado.
+
+10. **El universo de evidencia es el conjunto que el holder autorizó.** Se lee del
+    lado del servidor desde `ShareVerificationCredentialAuthorization`, con
+    `subjectUserId` exigido como defensa en profundidad. Nunca lo aporta el
+    verificador, nunca es el Wallet completo, nunca son las 10 tarjetas del perfil
+    público. Una credencial emitida pero no autorizada no entra ni como fila
+    excluida. Si una autorización ya no apunta a una credencial del holder, falla
+    cerrado (`AUTHORIZED_EVIDENCE_INCONSISTENT`).
+
+11. **La clasificación es idéntica a la del holder, por construcción.** Vive en una
+    única primitiva compartida, `credential-inventory.classifier.ts`, extraída sin
+    cambios de comportamiento del freeze de F3.2. El wrapper del holder decide su
+    universo (`subjectUserId`) y el público el suyo (conjunto autorizado); los dos
+    delegan la clasificación. Se preservan exactamente la selección
+    `LATEST_STRUCTURALLY_PRESENT_CANDIDATE_THEN_VERIFY_FAIL_CLOSED`, sin fallback a
+    un candidato anterior tras un fallo de integridad, y la numeración `src_NN` por
+    orden estable `(createdAt ASC, id ASC)`. El inventario reusa el **mismo** enum
+    de disposición y **copias literales** de los CHECK de forma de fila y de binding
+    de extracción; un test compara los dos CHECK contra la migración de F3.1.
+
+12. **"El holder la autorizó" no es "fue evidencia utilizable".** Una credencial
+    autorizada que ya estaba revocada al congelar queda **registrada** con
+    `EXCLUDED_CREDENTIAL_STATE_REVOKED`. Solo `INCLUDED` con `artifactBlobSha256` y
+    `runLocalSourceId` presentes puede entrar al grounding;
+    `selectedAnalysisRunSourceId` solo no lo implica.
+
+13. **Sin evidencia utilizable no hay run.** *(Reemplazada por la regla 33.2.)*
+    Si alguna fuente autorizada queda `BLOCKED_*`, no se crea run, la solicitud no
+    se consume y el error es reintentable
+    (`AUTHORIZED_EVIDENCE_TEMPORARILY_UNAVAILABLE`); esto se evalúa **antes** que
+    el chequeo de `INCLUDED`. Sin bloqueos y sin ningún `INCLUDED`, se responde
+    `NO_USABLE_AUTHORIZED_EVIDENCE`, sin run y sin consumir.
+
+14. **Un run congelado es histórico.** Revocar después una credencial, cambiar la
+    selección del holder o deshabilitar la política no reescribe su inventario ni
+    lo recomputa. Los cuatro slots de etapa (`objectiveAnalysisArtifact`,
+    `evidenceUnitsArtifact`, `resultArtifact`, `executionMetadata`) quedan en null
+    en esta fundación: no hay productor.
+
+15. **Un run congelado no puede borrarse en silencio.** Hoy no existe ningún
+    camino ejecutable que borre un `SharingGrant` ni un `User`; el único camino de
+    esquema es borrar un usuario fuera de la aplicación, que cae en cascada hacia
+    sus enlaces. Por eso `VerificationRun.sharingGrantId` es `RESTRICT`: ese borrado
+    falla en lugar de llevarse el registro de auditoría, y cualquier borrado futuro
+    pasa a ser una decisión explícita de retención. `VerificationRequest` usa
+    `CASCADE` porque una solicitud sin consumir es una sesión anónima efímera; una
+    consumida queda protegida igual, porque su run la referencia en `RESTRICT`.
+    Revocar el enlace no borra nada: solo corta el acceso público.
+
+16. **Nada del congelamiento sale del servidor.** El resultado interno no lleva ids,
+    SHAs, storage keys, conjunto autorizado ni `src_NN`; los errores usan códigos
+    estables y colapsan a propósito los casos que convertirían un endpoint futuro en
+    un oráculo (`SHARE_NOT_AVAILABLE`, `REQUEST_NOT_AVAILABLE`).
+
+## 32. Verificación contextual pública — intake y revisión de requisitos
+
+1. **El verificador es dueño de la confirmación de sus requisitos.** Frontera
+   epistémica, la misma que en el holder: el modelo **propone**
+   (`PROPOSAL_ONLY`), el verificador **confirma** el criterio contra el que
+   después se evaluará la evidencia, y el sistema **valida** el contrato. Ninguna
+   propuesta del proveedor se vuelve autoridad de ejecución sin confirmación
+   humana.
+
+2. **La propuesta no es autoritativa.** Se persiste solo el DTO ya verificado
+   contra el texto enviado. Una propuesta con más candidatos que el tope no se
+   trunca: se reduce en la revisión.
+
+3. **No se crea ningún Objective del holder.** Ni `Objective`, ni `ReasoningRun`,
+   ni escritura en su historial. El holder no ve los objetivos de los
+   verificadores en V1.
+
+4. **Un solo contrato de Requirement.** La definición confirmada es
+   `objective_definition_v1`, construida y verificada con los mismos
+   `mapCreateObjectiveRequest`, `buildObjectiveDefinitionV1` y
+   `verifyObjectiveDefinitionArtifact` del holder. El servidor fija
+   `objectiveType` y `source.originalText` desde la sesión, así que la definición
+   queda atribuible a la solicitud que la originó. `rawObjectiveText` nunca se
+   reescribe. Tope público: entre 1 y 12 requisitos.
+
+5. **La confirmación es inmutable.** Reenviar exactamente lo mismo es
+   idempotente; cualquier diferencia se rechaza. Un objetivo materialmente
+   distinto es una solicitud nueva.
+
+6. **Las acciones previas al run exigen enlace y política vigentes.** Crear,
+   proponer y confirmar abren trabajo nuevo: enlace válido de alcance `profile`,
+   política habilitada y al menos una credencial autorizada todavía emitida. La
+   lectura de la propia sesión solo exige el enlace. Si el holder revoca el enlace
+   o apaga la política **durante** una llamada al proveedor, la propuesta no se
+   acepta.
+
+7. **`policyVersion` no se congela hasta el run.** Proponer o confirmar no
+   consume evidencia, así que la solicitud no guarda ninguna versión de política.
+   Si el holder cambia la selección mientras el verificador revisa, la sesión
+   sigue siendo revisable mientras la política siga habilitada, y el run congelará
+   la política y la evidencia vigentes **en ese momento**.
+
+8. **El trabajo de proveedor público tiene cuota y costo acotados.** Dos
+   fronteras separadas que no se consumen entre sí:
+
+   - **almacenamiento**: 10 sesiones abiertas por enlace;
+   - **proveedor**: 5 arranques por enlace en 24 h, cooldown de 60 s por enlace, a
+     lo sumo un intento abierto por sesión.
+
+   La cuota cuenta **arranques**, no éxitos, porque representa exposición de
+   costo. Un replay de una propuesta ya persistida no cuenta. El token opaco del
+   enlace no reemplaza estos límites: filtrado, lo tiene cualquiera. El límite por
+   IP queda diferido mientras no haya una IP de cliente confiable.
+
+9. **No se garantiza ejecución exactamente-una-vez del proveedor.** Sí se
+   garantiza una propuesta autoritativa por sesión y a lo sumo un claim activo.
+   Un lease en base no prueba ejecución única: un crash tras el arranque puede
+   llevar a una segunda llamada después del lease, acotada por la cuota. Lo que
+   invalida un resultado tardío es quedar **supersedido** por otro intento, no el
+   mero vencimiento del lease.
+
+10. **El texto del verificador es dato, no instrucción.** Viaja por el núcleo de
+    propuesta con su frontera estructurada: el contrato de salida lo verifica
+    NestJS de forma independiente, los campos que el proveedor nunca puede aportar
+    con autoridad se rechazan, y cada cita tiene que ser literal del texto
+    enviado. Esto **no** resuelve la inyección de prompts: la acota a producir, en
+    el peor caso, una propuesta mala que un humano tiene que confirmar, y que no
+    tiene acceso a evidencia del holder.
+
+11. **Ningún dato privado del holder entra en esta etapa.** La propuesta opera
+    solo sobre el texto del verificador: ninguna fuente, credencial, perfil ni
+    Objective del holder se envía al proveedor.
+
+## 33. Verificación contextual pública — ejecución F3 y proyección segura del resultado
+
+1. **El motor no se copia.** La ejecución pública usa las mismas clases del
+   holder (claim `pending → running`, slots fill-once, Objective Analysis,
+   Evidence Units, razonamiento contextual, policy determinista, finalización
+   atómica) instanciadas sobre `VerificationRun` mediante un puerto de tabla. La
+   única traducción es la clave del inventario (`reasoningRunId →
+   verificationRunId`), que falla cerrado si falta. Taxonomía de relaciones,
+   facets, techos de claim, claim débil, policy B2.4.1, prompts y
+   source-addressability no cambian.
+
+2. **Evidencia bloqueada: ni run ni consumo.** Con cualquier disposición
+   `BLOCKED_*` al congelar no se crea `VerificationRun`, la solicitud no se
+   consume, no se gasta cuota y el error es reintentable. Tampoco se congela un
+   run parcial que ignore lo bloqueado. Solo ≥1 `INCLUDED` y 0 `BLOCKED_*` crea
+   run. **Diferencia deliberada con el holder**, donde el run se congela `failed`:
+   el tercero no puede arreglar un estado técnico del holder.
+
+3. **Una ejecución activa por enlace.** `VerificationExecutionLease` (una fila por
+   `SharingGrant`) se toma con un `UPDATE` condicional sobre esa fila — lock de
+   fila, no depende de SSI —, tiene dueño opaco, adquisición y vencimiento, y solo
+   el dueño la libera. Vence a `max(30 min, (2 + 12) × AI_SERVICE_TIMEOUT_MS + 4
+   min)`: un proceso muerto no bloquea el enlace para siempre.
+
+4. **Cuota de runs.** Como máximo 3 `VerificationRun` creados por enlace en 24 h
+   móviles. Se cuenta **bajo el lease**, así que dos llamantes del mismo enlace no
+   cuentan a la vez. Un reintento del mismo run no consume cuota.
+
+5. **Presupuesto de intentos.** 3 intentos por run (2 reintentos), solo para fallos
+   transitorios de etapa (`PROVIDER_TRANSPORT_FAILURE`,
+   `INTERNAL_AI_SERVICE_FAILURE`, `EXECUTION_CONFIGURATION_MISSING`). Se incrementa
+   `executionAttempts` con CAS antes de reclamar. Agotado, el run pasa a `failed`
+   (`public_verification_retry_budget_exhausted`). Las etapas fill-once ya
+   persistidas no se recompran; el razonamiento contextual es transitorio en el
+   motor y se rehace entero, igual que en el holder. Un fallo terminal nunca se
+   reintenta.
+
+6. **Consentimiento a mitad de ejecución.** Antes de cada etapa con proveedor se
+   relee el enlace (activo, no vencido, alcance soportado) y la política
+   (habilitada), sin reconstruir inventario. Si cambió, la etapa no arranca y el
+   run queda `failed` (`execution_authorization_withdrawn`). Una llamada ya en
+   vuelo no se declara cancelable.
+
+7. **Acceso después del hecho.** Enlace revocado o vencido → acceso público negado,
+   la fila se conserva. Política deshabilitada después de completar → el resultado
+   sigue visible. Una solicitud vencida con run sigue resolviéndose.
+
+8. **Proyección pública.** Contrato propio, allowlist campo por campo. Nunca salen
+   citas, contexto, página, sección, cobertura, `explanation`, `req_NN`, `src_NN`,
+   `eu_NN`, SHAs, storage, ids de base del run o del objetivo, metadata del
+   proveedor ni códigos internos. Sin score, porcentaje ni ranking. Los requisitos
+   se identifican por `order`.
+
+9. **Roles de evidencia.** El único rol público es `supporting`, y solo para
+   `SUPPORTED` y `PARTIALLY_SUPPORTED`. Para `INSUFFICIENT_EVIDENCE`, `ABSTAIN` y
+   `NOT_ASSESSABLE` la lista es vacía aunque el artifact tenga ids de respaldo en
+   el techo conjunto o en el claim débil. `supportedWeakerClaim` solo en
+   `PARTIALLY_SUPPORTED`.
+
+10. **Histórico vs. actual.** `finalState` es la conclusión del run;
+    `currentStatus` de cada credencial es su estado de hoy. No se infiere un
+    estado "al momento del run" (`CREDENTIAL_STATUS_AT_RUN_SNAPSHOT: NONE`).
+
+11. **Run interrumpido.** El motor mantiene `NON_RECOVERABLE_RUNNING_CLAIM`: un run
+    `running` sin lease vivo que lo nombre se muestra `FAILED /
+    EXECUTION_INTERRUPTED` y no se reanuda ni se roba. Esa sesión queda sin
+    resultado; el verificador necesita una solicitud nueva (con cuota).
+
+12. **Limitación aceptada — SSI de la cuota de propuestas.** La cuota y el claim de
+    propuestas del intake dependen de SERIALIZABLE, no probado contra Postgres
+    real. La ejecución no hereda esa dependencia: su exclusión es por lock de
+    fila.

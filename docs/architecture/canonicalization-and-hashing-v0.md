@@ -124,6 +124,29 @@ La primera version de canonizacion toma como base:
 - lo que cambia es el estado operativo de la credencial y, cuando corresponda, el estado del `blockchain_record`;
 - por eso `revoked_at` y `revocation_reason` quedan fuera de la proyeccion canonica.
 
+### Foundation record-bound
+
+La revocacion coordinada aun no expone un endpoint. Como prerequisito, una
+mutacion futura de un `BlockchainRecord` debe quedar vinculada al deployment
+exacto representado por el propio record: `network`, `chain_id`,
+`contract_address` y `credential_hash`. Una configuracion global de RPC o
+contrato no es suficiente por si sola.
+
+Antes de una escritura futura, el backend debe verificar de forma read-only el
+`chainId` real del RPC, la direccion exacta, presencia de bytecode, la
+compatibilidad ABI y la existencia/registrante del hash canonico en el
+registry. Los records mock, deployments no configurados, redes reiniciadas sin
+el hash esperado o correlaciones incompletas fallan cerrados; no habilitan una
+revocacion solo en PostgreSQL. Esta fundacion no modifica `canon_v1`, hashes,
+estados de credencial ni evidencia historica.
+
+Para Anvil, `chainId` y direccion de contrato pueden repetirse despues de un
+reset. La correlacion del hash y registrante detecta registros ausentes o
+incompatibles y los clasifica como legado no resoluble. Una recreacion
+byte-identica no puede diferenciarse con el modelo persistido actual; agregar
+una huella de deployment/genesis seria una decision futura de arquitectura y
+schema, no un fallback a una revocacion solo en PostgreSQL.
+
 ## 15. Objeto canonico conceptual
 
 ```json

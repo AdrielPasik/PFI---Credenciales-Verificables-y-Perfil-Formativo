@@ -761,6 +761,32 @@ ni afirma que un draft este listo para emitir.
 - Errores esperados: `400`, `403`, `404`, `409`.
 - Estado: `future`.
 
+### `POST /issuers/:issuerId/credentials/:credentialId/revoke`
+
+- Propósito: revocar coordinadamente una credencial `issued` del emisor sin
+  permitir una mutación local que contradiga la evidencia on-chain.
+- Autorización: `AuthGuard`, membership activa `admin` u `operator` para el
+  `issuerId` e issuer `authorized`; el actor llega desde JWT, no del body.
+- Body opcional allowlisted: `{ "reason": string }`. Se normaliza, limita y
+  rechaza cualquier otra propiedad. No acepta signer, hash, red, IDs ni estado.
+- Precondición técnica: el record más reciente debe resolver contra el deployment
+  exacto, pasar correlación hash/registrante y coincidir con el signer configurado
+  del servidor. `mock`, record legacy, deployment ambiguo y divergencias fallan
+  cerrados.
+- Protocolo: `read -> write solo para issued+chain active -> receipt -> re-read
+  -> transacción PostgreSQL corta -> rebuild de perfil`. `revokedAt` procede del
+  contrato. No hay transacción Prisma abierta durante I/O de cadena.
+- Idempotencia: si la cadena ya está `revoked`, se reconcilia PostgreSQL sin una
+  segunda transacción. El `reason` se persiste solo si esta solicitud confirmó la
+  escritura; un reintento no sobreescribe ni atribuye un motivo histórico.
+- Response segura: `credentialReference`, `status: "revoked"`, `revokedAt` y
+  `profileReconciliation: "rebuilt"`; no expone RPC, signer, storage, artefactos
+  IA, payload canónico ni datos privados del holder.
+- Error post-persistencia: si falla el rebuild derivado, devuelve código seguro
+  reintentable `PROFILE_RECONCILIATION_FAILED`; la revocación permanece efectiva.
+- Límites: no UI, no reemisión, no transacciones remotas en tests, no cambios a
+  contratos/canon/hash y `/verify` no consulta blockchain en vivo.
+
 ### `GET /credentials/:id/blockchain-record`
 
 - Proposito: recuperar la evidencia blockchain asociada.
@@ -1980,6 +2006,75 @@ sin mostrar perfil ni interpretacion semantica. Pendiente todavia:
   reales con mas frecuencia. Nunca cae a email (a diferencia de
   `holder-display-label.ts`, usado solo en superficies autenticadas).
 
+### `GET /me/profile/shares`
+
+- Requiere `AuthGuard`. Devuelve únicamente los enlaces del usuario autenticado;
+  el scope va en el `WHERE`, no en un filtro posterior.
+- Por enlace: `shareId`, `scope`, `status`, `createdAt`, `expiresAt`,
+  `revokedAt`, `lastUsedAt`, `contextualVerificationEnabled`,
+  `authorizedCredentialCount`, `effectiveAuthorizedCredentialCount`.
+- `status` es **derivado**, nunca persistido: `REVOKED` si hay `revokedAt`,
+  `EXPIRED` si `expiresAt <= now`, si no `ACTIVE`. Revocado tiene precedencia.
+- **Nunca devuelve el token ni `tokenHash`.** El token crudo se muestra una sola
+  vez, en la respuesta de `POST /me/profile/share`, y no es recuperable después.
+- `authorizedCredentialCount` es lo que el holder consintió;
+  `effectiveAuthorizedCredentialCount` es cuántas de esas siguen `issued`. Que
+  difieran indica que a alguna credencial elegida le cambió el ciclo de vida.
+
+### `POST /me/profile/shares/:shareId/revoke`
+
+- Requiere `AuthGuard`. `shareId` es un ID de base usado bajo sesión y acotado
+  al dueño en la consulta: **no** es una autoridad pública.
+- Escribe `revokedAt` con compare-and-set (`revokedAt: null` en el `WHERE`), así
+  que dos pedidos simultáneos solo pueden escribir uno.
+- **Idempotente**: revocar algo ya revocado devuelve `200` con la marca original,
+  sin escribir.
+- **Terminal**: no existe reactivación. Un token filtrado de un enlace revocado
+  nunca vuelve a valer. La fila se conserva como registro histórico; no hay
+  borrado.
+- Un enlace ajeno o inexistente responde igual (`404`), sin confirmar existencia.
+
+### `PUT /me/profile/shares/:shareId/verification-policy`
+
+- Requiere `AuthGuard`. Body allowlisted: `{ enabled: boolean, credentialIds: string[] }`.
+  Cualquier clave extra es `400`.
+- Solo un enlace de alcance `profile` admite política. Cualquier otro alcance
+  responde `409 SHARE_SCOPE_NOT_SUPPORTED` antes de crear o actualizar nada.
+- `credentialIds` es el **conjunto completo** de autorización, no un delta de
+  alta/baja. Por eso es `PUT`: reenviar exactamente el mismo estado es
+  idempotente y **no** incrementa `policyVersion`.
+- Política, relaciones de credencial y `policyVersion` se escriben en una sola
+  transacción: no existe un estado de consentimiento parcialmente aplicado.
+- `enabled: true` exige al menos una credencial autorizada
+  (`CREDENTIAL_SELECTION_REQUIRED`), porque habilitar sin evidencia expondría un
+  CTA público que nunca podría razonar.
+- Una credencial solo puede **incorporarse** si existe, es del holder y está
+  `issued`. Los cuatro casos de rechazo comparten el código
+  `CREDENTIAL_NOT_AUTHORIZABLE` a propósito: distinguirlos convertiría el
+  endpoint en un oráculo de existencia sobre IDs ajenos.
+- Una credencial **ya autorizada** que después fue revocada puede reenviarse: su
+  fila describe una decisión tomada cuando era elegible. Deja de contar como
+  evidencia efectiva igual.
+- Devuelve `enabled`, `policyVersion`, `authorizedCredentialIds` y
+  `effectiveAuthorizedCredentialIds`. Nunca IDs de la política ni del grant.
+
+### `GET /share/profile/:token` — campo aditivo `contextualVerificationEnabled`
+
+- Booleano, y nada más: nunca los IDs autorizados, `policyVersion` ni IDs
+  internos de la política.
+- Es `true` solo si: el `SharingGrant` tiene alcance `profile`, está activo (no revocado, no vencido),
+  existe `ShareVerificationPolicy`, está `enabled`, y al menos una credencial
+  explícitamente autorizada sigue `issued`.
+- La elegibilidad se cuenta contra la base, **no** contra las 10 tarjetas que
+  muestra el perfil público: esa lista es una proyección de presentación y el
+  holder puede haber autorizado una credencial que no aparece entre ellas.
+- **No** depende de que F3 esté listo (extracción, análisis semántico, evidence
+  units). Eso es estado transitorio del pipeline; mezclarlo haría parpadear el
+  permiso. Si al crear un run no hubiera evidencia utilizable, eso se resuelve
+  ahí con un resultado controlado, no fingiendo que el holder no dio permiso.
+- Que sea `true` **no** significa que exista un endpoint público de análisis: en
+  esta versión no existe ninguno. Solo declara la autoridad.
+
 ## P2.4C: síntesis determinista de Objective
 
 `GET /me/reasoning-runs/:reasoningRunId` y la respuesta de
@@ -2010,3 +2105,239 @@ expone artifacts, IDs internos, `policyTrace`, evidencia evaluada, prompts ni
 metadata de proveedor o storage. En V1 no existe un campo de "evidencia
 considerada": el contrato Holder-safe no la distingue autoritativamente de la
 evidencia proyectada.
+
+## Verificación contextual pública — intake y revisión de requisitos
+
+Superficie anónima. Termina en `requirements_confirmed`: **no** crea ni ejecuta
+un `VerificationRun`, no corre F3 y no expone resultados.
+
+### Autoridad y transporte
+
+- **Token del enlace**: en el path (`/share/profile/:shareToken`), la misma
+  convención previa de `GET /share/profile/:token`.
+- **Token de sesión**: header `X-Verification-Request-Token`. **Nunca** en path ni
+  query, para que no termine en historial, logs de acceso, `Referer` ni
+  analítica. No se reutiliza `Authorization`, que transporta el JWT humano de
+  `/me`. Un header repetido se trata como ausente. El header está en la
+  allowlist de CORS.
+- Toda operación revalida el enlace: existe, alcance `profile`, activo, no
+  revocado, no vencido. Las que abren **trabajo nuevo** (crear, proponer,
+  confirmar) exigen además política habilitada y al menos una credencial
+  autorizada todavía `issued`. La lectura de la sesión **no** exige política.
+- Una solicitud de otro enlace responde igual que una inexistente.
+
+### `POST /share/profile/:shareToken/verification-requests`
+
+- Sin proveedor. Body allowlisted: `rawObjectiveText`, `objectiveType`,
+  `objectiveTitle?`. Cualquier otra clave es `400 INVALID_REQUEST_INPUT`.
+- `rawObjectiveText` se guarda **verbatim** (sin trim ni normalización), hasta
+  8.000 code points, sin controles salvo tab/LF/CR. `objectiveType` es uno de
+  `EMPLOYMENT | SCHOLARSHIP | ADMISSION | EQUIVALENCE | OTHER` y es obligatorio:
+  lo exigen la propuesta y `objective_definition_v1`.
+- Tope de **10 sesiones abiertas** (vigentes y sin consumir) por enlace:
+  `429 ACTIVE_REQUEST_LIMIT_REACHED`. Es una frontera de almacenamiento, distinta
+  de la cuota de proveedor, y crear un borrador no consume cuota. Conteo e
+  inserción en una transacción `SERIALIZABLE`.
+- `201` con `{ requestToken, session }`. `requestToken` aparece **una sola vez**;
+  solo se persiste su SHA-256.
+
+### `POST /share/profile/:shareToken/verification-requests/propose`
+
+- Header de sesión. Puede llamar al proveedor, a través del **mismo núcleo** del
+  holder (`ObjectiveRequirementProposalService`).
+- **Idempotente**: si la propuesta ya existe, devuelve la misma sin proveedor ni
+  cuota. Una sesión ya confirmada tampoco abre trabajo.
+- Antes de cualquier llamada, en una transacción `SERIALIZABLE`: sesión vigente
+  en `draft`, sin intento abierto dentro de su lease, cuota y cooldown del enlace.
+  Solo después del commit arranca el proveedor.
+- **Cuota**: 5 arranques de proveedor por enlace en 24 h móviles
+  (`429 PROPOSAL_QUOTA_EXCEEDED`). Cuenta **todo** arranque, aunque falle; un
+  rechazo previo al arranque o un replay no cuentan.
+- **Cooldown**: 60 s entre arranques del mismo enlace, aunque sean de sesiones
+  distintas (`429 PROPOSAL_COOLDOWN_ACTIVE`).
+- **Concurrencia**: a lo sumo un intento abierto por sesión
+  (`409 PROPOSAL_IN_PROGRESS`), respaldado por un índice único parcial.
+- **Lease**: 10 min, dimensionado contra el timeout del proveedor en el
+  ai-service (300 s), no contra el de NestJS (60 s).
+- **Fallos**: respuesta inutilizable del proveedor → `422 PROPOSAL_UNAVAILABLE`,
+  el intento se cierra y la sesión puede reintentar. Fallo de transporte o
+  desconocido → `503 PROPOSAL_TEMPORARILY_UNAVAILABLE` y el intento **queda
+  abierto** hasta vencer el lease, porque no se sabe si el proveedor sigue
+  corriendo.
+- **Antes de persistir** se relee todo: el intento no fue supersedido, el enlace
+  y la política siguen valiendo, la sesión sigue en `draft` y vigente. Si algo
+  falló, la propuesta se descarta. Si nadie reclamó, un resultado tardío tras
+  vencer el lease **sí** se acepta.
+- Devuelve la sesión. La propuesta es el DTO verificado
+  `objective_requirement_proposal_v1` con `authority: PROPOSAL_ONLY`; nunca la
+  respuesta cruda, el prompt ni metadata del proveedor.
+- **Garantía externa**: una propuesta autoritativa por sesión y a lo sumo un
+  claim activo. **No** hay invocación exactamente-una-vez: si el proceso muere
+  tras arrancar, un reintento posterior al lease puede volver a llamar, acotado
+  por la cuota.
+
+### `GET /share/profile/:shareToken/verification-session`
+
+- Header de sesión. Lectura: exige enlace válido, no política.
+- Una sesión vencida y sin consumir: `404 REQUEST_NOT_AVAILABLE`.
+- Proyección allowlisted: `status`, `objectiveType`, `rawObjectiveText`,
+  `objectiveTitle`, `proposal`, `proposalInProgress`,
+  `confirmedObjectiveDefinition`, `createdAt`, `expiresAt`, `confirmedAt`. Nunca
+  ids, `sharingGrantId`, hash de token, política, credenciales, intentos ni
+  metadata del proveedor.
+
+### `PUT /share/profile/:shareToken/verification-requirements`
+
+- Header de sesión. **Sin proveedor.** Body allowlisted: `requirements`,
+  `objectiveContext?`. `objectiveType`, `source` y cualquier otra clave se
+  rechazan.
+- Cada requisito: `{ requirementText, provenanceKind, sourceQuote }`. Se valida
+  con **el mismo** `mapCreateObjectiveRequest` →
+  `buildObjectiveDefinitionV1` → `verifyObjectiveDefinitionArtifact` de
+  `/me/objectives`.
+- El servidor fija `objectiveType` (de la sesión) y `source` =
+  `{ inputType: PASTED_TEXT, originalText: rawObjectiveText persistido }`. Una
+  cita `DERIVED_FROM_SOURCE_TEXT` se verifica contra ese texto, no contra uno
+  enviado por el cliente.
+- Entre 1 y 12 requisitos. Nada se trunca: una propuesta con más candidatos se
+  reduce en la revisión.
+- Se puede confirmar desde `draft` (solo requisitos manuales) o desde
+  `requirements_proposed`.
+- **Inmutable**: reenviar exactamente la misma definición es idempotente; una
+  distinta, incluido un reordenamiento, es `409 REQUIREMENTS_ALREADY_CONFIRMED`.
+- Errores de forma o contrato: `422 REQUIREMENTS_INVALID`, sin el detalle interno
+  del validador.
+
+### Errores públicos
+
+Códigos estables con mensajes genéricos. Nunca proveedor, respuesta cruda, stack,
+prompt, detalle de validación, storage ni ids.
+
+| Código | HTTP | Reintentable |
+|---|---|---|
+| `SHARE_NOT_AVAILABLE` | 404 | no |
+| `CONTEXTUAL_VERIFICATION_NOT_AVAILABLE` | 403 | no |
+| `REQUEST_NOT_AVAILABLE` | 404 | no |
+| `INVALID_REQUEST_INPUT` | 400 | no |
+| `ACTIVE_REQUEST_LIMIT_REACHED` | 429 | más tarde |
+| `PROPOSAL_IN_PROGRESS` | 409 | sí |
+| `PROPOSAL_QUOTA_EXCEEDED` | 429 | más tarde |
+| `PROPOSAL_COOLDOWN_ACTIVE` | 429 | sí |
+| `PROPOSAL_TEMPORARILY_UNAVAILABLE` | 503 | sí |
+| `PROPOSAL_UNAVAILABLE` | 422 | con nuevo intento |
+| `REQUIREMENTS_INVALID` | 422 | corrigiendo el body |
+| `REQUIREMENTS_ALREADY_CONFIRMED` | 409 | no |
+| `SESSION_CONFLICT` | 409 | sí |
+
+### Límite de IP
+
+**Diferido.** No existe derivación confiable de la IP del cliente: la API no
+configura `trust proxy`, no lee `X-Forwarded-For` en ningún lado, y detrás del
+proxy del despliegue `req.ip` sería la IP del proxy. Confiar en un
+`X-Forwarded-For` enviado por el cliente permitiría evadir el límite y
+envenenarlo. Los límites por enlace son persistentes y obligatorios.
+
+## Verificación contextual pública — ejecución F3 y resultado seguro
+
+Mismo transporte que el intake: token del enlace en el path, token de sesión en
+`X-Verification-Request-Token` (nunca en la URL). Sin autenticación.
+
+### `POST /share/profile/:shareToken/verification-execute`
+
+Sin body. `200` con `PublicVerificationResultDto`. Sincrónico: si el cliente corta,
+la ejecución sigue y `verification-result` la resuelve.
+
+- Solicitud `requirements_confirmed` sin run: exige política habilitada, toma el
+  lease del enlace, verifica la cuota, congela y ejecuta un intento.
+- Solicitud consumida con run `pending` (entre intentos): toma el lease y ejecuta
+  el siguiente intento, si queda presupuesto.
+- Run `running`, `completed` o `failed`: devuelve el estado, sin reejecutar.
+
+Repetir la llamada nunca crea un segundo run.
+
+### `GET /share/profile/:shareToken/verification-result`
+
+`200` con `PublicVerificationResultDto`. Solo lectura.
+
+### `PublicVerificationResultDto`
+
+```json
+{
+  "state": "COMPLETED",
+  "objective": {
+    "objectiveType": "EMPLOYMENT",
+    "title": "Backend Developer Junior",
+    "objectiveContext": "...",
+    "requirements": [{ "order": 1, "requirementText": "..." }]
+  },
+  "completedAt": "2026-09-16T12:05:00.000Z",
+  "failure": null,
+  "result": {
+    "requirements": [
+      {
+        "order": 1,
+        "requirementText": "...",
+        "finalState": "PARTIALLY_SUPPORTED",
+        "supportedWeakerClaim": "...",
+        "evidence": {
+          "supporting": [
+            {
+              "credentialReference": "...",
+              "title": "...",
+              "credentialType": "course",
+              "issuerName": "...",
+              "currentStatus": "issued",
+              "sourceKinds": ["DOCUMENT"],
+              "supportingUnitCount": 1
+            }
+          ]
+        }
+      }
+    ],
+    "synthesis": {
+      "stateSummary": { "supportedCount": 0, "partiallySupportedCount": 1, "insufficientEvidenceCount": 0, "abstainCount": 0, "notAssessableCount": 0 },
+      "positiveConclusions": [{ "order": 1, "requirementText": "...", "finalState": "PARTIALLY_SUPPORTED", "supportedWeakerClaim": "...", "supportingCredentialReferences": ["..."] }],
+      "credentialsSupportingPositiveConclusions": [{ "credentialReference": "...", "title": "...", "credentialType": "course", "issuerName": "...", "currentStatus": "issued", "supportedRequirementOrders": [], "partiallySupportedRequirementOrders": [1] }]
+    },
+    "temporalNotice": "FINAL_STATE_IS_HISTORICAL_CREDENTIAL_STATUS_IS_CURRENT"
+  }
+}
+```
+
+| `state` | Cuándo |
+|---|---|
+| `AWAITING_REQUIREMENTS` | `draft` / `requirements_proposed` |
+| `READY_TO_EXECUTE` | `requirements_confirmed`, sin run |
+| `PROCESSING` | run `pending` o `running` con lease vivo del run |
+| `COMPLETED` | run `completed` (`result` presente) |
+| `FAILED` | ver `failure.category` |
+
+| `failure.category` | `retryable` | Cuándo |
+|---|---|---|
+| `TEMPORARILY_UNAVAILABLE` | `true` | run `pending` sin lease, quedan intentos |
+| `RETRY_BUDGET_EXHAUSTED` | `false` | 3 intentos transitorios agotados |
+| `AUTHORIZATION_WITHDRAWN` | `false` | enlace/política retirados entre etapas |
+| `EXECUTION_INTERRUPTED` | `false` | `running` sin lease vivo (proceso muerto) |
+| `EXECUTION_FAILED` | `false` | cualquier otro fallo terminal |
+
+`credentialReference` es la misma referencia que ya exponen las tarjetas de
+`GET /share/profile/:token`; no confiere autoridad. `evidence.supporting` es vacío
+para `INSUFFICIENT_EVIDENCE`, `ABSTAIN` y `NOT_ASSESSABLE`.
+`supportedWeakerClaim` es `null` salvo en `PARTIALLY_SUPPORTED`.
+
+**Nunca en la respuesta:** citas, contexto, página, sección, cobertura,
+`explanation`, `req_NN`, `src_NN`, `eu_NN`, SHAs, storage, ids de run/objetivo/
+solicitud/enlace, metadata del proveedor, `failureCode`, score o ranking.
+
+### Errores nuevos
+
+| Código | HTTP | Reintentable | Cuándo |
+|---|---|---|---|
+| `AUTHORIZED_EVIDENCE_TEMPORARILY_UNAVAILABLE` | 503 | sí | alguna fuente autorizada `BLOCKED_*` al congelar; sin run ni consumo |
+| `EXECUTION_IN_PROGRESS` | 409 | sí | otra ejecución del mismo enlace tiene el lease |
+| `RUN_QUOTA_EXCEEDED` | 429 | no | 3 runs del enlace en 24 h móviles |
+
+Además aplican `SHARE_NOT_AVAILABLE`, `REQUEST_NOT_AVAILABLE`,
+`REQUEST_NOT_CONFIRMED`, `CONTEXTUAL_VERIFICATION_NOT_AVAILABLE`,
+`NO_USABLE_AUTHORIZED_EVIDENCE`, `AUTHORIZATION_CHANGED`, `FREEZE_CONFLICT`,
+`AUTHORIZED_EVIDENCE_INCONSISTENT` y `OBJECTIVE_DEFINITION_INVALID`.
