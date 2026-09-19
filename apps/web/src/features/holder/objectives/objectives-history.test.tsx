@@ -321,9 +321,20 @@ describe('detalle de objetivo', () => {
 
     const contextButton = screen.getByRole('button', { name: 'Ver contexto del objetivo' });
     expect(contextButton.getAttribute('aria-expanded')).toBe('false');
+    expect(
+      screen.queryByRole('button', { name: 'Ver requisitos confirmados originalmente' })
+    ).toBeNull();
     fireEvent.click(contextButton);
     expect(contextButton.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByRole('heading', { name: 'Requisitos confirmados' })).toBeTruthy();
-    expect(screen.getByText('- Experiencia con Python.')).toBeTruthy();
+    expect(screen.getByText('Texto original del objetivo')).toBeTruthy();
+    const requirementsButton = screen.getByRole('button', {
+      name: 'Ver requisitos confirmados originalmente'
+    });
+    expect(requirementsButton.getAttribute('aria-expanded')).toBe('false');
+    expect(document.getElementById('objective-original-requirements')).toBeNull();
+    fireEvent.click(requirementsButton);
+    expect(requirementsButton.getAttribute('aria-expanded')).toBe('true');
+    expect(document.getElementById('objective-original-requirements')).not.toBeNull();
+    expect(within(document.getElementById('objective-original-requirements')!).getByText('Experiencia con Python.')).toBeTruthy();
   });
 });

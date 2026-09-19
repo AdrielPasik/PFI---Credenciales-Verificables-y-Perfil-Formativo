@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 import { evidencePresentationFor } from '@/features/holder/objectives/evidence-presentation';
 import { ReasoningEvidenceList } from '@/features/holder/objectives/reasoning-evidence-list';
@@ -89,9 +90,20 @@ function CompactRequirementCard({
       id={cardId}
       tabIndex={-1}
       aria-labelledby={`${cardId}-title`}
-      className="scroll-mt-6 grid min-w-0 gap-3 rounded-card border border-border-default bg-surface p-4 shadow-xs sm:p-5"
+      className={`scroll-mt-6 grid min-w-0 gap-3 rounded-card border p-4 transition-colors sm:p-5 ${
+        expanded
+          ? 'border-teal-700/50 bg-teal-50/30 shadow-sm'
+          : 'border-border-default bg-surface shadow-xs'
+      }`}
     >
-      <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-5">
+      <button
+        type="button"
+        aria-label={expanded ? 'Ocultar detalle' : 'Ver detalle'}
+        aria-expanded={expanded}
+        aria-controls={detailId}
+        onClick={onToggle}
+        className="grid min-h-11 min-w-0 gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-5"
+      >
         <div className="grid min-w-0 gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
             Requisito {order}
@@ -111,16 +123,14 @@ function CompactRequirementCard({
             </p>
           ) : null}
         </div>
-        <button
-          type="button"
-          aria-expanded={expanded}
-          aria-controls={detailId}
-          onClick={onToggle}
-          className="w-fit text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
-        >
+        <span className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-teal-700 underline underline-offset-2">
           {expanded ? 'Ocultar detalle' : 'Ver detalle'}
-        </button>
-      </div>
+          <ChevronDown
+            aria-hidden="true"
+            className={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
+        </span>
+      </button>
 
       {expanded ? (
         <div id={detailId} className="grid min-w-0 gap-4 border-t border-border-default pt-4">
@@ -182,6 +192,12 @@ export function CompactRequirementList({
   const visibleResults = results
     .map((result, index) => ({ result, order: index + 1 }))
     .filter(({ result }) => requirementMatchesFilter(result, activeFilter));
+  const filterClassName = (isActive: boolean) =>
+    `rounded-control border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 ${
+      isActive
+        ? 'border-teal-700 bg-teal-50 text-teal-800 shadow-xs'
+        : 'border-border-default bg-surface text-text-default hover:border-border-strong hover:bg-surface-muted'
+    }`;
 
   return (
     <div className="grid min-w-0 gap-4">
@@ -191,7 +207,7 @@ export function CompactRequirementList({
             type="button"
             aria-pressed={activeFilter === 'ALL'}
             onClick={() => onFilterChange('ALL')}
-            className="rounded-control border border-border-default px-3 py-2 text-sm font-semibold text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className={filterClassName(activeFilter === 'ALL')}
           >
             Todos ({results.length})
           </button>
@@ -202,7 +218,7 @@ export function CompactRequirementList({
                 type="button"
                 aria-pressed={activeFilter === value}
                 onClick={() => onFilterChange(value)}
-                className="rounded-control border border-border-default px-3 py-2 text-sm font-semibold text-text-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className={filterClassName(activeFilter === value)}
               >
                 {label} ({synthesis.stateSummary[countKey]})
               </button>

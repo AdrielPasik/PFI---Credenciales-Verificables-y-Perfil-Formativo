@@ -42,7 +42,9 @@ type DetailState =
 
 function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailVM }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isRequirementsOpen, setIsRequirementsOpen] = useState(false);
   const contentId = 'objective-context-content';
+  const requirementsId = 'objective-original-requirements';
 
   return (
     <section className="rounded-card border border-border-default bg-surface p-5">
@@ -55,32 +57,15 @@ function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailV
       >
         {isOpen ? 'Ocultar contexto del objetivo' : 'Ver contexto del objetivo'}
       </button>
-      <div id={contentId} hidden={!isOpen} className="mt-5 grid min-w-0 gap-6">
-          <div className="grid min-w-0 gap-3">
-            <h2 className="text-lg font-bold tracking-tight text-text-strong">
-              Requisitos confirmados
-            </h2>
-            <ol className="grid list-none gap-3">
-              {objective.requirements.map((requirement, index) => (
-                <li
-                  key={requirement.requirementId}
-                  className="grid min-w-0 gap-2 rounded-card border border-border-default bg-surface-muted p-4"
-                >
-                  <div className="flex min-w-0 gap-3">
-                    <span className="text-sm font-semibold text-text-muted">{index + 1}</span>
-                    <p className="min-w-0 break-words leading-7 text-text-default">
-                      {requirement.requirementText}
-                    </p>
-                  </div>
-                  <p className="pl-7 text-xs text-text-muted">{requirement.originLabel}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
+      {isOpen ? (
+        <div id={contentId} className="mt-5 grid min-w-0 gap-5">
+          <p className="text-sm text-text-muted">
+            Tipo de objetivo: <span className="font-medium text-text-default">{objective.objectiveTypeLabel}</span>
+          </p>
 
           {objective.sourceOriginalText !== null ? (
             <div className="grid min-w-0 gap-2 border-t border-border-default pt-5">
-              <h2 className="text-lg font-bold tracking-tight text-text-strong">
+              <h2 className="text-base font-bold tracking-tight text-text-strong">
                 Texto original del objetivo
               </h2>
               <p className="whitespace-pre-wrap break-words text-sm leading-6 text-text-muted">
@@ -88,7 +73,32 @@ function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailV
               </p>
             </div>
           ) : null}
-      </div>
+
+          <div className="border-t border-border-default pt-5">
+            <button
+              type="button"
+              aria-expanded={isRequirementsOpen}
+              aria-controls={requirementsId}
+              onClick={() => setIsRequirementsOpen((current) => !current)}
+              className="text-left text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            >
+              {isRequirementsOpen
+                ? 'Ocultar requisitos confirmados originalmente'
+                : 'Ver requisitos confirmados originalmente'}
+            </button>
+            {isRequirementsOpen ? (
+              <ol id={requirementsId} className="mt-4 grid list-decimal gap-3 pl-5 text-sm text-text-default">
+                {objective.requirements.map((requirement) => (
+                  <li key={requirement.requirementId} className="min-w-0 break-words pl-1 leading-6">
+                    <span>{requirement.requirementText}</span>
+                    <span className="block text-xs text-text-muted">{requirement.originLabel}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

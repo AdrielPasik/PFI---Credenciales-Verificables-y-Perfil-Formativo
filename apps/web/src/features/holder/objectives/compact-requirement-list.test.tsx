@@ -188,12 +188,18 @@ describe('lista compacta de requisitos', () => {
       result(4, 'ABSTAIN')
     ];
     renderList(results);
+    const allFilter = screen.getByRole('button', { name: 'Todos (4)' });
+    const insufficientFilter = screen.getByRole('button', { name: 'Evidencia insuficiente (2)' });
+    expect(allFilter.getAttribute('aria-pressed')).toBe('true');
+    expect(insufficientFilter.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(
       within(document.getElementById('requirement-result-req_01')!).getByRole('button', {
         name: 'Ver detalle'
       })
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Evidencia insuficiente (2)' }));
+    fireEvent.click(insufficientFilter);
+    expect(allFilter.getAttribute('aria-pressed')).toBe('false');
+    expect(insufficientFilter.getAttribute('aria-pressed')).toBe('true');
 
     expect(document.querySelectorAll('article[id^="requirement-result-"]')).toHaveLength(2);
     expect(document.getElementById('requirement-result-req_02')).not.toBeNull();

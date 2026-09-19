@@ -48,6 +48,8 @@ const allSources = [...sliceSources, ...objectivesSupport];
  */
 const REASONING_MODULES = [
   'objective-reasoning-panel.tsx',
+  'objective-synthesis-overview.tsx',
+  'compact-requirement-list.tsx',
   'requirement-result-card.tsx',
   'reasoning-evidence-list.tsx',
   'reasoning-run-selection.ts',
