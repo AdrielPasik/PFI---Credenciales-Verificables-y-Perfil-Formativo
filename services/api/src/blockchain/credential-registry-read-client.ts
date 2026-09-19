@@ -1,5 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { Contract, JsonRpcProvider, ZeroAddress, getAddress, isAddress } from 'ethers';
+
+import {
+  type BlockchainRecordDeploymentIdentity,
+  type CredentialRegistryDeployment,
+  deploymentMatchesBlockchainRecord
+} from './credential-registry-deployment';
 
 const CREDENTIAL_HASH_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 
@@ -33,10 +39,16 @@ type CredentialRegistryContractReader = {
   ): Promise<RawCredentialRegistryStatus>;
 };
 
+type CredentialRegistryNetworkProvider = {
+  getNetwork(): Promise<{ chainId: bigint }>;
+  getCode(address: string): Promise<string>;
+};
+
 type CredentialRegistryReadClientOptions = {
   rpcUrl?: string;
   contractAddress?: string;
   contractReader?: CredentialRegistryContractReader;
+  networkProvider?: CredentialRegistryNetworkProvider;
 };
 
 type CredentialRegistryReadClientConfig = {
@@ -59,37 +71,126 @@ export interface CredentialRegistryStatusReader {
   ): Promise<NormalizedCredentialRegistryStatus>;
 }
 
+export type RecordBoundCredentialRegistryReadResult =
+  | {
+      kind: 'credential_state';
+      status: NormalizedCredentialRegistryStatus;
+    }
+  | {
+      kind:
+        | 'record_deployment_mismatch'
+        | 'rpc_chain_id_mismatch'
+        | 'contract_code_missing'
+        | 'registry_read_failed'
+        | 'credential_missing'
+        | 'credential_issuer_mismatch';
+    };
+
+export interface CredentialRegistryRecordBoundReader {
+  readRecordBoundCredentialState(input: {
+    deployment: CredentialRegistryDeployment;
+    record: BlockchainRecordDeploymentIdentity;
+  }): Promise<RecordBoundCredentialRegistryReadResult>;
+}
+
 @Injectable()
 export class CredentialRegistryReadClient
-  implements CredentialRegistryStatusReader
+  implements CredentialRegistryStatusReader, CredentialRegistryRecordBoundReader
 {
   private readonly rpcUrl?: string;
   private readonly contractAddress?: string;
   private readonly contractReader?: CredentialRegistryContractReader;
+  private readonly networkProvider?: CredentialRegistryNetworkProvider;
 
-  constructor(options: CredentialRegistryReadClientOptions = {}) {
+  constructor(@Optional() options: CredentialRegistryReadClientOptions = {}) {
     this.rpcUrl = options.rpcUrl ?? process.env.CREDENTIAL_REGISTRY_RPC_URL;
     this.contractAddress =
       options.contractAddress ??
       process.env.CREDENTIAL_REGISTRY_CONTRACT_ADDRESS;
     this.contractReader = options.contractReader;
+    this.networkProvider = options.networkProvider;
   }
 
   async getCredentialStatus(
     credentialHash: string
   ): Promise<NormalizedCredentialRegistryStatus> {
     const normalizedHash = validateCredentialHash(credentialHash);
-    const reader = this.contractReader ?? this.createContractReader();
+    const reader = this.contractReader ?? this.createContractReader({
+      rpcUrl: this.rpcUrl,
+      contractAddress: this.contractAddress
+    });
     const rawStatus = await reader.getCredentialStatus(normalizedHash);
 
     return normalizeCredentialRegistryStatus(normalizedHash, rawStatus);
   }
 
-  private createContractReader(): CredentialRegistryContractReader {
-    const config = resolveCredentialRegistryConfig({
-      rpcUrl: this.rpcUrl,
-      contractAddress: this.contractAddress
-    });
+  async readRecordBoundCredentialState(input: {
+    deployment: CredentialRegistryDeployment;
+    record: BlockchainRecordDeploymentIdentity;
+  }): Promise<RecordBoundCredentialRegistryReadResult> {
+    if (!deploymentMatchesBlockchainRecord(input.deployment, input.record)) {
+      return { kind: 'record_deployment_mismatch' };
+    }
+
+    const provider =
+      this.networkProvider ?? this.createNetworkProvider(input.deployment.rpcUrl);
+
+    let chainId: bigint;
+    try {
+      chainId = (await provider.getNetwork()).chainId;
+    } catch {
+      return { kind: 'rpc_chain_id_mismatch' };
+    }
+
+    if (chainId !== BigInt(input.deployment.chainId)) {
+      return { kind: 'rpc_chain_id_mismatch' };
+    }
+
+    let contractCode: string;
+    try {
+      contractCode = await provider.getCode(input.deployment.contractAddress);
+    } catch {
+      return { kind: 'contract_code_missing' };
+    }
+
+    if (!contractCode || contractCode === '0x') {
+      return { kind: 'contract_code_missing' };
+    }
+
+    let status: NormalizedCredentialRegistryStatus;
+    try {
+      const reader =
+        this.contractReader ?? this.createContractReader(input.deployment);
+      const rawStatus = await reader.getCredentialStatus(
+        validateCredentialHash(input.record.credentialHash)
+      );
+      status = normalizeCredentialRegistryStatus(
+        validateCredentialHash(input.record.credentialHash),
+        rawStatus
+      );
+    } catch {
+      return { kind: 'registry_read_failed' };
+    }
+
+    if (!status.exists) {
+      return { kind: 'credential_missing' };
+    }
+
+    if (!addressesMatch(status.issuer, input.record.issuerAddress)) {
+      return { kind: 'credential_issuer_mismatch' };
+    }
+
+    return { kind: 'credential_state', status };
+  }
+
+  private createNetworkProvider(rpcUrl: string): CredentialRegistryNetworkProvider {
+    return new JsonRpcProvider(rpcUrl);
+  }
+
+  private createContractReader(
+    input: Partial<CredentialRegistryReadClientConfig>
+  ): CredentialRegistryContractReader {
+    const config = resolveCredentialRegistryConfig(input);
     const provider = new JsonRpcProvider(config.rpcUrl);
     const contract = new Contract(
       config.contractAddress,
@@ -191,4 +292,15 @@ function toCredentialRegistryStatusStruct(
 
 function normalizeTimestamp(value: bigint) {
   return value > 0n ? value.toString(10) : null;
+}
+
+function addressesMatch(
+  onChainAddress: string | null,
+  persistedAddress: string
+): boolean {
+  if (!onChainAddress || !isAddress(persistedAddress)) {
+    return false;
+  }
+
+  return onChainAddress === getAddress(persistedAddress);
 }

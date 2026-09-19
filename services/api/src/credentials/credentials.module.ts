@@ -11,6 +11,8 @@ import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft
 import { IssuerCredentialDraftUpdateService } from './issuer-credential-draft-update.service';
 import { IssuerCredentialIssueController } from './issuer-credential-issue.controller';
 import { IssuerCredentialIssueService } from './issuer-credential-issue.service';
+import { IssuerCredentialRevocationController } from './issuer-credential-revocation.controller';
+import { IssuerCredentialRevocationService } from './issuer-credential-revocation.service';
 import { IssuerCredentialReadController } from './issuer-credential-read.controller';
 import { IssuerCredentialReadService } from './issuer-credential-read.service';
 
@@ -24,6 +26,7 @@ import { IssuerCredentialReadService } from './issuer-credential-read.service';
   controllers: [
     CredentialsController,
     IssuerCredentialIssueController,
+    IssuerCredentialRevocationController,
     IssuerCredentialReadController,
     IssuerCredentialDraftUpdateController
   ],
@@ -31,6 +34,7 @@ import { IssuerCredentialReadService } from './issuer-credential-read.service';
     CredentialsService,
     CredentialHashingService,
     IssuerCredentialIssueService,
+    IssuerCredentialRevocationService,
     IssuerCredentialReadService,
     IssuerCredentialDraftUpdateService
   ],

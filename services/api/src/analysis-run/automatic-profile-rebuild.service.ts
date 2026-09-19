@@ -8,17 +8,12 @@ import { FormativeProfileService } from '../profiles/formative-profile.service';
 // (nunca especulativos): 'post_issuance' (P1.1), 'post_automatic_analysis'
 // (C2b.4, ya existia sin nombre explicito) y
 // 'post_reviewed_interpretation_apply' (C5b.1, ya existia sin nombre
-// explicito). No se agrega 'post_revocation' todavia -- P1.1 audito
-// services/api/src completo y confirmo que NO existe hoy ningun
-// endpoint/service que transicione una Credential a `revoked` (el unico
-// archivo relacionado, blockchain/scripts/revoke-credential-on-registry.ts,
-// es un script CLI que solo llama al contrato on-chain, nunca escribe
-// Prisma) -- agregar ese reason ahora seria un valor sin ningun caller
-// real. Ver p11-*-review-bundle.txt seccion sobre revocacion.
+// explicito) y 'post_revocation' (Credential Revocation V1).
 export type ProfileRebuildReason =
   | 'post_issuance'
   | 'post_automatic_analysis'
-  | 'post_reviewed_interpretation_apply';
+  | 'post_reviewed_interpretation_apply'
+  | 'post_revocation';
 
 export interface AutomaticProfileRebuildInput {
   credentialId: string;
@@ -112,6 +107,14 @@ export class AutomaticProfileRebuildService {
       ...input,
       reason: 'post_reviewed_interpretation_apply'
     });
+  }
+
+  /** Reconciles the holder projection after authoritative revocation. */
+  async rebuildAfterRevocation(input: {
+    credentialId: string;
+    holderUserId: string;
+  }): Promise<AutomaticProfileRebuildResult> {
+    return this.rebuildBestEffort({ ...input, reason: 'post_revocation' });
   }
 
   private logSafeFailure(input: RebuildBestEffortInput, error: unknown): void {

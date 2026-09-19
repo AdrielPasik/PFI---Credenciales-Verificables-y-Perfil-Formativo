@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { BlockchainNetwork } from '@prisma/client';
+
 import {
   CredentialRegistryReadClient,
   normalizeCredentialRegistryStatus,
@@ -122,3 +124,189 @@ test('CredentialRegistryReadClient uses the normalized read-only contract output
     revokedAt: null
   });
 });
+
+test('record-bound read verifies chain, code, ABI and credential issuer before accepting state', async () => {
+  const client = new CredentialRegistryReadClient({
+    contractReader: {
+      async getCredentialStatus() {
+        return {
+          exists: true,
+          revoked: false,
+          issuer: VALID_ADDRESS,
+          registeredAt: 123n,
+          revokedAt: 0n
+        };
+      }
+    },
+    networkProvider: {
+      async getNetwork() {
+        return { chainId: 31337n };
+      },
+      async getCode() {
+        return '0x60006000';
+      }
+    }
+  });
+
+  const result = await client.readRecordBoundCredentialState({
+    deployment: deployment(),
+    record: record()
+  });
+
+  assert.deepEqual(result, {
+    kind: 'credential_state',
+    status: {
+      credentialHash: VALID_HASH,
+      exists: true,
+      revoked: false,
+      issuer: VALID_ADDRESS,
+      registeredAt: '123',
+      revokedAt: null
+    }
+  });
+});
+
+test('record-bound read fails closed for an RPC chain mismatch', async () => {
+  const client = createRecordBoundClient({
+    async getNetwork() {
+      return { chainId: 84532n };
+    },
+    async getCode() {
+      return '0x60006000';
+    }
+  });
+
+  assert.deepEqual(
+    await client.readRecordBoundCredentialState({
+      deployment: deployment(),
+      record: record()
+    }),
+    { kind: 'rpc_chain_id_mismatch' }
+  );
+});
+
+test('record-bound read fails closed when the configured contract has no code', async () => {
+  const client = createRecordBoundClient({
+    async getNetwork() {
+      return { chainId: 31337n };
+    },
+    async getCode() {
+      return '0x';
+    }
+  });
+
+  assert.deepEqual(
+    await client.readRecordBoundCredentialState({
+      deployment: deployment(),
+      record: record()
+    }),
+    { kind: 'contract_code_missing' }
+  );
+});
+
+test('record-bound read fails closed when the ABI call fails', async () => {
+  const client = new CredentialRegistryReadClient({
+    contractReader: {
+      async getCredentialStatus() {
+        throw new Error('unexpected ABI');
+      }
+    },
+    networkProvider: workingProvider()
+  });
+
+  assert.deepEqual(
+    await client.readRecordBoundCredentialState({
+      deployment: deployment(),
+      record: record()
+    }),
+    { kind: 'registry_read_failed' }
+  );
+});
+
+test('record-bound read rejects a registry that does not contain the expected credential', async () => {
+  const client = new CredentialRegistryReadClient({
+    contractReader: {
+      async getCredentialStatus() {
+        return [false, false, '0x0000000000000000000000000000000000000000', 0n, 0n];
+      }
+    },
+    networkProvider: workingProvider()
+  });
+
+  assert.deepEqual(
+    await client.readRecordBoundCredentialState({
+      deployment: deployment(),
+      record: record()
+    }),
+    { kind: 'credential_missing' }
+  );
+});
+
+test('record-bound read rejects a registry credential registered by a different issuer', async () => {
+  const client = new CredentialRegistryReadClient({
+    contractReader: {
+      async getCredentialStatus() {
+        return {
+          exists: true,
+          revoked: false,
+          issuer: '0x1111111111111111111111111111111111111111',
+          registeredAt: 123n,
+          revokedAt: 0n
+        };
+      }
+    },
+    networkProvider: workingProvider()
+  });
+
+  assert.deepEqual(
+    await client.readRecordBoundCredentialState({
+      deployment: deployment(),
+      record: record()
+    }),
+    { kind: 'credential_issuer_mismatch' }
+  );
+});
+
+function deployment() {
+  return {
+    network: BlockchainNetwork.anvil,
+    chainId: 31337,
+    rpcUrl: 'http://127.0.0.1:8545',
+    contractAddress: VALID_ADDRESS
+  };
+}
+
+function record() {
+  return {
+    network: BlockchainNetwork.anvil,
+    chainId: 31337,
+    contractAddress: VALID_ADDRESS,
+    credentialHash: VALID_HASH,
+    issuerAddress: VALID_ADDRESS
+  };
+}
+
+function workingProvider() {
+  return {
+    async getNetwork() {
+      return { chainId: 31337n };
+    },
+    async getCode() {
+      return '0x60006000';
+    }
+  };
+}
+
+function createRecordBoundClient(networkProvider: {
+  getNetwork(): Promise<{ chainId: bigint }>;
+  getCode(address: string): Promise<string>;
+}) {
+  return new CredentialRegistryReadClient({
+    contractReader: {
+      async getCredentialStatus() {
+        throw new Error('No deberia consultar ABI despues de fallar identidad');
+      }
+    },
+    networkProvider
+  });
+}

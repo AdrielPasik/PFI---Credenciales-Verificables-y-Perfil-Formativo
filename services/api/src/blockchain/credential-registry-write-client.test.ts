@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  createRecordBoundCredentialRegistryWriteClient,
   CredentialRegistryWriteClient,
   normalizeCredentialRegistryWriteResult,
+  resolveCredentialRegistrySignerAddress,
   resolveCredentialRegistryWriteConfig,
   validateCredentialRegistryPrivateKey
 } from './credential-registry-write-client';
+import { BlockchainNetwork } from '@prisma/client';
 
 const VALID_HASH =
   '0xaf032042c1bcfb72f9caac350eb3cb576f44ab07b1c1968f4b36264da44ff2ab';
@@ -19,6 +22,15 @@ test('validateCredentialRegistryPrivateKey accepts a valid private key', () => {
   assert.equal(
     validateCredentialRegistryPrivateKey(VALID_PRIVATE_KEY),
     VALID_PRIVATE_KEY
+  );
+});
+
+test('resolveCredentialRegistrySignerAddress derives the configured signer without returning its key', () => {
+  assert.equal(
+    resolveCredentialRegistrySignerAddress({
+      CREDENTIAL_REGISTRY_PRIVATE_KEY: VALID_PRIVATE_KEY
+    }),
+    VALID_FROM
   );
 });
 
@@ -213,4 +225,18 @@ test('CredentialRegistryWriteClient normalizes an unknown receipt result', async
     status: 'unknown',
     blockNumber: null
   });
+});
+
+test('record-bound write client receives explicit resolved deployment instead of global defaults', () => {
+  const client = createRecordBoundCredentialRegistryWriteClient(
+    {
+      network: BlockchainNetwork.anvil,
+      chainId: 31337,
+      rpcUrl: 'http://127.0.0.1:8545',
+      contractAddress: VALID_ADDRESS
+    },
+    { CREDENTIAL_REGISTRY_PRIVATE_KEY: VALID_PRIVATE_KEY }
+  );
+
+  assert.ok(client instanceof CredentialRegistryWriteClient);
 });

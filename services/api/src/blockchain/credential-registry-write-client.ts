@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import {
   Contract,
   JsonRpcProvider,
@@ -11,6 +11,7 @@ import {
   resolveCredentialRegistryConfig,
   validateCredentialHash
 } from './credential-registry-read-client';
+import { type CredentialRegistryDeployment } from './credential-registry-deployment';
 
 const PRIVATE_KEY_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 
@@ -62,6 +63,25 @@ export type NormalizedCredentialRegistryWriteResult = {
   blockNumber: string | null;
 };
 
+export interface CredentialRegistrySignerEnvironment {
+  CREDENTIAL_REGISTRY_PRIVATE_KEY?: string;
+}
+
+/**
+ * Deriva la direccion del signer configurado sin exponer su clave privada.
+ * Los flujos que revocan deben comparar esta identidad con el registrante
+ * persistido antes de enviar una transaccion al contrato.
+ */
+export function resolveCredentialRegistrySignerAddress(
+  environment: CredentialRegistrySignerEnvironment = process.env
+): string {
+  const privateKey = validateCredentialRegistryPrivateKey(
+    environment.CREDENTIAL_REGISTRY_PRIVATE_KEY ?? ''
+  );
+
+  return new Wallet(privateKey).address;
+}
+
 @Injectable()
 export class CredentialRegistryWriteClient {
   private readonly rpcUrl?: string;
@@ -69,7 +89,7 @@ export class CredentialRegistryWriteClient {
   private readonly privateKey?: string;
   private readonly contractWriter?: CredentialRegistryContractWriter;
 
-  constructor(options: CredentialRegistryWriteClientOptions = {}) {
+  constructor(@Optional() options: CredentialRegistryWriteClientOptions = {}) {
     this.rpcUrl = options.rpcUrl ?? process.env.CREDENTIAL_REGISTRY_RPC_URL;
     this.contractAddress =
       options.contractAddress ??
@@ -134,6 +154,26 @@ export class CredentialRegistryWriteClient {
       }
     };
   }
+}
+
+/**
+ * Construye un cliente de escritura a partir de un deployment ya resuelto por
+ * identidad de record. El signer sigue siendo configuración del servidor, no
+ * datos controlados por BlockchainRecord.
+ */
+export function createRecordBoundCredentialRegistryWriteClient(
+  deployment: CredentialRegistryDeployment,
+  environment: CredentialRegistrySignerEnvironment = process.env
+): CredentialRegistryWriteClient {
+  const privateKey = validateCredentialRegistryPrivateKey(
+    environment.CREDENTIAL_REGISTRY_PRIVATE_KEY ?? ''
+  );
+
+  return new CredentialRegistryWriteClient({
+    rpcUrl: deployment.rpcUrl,
+    contractAddress: deployment.contractAddress,
+    privateKey
+  });
 }
 
 export function validateCredentialRegistryPrivateKey(privateKey: string) {
@@ -209,4 +249,3 @@ function normalizeReceiptStatus(status: number | null | undefined) {
 
   return 'unknown' as const;
 }
-

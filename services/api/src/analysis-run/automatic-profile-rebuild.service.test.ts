@@ -145,6 +145,21 @@ test('rebuildAfterReviewedInterpretationApply failure logs reason=post_reviewed_
   assert.equal(logged.reason, 'post_reviewed_interpretation_apply');
 });
 
+test('rebuildAfterRevocation rebuilds the holder and records the dedicated reason on failure', async () => {
+  const { service, calls } = setup({ rebuildError: new Error('boom') });
+
+  const result = await service.rebuildAfterRevocation({
+    credentialId: 'credential-1',
+    holderUserId: 'holder-1'
+  });
+
+  assert.deepEqual(result, {
+    status: 'failed',
+    errorCode: 'formative_profile_rebuild_failed'
+  });
+  assert.equal(JSON.parse(calls.logs[0]).reason, 'post_revocation');
+});
+
 // P1.1: rebuildBestEffort es la unica implementacion real -- los 3
 // wrappers explicitos delegan en ella sin duplicar try/catch.
 test('rebuildBestEffort accepts credentialId-less input (holderUserId only)', async () => {
