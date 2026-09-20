@@ -799,6 +799,11 @@ model SharingGrant {
   createdByUserId    String?
   scope              SharingGrantScope
   tokenHash          String              @unique
+  // Sobre de cifrado autenticado con el token crudo adentro, para que el DUENO
+  // pueda volver a copiar su enlace. NUNCA es autoridad publica: la busqueda
+  // publica sigue siendo por `tokenHash`. Nullable solo por seguridad de
+  // migracion; todo enlace nuevo lo trae.
+  tokenRecovery      String?
   expiresAt          DateTime?
   revokedAt          DateTime?
   createdAt          DateTime            @default(now())

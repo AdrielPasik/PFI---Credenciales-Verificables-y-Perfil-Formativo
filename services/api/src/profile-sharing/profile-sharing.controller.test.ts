@@ -73,3 +73,39 @@ test('el controller publico no expone ninguna operacion de gestion', () => {
     assert.equal(publicMethods.includes(forbidden), false, forbidden);
   }
 });
+
+// ---------------------------------------------------------------------------
+// Recuperacion del enlace por su dueno — V1
+// ---------------------------------------------------------------------------
+
+test('la recuperacion del enlace es autenticada, delega con el usuario actual y no se cachea', async () => {
+  const seen: Array<[string, string]> = [];
+  const controller = new MyProfileSharingController(
+    {
+      recoverLinkForUser: async (userId: string, shareId: string) => {
+        seen.push([userId, shareId]);
+        return { shareUrl: 'https://scope.example.com/share/profile/abc', sharePath: '/share/profile/abc' };
+      }
+    } as never,
+    {} as never
+  );
+
+  const link = await controller.recoverProfileShareLink('share-1', currentUser);
+
+  assert.deepEqual(seen, [['holder-1', 'share-1']]);
+  assert.deepEqual(Object.keys(link).sort(), ['sharePath', 'shareUrl']);
+  // El AuthGuard es del controller entero.
+  assert.deepEqual(Reflect.getMetadata(GUARDS_METADATA, MyProfileSharingController), [AuthGuard]);
+
+  // La respuesta lleva un bearer: no debe quedar en cache ni en un prefetch.
+  const headers = Reflect.getMetadata('__headers__', controller.recoverProfileShareLink) as
+    | Array<{ name: string; value: string }>
+    | undefined;
+  assert.ok(headers?.some((header) => header.name === 'Cache-Control' && header.value === 'no-store'));
+});
+
+test('el controller publico NO expone ninguna recuperacion de enlace', () => {
+  const publicMethods = Object.getOwnPropertyNames(PublicProfileSharingController.prototype);
+  assert.equal(publicMethods.includes('recoverProfileShareLink'), false);
+  assert.deepEqual(publicMethods.sort(), ['constructor', 'getSharedProfile']);
+});

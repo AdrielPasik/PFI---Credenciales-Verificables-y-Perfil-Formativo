@@ -1,5 +1,6 @@
 import {
   adaptHolderProfileShares,
+  adaptHolderShareLink,
   adaptProfileShareLink,
   adaptPublicProfileShare,
   adaptShareVerificationPolicy
@@ -20,6 +21,21 @@ export async function getPublicProfileShareRequest(token: string) {
 
 export async function listMyProfileSharesRequest(request: AuthenticatedApiRequest) {
   return adaptHolderProfileShares(await request('/me/profile/shares'));
+}
+
+/**
+ * Recupera el enlace utilizable de UN enlace propio.
+ *
+ * Operacion EXPLICITA: se dispara al copiar o abrir, nunca al listar. El backend
+ * responde con `Cache-Control: no-store`.
+ */
+export async function recoverProfileShareLinkRequest(
+  request: AuthenticatedApiRequest,
+  shareId: string
+) {
+  return adaptHolderShareLink(
+    await request(`/me/profile/shares/${encodeURIComponent(shareId)}/link`, { method: 'POST' })
+  );
 }
 
 export async function revokeProfileShareRequest(

@@ -2,6 +2,7 @@ import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 import { formatDisplayValue } from '@/lib/formatters/display-value';
 import type {
   HolderProfileShareVM,
+  HolderShareLinkVM,
   ProfileShareLinkVM,
   PublicProfileShareVM,
   ShareStatus,
@@ -65,6 +66,22 @@ export function adaptPublicProfileShare(payload: unknown): PublicProfileShareVM 
     // seguro es el unico aceptable para un permiso.
     contextualVerificationEnabled: optionalBoolean(value.contextualVerificationEnabled)
   };
+}
+
+/**
+ * Recuperacion del enlace propio.
+ *
+ * Falla cerrado: sin una ruta utilizable no se devuelve nada a medias, porque la
+ * UI la usaria para copiar o navegar.
+ */
+export function adaptHolderShareLink(payload: unknown): HolderShareLinkVM {
+  const value = record(payload);
+  const sharePath = requiredString(value.sharePath);
+  if (!sharePath.startsWith('/share/profile/')) invalid();
+  const shareUrl = value.shareUrl === null || value.shareUrl === undefined
+    ? null
+    : requiredString(value.shareUrl);
+  return { shareUrl, sharePath };
 }
 
 export function adaptHolderProfileShares(payload: unknown): HolderProfileShareVM[] {

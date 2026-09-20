@@ -24,7 +24,8 @@ const profileSharingMocks = vi.hoisted(() => ({
   // ejercitan (tiene su propia suite), asi que el mock la deja sin enlaces.
   listMyProfileSharesRequest: vi.fn(async () => []),
   revokeProfileShareRequest: vi.fn(),
-  replaceShareVerificationPolicyRequest: vi.fn()
+  replaceShareVerificationPolicyRequest: vi.fn(),
+  recoverProfileShareLinkRequest: vi.fn()
 }));
 
 vi.mock('@/lib/session/session-provider', () => ({
@@ -42,7 +43,8 @@ vi.mock('@/lib/api/profile-sharing-api', () => ({
   listMyProfileSharesRequest: profileSharingMocks.listMyProfileSharesRequest,
   revokeProfileShareRequest: profileSharingMocks.revokeProfileShareRequest,
   replaceShareVerificationPolicyRequest:
-    profileSharingMocks.replaceShareVerificationPolicyRequest
+    profileSharingMocks.replaceShareVerificationPolicyRequest,
+  recoverProfileShareLinkRequest: profileSharingMocks.recoverProfileShareLinkRequest
 }));
 
 const credential = {
@@ -569,24 +571,29 @@ describe('WalletHomeContent profile error recovery', () => {
     expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
   });
 
-  it('keeps header actions in their row and places the expanded profile share panel below them', async () => {
-    profileSharingMocks.createProfileShareRequest.mockResolvedValue({ sharePath: '/share/profile-token' });
+  it('mantiene las acciones de cabecera en su fila y abre la gestion de enlaces sin crear ninguno', async () => {
+    // Contrato NUEVO: "Compartir perfil" ya no crea un SharingGrant. Ese era el
+    // defecto encontrado en QA manual -- cada click dejaba un enlace mas, y
+    // ninguno se podia volver a copiar.
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} showProfileShare onProfileRebuilt={() => {}} />);
 
     const header = screen.getByRole('heading', { level: 1, name: 'Mi perfil formativo' }).closest('header');
     expect(header?.className).toMatch(/lg:grid-cols/);
     const rebuildAction = screen.getByTestId('profile-rebuild-header-action');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
-    await waitFor(() => expect(profileSharingMocks.createProfileShareRequest).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.queryByTestId('profile-share-action')).toBeNull());
-    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
-
-    const panel = await screen.findByTestId('profile-share-expanded-panel');
     expect(rebuildAction.className).toMatch(/order-2/);
-    expect(panel.parentElement?.className).toMatch(/order-3/);
-    expect(rebuildAction.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(profileSharingMocks.createProfileShareRequest).toHaveBeenCalledTimes(1);
+
+    const shareSection = document.getElementById('enlaces-compartidos') as HTMLDetailsElement;
+    expect(shareSection).toBeTruthy();
+    shareSection.scrollIntoView = () => {};
+    expect(shareSection.open).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Compartir perfil' }));
+
+    expect(shareSection.open).toBe(true);
+    expect(profileSharingMocks.createProfileShareRequest).not.toHaveBeenCalled();
+    // La seccion de gestion va DEBAJO de las acciones de cabecera.
+    expect(rebuildAction.compareDocumentPosition(shareSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('retries GET /me/profile/current and renders the recovered profile', async () => {

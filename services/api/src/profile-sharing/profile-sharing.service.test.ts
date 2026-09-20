@@ -16,7 +16,15 @@ const currentProfile = {
   profileJson: { concepts: ['Kanban'] }
 };
 
-test('profile sharing stores only a hash for a newly generated opaque token', async () => {
+test('profile sharing stores only a hash for a newly generated opaque token', async (t) => {
+  // Crear exige clave de recuperacion desde el corte limpio.
+  const previousKey = process.env.PROFILE_SHARE_TOKEN_KEY;
+  process.env.PROFILE_SHARE_TOKEN_KEY = Buffer.alloc(32, 7).toString('base64');
+  t.after(() => {
+    if (previousKey === undefined) delete process.env.PROFILE_SHARE_TOKEN_KEY;
+    else process.env.PROFILE_SHARE_TOKEN_KEY = previousKey;
+  });
+
   let created: Record<string, unknown> = {};
   const service = new ProfileSharingService(
     { sharingGrant: { create: async ({ data }: { data: Record<string, unknown> }) => { created = data; } } } as never,
@@ -329,8 +337,8 @@ test('el listado esta acotado al holder y nunca devuelve el tokenHash', async ()
   const { prisma, queries } = listPrisma([grantRow()]);
   const list = await new ProfileSharingService(prisma, {} as never).listForUser('holder-1');
 
-  // El scope va en el WHERE: no se filtra despues en memoria.
-  assert.deepEqual(queries[0], { userId: 'holder-1' });
+  // El scope y el contrato nuevo van en el WHERE: no se filtra despues en memoria.
+  assert.deepEqual(queries[0], { userId: 'holder-1', tokenRecovery: { not: null } });
   assert.equal(JSON.stringify(list).includes('tokenHash'), false);
   assert.deepEqual(Object.keys(list[0]).sort(), [
     'authorizedCredentialCount',
@@ -538,3 +546,239 @@ for (const scope of ['credential', 'credential_and_profile'] as const) {
     assert.equal(item.contextualVerificationEnabled, false);
   });
 }
+
+// ---------------------------------------------------------------------------
+// Enlaces reutilizables: recuperacion por el DUENO — V1
+// ---------------------------------------------------------------------------
+
+import { randomBytes } from 'node:crypto';
+
+import {
+  SHARE_TOKEN_KEY_ENV,
+  openShareToken
+} from './share-token-recovery';
+
+const RECOVERY_KEY = randomBytes(32).toString('base64');
+
+// `null` = sin clave configurada. No se usa `undefined`: seria indistinguible de
+// "no pase el argumento" y el default reintroduciria la clave.
+function withRecoveryKey(t: { after: (fn: () => void) => void }, key: string | null = RECOVERY_KEY) {
+  const previous = process.env[SHARE_TOKEN_KEY_ENV];
+  if (key === null) delete process.env[SHARE_TOKEN_KEY_ENV];
+  else process.env[SHARE_TOKEN_KEY_ENV] = key;
+  t.after(() => {
+    if (previous === undefined) delete process.env[SHARE_TOKEN_KEY_ENV];
+    else process.env[SHARE_TOKEN_KEY_ENV] = previous;
+  });
+}
+
+function creatingService(sink: { data?: Record<string, unknown> }) {
+  return new ProfileSharingService(
+    {
+      sharingGrant: {
+        create: async ({ data }: { data: Record<string, unknown> }) => {
+          sink.data = data;
+        }
+      }
+    } as never,
+    { getCurrentForUser: async () => ({ userId: 'holder-1', currentProfile }) } as never
+  );
+}
+
+test('un enlace NUEVO guarda hash publico y material de recuperacion, nunca el token en claro', async (t) => {
+  withRecoveryKey(t);
+  const sink: { data?: Record<string, unknown> } = {};
+
+  const response = await creatingService(sink).createForUser('holder-1');
+  const token = response.sharePath.split('/').at(-1)!;
+  const created = sink.data!;
+
+  // La autoridad publica sigue siendo el hash.
+  assert.match(created.tokenHash as string, /^[a-f0-9]{64}$/);
+  // Y ahora ademas hay sobre recuperable, atado a esta fila y a este dueno.
+  const envelope = created.tokenRecovery as string;
+  assert.match(envelope, /^v1\./);
+  assert.equal(
+    openShareToken(envelope, { sharingGrantId: created.id as string, userId: 'holder-1' }),
+    token
+  );
+
+  // El token en claro no aparece en NINGUNA columna persistida.
+  assert.equal(JSON.stringify(created).includes(token), false);
+});
+
+test('INVARIANTE: sin clave valida NO se crea el enlace y no se persiste nada', async (t) => {
+  // El corte limpio: no existe un camino que deje `tokenHash` sin
+  // `tokenRecovery`. Un enlace irrecuperable es justo el defecto que se elimino.
+  for (const key of [null, 'no-es-base64-valida!!', 'aa'.repeat(8), 'zz'.repeat(32)]) {
+    withRecoveryKey(t, key);
+    const sink: { data?: Record<string, unknown> } = {};
+
+    await assert.rejects(
+      () => creatingService(sink).createForUser('holder-1'),
+      (error: unknown) => {
+        const message = String((error as { message?: unknown }).message ?? '');
+        assert.match(message, /No podemos crear enlaces compartidos/);
+        // El error no nombra la variable de entorno ni nada de la clave.
+        assert.equal(message.includes('PROFILE_SHARE_TOKEN_KEY'), false);
+        return true;
+      },
+      String(key)
+    );
+    assert.equal(sink.data, undefined, `no se persistio nada con la clave ${String(key)}`);
+  }
+});
+
+test('INVARIANTE: toda creacion exitosa deja material recuperable por su dueno', async (t) => {
+  withRecoveryKey(t);
+  const sink: { data?: Record<string, unknown> } = {};
+
+  const response = await creatingService(sink).createForUser('holder-1');
+  const created = sink.data!;
+
+  assert.notEqual(created.tokenHash, undefined);
+  assert.notEqual(created.tokenRecovery, null);
+  assert.notEqual(created.tokenRecovery, undefined);
+  // Y ese material abre, con el contexto de ESTA fila.
+  assert.equal(
+    openShareToken(created.tokenRecovery as string, {
+      sharingGrantId: created.id as string,
+      userId: 'holder-1'
+    }),
+    response.sharePath.split('/').at(-1)
+  );
+});
+
+test('el listado del holder pide SOLO enlaces del contrato nuevo', async () => {
+  const queries: Record<string, unknown>[] = [];
+  const service = new ProfileSharingService(
+    {
+      sharingGrant: {
+        findMany: async ({ where }: { where: Record<string, unknown> }) => {
+          queries.push(where);
+          return [];
+        }
+      },
+      credential: { findMany: async () => [] }
+    } as never,
+    {} as never
+  );
+
+  await service.listForUser('holder-1');
+
+  // El filtro es de la CONSULTA: una fila heredada no se trae para esconderla.
+  assert.deepEqual(queries[0], { userId: 'holder-1', tokenRecovery: { not: null } });
+});
+
+function recoveringService(grant: Record<string, unknown> | null, seen: Record<string, unknown>[] = []) {
+  return new ProfileSharingService(
+    {
+      sharingGrant: {
+        findFirst: async ({ where }: { where: Record<string, unknown> }) => {
+          seen.push(where);
+          return grant;
+        }
+      }
+    } as never,
+    {} as never
+  );
+}
+
+async function recoveredLink(t: Parameters<typeof withRecoveryKey>[0], options: {
+  userId?: string;
+  origin?: string;
+} = {}) {
+  withRecoveryKey(t);
+  const sink: { data?: Record<string, unknown> } = {};
+  await creatingService(sink).createForUser('holder-1');
+  const created = sink.data!;
+
+  const previousOrigin = process.env.WEB_ORIGIN;
+  if (options.origin === undefined) delete process.env.WEB_ORIGIN;
+  else process.env.WEB_ORIGIN = options.origin;
+  t.after(() => {
+    if (previousOrigin === undefined) delete process.env.WEB_ORIGIN;
+    else process.env.WEB_ORIGIN = previousOrigin;
+  });
+
+  const service = recoveringService({
+    id: created.id,
+    tokenRecovery: created.tokenRecovery,
+    revokedAt: null
+  });
+  return { link: await service.recoverLinkForUser(options.userId ?? 'holder-1', created.id as string), created };
+}
+
+test('el DUENO recupera una URL utilizable, armada con el origen configurado', async (t) => {
+  const { link, created } = await recoveredLink(t, { origin: 'https://scope.example.com' });
+
+  assert.equal(link.shareUrl, `https://scope.example.com${link.sharePath}`);
+  assert.match(link.sharePath, /^\/share\/profile\/[A-Za-z0-9_%-]+$/);
+  // La respuesta no lleva el sobre ni el hash.
+  const serialized = JSON.stringify(link);
+  assert.equal(serialized.includes(created.tokenRecovery as string), false);
+  assert.equal(serialized.includes(created.tokenHash as string), false);
+  assert.deepEqual(Object.keys(link).sort(), ['sharePath', 'shareUrl']);
+});
+
+test('sin origen configurado devuelve la ruta relativa, no una URL inventada', async (t) => {
+  const { link } = await recoveredLink(t, { origin: undefined });
+  assert.equal(link.shareUrl, null);
+  assert.match(link.sharePath, /^\/share\/profile\//);
+});
+
+test('la busqueda de recuperacion acota el dueno en el WHERE', async (t) => {
+  withRecoveryKey(t);
+  const seen: Record<string, unknown>[] = [];
+  const service = recoveringService(null, seen);
+
+  await assert.rejects(() => service.recoverLinkForUser('holder-1', 'grant-ajeno'));
+  assert.deepEqual(seen[0], { id: 'grant-ajeno', userId: 'holder-1' });
+});
+
+test('un enlace ajeno o inexistente responde igual: no se confirma que exista', async (t) => {
+  withRecoveryKey(t);
+  await assert.rejects(
+    () => recoveringService(null).recoverLinkForUser('holder-2', 'grant-1'),
+    /No se encontro el enlace compartido solicitado\./
+  );
+});
+
+test('un enlace revocado ya no se entrega', async (t) => {
+  withRecoveryKey(t);
+  const sink: { data?: Record<string, unknown> } = {};
+  await creatingService(sink).createForUser('holder-1');
+  const created = sink.data!;
+
+  const service = recoveringService({
+    id: created.id,
+    tokenRecovery: created.tokenRecovery,
+    revokedAt: new Date()
+  });
+  await assert.rejects(() => service.recoverLinkForUser('holder-1', created.id as string));
+});
+
+test('material corrupto falla CERRADO: sin hash, sin URL inventada y sin revocar nada', async (t) => {
+  withRecoveryKey(t);
+  const service = recoveringService({
+    id: 'grant-1',
+    tokenRecovery: 'v1.AAAA.BBBB',
+    revokedAt: null
+  });
+
+  await assert.rejects(
+    () => service.recoverLinkForUser('holder-1', 'grant-1'),
+    (error: unknown) => {
+      const message = String((error as { message?: unknown }).message ?? '');
+      assert.match(message, /No pudimos recuperar este enlace/);
+      assert.equal(message.includes('v1.'), false);
+      return true;
+    }
+  );
+});
+
+test('una fila sin material de recuperacion no fabrica un enlace', async (t) => {
+  withRecoveryKey(t);
+  const service = recoveringService({ id: 'grant-1', tokenRecovery: null, revokedAt: null });
+  await assert.rejects(() => service.recoverLinkForUser('holder-1', 'grant-1'));
+});

@@ -1,6 +1,11 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException
+} from '@nestjs/common';
 import { CredentialStatus, SharingGrantScope } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -11,6 +16,13 @@ import {
   supportsContextualVerification,
   type ShareEffectiveStatus
 } from './share-lifecycle';
+import {
+  ShareTokenRecoveryError,
+  buildSharePath,
+  buildShareUrl,
+  openShareToken,
+  sealShareToken
+} from './share-token-recovery';
 
 export interface CreateProfileShareResponseDto {
   sharePath: string;
@@ -46,6 +58,17 @@ export interface PublicProfileShareResponseDto {
   contextualVerificationEnabled: boolean;
 }
 
+/**
+ * Lo unico que devuelve la recuperacion del DUENO. No lleva el sobre cifrado, no
+ * lleva el hash y no se guarda en ningun lado: se arma en el momento.
+ */
+export interface HolderShareLinkDto {
+  /** URL absoluta cuando hay origen publico configurado; si no, `null`. */
+  shareUrl: string | null;
+  /** Siempre utilizable desde la propia web. */
+  sharePath: string;
+}
+
 export interface HolderProfileShareListItemDto {
   shareId: string;
   scope: SharingGrantScope;
@@ -61,6 +84,13 @@ export interface HolderProfileShareListItemDto {
   effectiveAuthorizedCredentialCount: number;
 }
 
+/** Un enlace ajeno responde igual que uno inexistente. */
+const SHARE_NOT_FOUND_MESSAGE = 'No se encontro el enlace compartido solicitado.';
+const SHARE_LINK_UNRECOVERABLE_MESSAGE =
+  'No pudimos recuperar este enlace. Crea uno nuevo para volver a compartirlo.';
+const SHARE_CREATION_UNAVAILABLE_MESSAGE =
+  'No podemos crear enlaces compartidos en este momento. Intenta mas tarde.';
+
 @Injectable()
 export class ProfileSharingService {
   constructor(
@@ -75,17 +105,99 @@ export class ProfileSharingService {
     }
 
     const token = randomBytes(32).toString('base64url');
+    // El id se genera ACA, antes de insertar, porque entra en la AAD del sobre:
+    // ata el material de recuperacion a esta fila y a este dueno.
+    const sharingGrantId = randomUUID();
+
+    // INVARIANTE DEL PRODUCTO: todo enlace nuevo nace recuperable.
+    //
+    // El sellado ocurre ANTES del INSERT, a proposito. Si la clave falta o no
+    // sirve, no se persiste nada: no existe un camino que deje `tokenHash` sin
+    // `tokenRecovery`. Crear un enlace que su dueno no va a poder volver a
+    // copiar es exactamente el defecto que esta version elimina.
+    const tokenRecovery = this.sealRecoveryMaterial(token, { sharingGrantId, userId });
+
     await this.prisma.sharingGrant.create({
       data: {
+        id: sharingGrantId,
         userId,
         profileId: current.currentProfile.id,
         createdByUserId: userId,
         scope: SharingGrantScope.profile,
-        tokenHash: hashToken(token)
+        // Autoridad PUBLICA: lo unico contra lo que se resuelve un token.
+        tokenHash: hashToken(token),
+        // Autoridad de GESTION del dueno. Nunca sale por el listado ni por nada
+        // publico. Si el despliegue no tiene clave configurada, el enlace se
+        // crea igual pero no va a poder recuperarse: no se guarda nada debil.
+        tokenRecovery
       }
     });
 
-    return { sharePath: `/share/profile/${token}`, expiresAt: null };
+    return { sharePath: buildSharePath(token), expiresAt: null };
+  }
+
+  /**
+   * El enlace utilizable de UN grant propio.
+   *
+   * Operacion EXPLICITA y por enlace: el listado no descifra nada. Un enlace
+   * ajeno o inexistente responde igual —404— y no confirma que exista.
+   */
+  async recoverLinkForUser(userId: string, shareId: string): Promise<HolderShareLinkDto> {
+    const grant = await this.prisma.sharingGrant.findFirst({
+      // El dueno va en el WHERE, como en revoke: sin filtrado posterior.
+      where: { id: shareId, userId },
+      select: { id: true, tokenRecovery: true, revokedAt: true }
+    });
+    if (!grant) throw new NotFoundException(SHARE_NOT_FOUND_MESSAGE);
+
+    if (grant.revokedAt !== null) {
+      // Un enlace revocado no vuelve a entregarse: ya no abre nada.
+      throw new NotFoundException(SHARE_NOT_FOUND_MESSAGE);
+    }
+    if (!grant.tokenRecovery) {
+      throw new ConflictException(SHARE_LINK_UNRECOVERABLE_MESSAGE);
+    }
+
+    let token: string;
+    try {
+      token = openShareToken(grant.tokenRecovery, { sharingGrantId: grant.id, userId });
+    } catch (error: unknown) {
+      // FALLA CERRADO. No se devuelve el hash, no se inventa una URL y NO se
+      // revoca nada: un problema de clave o de formato afecta la gestion del
+      // dueno, no el acceso publico, que sigue resolviendose por `tokenHash`.
+      if (error instanceof ShareTokenRecoveryError) {
+        throw new ConflictException(SHARE_LINK_UNRECOVERABLE_MESSAGE);
+      }
+      throw error;
+    }
+
+    // La URL se arma con el origen configurado HOY: cambiar de dominio no
+    // invalida nada persistido.
+    return {
+      shareUrl: buildShareUrl(token, process.env.WEB_ORIGIN),
+      sharePath: buildSharePath(token)
+    };
+  }
+
+  /**
+   * Sella el material de recuperacion o FALLA.
+   *
+   * Un problema de configuracion no degrada el producto a enlaces irrecuperables:
+   * se responde 503 y el holder no se queda con un enlace inservible en la lista.
+   * El error no lleva el nombre de la variable ni nada de la clave.
+   */
+  private sealRecoveryMaterial(
+    token: string,
+    context: { sharingGrantId: string; userId: string }
+  ): string {
+    try {
+      return sealShareToken(token, context);
+    } catch (error: unknown) {
+      if (error instanceof ShareTokenRecoveryError) {
+        throw new ServiceUnavailableException(SHARE_CREATION_UNAVAILABLE_MESSAGE);
+      }
+      throw error;
+    }
   }
 
   async getPublicProfile(token: string): Promise<PublicProfileShareResponseDto> {
@@ -254,9 +366,20 @@ export class ProfileSharingService {
    * El token crudo NO esta aca y no puede estarlo: solo se guarda su SHA-256, y
    * se muestra una unica vez al crearlo. Eso es deliberado y no se debilita.
    */
+  /**
+   * Los enlaces del holder, bajo el contrato NUEVO.
+   *
+   * El filtro `tokenRecovery: { not: null }` es parte de la CONSULTA, no de la
+   * presentacion: una fila heredada —sin material de recuperacion— es dato de
+   * desarrollo desechable y no se trae para despues esconderla. No existe una
+   * modalidad "enlace viejo" en el producto.
+   *
+   * No cambia nada publico: mientras esas filas existan, su URL sigue
+   * resolviendo por `tokenHash` hasta que se revoquen o se limpien.
+   */
   async listForUser(userId: string): Promise<HolderProfileShareListItemDto[]> {
     const grants = await this.prisma.sharingGrant.findMany({
-      where: { userId },
+      where: { userId, tokenRecovery: { not: null } },
       orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
       select: {
         id: true,

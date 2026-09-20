@@ -3,6 +3,18 @@ export interface ProfileShareLinkVM {
   expiresAtLabel: string | null;
 }
 
+/**
+ * El enlace utilizable de UN enlace propio, recuperado bajo demanda.
+ *
+ * Es material portador: se pide en el momento de copiar o abrir, no al listar, y
+ * no se guarda en estado persistente del cliente.
+ */
+export interface HolderShareLinkVM {
+  /** URL absoluta cuando el backend tiene origen publico configurado. */
+  shareUrl: string | null;
+  sharePath: string;
+}
+
 export type ShareStatus = 'ACTIVE' | 'REVOKED' | 'EXPIRED';
 
 /** Un enlace del holder tal como se administra. El token crudo NO esta aca:

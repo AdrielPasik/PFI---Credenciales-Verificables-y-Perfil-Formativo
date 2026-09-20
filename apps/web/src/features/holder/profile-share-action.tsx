@@ -1,34 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+/**
+ * Entrada a la gestion de enlaces compartidos.
+ *
+ * ANTES ESTE BOTON CREABA UN ENLACE. Cada click producia un `SharingGrant`
+ * nuevo, y como el token crudo solo existia en esa respuesta, el enlace anterior
+ * quedaba sin forma de recuperarse. La QA manual termino con varios enlaces
+ * activos y ninguno utilizable.
+ *
+ * Ahora "Compartir perfil" ABRE la gestion: ahi el holder copia el enlace que ya
+ * tiene y, si de verdad quiere otro, existe una accion explicita para crearlo.
+ */
 
-import { FeedbackAlert } from '@/components/feedback/feedback-alert';
-import { createProfileShareRequest } from '@/lib/api/profile-sharing-api';
-import { useSession } from '@/lib/session/session-provider';
-import type { ProfileShareLinkVM } from '@/models/profile-sharing';
-import { PublicSharePanel } from './public-share-panel';
+import { SHARE_MANAGEMENT_SECTION_ID } from '@/features/holder/profile-share-management';
 
 export function ProfileShareAction() {
-  const { requestAuthenticated } = useSession();
-  const [share, setShare] = useState<ProfileShareLinkVM | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function createShare() {
-    setLoading(true);
-    setError(null);
-    try {
-      setShare(await createProfileShareRequest(requestAuthenticated));
-    } catch {
-      setError('No pudimos preparar un enlace para compartir tu perfil. Intentá nuevamente más tarde.');
-    } finally {
-      setLoading(false);
-    }
+  function openShareManagement() {
+    const section = document.getElementById(SHARE_MANAGEMENT_SECTION_ID);
+    if (!(section instanceof HTMLDetailsElement)) return;
+    section.open = true;
+    section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    section.querySelector('summary')?.focus();
   }
 
-  if (share) {
-    return <PublicSharePanel title="Compartir perfil" sharePath={share.sharePath} description="Cualquier persona con este enlace podrá ver una versión resumida y pública de tu perfil formativo. No incluye tu email ni evidencias crudas." layout="header-disclosure" />;
-  }
-
-  return <><div data-testid="profile-share-action" className="order-1 min-w-0 lg:col-start-2 lg:row-start-1"><button type="button" className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700" disabled={loading} onClick={() => void createShare()}>{loading ? 'Preparando enlace…' : 'Compartir perfil'}</button></div>{error ? <div className="order-3 min-w-0 lg:col-span-3 lg:row-start-2"><FeedbackAlert variant="warning" title="No pudimos compartir el perfil">{error}</FeedbackAlert></div> : null}</>;
+  return (
+    <div data-testid="profile-share-action" className="order-1 min-w-0 lg:col-start-2 lg:row-start-1">
+      <button
+        type="button"
+        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+        onClick={openShareManagement}
+      >
+        Compartir perfil
+      </button>
+    </div>
+  );
 }

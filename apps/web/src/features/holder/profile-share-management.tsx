@@ -12,15 +12,28 @@
  * Por eso "Permitir ver mi perfil" NO es una casilla: la existencia de un enlace
  * activo YA es ese permiso, y duplicarlo en un control aparte haria pensar que
  * se puede tener un enlace activo que no muestre nada.
+ *
+ * REUTILIZAR ES LO NORMAL; CREAR ES EXPLICITO — V1.
+ *
+ * Antes, compartir el perfil creaba SIEMPRE un enlace nuevo y el enlace anterior
+ * quedaba irrecuperable: la QA manual termino con una pila de enlaces activos y
+ * sin forma de usar ninguno. Ahora el enlace existente se copia y se abre cuantas
+ * veces haga falta, y "Crear nuevo enlace" es una accion aparte.
+ *
+ * EL ENLACE SE PIDE AL MOMENTO DE USARLO. El listado no trae la URL: copiar o
+ * abrir dispara una recuperacion autenticada para ESE enlace. Asi el material
+ * portador no viaja por pantalla solo por listar.
  */
 
-import { useCallback, useEffect, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Check, Copy, ExternalLink, LoaderCircle } from 'lucide-react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import {
+  createProfileShareRequest,
   listMyProfileSharesRequest,
+  recoverProfileShareLinkRequest,
   replaceShareVerificationPolicyRequest,
   revokeProfileShareRequest
 } from '@/lib/api/profile-sharing-api';
@@ -28,6 +41,9 @@ import { getMyCredentialsRequest } from '@/lib/api/holder-api';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderCredentialListItemVM } from '@/models/holder';
 import type { HolderProfileShareVM } from '@/models/profile-sharing';
+
+/** Ancla de la seccion, para que "Compartir perfil" la abra en vez de crear. */
+export const SHARE_MANAGEMENT_SECTION_ID = 'enlaces-compartidos';
 
 type LoadState =
   | { status: 'loading' }
@@ -40,23 +56,40 @@ export function ProfileShareManagement() {
   const [notice, setNotice] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
 
+  // `requestAuthenticated` NO es estable: el provider la vuelve a crear en cada
+  // render. Si fuera dependencia del efecto, cada render del provider dispararia
+  // otra carga, y esta pantalla ahora re-renderiza mas (copiar, crear, abrir).
+  // Se guarda la ultima version en un ref y la recarga la manda SOLO el token.
+  const requestRef = useRef(requestAuthenticated);
+  useEffect(() => {
+    requestRef.current = requestAuthenticated;
+  }, [requestAuthenticated]);
+
   // Mismo patron que objectives-list-route: la promesa se encadena dentro del
   // efecto con un guard `active`, y un token dispara la recarga. Evita el
   // setState sincrono en el cuerpo del efecto.
   useEffect(() => {
     let active = true;
+    const request = requestRef.current;
     void Promise.all([
-      listMyProfileSharesRequest(requestAuthenticated),
-      getMyCredentialsRequest(requestAuthenticated)
+      listMyProfileSharesRequest(request),
+      getMyCredentialsRequest(request)
     ])
-      .then(
-        ([shares, credentials]) => active && setState({ status: 'ready', shares, credentials })
-      )
+      .then(([shares, credentials]) => {
+        if (!active) return;
+        // Falla CERRADO: sin listas utilizables se muestra el estado de error,
+        // nunca una pantalla rota a mitad de render.
+        if (!Array.isArray(shares) || !Array.isArray(credentials)) {
+          setState({ status: 'error' });
+          return;
+        }
+        setState({ status: 'ready', shares, credentials });
+      })
       .catch(() => active && setState({ status: 'error' }));
     return () => {
       active = false;
     };
-  }, [reloadToken, requestAuthenticated]);
+  }, [reloadToken]);
 
   const reload = useCallback((message: string) => {
     setNotice(message);
@@ -80,36 +113,91 @@ export function ProfileShareManagement() {
     );
   }
 
-  if (state.shares.length === 0) {
-    return (
-      <p className="text-sm leading-6 text-text-muted">
-        Todavía no compartiste tu perfil. Cuando generes un enlace vas a poder revocarlo desde acá.
-      </p>
-    );
-  }
-
   // Solo se ofrecen credenciales emitidas: son las unicas autorizables, y la
   // restriccion tambien se valida en el servidor.
   const eligible = state.credentials.filter((credential) => credential.status === 'issued');
 
   return (
     <div className="grid min-w-0 gap-4">
+      {/* La explicacion va UNA vez, a nivel de seccion, y no repetida en cada
+          tarjeta: con varios enlaces el bloque se volvia ilegible. */}
+      <p className="max-w-3xl text-sm leading-6 text-text-muted">
+        Cada enlace muestra una versión pública y resumida de tu perfil. Podés reutilizar el mismo
+        enlace con todas las personas que quieras: copiarlo no crea uno nuevo. Cada enlace tiene su
+        propio permiso de análisis contextual y se revoca por separado.
+      </p>
+
       {notice ? (
         <FeedbackAlert variant="information" title="Listo">
           {notice}
         </FeedbackAlert>
       ) : null}
-      <ul className="grid list-none gap-4">
-        {state.shares.map((share) => (
-          <li key={share.shareId}>
-            <ShareCard
-              share={share}
-              eligibleCredentials={eligible}
-              onChanged={reload}
-            />
-          </li>
-        ))}
-      </ul>
+
+      {state.shares.length === 0 ? (
+        <p className="text-sm leading-6 text-text-muted">
+          Todavía no compartiste tu perfil.
+        </p>
+      ) : (
+        <ul className="grid list-none gap-4">
+          {state.shares.map((share) => (
+            <li key={share.shareId}>
+              <ShareCard
+                share={share}
+                eligibleCredentials={eligible}
+                onChanged={reload}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <CreateShareAction onCreated={reload} />
+    </div>
+  );
+}
+
+/**
+ * Crear un enlace es una accion DELIBERADA.
+ *
+ * `busy` deshabilita el boton mientras el pedido esta en vuelo: un doble click no
+ * puede producir dos enlaces. La garantia fuerte igual es del servidor -- esto es
+ * higiene de UX, no un sistema de idempotencia.
+ */
+function CreateShareAction({ onCreated }: { onCreated: (message: string) => void }) {
+  const { requestAuthenticated } = useSession();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function create() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await createProfileShareRequest(requestAuthenticated);
+      onCreated('Creaste un enlace nuevo. Copialo para compartirlo.');
+    } catch {
+      setError('No pudimos crear el enlace. Intentá nuevamente.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-2 border-t border-border-default pt-4">
+      <div>
+        <Button type="button" variant="secondary" disabled={busy} onClick={() => void create()}>
+          {busy ? 'Creando…' : 'Crear nuevo enlace'}
+        </Button>
+      </div>
+      <p className="text-xs leading-5 text-text-muted">
+        Creá otro enlace solo si querés un permiso distinto: por ejemplo, uno con análisis
+        contextual y otro sin él.
+      </p>
+      {error ? (
+        <FeedbackAlert variant="warning" title="No pudimos crear el enlace">
+          {error}
+        </FeedbackAlert>
+      ) : null}
     </div>
   );
 }
@@ -128,8 +216,44 @@ function ShareCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configuring, setConfiguring] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isActive = share.status === 'ACTIVE';
+
+  /**
+   * El enlace se pide SOLO al usarlo. Nunca se guarda en el estado del
+   * componente ni se renderiza en la pagina: se usa y se descarta.
+   */
+  async function withRecoveredLink(
+    consume: (link: { shareUrl: string | null; sharePath: string }) => Promise<void> | void
+  ) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await consume(await recoverProfileShareLinkRequest(requestAuthenticated, share.shareId));
+    } catch {
+      setError('No pudimos recuperar este enlace. Creá uno nuevo para volver a compartirlo.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyLink() {
+    await withRecoveredLink(async (link) => {
+      const absolute = link.shareUrl ?? `${window.location.origin}${link.sharePath}`;
+      await navigator.clipboard.writeText(absolute);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2_500);
+    });
+  }
+
+  async function openLink() {
+    await withRecoveredLink((link) => {
+      const absolute = link.shareUrl ?? `${window.location.origin}${link.sharePath}`;
+      window.open(absolute, '_blank', 'noopener,noreferrer');
+    });
+  }
 
   async function revoke() {
     setBusy(true);
@@ -164,17 +288,37 @@ function ShareCard({
             </p>
           ) : null}
         </div>
-        {isActive ? (
+      </header>
+
+      {isActive ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" disabled={busy} onClick={() => void copyLink()}>
+            {copied ? (
+              <>
+                <Check aria-hidden="true" className="mr-2 size-4" />
+                Enlace copiado
+              </>
+            ) : (
+              <>
+                <Copy aria-hidden="true" className="mr-2 size-4" />
+                Copiar enlace
+              </>
+            )}
+          </Button>
+          <Button type="button" variant="secondary" disabled={busy} onClick={() => void openLink()}>
+            <ExternalLink aria-hidden="true" className="mr-2 size-4" />
+            Abrir
+          </Button>
           <Button
             type="button"
             variant="secondary"
             disabled={busy}
             onClick={() => setConfirmingRevoke(true)}
           >
-            Revocar enlace
+            Revocar
           </Button>
-        ) : null}
-      </header>
+        </div>
+      ) : null}
 
       {error ? (
         <FeedbackAlert variant="warning" title="No pudimos completar la acción">

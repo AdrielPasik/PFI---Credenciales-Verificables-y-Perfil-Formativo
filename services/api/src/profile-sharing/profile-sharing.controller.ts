@@ -1,13 +1,14 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { type AuthenticatedUser } from '../auth/auth.types';
 import { CurrentUser } from '../auth/current-user.decorator';
 import {
+  ProfileSharingService,
   type CreateProfileShareResponseDto,
   type HolderProfileShareListItemDto,
-  type PublicProfileShareResponseDto,
-  ProfileSharingService
+  type HolderShareLinkDto,
+  type PublicProfileShareResponseDto
 } from './profile-sharing.service';
 import {
   type ShareVerificationPolicyStateDto,
@@ -48,6 +49,23 @@ export class MyProfileSharingController {
     @CurrentUser() currentUser: AuthenticatedUser
   ) {
     return this.sharing.revokeForUser(currentUser.id, shareId);
+  }
+
+  /**
+   * Recuperacion del enlace utilizable, SOLO para su dueno.
+   *
+   * POST y no GET a proposito: la respuesta lleva un bearer (el token del
+   * enlace), asi que no debe quedar en cache, ni en historial, ni ser
+   * prefetcheable. `Cache-Control: no-store` lo hace explicito.
+   */
+  @Post('shares/:shareId/link')
+  @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
+  recoverProfileShareLink(
+    @Param('shareId') shareId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<HolderShareLinkDto> {
+    return this.sharing.recoverLinkForUser(currentUser.id, shareId);
   }
 
   /**

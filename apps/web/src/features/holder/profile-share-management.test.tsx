@@ -13,13 +13,17 @@ const mocks = vi.hoisted(() => ({
   listShares: vi.fn(),
   revoke: vi.fn(),
   replacePolicy: vi.fn(),
-  credentials: vi.fn()
+  credentials: vi.fn(),
+  createShare: vi.fn(),
+  recoverLink: vi.fn()
 }));
 
 vi.mock('@/lib/api/profile-sharing-api', () => ({
   listMyProfileSharesRequest: mocks.listShares,
   revokeProfileShareRequest: mocks.revoke,
-  replaceShareVerificationPolicyRequest: mocks.replacePolicy
+  replaceShareVerificationPolicyRequest: mocks.replacePolicy,
+  createProfileShareRequest: mocks.createShare,
+  recoverProfileShareLinkRequest: mocks.recoverLink
 }));
 
 vi.mock('@/lib/api/holder-api', () => ({
@@ -31,6 +35,12 @@ vi.mock('@/lib/session/session-provider', () => ({
 }));
 
 import { ProfileShareManagement } from './profile-share-management';
+
+// jsdom no implementa el portapapeles: se instala un doble para poder afirmar
+// QUE se copia, sin renderizar nunca el enlace en la pagina.
+const clipboard = { writeText: vi.fn() };
+Object.defineProperty(window.navigator, 'clipboard', { value: clipboard, configurable: true });
+const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
 const ACTIVE_SHARE = {
   shareId: 'share-1',
@@ -63,6 +73,12 @@ beforeEach(() => {
   mocks.listShares.mockResolvedValue([ACTIVE_SHARE]);
   mocks.credentials.mockResolvedValue([ISSUED_CREDENTIAL]);
   mocks.revoke.mockResolvedValue(undefined);
+  mocks.createShare.mockResolvedValue({ sharePath: '/share/profile/nuevo', expiresAtLabel: null });
+  mocks.recoverLink.mockResolvedValue({
+    shareUrl: 'https://scope.example.com/share/profile/token-recuperado',
+    sharePath: '/share/profile/token-recuperado'
+  });
+  clipboard.writeText.mockResolvedValue(undefined);
   mocks.replacePolicy.mockResolvedValue({
     enabled: true,
     policyVersion: 1,
@@ -79,7 +95,7 @@ describe('enlaces compartidos', () => {
 
     expect(await screen.findByText('Enlace compartido')).toBeTruthy();
     expect(screen.getByText('Activo')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Revocar enlace' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Revocar' })).toBeTruthy();
   });
 
   it('un enlace revocado no ofrece revocar ni configurar', async () => {
@@ -94,7 +110,7 @@ describe('enlaces compartidos', () => {
     render(<ProfileShareManagement />);
 
     expect(await screen.findByText('Revocado')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Revocar enlace' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Revocar' })).toBeNull();
     // Un enlace revocado no autoriza nada: configurarle una politica seria
     // mostrar un permiso que no rige.
     expect(screen.queryByRole('button', { name: 'Configurar' })).toBeNull();
@@ -102,7 +118,7 @@ describe('enlaces compartidos', () => {
 
   it('revocar pide confirmacion y explica que es permanente', async () => {
     render(<ProfileShareManagement />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Revocar enlace' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Revocar' }));
 
     expect(screen.getByText('¿Revocar este enlace?')).toBeTruthy();
     expect(screen.getByText(/dejar de funcionar/)).toBeTruthy();
@@ -114,7 +130,7 @@ describe('enlaces compartidos', () => {
 
   it('confirmar revoca ese enlace y recarga', async () => {
     render(<ProfileShareManagement />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Revocar enlace' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Revocar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Sí, revocar' }));
 
     await waitFor(() => expect(mocks.revoke).toHaveBeenCalledTimes(1));
@@ -123,7 +139,7 @@ describe('enlaces compartidos', () => {
 
   it('cancelar no revoca nada', async () => {
     render(<ProfileShareManagement />);
-    fireEvent.click(await screen.findByRole('button', { name: 'Revocar enlace' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Revocar' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
 
     expect(screen.queryByText('¿Revocar este enlace?')).toBeNull();
@@ -223,5 +239,166 @@ describe('consentimiento de analisis contextual', () => {
     expect(await screen.findByText(/ya no está disponible/)).toBeTruthy();
     // El consentimiento no se borra solo: se informa, no se reescribe.
     expect(screen.getByText(/Tu selección se conserva/)).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Enlaces reutilizables — V1
+// ---------------------------------------------------------------------------
+
+describe('reutilizar un enlace existente', () => {
+  it('un enlace activo ofrece copiar, abrir, configurar y revocar', async () => {
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    for (const name of ['Copiar enlace', 'Abrir', 'Configurar', 'Revocar']) {
+      expect(screen.getByRole('button', { name })).toBeTruthy();
+    }
+  });
+
+  it('copiar pide el enlace en ese momento, lo escribe al portapapeles y NO crea otro enlace', async () => {
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    // Listar no recupera nada: el material portador no viaja por listar.
+    expect(mocks.recoverLink).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }));
+
+    await waitFor(() =>
+      expect(clipboard.writeText).toHaveBeenCalledWith(
+        'https://scope.example.com/share/profile/token-recuperado'
+      )
+    );
+    expect(mocks.recoverLink).toHaveBeenCalledWith(expect.anything(), 'share-1');
+    expect(mocks.createShare).not.toHaveBeenCalled();
+    expect(await screen.findByRole('button', { name: 'Enlace copiado' })).toBeTruthy();
+    // El token no queda renderizado en la pagina.
+    expect(document.body.textContent).not.toContain('token-recuperado');
+  });
+
+  it('el MISMO enlace se copia muchas veces sin crear enlaces nuevos', async () => {
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      fireEvent.click(screen.getByRole('button', { name: /Copiar enlace|Enlace copiado/ }));
+      await waitFor(() => expect(clipboard.writeText).toHaveBeenCalledTimes(attempt + 1));
+    }
+
+    expect(mocks.createShare).not.toHaveBeenCalled();
+    expect(mocks.listShares).toHaveBeenCalledTimes(1);
+  });
+
+  it('abrir navega al perfil público sin exponer el token en la página', async () => {
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
+
+    await waitFor(() =>
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://scope.example.com/share/profile/token-recuperado',
+        '_blank',
+        'noopener,noreferrer'
+      )
+    );
+    expect(mocks.createShare).not.toHaveBeenCalled();
+    expect(document.body.textContent).not.toContain('token-recuperado');
+  });
+
+  it('si el enlace no se puede recuperar, lo dice y no inventa una URL', async () => {
+    mocks.recoverLink.mockRejectedValue(new Error('no recuperable'));
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copiar enlace' }));
+
+    expect(
+      await screen.findByText(/No pudimos recuperar este enlace/)
+    ).toBeTruthy();
+    expect(clipboard.writeText).not.toHaveBeenCalled();
+    expect(openSpy).not.toHaveBeenCalled();
+  });
+
+  it('un enlace revocado no ofrece copiar, abrir ni configurar', async () => {
+    mocks.listShares.mockResolvedValue([
+      {
+        ...ACTIVE_SHARE,
+        status: 'REVOKED' as const,
+        statusLabel: 'Revocado',
+        revokedAtLabel: '3 sept 2026'
+      }
+    ]);
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    for (const name of ['Copiar enlace', 'Abrir', 'Configurar', 'Revocar']) {
+      expect(screen.queryByRole('button', { name })).toBeNull();
+    }
+  });
+});
+
+describe('crear un enlace nuevo', () => {
+  it('es una acción explícita y separada de copiar', async () => {
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    const create = screen.getByRole('button', { name: 'Crear nuevo enlace' });
+    expect(mocks.createShare).not.toHaveBeenCalled();
+
+    fireEvent.click(create);
+    await waitFor(() => expect(mocks.createShare).toHaveBeenCalledTimes(1));
+    // Se recarga la lista para mostrar el enlace nuevo.
+    await waitFor(() => expect(mocks.listShares).toHaveBeenCalledTimes(2));
+  });
+
+  it('un doble click no crea dos enlaces', async () => {
+    let resolveCreate: (value: unknown) => void = () => undefined;
+    mocks.createShare.mockImplementation(
+      () => new Promise((resolve) => {
+        resolveCreate = resolve;
+      })
+    );
+
+    render(<ProfileShareManagement />);
+    await screen.findByText('Enlace compartido');
+
+    const create = screen.getByRole('button', { name: 'Crear nuevo enlace' });
+    fireEvent.click(create);
+    fireEvent.click(create);
+    fireEvent.click(create);
+
+    expect(mocks.createShare).toHaveBeenCalledTimes(1);
+    expect((screen.getByRole('button', { name: 'Creando…' }) as HTMLButtonElement).disabled).toBe(true);
+    resolveCreate({ sharePath: '/share/profile/nuevo', expiresAtLabel: null });
+  });
+
+  it('sin enlaces todavía, crear sigue siendo explícito', async () => {
+    mocks.listShares.mockResolvedValue([]);
+    render(<ProfileShareManagement />);
+
+    expect(await screen.findByText('Todavía no compartiste tu perfil.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Crear nuevo enlace' })).toBeTruthy();
+    expect(mocks.createShare).not.toHaveBeenCalled();
+  });
+
+  it('varios enlaces conviven, cada uno con su propio permiso contextual', async () => {
+    mocks.listShares.mockResolvedValue([
+      ACTIVE_SHARE,
+      {
+        ...ACTIVE_SHARE,
+        shareId: 'share-2',
+        contextualVerificationEnabled: true,
+        authorizedCredentialCount: 2,
+        effectiveAuthorizedCredentialCount: 2
+      }
+    ]);
+    render(<ProfileShareManagement />);
+    await screen.findAllByText('Enlace compartido');
+
+    expect(screen.getAllByRole('button', { name: 'Copiar enlace' })).toHaveLength(2);
+    expect(screen.getByText(/Habilitado · 2 credenciales disponibles/)).toBeTruthy();
+    expect(screen.getAllByText('Deshabilitado')).toHaveLength(1);
   });
 });

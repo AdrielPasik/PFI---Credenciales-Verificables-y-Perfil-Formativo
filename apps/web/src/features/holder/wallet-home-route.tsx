@@ -13,7 +13,10 @@ import { HolderProfileDetails, HolderProfileEmptyPanel, HolderProfileSummary } f
 import { ObjectiveEntryCard } from '@/features/holder/objectives/objective-entry-card';
 import { ProfileRebuildAction } from '@/features/holder/profile-rebuild-action';
 import { ProfileShareAction } from '@/features/holder/profile-share-action';
-import { ProfileShareManagement } from '@/features/holder/profile-share-management';
+import {
+  ProfileShareManagement,
+  SHARE_MANAGEMENT_SECTION_ID
+} from '@/features/holder/profile-share-management';
 import { getMyCredentialsRequest, getMyCurrentProfileRequest } from '@/lib/api/holder-api';
 import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
@@ -104,7 +107,7 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
           perfil, pero presente. Hasta esta version no habia NINGUNA forma de
           ver los enlaces abiertos ni de darlos de baja. */}
       {profileState.status === 'ready' && showProfileShare ? (
-        <details className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
+        <details id={SHARE_MANAGEMENT_SECTION_ID} className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:px-6">
             Enlaces compartidos y permisos
             <ChevronDown aria-hidden="true" className="size-4 text-text-muted transition group-open:rotate-180" />
