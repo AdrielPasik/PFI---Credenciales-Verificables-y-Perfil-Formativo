@@ -21,6 +21,7 @@ import { Prisma } from '@prisma/client';
 
 import { ObjectiveRequirementProposalError } from '../objective-requirement-proposal/objective-requirement-proposal.errors';
 import {
+  MAX_VERIFIER_REQUIREMENTS,
   PROPOSAL_COOLDOWN_MS,
   PROPOSAL_LEASE_MS,
   PROPOSAL_STARTS_PER_SHARE_WINDOW
@@ -538,4 +539,63 @@ test('se persiste la propuesta VERIFICADA del nucleo, nunca campos ajenos al DTO
   for (const forbidden of ['rawProviderResponse', 'prompt', 'model', 'provider']) {
     assert.equal(forbidden in stored, false, forbidden);
   }
+});
+
+// ===========================================================================
+// TOPE PUBLICO DE REQUISITOS
+//
+// La confirmacion publica rechaza mas de MAX_VERIFIER_REQUIREMENTS. Exponer una
+// propuesta de 34 candidatos no es una propuesta larga: es un estado que el
+// verificador no puede confirmar nunca. El tope se pide ANTES, y una propuesta
+// excedida cae por el camino de salida inutilizable que ya existia.
+// ===========================================================================
+
+/** Proveedor falso que ademas registra el presupuesto de seleccion recibido. */
+function budgetAwareProvider(behavior: () => Promise<unknown> = async () => structuredClone(PROPOSAL)) {
+  const budgets: (number | undefined)[] = [];
+  return {
+    budgets,
+    service: {
+      propose: async (_input: unknown, maxRequirements?: number) => {
+        budgets.push(maxRequirements);
+        return behavior();
+      }
+    } as never
+  };
+}
+
+test(`la propuesta publica se pide acotada a ${MAX_VERIFIER_REQUIREMENTS} requisitos`, async () => {
+  const state = world();
+  const fake = budgetAwareProvider();
+  await new VerificationProposalService(state.prisma, fake.service).propose(SHARE_TOKEN, REQUEST_TOKEN, () => NOW);
+
+  assert.deepEqual(fake.budgets, [MAX_VERIFIER_REQUIREMENTS]);
+});
+
+test('el tope pedido es el MISMO que exige la confirmacion', () => {
+  // Si estos dos numeros se separan, vuelve exactamente el defecto: una propuesta
+  // que el producto acepta mostrar y despues rechaza confirmar.
+  assert.equal(MAX_VERIFIER_REQUIREMENTS, 12);
+});
+
+test('una propuesta excedida no se persiste ni se expone: no hay recorte', async () => {
+  const state = world();
+  const fake = budgetAwareProvider(async () => {
+    // Lo que devuelve el nucleo compartido cuando el artefacto viola el tope.
+    throw new ObjectiveRequirementProposalError(
+      'UNABLE_TO_PRODUCE_PROPOSAL',
+      'candidates_exceed_requested_maximum'
+    );
+  });
+
+  assert.equal(
+    await codeOf(() => new VerificationProposalService(state.prisma, fake.service).propose(SHARE_TOKEN, REQUEST_TOKEN, () => NOW)),
+    'PROPOSAL_UNAVAILABLE'
+  );
+  // Ni propuesta parcial, ni estado avanzado: la sesion sigue siendo un borrador.
+  assert.equal(state.requests[0].proposedRequirements, null);
+  assert.equal(state.requests[0].status, 'draft');
+  // Y la semantica de intentos no cambia: cuota, cooldown y reintento siguen igual.
+  assert.equal(state.attempts.length, 1);
+  assert.equal(state.attempts[0].outcome, 'FAILED');
 });

@@ -486,7 +486,7 @@ it('muestra los estados en palabras, el claim más débil y la credencial hoy re
     screen.getByText(/El análisis refleja la evidencia disponible al momento de su ejecución/)
   ).toBeTruthy();
   expect(
-    screen.getByText('Para este requisito, la evidencia compartida no alcanza para afirmar un respaldo.')
+    screen.getByText('La evidencia compartida no alcanza para justificar este requisito.')
   ).toBeTruthy();
   expect((screen.getByRole('link', { name: 'Verificar credencial' }) as HTMLAnchorElement).getAttribute('href')).toBe(
     '/verify?credential=cred-1'
@@ -550,3 +550,65 @@ it('el token guardado se manda como header en cada llamada y nunca como argument
   expect(window.location.hash).toBe('');
 });
 
+
+// ---------------------------------------------------------------------------
+// Tope de requisitos — defensa de la UI
+//
+// El backend ya no puede entregar una propuesta de 13+ como exitosa: se descarta
+// entera por el camino de salida inutilizable. Estos tests cubren lo OTRO: que si
+// alguna vez llegara, la pantalla no la presente como un estado valido.
+// ---------------------------------------------------------------------------
+
+function proposalWith(count: number) {
+  return {
+    candidates: Array.from({ length: count }, (_unused, index) => ({
+      candidateId: `cand_${String(index + 1).padStart(2, '0')}`,
+      proposedRequirementText: `Requisito propuesto ${index + 1}`,
+      primaryExcerpt: 'backend junior',
+      excerptRange: { start: 9, end: 23 },
+      grounding: 'UNIQUE' as const,
+      confirmableAsSourceDerived: true,
+      sourceSectionLabel: null,
+      isExactDuplicate: false
+    })),
+    unresolvedPassageCount: 0
+  };
+}
+
+it('una propuesta excedida NO se presenta como un contador aceptado', async () => {
+  window.sessionStorage.setItem(requestTokenStorageKey(SHARE_TOKEN), REQUEST_TOKEN);
+  api.getVerificationSessionRequest.mockResolvedValue(session({ proposal: proposalWith(34) }));
+
+  renderRoute();
+  await screen.findByRole('heading', { name: 'Revisá qué se va a evaluar' });
+
+  // El defecto exacto que se vio en QA manual.
+  expect(screen.queryByText('34 de hasta 12 requisitos')).toBeNull();
+  expect(screen.queryByText(/^\d+ de hasta 12 requisitos$/)).toBeNull();
+  // Y en su lugar se nombra el exceso.
+  expect(screen.getByText(/Hay 34 requisitos y el máximo es 12/)).toBeTruthy();
+});
+
+it('con la propuesta dentro del tope el contador se lee normal', async () => {
+  window.sessionStorage.setItem(requestTokenStorageKey(SHARE_TOKEN), REQUEST_TOKEN);
+  api.getVerificationSessionRequest.mockResolvedValue(session({ proposal: proposalWith(12) }));
+
+  renderRoute();
+  await screen.findByRole('heading', { name: 'Revisá qué se va a evaluar' });
+
+  expect(screen.getByText('12 de hasta 12 requisitos')).toBeTruthy();
+  expect(screen.queryByText(/el máximo es 12/)).toBeNull();
+});
+
+it('el tope de confirmación sigue siendo 12', async () => {
+  window.sessionStorage.setItem(requestTokenStorageKey(SHARE_TOKEN), REQUEST_TOKEN);
+  api.getVerificationSessionRequest.mockResolvedValue(session({ proposal: proposalWith(13) }));
+
+  renderRoute();
+  await screen.findByRole('heading', { name: 'Revisá qué se va a evaluar' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Confirmar requisitos' }));
+
+  expect(await screen.findByText('Podés confirmar hasta 12 requisitos.')).toBeTruthy();
+  expect(api.confirmVerificationRequirementsRequest).not.toHaveBeenCalled();
+});

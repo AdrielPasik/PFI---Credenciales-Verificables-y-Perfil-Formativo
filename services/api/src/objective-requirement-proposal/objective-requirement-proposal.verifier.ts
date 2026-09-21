@@ -21,6 +21,7 @@
  *     que los offsets sean enteros en code points y estén dentro del texto
  *     coherencia entre el estado de anclaje y la presencia de referencia primaria
  *     que no aparezca NINGÚN campo prohibido, en ningún nivel
+ *     que el tope de candidatos pedido se haya respetado, cuando se pidió uno
  *
  * LO QUE NO PUEDE VERIFICAR, y por eso no lo afirma: fidelidad semántica del
  * claim, granularidad correcta, completitud, ni interpretación de
@@ -191,10 +192,22 @@ function verifyGrounding(value: unknown, detail: string): SourceGroundingStatus 
   return status as SourceGroundingStatus;
 }
 
+/**
+ * Lo que ESTE proceso pidió, para poder comprobar que se respetó.
+ *
+ * `maxCandidates` no se comprueba "por las dudas": es la única frontera entre un
+ * consumidor acotado y una propuesta que su producto no puede sostener. Se
+ * verifica acá, ANTES de mapear y por lo tanto antes de que nadie la persista.
+ */
+export interface ObjectiveProposalExpectations {
+  readonly maxCandidates?: number;
+}
+
 /** Verifica el envelope completo del AI service y devuelve el artefacto limpio. */
 export function verifyObjectiveProposalResponse(
   response: unknown,
-  submittedRawObjectiveText: string
+  submittedRawObjectiveText: string,
+  expectations: ObjectiveProposalExpectations = {}
 ): VerifiedProposalArtifact {
   const envelope = asRecord(response, 'response_not_an_object');
 
@@ -253,6 +266,26 @@ export function verifyObjectiveProposalResponse(
     // El artefacto se construyó sobre un texto distinto del que enviamos. Todos
     // los offsets de abajo serían de otro documento.
     fail('source_character_count_mismatch');
+  }
+
+  const maxCandidates = expectations.maxCandidates;
+  if (maxCandidates !== undefined) {
+    // DOS comprobaciones distintas, y ninguna reemplaza a la otra.
+    //
+    // La primera es sobre el PEDIDO: el AI service declara qué tope acotó esta
+    // ejecución. Si no declara el nuestro, el bloque de selección puede no haber
+    // llegado nunca al prompt y la propuesta vendría de una etapa sin presupuesto.
+    if (execution.requestedMaxProposedRequirements !== maxCandidates) {
+      fail('requested_maximum_not_honored');
+    }
+    // La segunda es sobre el RESULTADO: contar. Que el servicio diga que acotó no
+    // es lo mismo que haber acotado.
+    if (asArray(artifact.candidates, 'candidates_not_a_list').length > maxCandidates) {
+      // NO se recorta. Recortar aceptaría como autoritativa una selección que
+      // nadie hizo: los primeros N en orden de fuente no son los N materialmente
+      // relevantes, y el excluyente o el título requerido suelen quedar al final.
+      fail('candidates_exceed_requested_maximum');
+    }
   }
 
   const rawCandidates = asArray(artifact.candidates, 'candidates_not_a_list');

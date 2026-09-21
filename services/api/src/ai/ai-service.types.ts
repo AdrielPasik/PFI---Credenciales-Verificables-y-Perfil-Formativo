@@ -276,6 +276,15 @@ export interface ProposeObjectiveRequirementsWithAiInput {
   /** Contexto de interpretación. Puede ser vacío y no crea Requirements. */
   readonly title: string;
   readonly rawObjectiveText: string;
+  /**
+   * Cuántos Requirements puede emitir la etapa, como mucho.
+   *
+   * Sólo lo manda un consumidor que de verdad está acotado. Omitirlo deja el
+   * comportamiento evaluado en P2.1 intacto; mandarlo hace que la SELECCIÓN la
+   * haga la etapa que lee la fuente, en vez de un recorte posterior que nadie
+   * decidió.
+   */
+  readonly maxProposedRequirements?: number | null;
   readonly correlationId?: string | null;
 }
 

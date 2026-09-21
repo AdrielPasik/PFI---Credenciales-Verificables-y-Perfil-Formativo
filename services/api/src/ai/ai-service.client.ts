@@ -528,6 +528,14 @@ export class AiServiceClient {
    * desenlace mata una fila porque no hay fila. Lo único que decide la
    * clasificación es si repetir el pedido puede tener otro resultado.
    */
+  /** Entero estrictamente positivo o error del llamante. No coacciona strings. */
+  private expectPositiveInteger(value: number, field: string): number {
+    if (!Number.isInteger(value) || value < 1) {
+      throw new AiServiceClientError(`${field} must be a positive integer.`, 'configuration');
+    }
+    return value;
+  }
+
   async proposeObjectiveRequirements(
     input: ProposeObjectiveRequirementsWithAiInput
   ): Promise<unknown> {
@@ -547,7 +555,17 @@ export class AiServiceClient {
       rawObjectiveText: this.expectNonBlankStringVerbatim(
         input.rawObjectiveText,
         'rawObjectiveText'
-      )
+      ),
+      // Ausente cuando el llamante no está acotado: el request sale byte a byte
+      // como salía antes y el AI service no agrega ningún bloque al prompt.
+      ...(input.maxProposedRequirements === undefined || input.maxProposedRequirements === null
+        ? {}
+        : {
+            maxProposedRequirements: this.expectPositiveInteger(
+              input.maxProposedRequirements,
+              'maxProposedRequirements'
+            )
+          })
     };
 
     try {

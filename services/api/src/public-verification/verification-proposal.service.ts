@@ -45,6 +45,7 @@ import { ObjectiveRequirementProposalService } from '../objective-requirement-pr
 import { PrismaService } from '../prisma/prisma.service';
 import { SHARE_AUTHORITY_SELECT, assertComputeAllowed } from './contextual-share-authority';
 import {
+  MAX_VERIFIER_REQUIREMENTS,
   PROPOSAL_COOLDOWN_MS,
   PROPOSAL_LEASE_MS,
   PROPOSAL_QUOTA_WINDOW_MS,
@@ -101,9 +102,17 @@ export class VerificationProposalService {
     const claim = await this.claim(rawShareToken, rawRequestToken, clock());
     if (claim.kind === 'EXISTING') return claim.session;
 
+    // EL TOPE ES DEL PRODUCTO, y por eso viaja con el pedido.
+    //
+    // La confirmacion publica rechaza mas de MAX_VERIFIER_REQUIREMENTS. Una
+    // propuesta de 34 candidatos no es "una propuesta un poco larga": es un
+    // estado que el verificador no puede confirmar nunca. Se pide la SELECCION a
+    // la etapa que lee la fuente; si igual vuelve excedida, cae por el camino de
+    // salida inutilizable que ya existe -- sin recortar, sin aceptar los primeros
+    // 12 y sin persistirla. Cuota, cooldown y reintentos no cambian.
     let proposal: ObjectiveRequirementProposalResponseDto;
     try {
-      proposal = await this.proposals.propose(claim.input);
+      proposal = await this.proposals.propose(claim.input, MAX_VERIFIER_REQUIREMENTS);
     } catch (error: unknown) {
       throw await this.onProviderFailure(claim.attemptId, error, clock());
     }

@@ -100,6 +100,34 @@ export const PUBLIC_FINAL_STATE_LABELS: Record<PublicFinalStateToken, string> = 
   ABSTAIN: 'No se pudo determinar con suficiente confiabilidad'
 };
 
+/**
+ * Que significa cada estado, en una frase, para quien lee el resultado.
+ *
+ * TRES ESTADOS NO POSITIVOS Y TRES SIGNIFICADOS DISTINTOS. Colapsarlos en
+ * "la evidencia no alcanza" le miente al lector en dos de los tres casos:
+ *
+ *   INSUFFICIENT_EVIDENCE  el requisito SI es evaluable desde evidencia
+ *                          formativa; lo que falta es evidencia.
+ *   NOT_ASSESSABLE         el requisito no se evalua adecuadamente SOLO con
+ *                          evidencia formativa. Mas credenciales del mismo tipo
+ *                          no cambiarian nada: no es un problema de cantidad.
+ *   ABSTAIN                el tipo de afirmacion si se podia evaluar, pero no se
+ *                          llego a una conclusion suficientemente fundada.
+ *
+ * Es COPY: no decide estados, no los deriva y no los reinterpreta. La policy
+ * determinista del backend ya decidio; aca solo se dice bien.
+ */
+export const PUBLIC_FINAL_STATE_EXPLANATIONS: Record<PublicFinalStateToken, string | null> = {
+  // Los positivos se explican con su propia evidencia, no con una frase generica.
+  SUPPORTED: null,
+  PARTIALLY_SUPPORTED: null,
+  INSUFFICIENT_EVIDENCE: 'La evidencia compartida no alcanza para justificar este requisito.',
+  NOT_ASSESSABLE:
+    'Este requisito no puede evaluarse adecuadamente únicamente a partir de la evidencia formativa compartida.',
+  ABSTAIN:
+    'Scope pudo evaluar este tipo de requisito, pero no llegó a una conclusión suficientemente fundada con la evidencia compartida.'
+};
+
 export const PUBLIC_SOURCE_KINDS = ['DOCUMENT', 'TEXT'] as const;
 export type PublicSourceKindToken = (typeof PUBLIC_SOURCE_KINDS)[number];
 

@@ -256,3 +256,42 @@ def test_la_respuesta_no_expone_nada_del_proveedor(client: TestClient) -> None:
     ):
         assert prohibido not in payload
     assert response_text is not None
+
+
+# ---------------------------------------------------------------------------
+# Presupuesto de seleccion — el borde lo transporta y lo hace cumplir
+# ---------------------------------------------------------------------------
+
+
+def test_el_presupuesto_es_opcional_y_por_defecto_no_existe(client: TestClient) -> None:
+    payload = _post(client).json()
+    assert "requestedMaxProposedRequirements" not in payload["execution"]
+
+
+def test_el_presupuesto_viaja_y_se_declara_en_la_respuesta(client: TestClient) -> None:
+    payload = _post(client, maxProposedRequirements=12).json()
+    assert payload["execution"]["requestedMaxProposedRequirements"] == 12
+
+
+def test_una_propuesta_excedida_no_sale_como_exito(client: TestClient) -> None:
+    """Se descarta ENTERA por el camino de salida inutilizable. No se recorta."""
+    SpyProvider.output = {
+        "proposedRequirements": [
+            {
+                "proposedRequirementText": f"Requisito {index}",
+                "primarySourceQuote": "- Titulo universitario en una carrera afin.",
+                "auxiliarySourceQuotes": [],
+                "sourceSectionLabel": "Requisitos",
+            }
+            for index in range(34)
+        ],
+        "unresolvedPassages": [],
+    }
+    response = _post(client, maxProposedRequirements=12)
+    assert response.status_code == 502
+    assert response.json()["code"] == "PROVIDER_INVALID_OUTPUT"
+
+
+def test_un_presupuesto_no_positivo_es_un_problema_del_llamante(client: TestClient) -> None:
+    assert _post(client, maxProposedRequirements=0).status_code == 422
+    assert SpyProvider.calls == 0

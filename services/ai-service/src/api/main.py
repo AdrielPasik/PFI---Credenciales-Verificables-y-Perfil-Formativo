@@ -495,6 +495,7 @@ def objective_requirement_proposal(payload: ObjectiveRequirementProposalRequest)
             objective_type=payload.objectiveType,
             title=payload.title,
             raw_objective_text=payload.rawObjectiveText,
+            max_proposed_requirements=payload.maxProposedRequirements,
         )
     except ObjectiveTooLargeError as exc:
         return objective_understanding_error(

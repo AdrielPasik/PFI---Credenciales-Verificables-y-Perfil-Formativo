@@ -95,6 +95,31 @@ OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA: dict[str, Any] = {
     },
 }
 
+def objective_understanding_output_schema(
+    max_proposed_requirements: int | None = None,
+) -> dict[str, Any]:
+    """El schema de salida, acotado si el llamante declara un presupuesto.
+
+    Sin presupuesto devuelve EXACTAMENTE el schema congelado: es el mismo objeto,
+    no una copia equivalente, asi que el camino del holder manda al proveedor la
+    misma peticion que evaluo P2.1.
+
+    Con presupuesto se agrega `maxItems`. Es una restriccion ESTRUCTURAL del modo
+    de salida estructurada, no una sugerencia en prosa; sigue sin ser suficiente,
+    y por eso `validate_provider_output` vuelve a contar del lado del servidor.
+    """
+    if max_proposed_requirements is None:
+        return OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA
+
+    bounded = dict(OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA)
+    properties = dict(bounded["properties"])
+    proposals = dict(properties["proposedRequirements"])
+    proposals["maxItems"] = max_proposed_requirements
+    properties["proposedRequirements"] = proposals
+    bounded["properties"] = properties
+    return bounded
+
+
 #: Campos que el proveedor NUNCA puede aportar con autoridad. Se declara explicito
 #: para que el test estructural no dependa de leer el schema a mano.
 PROVIDER_FORBIDDEN_FIELDS = (

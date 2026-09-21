@@ -625,9 +625,22 @@ function RequirementsStep(props: {
         <Button type="button" onClick={props.onConfirm} disabled={props.busy || filled === 0}>
           Confirmar requisitos
         </Button>
-        <p className="text-xs text-text-muted">
-          {filled} de hasta {MAX_REQUIREMENTS} requisitos
-        </p>
+        {/*
+          * DEFENSA, no decoracion. "34 de hasta 12 requisitos" se lee como un
+          * estado valido con un numero grande, y no lo es: es imposible. El
+          * backend ya no puede entregar una propuesta asi, y si alguna vez
+          * llegara, aca se nombra el exceso en vez de maquillarlo de contador.
+          */}
+        {filled > MAX_REQUIREMENTS ? (
+          <p role="status" className="text-xs font-semibold text-amber-900">
+            Hay {filled} requisitos y el máximo es {MAX_REQUIREMENTS}. Eliminá{' '}
+            {filled - MAX_REQUIREMENTS} para poder confirmar.
+          </p>
+        ) : (
+          <p className="text-xs text-text-muted">
+            {filled} de hasta {MAX_REQUIREMENTS} requisitos
+          </p>
+        )}
       </div>
     </section>
   );

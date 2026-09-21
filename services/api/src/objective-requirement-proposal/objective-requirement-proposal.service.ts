@@ -52,8 +52,21 @@ import { verifyObjectiveProposalResponse } from './objective-requirement-proposa
 export class ObjectiveRequirementProposalService {
   public constructor(private readonly aiServiceClient: AiServiceClient) {}
 
+  /**
+   * `maxRequirements` es el presupuesto de selección del llamante.
+   *
+   * El holder NO manda ninguno: su revisión no tiene tope de producto y acotarlo
+   * cambiaría una semántica que P2.1 evaluó sin cota. El verificador público sí,
+   * porque su confirmación rechaza más de 12 y exponer 34 candidatos que jamás
+   * podrían confirmarse no es una propuesta: es un estado imposible.
+   *
+   * Cuando hay presupuesto, la SELECCIÓN la hace la etapa que lee la fuente. Acá
+   * no se recorta nada: una propuesta que excede el tope se trata como salida
+   * inutilizable, igual que cualquier otra violación del contrato.
+   */
   public async propose(
-    input: ObjectiveRequirementProposalInput
+    input: ObjectiveRequirementProposalInput,
+    maxRequirements?: number
   ): Promise<ObjectiveRequirementProposalResponseDto> {
     let response: unknown;
     try {
@@ -61,7 +74,8 @@ export class ObjectiveRequirementProposalService {
         schemaVersion: OBJECTIVE_REQUIREMENT_PROPOSAL_REQUEST_SCHEMA_VERSION,
         objectiveType: input.objectiveType,
         title: input.title,
-        rawObjectiveText: input.rawObjectiveText
+        rawObjectiveText: input.rawObjectiveText,
+        maxProposedRequirements: maxRequirements ?? null
       });
     } catch (error: unknown) {
       throw this.toStageError(error);
@@ -72,7 +86,9 @@ export class ObjectiveRequirementProposalService {
       // El texto contra el que se verifica es el que ESTE proceso envió, no uno
       // que venga en la respuesta: verificar contra el eco del servicio remoto no
       // verificaría nada.
-      verified = verifyObjectiveProposalResponse(response, input.rawObjectiveText);
+      verified = verifyObjectiveProposalResponse(response, input.rawObjectiveText, {
+        maxCandidates: maxRequirements
+      });
     } catch (error: unknown) {
       if (error instanceof ObjectiveProposalArtifactInvariantError) {
         // El AI service afirmó éxito y su artefacto no cumple el contrato

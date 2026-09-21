@@ -24,11 +24,12 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import type {
-  PublicAnalysisResultVM,
-  PublicFinalStateToken,
-  PublicRequirementResultVM,
-  PublicSupportingCredentialVM
+import {
+  PUBLIC_FINAL_STATE_EXPLANATIONS,
+  type PublicAnalysisResultVM,
+  type PublicFinalStateToken,
+  type PublicRequirementResultVM,
+  type PublicSupportingCredentialVM
 } from '@/models/public-analysis';
 
 /**
@@ -155,8 +156,9 @@ export function AnalysisResultView({ result }: { result: PublicAnalysisResultVM 
 }
 
 function RequirementResultCard({ requirement }: { requirement: PublicRequirementResultVM }) {
-  const positive =
-    requirement.finalState === 'SUPPORTED' || requirement.finalState === 'PARTIALLY_SUPPORTED';
+  // Cada estado no positivo dice LO SUYO. Una frase unica para los tres seria
+  // mas corta y afirmaria, en dos de los tres casos, algo que no paso.
+  const explanation = PUBLIC_FINAL_STATE_EXPLANATIONS[requirement.finalState];
 
   return (
     <Card className="min-w-0">
@@ -199,11 +201,7 @@ function RequirementResultCard({ requirement }: { requirement: PublicRequirement
           </div>
         ) : null}
 
-        {!positive ? (
-          <p className="text-sm text-text-muted">
-            Para este requisito, la evidencia compartida no alcanza para afirmar un respaldo.
-          </p>
-        ) : null}
+        {explanation === null ? null : <p className="text-sm text-text-muted">{explanation}</p>}
       </CardContent>
     </Card>
   );

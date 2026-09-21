@@ -55,8 +55,8 @@ from src.api.objective_understanding.provider import (
     configured_model,
 )
 from src.api.objective_understanding.schema import (
-    OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA,
     PROVIDER_SCHEMA_NAME,
+    objective_understanding_output_schema,
 )
 from src.api.objective_understanding.validation import validate_provider_output
 
@@ -95,14 +95,25 @@ def run_objective_understanding(
     objective_type: str,
     title: str,
     raw_objective_text: str,
+    max_proposed_requirements: int | None = None,
     provider: Any | None = None,
 ) -> dict[str, Any]:
     """Ejecuta la etapa completa y devuelve el envelope productivo.
 
     `provider` se inyecta en tests. En produccion se construye aca, DESPUES de los
     guards: construirlo antes leeria configuracion que quiza no vamos a usar.
+
+    `max_proposed_requirements` es el presupuesto de seleccion del llamante, y
+    atraviesa las TRES capas: el prompt pide elegir, el json_schema lo restringe
+    estructuralmente y la validacion vuelve a contar. Que el proveedor diga que
+    respeto un maximo no es lo mismo que haberlo respetado.
+
+    Sin presupuesto --el camino del holder-- no cambia absolutamente nada: mismo
+    prompt, mismo schema, misma validacion.
     """
     assert_objective_fits(raw_objective_text)
+    if max_proposed_requirements is not None and max_proposed_requirements < 1:
+        raise ObjectiveInputError("max_proposed_requirements_not_positive")
 
     # Lee configuracion y falla cerrado si falta, antes de cualquier llamada.
     requested_model = configured_model()
@@ -113,17 +124,20 @@ def run_objective_understanding(
         objective_type=objective_type,
         title=title,
         raw_objective_text=raw_objective_text,
+        max_proposed_requirements=max_proposed_requirements,
     )
 
     observation = client.complete(
         prompt=prompt,
         schema_name=PROVIDER_SCHEMA_NAME,
-        schema=OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA,
+        schema=objective_understanding_output_schema(max_proposed_requirements),
         model=requested_model,
         reasoning_effort=SUPPORTED_REASONING_EFFORT,
     )
 
-    proposals, unresolved = validate_provider_output(observation.output)
+    proposals, unresolved = validate_provider_output(
+        observation.output, max_proposed_requirements
+    )
     artifact = build_proposal_artifact(raw_objective_text, proposals, unresolved)
 
     execution: dict[str, Any] = {
@@ -145,6 +159,10 @@ def run_objective_understanding(
     }
     if observation.reported_model is not None:
         execution["reportedEffectiveModel"] = observation.reported_model
+    if max_proposed_requirements is not None:
+        # Se declara lo que ESTA ejecucion acoto, para que NestJS pueda verificar
+        # contra su propio tope en vez de confiar en que el pedido llego.
+        execution["requestedMaxProposedRequirements"] = max_proposed_requirements
 
     # Sin respuesta cruda, sin prompt, sin tokens, sin razonamiento interno. El
     # artifact estructurado construido por codigo confiable ES la salida.

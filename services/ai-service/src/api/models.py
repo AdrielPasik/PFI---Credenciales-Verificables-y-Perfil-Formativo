@@ -151,6 +151,11 @@ class ObjectiveRequirementProposalRequest(BaseModel):
 
     `title` viaja SOLO como contexto de interpretacion. La autoridad sobre que
     Requirements existen es unicamente `rawObjectiveText`.
+
+    `maxProposedRequirements` es OPCIONAL. Existe porque hay consumidores que solo
+    pueden trabajar con un numero acotado de Requirements y necesitan que la
+    SELECCION la haga la etapa que lee la fuente, no un recorte posterior. Omitirlo
+    reproduce exactamente el comportamiento evaluado en P2.1.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -161,6 +166,7 @@ class ObjectiveRequirementProposalRequest(BaseModel):
     # crea Requirements de todos modos.
     title: str
     rawObjectiveText: str = Field(min_length=1)
+    maxProposedRequirements: int | None = Field(default=None, ge=1)
 
 
 # ---------------------------------------------------------------------------

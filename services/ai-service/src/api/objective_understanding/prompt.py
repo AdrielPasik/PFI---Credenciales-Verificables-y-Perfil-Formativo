@@ -149,6 +149,7 @@ def build_objective_understanding_prompt(
     objective_type: str,
     title: str,
     raw_objective_text: str,
+    max_proposed_requirements: int | None = None,
 ) -> str:
     """Arma el prompt exactamente como lo armaba el candidato evaluado.
 
@@ -158,8 +159,13 @@ def build_objective_understanding_prompt(
     `title` viaja SOLO como contexto de interpretacion y el rotulo lo dice en el
     propio prompt. La autoridad sobre que Requirements existen es unicamente
     `raw_objective_text`.
+
+    `max_proposed_requirements` es ADITIVO y opcional. Sin el --el camino del
+    holder-- el prompt sale caracter por caracter como salia antes: el cuerpo
+    congelado no se toca y el sobre tampoco. Con el, se agrega al FINAL un bloque
+    de seleccion, ya leida la fuente, donde el modelo puede elegir con criterio.
     """
-    return (
+    prompt = (
         INSTRUCTIONS
         + "\n\n=== OBJECTIVE ===\n"
         + "objectiveType: " + objective_type + "\n"
@@ -168,3 +174,56 @@ def build_objective_understanding_prompt(
         + raw_objective_text
         + "\n--- fin del texto crudo ---\n"
     )
+    if max_proposed_requirements is None:
+        return prompt
+    return prompt + build_selection_budget_block(max_proposed_requirements)
+
+
+# ---------------------------------------------------------------------------
+# Presupuesto de seleccion — additive, y SOLO para llamantes acotados
+# ---------------------------------------------------------------------------
+
+#: Bloque de seleccion. Vive FUERA de `INSTRUCTIONS` a proposito: el cuerpo
+#: congelado sigue siendo byte-identico a OU_A2 y su hash no se mueve. Un
+#: llamante sin presupuesto (el holder) arma exactamente el mismo prompt que
+#: antes, caracter por caracter.
+#:
+#: POR QUE VA EN EL PROMPT Y NO EN UN `slice(0, N)`. Recortar despues de un orden
+#: arbitrario deja que el primer parrafo de responsabilidades desplace al titulo
+#: requerido, al idioma y al excluyente. Lo unico que puede elegir QUE 12 son
+#: materialmente relevantes es la etapa que lee la fuente.
+SELECTION_BUDGET_TEMPLATE = """
+
+=== PRESUPUESTO DE SELECCION ===
+Este consumidor solo puede trabajar con un maximo de {maximum} Candidate Requirements.
+Emiti como mucho {maximum}. Emitir mas invalida la respuesta entera: no se recorta, se descarta.
+
+Las reglas de granularidad, qualifiers, negacion, citas y orden de arriba NO cambian.
+Lo unico que cambia es que tenes que ELEGIR, y elegir tiene reglas:
+
+1. PRIORIZA las secciones que el Objective presenta como criterios: requisitos, requerimientos,
+   "se requiere", conocimientos, calificaciones, perfil buscado, excluyentes, deseables.
+2. Una seccion de responsabilidades o tareas NO se convierte en un Requirement por cada oracion.
+   De ahi solo sale un claim cuando la oracion expresa una capacidad materialmente exigida a la
+   persona, y no la descripcion del puesto o del entorno.
+3. NUNCA descartes, si estan en la fuente: un requisito marcado como excluyente u obligatorio;
+   un titulo, carrera o certificacion requerida; una exigencia explicita de anos de experiencia;
+   un requisito de idioma cuando la fuente lo pide de verdad; las tecnologias nombradas.
+4. Cuando la fuente presenta varios elementos como UN criterio, quedan en UN claim con sus
+   elementos nombrados. "MariaDB, MongoDB y KeyDB" es un requisito de bases de datos, no tres.
+   "Kafka y RabbitMQ" es un requisito de mensajeria. "Docker y Kubernetes" puede ser uno solo si
+   la fuente los presenta juntos y ningun qualifier los distingue.
+5. NO fusiones condiciones independientes para que entren en el presupuesto. Un titulo requerido,
+   un nivel de ingles y experiencia en Unix son TRES claims distintos y no pueden empaquetarse en
+   uno. Un "excluyente" queda pegado al requisito exacto que califica, nunca a un cajon.
+6. Si tenes que dejar algo afuera, dejalo afuera del todo: no lo escondas dentro de otro claim.
+7. No ordenes por importancia, no puntues, no midas ajuste. El orden sigue siendo el de la fuente.
+
+El objetivo son hasta {maximum} unidades de evaluacion utiles y coherentes, no {maximum} cajones.
+=== FIN DEL PRESUPUESTO DE SELECCION ===
+"""
+
+
+def build_selection_budget_block(maximum: int) -> str:
+    """Bloque aditivo que acota cuantos candidatos puede emitir la etapa."""
+    return SELECTION_BUDGET_TEMPLATE.format(maximum=maximum)
