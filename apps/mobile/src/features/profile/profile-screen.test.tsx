@@ -122,13 +122,43 @@ describe('pantalla de perfil formativo', () => {
     expect(screen.getByText('1 credencial no informa horas.')).toBeTruthy();
   });
 
-  it('muestra áreas, habilidades y conceptos', async () => {
+  it('muestra áreas y habilidades de entrada', async () => {
     await renderProfile();
 
     expect(screen.getByText('Infraestructura')).toBeTruthy();
     expect(screen.getByText('120 horas estimadas por IA')).toBeTruthy();
-    expect(screen.getAllByText('Administración de sistemas').length).toBeGreaterThan(0);
-    expect(screen.getByText('Modelo OSI')).toBeTruthy();
+    expect(
+      screen.getAllByText('Administración de sistemas').length
+    ).toBeGreaterThan(0);
+  });
+
+  it('los conceptos quedan en el detalle, no en la vista de entrada', async () => {
+    await renderProfile();
+
+    // Misma profundidad por defecto que Holder Web: el resumen primero, la
+    // taxonomía completa bajo demanda. No se filtra nada: se muestra después.
+    expect(screen.queryByText('Modelo OSI')).toBeNull();
+
+    await fireEvent.press(screen.getByTestId('profile-detail-disclosure'));
+
+    await waitFor(() =>
+      expect(screen.getByText('Modelo OSI')).toBeTruthy()
+    );
+    expect(screen.getByText('Conceptos relacionados')).toBeTruthy();
+  });
+
+  it('el detalle desplegable muestra también los datos del análisis', async () => {
+    await renderProfile();
+
+    await fireEvent.press(screen.getByTestId('profile-detail-disclosure'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-about')).toBeTruthy()
+    );
+    expect(screen.getByText('Acerca de este perfil')).toBeTruthy();
+    expect(
+      screen.getByText(/Confianza del análisis: 66% de confianza/)
+    ).toBeTruthy();
   });
 
   it('explica la procedencia con texto visible, no sólo con un icono', async () => {
@@ -144,12 +174,16 @@ describe('pantalla de perfil formativo', () => {
   it('distingue lo declarado por la institución de lo interpretado por IA', async () => {
     await renderProfile();
 
-    expect(
-      screen.getByText('Información declarada por instituciones')
-    ).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('profile-detail-disclosure'));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Información declarada por instituciones')
+      ).toBeTruthy()
+    );
     expect(
       screen.getByText(
-        'Proviene de credenciales emitidas. No es una certificación de la IA.'
+        /No es una certificación de la\s+IA ni reemplaza la interpretación asistida/
       )
     ).toBeTruthy();
   });
@@ -157,7 +191,11 @@ describe('pantalla de perfil formativo', () => {
   it('renderiza contenido declarado de 500 caracteres como texto, no como chip', async () => {
     await renderProfile();
 
-    expect(screen.getByTestId('profile-emitted-competencies')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('profile-detail-disclosure'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-emitted-competencies')).toBeTruthy()
+    );
 
     const longEntry = screen.getAllByText(LONG_TEXT_500)[0];
     expect(longEntry).toBeTruthy();
@@ -370,5 +408,35 @@ describe('compartir perfil', () => {
     await waitFor(() =>
       expect(screen.getByText('No pudimos compartir')).toBeTruthy()
     );
+  });
+});
+
+describe('entrada a Objetivos desde el perfil', () => {
+  it('ofrece analizar un objetivo entre el perfil y las credenciales', async () => {
+    await renderProfile();
+
+    expect(screen.getByTestId('objective-entry-card')).toBeTruthy();
+    expect(screen.getByText('Analizá tu trayectoria en contexto')).toBeTruthy();
+    expect(screen.getByTestId('objective-entry-analyze')).toBeTruthy();
+    expect(screen.getByTestId('objective-entry-list')).toBeTruthy();
+  });
+
+  it('la entrada a Objetivos NO dispara ninguna petición al montar', async () => {
+    const { calls } = await renderProfile();
+
+    // Ver mis objetivos está siempre visible: condicionarlo a que exista al
+    // menos uno obligaría a pedir la lista sólo para decidir si se dibuja.
+    expect(calls.some((call) => call.path === '/me/objectives')).toBe(false);
+    expect(calls.some((call) => call.path === '/me/reasoning-runs')).toBe(false);
+  });
+
+  it('presenta las credenciales como base de evidencia', async () => {
+    await renderProfile();
+
+    expect(
+      screen.getByText(
+        'Estas credenciales forman la base de evidencia de tu trayectoria.'
+      )
+    ).toBeTruthy();
   });
 });

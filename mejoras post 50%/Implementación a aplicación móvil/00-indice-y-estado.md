@@ -131,6 +131,7 @@ npm run export
 | Saber qué existe en Web y qué en Mobile | `03-ledger-de-paridad-web-mobile.md` |
 | Generar un APK para la demo del PFI | `10-plan-de-deployment.md` |
 | Saber qué falta | `11-brechas-y-trabajo-futuro.md` |
+| Entender Objetivos y Análisis de trayectoria en mobile | `14-recuperacion-de-paridad-objetivos-y-razonamiento.md` |
 | Agregar una capacidad nueva sin romper la paridad | `12-protocolo-de-sincronizacion-holder.md` |
 
 ## 7. Documentos de esta carpeta
@@ -151,6 +152,7 @@ npm run export
 | `11-brechas-y-trabajo-futuro.md` | Brechas clasificadas por severidad y dueño. |
 | `12-protocolo-de-sincronizacion-holder.md` | Cómo mantener Web y Mobile alineados. |
 | `13-handoff.md` | "Continuá desde acá". |
+| `14-recuperacion-de-paridad-objetivos-y-razonamiento.md` | Auditoría de deriva e implementación de Objetivos y Análisis de trayectoria (2026-09-27). |
 
 ## 8. Nota sobre el control de versiones
 

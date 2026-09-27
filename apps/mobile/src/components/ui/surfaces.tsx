@@ -19,14 +19,17 @@ import {
 export function ScopeCard({
   children,
   style,
-  tone = 'surface'
+  tone = 'surface',
+  testID
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   tone?: 'surface' | 'inverse' | 'muted';
+  testID?: string;
 }) {
   return (
     <View
+      testID={testID}
       style={[
         styles.card,
         tone === 'inverse' && styles.cardInverse,

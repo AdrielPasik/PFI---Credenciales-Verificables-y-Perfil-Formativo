@@ -38,6 +38,20 @@ export const DEFAULT_TIMEOUT_MS = 20_000;
  */
 export const AUTH_TIMEOUT_MS = 45_000;
 
+/**
+ * Operaciones respaldadas por el proveedor de IA, que el backend resuelve de
+ * forma SÍNCRONA.
+ *
+ * La propuesta de requisitos hace una llamada al proveedor; la ejecución de un
+ * análisis hace UNA POR REQUISITO, así que su latencia crece con la cantidad de
+ * requisitos del objetivo. Con el límite general de 20 s, una ejecución válida
+ * se abortaría del lado del cliente mientras el servidor sigue trabajando —y
+ * esa llamada al proveedor ya se pagó—.
+ *
+ * No es "sin límite": una petición colgada tiene que terminar en algún momento.
+ */
+export const LONG_OPERATION_TIMEOUT_MS = 180_000;
+
 export class HttpClient {
   constructor(
     private readonly baseUrl: string,

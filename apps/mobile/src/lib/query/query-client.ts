@@ -60,5 +60,9 @@ export const queryKeys = {
   profile: ['holder', 'profile', 'current'] as const,
   credentials: ['holder', 'credentials'] as const,
   credential: (credentialReference: string) =>
-    ['holder', 'credentials', credentialReference] as const
+    ['holder', 'credentials', credentialReference] as const,
+  objectives: ['holder', 'objectives'] as const,
+  objective: (objectiveReference: string) =>
+    ['holder', 'objectives', objectiveReference] as const,
+  reasoningRuns: ['holder', 'reasoning-runs'] as const
 };

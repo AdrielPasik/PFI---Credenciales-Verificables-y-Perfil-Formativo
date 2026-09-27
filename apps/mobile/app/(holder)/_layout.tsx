@@ -42,6 +42,18 @@ export default function HolderLayout() {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
+        name="objectives/index"
+        options={{ title: 'Mis objetivos', headerBackTitle: 'Perfil' }}
+      />
+      <Stack.Screen
+        name="objectives/new"
+        options={{ title: 'Nuevo objetivo', headerBackTitle: 'Objetivos' }}
+      />
+      <Stack.Screen
+        name="objectives/[objectiveId]"
+        options={{ title: 'Objetivo', headerBackTitle: 'Objetivos' }}
+      />
+      <Stack.Screen
         name="credentials/[credentialId]"
         options={{
           title: 'Credencial',

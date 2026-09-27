@@ -16,6 +16,7 @@ import { ScopeText } from '@/components/ui/text';
 import { CredentialCard } from '@/features/credentials/credential-card';
 import { mapHolderError } from '@/features/credentials/holder-error-mapper';
 import { useCredentials } from '@/features/credentials/use-credentials';
+import { ObjectiveEntryCard } from '@/features/objectives/objective-entry-card';
 import { ProfilePanel } from '@/features/profile/profile-panel';
 import {
   useCurrentProfile,
@@ -130,9 +131,17 @@ export function ProfileScreen() {
         />
       ) : null}
 
+      {/*
+        Objetivos va ENTRE el perfil y las credenciales: el perfil responde
+        "quién soy" y el objetivo es la pregunta siguiente, no la primera.
+        Se muestra siempre, incluso sin perfil todavía: preparar un objetivo
+        no depende de que exista una proyección de perfil.
+      */}
+      <ObjectiveEntryCard />
+
       <ScopeSection
         title="Tus credenciales"
-        description="Las credenciales que respaldan tu trayectoria."
+        description="Estas credenciales forman la base de evidencia de tu trayectoria."
         action={
           credentials.length > 0 ? (
             <ScopeButton

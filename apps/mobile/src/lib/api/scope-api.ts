@@ -8,9 +8,19 @@ import {
   adaptMyCredentials,
   adaptMyCurrentProfile
 } from '@/lib/adapters/holder.adapter';
+import {
+  adaptObjectiveDetail,
+  adaptObjectiveProposal,
+  adaptObjectiveSummaries
+} from '@/lib/adapters/objectives.adapter';
 import { adaptProfileShareLink } from '@/lib/adapters/profile-sharing.adapter';
 import {
+  adaptReasoningRunDetail,
+  adaptReasoningRunSummaries
+} from '@/lib/adapters/reasoning-runs.adapter';
+import {
   AUTH_TIMEOUT_MS,
+  LONG_OPERATION_TIMEOUT_MS,
   type AuthenticatedRequest,
   type HttpClient
 } from '@/lib/api/http-client';
@@ -20,6 +30,17 @@ import type {
   HolderCredentialListItemVM,
   HolderProfileVM
 } from '@/types/holder';
+import type {
+  CreateObjectiveRequestBody,
+  ObjectiveDetailVM,
+  ObjectiveProposalRequestBody,
+  ObjectiveProposalVM,
+  ObjectiveSummaryVM
+} from '@/types/objectives';
+import type {
+  ReasoningRunDetailVM,
+  ReasoningRunSummaryVM
+} from '@/types/reasoning-runs';
 import type { ProfileShareLinkVM } from '@/types/sharing';
 
 /**
@@ -144,4 +165,136 @@ export class InvalidCredentialReferenceError extends Error {
     super('La referencia de credencial no es válida.');
     this.name = 'InvalidCredentialReferenceError';
   }
+}
+
+// ---------------------------------------------------------------------------
+// Objetivos
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /me/objective-requirement-proposals
+ *
+ * Llama al proveedor: usa el timeout de operación larga. La respuesta es
+ * TRANSITORIA — no se persiste nada y no se puede recuperar después.
+ */
+export async function proposeObjectiveRequirementsRequest(
+  request: AuthenticatedRequest,
+  body: ObjectiveProposalRequestBody,
+  signal?: AbortSignal
+): Promise<ObjectiveProposalVM> {
+  return adaptObjectiveProposal(
+    await request('/me/objective-requirement-proposals', {
+      method: 'POST',
+      body,
+      signal,
+      timeoutMs: LONG_OPERATION_TIMEOUT_MS
+    })
+  );
+}
+
+/** POST /me/objectives. Persiste el contenido confirmado por la persona. */
+export async function createObjectiveRequest(
+  request: AuthenticatedRequest,
+  body: CreateObjectiveRequestBody
+): Promise<ObjectiveDetailVM> {
+  return adaptObjectiveDetail(
+    await request('/me/objectives', { method: 'POST', body })
+  );
+}
+
+/** GET /me/objectives */
+export async function listMyObjectivesRequest(
+  request: AuthenticatedRequest
+): Promise<ObjectiveSummaryVM[]> {
+  return adaptObjectiveSummaries(await request('/me/objectives'));
+}
+
+/** GET /me/objectives/:objectiveId */
+export async function getMyObjectiveRequest(
+  request: AuthenticatedRequest,
+  objectiveReference: string
+): Promise<ObjectiveDetailVM> {
+  const reference = objectiveReference.trim();
+
+  if (!reference) {
+    throw new InvalidObjectiveReferenceError();
+  }
+
+  return adaptObjectiveDetail(
+    await request(`/me/objectives/${encodeURIComponent(reference)}`)
+  );
+}
+
+export class InvalidObjectiveReferenceError extends Error {
+  constructor() {
+    super('La referencia del objetivo no es válida.');
+    this.name = 'InvalidObjectiveReferenceError';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Análisis de trayectoria (ReasoningRun)
+// ---------------------------------------------------------------------------
+
+/** GET /me/reasoning-runs. Llega ordenado por `createdAt` descendente. */
+export async function listMyReasoningRunsRequest(
+  request: AuthenticatedRequest
+): Promise<ReasoningRunSummaryVM[]> {
+  return adaptReasoningRunSummaries(await request('/me/reasoning-runs'));
+}
+
+/** GET /me/reasoning-runs/:reasoningRunId */
+export async function getMyReasoningRunRequest(
+  request: AuthenticatedRequest,
+  reasoningRunReference: string
+): Promise<ReasoningRunDetailVM> {
+  return adaptReasoningRunDetail(
+    await request(
+      `/me/reasoning-runs/${encodeURIComponent(reasoningRunReference)}`
+    )
+  );
+}
+
+/**
+ * POST /me/reasoning-runs
+ *
+ * Congela el universo de evidencia y crea el run. NO ejecuta. Puede devolver un
+ * run que ya nace `failed` —si el inventario quedó bloqueado—; eso no es un
+ * fallo de la petición: el recurso existe.
+ */
+export async function createMyReasoningRunRequest(
+  request: AuthenticatedRequest,
+  objectiveReference: string
+): Promise<ReasoningRunDetailVM> {
+  return adaptReasoningRunDetail(
+    await request('/me/reasoning-runs', {
+      method: 'POST',
+      body: { objectiveId: objectiveReference },
+      timeoutMs: LONG_OPERATION_TIMEOUT_MS
+    })
+  );
+}
+
+/**
+ * POST /me/reasoning-runs/:reasoningRunId/execute
+ *
+ * SÍNCRONO: la respuesta llega cuando el desenlace ya ocurrió, y puede tardar
+ * —el razonamiento contextual hace una llamada por requisito—. Devuelve el
+ * detalle completo, así que no hace falta un `GET` posterior.
+ *
+ * NO existe `/retry`, `/cancel` ni `/reset`: reintentar es volver a llamar a
+ * `execute` sobre un run propio que quedó `pending`, y un run que quedó
+ * `running` no se rescata —se crea uno nuevo—.
+ */
+export async function executeMyReasoningRunRequest(
+  request: AuthenticatedRequest,
+  reasoningRunReference: string,
+  signal?: AbortSignal
+): Promise<ReasoningRunDetailVM> {
+  return adaptReasoningRunDetail(
+    await request(
+      `/me/reasoning-runs/${encodeURIComponent(reasoningRunReference)}/execute`,
+      { method: 'POST', signal, timeoutMs: LONG_OPERATION_TIMEOUT_MS }
+    )
+  );
 }
