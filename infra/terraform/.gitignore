@@ -1,0 +1,21 @@
+# Terraform working directories and state. Nothing here may reach Git: state can
+# contain resource attributes, and *.tfvars can contain environment values.
+.terraform/
+.terraform.tfstate.lock.info
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Local variable and backend files. Only the *.example templates are versioned.
+*.tfvars
+*.tfvars.json
+backend.hcl
+!*.example
+
+# Terraform plan artifacts (may embed resource values).
+*.tfplan
+*.tfplan.*
+
+# The provider lock file IS versioned on purpose (reproducible provider set):
+# do not add .terraform.lock.hcl here.

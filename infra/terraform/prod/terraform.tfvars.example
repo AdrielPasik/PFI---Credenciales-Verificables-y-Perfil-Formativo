@@ -1,0 +1,49 @@
+# Copy to terraform.tfvars (gitignored) and adjust. NO SECRET EVER GOES IN HERE:
+# every credential lives in SSM Parameter Store or in the AWS-managed RDS secret.
+#
+# The defaults in variables.tf already encode the Block 1A posture, so this file
+# only needs the values you want to change.
+
+aws_region  = "us-east-1"
+environment = "prod"
+
+# --- Block 1A posture (foundations only) -----------------------------------
+# No service runs, no HTTPS listener, no certificate request, no DNS record.
+enable_services         = false
+enable_https_listener   = false
+request_acm_certificate = false
+create_api_dns_record   = false
+
+# Create the database with the foundations. Set to false to postpone the RDS
+# hourly cost and apply it on the day the migrations run.
+create_rds = true
+
+# --- Values to fill at cutover time ----------------------------------------
+# Exact Vercel production origin, no trailing slash. Empty = CORS disabled.
+# web_origin = "https://<project>.vercel.app"
+
+# Hosted zone id, only if scopeedu.technology is delegated to Route 53.
+# route53_zone_id = "Z0123456789ABCDEFGHIJ"
+
+# Certificate for api.scopeedu.technology, if it was issued outside this root.
+# acm_certificate_arn = "arn:aws:acm:us-east-1:<account>:certificate/<id>"
+
+# --- Block 1B (deploy) -----------------------------------------------------
+# api_image_tag = "<git-sha>"
+# ai_image_tag  = "<git-sha>"
+
+# --- GitHub Actions federation (OIDC, no access keys) ----------------------
+# Verify against `git remote -v` before applying. An AWS account may hold only
+# one OIDC provider for token.actions.githubusercontent.com: if one already
+# exists, set create_github_oidc_provider = false and pass its ARN.
+enable_github_oidc          = true
+create_github_oidc_provider = true
+github_owner                = "AdrielPasik"
+github_repository           = "PFI---Credenciales-Verificables-y-Perfil-Formativo"
+github_deploy_environments  = ["production"]
+# github_oidc_provider_arn  = "arn:aws:iam::<account>:oidc-provider/token.actions.githubusercontent.com"
+
+# --- Destroy safety ---------------------------------------------------------
+# Bump this before re-destroying an environment whose previous final snapshot
+# still exists; an RDS snapshot identifier can never be reused.
+rds_final_snapshot_suffix = "v1"

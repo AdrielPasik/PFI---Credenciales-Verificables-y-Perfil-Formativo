@@ -1,0 +1,9 @@
+# Copy to backend.hcl (gitignored) and fill in the bucket created by
+# infra/terraform/bootstrap. The bucket name embeds the AWS account id, which is
+# why it is not committed.
+#
+#   terraform init -backend-config=backend.hcl
+#
+# Everything else (key, region, encrypt, use_lockfile) is already fixed in
+# versions.tf.
+bucket = "scope-tfstate-<AWS_ACCOUNT_ID>-us-east-1"
