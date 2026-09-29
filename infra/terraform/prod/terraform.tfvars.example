@@ -17,6 +17,9 @@ create_api_dns_record   = false
 # Create the database with the foundations. Set to false to postpone the RDS
 # hourly cost and apply it on the day the migrations run.
 create_rds = true
+# This AWS Free Plan environment requires 1 day of automated backup retention;
+# the reusable default in variables.tf remains 7 days.
+rds_backup_retention_days = 1
 
 # --- Values to fill at cutover time ----------------------------------------
 # Exact Vercel production origin, no trailing slash. Empty = CORS disabled.

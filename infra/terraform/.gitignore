@@ -11,6 +11,7 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 backend.hcl
+bootstrap/backend.tf
 !*.example
 
 # Terraform plan artifacts (may embed resource values).
