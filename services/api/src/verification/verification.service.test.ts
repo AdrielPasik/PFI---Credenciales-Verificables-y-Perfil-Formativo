@@ -205,3 +205,12 @@ test('public holder label never falls back to private email or an internal id', 
   assert.equal(response.holder.displayLabel, null);
   assert.equal(JSON.stringify(response).includes('must-not-leak'), false);
 });
+
+test('the public verification summary names the current product, never the legacy brand', async () => {
+  const { service } = createContext();
+
+  const response = await service.getCredentialVerification('credential-public-1');
+
+  assert.match(response.verification.summary, /huella de integridad registrada por Scope/);
+  assert.equal(JSON.stringify(response).includes('Traza'), false);
+});

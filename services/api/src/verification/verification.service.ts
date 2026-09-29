@@ -147,8 +147,8 @@ export class VerificationService {
       return {
         result: 'valid_issued',
         summary: integrity.hasRegisteredBlockchainRecord
-          ? 'La credencial está emitida y conserva una huella de integridad registrada por Traza. Existe evidencia técnica de registro en la red configurada.'
-          : 'La credencial está emitida y conserva una huella de integridad registrada por Traza.'
+          ? 'La credencial está emitida y conserva una huella de integridad registrada por Scope. Existe evidencia técnica de registro en la red configurada.'
+          : 'La credencial está emitida y conserva una huella de integridad registrada por Scope.'
       };
     }
 
