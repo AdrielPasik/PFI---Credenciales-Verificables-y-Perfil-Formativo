@@ -17,6 +17,7 @@ RUN npm ci \
     --include-workspace-root=false
 
 COPY services/api ./services/api
+COPY data/academic_catalog ./data/academic_catalog
 COPY infra/terraform/sql ./infra/terraform/sql
 
 RUN npm run prisma:generate --workspace @credential-intelligence/api \
