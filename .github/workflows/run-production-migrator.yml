@@ -77,7 +77,7 @@ jobs:
 
           TASK_ARN="$(aws ecs run-task \
             --cluster scope-prod-cluster \
-            --task-definition scope-prod-migrator:3 \
+            --task-definition scope-prod-migrator \
             --launch-type FARGATE \
             --network-configuration 'awsvpcConfiguration={subnets=[subnet-075ecbc2b61716fef,subnet-0d58aa21130801c05],securityGroups=[sg-0b7284f9025ac2749],assignPublicIp=ENABLED}' \
             --overrides "$OVERRIDES" \
