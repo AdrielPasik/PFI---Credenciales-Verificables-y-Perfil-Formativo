@@ -80,6 +80,31 @@ test('storage factory defaults to local and never creates S3 without explicit se
   }
 });
 
+test('storage factory allows AWS default credential chain when explicit credentials are absent', () => {
+  const configs: unknown[] = [];
+
+  const adapter = createDocumentStorageAdapterFromEnv(
+    {
+      DOCUMENT_STORAGE_PROVIDER: 's3',
+      AWS_REGION: 'us-east-1',
+      AWS_S3_BUCKET: 'traza-demo-bucket',
+      AWS_S3_PREFIX: 'document-evidence'
+    },
+    {
+      createS3Client(config) {
+        configs.push(config);
+        return { send: async () => ({}) } as never;
+      }
+    }
+  );
+
+  assert.ok(adapter instanceof S3DocumentStorageAdapter);
+  assert.equal(configs.length, 1);
+  assert.deepEqual(configs[0], {
+    region: 'us-east-1'
+  });
+});
+
 test('storage factory creates S3 only with complete explicit safe configuration', () => {
   const configs: unknown[] = [];
   const adapter = createDocumentStorageAdapterFromEnv(
@@ -123,12 +148,7 @@ test('storage factory fails fast for invalid providers and incomplete S3 configu
     isConfigurationError
   );
 
-  const required = [
-    'AWS_REGION',
-    'AWS_S3_BUCKET',
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY'
-  ];
+  const required = ['AWS_REGION', 'AWS_S3_BUCKET'];
   const complete = {
     DOCUMENT_STORAGE_PROVIDER: 's3',
     AWS_REGION: 'us-east-1',
@@ -139,6 +159,28 @@ test('storage factory fails fast for invalid providers and incomplete S3 configu
 
   for (const missing of required) {
     const env = { ...complete, [missing]: ' ' };
+    assert.throws(
+      () => createDocumentStorageAdapterFromEnv(env),
+      isConfigurationError
+    );
+  }
+});
+
+test('storage factory rejects partial explicit AWS credentials', () => {
+  for (const env of [
+    {
+      DOCUMENT_STORAGE_PROVIDER: 's3',
+      AWS_REGION: 'us-east-1',
+      AWS_S3_BUCKET: 'traza-demo-bucket',
+      AWS_ACCESS_KEY_ID: 'test-access-key'
+    },
+    {
+      DOCUMENT_STORAGE_PROVIDER: 's3',
+      AWS_REGION: 'us-east-1',
+      AWS_S3_BUCKET: 'traza-demo-bucket',
+      AWS_SECRET_ACCESS_KEY: 'test-secret-key'
+    }
+  ]) {
     assert.throws(
       () => createDocumentStorageAdapterFromEnv(env),
       isConfigurationError
