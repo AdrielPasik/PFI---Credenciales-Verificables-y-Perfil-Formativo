@@ -223,6 +223,7 @@ model User {
   sharingGrants                  SharingGrant[]                             @relation("SharingGrantOwner")
   createdSharingGrants           SharingGrant[]                             @relation("SharingGrantCreator")
   authCredential                 AuthCredential?
+  platformAdmin                  PlatformAdmin?
   uploadedDocumentEvidences      DocumentEvidence[]                         @relation("DocumentEvidenceUploader")
   submittedTextEvidences         TextEvidence[]                             @relation("TextEvidenceSubmitter")
   requestedAnalysisRuns          AnalysisRun[]                              @relation("AnalysisRunRequester")
@@ -239,6 +240,44 @@ model AuthCredential {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// S1: capacidad de ADMINISTRACION DE PLATAFORMA, deliberadamente separada de
+/// IssuerMembership. Una fila = un User con esa capacidad.
+///
+/// POR QUE UNA TABLA Y NO UN CAMPO EN User. Hoy `User` es identidad pura: no
+/// tiene ni un solo campo de autorizacion. Toda autoridad de este sistema vive
+/// en una ARISTA (`IssuerMembership`), nunca en el nodo `User`. Este modelo es
+/// esa misma forma aplicada al plano de plataforma, y es el gemelo estructural
+/// de `AuthCredential` (1:1 con User, `userId @unique`, FK onDelete: Cascade).
+///
+/// NO TIENE issuerId A PROPOSITO. Por construccion no puede autorizar ninguna
+/// operacion sobre un Issuer concreto: un PlatformAdmin que quiera OPERAR un
+/// issuer necesita su propia IssuerMembership, igual que cualquier otro User.
+/// La autorizacion institucional sigue siendo exclusivamente la de
+/// `IssuersService` -- este modelo no le agrega ningun bypass.
+///
+/// SIN @@index([userId]). `@unique` ya emite un indice unico sobre esa columna
+/// (`PlatformAdmin_userId_key`), que es el que sirve al unico lookup del guard
+/// (`findUnique({ where: { userId } })`). Un `@@index` seria un segundo indice
+/// redundante sobre la misma columna: ni `AuthCredential.userId`, ni
+/// `ShareVerificationPolicy.sharingGrantId`, ni
+/// `VerificationRun.verificationRequestId` llevan companion.
+///
+/// SIN grantedByUserId. La trazabilidad de las mutaciones administrativas vive
+/// en `AuditLog` (que ya modela el actor como `actorId String?` sin FK), no en
+/// un campo con nombre de FK sin integridad referencial real dentro de una
+/// tabla de dominio. La concesion inicial es out-of-band (S2) y no tiene un
+/// otorgante dentro del sistema que se pueda referenciar honestamente.
+///
+/// SIN revokedAt: revocar es borrar la fila. El grant se resuelve contra la
+/// base en CADA request (ver platform-admin.guard.ts), nunca desde el JWT, asi
+/// que un DELETE revoca el acceso de inmediato sin esperar que expire el token.
+model PlatformAdmin {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  grantedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Issuer {

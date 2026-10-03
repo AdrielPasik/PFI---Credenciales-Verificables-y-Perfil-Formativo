@@ -14,6 +14,7 @@ import { IssuersModule } from './issuers/issuers.module';
 import { MeModule } from './me/me.module';
 import { ObjectivesModule } from './objectives/objectives.module';
 import { ObjectiveRequirementProposalModule } from './objective-requirement-proposal/objective-requirement-proposal.module';
+import { PlatformAdminModule } from './platform-admin/platform-admin.module';
 import { ReasoningRunModule } from './reasoning-run/reasoning-run.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProfilesModule } from './profiles/profiles.module';
@@ -34,6 +35,7 @@ import { VerificationModule } from './verification/verification.module';
     MeModule,
     ObjectivesModule,
     ObjectiveRequirementProposalModule,
+    PlatformAdminModule,
     ReasoningRunModule,
     ProfilesModule,
     ProfileSharingModule,
