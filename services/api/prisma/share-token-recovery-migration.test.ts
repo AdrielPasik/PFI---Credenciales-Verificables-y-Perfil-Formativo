@@ -35,10 +35,19 @@ test('no es destructiva ni reescribe el hash publico', () => {
 });
 
 test('no se modifico ninguna migracion ya aplicada', () => {
-  // La cadena solo crece: esta es la ultima carpeta por orden lexicografico.
+  // La cadena solo crece: esta migracion tiene que seguir PRESENTE y en su
+  // POSICION historica dentro del orden lexicografico.
+  //
+  // Antes se afirmaba que era la ultima carpeta (`at(-1)`), pero esa asercion
+  // se auto-invalidaba con la siguiente migration del repo: agregar al final es
+  // legitimo y no modifica nada ya aplicado. `indexOf` contra la posicion
+  // historica es append-safe y conserva intacto lo que el test queria detectar:
+  // borrarla o renombrarla devuelve -1, e insertar una migration
+  // cronologicamente anterior le corre el indice. Los tres casos siguen
+  // fallando.
   const all = readdirSync(join(__dirname, 'migrations'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .sort();
-  assert.equal(all.at(-1), '20260919120000_add_share_token_recovery');
+  assert.equal(all.indexOf('20260919120000_add_share_token_recovery'), 17);
 });

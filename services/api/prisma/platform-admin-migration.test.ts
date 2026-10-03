@@ -171,7 +171,12 @@ test('no applied migration was modified -- the chain only grows', async () => {
     .map((entry) => entry.name)
     .sort();
 
-  assert.equal(all.at(-1), MIGRATION, 'esta es la ultima carpeta por orden');
+  // PRESENTE y en su POSICION historica, no "la ultima carpeta": afirmar que es
+  // la ultima se auto-invalidaria con la proxima migration, porque agregar al
+  // final es legitimo y no modifica nada ya aplicado. `indexOf` es append-safe y
+  // sigue fallando si se la borra, se la renombra o se inserta una migration
+  // cronologicamente anterior que le corra el indice.
+  assert.equal(all.indexOf(MIGRATION), 18, 'posicion historica en la cadena');
   assert.equal(
     new Set(all).size,
     all.length,
