@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
 import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
+import { PlatformAdminMembershipGrantController } from './platform-admin-membership-grant.controller';
+import { PlatformAdminMembershipGrantService } from './platform-admin-membership-grant.service';
 import { PlatformAdminGuard } from './platform-admin.guard';
 import { PlatformAdminReadService } from './platform-admin-read.service';
 import { PlatformAdminUserResolutionController } from './platform-admin-user-resolution.controller';
@@ -29,17 +31,26 @@ import { PlatformAdminUserResolutionService } from './platform-admin-user-resolu
  * este modulo. Controller propio en vez de un metodo mas en el de issuers
  * porque la ruta no cuelga de `admin/issuers`: es `admin/users/resolve`, y un
  * `@Controller` tiene un unico prefijo.
+ *
+ * S5a suma el PRIMER writer del modulo. Comparte el prefijo `admin/issuers`
+ * con el controller de lecturas, pero vive en un controller APARTE a proposito:
+ * Nest resuelve rutas por metodo+path, asi que `GET :issuerId/memberships` y
+ * `POST :issuerId/memberships` no colisionan, y mantenerlos separados deja al
+ * controller de S3 verdaderamente read-only -- lo que el guard estructural del
+ * modulo comprueba archivo por archivo.
  */
 @Module({
   imports: [AuthModule],
   controllers: [
     PlatformAdminIssuersController,
-    PlatformAdminUserResolutionController
+    PlatformAdminUserResolutionController,
+    PlatformAdminMembershipGrantController
   ],
   providers: [
     PlatformAdminGuard,
     PlatformAdminReadService,
-    PlatformAdminUserResolutionService
+    PlatformAdminUserResolutionService,
+    PlatformAdminMembershipGrantService
   ],
   exports: [PlatformAdminGuard]
 })

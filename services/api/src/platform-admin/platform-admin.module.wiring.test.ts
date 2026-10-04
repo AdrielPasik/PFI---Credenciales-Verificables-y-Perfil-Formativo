@@ -23,6 +23,8 @@ import { PlatformAdminModule } from './platform-admin.module';
 import { PlatformAdminReadService } from './platform-admin-read.service';
 import { PlatformAdminUserResolutionController } from './platform-admin-user-resolution.controller';
 import { PlatformAdminUserResolutionService } from './platform-admin-user-resolution.service';
+import { PlatformAdminMembershipGrantController } from './platform-admin-membership-grant.controller';
+import { PlatformAdminMembershipGrantService } from './platform-admin-membership-grant.service';
 
 test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicating AuthService', async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'wiring-test-secret';
@@ -65,14 +67,20 @@ test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicat
     // exigia cero controllers; S3 la invierte a proposito.)
     // S4 suma el controller de resolucion de Users al MISMO modulo (su ruta no
     // cuelga de `admin/issuers`, y un @Controller tiene un unico prefijo).
+    // S5a suma el primer writer del modulo, en un controller aparte que
+    // comparte el prefijo `admin/issuers` con el de lecturas (Nest resuelve por
+    // metodo+path, asi que GET y POST no colisionan).
     assert.deepEqual(controllers, [
       PlatformAdminIssuersController,
-      PlatformAdminUserResolutionController
+      PlatformAdminUserResolutionController,
+      PlatformAdminMembershipGrantController
     ]);
     assert.ok(applicationContext.get(PlatformAdminIssuersController));
     assert.ok(applicationContext.get(PlatformAdminReadService));
     assert.ok(applicationContext.get(PlatformAdminUserResolutionController));
     assert.ok(applicationContext.get(PlatformAdminUserResolutionService));
+    assert.ok(applicationContext.get(PlatformAdminMembershipGrantController));
+    assert.ok(applicationContext.get(PlatformAdminMembershipGrantService));
 
     // Resoluble desde el AppModule real, no solo en aislamiento.
     const platformAdminGuard = applicationContext.get(PlatformAdminGuard);

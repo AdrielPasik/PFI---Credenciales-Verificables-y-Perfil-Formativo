@@ -46,3 +46,21 @@ export const PLATFORM_ADMIN_RESOURCE_TYPE = 'PlatformAdmin';
  * escribe un segundo AuditLog: no hubo un nuevo hecho que auditar.
  */
 export const PLATFORM_ADMIN_GRANTED_ACTION = 'platform_admin_granted';
+
+/** Entidad afectada por un grant institucional: el nombre del modelo. */
+export const ISSUER_MEMBERSHIP_RESOURCE_TYPE = 'IssuerMembership';
+
+/**
+ * Un PlatformAdmin asigno un User existente a un Issuer existente.
+ *
+ * S5a lo escribe en la MISMA transaccion que crea la fila `IssuerMembership`,
+ * con `resourceId` = el id de esa fila y `actorType = system_admin` (un
+ * PlatformAdmin humano actuando por HTTP, a diferencia del `system` del
+ * bootstrap de S2, que no tiene actor en una request).
+ *
+ * Vive aca y no como literal en el service por el mismo motivo que las dos
+ * constantes de arriba: `AuditLog.action` y `resourceType` son columnas
+ * `String` libres, sin enum que las restrinja, y centralizarlas es lo que
+ * impide que un slice futuro invente una segunda ortografia del mismo hecho.
+ */
+export const ISSUER_MEMBERSHIP_GRANTED_ACTION = 'issuer_membership_granted';

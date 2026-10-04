@@ -1,23 +1,35 @@
 /**
- * Guard estructural READ-ONLY de /admin -- slice S3.
+ * Guard estructural de la WRITE SURFACE de /admin -- S3, ampliado en S5a.
  *
  * Afirma UNA propiedad arquitectonica:
  *
- *     ningun archivo productivo de src/platform-admin escribe
- *     Issuer, IssuerMembership, User, PlatformAdmin ni AuditLog
+ *     src/platform-admin es READ-ONLY, EXCEPTO una write surface
+ *     explicitamente allowlisted: un unico archivo, con exactamente tres
+ *     operaciones permitidas
  *
- * POR QUE IMPORTA. S3 es deliberadamente una superficie de observacion: el
- * provisioning llega despues (S5a/S5b) y va a traer sus propias garantias
- * transaccionales y su propio AuditLog. Si una lectura administrativa ganara un
- * `.update` por conveniencia -- "aprovecho y marco el issuer como visto" --
- * habria una mutacion de dominio sin transaccion, sin auditoria y sin test. Este
- * guard lo rompe en voz alta.
+ * La allowlist vive en `WRITE_SURFACE_ALLOWLIST` / `TRANSACTION_ALLOWLIST` y es
+ * deliberadamente MINIMA: el service de S5a puede abrir `$transaction` y hacer
+ * `issuerMembership.create` + `auditLog.create`. Nada mas, en ningun archivo.
+ *
+ * POR QUE NO SE DEBILITO LA REGLA. S3 y S4 son superficies de observacion y
+ * tienen que seguir siendolo: si una lectura administrativa ganara un `.update`
+ * por conveniencia -- "aprovecho y marco el issuer como visto" -- habria una
+ * mutacion de dominio sin transaccion, sin auditoria y sin test. S5a necesita
+ * escribir, pero eso no convierte al modulo en escribible: convierte a UN
+ * archivo en escribible para TRES operaciones. Lo que este guard impide, en
+ * particular, es que el propio writer de S5a crezca hacia
+ * `issuerMembership.update/delete/upsert`, hacia Users, hacia Issuers, hacia
+ * `PlatformAdmin` o hacia un `auditLog.update/delete` -- que serian,
+ * respectivamente, reactivacion silenciosa de memberships, mutacion de
+ * identidades, auto-otorgamiento de capacidad de plataforma y reescritura de la
+ * auditoria.
  *
  * COMPLEMENTA, NO REEMPLAZA, al guard de S1
  * (`platform-admin-write-surface.test.ts`), que afirma algo distinto y mas
  * fuerte: que NINGUN archivo de todo `src/` escribe `PlatformAdmin`. Ese sigue
- * vigente y no se relaja. Este acota el alcance a `src/platform-admin` pero
- * cubre cinco delegates en vez de uno.
+ * vigente y no se relaja -- y notar que la allowlist de S5a NO lo toca: el
+ * writer de S5a no puede escribir `PlatformAdmin` ni aqui ni alla. Este acota
+ * el alcance a `src/platform-admin` pero cubre cinco delegates en vez de uno.
  *
  * POR QUE AST Y NO SUBSTRING. Mismo motivo que en S1: este archivo nombra los
  * metodos prohibidos en su propia lista, asi que un grep se autodetectaria. Se
@@ -53,6 +65,37 @@ const FORBIDDEN_WRITE_METHODS = [
   'delete',
   'deleteMany'
 ] as const;
+
+/**
+ * LA WRITE SURFACE ALLOWLISTED -- S5a.
+ *
+ * Mapa de archivo -> conjunto EXACTO de `delegate.metodo` permitidos. Un
+ * archivo ausente del mapa no puede escribir nada; un archivo presente no puede
+ * hacer una escritura que no este en su conjunto.
+ *
+ * Agregar una entrada o ampliar un conjunto tiene que ser un acto consciente,
+ * con su propio slice y sus propios tests de atomicidad y auditoria.
+ */
+const WRITE_SURFACE_ALLOWLIST = new Map<string, ReadonlySet<string>>([
+  [
+    'platform-admin-membership-grant.service.ts',
+    new Set(['issuerMembership.create', 'auditLog.create'])
+  ]
+]);
+
+/**
+ * Los unicos archivos que pueden abrir una transaccion.
+ *
+ * Una lectura no necesita `$transaction`; si apareciera en un archivo de
+ * lectura, seria la senal de que dejo de ser una lectura. El writer de S5a SI
+ * la necesita: membership y AuditLog tienen que ser atomicos.
+ */
+const TRANSACTION_ALLOWLIST: ReadonlySet<string> = new Set([
+  'platform-admin-membership-grant.service.ts'
+]);
+
+/** SQL crudo: prohibido en TODO el modulo, sin excepciones. */
+const RAW_SQL_PATTERN = /\$executeRaw|\$queryRaw|\$executeRawUnsafe|\$queryRawUnsafe/;
 
 function productionSourceFiles(root: string): string[] {
   return readdirSync(root, { recursive: true, encoding: 'utf8' })
@@ -186,6 +229,19 @@ test('guard: el barrido alcanza los archivos productivos de S3', () => {
     files.includes('resolve-platform-admin-user.validator.ts'),
     'el validador de S4 esta en el barrido'
   );
+  // S5a
+  assert.ok(
+    files.includes('platform-admin-membership-grant.service.ts'),
+    'el writer de S5a esta en el barrido'
+  );
+  assert.ok(
+    files.includes('platform-admin-membership-grant.controller.ts'),
+    'el controller de S5a esta en el barrido'
+  );
+  assert.ok(
+    files.includes('grant-platform-admin-membership.validator.ts'),
+    'el validador de S5a esta en el barrido'
+  );
   assert.ok(
     !files.some((file) => file.endsWith('.test.ts')),
     'los tests quedan fuera del barrido'
@@ -196,8 +252,102 @@ test('guard: el barrido alcanza los archivos productivos de S3', () => {
 // S3 -- la superficie administrativa es read-only
 // ---------------------------------------------------------------------------
 
-test('read-only: ningun archivo de src/platform-admin muta Issuer, IssuerMembership, User, PlatformAdmin ni AuditLog', () => {
-  const writers = productionSourceFiles(PLATFORM_ADMIN_DIR)
+test('write-surface: cada escritura de src/platform-admin esta en la allowlist de su archivo', () => {
+  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR)
+    .map((file) => {
+      const allowed =
+        WRITE_SURFACE_ALLOWLIST.get(file) ?? new Set<string>();
+      const writes = forbiddenWrites(
+        readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
+        file
+      );
+      return { file, unexpected: writes.filter((write) => !allowed.has(write)) };
+    })
+    .filter((entry) => entry.unexpected.length > 0);
+
+  assert.deepEqual(
+    offenders,
+    [],
+    'Toda escritura en src/platform-admin tiene que estar allowlisted por ' +
+      'archivo y por operacion: ' +
+      offenders.map((o) => `${o.file} (${o.unexpected.join(', ')})`).join('; ')
+  );
+});
+
+test('write-surface: el writer de S5a solo puede hacer SUS DOS escrituras, nada mas', () => {
+  // Control explicito y positivo sobre el unico archivo escribible: no basta
+  // con que "no haya sorpresas", hay que afirmar QUE hace y que NO hace.
+  const file = 'platform-admin-membership-grant.service.ts';
+  const writes = forbiddenWrites(
+    readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
+    file
+  );
+
+  assert.deepEqual(writes, ['auditLog.create', 'issuerMembership.create']);
+
+  // Lo que el writer NUNCA puede hacer, enumerado para que el fallo sea legible.
+  for (const forbidden of [
+    'issuerMembership.update',
+    'issuerMembership.updateMany',
+    'issuerMembership.upsert',
+    'issuerMembership.delete',
+    'issuerMembership.deleteMany',
+    'auditLog.update',
+    'auditLog.delete',
+    'auditLog.deleteMany',
+    'user.create',
+    'user.update',
+    'user.updateMany',
+    'user.delete',
+    'issuer.create',
+    'issuer.update',
+    'issuer.updateMany',
+    'issuer.delete',
+    'platformAdmin.create',
+    'platformAdmin.update',
+    'platformAdmin.delete'
+  ]) {
+    assert.equal(
+      writes.includes(forbidden),
+      false,
+      `el writer de S5a no debe hacer ${forbidden}`
+    );
+  }
+});
+
+test('write-surface: la allowlist es minima -- un solo archivo, dos operaciones', () => {
+  // Si manana alguien agrega una entrada o amplia un conjunto, este test lo
+  // obliga a hacerlo de forma consciente y visible en el diff.
+  assert.deepEqual(
+    [...WRITE_SURFACE_ALLOWLIST.keys()],
+    ['platform-admin-membership-grant.service.ts']
+  );
+  assert.deepEqual(
+    [...(WRITE_SURFACE_ALLOWLIST.get('platform-admin-membership-grant.service.ts') ?? [])].sort(),
+    ['auditLog.create', 'issuerMembership.create']
+  );
+  assert.deepEqual([...TRANSACTION_ALLOWLIST], [
+    'platform-admin-membership-grant.service.ts'
+  ]);
+});
+
+test('write-surface: todos los demas archivos del modulo siguen siendo read-only', () => {
+  const readOnlyFiles = productionSourceFiles(PLATFORM_ADMIN_DIR).filter(
+    (file) => !WRITE_SURFACE_ALLOWLIST.has(file)
+  );
+
+  // El barrido tiene que seguir alcanzando los archivos de S3/S4, no sólo al
+  // writer.
+  assert.ok(
+    readOnlyFiles.includes('platform-admin-read.service.ts'),
+    'el service de lectura de S3 sigue en el barrido'
+  );
+  assert.ok(
+    readOnlyFiles.includes('platform-admin-user-resolution.service.ts'),
+    'el service de resolucion de S4 sigue en el barrido'
+  );
+
+  const writers = readOnlyFiles
     .map((file) => ({
       file,
       writes: forbiddenWrites(
@@ -207,13 +357,7 @@ test('read-only: ningun archivo de src/platform-admin muta Issuer, IssuerMembers
     }))
     .filter((entry) => entry.writes.length > 0);
 
-  assert.deepEqual(
-    writers,
-    [],
-    'S3 es READ-ONLY. Las mutaciones administrativas llegan en S5a/S5b, con ' +
-      'transaccion y AuditLog propios: ' +
-      writers.map((w) => `${w.file} (${w.writes.join(', ')})`).join('; ')
-  );
+  assert.deepEqual(writers, []);
 });
 
 /** El codigo de un archivo del directorio, SIN comentarios. */
@@ -223,17 +367,33 @@ function executableCode(file: string): string {
     .replace(/^\s*\/\/.*$/gm, ' ');
 }
 
-test('read-only: ningun archivo de src/platform-admin abre una transaccion ni usa SQL crudo', () => {
-  // Una lectura no necesita `$transaction`. Si apareciera, seria la senal de
-  // que algo dejo de ser una lectura.
-  //
-  // S4 generalizo esta asercion de un archivo al DIRECTORIO entero, para que un
-  // modulo administrativo nuevo quede cubierto sin que nadie se acuerde de
-  // agregarlo a una lista. S5a/S5b SI van a necesitar `$transaction` para su
-  // provisioning: cuando llegue ese slice, relajar esto tiene que ser un acto
-  // CONSCIENTE y acotado a los archivos que provisionan, nunca borrar el guard.
+test('write-surface: solo el writer de S5a abre transacciones', () => {
+  // S4 habia generalizado esta asercion al directorio entero. S5a la convierte
+  // en allowlist en vez de borrarla: el writer la necesita (membership y
+  // AuditLog tienen que ser atomicos), todo lo demas no.
+  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR).filter(
+    (file) =>
+      !TRANSACTION_ALLOWLIST.has(file) &&
+      /\$transaction/.test(executableCode(file))
+  );
+
+  assert.deepEqual(offenders, []);
+});
+
+test('write-surface: el writer de S5a SI abre una transaccion -- la atomicidad no es opcional', () => {
+  // Positivo, no sólo negativo: si el writer dejara de usar `$transaction`, la
+  // membership y el AuditLog pasarian a ser best-effort y este guard no lo
+  // notaria con una asercion puramente negativa.
+  const code = executableCode('platform-admin-membership-grant.service.ts');
+
+  assert.match(code, /\$transaction/);
+  assert.match(code, /transaction\.issuerMembership\.create/);
+  assert.match(code, /transaction\.auditLog\.create/);
+});
+
+test('read-only: SQL crudo sigue prohibido en TODO el modulo, sin excepciones', () => {
   const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR).filter((file) =>
-    /\$transaction|\$executeRaw|\$queryRaw/.test(executableCode(file))
+    RAW_SQL_PATTERN.test(executableCode(file))
   );
 
   assert.deepEqual(offenders, []);
@@ -255,15 +415,19 @@ test('read-only: ningun archivo de src/platform-admin pasa por IssuersService', 
   assert.deepEqual(offenders, []);
 });
 
-test('read-only: S3 no escribe AuditLog en ningun GET', () => {
-  // El unico writer de AuditLog del repo sigue siendo el bootstrap de S2, que
-  // vive fuera de src/.
-  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR).filter((file) =>
-    forbiddenWrites(
-      readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
-      file
-    ).some((entry) => entry.startsWith('auditLog.'))
-  );
+test('read-only: ninguna LECTURA administrativa escribe AuditLog', () => {
+  // Auditar un GET no registraria ninguna decision y solo haria crecer la
+  // tabla. El unico writer de AuditLog dentro de `src/` es el de S5a, que
+  // audita una MUTACION; el otro writer del repo es el bootstrap de S2, que
+  // vive fuera de `src/`.
+  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR)
+    .filter((file) => !WRITE_SURFACE_ALLOWLIST.has(file))
+    .filter((file) =>
+      forbiddenWrites(
+        readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
+        file
+      ).some((entry) => entry.startsWith('auditLog.'))
+    );
 
   assert.deepEqual(offenders, []);
 });
