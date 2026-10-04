@@ -11,7 +11,18 @@ export interface AuthUserVM {
   displayLabel: string;
 }
 
-export type CurrentUserVM = AuthUserVM;
+/**
+ * El usuario de la sesion RESUELTA (`GET /auth/me`), que a diferencia de la
+ * respuesta de login tambien trae la capacidad de plataforma.
+ *
+ * S3: `isPlatformAdmin` solo decide si se OFRECE la superficie /admin. No es
+ * seguridad -- la autoridad es `PlatformAdminGuard`, server-side, que relee la
+ * tabla en cada request. Y no dice nada sobre que issuer puede operar esta
+ * persona: eso sigue siendo `issuerContext`, un plano separado.
+ */
+export interface CurrentUserVM extends AuthUserVM {
+  isPlatformAdmin: boolean;
+}
 
 export type AuthFeedbackCode =
   | 'invalid_input'

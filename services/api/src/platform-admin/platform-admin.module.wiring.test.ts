@@ -18,7 +18,9 @@ import { AuthModule } from '../auth/auth.module';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PlatformAdminGuard } from './platform-admin.guard';
+import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
 import { PlatformAdminModule } from './platform-admin.module';
+import { PlatformAdminReadService } from './platform-admin-read.service';
 
 test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicating AuthService', async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'wiring-test-secret';
@@ -55,8 +57,13 @@ test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicat
     // provider.
     assert.equal(providers.includes(PrismaService), false);
 
-    // S1 no expone ninguna ruta todavia.
-    assert.equal(controllers === undefined || controllers.length === 0, true);
+    // S3: el MISMO modulo pasa a exponer la superficie administrativa
+    // read-only. Nunca un segundo modulo admin paralelo -- de ahi que el
+    // controller se registre aca y no en uno nuevo. (En S1 esta asercion
+    // exigia cero controllers; S3 la invierte a proposito.)
+    assert.deepEqual(controllers, [PlatformAdminIssuersController]);
+    assert.ok(applicationContext.get(PlatformAdminIssuersController));
+    assert.ok(applicationContext.get(PlatformAdminReadService));
 
     // Resoluble desde el AppModule real, no solo en aislamiento.
     const platformAdminGuard = applicationContext.get(PlatformAdminGuard);

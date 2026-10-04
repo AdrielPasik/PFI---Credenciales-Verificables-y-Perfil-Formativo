@@ -957,6 +957,10 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
     did: 'did:example:issuer-admin-demo',
     status: UserStatus.active,
     displayLabel: 'Ada Lovelace',
+    // S3: el contrato de /auth/me ahora incluye la capacidad de plataforma.
+    // `false` porque este double no declara la relacion `platformAdmin` --
+    // justamente el caso fail-closed que cubre el test S3/3b.
+    platformAdmin: false,
     issuerMemberships: [
       {
         issuerId: 'issuer-1',
@@ -990,6 +994,13 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
         displayName: true,
         firstName: true,
         lastName: true,
+        // S3: solo el `id` de la relacion. Nunca `grantedAt` ni el objeto: la
+        // respuesta expone un booleano y la proyeccion no pide mas que eso.
+        platformAdmin: {
+          select: {
+            id: true
+          }
+        },
         issuerMemberships: {
           where: {
             status: IssuerMembershipStatus.active
@@ -1309,4 +1320,137 @@ test('A2.1/E: an invalid PUBLIC_DID_BASE_URL fails the whole registration -- no 
 
   assert.equal(users.length, 0);
   assert.equal(authCredentials.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// S3: /auth/me expone la capacidad de plataforma como un booleano, y nada mas.
+// ---------------------------------------------------------------------------
+
+function createMePrismaDouble(user: Record<string, unknown>) {
+  const selects: unknown[] = [];
+
+  return {
+    selects,
+    prisma: {
+      user: {
+        async findUnique(args: { select?: unknown }) {
+          selects.push(args.select);
+          return user;
+        }
+      }
+    }
+  };
+}
+
+const ME_USER_BASE = {
+  id: 'user-123',
+  email: 'persona@example.com',
+  did: null,
+  status: UserStatus.active,
+  displayName: null,
+  firstName: 'Ada',
+  lastName: 'Lovelace',
+  issuerMemberships: []
+};
+
+test('S3/1: a User without a PlatformAdmin row gets platformAdmin: false', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma } = createMePrismaDouble({ ...ME_USER_BASE, platformAdmin: null });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.equal(response.platformAdmin, false);
+});
+
+test('S3/2: a User with a PlatformAdmin row gets platformAdmin: true', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma } = createMePrismaDouble({
+    ...ME_USER_BASE,
+    platformAdmin: { id: 'platform-admin-1' }
+  });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.equal(response.platformAdmin, true);
+});
+
+test('S3/3: /auth/me never exposes PlatformAdmin.id nor grantedAt', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, selects } = createMePrismaDouble({
+    ...ME_USER_BASE,
+    platformAdmin: { id: 'platform-admin-1' }
+  });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  // Solo el booleano en la respuesta.
+  assert.equal(typeof response.platformAdmin, 'boolean');
+  assert.equal(JSON.stringify(response).includes('platform-admin-1'), false);
+  assert.equal(JSON.stringify(response).includes('grantedAt'), false);
+  // Y `grantedAt` ni se le pide a la base: el select solo trae el id.
+  assert.equal(JSON.stringify(selects[0]).includes('grantedAt'), false);
+});
+
+test('S3/3b: platformAdmin is FAIL-CLOSED when the relation is missing from the payload', async () => {
+  // Un double (o una proyeccion futura) que no declare la relacion deja
+  // `undefined`. `undefined !== null` seria `true` y anunciaria una capacidad
+  // inexistente; `Boolean(...)` lo resuelve en `false`.
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma } = createMePrismaDouble({ ...ME_USER_BASE });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.equal(response.platformAdmin, false);
+});
+
+test('S3/3c: the platform capability is independent from issuerMemberships', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma } = createMePrismaDouble({
+    ...ME_USER_BASE,
+    platformAdmin: { id: 'platform-admin-1' },
+    issuerMemberships: []
+  });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  // Platform admin SIN ninguna membership: dos planos distintos.
+  assert.equal(response.platformAdmin, true);
+  assert.deepEqual(response.issuerMemberships, []);
+});
+
+test('S3/4: login does not expose platformAdmin -- the flag lives only in /auth/me', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const passwordHash = await hashPassword('CorrectHorse123');
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-123',
+            email: 'persona@example.com',
+            did: null,
+            status: UserStatus.active,
+            displayName: null,
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            authCredential: { passwordHash }
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.login({
+    email: 'persona@example.com',
+    password: 'CorrectHorse123'
+  });
+
+  assert.equal('platformAdmin' in response.user, false);
+  assert.equal(JSON.stringify(response).includes('platformAdmin'), false);
 });

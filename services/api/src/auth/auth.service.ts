@@ -220,6 +220,16 @@ export class AuthService {
         displayName: true,
         firstName: true,
         lastName: true,
+        // S3: presencia/ausencia de la capacidad de plataforma, nada mas. Se
+        // pide solo el `id` para no traer `grantedAt` ni el objeto a una
+        // superficie que lo unico que expone es un booleano. Es una LECTURA:
+        // `src/` sigue sin ningun writer de PlatformAdmin (ver
+        // platform-admin/__guards__/platform-admin-write-surface.test.ts).
+        platformAdmin: {
+          select: {
+            id: true
+          }
+        },
         issuerMemberships: {
           where: {
             status: IssuerMembershipStatus.active
@@ -284,6 +294,12 @@ export class AuthService {
         user.lastName,
         user.email
       ),
+      // `Boolean(...)` y no `!== null` a proposito: FAIL-CLOSED. Si la
+      // relacion no viene en el payload (un double de test que no la declara,
+      // una proyeccion futura que la omita), `undefined !== null` seria `true`
+      // y la sesion se anunciaria como platform admin sin que exista la fila.
+      // Con `Boolean(...)`, tanto `null` como `undefined` dan `false`.
+      platformAdmin: Boolean(user.platformAdmin),
       issuerMemberships
     };
   }

@@ -85,7 +85,11 @@ describe('auth adapters', () => {
         userReference: 'user-internal-reference',
         email: 'persona@example.com',
         did: null,
-        displayLabel: 'Persona Demo'
+        displayLabel: 'Persona Demo',
+        // S3: el modelo de sesión ahora representa la capacidad de plataforma.
+        // `false` porque este payload no trae `platformAdmin` — el caso
+        // fail-closed que cubren los tests de abajo.
+        isPlatformAdmin: false
       },
       issuerMemberships: [
         {
@@ -137,5 +141,92 @@ describe('auth adapters', () => {
         ]
       })
     ).toThrow(IncompatiblePayloadError);
+  });
+  // -------------------------------------------------------------------------
+  // S3: capacidad de plataforma
+  // -------------------------------------------------------------------------
+
+  it('maps platformAdmin=true to isPlatformAdmin', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      platformAdmin: true,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.isPlatformAdmin).toBe(true);
+  });
+
+  it('maps platformAdmin=false to isPlatformAdmin=false', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      platformAdmin: false,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.isPlatformAdmin).toBe(false);
+  });
+
+  it('defaults isPlatformAdmin to false when the field is absent', () => {
+    // Un API anterior a S3 no manda el campo.
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.isPlatformAdmin).toBe(false);
+  });
+
+  it('does not turn a missing platformAdmin into an incompatible payload', () => {
+    // La sesion sigue siendo valida: el resto del usuario se adapta igual.
+    expect(() =>
+      adaptCurrentUserResponse({ ...activeUser, issuerMemberships: [] })
+    ).not.toThrow();
+
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      issuerMemberships: []
+    });
+    expect(adapted.currentUser.email).toBe('persona@example.com');
+    expect(adapted.currentUser.displayLabel).toBe('Persona Demo');
+  });
+
+  it('is fail-closed against truthy non-boolean values', () => {
+    for (const value of ['true', 1, {}, [], 'admin', null]) {
+      const adapted = adaptCurrentUserResponse({
+        ...activeUser,
+        platformAdmin: value,
+        issuerMemberships: []
+      });
+
+      expect(adapted.currentUser.isPlatformAdmin).toBe(false);
+    }
+  });
+
+  it('never leaks PlatformAdmin internals into the session model', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      platformAdmin: true,
+      issuerMemberships: []
+    });
+
+    expect(Object.keys(adapted.currentUser).sort()).toEqual([
+      'did',
+      'displayLabel',
+      'email',
+      'isPlatformAdmin',
+      'userReference'
+    ]);
+  });
+
+  it('keeps the platform capability independent from issuer memberships', () => {
+    // Un platform admin sin ninguna membership sigue sin contexto institucional.
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      platformAdmin: true,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.isPlatformAdmin).toBe(true);
+    expect(adapted.issuerMemberships).toEqual([]);
   });
 });

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
 import { PlatformAdminGuard } from './platform-admin.guard';
+import { PlatformAdminReadService } from './platform-admin-read.service';
 
 /**
  * Modulo del plano de plataforma -- slice S1.
@@ -17,13 +19,14 @@ import { PlatformAdminGuard } from './platform-admin.guard';
  *   - `PrismaModule` NO se importa: es `@Global()` y ya exporta `PrismaService`
  *     desde el `AppModule`. Declararlo aca duplicaria el provider.
  *
- * S1 no declara `controllers`: la capacidad existe y es resoluble, pero
- * todavia no protege ninguna ruta. `PlatformAdminGuard` se exporta para que los
- * controllers de S3+ lo consuman.
+ * S3 agrega la superficie administrativa READ-ONLY sobre el MISMO modulo: un
+ * controller y un service de lectura, nunca un segundo modulo admin paralelo.
+ * `PlatformAdminGuard` no se movio ni se re-declaro.
  */
 @Module({
   imports: [AuthModule],
-  providers: [PlatformAdminGuard],
+  controllers: [PlatformAdminIssuersController],
+  providers: [PlatformAdminGuard, PlatformAdminReadService],
   exports: [PlatformAdminGuard]
 })
 export class PlatformAdminModule {}

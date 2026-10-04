@@ -140,7 +140,19 @@ export function adaptCurrentUserResponse(
   }
 
   return {
-    currentUser: adaptUser(response),
+    currentUser: {
+      ...adaptUser(response),
+      // S3: FAIL-CLOSED y deliberadamente TOLERANTE. Solo el booleano `true`
+      // habilita la superficie /admin; cualquier otra cosa -- ausente, null,
+      // string, 1 -- da `false`.
+      //
+      // Y no se suma al regimen de `IncompatiblePayloadError` que si aplica a
+      // `issuerMemberships`: un API anterior a S3 no manda este campo, y
+      // tratarlo como payload incompatible invalidaria sesiones validas por un
+      // campo nuevo y opcional. La consecuencia de leerlo mal es no ofrecer un
+      // enlace, no perder acceso a nada.
+      isPlatformAdmin: response.platformAdmin === true
+    },
     issuerMemberships: response.issuerMemberships.map(adaptMembership)
   };
 }
