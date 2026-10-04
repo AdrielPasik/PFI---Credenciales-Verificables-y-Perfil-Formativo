@@ -21,6 +21,8 @@ import { PlatformAdminGuard } from './platform-admin.guard';
 import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
 import { PlatformAdminModule } from './platform-admin.module';
 import { PlatformAdminReadService } from './platform-admin-read.service';
+import { PlatformAdminUserResolutionController } from './platform-admin-user-resolution.controller';
+import { PlatformAdminUserResolutionService } from './platform-admin-user-resolution.service';
 
 test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicating AuthService', async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'wiring-test-secret';
@@ -61,9 +63,16 @@ test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicat
     // read-only. Nunca un segundo modulo admin paralelo -- de ahi que el
     // controller se registre aca y no en uno nuevo. (En S1 esta asercion
     // exigia cero controllers; S3 la invierte a proposito.)
-    assert.deepEqual(controllers, [PlatformAdminIssuersController]);
+    // S4 suma el controller de resolucion de Users al MISMO modulo (su ruta no
+    // cuelga de `admin/issuers`, y un @Controller tiene un unico prefijo).
+    assert.deepEqual(controllers, [
+      PlatformAdminIssuersController,
+      PlatformAdminUserResolutionController
+    ]);
     assert.ok(applicationContext.get(PlatformAdminIssuersController));
     assert.ok(applicationContext.get(PlatformAdminReadService));
+    assert.ok(applicationContext.get(PlatformAdminUserResolutionController));
+    assert.ok(applicationContext.get(PlatformAdminUserResolutionService));
 
     // Resoluble desde el AppModule real, no solo en aislamiento.
     const platformAdminGuard = applicationContext.get(PlatformAdminGuard);

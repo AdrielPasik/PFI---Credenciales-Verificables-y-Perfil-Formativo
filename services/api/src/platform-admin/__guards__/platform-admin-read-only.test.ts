@@ -173,6 +173,19 @@ test('guard: el barrido alcanza los archivos productivos de S3', () => {
     files.includes('platform-admin.guard.ts'),
     'el guard esta en el barrido'
   );
+  // S4
+  assert.ok(
+    files.includes('platform-admin-user-resolution.service.ts'),
+    'el service de resolucion de S4 esta en el barrido'
+  );
+  assert.ok(
+    files.includes('platform-admin-user-resolution.controller.ts'),
+    'el controller de resolucion de S4 esta en el barrido'
+  );
+  assert.ok(
+    files.includes('resolve-platform-admin-user.validator.ts'),
+    'el validador de S4 esta en el barrido'
+  );
   assert.ok(
     !files.some((file) => file.endsWith('.test.ts')),
     'los tests quedan fuera del barrido'
@@ -203,34 +216,43 @@ test('read-only: ningun archivo de src/platform-admin muta Issuer, IssuerMembers
   );
 });
 
-test('read-only: el service de lectura no abre ninguna transaccion', () => {
+/** El codigo de un archivo del directorio, SIN comentarios. */
+function executableCode(file: string): string {
+  return readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/^\s*\/\/.*$/gm, ' ');
+}
+
+test('read-only: ningun archivo de src/platform-admin abre una transaccion ni usa SQL crudo', () => {
   // Una lectura no necesita `$transaction`. Si apareciera, seria la senal de
   // que algo dejo de ser una lectura.
-  const code = readFileSync(
-    join(PLATFORM_ADMIN_DIR, 'platform-admin-read.service.ts'),
-    'utf8'
-  )
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/^\s*\/\/.*$/gm, ' ');
+  //
+  // S4 generalizo esta asercion de un archivo al DIRECTORIO entero, para que un
+  // modulo administrativo nuevo quede cubierto sin que nadie se acuerde de
+  // agregarlo a una lista. S5a/S5b SI van a necesitar `$transaction` para su
+  // provisioning: cuando llegue ese slice, relajar esto tiene que ser un acto
+  // CONSCIENTE y acotado a los archivos que provisionan, nunca borrar el guard.
+  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR).filter((file) =>
+    /\$transaction|\$executeRaw|\$queryRaw/.test(executableCode(file))
+  );
 
-  assert.doesNotMatch(code, /\$transaction/);
-  assert.doesNotMatch(code, /\$executeRaw/);
-  assert.doesNotMatch(code, /\$queryRaw/);
+  assert.deepEqual(offenders, []);
 });
 
-test('read-only: el service de lectura NO pasa por IssuersService', () => {
-  // Deliberado y verificable: estas lecturas son de plataforma. Si importaran
-  // IssuersService, un Platform Admin no podria observar un issuer del que no
-  // es miembro, que es justamente para lo que existen estos endpoints.
-  const code = readFileSync(
-    join(PLATFORM_ADMIN_DIR, 'platform-admin-read.service.ts'),
-    'utf8'
-  )
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/^\s*\/\/.*$/gm, ' ');
+test('read-only: ningun archivo de src/platform-admin pasa por IssuersService', () => {
+  // Deliberado y verificable: todo lo que vive aca es PLANO DE PLATAFORMA. Si
+  // importara IssuersService, un Platform Admin no podria observar ni resolver
+  // nada sin ser miembro del issuer -- justamente lo contrario de para lo que
+  // existen estos endpoints. Y en la direccion inversa, el guard de S3 ya
+  // comprueba que ningun modulo institucional importe PlatformAdminGuard.
+  //
+  // Esta invariante NO caduca en S5a: el provisioning tampoco debe pasar por
+  // la autorizacion institucional.
+  const offenders = productionSourceFiles(PLATFORM_ADMIN_DIR).filter((file) =>
+    /IssuersService|assertUserCan|assertIssuerCanIssue/.test(executableCode(file))
+  );
 
-  assert.doesNotMatch(code, /IssuersService/);
-  assert.doesNotMatch(code, /assertUserCan/);
+  assert.deepEqual(offenders, []);
 });
 
 test('read-only: S3 no escribe AuditLog en ningun GET', () => {

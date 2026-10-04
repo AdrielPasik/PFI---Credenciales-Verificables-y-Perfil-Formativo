@@ -4,6 +4,8 @@ import { AuthModule } from '../auth/auth.module';
 import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
 import { PlatformAdminGuard } from './platform-admin.guard';
 import { PlatformAdminReadService } from './platform-admin-read.service';
+import { PlatformAdminUserResolutionController } from './platform-admin-user-resolution.controller';
+import { PlatformAdminUserResolutionService } from './platform-admin-user-resolution.service';
 
 /**
  * Modulo del plano de plataforma -- slice S1.
@@ -22,11 +24,23 @@ import { PlatformAdminReadService } from './platform-admin-read.service';
  * S3 agrega la superficie administrativa READ-ONLY sobre el MISMO modulo: un
  * controller y un service de lectura, nunca un segundo modulo admin paralelo.
  * `PlatformAdminGuard` no se movio ni se re-declaro.
+ *
+ * S4 suma la resolucion de Users por email -- tambien read-only y tambien en
+ * este modulo. Controller propio en vez de un metodo mas en el de issuers
+ * porque la ruta no cuelga de `admin/issuers`: es `admin/users/resolve`, y un
+ * `@Controller` tiene un unico prefijo.
  */
 @Module({
   imports: [AuthModule],
-  controllers: [PlatformAdminIssuersController],
-  providers: [PlatformAdminGuard, PlatformAdminReadService],
+  controllers: [
+    PlatformAdminIssuersController,
+    PlatformAdminUserResolutionController
+  ],
+  providers: [
+    PlatformAdminGuard,
+    PlatformAdminReadService,
+    PlatformAdminUserResolutionService
+  ],
   exports: [PlatformAdminGuard]
 })
 export class PlatformAdminModule {}
