@@ -1,5 +1,9 @@
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
-import type { AuthUserVM, CurrentUserVM } from '@/models/auth-session';
+import type {
+  AuthUserVM,
+  CurrentUserVM,
+  UserOnboardingIntent
+} from '@/models/auth-session';
 import {
   isOperationalIssuerMembership,
   type IssuerAuthorizationStatus,
@@ -68,6 +72,26 @@ const authorizationLabels: Record<IssuerAuthorizationStatus, string> = {
   pending: 'Pendiente de autorización',
   revoked: 'Autorización revocada'
 };
+
+/**
+ * O1: FAIL-SAFE A NULL, y deliberadamente TOLERANTE.
+ *
+ * Solo los dos literales exactos se mapean; cualquier otra cosa -- ausente,
+ * `null`, un valor desconocido de una versión futura del API, un número --
+ * resuelve `null`, que el router trata como el espacio personal.
+ *
+ * POR QUE NO `IncompatiblePayloadError` COMO `adaptRole`. Esa excepción es
+ * correcta para `role`/`status` de una membership, donde un valor desconocido
+ * significaría que el cliente no entiende un contrato de AUTORIZACIÓN y seguir
+ * adelante sería inseguro. Acá es lo contrario: el campo no autoriza nada, es
+ * opcional por compatibilidad de deploy, y la consecuencia de leerlo mal es
+ * aterrizar en el espacio personal en vez de en la pantalla de acceso
+ * institucional pendiente. Invalidar una sesión entera por eso sería
+ * desproporcionado. Mismo criterio que `platformAdmin` en S3.
+ */
+function adaptOnboardingIntent(value: unknown): UserOnboardingIntent | null {
+  return value === 'personal' || value === 'institutional' ? value : null;
+}
 
 function adaptRole(value: unknown): IssuerMembershipRole {
   if (value === 'admin' || value === 'operator' || value === 'viewer') {
@@ -151,7 +175,8 @@ export function adaptCurrentUserResponse(
       // tratarlo como payload incompatible invalidaria sesiones validas por un
       // campo nuevo y opcional. La consecuencia de leerlo mal es no ofrecer un
       // enlace, no perder acceso a nada.
-      isPlatformAdmin: response.platformAdmin === true
+      isPlatformAdmin: response.platformAdmin === true,
+      onboardingIntent: adaptOnboardingIntent(response.onboardingIntent)
     },
     issuerMemberships: response.issuerMemberships.map(adaptMembership)
   };

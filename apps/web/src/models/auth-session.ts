@@ -11,6 +11,9 @@ export interface AuthUserVM {
   displayLabel: string;
 }
 
+/** O1: los dos valores que el signup puede declarar. Nunca `holder`. */
+export type UserOnboardingIntent = 'personal' | 'institutional';
+
 /**
  * El usuario de la sesion RESUELTA (`GET /auth/me`), que a diferencia de la
  * respuesta de login tambien trae la capacidad de plataforma.
@@ -19,9 +22,21 @@ export interface AuthUserVM {
  * seguridad -- la autoridad es `PlatformAdminGuard`, server-side, que relee la
  * tabla en cada request. Y no dice nada sobre que issuer puede operar esta
  * persona: eso sigue siendo `issuerContext`, un plano separado.
+ *
+ * O1: `onboardingIntent` tampoco es seguridad -- ver el campo.
  */
 export interface CurrentUserVM extends AuthUserVM {
   isPlatformAdmin: boolean;
+  /**
+   * O1: intención de uso declarada en el signup, o `null` si la cuenta se creó
+   * antes de que Scope lo preguntara.
+   *
+   * NO es autorización. Lo único que decide es a dónde aterriza la persona
+   * cuando `issuerContext.kind === 'none'`. Una membership operativa siempre
+   * gana sobre esto, y la autoridad institucional sigue siendo exclusivamente
+   * el backend (`IssuersService` + `IssuerMembership`).
+   */
+  onboardingIntent: UserOnboardingIntent | null;
 }
 
 export type AuthFeedbackCode =

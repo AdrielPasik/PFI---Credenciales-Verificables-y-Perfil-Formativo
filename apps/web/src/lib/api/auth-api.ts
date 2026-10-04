@@ -1,3 +1,5 @@
+import type { UserOnboardingIntent } from '@/models/auth-session';
+
 import { createApiClient } from '@/lib/api/api-client';
 
 export interface LoginCommand {
@@ -10,6 +12,10 @@ export interface RegisterCommand {
   password: string;
   firstName: string;
   lastName: string;
+  // O1: el frontend nuevo SIEMPRE lo manda (la selección es obligatoria en el
+  // form). Es opcional en el tipo porque el contrato del backend lo es, por
+  // compatibilidad de deploy entre web y API.
+  onboardingIntent?: UserOnboardingIntent;
 }
 
 export async function loginRequest(command: LoginCommand) {

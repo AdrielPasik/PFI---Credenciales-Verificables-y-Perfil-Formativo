@@ -11,7 +11,10 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
 import { Button } from '@/components/ui/button';
 import type { RegisterCommand } from '@/lib/api/auth-api';
-import type { AuthFeedback } from '@/models/auth-session';
+import type {
+  AuthFeedback,
+  UserOnboardingIntent
+} from '@/models/auth-session';
 
 interface RegisterFormProps {
   initialFeedback?: AuthFeedback | null;
@@ -25,7 +28,35 @@ interface FieldErrors {
   email?: string;
   password?: string;
   confirmPassword?: string;
+  onboardingIntent?: string;
 }
+
+/**
+ * O1: cómo va a usar Scope esta persona.
+ *
+ * NO es un "tipo de cuenta". El `User` que se crea es exactamente el mismo en
+ * las dos ramas, con los mismos permisos (ninguno): esto sólo decide a dónde
+ * aterriza después del signup. Una misma persona puede terminar teniendo
+ * espacio personal, memberships institucionales y administración de plataforma
+ * a la vez — las capacidades no son exclusivas y ninguna se otorga acá.
+ */
+const ONBOARDING_OPTIONS: ReadonlyArray<{
+  value: UserOnboardingIntent;
+  title: string;
+  description: string;
+}> = [
+  {
+    value: 'personal',
+    title: 'Gestionar mi trayectoria',
+    description: 'Quiero recibir, organizar y compartir mis credenciales.'
+  },
+  {
+    value: 'institutional',
+    title: 'Trabajar con una institución',
+    description:
+      'Voy a emitir o gestionar credenciales desde una organización.'
+  }
+];
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // A1: misma politica minima que el backend (services/api/src/auth/auth.service.ts)
@@ -47,6 +78,10 @@ export function RegisterForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  // O1: arranca en null a proposito -- ninguna opcion viene preseleccionada,
+  // la persona tiene que elegir explicitamente.
+  const [onboardingIntent, setOnboardingIntent] =
+    useState<UserOnboardingIntent | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [feedback, setFeedback] = useState<AuthFeedback | null>(
@@ -57,6 +92,7 @@ export function RegisterForm({
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmPasswordRef = useRef<HTMLInputElement>(null);
+  const onboardingIntentRef = useRef<HTMLInputElement>(null);
   const feedbackRef = useRef<HTMLDivElement>(null);
 
   function validate() {
@@ -98,6 +134,13 @@ export function RegisterForm({
       nextErrors.confirmPassword = 'Las contraseñas no coinciden.';
     }
 
+    // O1: seleccion obligatoria. No se asume ninguna por defecto: el backend
+    // tampoco lo hace, y una eleccion silenciosa seria una afirmacion que la
+    // persona no hizo.
+    if (onboardingIntent === null) {
+      nextErrors.onboardingIntent = 'Elegí cómo vas a usar Scope.';
+    }
+
     setFieldErrors(nextErrors);
 
     if (nextErrors.firstName) {
@@ -110,6 +153,8 @@ export function RegisterForm({
       passwordRef.current?.focus();
     } else if (nextErrors.confirmPassword) {
       confirmPasswordRef.current?.focus();
+    } else if (nextErrors.onboardingIntent) {
+      onboardingIntentRef.current?.focus();
     }
 
     return {
@@ -133,11 +178,14 @@ export function RegisterForm({
     // A1/A1.1: unicamente nombre/apellido/email/password llegan al backend
     // -- confirmPassword nunca se envia ni se persiste fuera del state
     // local de este form.
+    // O1: `validate()` ya garantizo que no es null -- el `??` no es un default
+    // silencioso, es un estrechamiento de tipo que nunca se evalua.
     const nextFeedback = await onSubmit({
       firstName: validation.normalizedFirstName,
       lastName: validation.normalizedLastName,
       email: validation.normalizedEmail,
-      password
+      password,
+      onboardingIntent: onboardingIntent ?? undefined
     });
 
     setPassword('');
@@ -269,6 +317,71 @@ export function RegisterForm({
         error={fieldErrors.confirmPassword}
         disabled={isSubmitting}
       />
+
+      <fieldset
+        className="grid gap-3"
+        aria-describedby={
+          fieldErrors.onboardingIntent
+            ? 'register-onboarding-intent-error'
+            : undefined
+        }
+      >
+        <legend className="text-sm font-semibold text-text-strong">
+          ¿Cómo vas a usar Scope?
+        </legend>
+        {ONBOARDING_OPTIONS.map((option, index) => {
+          const inputId = `register-onboarding-intent-${option.value}`;
+          const selected = onboardingIntent === option.value;
+
+          return (
+            <label
+              key={option.value}
+              htmlFor={inputId}
+              className={[
+                'flex cursor-pointer items-start gap-3 rounded-control border p-4 transition-colors',
+                selected
+                  ? 'border-brand-700 bg-brand-100/50'
+                  : 'border-border-default bg-surface hover:border-border-strong'
+              ].join(' ')}
+            >
+              <input
+                ref={index === 0 ? onboardingIntentRef : undefined}
+                id={inputId}
+                type="radio"
+                name="register-onboarding-intent"
+                value={option.value}
+                checked={selected}
+                onChange={() => {
+                  setOnboardingIntent(option.value);
+                  setFieldErrors((current) => ({
+                    ...current,
+                    onboardingIntent: undefined
+                  }));
+                }}
+                disabled={isSubmitting}
+                className="mt-1 size-4 shrink-0 accent-brand-700"
+              />
+              <span className="grid gap-1">
+                <span className="font-semibold text-text-strong">
+                  {option.title}
+                </span>
+                <span className="text-sm leading-6 text-text-muted">
+                  {option.description}
+                </span>
+              </span>
+            </label>
+          );
+        })}
+        {fieldErrors.onboardingIntent ? (
+          <p
+            id="register-onboarding-intent-error"
+            role="alert"
+            className="text-sm font-medium text-red-700"
+          >
+            {fieldErrors.onboardingIntent}
+          </p>
+        ) : null}
+      </fieldset>
 
       <Button type="submit" size="lg" disabled={isSubmitting}>
         {isSubmitting ? (

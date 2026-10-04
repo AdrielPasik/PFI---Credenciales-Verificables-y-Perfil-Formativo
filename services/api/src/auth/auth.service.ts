@@ -5,7 +5,12 @@ import {
   UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { IssuerMembershipStatus, Prisma, UserStatus } from '@prisma/client';
+import {
+  IssuerMembershipStatus,
+  Prisma,
+  UserOnboardingIntent,
+  UserStatus
+} from '@prisma/client';
 
 import { ensureDidForUser } from '../identity/ensure-did-for-user';
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
@@ -36,6 +41,18 @@ const EMAIL_ALREADY_REGISTERED_MESSAGE =
 // User de este metodo, la unica constraint que puede dispararlo en la
 // carrera de dos registros concurrentes es User.email.
 const UNIQUE_CONSTRAINT_ERROR_CODE = 'P2002';
+
+// O1: valores aceptados para la intencion de onboarding. Allowlist explicita
+// contra el enum real de Prisma -- nunca un cast ciego del string del cliente.
+// SIN trim y SIN lowercase a proposito: un enum no es texto libre, asi que
+// "PERSONAL" o " personal " son valores invalidos y se rechazan con 400 en vez
+// de "corregirse" en silencio. El repo no normaliza ningun otro enum de
+// request (ver el `parseObjectiveTypeFilter` de objectives.controller.ts, que
+// rechaza en vez de adivinar).
+const ONBOARDING_INTENTS: readonly UserOnboardingIntent[] = [
+  UserOnboardingIntent.personal,
+  UserOnboardingIntent.institutional
+];
 
 @Injectable()
 export class AuthService {
@@ -122,6 +139,9 @@ export class AuthService {
       'Ingresá tu apellido.',
       `El apellido no puede superar los ${MAX_NAME_LENGTH} caracteres.`
     );
+    const onboardingIntent = this.assertValidOnboardingIntent(
+      dto.onboardingIntent
+    );
     const secret = getJwtSecretOrThrow();
 
     const existing = await this.prisma.user.findUnique({
@@ -152,7 +172,10 @@ export class AuthService {
             email,
             status: UserStatus.active,
             firstName,
-            lastName
+            lastName,
+            // O1: `undefined` hace que Prisma OMITA la columna y la fila quede
+            // en NULL por el schema -- nunca se escribe un valor inventado.
+            onboardingIntent
           },
           select: {
             id: true,
@@ -220,6 +243,9 @@ export class AuthService {
         displayName: true,
         firstName: true,
         lastName: true,
+        // O1: intencion de onboarding, tal cual esta en la fila (incluido
+        // NULL para cuentas creadas antes de que Scope lo preguntara).
+        onboardingIntent: true,
         // S3: presencia/ausencia de la capacidad de plataforma, nada mas. Se
         // pide solo el `id` para no traer `grantedAt` ni el objeto a una
         // superficie que lo unico que expone es un booleano. Es una LECTURA:
@@ -294,6 +320,11 @@ export class AuthService {
         user.lastName,
         user.email
       ),
+      // O1: se proyecta TAL CUAL, sin default ni coercion. `null` significa
+      // "esta cuenta se creo antes de que Scope preguntara esto" y el router
+      // lo trata igual que `personal` (espacio personal), pero el dato
+      // conserva la distincion.
+      onboardingIntent: user.onboardingIntent,
       // `Boolean(...)` y no `!== null` a proposito: FAIL-CLOSED. Si la
       // relacion no viene en el payload (un double de test que no la declara,
       // una proyeccion futura que la omita), `undefined !== null` seria `true`
@@ -429,6 +460,34 @@ export class AuthService {
     }
 
     return normalized;
+  }
+
+  // O1: ausente/undefined -> `undefined`, que Prisma omite y deja la columna
+  // en NULL. Presente -> tiene que ser EXACTAMENTE uno de los dos valores del
+  // enum. Nunca se normaliza (sin trim, sin lowercase): un enum no es texto
+  // libre, y "corregir" "PERSONAL" en silencio escondería un bug del cliente.
+  // Nunca se asume `personal` por defecto: eso afirmaria una eleccion que la
+  // persona no hizo.
+  //
+  // `null` explicito se acepta como "no contesto", igual que la ausencia: un
+  // cliente que serializa su estado puede mandar `null` de forma legitima.
+  private assertValidOnboardingIntent(
+    value: unknown
+  ): UserOnboardingIntent | undefined {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    if (
+      typeof value !== 'string' ||
+      !(ONBOARDING_INTENTS as readonly string[]).includes(value)
+    ) {
+      throw new BadRequestException(
+        `onboardingIntent debe ser uno de: ${ONBOARDING_INTENTS.join(', ')}.`
+      );
+    }
+
+    return value as UserOnboardingIntent;
   }
 
   private toAuthUserResponse(user: {

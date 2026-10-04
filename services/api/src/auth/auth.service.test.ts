@@ -11,6 +11,7 @@ import {
   IssuerMembershipRole,
   IssuerMembershipStatus,
   Prisma,
+  UserOnboardingIntent,
   UserStatus
 } from '@prisma/client';
 
@@ -42,6 +43,13 @@ function createRegisterPrismaDouble() {
   }> = [];
   const authCredentials: Array<{ userId: string; passwordHash: string }> = [];
   const issuerMembershipCreateCalls: unknown[] = [];
+  // O1: el `data` CRUDO que recibe user.create -- es exactamente lo que Prisma
+  // escribiria en la fila. `onboardingIntent: undefined` significa que la
+  // columna se omite y queda NULL por el schema.
+  const userCreateData: Array<Record<string, unknown>> = [];
+  // O1: los otros delegates que register NUNCA debe tocar.
+  const platformAdminCreateCalls: unknown[] = [];
+  const issuerCreateCalls: unknown[] = [];
   let nextId = 1;
 
   const userFindUniqueByIdCalls: Array<Record<string, unknown>> = [];
@@ -52,6 +60,8 @@ function createRegisterPrismaDouble() {
       async create(args: {
         data: { email: string; status: UserStatus; firstName: string; lastName: string };
       }) {
+        userCreateData.push(args.data as unknown as Record<string, unknown>);
+
         if (users.some((user) => user.email === args.data.email)) {
           throw prismaUniqueConstraintError();
         }
@@ -100,6 +110,20 @@ function createRegisterPrismaDouble() {
         return { id: `auth-credential-${authCredentials.length}`, ...args.data };
       }
     },
+    // O1: register no debe crear capacidad de plataforma ni instituciones en
+    // NINGUNA rama de onboardingIntent.
+    platformAdmin: {
+      async create(args: unknown) {
+        platformAdminCreateCalls.push(args);
+        throw new Error('register nunca debe crear un PlatformAdmin');
+      }
+    },
+    issuer: {
+      async create(args: unknown) {
+        issuerCreateCalls.push(args);
+        throw new Error('register nunca debe crear un Issuer');
+      }
+    },
     issuerMembership: {
       async create(args: unknown) {
         issuerMembershipCreateCalls.push(args);
@@ -138,6 +162,9 @@ function createRegisterPrismaDouble() {
     users,
     authCredentials,
     issuerMembershipCreateCalls,
+    userCreateData,
+    platformAdminCreateCalls,
+    issuerCreateCalls,
     userFindUniqueByIdCalls,
     userUpdateManyCalls
   };
@@ -930,6 +957,7 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
             displayName: null,
             firstName: 'Ada',
             lastName: 'Lovelace',
+            onboardingIntent: null,
             issuerMemberships: [
               {
                 issuerId: 'issuer-1',
@@ -957,6 +985,9 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
     did: 'did:example:issuer-admin-demo',
     status: UserStatus.active,
     displayLabel: 'Ada Lovelace',
+    // O1: el contrato de /auth/me ahora incluye la intencion de onboarding.
+    // null = cuenta creada antes de que Scope lo preguntara.
+    onboardingIntent: null,
     // S3: el contrato de /auth/me ahora incluye la capacidad de plataforma.
     // `false` porque este double no declara la relacion `platformAdmin` --
     // justamente el caso fail-closed que cubre el test S3/3b.
@@ -994,6 +1025,8 @@ test('AuthService.getCurrentUserProfile returns only active issuer memberships',
         displayName: true,
         firstName: true,
         lastName: true,
+        // O1: la intencion de onboarding, tal cual esta en la fila.
+        onboardingIntent: true,
         // S3: solo el `id` de la relacion. Nunca `grantedAt` ni el objeto: la
         // respuesta expone un booleano y la proyeccion no pide mas que eso.
         platformAdmin: {
@@ -1453,4 +1486,244 @@ test('S3/4: login does not expose platformAdmin -- the flag lives only in /auth/
 
   assert.equal('platformAdmin' in response.user, false);
   assert.equal(JSON.stringify(response).includes('platformAdmin'), false);
+});
+
+// ---------------------------------------------------------------------------
+// O1: onboardingIntent -- INTENCION de uso, nunca autorizacion.
+// ---------------------------------------------------------------------------
+
+const O1_BASE = {
+  email: 'persona@example.com',
+  password: 'CorrectHorse123',
+  firstName: 'Ada',
+  lastName: 'Lovelace'
+};
+
+test('O1/6: register personal persiste onboardingIntent = personal', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, userCreateData } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await service.register({ ...O1_BASE, onboardingIntent: 'personal' } as never);
+
+  assert.equal(userCreateData[0].onboardingIntent, UserOnboardingIntent.personal);
+});
+
+test('O1/7: register institutional persiste onboardingIntent = institutional', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, userCreateData } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await service.register({ ...O1_BASE, onboardingIntent: 'institutional' } as never);
+
+  assert.equal(
+    userCreateData[0].onboardingIntent,
+    UserOnboardingIntent.institutional
+  );
+});
+
+test('O1/8: register SIN el campo omite la columna -- queda NULL, nunca personal por default', async () => {
+  // Compatibilidad de deploy: un frontend anterior a O1 no manda el campo y el
+  // signup tiene que seguir funcionando. `undefined` hace que Prisma omita la
+  // columna; el schema la deja en NULL.
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, userCreateData, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.register(O1_BASE);
+
+  assert.equal(userCreateData[0].onboardingIntent, undefined);
+  assert.notEqual(
+    userCreateData[0].onboardingIntent,
+    UserOnboardingIntent.personal
+  );
+  assert.equal(users.length, 1);
+  assert.equal(response.user.email, 'persona@example.com');
+});
+
+test('O1/8b: null explicito se trata igual que la ausencia', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, userCreateData, users } = createRegisterPrismaDouble();
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  await service.register({ ...O1_BASE, onboardingIntent: null } as never);
+
+  assert.equal(userCreateData[0].onboardingIntent, undefined);
+  assert.equal(users.length, 1);
+});
+
+test('O1/9: un valor invalido -> 400, y NADA se crea', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  // Sin casing alternativo y sin trim: un enum no es texto libre.
+  const invalidos: unknown[] = [
+    'PERSONAL',
+    'Institutional',
+    ' personal ',
+    'personal ',
+    'holder',
+    'admin',
+    'issuer',
+    '',
+    42,
+    true,
+    {},
+    [],
+    ['personal']
+  ];
+
+  for (const onboardingIntent of invalidos) {
+    const { prisma, users, authCredentials } = createRegisterPrismaDouble();
+    const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+    await assert.rejects(
+      service.register({ ...O1_BASE, onboardingIntent } as never),
+      BadRequestException,
+      `deberia rechazar ${JSON.stringify(onboardingIntent)}`
+    );
+
+    assert.equal(users.length, 0, 'no crea el User');
+    assert.equal(authCredentials.length, 0, 'no crea la AuthCredential');
+  }
+});
+
+test('O1/10-13: NINGUNA rama de intent crea IssuerMembership, PlatformAdmin ni Issuer', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  for (const onboardingIntent of ['personal', 'institutional', undefined]) {
+    const {
+      prisma,
+      users,
+      issuerMembershipCreateCalls,
+      platformAdminCreateCalls,
+      issuerCreateCalls
+    } = createRegisterPrismaDouble();
+    const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+    await service.register({ ...O1_BASE, onboardingIntent } as never);
+
+    assert.equal(users.length, 1);
+    assert.deepEqual(
+      issuerMembershipCreateCalls,
+      [],
+      `intent=${String(onboardingIntent)} no debe crear IssuerMembership`
+    );
+    assert.deepEqual(platformAdminCreateCalls, []);
+    assert.deepEqual(issuerCreateCalls, []);
+  }
+});
+
+test('O1: institutional NO otorga ninguna capacidad -- el User sale igual que personal', async () => {
+  // La respuesta de register no lleva rol, ni membership, ni flag de
+  // plataforma, ni nada que difiera entre las dos ramas.
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const personal = createRegisterPrismaDouble();
+  const institutional = createRegisterPrismaDouble();
+
+  const personalResponse = await new AuthService(
+    personal.prisma as never,
+    createJwtServiceStub() as never
+  ).register({ ...O1_BASE, onboardingIntent: 'personal' } as never);
+
+  const institutionalResponse = await new AuthService(
+    institutional.prisma as never,
+    createJwtServiceStub() as never
+  ).register({ ...O1_BASE, onboardingIntent: 'institutional' } as never);
+
+  assert.deepEqual(
+    Object.keys(personalResponse.user).sort(),
+    Object.keys(institutionalResponse.user).sort()
+  );
+  assert.equal('onboardingIntent' in institutionalResponse.user, false);
+  assert.equal('role' in institutionalResponse.user, false);
+  assert.equal('platformAdmin' in institutionalResponse.user, false);
+  assert.equal('issuerMemberships' in institutionalResponse.user, false);
+});
+
+test('O1/14-16: /auth/me proyecta onboardingIntent tal cual, incluido null legacy', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+
+  const casos = [
+    [UserOnboardingIntent.personal, UserOnboardingIntent.personal],
+    [UserOnboardingIntent.institutional, UserOnboardingIntent.institutional],
+    [null, null]
+  ] as const;
+
+  for (const [stored, esperado] of casos) {
+    const { prisma } = createMePrismaDouble({
+      ...ME_USER_BASE,
+      onboardingIntent: stored,
+      platformAdmin: null
+    });
+    const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+    const response = await service.getCurrentUserProfile('user-123');
+
+    assert.equal(response.onboardingIntent, esperado);
+  }
+});
+
+test('O1: /auth/me pide onboardingIntent en el select, y no inventa un default', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma, selects } = createMePrismaDouble({
+    ...ME_USER_BASE,
+    onboardingIntent: null,
+    platformAdmin: null
+  });
+  const service = new AuthService(prisma as never, createJwtServiceStub() as never);
+
+  const response = await service.getCurrentUserProfile('user-123');
+
+  assert.equal(JSON.stringify(selects[0]).includes('onboardingIntent'), true);
+  // null se proyecta como null: el router lo trata como el espacio personal,
+  // pero el DATO conserva la distincion con una eleccion explicita.
+  assert.equal(response.onboardingIntent, null);
+  assert.notEqual(response.onboardingIntent, UserOnboardingIntent.personal);
+});
+
+test('O1: login NO expone onboardingIntent -- vive solo en /auth/me', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const passwordHash = await hashPassword('CorrectHorse123');
+  const service = new AuthService(
+    {
+      user: {
+        async findUnique() {
+          return {
+            id: 'user-123',
+            email: 'persona@example.com',
+            did: null,
+            status: UserStatus.active,
+            displayName: null,
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            onboardingIntent: UserOnboardingIntent.institutional,
+            authCredential: { passwordHash }
+          };
+        }
+      }
+    } as never,
+    createJwtServiceStub() as never
+  );
+
+  const response = await service.login({
+    email: 'persona@example.com',
+    password: 'CorrectHorse123'
+  });
+
+  assert.equal('onboardingIntent' in response.user, false);
+  assert.equal(JSON.stringify(response).includes('institutional'), false);
+});
+
+test('O1: el intent NUNCA entra al JWT', async () => {
+  process.env.JWT_SECRET = 'demo-secret';
+  const { prisma } = createRegisterPrismaDouble();
+  const jwt = createJwtServiceStub();
+  const service = new AuthService(prisma as never, jwt as never);
+
+  await service.register({ ...O1_BASE, onboardingIntent: 'institutional' } as never);
+
+  const payload = jwt.signAsyncCalls[0].payload as Record<string, unknown>;
+  assert.deepEqual(Object.keys(payload), ['sub']);
+  assert.equal('onboardingIntent' in payload, false);
 });

@@ -32,8 +32,26 @@ export function ContextRouter() {
       router.replace('/issuer');
     }
 
+    // O1: sin ningun contexto institucional operativo, la intencion de
+    // onboarding decide el destino.
+    //
+    // PRECEDENCIA. La membership operativa SIEMPRE gana: las dos ramas de
+    // arriba ya resolvieron 'single'/'selected' hacia /issuer, asi que esto
+    // solo corre cuando kind === 'none'. Un `institutional` con membership
+    // valida va a /issuer, igual que un `personal` con membership valida.
+    //
+    // onboardingIntent NO autoriza nada: el destino es una pantalla
+    // informativa, y cualquier API institucional sigue devolviendo 403 hasta
+    // que exista una IssuerMembership real.
+    //
+    // `null` (cuenta anterior a O1) se trata como `personal`: conserva
+    // exactamente el comportamiento previo a este slice.
     if (state.status === 'authenticated' && state.issuerContext.kind === 'none') {
-      router.replace('/wallet');
+      router.replace(
+        state.currentUser.onboardingIntent === 'institutional'
+          ? '/institutional-access-pending'
+          : '/wallet'
+      );
     }
   }, [router, state]);
 
@@ -68,7 +86,15 @@ export function ContextRouter() {
 
   return (
     <ContextShell label={state.currentUser.displayLabel} onLogout={handleLogout}>
-      {context.kind === 'none' ? <SessionLoadingState label="Abriendo tu espacio personal" /> : null}
+      {context.kind === 'none' ? (
+        <SessionLoadingState
+          label={
+            state.currentUser.onboardingIntent === 'institutional'
+              ? 'Abriendo tu acceso institucional'
+              : 'Abriendo tu espacio personal'
+          }
+        />
+      ) : null}
       {context.kind === 'selection-required' ? (
         <IssuerSelector
           memberships={context.operationalIssuerContexts}

@@ -8,6 +8,30 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { RegisterForm } from '@/features/auth/register-form';
 
+/**
+ * O1: los campos de identidad, que ya existian antes de este slice. Se extrajo
+ * a un helper porque desde O1 el submit ademas exige elegir la intencion, y
+ * varios tests necesitan dejar el formulario valido salvo por ese paso.
+ */
+function fillIdentityFields(overrides: Partial<Record<string, string>> = {}) {
+  fireEvent.change(screen.getByLabelText('Nombre'), {
+    target: { value: overrides.firstName ?? 'Ada' }
+  });
+  fireEvent.change(screen.getByLabelText('Apellido'), {
+    target: { value: overrides.lastName ?? 'Lovelace' }
+  });
+  fireEvent.change(
+    screen.getByRole('textbox', { name: 'Correo electrónico' }),
+    { target: { value: overrides.email ?? 'persona@example.com' } }
+  );
+  fireEvent.change(screen.getByLabelText('Contraseña'), {
+    target: { value: overrides.password ?? 'CorrectHorse123' }
+  });
+  fireEvent.change(screen.getByLabelText('Repetir contraseña'), {
+    target: { value: overrides.confirmPassword ?? 'CorrectHorse123' }
+  });
+}
+
 describe('RegisterForm', () => {
   it('renders accessible name/email/password/confirm fields with the expected autocomplete', () => {
     render(
@@ -43,9 +67,147 @@ describe('RegisterForm', () => {
       />
     );
 
+    // O1: la palabra "institución" SÍ aparece ahora, como copy de la intención
+    // de uso ("Trabajar con una institución"). Lo que la invariante siempre
+    // quiso prohibir es un CAMPO que confiera autoridad institucional, no la
+    // palabra. Así que se sacó del blacklist de texto y se compensa abajo con
+    // una aserción estructural sobre los controles del formulario, que es más
+    // fuerte que buscar palabras.
     expect(document.body.textContent).not.toMatch(
-      /issuer|emisor|rol|role|DID|wallet|blockchain|institución/i
+      /issuer|emisor|\brol\b|role|DID|wallet|blockchain/i
     );
+  });
+
+  it('O1: the only form controls are the identity fields and the two intent options', () => {
+    // Aserción estructural: ningún selector de institución, ningún campo de
+    // rol, DID, wallet ni red. El conjunto de controles está congelado.
+    render(
+      <RegisterForm
+        isSubmitting={false}
+        onSubmit={vi.fn().mockResolvedValue(null)}
+      />
+    );
+
+    expect(document.querySelectorAll('select')).toHaveLength(0);
+
+    const inputs = [...document.querySelectorAll('input')];
+    expect(inputs.map((input) => input.getAttribute('type')).sort()).toEqual([
+      'email',
+      'password',
+      'password',
+      'radio',
+      'radio',
+      'text',
+      'text'
+    ]);
+
+    // Los únicos radios son los dos valores congelados de la intención.
+    const radios = inputs.filter((input) => input.getAttribute('type') === 'radio');
+    expect(radios.map((radio) => radio.getAttribute('value'))).toEqual([
+      'personal',
+      'institutional'
+    ]);
+    // Un solo grupo: no hay un segundo set de opciones escondido.
+    expect(new Set(radios.map((radio) => radio.getAttribute('name'))).size).toBe(1);
+  });
+
+  it('O1: presents the question as intended use, never as an account type', () => {
+    render(
+      <RegisterForm
+        isSubmitting={false}
+        onSubmit={vi.fn().mockResolvedValue(null)}
+      />
+    );
+
+    expect(
+      screen.getByRole('group', { name: '¿Cómo vas a usar Scope?' })
+    ).toBeTruthy();
+    expect(screen.getByText('Gestionar mi trayectoria')).toBeTruthy();
+    expect(screen.getByText('Trabajar con una institución')).toBeTruthy();
+
+    // `User` sigue siendo el mismo tipo de identidad en las dos ramas, así que
+    // el copy nunca debe sugerir que se está eligiendo un tipo de cuenta.
+    expect(document.body.textContent).not.toMatch(
+      /tipo de cuenta|cuenta personal|cuenta institucional/i
+    );
+  });
+
+  it('O1: no option comes preselected -- the person has to choose', () => {
+    render(
+      <RegisterForm
+        isSubmitting={false}
+        onSubmit={vi.fn().mockResolvedValue(null)}
+      />
+    );
+
+    const radios = [
+      ...document.querySelectorAll<HTMLInputElement>('input[type="radio"]')
+    ];
+    expect(radios).toHaveLength(2);
+    expect(radios.every((radio) => !radio.checked)).toBe(true);
+  });
+
+  it('O1: submit does not proceed until an intent is selected', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(null);
+    render(<RegisterForm isSubmitting={false} onSubmit={onSubmit} />);
+
+    fillIdentityFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert').textContent).toContain(
+        'Elegí cómo vas a usar Scope.'
+      );
+    });
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('O1: sends personal when that option is chosen', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(null);
+    render(<RegisterForm isSubmitting={false} onSubmit={onSubmit} />);
+
+    fillIdentityFields();
+    fireEvent.click(screen.getByLabelText(/Gestionar mi trayectoria/));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+    expect(onSubmit.mock.calls[0][0].onboardingIntent).toBe('personal');
+  });
+
+  it('O1: sends institutional when that option is chosen', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(null);
+    render(<RegisterForm isSubmitting={false} onSubmit={onSubmit} />);
+
+    fillIdentityFields();
+    fireEvent.click(screen.getByLabelText(/Trabajar con una institución/));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+    expect(onSubmit.mock.calls[0][0].onboardingIntent).toBe('institutional');
+  });
+
+  it('O1: choosing institutional sends nothing that grants authority', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(null);
+    render(<RegisterForm isSubmitting={false} onSubmit={onSubmit} />);
+
+    fillIdentityFields();
+    fireEvent.click(screen.getByLabelText(/Trabajar con una institución/));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+    expect(Object.keys(onSubmit.mock.calls[0][0]).sort()).toEqual([
+      'email',
+      'firstName',
+      'lastName',
+      'onboardingIntent',
+      'password'
+    ]);
   });
 
   it('A1.1: shows client validation and focuses the first invalid field (firstName)', () => {
@@ -137,6 +299,8 @@ describe('RegisterForm', () => {
     fireEvent.change(screen.getByLabelText('Repetir contraseña'), {
       target: { value: 'CorrectHorse123' }
     });
+    // O1: desde este slice el submit exige elegir la intencion de uso.
+    fireEvent.click(screen.getByLabelText(/Gestionar mi trayectoria/));
     fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await waitFor(() => {
@@ -144,11 +308,19 @@ describe('RegisterForm', () => {
         firstName: 'Ada',
         lastName: 'Lovelace',
         email: 'persona@example.com',
-        password: 'CorrectHorse123'
+        password: 'CorrectHorse123',
+        onboardingIntent: 'personal'
       });
     });
     const [call] = onSubmit.mock.calls;
-    expect(Object.keys(call[0]).sort()).toEqual(['email', 'firstName', 'lastName', 'password']);
+    // confirmPassword sigue sin salir nunca del form.
+    expect(Object.keys(call[0]).sort()).toEqual([
+      'email',
+      'firstName',
+      'lastName',
+      'onboardingIntent',
+      'password'
+    ]);
   });
 
   it('A1.1: accepts unicode names with accents, apostrophes and hyphens', async () => {
@@ -163,6 +335,7 @@ describe('RegisterForm', () => {
     );
     fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'CorrectHorse123' } });
     fireEvent.change(screen.getByLabelText('Repetir contraseña'), { target: { value: 'CorrectHorse123' } });
+    fireEvent.click(screen.getByLabelText(/Gestionar mi trayectoria/));
     fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     await waitFor(() => {
@@ -170,7 +343,8 @@ describe('RegisterForm', () => {
         firstName: 'José María',
         lastName: "O'Connor-Jean-Pierre",
         email: 'persona@example.com',
-        password: 'CorrectHorse123'
+        password: 'CorrectHorse123',
+        onboardingIntent: 'personal'
       });
     });
   });
@@ -206,6 +380,8 @@ describe('RegisterForm', () => {
     const confirm = screen.getByLabelText('Repetir contraseña');
     fireEvent.change(password, { target: { value: 'CorrectHorse123' } });
     fireEvent.change(confirm, { target: { value: 'CorrectHorse123' } });
+    // O1: desde este slice el submit exige elegir la intencion de uso.
+    fireEvent.click(screen.getByLabelText(/Gestionar mi trayectoria/));
     fireEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
 
     expect(

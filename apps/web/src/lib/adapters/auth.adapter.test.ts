@@ -89,7 +89,10 @@ describe('auth adapters', () => {
         // S3: el modelo de sesión ahora representa la capacidad de plataforma.
         // `false` porque este payload no trae `platformAdmin` — el caso
         // fail-closed que cubren los tests de abajo.
-        isPlatformAdmin: false
+        isPlatformAdmin: false,
+        // O1: `null` porque este payload no trae `onboardingIntent` — el caso
+        // fail-safe de una cuenta anterior a O1 o de un API anterior a O1.
+        onboardingIntent: null
       },
       issuerMemberships: [
         {
@@ -214,6 +217,7 @@ describe('auth adapters', () => {
       'displayLabel',
       'email',
       'isPlatformAdmin',
+      'onboardingIntent',
       'userReference'
     ]);
   });
@@ -228,5 +232,105 @@ describe('auth adapters', () => {
 
     expect(adapted.currentUser.isPlatformAdmin).toBe(true);
     expect(adapted.issuerMemberships).toEqual([]);
+  });
+  // -------------------------------------------------------------------------
+  // O1: intención de onboarding
+  // -------------------------------------------------------------------------
+
+  it('O1: maps personal to onboardingIntent', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      onboardingIntent: 'personal',
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.onboardingIntent).toBe('personal');
+  });
+
+  it('O1: maps institutional to onboardingIntent', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      onboardingIntent: 'institutional',
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.onboardingIntent).toBe('institutional');
+  });
+
+  it('O1: maps an explicit null to null', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      onboardingIntent: null,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.onboardingIntent).toBeNull();
+  });
+
+  it('O1: defaults to null when the field is absent, without breaking the session', () => {
+    // Un API anterior a O1 no manda el campo. La sesión sigue siendo válida.
+    expect(() =>
+      adaptCurrentUserResponse({ ...activeUser, issuerMemberships: [] })
+    ).not.toThrow();
+
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      issuerMemberships: []
+    });
+
+    expect(adapted.currentUser.onboardingIntent).toBeNull();
+    expect(adapted.currentUser.email).toBe('persona@example.com');
+    expect(adapted.currentUser.displayLabel).toBe('Persona Demo');
+  });
+
+  it('O1: is fail-safe to null for unknown or malformed values', () => {
+    // A diferencia de `role`/`status` de una membership, un valor desconocido
+    // acá NO invalida la sesión: el campo no autoriza nada y la consecuencia
+    // de leerlo mal es aterrizar en el espacio personal.
+    for (const value of [
+      'PERSONAL',
+      'Institutional',
+      'holder',
+      'issuer',
+      '',
+      0,
+      1,
+      true,
+      {},
+      [],
+      ['personal']
+    ]) {
+      const adapted = adaptCurrentUserResponse({
+        ...activeUser,
+        onboardingIntent: value,
+        issuerMemberships: []
+      });
+
+      expect(adapted.currentUser.onboardingIntent).toBeNull();
+    }
+  });
+
+  it('O1: the intent is independent from memberships and from the platform capability', () => {
+    const adapted = adaptCurrentUserResponse({
+      ...activeUser,
+      onboardingIntent: 'institutional',
+      platformAdmin: false,
+      issuerMemberships: []
+    });
+
+    // Elegir "trabajar con una institución" no otorga NADA.
+    expect(adapted.currentUser.onboardingIntent).toBe('institutional');
+    expect(adapted.currentUser.isPlatformAdmin).toBe(false);
+    expect(adapted.issuerMemberships).toEqual([]);
+  });
+
+  it('O1: login response never carries the intent', () => {
+    // El flag vive solo en /auth/me. `adaptLoginResponse` produce un AuthUserVM.
+    const adapted = adaptLoginResponse({
+      accessToken: 'token',
+      user: { ...activeUser, onboardingIntent: 'institutional' }
+    });
+
+    expect('onboardingIntent' in adapted.user).toBe(false);
   });
 });

@@ -14,6 +14,32 @@ enum UserStatus {
   archived
 }
 
+/// O1: INTENCION DE ONBOARDING, declarada por la propia persona en su signup.
+///
+/// NO ES AUTORIZACION, y la distincion es verificable, no retorica: ningun
+/// guard ni ningun helper de autorizacion lee este campo. La unica autoridad
+/// institucional sigue siendo `IssuerMembership` (ver `IssuersService`), y la
+/// unica capacidad de plataforma sigue siendo la tabla `PlatformAdmin`. Un
+/// `institutional` con 0 memberships recibe 403 en toda API institucional,
+/// exactamente igual que un `personal`.
+///
+/// Lo UNICO que decide es a donde aterriza la persona despues de iniciar
+/// sesion cuando NO tiene ningun contexto institucional operativo
+/// (ver `ContextRouter` en el frontend).
+///
+/// POR QUE VIVE EN `User` Y NO EN UNA TABLA. Es un atributo que la identidad
+/// declara sobre si misma -- 1:1, sin otorgante, sin revocacion y sin nada que
+/// auditar -- igual que `firstName` o `displayName`, que ya estan aca. Una
+/// tabla aparte sugeriria semantica de GRANT, que es la de `PlatformAdmin` y no
+/// la de esto.
+///
+/// NO existe `holder` como valor: "holder" no es un tipo de cuenta. Una misma
+/// persona puede tener espacio personal, memberships y PlatformAdmin a la vez.
+enum UserOnboardingIntent {
+  personal
+  institutional
+}
+
 enum IssuerAuthorizationStatus {
   pending
   authorized
@@ -214,6 +240,7 @@ model User {
   lastName                       String?
   displayName                    String?
   status                         UserStatus                                 @default(active)
+  onboardingIntent               UserOnboardingIntent?
   createdAt                      DateTime                                   @default(now())
   updatedAt                      DateTime                                   @updatedAt
   issuerMemberships              IssuerMembership[]

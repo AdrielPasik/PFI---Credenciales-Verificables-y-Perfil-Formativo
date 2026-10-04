@@ -1,0 +1,43 @@
+-- O1 -- Intencion de onboarding del User.
+--
+-- PURAMENTE ADITIVA. Un enum nuevo y UNA columna NULLABLE sobre `User`:
+-- ningun default, ningun backfill, ningun indice, ninguna sentencia
+-- destructiva y ningun otro campo de `User` tocado (en particular NO `status`).
+--
+-- SIN DEFAULT A PROPOSITO. Un `DEFAULT 'personal'` afirmaria que cada cuenta ya
+-- existente eligio "gestionar mi trayectoria", que es una afirmacion que Scope
+-- no puede hacer. `NULL` significa exactamente "esta cuenta se creo antes de
+-- que Scope preguntara esto", y conserva la distincion entre eso y una eleccion
+-- explicita de `personal`.
+--
+-- SIN INDICE. Este campo nunca se filtra, ni se ordena, ni se busca por el: lo
+-- lee unicamente la proyeccion de `/auth/me` para un `User` ya resuelto por su
+-- clave primaria.
+--
+-- SEGURO SOBRE DATOS PRODUCTIVOS. `ADD COLUMN` nullable sin default es una
+-- operacion de METADATA en PostgreSQL: no reescribe la tabla y no bloquea
+-- lecturas. Las filas existentes quedan en NULL y conservan su comportamiento
+-- actual (0 memberships + NULL -> espacio personal).
+--
+-- NO ES AUTORIZACION. Esta columna no habilita nada: ni /admin, ni /issuer, ni
+-- una IssuerMembership, ni PlatformAdmin. La autoridad institucional sigue
+-- siendo exclusivamente `IssuerMembership`, y un guard estructural congela que
+-- ningun codigo de autorizacion lea este campo.
+--
+-- ---------------------------------------------------------------------------
+-- REQUISITO DE DEPLOY -- PENDIENTE, NO EJECUTADO AQUI
+-- ---------------------------------------------------------------------------
+--
+-- Igual que la migration de PlatformAdmin: tras aplicarla en RDS hay que
+-- verificar/otorgar privilegios de `scope_app` con el mecanismo existente,
+-- `infra/terraform/sql/02-grant-scope-app-on-existing-objects.sql` (idempotente).
+-- Para un ADD COLUMN los grants de tabla ya vigentes alcanzan; el enum nuevo
+-- tampoco necesita grant porque `USAGE` sobre un tipo es publico por defecto en
+-- PostgreSQL -- el script 01 lo documenta explicitamente. Se deja anotado para
+-- que la verificacion sea consciente y no una suposicion.
+
+-- CreateEnum
+CREATE TYPE "UserOnboardingIntent" AS ENUM ('personal', 'institutional');
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "onboardingIntent" "UserOnboardingIntent";
