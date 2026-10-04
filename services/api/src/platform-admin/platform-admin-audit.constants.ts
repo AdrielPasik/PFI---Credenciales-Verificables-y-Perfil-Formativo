@@ -64,3 +64,23 @@ export const ISSUER_MEMBERSHIP_RESOURCE_TYPE = 'IssuerMembership';
  * impide que un slice futuro invente una segunda ortografia del mismo hecho.
  */
 export const ISSUER_MEMBERSHIP_GRANTED_ACTION = 'issuer_membership_granted';
+
+/** Entidad afectada por el provisioning de plataforma: el nombre del modelo. */
+export const ISSUER_RESOURCE_TYPE = 'Issuer';
+
+/**
+ * Un PlatformAdmin dio de alta un Issuer nuevo dentro de Scope -- slice S5b.
+ *
+ * Se escribe en la MISMA transaccion que crea la fila `Issuer`, junto al
+ * `issuer_membership_granted` de su primer admin: dos hechos distintos, dos
+ * filas de auditoria, una sola transaccion. No se colapsan en una sola accion
+ * porque `resourceType`/`resourceId` apuntan a entidades diferentes (`Issuer`
+ * vs `IssuerMembership`), y el indice `@@index([resourceType, resourceId])`
+ * existe justamente para poder preguntar "que le paso a esta entidad".
+ *
+ * NO AFIRMA VERIFICACION INSTITUCIONAL. "Provisioned" es un hecho operativo:
+ * el issuer existe y esta habilitado para operar dentro de Scope. No dice que
+ * la institucion sea real, este acreditada, haya pasado un KYB ni tenga
+ * identidad tecnica -- de hecho nace con `did = null` y `walletAddress = null`.
+ */
+export const ISSUER_PROVISIONED_ACTION = 'issuer_provisioned';

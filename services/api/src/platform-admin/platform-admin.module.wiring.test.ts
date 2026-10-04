@@ -25,6 +25,8 @@ import { PlatformAdminUserResolutionController } from './platform-admin-user-res
 import { PlatformAdminUserResolutionService } from './platform-admin-user-resolution.service';
 import { PlatformAdminMembershipGrantController } from './platform-admin-membership-grant.controller';
 import { PlatformAdminMembershipGrantService } from './platform-admin-membership-grant.service';
+import { PlatformAdminIssuerProvisionController } from './platform-admin-issuer-provision.controller';
+import { PlatformAdminIssuerProvisionService } from './platform-admin-issuer-provision.service';
 
 test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicating AuthService', async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'wiring-test-secret';
@@ -70,10 +72,16 @@ test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicat
     // S5a suma el primer writer del modulo, en un controller aparte que
     // comparte el prefijo `admin/issuers` con el de lecturas (Nest resuelve por
     // metodo+path, asi que GET y POST no colisionan).
+    // S5b suma el segundo writer -- el alta de Issuers -- en un TERCER
+    // controller con el mismo prefijo: `POST ''` no colisiona ni con el
+    // `GET ''` de S3 ni con el `POST ':issuerId/memberships'` de S5a, y un
+    // archivo aparte es lo que permite que la allowlist del guard estructural
+    // siga siendo por archivo y por operacion.
     assert.deepEqual(controllers, [
       PlatformAdminIssuersController,
       PlatformAdminUserResolutionController,
-      PlatformAdminMembershipGrantController
+      PlatformAdminMembershipGrantController,
+      PlatformAdminIssuerProvisionController
     ]);
     assert.ok(applicationContext.get(PlatformAdminIssuersController));
     assert.ok(applicationContext.get(PlatformAdminReadService));
@@ -81,6 +89,8 @@ test('PlatformAdminModule resolves AuthGuard through AuthModule without duplicat
     assert.ok(applicationContext.get(PlatformAdminUserResolutionService));
     assert.ok(applicationContext.get(PlatformAdminMembershipGrantController));
     assert.ok(applicationContext.get(PlatformAdminMembershipGrantService));
+    assert.ok(applicationContext.get(PlatformAdminIssuerProvisionController));
+    assert.ok(applicationContext.get(PlatformAdminIssuerProvisionService));
 
     // Resoluble desde el AppModule real, no solo en aislamiento.
     const platformAdminGuard = applicationContext.get(PlatformAdminGuard);

@@ -1,15 +1,20 @@
 /**
- * Guard estructural de la WRITE SURFACE de /admin -- S3, ampliado en S5a.
+ * Guard estructural de la WRITE SURFACE de /admin -- S3, ampliado en S5a y S5b.
  *
  * Afirma UNA propiedad arquitectonica:
  *
  *     src/platform-admin es READ-ONLY, EXCEPTO una write surface
- *     explicitamente allowlisted: un unico archivo, con exactamente tres
- *     operaciones permitidas
+ *     explicitamente allowlisted POR ARCHIVO Y POR OPERACION
  *
  * La allowlist vive en `WRITE_SURFACE_ALLOWLIST` / `TRANSACTION_ALLOWLIST` y es
- * deliberadamente MINIMA: el service de S5a puede abrir `$transaction` y hacer
- * `issuerMembership.create` + `auditLog.create`. Nada mas, en ningun archivo.
+ * deliberadamente MINIMA -- DOS archivos en total:
+ *
+ *   - S5a (`platform-admin-membership-grant.service.ts`): `$transaction` +
+ *     `issuerMembership.create` + `auditLog.create`;
+ *   - S5b (`platform-admin-issuer-provision.service.ts`): lo mismo mas
+ *     `issuer.create`.
+ *
+ * Nada mas, en ningun archivo.
  *
  * POR QUE NO SE DEBILITO LA REGLA. S3 y S4 son superficies de observacion y
  * tienen que seguir siendolo: si una lectura administrativa ganara un `.update`
@@ -23,6 +28,13 @@
  * respectivamente, reactivacion silenciosa de memberships, mutacion de
  * identidades, auto-otorgamiento de capacidad de plataforma y reescritura de la
  * auditoria.
+ *
+ * Y lo que impide en S5b, en particular, es que el writer del alta gane
+ * `issuer.update`: con esa sola operacion mas, el plano de plataforma podria
+ * reautorizar un issuer revocado, renombrar una institucion existente o
+ * escribirle `did`/`walletAddress` -- es decir, configurar identidad tecnica
+ * sin pasar por ningun provisioning criptografico. S5b puede CREAR issuers;
+ * no puede TOCAR los que ya existen.
  *
  * COMPLEMENTA, NO REEMPLAZA, al guard de S1
  * (`platform-admin-write-surface.test.ts`), que afirma algo distinto y mas
@@ -80,6 +92,15 @@ const WRITE_SURFACE_ALLOWLIST = new Map<string, ReadonlySet<string>>([
   [
     'platform-admin-membership-grant.service.ts',
     new Set(['issuerMembership.create', 'auditLog.create'])
+  ],
+  // S5b: alta de un Issuer con su primer admin. UNA operacion mas que S5a
+  // -- `issuer.create` -- y ninguna otra. En particular NO `issuer.update`:
+  // este archivo puede CREAR un issuer, nunca modificar uno existente, asi que
+  // no puede reautorizar, renombrar ni configurarle identidad tecnica a un
+  // issuer que ya esta en la base.
+  [
+    'platform-admin-issuer-provision.service.ts',
+    new Set(['issuer.create', 'issuerMembership.create', 'auditLog.create'])
   ]
 ]);
 
@@ -91,7 +112,8 @@ const WRITE_SURFACE_ALLOWLIST = new Map<string, ReadonlySet<string>>([
  * la necesita: membership y AuditLog tienen que ser atomicos.
  */
 const TRANSACTION_ALLOWLIST: ReadonlySet<string> = new Set([
-  'platform-admin-membership-grant.service.ts'
+  'platform-admin-membership-grant.service.ts',
+  'platform-admin-issuer-provision.service.ts'
 ]);
 
 /** SQL crudo: prohibido en TODO el modulo, sin excepciones. */
@@ -242,6 +264,19 @@ test('guard: el barrido alcanza los archivos productivos de S3', () => {
     files.includes('grant-platform-admin-membership.validator.ts'),
     'el validador de S5a esta en el barrido'
   );
+  // S5b
+  assert.ok(
+    files.includes('platform-admin-issuer-provision.service.ts'),
+    'el writer de S5b esta en el barrido'
+  );
+  assert.ok(
+    files.includes('platform-admin-issuer-provision.controller.ts'),
+    'el controller de S5b esta en el barrido'
+  );
+  assert.ok(
+    files.includes('provision-platform-admin-issuer.validator.ts'),
+    'el validador de S5b esta en el barrido'
+  );
   assert.ok(
     !files.some((file) => file.endsWith('.test.ts')),
     'los tests quedan fuera del barrido'
@@ -315,18 +350,101 @@ test('write-surface: el writer de S5a solo puede hacer SUS DOS escrituras, nada 
   }
 });
 
-test('write-surface: la allowlist es minima -- un solo archivo, dos operaciones', () => {
+test('write-surface: el writer de S5b solo puede hacer SUS TRES escrituras, nada mas', () => {
+  // Control explicito y positivo sobre el segundo archivo escribible. La
+  // diferencia con S5a es UNA operacion: `issuer.create`.
+  const file = 'platform-admin-issuer-provision.service.ts';
+  const writes = forbiddenWrites(
+    readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
+    file
+  );
+
+  assert.deepEqual(writes, [
+    'auditLog.create',
+    'issuer.create',
+    'issuerMembership.create'
+  ]);
+
+  // Lo que el writer de S5b NUNCA puede hacer, enumerado para que el fallo sea
+  // legible. `issuer.update` encabeza la lista a proposito: es la unica
+  // operacion que convertiria el alta de issuers en mutacion de issuers
+  // existentes (reautorizar, renombrar, configurar DID o wallet).
+  for (const forbidden of [
+    'issuer.update',
+    'issuer.updateMany',
+    'issuer.upsert',
+    'issuer.delete',
+    'issuer.deleteMany',
+    'issuerMembership.update',
+    'issuerMembership.updateMany',
+    'issuerMembership.upsert',
+    'issuerMembership.delete',
+    'issuerMembership.deleteMany',
+    'auditLog.update',
+    'auditLog.delete',
+    'auditLog.deleteMany',
+    'user.create',
+    'user.update',
+    'user.updateMany',
+    'user.delete',
+    'user.deleteMany',
+    'platformAdmin.create',
+    'platformAdmin.update',
+    'platformAdmin.delete'
+  ]) {
+    assert.equal(
+      writes.includes(forbidden),
+      false,
+      `el writer de S5b no debe hacer ${forbidden}`
+    );
+  }
+});
+
+test('write-surface: SOLO el writer de S5b puede crear Issuers', () => {
+  // El claim central de S5b como provisioning CONTROLADO: `issuer.create` no
+  // es una operacion que pueda aparecer en cualquier lado del modulo. Un
+  // segundo archivo que la gane seria una segunda puerta de alta de
+  // instituciones, posiblemente sin auditoria y sin transaccion.
+  const creators = productionSourceFiles(PLATFORM_ADMIN_DIR).filter((file) =>
+    forbiddenWrites(
+      readFileSync(join(PLATFORM_ADMIN_DIR, file), 'utf8'),
+      file
+    ).includes('issuer.create')
+  );
+
+  assert.deepEqual(creators, ['platform-admin-issuer-provision.service.ts']);
+});
+
+test('write-surface: la allowlist es minima -- dos archivos, cinco operaciones', () => {
   // Si manana alguien agrega una entrada o amplia un conjunto, este test lo
   // obliga a hacerlo de forma consciente y visible en el diff.
   assert.deepEqual(
-    [...WRITE_SURFACE_ALLOWLIST.keys()],
-    ['platform-admin-membership-grant.service.ts']
+    [...WRITE_SURFACE_ALLOWLIST.keys()].sort(),
+    [
+      'platform-admin-issuer-provision.service.ts',
+      'platform-admin-membership-grant.service.ts'
+    ]
   );
   assert.deepEqual(
     [...(WRITE_SURFACE_ALLOWLIST.get('platform-admin-membership-grant.service.ts') ?? [])].sort(),
     ['auditLog.create', 'issuerMembership.create']
   );
-  assert.deepEqual([...TRANSACTION_ALLOWLIST], [
+  assert.deepEqual(
+    [...(WRITE_SURFACE_ALLOWLIST.get('platform-admin-issuer-provision.service.ts') ?? [])].sort(),
+    ['auditLog.create', 'issuer.create', 'issuerMembership.create']
+  );
+  // Ninguna operacion de MUTACION (update/upsert/delete) en ninguna entrada.
+  for (const [file, operations] of WRITE_SURFACE_ALLOWLIST) {
+    for (const operation of operations) {
+      assert.match(
+        operation,
+        /\.create$/,
+        `${file}: la write surface de /admin es CREATE-ONLY, y ${operation} no lo es`
+      );
+    }
+  }
+  assert.deepEqual([...TRANSACTION_ALLOWLIST].sort(), [
+    'platform-admin-issuer-provision.service.ts',
     'platform-admin-membership-grant.service.ts'
   ]);
 });
@@ -387,6 +505,18 @@ test('write-surface: el writer de S5a SI abre una transaccion -- la atomicidad n
   const code = executableCode('platform-admin-membership-grant.service.ts');
 
   assert.match(code, /\$transaction/);
+  assert.match(code, /transaction\.issuerMembership\.create/);
+  assert.match(code, /transaction\.auditLog\.create/);
+});
+
+test('write-surface: el writer de S5b SI abre una transaccion -- las cuatro filas son atomicas', () => {
+  // Issuer + membership + dos AuditLog. Sin `$transaction` el provisioning
+  // parcial pasaria a ser posible: un Issuer `authorized` sin ningun admin, o
+  // con admin pero sin auditoria del alta.
+  const code = executableCode('platform-admin-issuer-provision.service.ts');
+
+  assert.match(code, /\$transaction/);
+  assert.match(code, /transaction\.issuer\.create/);
   assert.match(code, /transaction\.issuerMembership\.create/);
   assert.match(code, /transaction\.auditLog\.create/);
 });

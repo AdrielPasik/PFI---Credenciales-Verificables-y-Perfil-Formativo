@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
+import { PlatformAdminIssuerProvisionController } from './platform-admin-issuer-provision.controller';
+import { PlatformAdminIssuerProvisionService } from './platform-admin-issuer-provision.service';
 import { PlatformAdminIssuersController } from './platform-admin-issuers.controller';
 import { PlatformAdminMembershipGrantController } from './platform-admin-membership-grant.controller';
 import { PlatformAdminMembershipGrantService } from './platform-admin-membership-grant.service';
@@ -44,13 +46,15 @@ import { PlatformAdminUserResolutionService } from './platform-admin-user-resolu
   controllers: [
     PlatformAdminIssuersController,
     PlatformAdminUserResolutionController,
-    PlatformAdminMembershipGrantController
+    PlatformAdminMembershipGrantController,
+    PlatformAdminIssuerProvisionController
   ],
   providers: [
     PlatformAdminGuard,
     PlatformAdminReadService,
     PlatformAdminUserResolutionService,
-    PlatformAdminMembershipGrantService
+    PlatformAdminMembershipGrantService,
+    PlatformAdminIssuerProvisionService
   ],
   exports: [PlatformAdminGuard]
 })
