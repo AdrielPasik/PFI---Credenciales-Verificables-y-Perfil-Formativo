@@ -10,6 +10,7 @@ Documentacion de arquitectura logica del sistema.
 - `api-contracts-v0.md`: contratos HTTP iniciales por dominio.
 - `canonicalization-and-hashing-v0.md`: estrategia versionada de canonizacion y hashing.
 - `auth-and-permissions-v0.md`: estrategia inicial de actores, roles y permisos.
+- `platform-administration-and-institutional-authority-v1.md`: plano de plataforma (`PlatformAdmin`), autoridad institucional (`IssuerMembership`) y alta administrativa de instituciones.
 - `deployment-architecture-v0.md`: arquitectura logica, deployment demo y ambientes.
 - `document-storage-decision-v0.md`: port de storage, adapter S3 futuro y privacidad.
 - `neon-demo-database-runbook-v0.md`: migraciones, seed y verificacion sanitaria de la base demo Neon.

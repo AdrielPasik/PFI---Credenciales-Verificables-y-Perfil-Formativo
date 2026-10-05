@@ -353,7 +353,14 @@ Estado actual implementado: puede emitir solo cuando esta autenticado, activo, t
 - ejecutar reconstrucciones o acciones de mantenimiento;
 - acceso ampliado sujeto a trazabilidad reforzada.
 
-Este rol no tiene endpoints ni permisos runtime implementados todavia.
+El plano de plataforma SI esta implementado: existe el modelo `PlatformAdmin`,
+el `PlatformAdminGuard` y la superficie `/admin` (listado de instituciones,
+resolucion de personas por email, alta de instituciones y asignacion de
+administradores). Los eventos de auditoria de esas operaciones usan
+`actorType: system_admin`. Esa capacidad es GLOBAL y deliberadamente NO otorga
+autoridad sobre una institucion: para operar un `Issuer` sigue haciendo falta
+una `IssuerMembership` explicita. Ver
+`platform-administration-and-institutional-authority-v1.md`.
 
 ## 4. Datos visibles por actor
 
