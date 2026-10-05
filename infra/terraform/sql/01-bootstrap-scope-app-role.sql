@@ -26,7 +26,7 @@
 --
 -- ORDER OF EXECUTION
 --   1. terraform apply (RDS exists, empty)
---   2. THIS FILE, connected as scope_admin to the `scope` database
+--   2. THIS FILE, connected as scope_admin to the `scope_app` database
 --   3. prisma migrate deploy      (as scope_admin)
 --   4. 02-grant-scope-app-on-existing-objects.sql  (as scope_admin)
 --   5. db:seed, db:verify-demo    (as scope_admin)
@@ -36,19 +36,23 @@
 --   affects objects created AFTER it runs, and step 3 creates the tables. Step 4
 --   is idempotent and is re-run after every future migration batch.
 --
--- HOW TO RUN IT (manual, from the migrator task or a psql session inside the VPC)
---   The password is read from Secrets Manager at that moment and is not written
---   to a file, a shell history entry or a CLI argument.
+-- HOW TO RUN IT (from the one-off migrator task)
+--   The RDS master password is injected from the RDS-owned Secrets Manager secret.
+--   The scope_app password is extracted in memory from the existing
+--   /scope/prod/api/DATABASE_URL SecureString and exposed to psql only through
+--   SCOPE_APP_PASSWORD. Neither password is written to a file, shell history or
+--   CLI argument.
 --
 -- ===========================================================================
 
 \set ON_ERROR_STOP on
+\getenv app_password SCOPE_APP_PASSWORD
 
 -- Session guard: refuse to run against the wrong database.
 DO $$
 BEGIN
-  IF current_database() <> 'scope' THEN
-    RAISE EXCEPTION 'Wrong database: expected "scope", connected to "%"', current_database();
+  IF current_database() <> 'scope_app' THEN
+    RAISE EXCEPTION 'Wrong database: expected "scope_app", connected to "%"', current_database();
   END IF;
 END
 $$;
@@ -66,9 +70,9 @@ $$;
 -- deployment running two task generations at once, and still stops a runaway
 -- client from exhausting db.t4g.micro's max_connections.
 --
--- :app_password is a psql variable. Pass it with
---   psql -v app_password="'<value>'" -f 01-bootstrap-scope-app-role.sql
--- so the literal never appears in this file or in the repository.
+-- :app_password is loaded from the SCOPE_APP_PASSWORD environment variable
+-- by psql \getenv above. The password is never passed as a CLI argument,
+-- written to this file or stored in the repository.
 
 DO $$
 BEGIN
@@ -78,19 +82,19 @@ BEGIN
 END
 $$;
 
-ALTER ROLE scope_app WITH PASSWORD :app_password;
+ALTER ROLE scope_app WITH PASSWORD :'app_password';
 
 -- ---------------------------------------------------------------------------
 -- 2. Database-level access
 -- ---------------------------------------------------------------------------
 
 -- CONNECT is what lets scope_app open a session at all.
-GRANT CONNECT ON DATABASE scope TO scope_app;
+GRANT CONNECT ON DATABASE scope_app TO scope_app;
 
 -- Explicitly NOT granted: CREATE on the database (no new schemas), TEMPORARY
 -- (no temp tables from the runtime).
-REVOKE CREATE ON DATABASE scope FROM PUBLIC;
-REVOKE TEMPORARY ON DATABASE scope FROM PUBLIC;
+REVOKE CREATE ON DATABASE scope_app FROM PUBLIC;
+REVOKE TEMPORARY ON DATABASE scope_app FROM PUBLIC;
 
 -- ---------------------------------------------------------------------------
 -- 3. Schema-level access
@@ -154,10 +158,10 @@ WHERE rolname IN ('scope_admin', 'scope_app')
 ORDER BY rolname;
 
 SELECT
-  has_database_privilege('scope_app', 'scope', 'CONNECT') AS can_connect,
-  has_database_privilege('scope_app', 'scope', 'CREATE')  AS can_create_schema,
-  has_schema_privilege('scope_app', 'public', 'USAGE')    AS schema_usage,
-  has_schema_privilege('scope_app', 'public', 'CREATE')   AS schema_create;
+  has_database_privilege('scope_app', 'scope_app', 'CONNECT') AS can_connect,
+  has_database_privilege('scope_app', 'scope_app', 'CREATE')  AS can_create_schema,
+  has_schema_privilege('scope_app', 'public', 'USAGE')        AS schema_usage,
+  has_schema_privilege('scope_app', 'public', 'CREATE')       AS schema_create;
 
 -- Expected: can_connect = t, can_create_schema = f, schema_usage = t,
 -- schema_create = f.

@@ -188,21 +188,44 @@ resource "aws_ecs_task_definition" "migrator" {
       image     = "${aws_ecr_repository.api.repository_url}:${var.api_image_tag}"
       essential = true
 
-      # `sh -c <script>` overrides whatever ENTRYPOINT the API image declares, so
-      # the connection string is assembled in the container and nowhere else.
-      entryPoint  = ["sh", "-c"]
-      command     = [local.migrator_bootstrap_script]
+      # The API image ships a dedicated migrator entrypoint that assembles the
+      # administrative connection in memory and then execs the requested command.
+      entryPoint  = ["/app/services/api/docker/migrator-entrypoint.sh"]
+      command     = var.migrator_command
       stopTimeout = 120
+
+      environment = [
+        {
+          name  = "RDS_ADDRESS"
+          value = local.rds_address
+        },
+        {
+          name  = "RDS_MASTER_USERNAME"
+          value = var.rds_master_username
+        },
+        {
+          name  = "RDS_DATABASE_NAME"
+          value = var.rds_database_name
+        },
+      ]
 
       # The RDS master password, read straight from the secret that RDS owns.
       # ":password::" selects that single JSON key; no other field is exposed, and
       # the value is never copied into SSM Parameter Store.
-      secrets = local.rds_master_secret_arn != "" ? [
-        {
-          name      = "RDS_MASTER_PASSWORD"
-          valueFrom = "${local.rds_master_secret_arn}:password::"
-        },
-      ] : []
+      secrets = concat(
+        local.rds_master_secret_arn != "" ? [
+          {
+            name      = "RDS_MASTER_PASSWORD"
+            valueFrom = "${local.rds_master_secret_arn}:password::"
+          },
+        ] : [],
+        [
+          {
+            name      = "SCOPE_APP_DATABASE_URL"
+            valueFrom = "${local.ssm_parameter_arn_prefix}${local.api_secret_parameters.DATABASE_URL}"
+          },
+        ]
+      )
 
       logConfiguration = {
         logDriver = "awslogs"

@@ -35,8 +35,7 @@ export function createDocumentStorageAdapterFromEnv(
 
   const region = requireEnv(env, 'AWS_REGION');
   const bucket = requireEnv(env, 'AWS_S3_BUCKET');
-  const accessKeyId = requireEnv(env, 'AWS_ACCESS_KEY_ID');
-  const secretAccessKey = requireEnv(env, 'AWS_SECRET_ACCESS_KEY');
+  const credentials = resolveOptionalAwsCredentials(env);
   const endpoint = resolveOptionalEndpoint(env.AWS_S3_ENDPOINT);
   const forcePathStyle = resolveOptionalBoolean(
     env.AWS_S3_FORCE_PATH_STYLE,
@@ -47,10 +46,7 @@ export function createDocumentStorageAdapterFromEnv(
 
   const client = createS3Client({
     region,
-    credentials: {
-      accessKeyId,
-      secretAccessKey
-    },
+    ...(credentials ? { credentials } : {}),
     ...(endpoint ? { endpoint } : {}),
     ...(forcePathStyle === undefined ? {} : { forcePathStyle })
   });
@@ -59,6 +55,27 @@ export function createDocumentStorageAdapterFromEnv(
     bucket,
     prefix: env.AWS_S3_PREFIX?.trim() || 'document-evidence'
   });
+}
+
+function resolveOptionalAwsCredentials(env: NodeJS.ProcessEnv) {
+  const accessKeyId = env.AWS_ACCESS_KEY_ID?.trim();
+  const secretAccessKey = env.AWS_SECRET_ACCESS_KEY?.trim();
+
+  if (!accessKeyId && !secretAccessKey) {
+    return undefined;
+  }
+
+  if (!accessKeyId || !secretAccessKey) {
+    throw new DocumentStorageError(
+      'configuration',
+      'AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY deben definirse juntas.'
+    );
+  }
+
+  return {
+    accessKeyId,
+    secretAccessKey
+  };
 }
 
 function requireEnv(env: NodeJS.ProcessEnv, name: string) {

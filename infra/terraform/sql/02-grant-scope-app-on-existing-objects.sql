@@ -9,7 +9,7 @@
 -- `prisma migrate deploy` has ALREADY created needs an explicit grant.
 --
 -- RUN THIS:
---   - as scope_admin, connected to the `scope` database;
+--   - as scope_admin, connected to the `scope_app` database;
 --   - after the FIRST `prisma migrate deploy`;
 --   - again after every later migration batch, before the new code goes live.
 --
@@ -20,8 +20,8 @@
 
 DO $$
 BEGIN
-  IF current_database() <> 'scope' THEN
-    RAISE EXCEPTION 'Wrong database: expected "scope", connected to "%"', current_database();
+  IF current_database() <> 'scope_app' THEN
+    RAISE EXCEPTION 'Wrong database: expected "scope_app", connected to "%"', current_database();
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'scope_app') THEN
     RAISE EXCEPTION 'scope_app does not exist: run 01-bootstrap-scope-app-role.sql first';

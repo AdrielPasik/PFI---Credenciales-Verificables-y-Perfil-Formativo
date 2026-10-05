@@ -35,8 +35,8 @@ locals {
   # The migrator runs as the RDS master user, and the master credential lives in
   # exactly one place: the Secrets Manager secret that RDS itself owns. Copying it
   # into SSM would create a second, silently diverging copy of the same password.
-  # The migrator container reads it through the ECS `secrets` block instead (see
-  # migrator_bootstrap_script below) and builds the connection string in memory.
+  # The migrator container reads the master credential through the ECS `secrets`
+  # block; the image's dedicated migrator entrypoint builds the admin connection in memory.
 
   # Non-secret String parameters that Terraform DOES create, because they must be
   # flippable at runtime without a terraform apply: the blockchain evidence mode,
@@ -123,36 +123,6 @@ locals {
   )
 
   # ---------------------------------------------------------------------------
-  # migrator bootstrap
-  #
-  # The master password arrives as RDS_MASTER_PASSWORD, injected by ECS directly
-  # from the RDS-owned Secrets Manager secret (JSON key `password`). The script
-  # percent-encodes it with Node - already present in the API image, which the
-  # migrator reuses - because an RDS-generated password may contain characters that
-  # are legal in a password and illegal in a URL userinfo field.
-  #
-  # DATABASE_URL exists only as a process environment variable inside that one-off
-  # task: never in SSM, never in the task definition, never in Terraform state.
-  # sslmode=require is explicit; RDS accepts TLS and Prisma would otherwise
-  # negotiate on preference alone.
-  # ---------------------------------------------------------------------------
-  migrator_bootstrap_script = <<-EOT
-    set -eu
-    if [ -z "$${RDS_MASTER_PASSWORD:-}" ]; then
-      echo "RDS_MASTER_PASSWORD is empty: the ECS secrets block did not resolve." >&2
-      exit 1
-    fi
-    if [ -z "${local.rds_address}" ]; then
-      echo "No RDS endpoint is known to this task definition: apply with create_rds = true first." >&2
-      exit 1
-    fi
-    DB_PASSWORD_ENCODED=$(node -e 'process.stdout.write(encodeURIComponent(process.env.RDS_MASTER_PASSWORD))')
-    export DATABASE_URL="postgresql://${var.rds_master_username}:$${DB_PASSWORD_ENCODED}@${local.rds_address}:5432/${var.rds_database_name}?schema=public&sslmode=require&connect_timeout=15"
-    unset RDS_MASTER_PASSWORD DB_PASSWORD_ENCODED
-    exec ${join(" ", var.migrator_command)}
-  EOT
-
-  # ---------------------------------------------------------------------------
   # GitHub Actions federation
   #
   # The trusted subject is an EXACT string: only a job that declares the named
@@ -201,13 +171,17 @@ locals {
       secret_arns = []
     }
 
-    # The migrator reuses the API image and reads NO SSM parameter at all: its
-    # only credential is the RDS master secret, straight from Secrets Manager.
+    # The migrator reuses the API image. It reads the RDS master secret directly
+    # from Secrets Manager for the administrative connection, plus exactly the
+    # runtime DATABASE_URL SecureString so the scope_app password can be reused
+    # during the one-time role bootstrap without creating a second secret.
     migrator = {
       repository_arn = aws_ecr_repository.api.arn
       log_group_arn  = aws_cloudwatch_log_group.migrator.arn
-      parameter_arns = []
-      secret_arns    = local.rds_master_secret_arn != "" ? [local.rds_master_secret_arn] : []
+      parameter_arns = [
+        "${local.ssm_parameter_arn_prefix}${local.api_secret_parameters.DATABASE_URL}"
+      ]
+      secret_arns = local.rds_master_secret_arn != "" ? [local.rds_master_secret_arn] : []
     }
   }
 }

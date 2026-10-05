@@ -319,7 +319,8 @@ async function main() {
 
 if (require.main === module) {
   main()
-    .catch(() => {
+    .catch((error) => {
+      console.error(error);
       console.error(
         'El seed demo fallo. Revise migraciones, catalogos y configuracion del ambiente.'
       );

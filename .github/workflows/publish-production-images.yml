@@ -1,0 +1,127 @@
+name: Publish production images
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Exact Git commit SHA from main to build and publish"
+        required: true
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    outputs:
+      source_sha: ${{ steps.verify.outputs.sha }}
+
+    steps:
+      - name: Validate SHA format
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "source_sha must be exactly 40 lowercase hexadecimal characters." >&2
+            exit 1
+          fi
+
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify source commit
+        id: verify
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+
+          if [ "$ACTUAL_SHA" != "$SOURCE_SHA" ]; then
+            echo "Checked-out commit does not match source_sha." >&2
+            exit 1
+          fi
+
+          git fetch --no-tags origin main:refs/remotes/origin/main
+
+          if ! git merge-base --is-ancestor "$ACTUAL_SHA" origin/main; then
+            echo "source_sha is not contained in origin/main." >&2
+            exit 1
+          fi
+
+          echo "sha=$ACTUAL_SHA" >> "$GITHUB_OUTPUT"
+
+  publish-api:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout validated source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.source_sha }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./services/api/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/api:${{ needs.validate.outputs.source_sha }}
+
+  publish-ai:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout validated source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.source_sha }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push AI image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/ai-service
+          file: ./services/ai-service/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/ai:${{ needs.validate.outputs.source_sha }}
