@@ -82,6 +82,10 @@ export function IssuerRouteBoundary({
       canChangeIssuer={
         state.issuerContext.operationalIssuerContexts.length > 1
       }
+      // S6a: hace descubrible /admin tambien desde el portal institucional.
+      // Son dos planos distintos: tener membership no da capacidad de
+      // plataforma, y tenerla no da acceso institucional.
+      isPlatformAdmin={state.currentUser.isPlatformAdmin}
       onChangeIssuer={() => {
         clearSelectedIssuer();
         router.replace('/');

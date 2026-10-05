@@ -136,7 +136,15 @@ export function InstitutionalAccessPendingBoundary({
   }
 
   return (
-    <WalletShell label={state.currentUser.displayLabel} onLogout={handleLogout}>
+    <WalletShell
+      label={state.currentUser.displayLabel}
+      // S6a: sin esto, un PlatformAdmin con intencion institucional y CERO
+      // memberships aterriza aca y no tendria ningun camino visible a /admin.
+      // Es el unico cambio de S6a en esta ruta: no se toca su routing ni su
+      // copy.
+      isPlatformAdmin={state.currentUser.isPlatformAdmin}
+      onLogout={handleLogout}
+    >
       {children({
         email: state.currentUser.email,
         isRechecking,

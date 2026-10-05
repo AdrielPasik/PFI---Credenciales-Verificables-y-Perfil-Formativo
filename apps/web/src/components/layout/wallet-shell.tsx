@@ -6,10 +6,17 @@ import { AccountMenu } from '@/components/navigation/account-menu';
 interface WalletShellProps {
   children: ReactNode;
   label: string;
+  /** S6a: ver `AccountMenuProps.isPlatformAdmin`. Solo se pasa a traves. */
+  isPlatformAdmin?: boolean;
   onLogout: () => void;
 }
 
-export function WalletShell({ children, label, onLogout }: WalletShellProps) {
+export function WalletShell({
+  children,
+  isPlatformAdmin = false,
+  label,
+  onLogout
+}: WalletShellProps) {
   return (
     <div className="flex min-h-svh flex-col bg-canvas">
       <a
@@ -25,7 +32,12 @@ export function WalletShell({ children, label, onLogout }: WalletShellProps) {
             tone="inverse"
             descriptor="Espacio personal"
           />
-          <AccountMenu label={label} onLogout={onLogout} inverse />
+          <AccountMenu
+            label={label}
+            isPlatformAdmin={isPlatformAdmin}
+            onLogout={onLogout}
+            inverse
+          />
         </div>
       </header>
       <main

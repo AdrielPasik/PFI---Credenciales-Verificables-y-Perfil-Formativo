@@ -9,6 +9,8 @@ interface IssuerShellProps {
   label: string;
   issuerName: string;
   canChangeIssuer: boolean;
+  /** S6a: ver `AccountMenuProps.isPlatformAdmin`. Solo se pasa a traves. */
+  isPlatformAdmin?: boolean;
   onChangeIssuer: () => void;
   onLogout: () => void;
 }
@@ -16,6 +18,7 @@ interface IssuerShellProps {
 export function IssuerShell({
   canChangeIssuer,
   children,
+  isPlatformAdmin = false,
   label,
   issuerName,
   onChangeIssuer,
@@ -41,6 +44,7 @@ export function IssuerShell({
             <AccountMenu
               label={label}
               canChangeIssuer={canChangeIssuer}
+              isPlatformAdmin={isPlatformAdmin}
               onChangeIssuer={onChangeIssuer}
               onLogout={onLogout}
               inverse

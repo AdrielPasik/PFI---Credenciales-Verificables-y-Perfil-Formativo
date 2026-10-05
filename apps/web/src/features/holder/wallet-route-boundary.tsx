@@ -46,7 +46,13 @@ export function WalletRouteBoundary({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WalletShell label={state.currentUser.displayLabel} onLogout={handleLogout}>
+    <WalletShell
+      label={state.currentUser.displayLabel}
+      // S6a: hace descubrible /admin desde el espacio personal. Es solo un
+      // enlace -- la autoridad sigue siendo `PlatformAdminGuard`, server-side.
+      isPlatformAdmin={state.currentUser.isPlatformAdmin}
+      onLogout={handleLogout}
+    >
       {children}
     </WalletShell>
   );
