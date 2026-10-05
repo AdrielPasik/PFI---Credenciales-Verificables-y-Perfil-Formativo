@@ -128,3 +128,61 @@ export interface AdminIssuerMembershipsVM {
   issuer: AdminMembershipsIssuerVM;
   items: AdminMembershipVM[];
 }
+
+// ---------------------------------------------------------------------------
+// S6b -- ACCIONES ADMINISTRATIVAS
+// ---------------------------------------------------------------------------
+
+/**
+ * Resultado de `POST /admin/users/resolve` (S4).
+ *
+ * NO TIENE `userId`, Y NO PUEDE TENERLO. El backend deliberadamente no lo
+ * devuelve: si el cliente pudiera capturar un identificador de usuario,
+ * terminaria transportandolo como si fuera autoridad. Todo el frontend
+ * administrativo opera POR EMAIL, y S5a/S5b vuelven a resolver la persona
+ * server-side antes de otorgar nada.
+ *
+ * Esto es confirmacion VISUAL, no autorizacion: entre el resolve y el confirm
+ * la persona puede dejar de ser elegible, y en ese caso la mutacion devuelve
+ * el 404 uniforme. La invariante esta congelada por test.
+ */
+export interface ResolvedAdminUserVM {
+  email: string;
+  displayLabel: string;
+}
+
+/**
+ * Resultado de `POST /admin/issuers/:issuerId/memberships` (S5a).
+ *
+ * Reusa `AdminMembershipVM` sin estrecharlo: `email` conserva
+ * `string | null`, contrato congelado en S3. En este camino la persona
+ * siempre tiene email -- la resolucion lo exige -- pero el VM sigue la forma
+ * del backend y nunca convierte `null` en `""`.
+ */
+export interface AdminMembershipGrantResultVM {
+  issuer: AdminMembershipsIssuerVM;
+  membership: AdminMembershipVM;
+}
+
+/**
+ * El Issuer tal como lo devuelve `POST /admin/issuers` (S5b).
+ *
+ * Misma forma que `AdminIssuerVM` menos los conteos, que el POST no trae
+ * (nace sin catalogo y con una sola membership). La informacion administrativa
+ * que se muestra despues sale siempre de los GET canonicos, no de aca.
+ */
+export interface AdminProvisionedIssuerVM {
+  issuerReference: string;
+  name: string;
+  legalName: string | null;
+  authorizationStatus: IssuerAuthorizationStatus;
+  authorizationLabel: string;
+  technicalIdentity: AdminTechnicalIdentityVM;
+  createdAtLabel: string;
+}
+
+/** Resultado de `POST /admin/issuers` (S5b). */
+export interface AdminIssuerProvisionResultVM {
+  issuer: AdminProvisionedIssuerVM;
+  initialAdminMembership: AdminMembershipVM;
+}

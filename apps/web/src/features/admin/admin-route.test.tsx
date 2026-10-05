@@ -1,4 +1,10 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminContent } from '@/features/admin/admin-route';
@@ -11,7 +17,10 @@ import type {
 
 const api = vi.hoisted(() => ({
   getIssuers: vi.fn(),
-  getMemberships: vi.fn()
+  getMemberships: vi.fn(),
+  resolve: vi.fn(),
+  grant: vi.fn(),
+  provision: vi.fn()
 }));
 const session = vi.hoisted(() => ({
   requestAuthenticated: vi.fn(),
@@ -21,7 +30,10 @@ const session = vi.hoisted(() => ({
 vi.mock('@/lib/api/admin-api', () => ({
   getAdminIssuersRequest: (...args: unknown[]) => api.getIssuers(...args),
   getAdminIssuerMembershipsRequest: (...args: unknown[]) =>
-    api.getMemberships(...args)
+    api.getMemberships(...args),
+  resolveAdminUserRequest: (...args: unknown[]) => api.resolve(...args),
+  grantAdminMembershipRequest: (...args: unknown[]) => api.grant(...args),
+  provisionAdminIssuerRequest: (...args: unknown[]) => api.provision(...args)
 }));
 vi.mock('@/lib/session/session-provider', () => ({
   useSession: () => ({
@@ -125,6 +137,9 @@ function issuerButton(name: string | RegExp) {
 beforeEach(() => {
   api.getIssuers.mockReset();
   api.getMemberships.mockReset();
+  api.resolve.mockReset();
+  api.grant.mockReset();
+  api.provision.mockReset();
   session.retry.mockReset();
   api.getMemberships.mockResolvedValue(
     membershipsFor('issuer-uade', [membership()])
@@ -144,15 +159,23 @@ describe('AdminContent: listado de instituciones', () => {
     expect(screen.getAllByRole('status').length).toBeGreaterThan(0);
   });
 
-  it('2: cero instituciones muestra el empty state, sin botón de crear', async () => {
+  it('2: cero instituciones muestra el empty state, y SÍ ofrece crear (S6b)', async () => {
+    // S6a no tenia el boton porque era lectura pura. S6b lo agrega, y este es
+    // justamente el caso en el que mas se necesita: una plataforma vacia.
     api.getIssuers.mockResolvedValue({ items: [] });
     render(<AdminContent />);
 
     await screen.findByText('No hay instituciones configuradas todavía.');
-    // S6a es lectura pura: el alta es S6b.
-    expect(screen.queryByRole('button', { name: /Crear/ })).toBeNull();
-    expect(screen.queryByRole('button', { name: /Agregar/ })).toBeNull();
+    expect(
+      screen.getByRole('button', { name: /Crear institución/ })
+    ).toBeTruthy();
+    // Sin issuer seleccionado no hay accion institucional.
+    expect(
+      screen.queryByRole('button', { name: /Agregar administrador/ })
+    ).toBeNull();
     expect(api.getMemberships).not.toHaveBeenCalled();
+    // Y mostrar el boton no muta nada.
+    expect(api.provision).not.toHaveBeenCalled();
   });
 
   it('3: una institución se renderiza', async () => {
@@ -728,8 +751,14 @@ describe('AdminContent: errores del padrón', () => {
 // LECTURA PURA
 // ---------------------------------------------------------------------------
 
-describe('AdminContent: lectura pura', () => {
-  it('con datos completos no existe ningún control de mutación', async () => {
+describe('AdminContent: superficie de mutación acotada', () => {
+  /**
+   * En S6a este test afirmaba "no hay ningun control de mutacion". Ese
+   * contrato cambio A PROPOSITO. Lo que se congela ahora es mas util: que las
+   * acciones disponibles son EXACTAMENTE dos, que estan en el plano que les
+   * corresponde, y que mostrarlas no muta nada.
+   */
+  it('las acciones disponibles son exactamente dos, y en el plano correcto', async () => {
     api.getIssuers.mockResolvedValue({ items: [issuer(), provisioned] });
     api.getMemberships.mockResolvedValue(
       membershipsFor('issuer-uade', [membership()])
@@ -738,35 +767,382 @@ describe('AdminContent: lectura pura', () => {
 
     await screen.findByRole('table');
 
-    // Ni formularios, ni inputs, ni botones deshabilitados.
-    expect(container.querySelector('form')).toBeNull();
-    expect(container.querySelector('input')).toBeNull();
-    expect(container.querySelector('select')).toBeNull();
-    expect(container.querySelector('textarea')).toBeNull();
-    expect(container.querySelector('button[disabled]')).toBeNull();
+    // Platform level e institucional, una de cada.
+    expect(
+      screen.getByRole('button', { name: /Crear institución/ })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: /Agregar administrador/ })
+    ).toBeTruthy();
 
-    // Los únicos botones son los dos de selección de institución.
+    // Nada mas: dos selecciones de institucion + las dos acciones.
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(2);
+    expect(buttons).toHaveLength(4);
     for (const button of buttons) {
       expect(button.getAttribute('type')).toBe('button');
     }
 
+    // Los formularios viven DENTRO de los flujos, que todavia no se abrieron.
+    expect(container.querySelector('input')).toBeNull();
+    expect(container.querySelector('select')).toBeNull();
+    expect(container.querySelector('button[disabled]')).toBeNull();
+
+    // El copy de S6b es el acordado, y no se cuela nada de un slice futuro.
     const text = container.textContent ?? '';
-    for (const copy of [
-      'Crear institución',
-      'Agregar admin',
-      'Asignar usuario',
-      'Próximamente'
-    ]) {
-      expect(text, `no debe anticipar "${copy}"`).not.toContain(copy);
-    }
+    expect(text).not.toContain('Agregar usuario');
+    expect(text).not.toContain('Próximamente');
+    expect(text).not.toContain('Editar institución');
+    expect(text).not.toContain('Revocar');
+  });
+
+  it('abrir cualquiera de las dos acciones no dispara ninguna mutación', async () => {
+    api.getIssuers.mockResolvedValue({ items: [issuer()] });
+    render(<AdminContent />);
+    await screen.findByRole('table');
+
+    screen.getByRole('button', { name: /Agregar administrador/ }).click();
+    await screen.findByLabelText('Email de la persona');
+
+    expect(api.resolve).not.toHaveBeenCalled();
+    expect(api.grant).not.toHaveBeenCalled();
+    expect(api.provision).not.toHaveBeenCalled();
+  });
+
+  it('nunca hay dos flujos abiertos a la vez', async () => {
+    api.getIssuers.mockResolvedValue({ items: [issuer()] });
+    render(<AdminContent />);
+    await screen.findByRole('table');
+
+    screen.getByRole('button', { name: /Agregar administrador/ }).click();
+    await screen.findByLabelText('Email de la persona');
+
+    screen.getByRole('button', { name: /Crear institución/ }).click();
+    await screen.findByLabelText('Razón social');
+
+    // Al abrir el de plataforma, el institucional se cierra.
+    expect(screen.queryByLabelText('Email de la persona')).toBeNull();
   });
 });
 
 // ---------------------------------------------------------------------------
-// ACCESIBILIDAD
+// S6b -- INTEGRACION: REFRESH Y CAMBIO DE SELECCION
 // ---------------------------------------------------------------------------
+
+async function openAddMemberAndResolve() {
+  await screen.findByRole('table');
+  screen.getByRole('button', { name: /Agregar administrador/ }).click();
+  const input = await screen.findByLabelText('Email de la persona');
+  fireEvent.change(input, { target: { value: 'ana@uade.edu.ar' } });
+  screen.getByRole('button', { name: 'Buscar persona' }).click();
+  await screen.findByText('Persona encontrada');
+}
+
+describe('AdminContent: refresh después de un grant (S5a)', () => {
+  const ANA = {
+    userReference: 'user-ana',
+    email: 'ana@uade.edu.ar',
+    displayLabel: 'Ana Gómez',
+    role: 'admin' as const,
+    roleLabel: 'Administrador',
+    status: 'active' as const,
+    statusLabel: 'Activa',
+    createdAtLabel: '5 oct 2026, 10:00'
+  };
+
+  beforeEach(() => {
+    api.resolve.mockResolvedValue({
+      email: 'ana@uade.edu.ar',
+      displayLabel: 'Ana Gómez'
+    });
+    api.grant.mockResolvedValue({
+      issuer: { issuerReference: 'issuer-uade', name: 'UADE' },
+      membership: ANA
+    });
+  });
+
+  it('17-21: refresca issuers Y memberships, conserva la selección, y los counts vienen del backend', async () => {
+    const before = issuer({
+      membershipCounts: { active: 3, total: 5, summaryLabel: '3 activos de 5' }
+    });
+    const after = issuer({
+      membershipCounts: { active: 4, total: 6, summaryLabel: '4 activos de 6' }
+    });
+
+    api.getIssuers
+      .mockResolvedValueOnce({ items: [before] })
+      .mockResolvedValue({ items: [after] });
+    api.getMemberships
+      .mockResolvedValueOnce(membershipsFor('issuer-uade', [membership()]))
+      .mockResolvedValue(membershipsFor('issuer-uade', [membership(), ANA]));
+
+    render(<AdminContent />);
+    await openAddMemberAndResolve();
+
+    expect(api.getIssuers).toHaveBeenCalledTimes(1);
+    expect(api.getMemberships).toHaveBeenCalledTimes(1);
+
+    screen.getByRole('button', { name: 'Confirmar asignación' }).click();
+    await screen.findByText('Administrador agregado');
+
+    // Las DOS lecturas se repiten.
+    await waitFor(() => expect(api.getIssuers).toHaveBeenCalledTimes(2));
+    expect(api.getMemberships).toHaveBeenCalledTimes(2);
+    // Sobre el MISMO issuer: la selección se conserva.
+    expect(api.getMemberships.mock.calls[1][1]).toBe('issuer-uade');
+    expect(
+      screen
+        .getByRole('button', { name: /Universidad Argentina/ })
+        .getAttribute('aria-current')
+    ).toBe('true');
+
+    // La membership nueva aparece porque la trajo el REFRESH.
+    const table = await screen.findByRole('table');
+    expect(within(table).getByText('Ana Gómez')).toBeTruthy();
+
+    // Y los counts son los del backend, no un incremento optimista.
+    const miembros = screen.getByRole('heading', {
+      level: 3,
+      name: 'Miembros'
+    });
+    expect(miembros.parentElement?.textContent).toContain('4');
+    expect(miembros.parentElement?.textContent).toContain('de 6');
+  });
+
+  it('201 + refresh fallido: la mutación queda confirmada y NO se reenvía', async () => {
+    api.getIssuers
+      .mockResolvedValueOnce({ items: [issuer()] })
+      .mockRejectedValue(new ApiError('sin red', 'network'));
+
+    render(<AdminContent />);
+    await openAddMemberAndResolve();
+
+    screen.getByRole('button', { name: 'Confirmar asignación' }).click();
+
+    await screen.findByText('Administrador agregado');
+    expect(screen.getByText('No pudimos actualizar la vista')).toBeTruthy();
+    expect(api.grant).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('button', { name: 'Confirmar asignación' })
+    ).toBeNull();
+  });
+});
+
+describe('AdminContent: cambiar de institución durante el Flow A', () => {
+  it('26: cambiar la selección CIERRA el flujo -- el target no puede cambiar en silencio', async () => {
+    api.resolve.mockResolvedValue({
+      email: 'ana@uade.edu.ar',
+      displayLabel: 'Ana Gómez'
+    });
+    api.getIssuers.mockResolvedValue({
+      items: [issuer(), issuer({ issuerReference: 'issuer-utn', name: 'UTN' })]
+    });
+
+    render(<AdminContent />);
+    await openAddMemberAndResolve();
+
+    // El flujo apunta a UADE y lo dice.
+    expect(screen.getByText(/Vas a agregar un administrador a:/)).toBeTruthy();
+
+    // Se cambia de institución con la resolución ya hecha.
+    screen.getByRole('button', { name: /UTN/ }).click();
+
+    // El flujo se cierra: no queda ninguna CTA capaz de confirmar sobre UTN.
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Confirmar asignación' })
+      ).toBeNull()
+    );
+    expect(screen.queryByText('Persona encontrada')).toBeNull();
+    expect(screen.queryByLabelText('Email de la persona')).toBeNull();
+    expect(api.grant).not.toHaveBeenCalled();
+  });
+
+  it('reabrir el flujo tras cambiar de institución parte de cero, apuntando al nuevo issuer', async () => {
+    api.resolve.mockResolvedValue({
+      email: 'ana@uade.edu.ar',
+      displayLabel: 'Ana Gómez'
+    });
+    api.getIssuers.mockResolvedValue({
+      items: [issuer(), issuer({ issuerReference: 'issuer-utn', name: 'UTN' })]
+    });
+
+    render(<AdminContent />);
+    await openAddMemberAndResolve();
+
+    screen.getByRole('button', { name: /UTN/ }).click();
+    await waitFor(() =>
+      expect(screen.queryByText('Persona encontrada')).toBeNull()
+    );
+
+    screen.getByRole('button', { name: /Agregar administrador/ }).click();
+    const input = await screen.findByLabelText('Email de la persona');
+
+    // Estado limpio: ni el email ni la resolución anterior sobreviven.
+    expect((input as HTMLInputElement).value).toBe('');
+    expect(screen.queryByText('Persona encontrada')).toBeNull();
+    // Y el contexto visible es el issuer NUEVO.
+    const contexto = screen.getByText(/Vas a agregar un administrador a:/);
+    expect(contexto.textContent).toContain('UTN');
+  });
+
+  it('el Flow B NO se cierra al cambiar de institución: es platform level', async () => {
+    api.getIssuers.mockResolvedValue({
+      items: [issuer(), issuer({ issuerReference: 'issuer-utn', name: 'UTN' })]
+    });
+
+    render(<AdminContent />);
+    await screen.findByRole('table');
+
+    screen.getByRole('button', { name: /Crear institución/ }).click();
+    const nameField = await screen.findByLabelText('Nombre');
+    fireEvent.change(nameField, { target: { value: 'Universidad X' } });
+
+    screen.getByRole('button', { name: /UTN/ }).click();
+
+    // Sigue abierto y con lo tipeado: su target no existe todavia.
+    await waitFor(() =>
+      expect((screen.getByLabelText('Nombre') as HTMLInputElement).value).toBe(
+        'Universidad X'
+      )
+    );
+  });
+});
+
+describe('AdminContent: refresh después de crear una institución (S5b)', () => {
+  const NUEVA = issuer({
+    issuerReference: 'issuer-nuevo',
+    name: 'Universidad X',
+    legalName: 'Universidad X S.A.',
+    technicalIdentity: {
+      didConfigured: false,
+      walletConfigured: false,
+      readyToIssue: false,
+      readinessLabel: 'Pendiente'
+    },
+    membershipCounts: { active: 1, total: 1, summaryLabel: '1 activos de 1' }
+  });
+
+  async function openCreateAndResolve() {
+    await screen.findByRole('button', { name: /Crear institución/ });
+    screen.getByRole('button', { name: /Crear institución/ }).click();
+    fireEvent.change(await screen.findByLabelText('Nombre'), {
+      target: { value: 'Universidad X' }
+    });
+    fireEvent.change(screen.getByLabelText('Razón social'), {
+      target: { value: 'Universidad X S.A.' }
+    });
+    fireEvent.change(screen.getByLabelText('Email del primer administrador'), {
+      target: { value: 'ana@uade.edu.ar' }
+    });
+    screen.getByRole('button', { name: 'Buscar administrador' }).click();
+    await screen.findByText('Nueva institución');
+  }
+
+  beforeEach(() => {
+    api.resolve.mockResolvedValue({
+      email: 'ana@uade.edu.ar',
+      displayLabel: 'Ana Gómez'
+    });
+    api.provision.mockResolvedValue({
+      issuer: {
+        issuerReference: 'issuer-nuevo',
+        name: 'Universidad X',
+        legalName: 'Universidad X S.A.',
+        authorizationStatus: 'authorized',
+        authorizationLabel: 'Habilitada',
+        technicalIdentity: {
+          didConfigured: false,
+          walletConfigured: false,
+          readyToIssue: false,
+          readinessLabel: 'Pendiente'
+        },
+        createdAtLabel: '5 oct 2026, 10:00'
+      },
+      initialAdminMembership: {
+        userReference: 'user-ana',
+        email: 'ana@uade.edu.ar',
+        displayLabel: 'Ana Gómez',
+        role: 'admin',
+        status: 'active',
+        roleLabel: 'Administrador',
+        statusLabel: 'Activa',
+        createdAtLabel: '5 oct 2026, 10:00'
+      }
+    });
+  });
+
+  it('17-20: refresca, selecciona el issuer nuevo, carga SUS memberships y muestra readyToIssue false', async () => {
+    api.getIssuers
+      .mockResolvedValueOnce({ items: [issuer()] })
+      .mockResolvedValue({ items: [issuer(), NUEVA] });
+    api.getMemberships.mockImplementation(
+      async (_request: unknown, reference: string) =>
+        membershipsFor(reference, [
+          membership({
+            userReference: 'user-ana',
+            displayLabel: 'Ana Gómez',
+            email: 'ana@uade.edu.ar'
+          })
+        ])
+    );
+
+    render(<AdminContent />);
+    await openCreateAndResolve();
+
+    screen.getByRole('button', { name: 'Crear institución' }).click();
+    await screen.findByText('Institución creada');
+
+    // Se releyo el padron...
+    await waitFor(() => expect(api.getIssuers).toHaveBeenCalledTimes(2));
+
+    // ...y el issuer nuevo quedo seleccionado y en el detalle.
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', { name: /Universidad X/ })
+          .getAttribute('aria-current')
+      ).toBe('true')
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Universidad X' })
+    ).toBeTruthy();
+
+    // Sus memberships se cargaron, por su referencia.
+    await waitFor(() =>
+      expect(
+        api.getMemberships.mock.calls.some(
+          (call: unknown[]) => call[1] === 'issuer-nuevo'
+        )
+      ).toBe(true)
+    );
+
+    // La informacion visible viene de los GET canonicos, y dice lo correcto:
+    // habilitada operativamente, todavia no lista para emitir.
+    expect(screen.getByText('Identidad técnica')).toBeTruthy();
+    expect(
+      screen.getByText('Lista para emitir').parentElement?.textContent
+    ).toContain('No');
+  });
+
+  it('201 + refresh fallido: la institución queda creada y NO se reenvía el POST', async () => {
+    api.getIssuers
+      .mockResolvedValueOnce({ items: [issuer()] })
+      .mockRejectedValue(new ApiError('sin red', 'network'));
+
+    render(<AdminContent />);
+    await openCreateAndResolve();
+
+    screen.getByRole('button', { name: 'Crear institución' }).click();
+
+    await screen.findByText('Institución creada');
+    expect(screen.getByText('No pudimos actualizar la vista')).toBeTruthy();
+    expect(api.provision).toHaveBeenCalledTimes(1);
+    // Ninguna CTA que parezca crear otra vez.
+    expect(
+      screen.queryByRole('button', { name: 'Crear institución' })
+    ).toBeNull();
+  });
+});
 
 describe('AdminContent: accesibilidad', () => {
   it('la jerarquía de headings es coherente', async () => {

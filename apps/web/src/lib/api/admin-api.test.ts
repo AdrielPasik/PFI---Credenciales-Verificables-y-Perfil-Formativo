@@ -5,9 +5,13 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   getAdminIssuerMembershipsRequest,
-  getAdminIssuersRequest
+  getAdminIssuersRequest,
+  grantAdminMembershipRequest,
+  provisionAdminIssuerRequest,
+  resolveAdminUserRequest
 } from '@/lib/api/admin-api';
 import * as adminApi from '@/lib/api/admin-api';
+import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
 const issuersResponse = {
   items: [
@@ -120,33 +124,334 @@ describe('admin-api', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// S6b -- MUTACIONES
+// ---------------------------------------------------------------------------
+
+const resolvedUserResponse = {
+  email: 'persona@dominio.com',
+  displayLabel: 'Ana Gómez'
+};
+
+const grantResponse = {
+  issuer: { id: 'issuer-uade', name: 'UADE' },
+  membership: {
+    userId: 'user-ana',
+    email: 'persona@dominio.com',
+    displayLabel: 'Ana Gómez',
+    role: 'admin',
+    status: 'active',
+    createdAt: '2026-10-05T10:00:00.000Z'
+  }
+};
+
+const provisionResponse = {
+  issuer: {
+    id: 'issuer-nuevo',
+    name: 'Universidad X',
+    legalName: 'Universidad X',
+    authorizationStatus: 'authorized',
+    technicalIdentity: {
+      didConfigured: false,
+      walletConfigured: false,
+      readyToIssue: false
+    },
+    createdAt: '2026-10-05T10:00:00.000Z'
+  },
+  initialAdminMembership: {
+    userId: 'user-ana',
+    email: 'persona@dominio.com',
+    displayLabel: 'Ana Gómez',
+    role: 'admin',
+    status: 'active',
+    createdAt: '2026-10-05T10:00:00.000Z'
+  }
+};
+
+describe('admin-api: resolve user (S4)', () => {
+  it('1-2: POST /admin/users/resolve con body exacto { email }', async () => {
+    const request = vi.fn().mockResolvedValue(resolvedUserResponse);
+
+    await resolveAdminUserRequest(request, 'persona@dominio.com');
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0]).toBe('/admin/users/resolve');
+    expect(request.mock.calls[0][1].method).toBe('POST');
+    expect(request.mock.calls[0][1].body).toEqual({
+      email: 'persona@dominio.com'
+    });
+    // Exactamente una clave: nada mas cruza al servicio.
+    expect(Object.keys(request.mock.calls[0][1].body)).toEqual(['email']);
+  });
+
+  it('8: la respuesta pasa por el adapter', async () => {
+    const request = vi.fn().mockResolvedValue(resolvedUserResponse);
+
+    const resolved = await resolveAdminUserRequest(request, 'x@y.co');
+
+    expect(resolved).toEqual({
+      email: 'persona@dominio.com',
+      displayLabel: 'Ana Gómez'
+    });
+  });
+
+  it('10: propaga el AbortSignal -- un resolve abandonado es seguro', async () => {
+    const request = vi.fn().mockResolvedValue(resolvedUserResponse);
+    const controller = new AbortController();
+
+    await resolveAdminUserRequest(request, 'x@y.co', {
+      signal: controller.signal
+    });
+
+    expect(request.mock.calls[0][1].signal).toBe(controller.signal);
+  });
+
+  it('9: un payload incompatible falla', async () => {
+    for (const payload of [
+      null,
+      {},
+      { email: 'x@y.co' },
+      { displayLabel: 'Ana' }
+    ]) {
+      const request = vi.fn().mockResolvedValue(payload);
+      await expect(resolveAdminUserRequest(request, 'x@y.co')).rejects.toThrow(
+        IncompatiblePayloadError
+      );
+    }
+  });
+});
+
+describe('admin-api: grant membership (S5a)', () => {
+  it('3-5: POST a la ruta del issuer con body exacto { userEmail }', async () => {
+    const request = vi.fn().mockResolvedValue(grantResponse);
+
+    await grantAdminMembershipRequest(
+      request,
+      'issuer-uade',
+      'persona@dominio.com'
+    );
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0]).toBe(
+      '/admin/issuers/issuer-uade/memberships'
+    );
+    expect(request.mock.calls[0][1].method).toBe('POST');
+    expect(request.mock.calls[0][1].body).toEqual({
+      userEmail: 'persona@dominio.com'
+    });
+    expect(Object.keys(request.mock.calls[0][1].body)).toEqual(['userEmail']);
+  });
+
+  it('4: el issuerId va codificado en la URL', async () => {
+    const request = vi.fn().mockResolvedValue(grantResponse);
+
+    await grantAdminMembershipRequest(request, 'issuer/../otro', 'x@y.co');
+
+    expect(request.mock.calls[0][0]).toBe(
+      '/admin/issuers/issuer%2F..%2Fotro/memberships'
+    );
+  });
+
+  it('una referencia vacía no llega al servicio', async () => {
+    const request = vi.fn();
+
+    await expect(
+      grantAdminMembershipRequest(request, '  ', 'x@y.co')
+    ).rejects.toThrow('La referencia de institución no es válida.');
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('8: la respuesta pasa por el adapter y conserva email nullable', async () => {
+    const request = vi.fn().mockResolvedValue({
+      ...grantResponse,
+      membership: { ...grantResponse.membership, email: null }
+    });
+
+    const result = await grantAdminMembershipRequest(
+      request,
+      'issuer-uade',
+      'x@y.co'
+    );
+
+    expect(result.issuer).toEqual({
+      issuerReference: 'issuer-uade',
+      name: 'UADE'
+    });
+    expect(result.membership.email).toBeNull();
+    expect(result.membership.role).toBe('admin');
+    expect(result.membership.status).toBe('active');
+  });
+
+  it('9: un payload incompatible falla', async () => {
+    for (const payload of [
+      null,
+      {},
+      { issuer: { id: 'x', name: 'y' } },
+      { membership: grantResponse.membership },
+      {
+        ...grantResponse,
+        membership: { ...grantResponse.membership, role: 'root' }
+      }
+    ]) {
+      const request = vi.fn().mockResolvedValue(payload);
+      await expect(
+        grantAdminMembershipRequest(request, 'issuer-uade', 'x@y.co')
+      ).rejects.toThrow(IncompatiblePayloadError);
+    }
+  });
+
+  it('10: NO acepta AbortSignal -- abortar un POST deja el resultado ambiguo', () => {
+    // Decision deliberada: cancelar una mutacion no la cancela en el servidor,
+    // solo deja al cliente sin saber si ocurrio.
+    expect(grantAdminMembershipRequest.length).toBe(3);
+  });
+});
+
+describe('admin-api: provision issuer (S5b)', () => {
+  it('6-7: POST /admin/issuers con los tres campos exactos', async () => {
+    const request = vi.fn().mockResolvedValue(provisionResponse);
+
+    await provisionAdminIssuerRequest(request, {
+      name: 'Universidad X',
+      legalName: 'Universidad X S.A.',
+      initialAdminUserEmail: 'persona@dominio.com'
+    });
+
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request.mock.calls[0][0]).toBe('/admin/issuers');
+    expect(request.mock.calls[0][1].method).toBe('POST');
+    expect(request.mock.calls[0][1].body).toEqual({
+      name: 'Universidad X',
+      legalName: 'Universidad X S.A.',
+      initialAdminUserEmail: 'persona@dominio.com'
+    });
+    expect(Object.keys(request.mock.calls[0][1].body).sort()).toEqual([
+      'initialAdminUserEmail',
+      'legalName',
+      'name'
+    ]);
+  });
+
+  it('7: ningún campo extra cruza aunque se lo pasen al comando', async () => {
+    const request = vi.fn().mockResolvedValue(provisionResponse);
+
+    await provisionAdminIssuerRequest(request, {
+      name: 'Universidad X',
+      legalName: 'Universidad X',
+      initialAdminUserEmail: 'persona@dominio.com',
+      // Campos de autoridad / identidad tecnica que NUNCA pueden viajar.
+      authorizationStatus: 'authorized',
+      authorizedAt: '2026-10-05',
+      role: 'admin',
+      status: 'active',
+      did: 'did:example:falso',
+      walletAddress: '0xdeadbeef',
+      privateKey: 'NUNCA',
+      metadata: { x: 1 }
+    } as never);
+
+    expect(Object.keys(request.mock.calls[0][1].body).sort()).toEqual([
+      'initialAdminUserEmail',
+      'legalName',
+      'name'
+    ]);
+    const serialized = JSON.stringify(request.mock.calls[0][1].body);
+    for (const leak of [
+      'authorizationStatus',
+      'authorizedAt',
+      'role',
+      'status',
+      'did',
+      'walletAddress',
+      'privateKey',
+      'metadata'
+    ]) {
+      expect(serialized, `no debe viajar ${leak}`).not.toContain(leak);
+    }
+  });
+
+  it('8: la respuesta pasa por el adapter', async () => {
+    const request = vi.fn().mockResolvedValue(provisionResponse);
+
+    const result = await provisionAdminIssuerRequest(request, {
+      name: 'Universidad X',
+      legalName: 'Universidad X',
+      initialAdminUserEmail: 'persona@dominio.com'
+    });
+
+    expect(result.issuer.issuerReference).toBe('issuer-nuevo');
+    expect(result.issuer.authorizationLabel).toBe('Habilitada');
+    expect(result.issuer.technicalIdentity).toEqual({
+      didConfigured: false,
+      walletConfigured: false,
+      readyToIssue: false,
+      readinessLabel: 'Pendiente'
+    });
+    expect(result.initialAdminMembership.role).toBe('admin');
+  });
+
+  it('9: un payload incompatible falla', async () => {
+    for (const payload of [
+      null,
+      {},
+      { issuer: provisionResponse.issuer },
+      {
+        ...provisionResponse,
+        issuer: { ...provisionResponse.issuer, authorizationStatus: 'verified' }
+      }
+    ]) {
+      const request = vi.fn().mockResolvedValue(payload);
+      await expect(
+        provisionAdminIssuerRequest(request, {
+          name: 'x',
+          legalName: 'y',
+          initialAdminUserEmail: 'z@w.co'
+        })
+      ).rejects.toThrow(IncompatiblePayloadError);
+    }
+  });
+
+  it('10: NO acepta AbortSignal -- este POST ademas NO es idempotente', () => {
+    expect(provisionAdminIssuerRequest.length).toBe(2);
+  });
+});
+
 /**
- * GUARD DE LECTURA PURA -- S6a.
+ * GUARD DE LA SUPERFICIE ADMINISTRATIVA -- S6a, TRANSFORMADO EN S6b.
  *
- * Congela que la superficie /admin del frontend consume EXCLUSIVAMENTE los dos
- * GET de S3, y que no invoca los tres endpoints mutantes que el backend ya
- * expone desde S4/S5a/S5b.
+ * En S6a este guard afirmaba "read-only". Ese contrato cambio
+ * DELIBERADAMENTE: /admin ahora muta. Pero el guard no se borro -- se
+ * convirtio en lo que corresponde, que es mas fuerte que "no mutes":
  *
- * Se comprueba de dos formas que se complementan:
+ *     la superficie administrativa del frontend es una MUTATION SURFACE
+ *     EXPLICITAMENTE ALLOWLISTED
  *
- *   1. por el MODULO: `admin-api.ts` exporta exactamente dos funciones, y
- *      ninguna emite un metodo distinto de GET (verificado arriba, con dobles
- *      del transporte);
- *   2. por el CODIGO de la feature: ningun archivo de `features/admin` ni
- *      `lib/api/admin-api.ts` menciona los paths mutantes ni un `method:
- *      'POST'` en codigo ejecutable.
+ * Permitido, y nada mas:
  *
- * El (2) es un grep sobre el codigo sin comentarios, no un AST: alcanza y es
- * legible. Los comentarios se quitan a proposito, porque los de este slice
- * NOMBRAN los tres endpoints mutantes para explicar que pertenecen a S6b --
- * y eso no debe hacer fallar el guard.
+ *   GET   /admin/issuers
+ *   GET   /admin/issuers/:issuerId/memberships
+ *   POST  /admin/users/resolve
+ *   POST  /admin/issuers/:issuerId/memberships
+ *   POST  /admin/issuers
+ *
+ * Prohibido: PUT, PATCH, DELETE, y cualquier otro path bajo /admin. Agregar
+ * uno tiene que ser un acto consciente y visible en el diff, con su propio
+ * slice -- no un efecto colateral de una feature de UI.
+ *
+ * Se comprueba por dos vias complementarias: por el MODULO (exports exactos, y
+ * metodo/URL/body verificados arriba con dobles del transporte) y por el
+ * CODIGO de la feature (grep sobre el codigo sin comentarios; los comentarios
+ * se quitan porque NOMBRAN endpoints y claves prohibidas para explicar por que
+ * lo estan, y eso no debe hacer fallar el guard).
  */
-describe('admin-api: lectura pura (guard)', () => {
+describe('admin-api: superficie administrativa allowlisted (guard)', () => {
   const adminFeatureFiles = [
     '../api/admin-api.ts',
     '../../features/admin/admin-route.tsx',
     '../../features/admin/admin-route-boundary.tsx',
     '../../features/admin/admin-issuers-view.tsx',
+    '../../features/admin/admin-add-member-flow.tsx',
+    '../../features/admin/admin-create-issuer-flow.tsx',
     '../adapters/platform-admin.adapter.ts'
   ];
 
@@ -158,26 +463,19 @@ describe('admin-api: lectura pura (guard)', () => {
       .replace(/^\s*\/\/.*$/gm, ' ');
   }
 
-  it('el módulo exporta exactamente las dos lecturas', () => {
+  it('13: el módulo expone exactamente 2 lecturas + 3 mutaciones', () => {
     expect(Object.keys(adminApi).sort()).toEqual([
       'getAdminIssuerMembershipsRequest',
-      'getAdminIssuersRequest'
+      'getAdminIssuersRequest',
+      'grantAdminMembershipRequest',
+      'provisionAdminIssuerRequest',
+      'resolveAdminUserRequest'
     ]);
   });
 
-  it('ningún archivo de /admin invoca POST /admin/users/resolve (S4)', () => {
-    for (const file of adminFeatureFiles) {
-      expect(
-        executableCode(file),
-        `${file} no debe resolver usuarios: eso es S6b`
-      ).not.toContain('/admin/users/resolve');
-    }
-  });
-
-  it('los únicos paths /admin del frontend son los dos de lectura', () => {
+  it('13: los únicos paths /admin del frontend son los cinco allowlisted', () => {
     // Se extraen TODOS los literales que empiezan con `/admin` en todo el
-    // slice. Si manana aparece un tercero -- por ejemplo el POST de alta --
-    // este test lo muestra en el diff en vez de dejarlo pasar.
+    // slice. Un sexto path aparece en el diff en vez de pasar inadvertido.
     const paths = new Set<string>();
 
     for (const file of adminFeatureFiles) {
@@ -190,16 +488,35 @@ describe('admin-api: lectura pura (guard)', () => {
 
     expect([...paths].sort()).toEqual([
       '/admin/issuers',
-      // El template literal del GET por issuer, tal cual esta en el codigo.
-      '/admin/issuers/${encodeURIComponent(reference)}/memberships'
+      // El template literal del grant/GET por issuer, tal cual en el codigo.
+      '/admin/issuers/${encodeURIComponent(reference)}/memberships',
+      '/admin/users/resolve'
     ]);
   });
 
-  it('ningún archivo de /admin emite POST, PUT ni PATCH', () => {
+  it('13: SOLO admin-api.ts habla con el backend', () => {
+    // Los flujos y la vista no construyen rutas ni metodos: el unico lugar con
+    // conocimiento del transporte es el modulo del cliente.
+    const soloApi = adminFeatureFiles.filter(
+      (file) => file !== '../api/admin-api.ts'
+    );
+
+    for (const file of soloApi) {
+      const code = executableCode(file);
+      expect(code, `${file} no debe construir rutas /admin`).not.toMatch(
+        /['"`]\/admin/
+      );
+      expect(code, `${file} no debe declarar metodos HTTP`).not.toMatch(
+        /method:\s*['"]/
+      );
+    }
+  });
+
+  it('13: ningún archivo de /admin emite PUT, PATCH ni DELETE', () => {
     for (const file of adminFeatureFiles) {
       const code = executableCode(file);
 
-      for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      for (const method of ['PUT', 'PATCH', 'DELETE']) {
         expect(
           code,
           `${file} no debe emitir ${method}`
@@ -209,9 +526,13 @@ describe('admin-api: lectura pura (guard)', () => {
         );
       }
     }
+
+    // El POST si existe, pero SOLO en el cliente, y exactamente tres veces.
+    const apiCode = executableCode('../api/admin-api.ts');
+    expect(apiCode.match(/method: 'POST'/g)).toHaveLength(3);
   });
 
-  it('ningún archivo de /admin hace fetch directo ni toca el token', () => {
+  it('11-12: ningún archivo de /admin hace fetch directo ni toca el token', () => {
     for (const file of adminFeatureFiles) {
       const code = executableCode(file);
 
@@ -230,20 +551,111 @@ describe('admin-api: lectura pura (guard)', () => {
     }
   });
 
-  it('la vista de /admin no declara ningún formulario ni acción de alta', () => {
-    const viewCode = executableCode('../../features/admin/admin-issuers-view.tsx');
+  it('seguridad: ningún campo de identidad técnica ni secreto en toda la superficie', () => {
+    // S6b no implementa provisioning tecnico. Ni un input, ni un campo de
+    // estado, ni una clave de body: la configuracion de DID/wallet sera un
+    // slice aparte con su propio contrato de seguridad.
+    for (const file of adminFeatureFiles) {
+      const code = executableCode(file);
 
-    expect(viewCode).not.toContain('<form');
-    expect(viewCode).not.toContain('onSubmit');
-    expect(viewCode).not.toContain('disabled');
-    // Tampoco el copy de las acciones que llegan en S6b.
-    for (const copy of [
-      'Crear institución',
-      'Agregar admin',
-      'Asignar usuario',
-      'Próximamente'
+      for (const forbidden of [
+        'privateKey',
+        'signingKey',
+        'mnemonic',
+        'seedPhrase',
+        'rpcUrl',
+        'chainId',
+        'contractAddress',
+        'blockchainNetwork',
+        'issuerAddress'
+      ]) {
+        expect(code, `${file} no debe mencionar ${forbidden}`).not.toContain(
+          forbidden
+        );
+      }
+    }
+  });
+
+  it('seguridad: ningún formulario administrativo se persiste en el navegador', () => {
+    // El objetivo de un grant no tiene por que sobrevivir a la pestana.
+    for (const file of adminFeatureFiles) {
+      const code = executableCode(file);
+
+      for (const forbidden of [
+        'localStorage',
+        'sessionStorage',
+        'document.cookie'
+      ]) {
+        expect(code, `${file} no debe usar ${forbidden}`).not.toContain(
+          forbidden
+        );
+      }
+    }
+  });
+
+  it('seguridad: no se loggea información administrativa', () => {
+    for (const file of adminFeatureFiles) {
+      const code = executableCode(file);
+
+      expect(code, `${file} no debe loggear`).not.toMatch(/console\.\w+\(/);
+    }
+  });
+
+  it('1-5: el cliente nunca CONSTRUYE userId, role, status ni authorizationStatus', () => {
+    // `admin-api.ts` es el unico archivo que arma bodies, asi que es el unico
+    // donde una clave de autoridad podria colarse a la red. Los bodies ya se
+    // verificaron campo por campo arriba; esto congela que ni siquiera
+    // aparezcan como claves.
+    const code = executableCode('../api/admin-api.ts');
+
+    for (const forbidden of [
+      'userId:',
+      'role:',
+      'status:',
+      'authorizationStatus:',
+      'authorizedAt:',
+      'membershipRole',
+      'membershipStatus',
+      'onboardingIntent',
+      'isPlatformAdmin'
     ]) {
-      expect(viewCode, `no debe anticipar "${copy}"`).not.toContain(copy);
+      expect(code, `admin-api no debe construir ${forbidden}`).not.toContain(
+        forbidden
+      );
+    }
+  });
+
+  it('1-6: los flujos no conocen ningún identificador de autoridad', () => {
+    // Los flujos operan POR EMAIL. No se chequea `status:`/`role:` aca porque
+    // son discriminantes legitimos de sus propias maquinas de estado locales
+    // (`{ status: 'confirm' }`) -- lo que se congela es que no exista ningun
+    // identificador ni campo de autoridad del dominio, que es lo que podria
+    // terminar viajando.
+    const flowFiles = [
+      '../../features/admin/admin-add-member-flow.tsx',
+      '../../features/admin/admin-create-issuer-flow.tsx'
+    ];
+
+    for (const file of flowFiles) {
+      const code = executableCode(file);
+
+      for (const forbidden of [
+        'userId',
+        'authorizationStatus',
+        'authorizedAt',
+        'membershipRole',
+        'membershipStatus',
+        'onboardingIntent',
+        'isPlatformAdmin',
+        'platformAdmin'
+      ]) {
+        expect(code, `${file} no debe mencionar ${forbidden}`).not.toContain(
+          forbidden
+        );
+      }
+
+      // Y si mandan el email que DEVOLVIO el backend, no el del input.
+      expect(code).toContain('resolved.email');
     }
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
-import { Building2, LoaderCircle, Users } from 'lucide-react';
+import { Building2, LoaderCircle, Plus, UserPlus, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
@@ -19,11 +20,19 @@ import type {
  * estado (loading / vacio / error / 403) sin montar `SessionProvider` ni
  * simular fetch.
  *
- * NO HAY NINGUNA ACCION MUTANTE. Ni formularios, ni "Crear institucion", ni
- * "Agregar admin", ni botones deshabilitados anunciando lo que vendra: los
- * unicos `<button>` de esta superficie son la seleccion de institucion y los
- * reintentos de lectura. La capacidad de mutar existe en el backend desde
- * S4/S5a/S5b, pero su UI es S6b.
+ * S6b AGREGA DOS ACCIONES, y lo hace SIN romper la pureza: los flujos llegan
+ * como render props (`renderCreateIssuerFlow` / `renderAddMemberFlow`), asi que
+ * este archivo no importa el API ni la sesion. Si esas props no se pasan, la
+ * superficie sigue siendo exactamente la de S6a -- lectura pura -- lo que
+ * permite seguir testeandola en aislamiento.
+ *
+ * Las dos acciones viven en planos distintos, y la UI lo refleja:
+ *
+ *   - "Crear institucion" es PLATFORM LEVEL. Va en el encabezado, no depende
+ *     del issuer seleccionado, y esta disponible incluso con cero
+ *     instituciones -- que es justamente el caso en el que mas se necesita;
+ *   - "Agregar administrador" es INSTITUCIONAL. Va dentro del detalle del
+ *     issuer seleccionado, porque es sobre EL que se otorga autoridad.
  *
  * COPY. `authorizationStatus` se presenta como HABILITACION OPERATIVA
  * ("Estado operativo" / "Habilitada"). En ningun lugar se dice "verificada",
@@ -44,6 +53,9 @@ export type AdminMembershipsLoadState =
   | { status: 'error'; message: string }
   | { status: 'capability-lost' };
 
+/** Que flujo administrativo esta abierto. Nunca dos a la vez. */
+export type AdminOpenFlow = 'none' | 'add-member' | 'create-issuer';
+
 interface AdminIssuersViewProps {
   issuersState: AdminIssuersLoadState;
   membershipsState: AdminMembershipsLoadState;
@@ -52,6 +64,14 @@ interface AdminIssuersViewProps {
   onRetryIssuers: () => void;
   onRetryMemberships: () => void;
   onRevalidateSession: () => void;
+  /**
+   * S6b. Sin estas props la vista es la de S6a, sin ninguna accion mutante.
+   */
+  openFlow?: AdminOpenFlow;
+  onOpenAddMember?: () => void;
+  onOpenCreateIssuer?: () => void;
+  renderAddMemberFlow?: () => ReactNode;
+  renderCreateIssuerFlow?: () => ReactNode;
 }
 
 export function AdminIssuersView({
@@ -61,7 +81,12 @@ export function AdminIssuersView({
   onSelectIssuer,
   onRetryIssuers,
   onRetryMemberships,
-  onRevalidateSession
+  onRevalidateSession,
+  openFlow = 'none',
+  onOpenAddMember,
+  onOpenCreateIssuer,
+  renderAddMemberFlow,
+  renderCreateIssuerFlow
 }: AdminIssuersViewProps) {
   const issuers = issuersState.status === 'ready' ? issuersState.issuers : [];
   const selectedIssuer =
@@ -85,6 +110,19 @@ export function AdminIssuersView({
           constituye una verificación legal ni institucional.
         </p>
       </header>
+
+      {/* PLATFORM LEVEL: no depende del issuer seleccionado, y se ofrece
+          tambien cuando el padron esta vacio. */}
+      {openFlow === 'create-issuer' && renderCreateIssuerFlow ? (
+        renderCreateIssuerFlow()
+      ) : onOpenCreateIssuer ? (
+        <div>
+          <Button type="button" onClick={onOpenCreateIssuer}>
+            <Plus aria-hidden="true" />
+            Crear institución
+          </Button>
+        </div>
+      ) : null}
 
       {issuersState.status === 'capability-lost' ? (
         <CapabilityLostPanel onRevalidateSession={onRevalidateSession} />
@@ -127,6 +165,9 @@ export function AdminIssuersView({
               membershipsState={membershipsState}
               onRetryMemberships={onRetryMemberships}
               onRevalidateSession={onRevalidateSession}
+              addMemberOpen={openFlow === 'add-member'}
+              onOpenAddMember={onOpenAddMember}
+              renderAddMemberFlow={renderAddMemberFlow}
             />
           ) : null}
         </div>
@@ -227,12 +268,18 @@ function IssuerDetailPanel({
   issuer,
   membershipsState,
   onRetryMemberships,
-  onRevalidateSession
+  onRevalidateSession,
+  addMemberOpen,
+  onOpenAddMember,
+  renderAddMemberFlow
 }: {
   issuer: AdminIssuerVM;
   membershipsState: AdminMembershipsLoadState;
   onRetryMemberships: () => void;
   onRevalidateSession: () => void;
+  addMemberOpen: boolean;
+  onOpenAddMember?: () => void;
+  renderAddMemberFlow?: () => ReactNode;
 }) {
   return (
     <section
@@ -350,6 +397,21 @@ function IssuerDetailPanel({
         onRetryMemberships={onRetryMemberships}
         onRevalidateSession={onRevalidateSession}
       />
+
+      {/* INSTITUCIONAL: lo que se otorga es autoridad sobre ESTE issuer, de
+          ahi que la accion viva dentro de su detalle y no en el encabezado.
+          El copy dice "administrador" y no "usuario" porque es un rol de
+          autoridad, no una incorporacion cualquiera. */}
+      {addMemberOpen && renderAddMemberFlow ? (
+        renderAddMemberFlow()
+      ) : onOpenAddMember ? (
+        <div>
+          <Button type="button" variant="secondary" onClick={onOpenAddMember}>
+            <UserPlus aria-hidden="true" />
+            Agregar administrador
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 }

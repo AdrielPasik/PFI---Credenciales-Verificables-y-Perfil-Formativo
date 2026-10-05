@@ -3,11 +3,16 @@ import { formatIntegrityDate } from '@/lib/formatters/credential-integrity';
 import type {
   AdminIssuerListVM,
   AdminIssuerMembershipsVM,
+  AdminIssuerProvisionResultVM,
   AdminIssuerVM,
+  AdminMembershipGrantResultVM,
   AdminMembershipVM,
+  AdminProvisionedIssuerVM,
+  AdminTechnicalIdentityVM,
   IssuerAuthorizationStatus,
   IssuerMembershipRole,
-  IssuerMembershipStatus
+  IssuerMembershipStatus,
+  ResolvedAdminUserVM
 } from '@/models/platform-admin';
 
 /**
@@ -117,18 +122,6 @@ function adaptAdminIssuer(value: unknown, path: string): AdminIssuerVM {
     authorizationStatuses,
     `${path}.authorizationStatus`
   );
-  const didConfigured = boolean(
-    technicalIdentity.didConfigured,
-    `${path}.technicalIdentity.didConfigured`
-  );
-  const walletConfigured = boolean(
-    technicalIdentity.walletConfigured,
-    `${path}.technicalIdentity.walletConfigured`
-  );
-  const readyToIssue = boolean(
-    technicalIdentity.readyToIssue,
-    `${path}.technicalIdentity.readyToIssue`
-  );
   const active = nonNegativeInteger(
     membershipCounts.active,
     `${path}.membershipCounts.active`
@@ -144,14 +137,10 @@ function adaptAdminIssuer(value: unknown, path: string): AdminIssuerVM {
     legalName: nullableString(issuer.legalName, `${path}.legalName`),
     authorizationStatus,
     authorizationLabel: authorizationLabels[authorizationStatus],
-    technicalIdentity: {
-      didConfigured,
-      walletConfigured,
-      readyToIssue,
-      // Neutra a proposito: "Pendiente" describe un estado legitimo, no un
-      // fallo. Una institucion recien provisionada por S5b vive aca.
-      readinessLabel: readyToIssue ? 'Lista' : 'Pendiente'
-    },
+    technicalIdentity: adaptTechnicalIdentity(
+      technicalIdentity,
+      `${path}.technicalIdentity`
+    ),
     membershipCounts: {
       active,
       total,
@@ -202,6 +191,136 @@ function adaptAdminMembership(value: unknown, path: string): AdminMembershipVM {
     status,
     statusLabel: membershipStatusLabels[status],
     createdAtLabel: dateLabel(membership.createdAt, `${path}.createdAt`)
+  };
+}
+
+/**
+ * Identidad tecnica, compartida por el GET de S3 y el POST de S5b.
+ *
+ * Un solo lugar a proposito: si el listado y el alta calcularan la etiqueta por
+ * separado, podrian terminar diciendo cosas distintas sobre el mismo issuer.
+ *
+ * `readinessLabel` es NEUTRA: "Pendiente" describe un estado legitimo, no un
+ * fallo. Una institucion recien creada por S5b nace exactamente asi --
+ * habilitada operativamente y sin identidad tecnica -- y la UI no puede
+ * presentarlo como un error.
+ *
+ * Nunca se proyecta el VALOR del DID ni de la walletAddress: el backend no los
+ * manda en estas superficies y /admin no los necesita.
+ */
+function adaptTechnicalIdentity(
+  value: Record<string, unknown>,
+  path: string
+): AdminTechnicalIdentityVM {
+  const didConfigured = boolean(value.didConfigured, `${path}.didConfigured`);
+  const walletConfigured = boolean(
+    value.walletConfigured,
+    `${path}.walletConfigured`
+  );
+  const readyToIssue = boolean(value.readyToIssue, `${path}.readyToIssue`);
+
+  return {
+    didConfigured,
+    walletConfigured,
+    readyToIssue,
+    readinessLabel: readyToIssue ? 'Lista' : 'Pendiente'
+  };
+}
+
+// ---------------------------------------------------------------------------
+// S6b -- RESPUESTAS DE LAS MUTACIONES
+// ---------------------------------------------------------------------------
+
+/**
+ * `POST /admin/users/resolve` (S4).
+ *
+ * SOLO dos campos, y `userId` NO es uno de ellos: el backend no lo devuelve a
+ * proposito y este adapter no lo inventa ni lo deja pasar si algun dia
+ * apareciera en el payload. El frontend administrativo opera por email.
+ */
+export function adaptResolvedAdminUser(payload: unknown): ResolvedAdminUserVM {
+  const response = record(payload, 'resolvedUser');
+
+  return {
+    email: requiredString(response.email, 'resolvedUser.email'),
+    displayLabel: requiredString(
+      response.displayLabel,
+      'resolvedUser.displayLabel'
+    )
+  };
+}
+
+/**
+ * `POST /admin/issuers/:issuerId/memberships` (S5a).
+ *
+ * Reusa `adaptAdminMembership`, con lo cual `email` conserva su nullability
+ * `string | null`. No se estrecha a `string` por el hecho de que el happy path
+ * siempre resuelva una persona con email, y no se convierte `null` en `""`.
+ */
+export function adaptAdminMembershipGrantResult(
+  payload: unknown
+): AdminMembershipGrantResultVM {
+  const response = record(payload, 'membershipGrant');
+  const issuer = record(response.issuer, 'membershipGrant.issuer');
+
+  return {
+    issuer: {
+      issuerReference: requiredString(issuer.id, 'membershipGrant.issuer.id'),
+      name: requiredString(issuer.name, 'membershipGrant.issuer.name')
+    },
+    membership: adaptAdminMembership(
+      response.membership,
+      'membershipGrant.membership'
+    )
+  };
+}
+
+/**
+ * `POST /admin/issuers` (S5b).
+ *
+ * El `issuer.id` que devuelve sirve para SELECCIONAR la institucion recien
+ * creada; la informacion administrativa que se muestra despues se relee de los
+ * GET canonicos, nunca de esta respuesta.
+ */
+export function adaptAdminIssuerProvisionResult(
+  payload: unknown
+): AdminIssuerProvisionResultVM {
+  const response = record(payload, 'issuerProvision');
+  const issuer = record(response.issuer, 'issuerProvision.issuer');
+  const authorizationStatus = enumValue(
+    issuer.authorizationStatus,
+    authorizationStatuses,
+    'issuerProvision.issuer.authorizationStatus'
+  );
+
+  const provisioned: AdminProvisionedIssuerVM = {
+    issuerReference: requiredString(issuer.id, 'issuerProvision.issuer.id'),
+    name: requiredString(issuer.name, 'issuerProvision.issuer.name'),
+    legalName: nullableString(
+      issuer.legalName,
+      'issuerProvision.issuer.legalName'
+    ),
+    authorizationStatus,
+    authorizationLabel: authorizationLabels[authorizationStatus],
+    technicalIdentity: adaptTechnicalIdentity(
+      record(
+        issuer.technicalIdentity,
+        'issuerProvision.issuer.technicalIdentity'
+      ),
+      'issuerProvision.issuer.technicalIdentity'
+    ),
+    createdAtLabel: dateLabel(
+      issuer.createdAt,
+      'issuerProvision.issuer.createdAt'
+    )
+  };
+
+  return {
+    issuer: provisioned,
+    initialAdminMembership: adaptAdminMembership(
+      response.initialAdminMembership,
+      'issuerProvision.initialAdminMembership'
+    )
   };
 }
 

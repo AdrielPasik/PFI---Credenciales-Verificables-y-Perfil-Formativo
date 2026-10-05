@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   adaptAdminIssuerList,
-  adaptAdminIssuerMemberships
+  adaptAdminIssuerMemberships,
+  adaptAdminIssuerProvisionResult,
+  adaptAdminMembershipGrantResult,
+  adaptResolvedAdminUser
 } from '@/lib/adapters/platform-admin.adapter';
 import { IncompatiblePayloadError } from '@/lib/errors/api-error';
 
@@ -441,5 +444,280 @@ describe('adaptAdminIssuerMemberships', () => {
       'statusLabel',
       'userReference'
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S6b -- RESPUESTAS DE LAS MUTACIONES
+// ---------------------------------------------------------------------------
+
+describe('adaptResolvedAdminUser (S4)', () => {
+  it('adapta { email, displayLabel }', () => {
+    expect(
+      adaptResolvedAdminUser({
+        email: 'persona@dominio.com',
+        displayLabel: 'Ana Gómez'
+      })
+    ).toEqual({ email: 'persona@dominio.com', displayLabel: 'Ana Gómez' });
+  });
+
+  it('NO inventa userId, y lo descarta si el payload lo trajera', () => {
+    // El backend deliberadamente no devuelve el id. Si algún día apareciera
+    // (deploy skew, cambio accidental), el VM sigue sin tenerlo: el frontend
+    // administrativo opera por email y nunca transporta un identificador como
+    // si fuera autoridad.
+    const resolved = adaptResolvedAdminUser({
+      email: 'persona@dominio.com',
+      displayLabel: 'Ana Gómez',
+      userId: 'user-no-deberia-estar',
+      id: 'user-tampoco'
+    });
+
+    expect(Object.keys(resolved).sort()).toEqual(['displayLabel', 'email']);
+    expect(JSON.stringify(resolved)).not.toContain('user-no-deberia-estar');
+    expect(JSON.stringify(resolved)).not.toContain('user-tampoco');
+    expect('userId' in resolved).toBe(false);
+  });
+
+  it('rechaza el payload cuando el contrato no se cumple', () => {
+    for (const payload of [
+      null,
+      undefined,
+      [],
+      'texto',
+      {},
+      { email: 'persona@dominio.com' },
+      { displayLabel: 'Ana Gómez' },
+      { email: '', displayLabel: 'Ana Gómez' },
+      { email: 'persona@dominio.com', displayLabel: '   ' },
+      { email: 42, displayLabel: 'Ana Gómez' }
+    ]) {
+      expect(
+        () => adaptResolvedAdminUser(payload),
+        `deberia rechazar ${JSON.stringify(payload)}`
+      ).toThrow(IncompatiblePayloadError);
+    }
+  });
+});
+
+describe('adaptAdminMembershipGrantResult (S5a)', () => {
+  const grantPayload = {
+    issuer: { id: 'issuer-uade', name: 'UADE' },
+    membership: membershipPayload
+  };
+
+  it('adapta issuer + membership', () => {
+    const result = adaptAdminMembershipGrantResult(grantPayload);
+
+    expect(result.issuer).toEqual({
+      issuerReference: 'issuer-uade',
+      name: 'UADE'
+    });
+    expect(result.membership.userReference).toBe('user-juan');
+    expect(result.membership.roleLabel).toBe('Administrador');
+    expect(result.membership.statusLabel).toBe('Activa');
+  });
+
+  it('CONSERVA email nullable: no se estrecha a string ni se vuelve ""', () => {
+    const result = adaptAdminMembershipGrantResult({
+      ...grantPayload,
+      membership: { ...membershipPayload, email: null }
+    });
+
+    expect(result.membership.email).toBeNull();
+    expect(result.membership.email).not.toBe('');
+    // Y el displayLabel sigue estando: la membership no se oculta por esto.
+    expect(result.membership.displayLabel).toBe('Juan Pérez');
+  });
+
+  it('un rol o estado desconocido RECHAZA el payload', () => {
+    for (const override of [
+      { role: 'superadmin' },
+      { status: 'suspended' },
+      { role: null }
+    ]) {
+      expect(() =>
+        adaptAdminMembershipGrantResult({
+          ...grantPayload,
+          membership: { ...membershipPayload, ...override }
+        })
+      ).toThrow(IncompatiblePayloadError);
+    }
+  });
+
+  it('rechaza el payload cuando el contrato no se cumple', () => {
+    for (const payload of [
+      null,
+      {},
+      { issuer: { id: 'issuer-uade', name: 'UADE' } },
+      { membership: membershipPayload },
+      { issuer: null, membership: membershipPayload },
+      { issuer: { id: 'x' }, membership: membershipPayload }
+    ]) {
+      expect(
+        () => adaptAdminMembershipGrantResult(payload),
+        `deberia rechazar ${JSON.stringify(payload)}`
+      ).toThrow(IncompatiblePayloadError);
+    }
+  });
+
+  it('NO proyecta passwordHash ni onboardingIntent', () => {
+    const result = adaptAdminMembershipGrantResult({
+      ...grantPayload,
+      membership: {
+        ...membershipPayload,
+        passwordHash: 'NO-DEBE-SALIR',
+        onboardingIntent: 'institutional'
+      }
+    });
+
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('NO-DEBE-SALIR');
+    expect(serialized).not.toContain('onboardingIntent');
+  });
+});
+
+describe('adaptAdminIssuerProvisionResult (S5b)', () => {
+  const provisionPayload = {
+    issuer: {
+      id: 'issuer-nuevo',
+      name: 'Universidad X',
+      legalName: 'Universidad X',
+      authorizationStatus: 'authorized',
+      technicalIdentity: {
+        didConfigured: false,
+        walletConfigured: false,
+        readyToIssue: false
+      },
+      createdAt: '2026-10-05T10:00:00.000Z'
+    },
+    initialAdminMembership: membershipPayload
+  };
+
+  it('adapta issuer + initialAdminMembership', () => {
+    const result = adaptAdminIssuerProvisionResult(provisionPayload);
+
+    expect(result.issuer.issuerReference).toBe('issuer-nuevo');
+    expect(result.issuer.name).toBe('Universidad X');
+    expect(result.issuer.legalName).toBe('Universidad X');
+    expect(result.initialAdminMembership.role).toBe('admin');
+    expect(result.initialAdminMembership.status).toBe('active');
+  });
+
+  it('el issuer nace habilitado pero NO listo para emitir', () => {
+    const result = adaptAdminIssuerProvisionResult(provisionPayload);
+
+    expect(result.issuer.authorizationLabel).toBe('Habilitada');
+    expect(result.issuer.technicalIdentity).toEqual({
+      didConfigured: false,
+      walletConfigured: false,
+      readyToIssue: false,
+      readinessLabel: 'Pendiente'
+    });
+  });
+
+  it('NO dice "verificada" en ninguna etiqueta', () => {
+    const serialized = JSON.stringify(
+      adaptAdminIssuerProvisionResult(provisionPayload)
+    ).toLowerCase();
+
+    for (const prohibida of ['verific', 'valida', 'acredit']) {
+      expect(serialized).not.toContain(prohibida);
+    }
+  });
+
+  it('NO expone el valor del DID ni de la walletAddress', () => {
+    const result = adaptAdminIssuerProvisionResult({
+      ...provisionPayload,
+      issuer: {
+        ...provisionPayload.issuer,
+        did: 'did:example:no-deberia-salir',
+        walletAddress: '0xdeadbeef',
+        metadata: { secreto: true }
+      }
+    });
+
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain('did:example');
+    expect(serialized).not.toContain('0xdeadbeef');
+    expect(serialized).not.toContain('secreto');
+    expect(Object.keys(result.issuer.technicalIdentity).sort()).toEqual([
+      'didConfigured',
+      'readinessLabel',
+      'readyToIssue',
+      'walletConfigured'
+    ]);
+  });
+
+  it('legalName null se conserva como null', () => {
+    const result = adaptAdminIssuerProvisionResult({
+      ...provisionPayload,
+      issuer: { ...provisionPayload.issuer, legalName: null }
+    });
+
+    expect(result.issuer.legalName).toBeNull();
+  });
+
+  it('CONSERVA email nullable en la membership inicial', () => {
+    const result = adaptAdminIssuerProvisionResult({
+      ...provisionPayload,
+      initialAdminMembership: { ...membershipPayload, email: null }
+    });
+
+    expect(result.initialAdminMembership.email).toBeNull();
+    expect(result.initialAdminMembership.email).not.toBe('');
+  });
+
+  it('rechaza el payload cuando el contrato no se cumple', () => {
+    for (const payload of [
+      null,
+      {},
+      { issuer: provisionPayload.issuer },
+      { initialAdminMembership: membershipPayload },
+      {
+        ...provisionPayload,
+        issuer: { ...provisionPayload.issuer, authorizationStatus: 'verified' }
+      },
+      {
+        ...provisionPayload,
+        issuer: { ...provisionPayload.issuer, technicalIdentity: null }
+      },
+      {
+        ...provisionPayload,
+        issuer: { ...provisionPayload.issuer, createdAt: 'ayer' }
+      },
+      {
+        ...provisionPayload,
+        issuer: { ...provisionPayload.issuer, id: '' }
+      }
+    ]) {
+      expect(
+        () => adaptAdminIssuerProvisionResult(payload),
+        `deberia rechazar ${JSON.stringify(payload)}`
+      ).toThrow(IncompatiblePayloadError);
+    }
+  });
+
+  it('el diagnóstico apunta a la ruta exacta del campo', () => {
+    try {
+      adaptAdminIssuerProvisionResult({
+        ...provisionPayload,
+        issuer: {
+          ...provisionPayload.issuer,
+          technicalIdentity: {
+            didConfigured: false,
+            walletConfigured: false
+          }
+        }
+      });
+      expect.unreachable('deberia haber lanzado');
+    } catch (error) {
+      expect(error).toBeInstanceOf(IncompatiblePayloadError);
+      expect((error as IncompatiblePayloadError).diagnostic).toEqual({
+        path: 'issuerProvision.issuer.technicalIdentity.readyToIssue',
+        expected: 'boolean',
+        actualCategory: 'missing'
+      });
+    }
   });
 });
