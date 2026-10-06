@@ -204,6 +204,58 @@ resource "aws_iam_role_policy" "api_task" {
   policy = data.aws_iam_policy_document.api_task.json
 }
 
+# Issuer signer secrets (S8c2).
+#
+# This is the TASK role, not the execution role, because the runtime
+# GetParameter is performed by application code (AwsSsmSignerSecretStore) when
+# an Issuer signer is resolved - not by the ECS agent while resolving the task
+# definition's `secrets` block. The two trust paths stay separate: the execution
+# role resolves a fixed list of parameters declared in the task definition, and
+# that list does NOT and must not contain signer parameters. The set of signer
+# parameters is dynamic - one per SignerProfile, created as Issuers are
+# provisioned - so it cannot be enumerated in a task definition at all.
+#
+# READ ONLY, and only the one action the implementation uses. The application
+# never creates, overwrites, deletes or enumerates signer secrets: provisioning
+# and rotation are out-of-band operator work, so a compromise of the API
+# container cannot mint itself a new signing identity or destroy an existing
+# one. Deliberately NOT granted: ssm:PutParameter, ssm:DeleteParameter,
+# ssm:GetParametersByPath, ssm:DescribeParameters.
+#
+# This is the ONLY prefix wildcard in this file, and it is the boundary itself:
+# exact ARNs are impossible for a set that grows at runtime. The prefix is
+# narrow (it contains signer secrets and nothing else - no DATABASE_URL, no
+# JWT_SECRET, no provider API key), GetParametersByPath is withheld so the role
+# cannot discover what exists, and the action is the singular GetParameter.
+# Resource = "*" is never used here.
+#
+# No kms:Decrypt, consistent with the rule at the top of this file: signer
+# parameters are SecureStrings under the AWS managed key alias/aws/ssm, whose
+# key policy already admits the account's principals through the owning service.
+# If a customer managed key is ever introduced for them, the grant must be added
+# scoped to that key ARN and constrained by kms:ViaService.
+#
+# Terraform knows the parameter NAMESPACE. It never knows a signer value: no
+# aws_ssm_parameter, variable, local or output in this configuration carries
+# private-key material, so none of it reaches Terraform state. The parameters
+# themselves are created out of band.
+data "aws_iam_policy_document" "api_task_signers" {
+  statement {
+    sid    = "ReadIssuerSignerSecretsOnly"
+    effect = "Allow"
+
+    actions = ["ssm:GetParameter"]
+
+    resources = ["${local.ssm_parameter_arn_prefix}${local.ssm_prefix}/signers/*"]
+  }
+}
+
+resource "aws_iam_role_policy" "api_task_signers" {
+  name   = "${local.name_prefix}-api-task-signers"
+  role   = aws_iam_role.api_task.id
+  policy = data.aws_iam_policy_document.api_task_signers.json
+}
+
 resource "aws_iam_role_policy" "api_task_exec" {
   count = var.enable_ecs_exec ? 1 : 0
 

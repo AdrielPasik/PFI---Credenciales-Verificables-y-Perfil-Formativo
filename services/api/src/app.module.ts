@@ -22,6 +22,7 @@ import { ProfileSharingModule } from './profile-sharing/profile-sharing.module';
 import { PublicVerificationModule } from './public-verification/public-verification.module';
 import { ReusableSemanticInterpretationModule } from './reusable-semantic-interpretation/reusable-semantic-interpretation.module';
 import { SemanticModule } from './semantic/semantic.module';
+import { SigningModule } from './signing/signing.module';
 import { TextEvidenceModule } from './text-evidence/text-evidence.module';
 import { VerificationModule } from './verification/verification.module';
 
@@ -44,6 +45,7 @@ import { VerificationModule } from './verification/verification.module';
     BlockchainModule,
     CatalogModule,
     SemanticModule,
+    SigningModule,
     DocumentEvidenceModule,
     TextEvidenceModule,
     CredentialsModule,
