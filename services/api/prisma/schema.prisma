@@ -90,9 +90,67 @@ enum BlockchainNetwork {
   base_mainnet @map("base-mainnet")
 }
 
+// `pending` se AGREGA AL FINAL a proposito: el orden de declaracion define el
+// orden de comparacion del enum en PostgreSQL, y agregar al final emite un
+// `ALTER TYPE ... ADD VALUE` plano (sin BEFORE/AFTER), que es la forma segura.
+// Nada en el repo ordena por esta columna.
+//
+// S8c1 solo DECLARA el valor. Todavia es inalcanzable en la practica, porque un
+// record `pending` no tiene `txHash` y esa columna sigue siendo NOT NULL hasta
+// S8c6. Eso es deliberado: foundations sin cutover de comportamiento.
 enum BlockchainRecordStatus {
   registered
   revoked
+  pending
+}
+
+// Procedencia de la evidencia, explicita en la fila. Reemplaza la inferencia
+// por contract address centinela.
+enum BlockchainEvidenceMode {
+  mock
+  credential_registry
+}
+
+// Bajo que alcance se registro un hash on-chain. `shared_custodial` es la
+// configuracion de demo: varios issuers comparten una sola cuenta de anclaje,
+// asi que `CredentialRegistry` NO puede distinguirlos por `msg.sender`. No
+// compromete la autenticidad por issuer -- esa la lleva la assertion key, que
+// es distinta por issuer -- pero SI es autoridad criptografica compartida para
+// registracion y revocacion a nivel de contrato.
+enum AnchorRegistrantScope {
+  issuer_exclusive
+  shared_custodial
+}
+
+// Para que sirve la clave de un SignerProfile. Son roles disjuntos:
+//   assertion -> firma el proof de la credential (off-chain, sin gas, una por
+//                issuer, publicada en el DID Document);
+//   anchor    -> firma la transaccion, paga gas, queda como `msg.sender`,
+//                puede compartirse.
+enum SignerProfilePurpose {
+  assertion
+  anchor
+}
+
+enum SignerKeyCustody {
+  scope_managed
+  institution_imported
+}
+
+// `retired` NUNCA significa borrado: un anchor retirado conserva su secreto y
+// su financiacion porque el contrato exige el `msg.sender` original para
+// revocar.
+enum SignerProfileStatus {
+  active
+  retired
+  compromised
+}
+
+enum IssuerTechnicalIdentityStatus {
+  unconfigured
+  active
+  rotation_required
+  disabled
 }
 
 enum VerificationResult {
@@ -307,23 +365,49 @@ model PlatformAdmin {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// IDENTIDAD TECNICA: ver `IssuerTechnicalIdentity`. `did` y `walletAddress`
+// quedan LEGACY en S8c1 -- siguen siendo los unicos campos que lee el producto
+// hoy (`assertIssuerCanIssue`, seeds, `/admin`), pero DESPUES del cutover la
+// fuente de verdad pasa a ser:
+//   DID              -> IssuerTechnicalIdentity.did
+//   assertion key    -> IssuerTechnicalIdentity.assertionSignerProfile.address
+//   anchor account   -> IssuerTechnicalIdentity.anchorSignerProfile.address
+// S8c1 NO agrega un segundo writer productivo: nadie escribe
+// `IssuerTechnicalIdentity` todavia. El cutover de readers es S8c9.
 model Issuer {
-  id                  String                    @id @default(uuid())
-  name                String
-  legalName           String?
-  did                 String?                   @unique
-  walletAddress       String?                   @unique
-  authorizationStatus IssuerAuthorizationStatus @default(pending)
-  authorizedAt        DateTime?
-  revokedAt           DateTime?
-  createdAt           DateTime                  @default(now())
-  updatedAt           DateTime                  @updatedAt
-  metadata            Json?
-  credentials         Credential[]
-  memberships         IssuerMembership[]
-  programs            Program[]
-  academicCourses     AcademicCourse[]
-  courseTemplates     IssuerCourseTemplate[]
+  id                     String                    @id @default(uuid())
+  name                   String
+  legalName              String?
+  did                    String?                   @unique
+  walletAddress          String?                   @unique
+  authorizationStatus    IssuerAuthorizationStatus @default(pending)
+  authorizedAt           DateTime?
+  revokedAt              DateTime?
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+  metadata               Json?
+  // Que tipos de credential puede emitir este issuer. Reemplaza al
+  // discriminante hardcodeado `did:example:issuer-demo` de
+  // `credentials.service.ts` / `issuer-credential-draft-update.service.ts`.
+  // S8c1 solo crea la columna: los dos call sites siguen usando el literal
+  // hasta S8c9, para no convertir esta slice en un behavior slice.
+  //
+  // `@default([])` es SEMANTICA DE DOMINIO, no una comodidad del ORM. Este
+  // campo va a ser authority input, asi que la base, Prisma y el dominio
+  // tienen que decir lo mismo:
+  //   []    -> el issuer no tiene habilitado NINGUN credential type;
+  //   NULL  -> NO es un estado de dominio valido.
+  // La columna se crea NOT NULL con DEFAULT de array vacio, asi que ni las
+  // filas existentes ni las futuras pueden quedar en NULL, y ninguna regla de
+  // autorizacion futura depende de que el ORM coaccione NULL a [] en una
+  // lectura.
+  allowedCredentialTypes CredentialType[] @default([])
+  credentials            Credential[]
+  memberships            IssuerMembership[]
+  programs               Program[]
+  academicCourses        AcademicCourse[]
+  courseTemplates        IssuerCourseTemplate[]
+  technicalIdentity      IssuerTechnicalIdentity?
 
   @@index([authorizationStatus])
 }
@@ -369,6 +453,22 @@ model Credential {
   credentialSubject               Json
   metadata                        Json?
   rawData                         Json?
+  // PROOF `scope-proof-v1` (S8b.1). Artifact versionado, una sola columna Json
+  // -- misma convencion que `metadata`/`rawData`/el snapshot semantico, y no
+  // se consulta relacionalmente. Forma congelada (EXACTAMENTE 8 claves, SIN
+  // `created`): type, profile, cryptosuite, proofPurpose, verificationMethod,
+  // canonicalizationVersion, hashAlgorithm, proofValue.
+  //
+  // NULLABLE en PostgreSQL por rollout aditivo y por las filas legacy
+  // `credential_v1`. Eso NO significa que un artifact serializado que declare
+  // `schema_version = credential_v2` sea valido sin proof: el JSON Schema
+  // `credential_v2` lo exige (ver packages/schemas/credential_v2.schema.json).
+  // Son dos ejes de version distintos: `schemaVersion` (forma del credential)
+  // y `canonicalizationVersion` (reglas de canonicalizacion).
+  //
+  // S8c1 NO escribe esta columna. La emision firmada es S8c4.
+  // NUNCA contiene key material: solo la firma y metadatos publicos.
+  proof                           Json?
   issuer                          Issuer                                     @relation(fields: [issuerId], references: [id], onDelete: Restrict)
   subjectUser                     User                                       @relation("CredentialSubject", fields: [subjectUserId], references: [id], onDelete: Restrict)
   academicCourse                  AcademicCourse?                            @relation("AcademicCourseCredentials", fields: [academicCourseId], references: [id], onDelete: SetNull)
@@ -571,6 +671,14 @@ model FormativeProfile {
   @@index([isCurrent])
 }
 
+// PROVENANCE EXPLICITA (S8c1). Hasta ahora "mock vs real" solo se podia
+// inferir del contract address centinela `0x...0001`; eso alcanzaba mientras
+// la unica red real era Anvil, pero NO distingue mock / Anvil real / Base
+// Sepolia real. Los cinco campos nuevos son TODOS nullable a proposito: las
+// filas existentes quedan como legacy/desconocido y NO se les inventa
+// procedencia. Un record historico tiene que seguir siendo interpretable
+// aunque la configuracion ACTUAL cambie, asi que la identidad del deployment
+// y del signer viven en la fila, no en la config viva.
 model BlockchainRecord {
   id                      String                 @id @default(uuid())
   schemaVersion           String                 @default("blockchain_record_v1")
@@ -581,13 +689,39 @@ model BlockchainRecord {
   network                 BlockchainNetwork
   chainId                 Int
   contractAddress         String
+  // NOT NULL todavia. La nulabilidad que necesita el estado `pending` (intent
+  // persistido antes de la tx) se introduce en S8c6 junto con el rediseño de
+  // issuance: hacerla nullable aca obligaria a tocar lectores productivos
+  // (incluido el adapter web), que esta fuera del alcance de S8c1.
   txHash                  String
+  // Es la cuenta que REGISTRO el hash (`transaction.from`), nunca la identidad
+  // institucional del issuer. `anchorSignerProfileId` hace esa procedencia
+  // explicita.
   issuerAddress           String
   registeredAt            DateTime
   status                  BlockchainRecordStatus
   revokedAt               DateTime?
   revocationReason        String?                @db.Text
+  // mock | credential_registry. Null = fila legacy anterior a S8c1.
+  evidenceMode            BlockchainEvidenceMode?
+  // Clave hacia el manifest commiteado en contracts/deployments/. Null =
+  // legacy.
+  deploymentId            String?
+  // Int32 alcanza: a ~2 s por bloque haria falta mas de un siglo para desbordar
+  // 2_147_483_647. Hoy el write client lo calcula y lo descarta.
+  blockNumber             Int?
+  // Que SignerProfile firmo la registracion. Es LA respuesta a la rotacion de
+  // anchor: la revocacion debe resolver el signer historico, no el configurado
+  // hoy. `onDelete: Restrict` explicito -- el default de Prisma para una
+  // relacion opcional es SetNull, que borraria silenciosamente esta
+  // procedencia.
+  anchorSignerProfileId   String?
+  // SNAPSHOT del momento de registracion. NO se deriva de cuantos issuers
+  // referencian hoy al anchor profile: los bindings pueden cambiar despues de
+  // la emision y eso reescribiria el significado historico.
+  anchorRegistrantScope   AnchorRegistrantScope?
   credential              Credential             @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  anchorSignerProfile     SignerProfile?         @relation("BlockchainRecordAnchorSigner", fields: [anchorSignerProfileId], references: [id], onDelete: Restrict)
 
   @@index([credentialId])
   @@index([credentialHash])
@@ -595,6 +729,8 @@ model BlockchainRecord {
   @@index([chainId])
   @@index([txHash])
   @@index([credentialId, network, chainId])
+  @@index([evidenceMode])
+  @@index([anchorSignerProfileId])
 }
 
 model VerificationEvent {
@@ -1447,4 +1583,122 @@ model VerificationExecutionLease {
   expiresAt         DateTime?
 
   sharingGrant SharingGrant @relation(fields: [sharingGrantId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// IDENTIDAD TECNICA DEL ISSUER (S8c1)
+//
+// Dos roles de clave PERMANENTEMENTE separados (S8b):
+//
+//   ASSERTION KEY  firma el proof de la credential. Prueba autoria del issuer.
+//                  Se publica en el DID Document del issuer. No necesita gas.
+//                  EXACTAMENTE UNA por issuer -- estructuralmente, via el
+//                  `@unique` sobre `assertionSignerProfileId`.
+//
+//   ANCHOR SIGNER  firma la transaccion en la red, paga gas y queda como
+//                  `msg.sender` en CredentialRegistry. PUEDE compartirse entre
+//                  issuers (configuracion de demo) -- por eso
+//                  `anchorSignerProfileId` NO es unique.
+//
+// Un anchor compartido NO compromete la autenticidad por issuer, porque esa
+// propiedad la lleva la assertion key, que es distinta por issuer. Pero SIGUE
+// SIENDO autoridad criptografica compartida para registracion y revocacion a
+// nivel de contrato: el contrato solo ve `msg.sender`. La barrera de
+// autorizacion de dominio es `IssuerMembership` en la API.
+// ---------------------------------------------------------------------------
+
+// REFERENCIA a material de clave, nunca el material. No existe ninguna columna
+// capaz de contener una private key: `secretRef` es el NOMBRE de un parametro
+// en el secret store, no su valor.
+//
+// Las filas son INMUTABLES y append-only por diseño. Rotar = crear un
+// SignerProfile nuevo y rebindear, NUNCA mutar ni borrar el perfil historico
+// que ya firmo un proof o registro un BlockchainRecord. Todas las relaciones
+// entrantes son `onDelete: Restrict` explicito por eso mismo.
+model SignerProfile {
+  id                  String               @id @default(uuid())
+  // Nombre operativo, p. ej. "scope-demo-shared-anchor". Unico para que dos
+  // perfiles no se confundan en una consola.
+  label               String               @unique
+  purpose             SignerProfilePurpose
+  custody             SignerKeyCustody
+  // NOMBRE/identificador del secreto en el secret store (SSM SecureString).
+  // NUNCA el valor. Unico: dos perfiles apuntando al mismo secreto serian dos
+  // "versiones" de la misma clave y romperian la semantica de rotacion.
+  secretRef           String               @unique
+  // Direccion estilo Ethereum derivada de ESTA clave, en minuscula sin
+  // checksum (una sola representacion canonica en la base; el checksum EIP-55
+  // se aplica en la capa de servicio al comparar). Unica: una fila por
+  // direccion. Eso tambien impide estructuralmente que una misma clave sea a
+  // la vez assertion y anchor, que es justamente el colapso que S8b elimino.
+  //   assertion -> identidad compacta / objetivo de comparacion contra la
+  //                direccion recuperada del proof;
+  //   anchor    -> ademas, la cuenta real en la red.
+  address             String               @unique
+  // Material PUBLICO suficiente para construir el publicKeyJwk congelado
+  // (kty EC / crv secp256k1 / x / y) SIN leer el secret store. Coordenadas
+  // afines de 32 bytes en hex `0x`-prefijado minuscula; base64url se deriva en
+  // la capa de servicio. Nullable porque un anchor profile no las necesita.
+  publicKeyX          String?
+  publicKeyY          String?
+  // Clave comprimida (33 bytes, `0x02`/`0x03` + X). Util para huellas y
+  // herramientas; NO es una segunda fuente de verdad de las coordenadas.
+  publicKeyCompressed String?
+  // Monotonica por clave logica. Para assertion keys alimenta el fragmento del
+  // verificationMethod: `#assert-<keyVersion>`.
+  keyVersion          Int
+  // Lo setea el provisioning cuando PROBO que la direccion deriva del secreto
+  // referenciado. Las lecturas de UI confian en este campo; la comprobacion
+  // fuerte (derivada === almacenada) se rehace sin cache antes de cada firma.
+  addressVerifiedAt   DateTime?
+  status              SignerProfileStatus  @default(active)
+  createdAt           DateTime             @default(now())
+  retiredAt           DateTime?
+
+  assertionForIdentity IssuerTechnicalIdentity?  @relation("IssuerTechnicalIdentityAssertionSigner")
+  anchorForIdentities  IssuerTechnicalIdentity[] @relation("IssuerTechnicalIdentityAnchorSigner")
+  anchoredRecords      BlockchainRecord[]        @relation("BlockchainRecordAnchorSigner")
+
+  @@index([purpose])
+  @@index([status])
+}
+
+// UNA por Issuer (`issuerId @unique`). Vincula el issuer con su DID y con sus
+// dos perfiles de firma.
+//
+// Cardinalidades congeladas:
+//   issuerId                 UNIQUE  una identidad tecnica por issuer
+//   did                      UNIQUE  un DID no identifica a dos issuers
+//   assertionSignerProfileId UNIQUE  una assertion key no identifica a dos
+//                                    issuers (propiedad del producto)
+//   anchorSignerProfileId    NO unique  anchor compartible (demo)
+//
+// Demo representable sin duplicar secretos:
+//   UADE    -> assertion A + anchor X
+//   Course  -> assertion B + anchor X
+//   Company -> assertion C + anchor X
+//
+// `status = unconfigured` significa "bindeado pero todavia no activado"
+// (p. ej. perfiles sin `addressVerifiedAt`). La AUSENCIA de la fila es el
+// estado "sin identidad tecnica": un Issuer recien creado por S5b no tiene
+// fila aca, y por eso `POST /admin/issuers` sigue sin pedir ninguna clave.
+model IssuerTechnicalIdentity {
+  id                       String                        @id @default(uuid())
+  issuerId                 String                        @unique
+  // `did:web:<host>:did:issuers:<issuerId>`. Write-once, igual que `User.did`:
+  // nunca se recalcula contra la configuracion actual. El resolver HTTP es
+  // S8c3; S8c1 solo guarda el dato.
+  did                      String                        @unique
+  assertionSignerProfileId String                        @unique
+  anchorSignerProfileId    String
+  status                   IssuerTechnicalIdentityStatus @default(unconfigured)
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+
+  issuer                 Issuer        @relation(fields: [issuerId], references: [id], onDelete: Cascade)
+  assertionSignerProfile SignerProfile @relation("IssuerTechnicalIdentityAssertionSigner", fields: [assertionSignerProfileId], references: [id], onDelete: Restrict)
+  anchorSignerProfile    SignerProfile @relation("IssuerTechnicalIdentityAnchorSigner", fields: [anchorSignerProfileId], references: [id], onDelete: Restrict)
+
+  @@index([anchorSignerProfileId])
+  @@index([status])
 }

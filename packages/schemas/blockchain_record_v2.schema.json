@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://credential-intelligence-platform.local/schemas/blockchain_record_v2.schema.json",
+  "title": "blockchain_record_v2",
+  "description": "Evidencia de anclaje con PROCEDENCIA EXPLICITA. blockchain_record_v1 solo permitia inferir mock-vs-real por el contract address centinela 0x...0001, lo que alcanzaba mientras la unica red real era Anvil pero NO distingue mock / Anvil real / Base Sepolia real. v2 agrega `evidence_mode` (requerido), mas el deployment, el bloque, el signer de anclaje y el alcance de ese signer. Las filas legacy anteriores a S8c1 no se reetiquetan: en PostgreSQL las columnas nuevas son nullable y quedan en NULL, es decir procedencia desconocida. Un record v2 debe seguir siendo interpretable aunque la configuracion ACTUAL cambie, por eso la identidad del deployment y del signer viven en el record y no en la config viva.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "credential_id",
+    "credential_hash",
+    "hash_algorithm",
+    "canonicalization_version",
+    "evidence_mode",
+    "network",
+    "chain_id",
+    "contract_address",
+    "tx_hash",
+    "issuer_address",
+    "registered_at",
+    "status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "blockchain_record_v2"
+    },
+    "record_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "credential_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "credential_hash": {
+      "description": "canonicalHashText: el MISMO valor que el proof referencia y que se envia como bytes32 al contrato. 0x mas 64 hexadecimales en minuscula.",
+      "type": "string",
+      "pattern": "^0x[0-9a-f]{64}$"
+    },
+    "hash_algorithm": {
+      "const": "sha-256"
+    },
+    "canonicalization_version": {
+      "description": "Con que reglas se calculo `credential_hash`. Un record canon_v1 es legacy y no se recalcula bajo canon_v2.",
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_mode": {
+      "description": "Procedencia explicita. Reemplaza la inferencia por contract address centinela. `mock` significa que no hubo ninguna transaccion: el tx hash es sintetico y deterministico.",
+      "type": "string",
+      "enum": [
+        "mock",
+        "credential_registry"
+      ]
+    },
+    "deployment_id": {
+      "description": "Clave hacia el manifest commiteado del deployment (contracts/deployments/). Ausente en modo mock y en filas legacy.",
+      "type": "string",
+      "minLength": 1
+    },
+    "network": {
+      "type": "string",
+      "enum": [
+        "anvil",
+        "base-sepolia",
+        "base-mainnet"
+      ]
+    },
+    "chain_id": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "contract_address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$"
+    },
+    "tx_hash": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{64}$"
+    },
+    "block_number": {
+      "description": "Numero de bloque del receipt. Ausente en modo mock y en filas legacy; tambien puede faltar en un record reconciliado cuyo receipt ya no era recuperable.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "issuer_address": {
+      "description": "La cuenta que REGISTRO el hash, es decir transaction.from. NO es la identidad institucional del issuer: la autoria del issuer la lleva el proof de la credential, no msg.sender.",
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$"
+    },
+    "anchor_signer_profile_id": {
+      "description": "Que SignerProfile firmo la registracion. Es la procedencia que necesita la revocacion despues de una rotacion de anchor, porque el contrato exige el msg.sender original. Ausente en filas legacy.",
+      "type": "string",
+      "minLength": 1
+    },
+    "anchor_registrant_scope": {
+      "description": "SNAPSHOT del momento de registracion, no un valor derivado de los bindings vivos: los bindings pueden cambiar despues de la emision. `shared_custodial` significa que varios issuers compartian esa cuenta de anclaje, asi que el contrato no puede distinguirlos por msg.sender. Eso NO afecta la autenticidad por issuer, que la lleva la assertion key, pero SI significa autoridad compartida de registracion y de revocacion a nivel de contrato.",
+      "type": "string",
+      "enum": [
+        "issuer_exclusive",
+        "shared_custodial"
+      ]
+    },
+    "registered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "description": "`pending` es un intent persistido antes de la transaccion: ciclo de vida de la EVIDENCIA, nunca validez de la credential.",
+      "type": "string",
+      "enum": [
+        "pending",
+        "registered",
+        "revoked"
+      ]
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revocation_reason": {
+      "type": "string"
+    }
+  }
+}

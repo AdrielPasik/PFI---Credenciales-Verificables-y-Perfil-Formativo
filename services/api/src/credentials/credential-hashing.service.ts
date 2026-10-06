@@ -13,11 +13,40 @@ type HashingInput = {
   issuedAt: Date;
   hours?: { toFixed?: (fractionDigits?: number) => string; toString: () => string } | null;
   credentialSubject: JsonObject;
+  /**
+   * Solo lo consume `canon_v2`. Opcional en el tipo para que todos los callers
+   * `canon_v1` existentes sigan compilando sin cambios; `canon_v2` lo exige en
+   * runtime y falla cerrado si falta.
+   */
+  credentialId?: string | null;
 };
+
+/**
+ * Versiones de canonicalizacion soportadas.
+ *
+ * `canon_v1` es historico y queda CONGELADO byte a byte: cualquier credential
+ * ya emitida tiene su `canonicalHash` calculado con el, y recalcularlo distinto
+ * invalidaria evidencia ya anclada.
+ *
+ * `canon_v2` es EXACTAMENTE `canon_v1` + `credential_id`, sin ningun otro
+ * cambio de normalizacion. Motivo (S8b/S8b.1): la proyeccion v1 omite el id, y
+ * como `issued_at` se trunca al segundo, dos credentials por lo demas
+ * identicas emitidas en el mismo segundo producen el MISMO hash -- lo que en la
+ * red hace revertir el segundo registro con `CredentialAlreadyRegistered` y
+ * deja el proof atado a contenido en lugar de a un registro concreto.
+ */
+export type CanonicalizationVersion = 'canon_v1' | 'canon_v2';
 
 @Injectable()
 export class CredentialHashingService {
+  /**
+   * Version POR DEFECTO, deliberadamente `canon_v1` en S8c1: esta slice no
+   * hace cutover de comportamiento. El issuance pasa a `canon_v2` en la slice
+   * que completa la emision firmada (S8c4/S8c6).
+   */
   static readonly CANONICALIZATION_VERSION = 'canon_v1';
+  static readonly CANONICALIZATION_VERSION_V1: CanonicalizationVersion = 'canon_v1';
+  static readonly CANONICALIZATION_VERSION_V2: CanonicalizationVersion = 'canon_v2';
   static readonly HASH_ALGORITHM = 'sha-256';
 
   createCanonicalProjection(input: HashingInput) {
@@ -59,13 +88,51 @@ export class CredentialHashingService {
     };
   }
 
+  /**
+   * Proyeccion canonica para una version explicita.
+   *
+   * `canon_v1` delega sin tocar nada a `createCanonicalProjection`, que es la
+   * implementacion congelada. `canon_v2` le agrega UNA sola clave,
+   * `credential_id`, requerida: la ordenacion de claves la hace despues
+   * `sortRecursively`, asi que el orden en el que se construye el objeto es
+   * irrelevante para los bytes finales.
+   */
+  createCanonicalProjectionForVersion(
+    input: HashingInput,
+    version: CanonicalizationVersion
+  ) {
+    const base = this.createCanonicalProjection(input);
+
+    if (version === CredentialHashingService.CANONICALIZATION_VERSION_V1) {
+      return base;
+    }
+
+    return {
+      ...base,
+      credential_id: this.normalizeRequiredString(
+        input.credentialId,
+        'credential.id'
+      )
+    };
+  }
+
   createCanonicalHash(input: HashingInput) {
-    const projection = this.createCanonicalProjection(input);
+    return this.createCanonicalHashForVersion(
+      input,
+      CredentialHashingService.CANONICALIZATION_VERSION
+    );
+  }
+
+  createCanonicalHashForVersion(
+    input: HashingInput,
+    version: CanonicalizationVersion
+  ) {
+    const projection = this.createCanonicalProjectionForVersion(input, version);
     const serialized = this.stableStringify(projection);
     const digest = createHash('sha256').update(serialized, 'utf8').digest('hex');
 
     return {
-      canonicalizationVersion: CredentialHashingService.CANONICALIZATION_VERSION,
+      canonicalizationVersion: version,
       hashAlgorithm: CredentialHashingService.HASH_ALGORITHM,
       canonicalHash: `0x${digest}`,
       canonicalProjection: projection,

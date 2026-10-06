@@ -9,11 +9,28 @@ Establecer un lenguaje comun entre backend, frontend, AI service y futuros proce
 ## Schemas iniciales
 
 - `credential_v1.schema.json`
+- `credential_v2.schema.json`
 - `semantic_analysis_v1.schema.json`
 - `formative_profile_result_v0.schema.json`
 - `formative_profile_v1.schema.json`
 - `blockchain_record_v1.schema.json`
+- `blockchain_record_v2.schema.json`
 - `source_extraction_v1.schema.json`
+
+`credential_v2.schema.json` es `credential_v1` mas un proof `scope-proof-v1`
+OBLIGATORIO. `credential_v1` queda intacto y sigue describiendo los artifacts
+historicos sin autenticacion criptografica del emisor.
+
+`blockchain_record_v2.schema.json` agrega procedencia explicita
+(`evidence_mode`, `deployment_id`, `block_number`,
+`anchor_signer_profile_id`, `anchor_registrant_scope`) para que un record
+distinga sin ambiguedad mock, Anvil real y Base Sepolia real, en vez de
+inferirlo del contract address centinela. `blockchain_record_v1` queda intacto.
+
+Dos ejes de version distintos, no confundirlos: `schema_version` describe la
+forma del artifact (`credential_v1` / `credential_v2`) y
+`canonicalization_version` describe las reglas de canonicalizacion
+(`canon_v1` / `canon_v2`).
 
 ## Criterios
 
