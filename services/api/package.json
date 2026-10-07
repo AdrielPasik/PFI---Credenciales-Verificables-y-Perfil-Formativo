@@ -29,6 +29,7 @@
     "ai:health": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/ai/scripts/check-ai-service-health.ts",
     "ai:analyze-pdf": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/ai/scripts/analyze-pdf-with-ai-service.ts",
     "ai:build-profile": "node --env-file=.env -r ts-node/register/transpile-only -r reflect-metadata src/ai/scripts/build-profile-with-ai-service.ts",
+    "test:blockchain-target": "node --require ts-node/register/transpile-only --test src/blockchain/blockchain-target.test.ts src/blockchain/credential-registry-preflight.test.ts src/blockchain/blockchain-target.structure.test.ts src/blockchain/blockchain-target.terraform.test.ts src/blockchain/blockchain-target.startup.test.ts src/blockchain/blockchain-target-provenance.test.ts src/blockchain/blockchain-evidence.service.test.ts src/blockchain/credential-registry-deployment.test.ts src/blockchain/credential-registry-read-client.test.ts src/blockchain/credential-registry-write-client.test.ts",
     "test:blockchain-evidence": "node --require ts-node/register/transpile-only --test src/blockchain/blockchain-evidence.service.test.ts",
     "test:blockchain-read-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-read-client.test.ts",
     "test:blockchain-write-client": "node --require ts-node/register/transpile-only --test src/blockchain/credential-registry-write-client.test.ts",

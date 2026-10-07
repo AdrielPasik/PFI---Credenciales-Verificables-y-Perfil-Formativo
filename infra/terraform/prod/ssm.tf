@@ -10,8 +10,23 @@
 # What Terraform DOES create here are non-secret String parameters that must be
 # changeable at runtime without a terraform apply:
 #
-#   BLOCKCHAIN_EVIDENCE_MODE  flipped from mock to the Base Sepolia mode in a
-#                             later slice, with the infrastructure frozen.
+#   BLOCKCHAIN_EVIDENCE_MODE  mock | credential_registry. Flipped to the real
+#                             mode in a later slice, with the infrastructure
+#                             frozen. S8c5 split the network OUT of the mode:
+#                             the mode no longer implies a chain.
+#   CREDENTIAL_REGISTRY_NETWORK / _CHAIN_ID / _CONTRACT_ADDRESS / _DEPLOYMENT_ID
+#                             the blockchain target. Non-secret, and they start
+#                             as "unset", which is not a valid network, chain id,
+#                             address or deployment id - so flipping the mode
+#                             without populating them fails closed instead of
+#                             writing to the wrong chain. The real address and
+#                             deployment id come from S8c10's deployment; they
+#                             are deliberately NOT invented here.
+#
+# CREDENTIAL_REGISTRY_RPC_URL is NOT in this file. A provider RPC endpoint
+# usually carries its credential in the path or the query, so it is a
+# SecureString created out of band like every other secret - Terraform knows its
+# name, never its value.
 #   *_OPENAI_MODEL / REASONING_EXECUTION_MODEL
 #                             the API and the AI service must agree on the exact
 #                             model identity; a mismatch fails closed before any

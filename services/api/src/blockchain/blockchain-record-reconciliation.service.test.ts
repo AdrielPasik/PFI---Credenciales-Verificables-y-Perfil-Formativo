@@ -15,6 +15,10 @@ import {
 } from './credential-registry-deployment';
 import { type CredentialRegistryRecordBoundReader } from './credential-registry-read-client';
 
+// Identificador de deployment SINTETICO y solo de test. No existe ningun
+// deployment real todavia: el manifest commiteado es S8c10.
+const TEST_DEPLOYMENT_ID = 'test-anvil-local';
+
 const VALID_HASH =
   '0xaf032042c1bcfb72f9caac350eb3cb576f44ab07b1c1968f4b36264da44ff2ab';
 const VALID_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
@@ -168,10 +172,12 @@ function createService(
 
 function deployment(): CredentialRegistryDeployment {
   return {
+    evidenceMode: 'credential_registry',
     network: BlockchainNetwork.anvil,
     chainId: 31337,
     rpcUrl: 'http://127.0.0.1:8545',
-    contractAddress: VALID_ADDRESS
+    contractAddress: VALID_ADDRESS,
+    deploymentId: TEST_DEPLOYMENT_ID
   };
 }
 

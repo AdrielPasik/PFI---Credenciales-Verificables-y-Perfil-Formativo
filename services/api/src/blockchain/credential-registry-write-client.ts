@@ -12,6 +12,11 @@ import {
   validateCredentialHash
 } from './credential-registry-read-client';
 import { type CredentialRegistryDeployment } from './credential-registry-deployment';
+import { type CredentialRegistryTarget } from './blockchain-target';
+import {
+  CredentialRegistryPreflight,
+  type CredentialRegistryPreflightProvider
+} from './credential-registry-preflight';
 
 const PRIVATE_KEY_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 
@@ -46,6 +51,18 @@ type CredentialRegistryWriteClientOptions = {
   contractAddress?: string;
   privateKey?: string;
   contractWriter?: CredentialRegistryContractWriter;
+  /**
+   * Target validado del que salio esta configuracion. Cuando esta presente, el
+   * preflight de red/contrato corre ANTES de cada escritura.
+   *
+   * Los dos constructores de PRODUCCION (`createCredentialRegistryWriteClientForTarget`
+   * y `createRecordBoundCredentialRegistryWriteClient`) lo pasan siempre. Es el
+   * unico camino por el que se construye un writer real.
+   */
+  target?: CredentialRegistryTarget;
+  preflight?: CredentialRegistryPreflight;
+  /** Doble de provider para tests. Jamas se usa en produccion. */
+  preflightProvider?: CredentialRegistryPreflightProvider;
 };
 
 type CredentialRegistryWriteClientConfig = {
@@ -88,6 +105,9 @@ export class CredentialRegistryWriteClient {
   private readonly contractAddress?: string;
   private readonly privateKey?: string;
   private readonly contractWriter?: CredentialRegistryContractWriter;
+  private readonly target?: CredentialRegistryTarget;
+  private readonly preflight: CredentialRegistryPreflight;
+  private readonly preflightProvider?: CredentialRegistryPreflightProvider;
 
   constructor(@Optional() options: CredentialRegistryWriteClientOptions = {}) {
     this.rpcUrl = options.rpcUrl ?? process.env.CREDENTIAL_REGISTRY_RPC_URL;
@@ -97,6 +117,9 @@ export class CredentialRegistryWriteClient {
     this.privateKey =
       options.privateKey ?? process.env.CREDENTIAL_REGISTRY_PRIVATE_KEY;
     this.contractWriter = options.contractWriter;
+    this.target = options.target;
+    this.preflight = options.preflight ?? new CredentialRegistryPreflight();
+    this.preflightProvider = options.preflightProvider;
   }
 
   async registerCredential(
@@ -116,10 +139,24 @@ export class CredentialRegistryWriteClient {
     credentialHash: string
   ) {
     const normalizedHash = validateCredentialHash(credentialHash);
+
+    // PREFLIGHT, dentro del cliente y no en cada llamador: `registerCredential`
+    // y `revokeCredential` pasan los dos por aca, asi que comparten UN solo
+    // contrato de validacion y no pueden derivar uno del otro. Corre en CADA
+    // escritura: no hay cache.
+    //
+    // Si falla, se lanza ANTES de pedirle una transaccion al contrato.
+    if (this.target) {
+      await this.preflight.assertWritable(this.target, this.preflightProvider);
+    }
+
     const writer = this.contractWriter ?? this.createContractWriter();
     const transaction = await writer[method](normalizedHash);
     const receipt = await transaction.wait();
 
+    // SIN reintentos. Una escritura que expiro puede haber llegado igual a la
+    // red, y reintentar a ciegas duplicaria la transaccion o rompería el nonce.
+    // La recuperacion es S8c6.
     return normalizeCredentialRegistryWriteResult(
       normalizedHash,
       transaction,
@@ -157,23 +194,48 @@ export class CredentialRegistryWriteClient {
 }
 
 /**
- * Construye un cliente de escritura a partir de un deployment ya resuelto por
- * identidad de record. El signer sigue siendo configuración del servidor, no
- * datos controlados por BlockchainRecord.
+ * UNICO constructor de produccion a partir de un target validado.
+ *
+ * El signer sigue siendo configuracion del SERVIDOR: la clave privada global
+ * legacy se lee aca y en ningun otro lado. S8c5 no la reemplaza por el anchor
+ * `SignerProfile` por issuer -- ese cutover es S8c6 -- pero ya quita la
+ * suposicion de que el signer determine la red, el chainId o el contrato: todo
+ * eso viene del target.
  */
-export function createRecordBoundCredentialRegistryWriteClient(
-  deployment: CredentialRegistryDeployment,
-  environment: CredentialRegistrySignerEnvironment = process.env
+export function createCredentialRegistryWriteClientForTarget(
+  target: CredentialRegistryTarget,
+  environment: CredentialRegistrySignerEnvironment = process.env,
+  overrides: {
+    preflight?: CredentialRegistryPreflight;
+    preflightProvider?: CredentialRegistryPreflightProvider;
+    contractWriter?: CredentialRegistryContractWriter;
+  } = {}
 ): CredentialRegistryWriteClient {
   const privateKey = validateCredentialRegistryPrivateKey(
     environment.CREDENTIAL_REGISTRY_PRIVATE_KEY ?? ''
   );
 
   return new CredentialRegistryWriteClient({
-    rpcUrl: deployment.rpcUrl,
-    contractAddress: deployment.contractAddress,
-    privateKey
+    rpcUrl: target.rpcUrl,
+    contractAddress: target.contractAddress,
+    privateKey,
+    target,
+    preflight: overrides.preflight,
+    preflightProvider: overrides.preflightProvider,
+    contractWriter: overrides.contractWriter
   });
+}
+
+/**
+ * Construye un cliente de escritura a partir de un deployment ya resuelto por
+ * identidad de record. Un deployment resuelto ES un target validado (S8c5), asi
+ * que la revocacion obtiene el MISMO preflight que la registracion.
+ */
+export function createRecordBoundCredentialRegistryWriteClient(
+  deployment: CredentialRegistryDeployment,
+  environment: CredentialRegistrySignerEnvironment = process.env
+): CredentialRegistryWriteClient {
+  return createCredentialRegistryWriteClientForTarget(deployment, environment);
 }
 
 export function validateCredentialRegistryPrivateKey(privateKey: string) {

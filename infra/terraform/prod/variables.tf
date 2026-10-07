@@ -475,3 +475,34 @@ variable "github_deploy_environments" {
     error_message = "At least one GitHub environment must be trusted, otherwise the role is unusable."
   }
 }
+
+# ---------------------------------------------------------------------------
+# Blockchain evidence
+# ---------------------------------------------------------------------------
+
+variable "blockchain_evidence_mode" {
+  description = <<-EOT
+    Blockchain evidence mechanism this infrastructure PROVISIONS FOR. It is the
+    single Terraform-side source of that decision: the SSM parameter the API
+    reads at runtime is seeded from this value, and the CredentialRegistry RPC
+    SecureString is wired into the API task definition only when it is
+    credential_registry.
+
+    Why it is a Terraform input and not only a runtime SSM value: a task
+    definition's `secrets` references and the execution role's parameter ARNs are
+    decided at apply time, so they cannot follow a value that changes at runtime.
+    In "mock" the API task therefore does not reference the RPC SecureString at
+    all and can start without it existing. Flipping to credential_registry needs
+    an apply, which is correct - real mode also needs the SecureString to exist
+    and the execution role to be allowed to read it.
+
+    Terraform never learns the RPC URL value in either mode.
+  EOT
+  type        = string
+  default     = "mock"
+
+  validation {
+    condition     = contains(["mock", "credential_registry"], var.blockchain_evidence_mode)
+    error_message = "blockchain_evidence_mode must be exactly \"mock\" or \"credential_registry\". The network is a separate input: the mode never implies a chain."
+  }
+}

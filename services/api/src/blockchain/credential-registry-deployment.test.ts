@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { BlockchainNetwork } from '@prisma/client';
 
+import { CREDENTIAL_REGISTRY_NETWORK_CHAIN_IDS } from './blockchain-target';
 import {
   ANVIL_CHAIN_ID,
   CredentialRegistryDeploymentResolver,
@@ -10,6 +11,12 @@ import {
   deploymentMatchesBlockchainRecord,
   isMockBlockchainRecord
 } from './credential-registry-deployment';
+
+// Identificador de deployment SINTETICO y solo de test. No existe ningun
+// deployment real todavia: el manifest commiteado es S8c10.
+const TEST_DEPLOYMENT_ID = 'test-anvil-local';
+const BASE_SEPOLIA_CHAIN_ID =
+  CREDENTIAL_REGISTRY_NETWORK_CHAIN_IDS[BlockchainNetwork.base_sepolia];
 
 const VALID_HASH =
   '0xaf032042c1bcfb72f9caac350eb3cb576f44ab07b1c1968f4b36264da44ff2ab';
@@ -25,15 +32,38 @@ test('resuelve solo el deployment Anvil que coincide exactamente con el Blockcha
   assert.deepEqual(result, {
     kind: 'resolved',
     deployment: {
+      evidenceMode: 'credential_registry',
       network: BlockchainNetwork.anvil,
       chainId: ANVIL_CHAIN_ID,
       rpcUrl: 'http://127.0.0.1:8545',
-      contractAddress: VALID_ADDRESS
+      contractAddress: VALID_ADDRESS,
+      deploymentId: TEST_DEPLOYMENT_ID
     }
   });
 });
 
 test('rechaza una red distinta aunque exista configuracion global', () => {
+  // S8c5: `base_sepolia` ES una red soportada ahora, asi que el record se
+  // construye COHERENTE (red + su chainId). Lo que no resuelve es que el
+  // record pertenezca a una red distinta de la que el target configura hoy.
+  const result = new CredentialRegistryDeploymentResolver().resolve(
+    createRecord({
+      network: BlockchainNetwork.base_sepolia,
+      chainId: BASE_SEPOLIA_CHAIN_ID
+    }),
+    createEnvironment()
+  );
+
+  assert.deepEqual(result, {
+    kind: 'deployment_unresolved',
+    reason: 'unsupported_network'
+  });
+});
+
+test('un record incoherente consigo mismo no resuelve: red y chainId se cruzan', () => {
+  // base_sepolia declarado con el chainId de Anvil describe dos cadenas a la
+  // vez. Antes de S8c5 esto caia como "red no soportada" y tapaba el problema
+  // real.
   const result = new CredentialRegistryDeploymentResolver().resolve(
     createRecord({ network: BlockchainNetwork.base_sepolia }),
     createEnvironment()
@@ -41,7 +71,7 @@ test('rechaza una red distinta aunque exista configuracion global', () => {
 
   assert.deepEqual(result, {
     kind: 'deployment_unresolved',
-    reason: 'unsupported_network'
+    reason: 'unexpected_chain_id'
   });
 });
 
@@ -96,10 +126,12 @@ test('clasifica el record mock existente como no soportado para mutaciones coord
 
 test('deploymentMatchesBlockchainRecord exige red, chainId y contrato exactos', () => {
   const deployment = {
+    evidenceMode: 'credential_registry' as const,
     network: BlockchainNetwork.anvil,
     chainId: ANVIL_CHAIN_ID,
     rpcUrl: 'http://127.0.0.1:8545',
-    contractAddress: VALID_ADDRESS
+    contractAddress: VALID_ADDRESS,
+    deploymentId: TEST_DEPLOYMENT_ID
   };
 
   assert.equal(deploymentMatchesBlockchainRecord(deployment, createRecord()), true);
@@ -127,17 +159,25 @@ function createRecord(overrides: Partial<{
   };
 }
 
+// S8c5: el modo ya no lleva la red adentro. `credential_registry_anvil` dejo de
+// existir y fue reemplazado por el par (modo, red) + chainId explicito.
 function createEnvironment(
   overrides: Partial<{
     BLOCKCHAIN_EVIDENCE_MODE: string | undefined;
+    CREDENTIAL_REGISTRY_NETWORK: string | undefined;
+    CREDENTIAL_REGISTRY_CHAIN_ID: string | undefined;
     CREDENTIAL_REGISTRY_RPC_URL: string | undefined;
     CREDENTIAL_REGISTRY_CONTRACT_ADDRESS: string | undefined;
+    CREDENTIAL_REGISTRY_DEPLOYMENT_ID: string | undefined;
   }> = {}
 ) {
   return {
-    BLOCKCHAIN_EVIDENCE_MODE: 'credential_registry_anvil',
+    BLOCKCHAIN_EVIDENCE_MODE: 'credential_registry',
+    CREDENTIAL_REGISTRY_NETWORK: BlockchainNetwork.anvil,
+    CREDENTIAL_REGISTRY_CHAIN_ID: String(ANVIL_CHAIN_ID),
     CREDENTIAL_REGISTRY_RPC_URL: 'http://127.0.0.1:8545',
     CREDENTIAL_REGISTRY_CONTRACT_ADDRESS: VALID_ADDRESS,
+    CREDENTIAL_REGISTRY_DEPLOYMENT_ID: TEST_DEPLOYMENT_ID,
     ...overrides
   };
 }

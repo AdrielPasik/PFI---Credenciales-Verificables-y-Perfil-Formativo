@@ -50,3 +50,11 @@ github_deploy_environments  = ["production"]
 # Bump this before re-destroying an environment whose previous final snapshot
 # still exists; an RDS snapshot identifier can never be reused.
 rds_final_snapshot_suffix = "v1"
+
+# Blockchain evidence mechanism this infrastructure provisions for.
+# "mock" (the default) wires NO CredentialRegistry RPC SecureString into the API
+# task, so the task starts without that parameter existing.
+# "credential_registry" wires it in and grants the execution role its exact ARN;
+# the parameter itself must be created out of band first. Terraform never holds
+# its value in either mode.
+# blockchain_evidence_mode = "mock"

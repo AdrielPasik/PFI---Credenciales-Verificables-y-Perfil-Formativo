@@ -10,6 +10,10 @@ import {
   validateCredentialHash
 } from './credential-registry-read-client';
 
+// Identificador de deployment SINTETICO y solo de test. No existe ningun
+// deployment real todavia: el manifest commiteado es S8c10.
+const TEST_DEPLOYMENT_ID = 'test-anvil-local';
+
 const VALID_HASH =
   '0xaf032042c1bcfb72f9caac350eb3cb576f44ab07b1c1968f4b36264da44ff2ab';
 const VALID_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
@@ -269,10 +273,12 @@ test('record-bound read rejects a registry credential registered by a different 
 
 function deployment() {
   return {
+    evidenceMode: 'credential_registry' as const,
     network: BlockchainNetwork.anvil,
     chainId: 31337,
     rpcUrl: 'http://127.0.0.1:8545',
-    contractAddress: VALID_ADDRESS
+    contractAddress: VALID_ADDRESS,
+    deploymentId: TEST_DEPLOYMENT_ID
   };
 }
 

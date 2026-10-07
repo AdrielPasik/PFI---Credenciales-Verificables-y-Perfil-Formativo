@@ -10,11 +10,17 @@ locals {
 
   ssm_parameter_arn_prefix = "arn:aws:ssm:${var.aws_region}:${local.account_id}:parameter"
 
+  # Is this infrastructure provisioning for the REAL CredentialRegistry path?
+  # Derived from the single Terraform-side mode input - there is no second
+  # source of that decision anywhere in this configuration.
+  blockchain_registry_mode_enabled = var.blockchain_evidence_mode == "credential_registry"
+
   # ---------------------------------------------------------------------------
   # Secrets consumed by the containers (SecureString, created out of band).
   # Map key = container environment variable name, value = SSM parameter name.
   # ---------------------------------------------------------------------------
-  api_secret_parameters = {
+  # Always injected, in every mode. Nothing here is conditional.
+  api_base_secret_parameters = {
     # scope_app (dedicated non-master role) credentials. Generated out of band and
     # independent of the RDS master secret.
     DATABASE_URL            = "${local.ssm_prefix}/api/DATABASE_URL"
@@ -22,6 +28,28 @@ locals {
     PROFILE_SHARE_TOKEN_KEY = "${local.ssm_prefix}/api/PROFILE_SHARE_TOKEN_KEY"
     AI_SERVICE_JWT_SECRET   = "${local.ssm_prefix}/shared/AI_INTERNAL_JWT_SECRET"
   }
+
+  # S8c5.1: CONDITIONAL, and only this one.
+  #
+  # Sensitive even though it is a URL: provider RPC endpoints usually carry the
+  # credential in the path or the query (/v2/<API_KEY>, ?apiKey=...), so it is a
+  # SecureString created OUT OF BAND and Terraform only ever knows its NAME.
+  #
+  # It is referenced by the task definition ONLY in credential_registry mode.
+  # In mock the API needs no RPC at all - it builds no provider and runs no
+  # preflight - so listing the parameter would make the ECS agent try to resolve
+  # a SecureString that legitimately does not exist, and the container would fail
+  # to start. Mock deployability must not depend on real-mode infrastructure.
+  api_rpc_secret_parameters = (
+    local.blockchain_registry_mode_enabled
+    ? { CREDENTIAL_REGISTRY_RPC_URL = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_RPC_URL" }
+    : {}
+  )
+
+  api_secret_parameters = merge(
+    local.api_base_secret_parameters,
+    local.api_rpc_secret_parameters
+  )
 
   ai_secret_parameters = {
     AI_INTERNAL_JWT_SECRET                 = "${local.ssm_prefix}/shared/AI_INTERNAL_JWT_SECRET"
@@ -43,17 +71,40 @@ locals {
   # and the model identities that the API and the AI service must agree on (a
   # mismatch fails closed before any provider call). "unset" is not a secret and
   # is not a valid model, so nothing can call a provider by accident.
+  #
+  # S8c5: el target de blockchain se declara en CUATRO parametros no secretos
+  # ademas del modo, porque el modo dejo de llevar la red adentro. Arrancan en
+  # "unset", que NO es una red valida, NO es un chainId decimal, NO es una
+  # direccion y NO es un deploymentId admisible: si alguien pasara el modo a
+  # credential_registry sin poblarlos, la emision falla cerrada en vez de
+  # escribir contra una cadena equivocada.
+  #
+  # Ninguno es un valor de produccion inventado: la direccion y el deploymentId
+  # reales no existen todavia y los produce S8c10 al desplegar el contrato.
   managed_string_parameters = {
-    "${local.ssm_prefix}/api/BLOCKCHAIN_EVIDENCE_MODE"            = "mock"
-    "${local.ssm_prefix}/api/REASONING_EXECUTION_MODEL"           = "unset"
-    "${local.ssm_prefix}/ai/OBJECTIVE_ANALYSIS_OPENAI_MODEL"      = "unset"
-    "${local.ssm_prefix}/ai/EVIDENCE_UNITS_OPENAI_MODEL"          = "unset"
-    "${local.ssm_prefix}/ai/CONTEXTUAL_REASONING_OPENAI_MODEL"    = "unset"
-    "${local.ssm_prefix}/ai/OBJECTIVE_UNDERSTANDING_OPENAI_MODEL" = "unset"
+    "${local.ssm_prefix}/api/BLOCKCHAIN_EVIDENCE_MODE"             = var.blockchain_evidence_mode
+    "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_NETWORK"          = "unset"
+    "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_CHAIN_ID"         = "unset"
+    "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_CONTRACT_ADDRESS" = "unset"
+    "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_DEPLOYMENT_ID"    = "unset"
+    "${local.ssm_prefix}/api/REASONING_EXECUTION_MODEL"            = "unset"
+    "${local.ssm_prefix}/ai/OBJECTIVE_ANALYSIS_OPENAI_MODEL"       = "unset"
+    "${local.ssm_prefix}/ai/EVIDENCE_UNITS_OPENAI_MODEL"           = "unset"
+    "${local.ssm_prefix}/ai/CONTEXTUAL_REASONING_OPENAI_MODEL"     = "unset"
+    "${local.ssm_prefix}/ai/OBJECTIVE_UNDERSTANDING_OPENAI_MODEL"  = "unset"
   }
 
   api_string_parameters = {
-    BLOCKCHAIN_EVIDENCE_MODE  = "${local.ssm_prefix}/api/BLOCKCHAIN_EVIDENCE_MODE"
+    BLOCKCHAIN_EVIDENCE_MODE = "${local.ssm_prefix}/api/BLOCKCHAIN_EVIDENCE_MODE"
+
+    # Identidad de la CADENA (red + chainId) y del DEPLOYMENT concreto
+    # (direccion + deploymentId). Son dos cosas distintas: varias versiones de
+    # CredentialRegistry pueden convivir en la misma red.
+    CREDENTIAL_REGISTRY_NETWORK          = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_NETWORK"
+    CREDENTIAL_REGISTRY_CHAIN_ID         = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_CHAIN_ID"
+    CREDENTIAL_REGISTRY_CONTRACT_ADDRESS = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_CONTRACT_ADDRESS"
+    CREDENTIAL_REGISTRY_DEPLOYMENT_ID    = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_DEPLOYMENT_ID"
+
     REASONING_EXECUTION_MODEL = "${local.ssm_prefix}/api/REASONING_EXECUTION_MODEL"
   }
 

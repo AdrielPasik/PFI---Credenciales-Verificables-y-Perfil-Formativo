@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { BlockchainEvidenceService } from './blockchain-evidence.service';
 import { BlockchainRecordReconciliationService } from './blockchain-record-reconciliation.service';
 import { CredentialRegistryDeploymentResolver } from './credential-registry-deployment';
+import { CredentialRegistryPreflight } from './credential-registry-preflight';
 import { CredentialRegistryReadClient } from './credential-registry-read-client';
 import { CredentialRegistryWriteClient } from './credential-registry-write-client';
 
@@ -10,6 +11,7 @@ import { CredentialRegistryWriteClient } from './credential-registry-write-clien
   providers: [
     BlockchainEvidenceService,
     CredentialRegistryDeploymentResolver,
+    CredentialRegistryPreflight,
     CredentialRegistryReadClient,
     CredentialRegistryWriteClient,
     BlockchainRecordReconciliationService
@@ -17,6 +19,7 @@ import { CredentialRegistryWriteClient } from './credential-registry-write-clien
   exports: [
     BlockchainEvidenceService,
     CredentialRegistryDeploymentResolver,
+    CredentialRegistryPreflight,
     CredentialRegistryReadClient,
     CredentialRegistryWriteClient,
     BlockchainRecordReconciliationService
