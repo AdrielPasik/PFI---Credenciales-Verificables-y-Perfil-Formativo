@@ -12,7 +12,7 @@
 
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import { createSignerSecretStoreFromEnv } from './signer-secret-store.factory';
@@ -398,7 +398,28 @@ test('35: el camino legacy sigue intacto y sigue siendo el activo', () => {
   assert.ok(revocation.includes('resolveCredentialRegistrySignerAddress'));
 });
 
-test('36: ningun flujo existente usa todavia el resolver nuevo', () => {
+/**
+ * 36 (ACTUALIZADO EN S8c4): el resolver tiene consumidores de produccion
+ * EXPLICITAMENTE ALLOWLISTEADOS, y nada mas.
+ *
+ * El guard original de S8c2 afirmaba "ningun flujo existente usa todavia el
+ * resolver". Eso era cierto cuando se escribio y dejo de serlo en S8c4: la
+ * construccion del proof de autoria es, a proposito, el primer consumidor de
+ * produccion. El guard NO se borra -- lo que se protege sigue siendo valioso --
+ * sino que se reemplaza por el invariante mas fuerte que si sigue siendo
+ * cierto: el resolver se consume SOLO desde la autoria de credentials.
+ *
+ * Sigue prohibido, y es lo que importa: blockchain, revocacion, el controller
+ * publico de DID, identity, web y cualquier modulo no relacionado.
+ */
+const RESOLVER_CONSUMER_ALLOWLIST = [
+  // Orquestador de la autoria de la credential. UNICO consumidor, y por DI
+  // ni siquiera el modulo necesita nombrar el resolver: alcanza con importar
+  // SigningModule, que ya lo exporta desde S8c2.
+  join('credentials', 'credential-proof.service.ts')
+];
+
+test('36: el resolver solo lo consumen los componentes allowlisteados', () => {
   const offenders: string[] = [];
 
   const walk = (dir: string): void => {
@@ -410,28 +431,101 @@ test('36: ningun flujo existente usa todavia el resolver nuevo', () => {
         }
         continue;
       }
-      if (!entry.name.endsWith('.ts')) {
+      // Solo fuentes de PRODUCCION, y solo su codigo EJECUTABLE. Un test que
+      // asserta la AUSENCIA del resolver, o un comentario que explica la
+      // separacion, nombran el identificador sin usarlo. Mirar el texto crudo
+      // de todos los .ts convertia a la propia documentacion en una violacion.
+      if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) {
         continue;
       }
-      const contents = readFileSync(full, 'utf8');
+      const code = executableCode(readFileSync(full, 'utf8'));
       if (
-        contents.includes('IssuerSignerResolver') ||
-        contents.includes('resolveAssertionSignerForIssuer') ||
-        contents.includes('resolveAnchorSignerForIssuer')
+        code.includes('IssuerSignerResolver') ||
+        code.includes('resolveAssertionSignerForIssuer') ||
+        code.includes('resolveAnchorSignerForIssuer')
       ) {
-        offenders.push(entry.name);
+        offenders.push(relative(API_SRC_DIR, full));
       }
     }
   };
 
   walk(API_SRC_DIR);
 
-  // Solo el wiring del AppModule puede nombrar el modulo, nunca el resolver.
   assert.deepEqual(
-    offenders,
-    [],
-    `la emision/revocacion no deben usar el resolver todavia: ${offenders.join(', ')}`
+    offenders.sort(),
+    RESOLVER_CONSUMER_ALLOWLIST.sort(),
+    `consumidor no autorizado del resolver: ${offenders.join(', ')}`
   );
+});
+
+test('36a: el CredentialsModule importa el modulo pero no nombra el resolver', () => {
+  // Sobre CODIGO EJECUTABLE: el doc comment del modulo explica a proposito
+  // POR QUE importar SigningModule es seguro, y para eso nombra el resolver.
+  // Esa prosa es correcta y no es una inyeccion.
+  const credentialsModule = executableCode(
+    readFileSync(
+      join(API_SRC_DIR, 'credentials', 'credentials.module.ts'),
+      'utf8'
+    )
+  );
+
+  assert.ok(credentialsModule.includes('SigningModule'));
+  assert.ok(!credentialsModule.includes('IssuerSignerResolver'));
+  assert.ok(!credentialsModule.includes('SIGNER_SECRET_STORE'));
+});
+
+test('36b: la emision llega al signer SOLO a traves de la autoria', () => {
+  // `credentials.service.ts` orquesta la emision pero no inyecta el resolver:
+  // si lo hiciera, podria elegir el proposito (asercion vs anclaje) y saltarse
+  // la validacion del DID.
+  const issuance = executableCode(
+    readFileSync(
+      join(API_SRC_DIR, 'credentials', 'credentials.service.ts'),
+      'utf8'
+    )
+  );
+  assert.ok(!issuance.includes('IssuerSignerResolver'));
+  assert.ok(!issuance.includes('resolveAssertionSignerForIssuer'));
+
+  // Y la autoria usa SOLO la clave de asercion.
+  const proofService = executableCode(
+    readFileSync(
+      join(API_SRC_DIR, 'credentials', 'credential-proof.service.ts'),
+      'utf8'
+    )
+  );
+  assert.ok(proofService.includes('resolveAssertionSignerForIssuer'));
+  assert.ok(!proofService.includes('resolveAnchorSignerForIssuer'));
+});
+
+test('36c: blockchain, revocacion e identity siguen SIN tocar el resolver', () => {
+  // Estos son los limites que el guard original protegia y que S8c4 no afloja.
+  for (const relativePath of [
+    join('blockchain', 'blockchain-evidence.service.ts'),
+    join('blockchain', 'credential-registry-write-client.ts'),
+    join('blockchain', 'credential-registry-read-client.ts'),
+    join('blockchain', 'blockchain-record-reconciliation.service.ts'),
+    join('credentials', 'issuer-credential-revocation.service.ts'),
+    join('credentials', 'issuer-credential-draft-update.service.ts'),
+    join('identity', 'issuer-did.controller.ts'),
+    join('identity', 'did.controller.ts')
+  ]) {
+    const code = executableCode(
+      readFileSync(join(API_SRC_DIR, relativePath), 'utf8')
+    );
+
+    for (const token of [
+      'IssuerSignerResolver',
+      'resolveAssertionSignerForIssuer',
+      'resolveAnchorSignerForIssuer',
+      'SIGNER_SECRET_STORE'
+    ]) {
+      assert.ok(
+        !code.includes(token),
+        `${relativePath} no debe usar ${token}`
+      );
+    }
+  }
 });
 
 test('el AppModule registra el modulo pero no inyecta el resolver', () => {

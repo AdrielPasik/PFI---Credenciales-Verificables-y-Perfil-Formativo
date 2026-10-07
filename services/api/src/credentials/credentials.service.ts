@@ -3,7 +3,9 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  NotFoundException
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException
 } from '@nestjs/common';
 import {
   CourseStatus,
@@ -21,7 +23,14 @@ import { ensureDidForUser } from '../identity/ensure-did-for-user';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { type AuthenticatedUser } from '../auth/auth.types';
+import { SignerResolutionError } from '../signing/signer-resolution.error';
 import { CredentialHashingService } from './credential-hashing.service';
+import { CredentialProofError } from './credential-proof.error';
+import {
+  CredentialProofService,
+  type PreparedAssertionSigner
+} from './credential-proof.service';
+import { type ScopeProofV1 } from './scope-proof-v1';
 import {
   type AcademicCurriculumSelection,
   validateCreateCredentialDraftCurricularSelection
@@ -33,6 +42,19 @@ import { CredentialSummaryResponseDto } from './dto/credential-summary-response.
 import { IssueCredentialDto } from './dto/issue-credential.dto';
 
 const UADE_ISSUER_DID = 'did:example:issuer-demo';
+/**
+ * Forma del artifact que produce una emision AUTENTICADA. S8c4 hace el cutover
+ * en la TRANSICION a emitida, no en el default de la base: un borrador y una
+ * fila legacy siguen siendo `credential_v1`, porque no tienen proof y declarar
+ * `credential_v2` sin proof es justamente lo que el contrato prohibe.
+ */
+const CREDENTIAL_SCHEMA_VERSION_V2 = 'credential_v2';
+const SIGNING_IDENTITY_NOT_READY_MESSAGE =
+  'La identidad de firma del emisor no esta lista para emitir.';
+const SIGNING_TEMPORARILY_UNAVAILABLE_MESSAGE =
+  'El servicio de firma del emisor no esta disponible temporalmente. Intentelo nuevamente.';
+const PROOF_CONSTRUCTION_FAILED_MESSAGE =
+  'No se pudo generar la prueba de autoria de la credencial.';
 const ACADEMIC_CREDENTIAL_TYPES = new Set<CredentialType>([
   CredentialType.academic_subject,
   CredentialType.degree
@@ -44,7 +66,8 @@ export class CredentialsService {
     private readonly prisma: PrismaService,
     private readonly issuersService: IssuersService,
     private readonly blockchainEvidenceService: BlockchainEvidenceService,
-    private readonly credentialHashingService: CredentialHashingService
+    private readonly credentialHashingService: CredentialHashingService,
+    private readonly credentialProofService: CredentialProofService
   ) {}
 
   async createDraft(
@@ -295,42 +318,147 @@ export class CredentialsService {
       'credential.credentialSubject'
     );
 
-    this.assertCredentialSubjectField(
-      credentialSubject,
-      ['achievement_name', 'achievementName'],
-      'credentialSubject.achievement_name'
-    );
-    this.assertCredentialSubjectField(
-      credentialSubject,
-      ['institution_name', 'institutionName'],
-      'credentialSubject.institution_name'
-    );
+    this.assertRequiredCredentialSubjectFields(credentialSubject);
 
-    const hashResult = this.credentialHashingService.createCanonicalHash({
-      schemaVersion: credential.schemaVersion,
-      type: credential.type,
-      issuerDid: credential.issuer.did!,
-      subjectDid,
-      title: credential.title,
-      description: credential.description,
-      issuedAt,
-      hours: credential.hours,
-      credentialSubject
-    });
+    // IDENTIDAD TECNICA: el `issuer_did` de un artifact credential_v2 sale de
+    // `IssuerTechnicalIdentity.did`, NUNCA del `Issuer.did` legacy, de
+    // `walletAddress`, de la cuenta de anclaje ni del DID del titular.
+    //
+    // El DID ALMACENADO es la unica autoridad: no se recalcula contra la
+    // configuracion actual (`PUBLIC_DID_BASE_URL` pudo cambiar desde el
+    // aprovisionamiento) y no se resuelve por HTTP contra el endpoint publico.
+    const technicalIdentity =
+      await this.prisma.issuerTechnicalIdentity.findUnique({
+        where: { issuerId: credential.issuerId },
+        select: { did: true }
+      });
+
+    // RESOLUCION DEL SIGNER -- FUERA de toda transaccion interactiva.
+    //
+    // `IssuerSignerResolver` puede hacer una lectura de SSM en un miss de
+    // cache. Esa latencia de red no puede entrar en la transaccion de
+    // persistencia, que en el camino legacy real todavia abarca la escritura
+    // on-chain. Tambien se valida primero el contrato de DID de S8c3, asi que
+    // un DID inconsistente falla cerrado sin tocar el almacen de secretos.
+    //
+    // Llega DESPUES de autenticacion, autorizacion de membership, elegibilidad
+    // del issuer y estado draft: un pedido que de todos modos iba a ser
+    // rechazado nunca llega a resolver un signer ni a leer un secreto.
+    let preparedSigner: PreparedAssertionSigner;
+    try {
+      preparedSigner = await this.credentialProofService.prepareAssertionSigner({
+        issuerId: credential.issuerId,
+        issuerDid: technicalIdentity?.did,
+        credentialId: credential.id
+      });
+    } catch (error) {
+      this.throwMappedSigningFailure(error);
+    }
 
     const result = await this.prisma.$transaction(async (transaction) => {
+      // SNAPSHOT FINAL. Se relee la fila DENTRO de la transaccion para que lo
+      // canonicalizado, lo firmado y lo persistido sean el MISMO estado: entre
+      // la lectura inicial y este punto se resolvio el signer, que pudo haber
+      // ido a la red.
+      //
+      // `Credential.id` ya es estable -- la emision parte de un borrador que
+      // existe -- asi que `credential_id` entra en canon_v2 sin inventar nada
+      // y sin que Prisma pueda generar despues otro id.
+      const finalRow = await transaction.credential.findUnique({
+        where: { id: credential.id },
+        select: {
+          id: true,
+          status: true,
+          updatedAt: true,
+          type: true,
+          title: true,
+          description: true,
+          hours: true,
+          credentialSubject: true
+        }
+      });
+
+      if (!finalRow) {
+        throw new NotFoundException(`Credential ${credentialId} no existe.`);
+      }
+
+      if (finalRow.status !== CredentialStatus.draft) {
+        throw new ConflictException(
+          `La credencial ${credentialId} no esta en estado draft.`
+        );
+      }
+
+      const finalCredentialSubject = this.assertJsonObject(
+        finalRow.credentialSubject,
+        'credential.credentialSubject'
+      );
+      this.assertRequiredCredentialSubjectFields(finalCredentialSubject);
+
+      // UN SOLO canonicalHash para esta emision. Este valor es el que se
+      // persiste, el que se embebe en el envelope firmado y el que recibe la
+      // evidencia de blockchain. No se vuelve a calcular en ningun otro lado.
+      const hashResult =
+        this.credentialHashingService.createCanonicalHashForVersion(
+          {
+            credentialId: finalRow.id,
+            schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
+            type: finalRow.type,
+            issuerDid: preparedSigner.issuerDid,
+            subjectDid,
+            title: finalRow.title,
+            description: finalRow.description,
+            issuedAt,
+            hours: finalRow.hours,
+            credentialSubject: finalCredentialSubject
+          },
+          CredentialHashingService.CANONICALIZATION_VERSION_V2
+        );
+
+      // FIRMA: computo LOCAL. `signMessage` sobre una Wallet desconectada no
+      // hace I/O, asi que no agrega latencia de red a la transaccion.
+      let proof: ScopeProofV1;
+      try {
+        proof = await this.credentialProofService.createProof(
+          preparedSigner,
+          hashResult.canonicalHash,
+          finalRow.id
+        );
+      } catch (error) {
+        this.throwMappedSigningFailure(error);
+      }
+
+      // PERSISTENCIA ATOMICA de los campos de autenticidad: estado, forma del
+      // artifact, version de canonicalizacion, hash y proof viajan en UNA sola
+      // mutacion. No existe un estado intermedio `credential_v2` sin proof, ni
+      // `proof` con canon_v1, ni hash v2 etiquetado como v1.
+      //
+      // El `where` extendido actua como token de version optimista: si otra
+      // operacion toco la fila despues del snapshot, no hay fila que coincida
+      // y la transaccion entera se revierte -- nunca se persiste una firma
+      // sobre un payload distinto del guardado.
       const updatedCredential = await transaction.credential.update({
         where: {
-          id: credential.id
+          id: finalRow.id,
+          status: CredentialStatus.draft,
+          updatedAt: finalRow.updatedAt
         },
         data: {
           status: CredentialStatus.issued,
           issuedAt,
+          schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
           canonicalHash: hashResult.canonicalHash,
-          canonicalizationVersion: hashResult.canonicalizationVersion
+          canonicalizationVersion: hashResult.canonicalizationVersion,
+          proof: proof as unknown as Prisma.InputJsonValue
         }
       });
 
+      // EVIDENCIA DE BLOCKCHAIN -- despues del proof, nunca antes: no se ancla
+      // una credencial que no logro obtener su autoria criptografica.
+      //
+      // Recibe el hash YA calculado y la version con la que fue calculado, asi
+      // que no puede divergir ni etiquetar un hash canon_v2 como canon_v1. La
+      // direccion sigue siendo la del plano de ANCLAJE legacy: la Wallet de
+      // asercion no se pasa aca, ni a ningun cliente de contrato.
       const blockchainRecord = await this.blockchainEvidenceService.createRecord(
         transaction,
         {
@@ -343,14 +471,85 @@ export class CredentialsService {
 
       return {
         updatedCredential,
-        blockchainRecord
+        blockchainRecord,
+        proof
       };
     });
 
-    return this.toCredentialSummaryResponse({
-      ...result.updatedCredential,
-      blockchainRecords: [result.blockchainRecord]
-    });
+    return this.toCredentialSummaryResponse(
+      {
+        ...result.updatedCredential,
+        blockchainRecords: [result.blockchainRecord]
+      },
+      {
+        issuerDid: preparedSigner.issuerDid,
+        subjectDid,
+        proof: result.proof
+      }
+    );
+  }
+
+  /**
+   * Mapeo SEGURO de los errores de la pila de firma a la convencion HTTP de la
+   * API.
+   *
+   * Nada del detalle interno cruza el limite: ni `secretRef`, ni el mensaje de
+   * AWS, ni la direccion esperada, ni la clave publica registrada, ni el code.
+   * Los tres mensajes son literales fijos.
+   *
+   * Se distinguen operativamente dos situaciones, que es lo que un operador
+   * necesita para actuar:
+   *
+   *   CONFIGURACION  -- la identidad de firma no esta lista (409). Reintentar
+   *                     no ayuda; hay que aprovisionar o corregir.
+   *   DISPONIBILIDAD -- el almacen de secretos no respondio (503). Reintentar
+   *                     puede ayudar.
+   *
+   * Un desajuste criptografico NO se expone como tal: se reporta como
+   * configuracion no lista, igual que un DID ausente.
+   */
+  private throwMappedSigningFailure(error: unknown): never {
+    if (error instanceof SignerResolutionError) {
+      if (error.code === 'SIGNER_SECRET_UNAVAILABLE') {
+        throw new ServiceUnavailableException(
+          SIGNING_TEMPORARILY_UNAVAILABLE_MESSAGE
+        );
+      }
+
+      throw new ConflictException(SIGNING_IDENTITY_NOT_READY_MESSAGE);
+    }
+
+    if (error instanceof CredentialProofError) {
+      switch (error.code) {
+        case 'ISSUER_DID_NOT_CONFIGURED':
+        case 'ISSUER_DID_NOT_RESOLVABLE':
+        case 'SIGNER_PURPOSE_NOT_ASSERTION':
+        case 'INVALID_KEY_VERSION':
+        case 'MALFORMED_VERIFICATION_METHOD':
+          throw new ConflictException(SIGNING_IDENTITY_NOT_READY_MESSAGE);
+        default:
+          throw new InternalServerErrorException(
+            PROOF_CONSTRUCTION_FAILED_MESSAGE
+          );
+      }
+    }
+
+    throw error;
+  }
+
+  private assertRequiredCredentialSubjectFields(
+    credentialSubject: Record<string, unknown>
+  ) {
+    this.assertCredentialSubjectField(
+      credentialSubject,
+      ['achievement_name', 'achievementName'],
+      'credentialSubject.achievement_name'
+    );
+    this.assertCredentialSubjectField(
+      credentialSubject,
+      ['institution_name', 'institutionName'],
+      'credentialSubject.institution_name'
+    );
   }
 
   async getCredential(credentialId: string): Promise<CredentialSummaryResponseDto> {
@@ -440,6 +639,14 @@ export class CredentialsService {
     return user;
   }
 
+  /**
+   * `authenticity` llega SOLO desde la emision, que es el unico punto donde el
+   * `issuer_did` tecnico y el proof acaban de construirse y por lo tanto se
+   * conoce su forma exacta. Un borrador y una lectura comun no lo aportan: no
+   * se castea `Credential.proof` de la base a la forma congelada, porque eso
+   * seria afirmar una validez que esta slice no verifica (S8c7 es la que
+   * verifica proofs).
+   */
   private toCredentialSummaryResponse(
     credential: {
       id: string;
@@ -476,6 +683,11 @@ export class CredentialsService {
         issuerAddress: string;
         registeredAt: Date;
       }>;
+    },
+    authenticity?: {
+      issuerDid: string;
+      subjectDid: string;
+      proof: ScopeProofV1;
     }
   ): CredentialSummaryResponseDto {
     const latestBlockchainRecord = credential.blockchainRecords?.[0];
@@ -502,6 +714,9 @@ export class CredentialsService {
         : undefined,
       canonicalHash: credential.canonicalHash ?? undefined,
       canonicalizationVersion: credential.canonicalizationVersion ?? undefined,
+      issuerDid: authenticity?.issuerDid,
+      subjectDid: authenticity?.subjectDid,
+      proof: authenticity?.proof,
       latestBlockchainRecord: latestBlockchainRecord
         ? {
             id: latestBlockchainRecord.id,

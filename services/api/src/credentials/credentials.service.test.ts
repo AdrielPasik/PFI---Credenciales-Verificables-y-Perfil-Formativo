@@ -5,17 +5,25 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
-  NotFoundException
+  NotFoundException,
+  ServiceUnavailableException
 } from '@nestjs/common';
 import {
   CredentialSourceType,
   CredentialStatus,
   CredentialType,
+  SignerProfilePurpose,
   UserStatus
 } from '@prisma/client';
+import { Wallet, hashMessage, toUtf8Bytes, verifyMessage } from 'ethers';
 
+import { PUBLIC_TEST_KEY_ONE } from '../signing/__fixtures__/signer-test-keys';
+import { SignerResolutionError } from '../signing/signer-resolution.error';
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
+import { CredentialHashingService } from './credential-hashing.service';
+import { CredentialProofService } from './credential-proof.service';
 import { CredentialsService } from './credentials.service';
+import { buildScopeProofV1Envelope } from './scope-proof-v1';
 
 const currentUser = {
   id: 'issuer-user-1',
@@ -117,6 +125,15 @@ const validDraftDto = {
   }
 } satisfies CreateCredentialDraftDto;
 
+/**
+ * S8c4: la creacion y edicion de borradores no tiene autoria criptografica que
+ * expresar, asi que no puede tocar la pila de firma. El doble falla ruidoso en
+ * vez de devolver algo plausible.
+ */
+const FORBIDDEN_DURING_DRAFT = (name: string) => () => {
+  throw new Error(`un borrador no debe invocar ${name}`);
+};
+
 function createDraftService(options?: {
   assertUserCanCreateDraftForIssuer?: (
     userId: string,
@@ -202,7 +219,13 @@ function createDraftService(options?: {
       prisma as never,
       issuersService as never,
       {} as never,
-      {} as never
+      {} as never,
+      // Un borrador NUNCA construye un proof: el doble lanza si la creacion de
+      // borradores intentara resolver un signer o firmar algo.
+      {
+        prepareAssertionSigner: FORBIDDEN_DURING_DRAFT('prepareAssertionSigner'),
+        createProof: FORBIDDEN_DURING_DRAFT('createProof')
+      } as never
     ),
     authorizationCalls,
     subjectLookupCalls,
@@ -534,6 +557,26 @@ test('createDraft rejects a closed-contract violation before transaction or look
   assert.equal(programCourseLookupCalls.length, 0);
 });
 
+// ---------------------------------------------------------------------------
+// ARNES DE EMISION -- S8c4
+//
+// Deja de doblar la canonicalizacion y la construccion del proof: usa el
+// CredentialHashingService REAL (envuelto en un espia que sigue registrando la
+// entrada, para que las aserciones previas de A2.1 sigan valiendo) y el
+// CredentialProofService REAL sobre un IssuerSignerResolver FALSO que devuelve
+// una Wallet desconectada construida con una clave publica de test.
+//
+// Consecuencia deliberada: `canonicalHash` y `proofValue` de estos tests son
+// criptografia de verdad, no constantes. Asi "el hash persistido es el que fue
+// firmado" se puede comprobar de verdad en vez de asumirse.
+//
+// NO hay AWS, NO hay SSM, NO hay RPC y NO hay ningun secreto real.
+// ---------------------------------------------------------------------------
+
+/** DID de identidad tecnica coherente con `issuerId: 'issuer-1'`. */
+const TECHNICAL_IDENTITY_DID =
+  'did:web:api.scopeedu.technology:did:issuers:issuer-1';
+
 function createService(options?: {
   credential?: CredentialFixture | null;
   assertUserCanIssueForIssuer?: (
@@ -541,6 +584,21 @@ function createService(options?: {
     issuerId: string
   ) => Promise<unknown>;
   assertIssuerCanIssue?: (issuer: CredentialFixture['issuer']) => void;
+  /** `undefined` = DID valido; `null` = sin identidad tecnica. */
+  technicalIdentityDid?: string | null;
+  /** Fila de `IssuerTechnicalIdentity` ausente por completo. */
+  technicalIdentityMissing?: boolean;
+  signerPurpose?: SignerProfilePurpose;
+  signerKeyVersion?: number;
+  signerPrivateKey?: string;
+  resolverError?: Error;
+  blockchainError?: Error;
+  /** Simula que otra operacion mutó la fila entre snapshot y escritura. */
+  concurrentlyMutated?: boolean;
+  /** La fila desaparece entre la lectura inicial y la transaccion. */
+  finalRowMissing?: boolean;
+  /** La fila deja de estar en draft dentro de la transaccion. */
+  finalRowStatus?: CredentialStatus;
 }) {
   const credential = options?.credential ?? createCredentialFixture();
   const issueMembershipCalls: Array<Record<string, unknown>> = [];
@@ -549,16 +607,144 @@ function createService(options?: {
   const blockchainCalls: Array<Record<string, unknown>> = [];
   const userFindUniqueCalls: Array<Record<string, unknown>> = [];
   const userUpdateManyCalls: Array<Record<string, unknown>> = [];
-  // A2.1: estado mutable en memoria del holder para ensureDidForUser --
-  // arranca desde el fixture credential.subjectUser (mismo shape que ya
-  // usaban los tests de A1/A1.1) y se actualiza si issueCredential
-  // provisiona un DID nuevo durante el test.
+  const technicalIdentityCalls: Array<Record<string, unknown>> = [];
+  const resolverCalls: string[] = [];
+  const anchorResolverCalls: string[] = [];
+  const signMessageInputs: unknown[] = [];
+  const updateCalls: Array<Record<string, unknown>> = [];
+  const operationOrder: string[] = [];
   let subjectUserState = { ...credential.subjectUser };
+
+  const signerWallet = new Wallet(
+    options?.signerPrivateKey ?? PUBLIC_TEST_KEY_ONE.privateKey
+  );
+  // Espia sobre `signMessage` para poder afirmar que recibe BYTES y no texto.
+  const instrumentedWallet = {
+    address: signerWallet.address,
+    signMessage: async (message: unknown) => {
+      signMessageInputs.push(message);
+      return signerWallet.signMessage(message as Uint8Array);
+    }
+  };
+
+  const signerResolver = {
+    async resolveAssertionSignerForIssuer(issuerId: string) {
+      operationOrder.push('signer_resolution');
+      resolverCalls.push(issuerId);
+
+      if (options?.resolverError) {
+        throw options.resolverError;
+      }
+
+      return {
+        profileId: 'signer-profile-assertion-1',
+        purpose: options?.signerPurpose ?? SignerProfilePurpose.assertion,
+        keyVersion: options?.signerKeyVersion ?? 1,
+        address: signerWallet.address,
+        wallet: instrumentedWallet
+      };
+    },
+    async resolveAnchorSignerForIssuer(issuerId: string) {
+      anchorResolverCalls.push(issuerId);
+      throw new Error(
+        'la autoria de la credencial nunca debe resolver el signer de anclaje'
+      );
+    }
+  };
+
+  const realHashingService = new CredentialHashingService();
+  const credentialHashingService = {
+    createCanonicalHash(input: Record<string, unknown>) {
+      hashCalls.push({ ...input, requestedVersion: 'canon_v1' });
+      return realHashingService.createCanonicalHash(input as never);
+    },
+    createCanonicalHashForVersion(
+      input: Record<string, unknown>,
+      version: string
+    ) {
+      hashCalls.push({ ...input, requestedVersion: version });
+      return realHashingService.createCanonicalHashForVersion(
+        input as never,
+        version as never
+      );
+    }
+  };
+
+  const transaction = {
+    credential: {
+      async findUnique(args: Record<string, unknown>) {
+        operationOrder.push('final_row_read');
+
+        if (options?.finalRowMissing) {
+          return null;
+        }
+
+        return {
+          id: credential.id,
+          status: options?.finalRowStatus ?? credential.status,
+          updatedAt: credential.updatedAt,
+          type: credential.type,
+          title: credential.title,
+          description: credential.description,
+          hours: credential.hours,
+          credentialSubject: credential.credentialSubject
+        };
+      },
+      async update(args: Record<string, unknown>) {
+        operationOrder.push('credential_update');
+        updateCalls.push(args);
+
+        const where = args.where as Record<string, unknown>;
+
+        // El `where` extendido es el token de version optimista: si la fila
+        // cambio, Prisma no encuentra nada que actualizar.
+        if (
+          options?.concurrentlyMutated ||
+          where.status !== CredentialStatus.draft ||
+          (where.updatedAt as Date)?.getTime() !==
+            credential.updatedAt.getTime()
+        ) {
+          throw new Error(
+            'P2025: no se encontro una fila que coincida con el snapshot'
+          );
+        }
+
+        const data = args.data as Record<string, unknown>;
+
+        return {
+          ...(credential as CredentialFixture),
+          status: data.status,
+          issuedAt: data.issuedAt as Date,
+          schemaVersion: data.schemaVersion,
+          canonicalHash: data.canonicalHash,
+          canonicalizationVersion: data.canonicalizationVersion,
+          proof: data.proof
+        };
+      }
+    }
+  };
 
   const prisma = {
     credential: {
       async findUnique() {
         return credential;
+      }
+    },
+    issuerTechnicalIdentity: {
+      async findUnique(args: Record<string, unknown>) {
+        operationOrder.push('technical_identity_lookup');
+        technicalIdentityCalls.push(args);
+
+        if (options?.technicalIdentityMissing) {
+          return null;
+        }
+
+        return {
+          did:
+            options?.technicalIdentityDid === undefined
+              ? TECHNICAL_IDENTITY_DID
+              : options.technicalIdentityDid
+        };
       }
     },
     user: {
@@ -584,30 +770,20 @@ function createService(options?: {
       }
     },
     $transaction: async (
-      callback: (transaction: {
-        credential: {
-          update(args: Record<string, unknown>): Promise<Record<string, unknown>>;
-        };
-      }) => Promise<unknown>
-    ) =>
-      callback({
-        credential: {
-          async update(args: Record<string, unknown>) {
-            return {
-              ...(credential as CredentialFixture),
-              status: CredentialStatus.issued,
-              issuedAt: (args.data as Record<string, unknown>).issuedAt as Date,
-              canonicalHash: (args.data as Record<string, unknown>).canonicalHash,
-              canonicalizationVersion: (args.data as Record<string, unknown>)
-                .canonicalizationVersion
-            };
-          }
-        }
-      })
+      callback: (client: typeof transaction) => Promise<unknown>
+    ) => {
+      operationOrder.push('transaction_start');
+      try {
+        return await callback(transaction);
+      } finally {
+        operationOrder.push('transaction_end');
+      }
+    }
   };
 
   const issuersService = {
     async assertUserCanIssueForIssuer(userId: string, issuerId: string) {
+      operationOrder.push('issuer_authorization');
       issueMembershipCalls.push({ userId, issuerId });
       if (options?.assertUserCanIssueForIssuer) {
         return options.assertUserCanIssueForIssuer(userId, issuerId);
@@ -618,6 +794,7 @@ function createService(options?: {
       };
     },
     assertIssuerCanIssue(issuer: CredentialFixture['issuer']) {
+      operationOrder.push('issuer_eligibility');
       issuerEligibilityCalls.push({ issuer });
       options?.assertIssuerCanIssue?.(issuer);
     }
@@ -628,7 +805,13 @@ function createService(options?: {
       _transaction: unknown,
       payload: Record<string, unknown>
     ) {
+      operationOrder.push('blockchain_create');
       blockchainCalls.push(payload);
+
+      if (options?.blockchainError) {
+        throw options.blockchainError;
+      }
+
       return {
         id: 'blockchain-record-1',
         network: 'anvil',
@@ -645,23 +828,13 @@ function createService(options?: {
     }
   };
 
-  const credentialHashingService = {
-    createCanonicalHash(input: Record<string, unknown>) {
-      hashCalls.push(input);
-      return {
-        canonicalHash: '0x' + 'a'.repeat(64),
-        canonicalizationVersion: 'canon_v1',
-        canonicalJson: '{"mock":"canonical"}'
-      };
-    }
-  };
-
   return {
     service: new CredentialsService(
       prisma as never,
       issuersService as never,
       blockchainEvidenceService as never,
-      credentialHashingService as never
+      credentialHashingService as never,
+      new CredentialProofService(signerResolver as never)
     ),
     issueMembershipCalls,
     issuerEligibilityCalls,
@@ -669,6 +842,13 @@ function createService(options?: {
     blockchainCalls,
     userFindUniqueCalls,
     userUpdateManyCalls,
+    technicalIdentityCalls,
+    resolverCalls,
+    anchorResolverCalls,
+    signMessageInputs,
+    updateCalls,
+    operationOrder,
+    signerAddress: signerWallet.address,
     getSubjectUserState: () => subjectUserState
   };
 }
@@ -1036,22 +1216,32 @@ test('CredentialsService allows an active issuer admin and preserves hashing/blo
   assert.equal(issuerEligibilityCalls.length, 1);
   assert.equal(hashCalls.length, 1);
   assert.equal(blockchainCalls.length, 1);
-  assert.equal(hashCalls[0].issuerDid, 'did:example:issuer-demo');
+  // S8c4: el issuer_did canonicalizado ya NO es el Issuer.did legacy, sino el
+  // DID de la identidad tecnica, que es el sujeto del DID Document publico.
+  assert.equal(hashCalls[0].issuerDid, TECHNICAL_IDENTITY_DID);
+  assert.notEqual(hashCalls[0].issuerDid, 'did:example:issuer-demo');
   assert.equal(hashCalls[0].subjectDid, 'did:example:holder-demo');
   assert.equal(hashCalls[0].title, 'Algoritmos y Estructuras de Datos');
+  assert.equal(hashCalls[0].credentialId, 'cred-123');
+  assert.equal(hashCalls[0].schemaVersion, 'credential_v2');
+  assert.equal(hashCalls[0].requestedVersion, 'canon_v2');
   assert.equal(
     (hashCalls[0].issuedAt as Date).toISOString(),
     '2026-07-22T18:00:00.000Z'
   );
+
+  // 48: el anclaje existente recibe EXACTAMENTE el mismo hash canon_v2 que se
+  // persistio y se firmo, etiquetado con su version real.
   assert.deepEqual(blockchainCalls[0], {
     credentialId: 'cred-123',
-    credentialHash: '0x' + 'a'.repeat(64),
-    canonicalizationVersion: 'canon_v1',
+    credentialHash: response.canonicalHash,
+    canonicalizationVersion: 'canon_v2',
     issuerAddress: '0x00000000000000000000000000000000000000aa'
   });
   assert.equal(response.status, 'issued');
-  assert.equal(response.canonicalHash, '0x' + 'a'.repeat(64));
-  assert.equal(response.canonicalizationVersion, 'canon_v1');
+  assert.equal(response.schemaVersion, 'credential_v2');
+  assert.equal(response.canonicalizationVersion, 'canon_v2');
+  assert.match(response.canonicalHash ?? '', /^0x[0-9a-f]{64}$/);
   assert.equal(response.latestBlockchainRecord?.status, 'registered');
 });
 
@@ -1298,4 +1488,706 @@ test('CredentialsService preserves the existing generic credential read response
     institution_name: 'Demo University',
     skills: ['algoritmos', 'programacion']
   });
+});
+
+// ===========================================================================
+// S8c4 -- EMISION AUTENTICADA. Matrices 30-51.
+//
+// El arnes usa criptografia REAL (ver `createService`), asi que estas
+// aserciones comprueban la cadena completa y no constantes acordadas:
+//
+//   payload final -> canon_v2 -> UN canonicalHash -> envelope exacto
+//   -> bytes UTF-8 -> assertion Wallet -> firma EIP-191 -> Credential.proof
+// ===========================================================================
+
+const ISSUE_DTO = {
+  issuerId: 'issuer-1',
+  issuedAt: '2026-07-22T18:00:00Z'
+} as const;
+
+test('30: una emision autorizada produce credential_v2, canon_v2 y proof persistido', async () => {
+  const { service, updateCalls } = createService();
+
+  const response = await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  assert.equal(response.status, 'issued');
+  assert.equal(response.schemaVersion, 'credential_v2');
+  assert.equal(response.canonicalizationVersion, 'canon_v2');
+  assert.match(response.canonicalHash ?? '', /^0x[0-9a-f]{64}$/);
+
+  const proof = response.proof;
+  assert.ok(proof, 'la respuesta de emision trae el proof');
+  assert.deepEqual(Object.keys(proof).sort(), [
+    'canonicalizationVersion',
+    'cryptosuite',
+    'hashAlgorithm',
+    'profile',
+    'proofPurpose',
+    'proofValue',
+    'type',
+    'verificationMethod'
+  ]);
+  assert.equal(proof.type, 'ScopeCredentialProof2026');
+  assert.equal(proof.profile, 'scope-proof-v1');
+  assert.equal(proof.cryptosuite, 'ecdsa-secp256k1-eip191');
+  assert.equal(proof.proofPurpose, 'assertionMethod');
+  assert.equal(proof.canonicalizationVersion, 'canon_v2');
+  assert.equal(proof.hashAlgorithm, 'sha-256');
+
+  // 43: los campos de autenticidad viajan en UNA sola mutacion.
+  assert.equal(updateCalls.length, 1);
+  const data = updateCalls[0].data as Record<string, unknown>;
+  assert.deepEqual(Object.keys(data).sort(), [
+    'canonicalHash',
+    'canonicalizationVersion',
+    'issuedAt',
+    'proof',
+    'schemaVersion',
+    'status'
+  ]);
+  assert.equal(data.status, CredentialStatus.issued);
+  assert.equal(data.schemaVersion, 'credential_v2');
+  assert.equal(data.canonicalizationVersion, 'canon_v2');
+  assert.equal(data.canonicalHash, response.canonicalHash);
+  assert.deepEqual(data.proof, proof);
+});
+
+test('31: el canonicalHash persistido es EXACTAMENTE el que fue firmado', async () => {
+  const { service, signMessageInputs, signerAddress } = createService();
+
+  const response = await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+  const proof = response.proof!;
+
+  // Se reconstruye el envelope desde los valores PERSISTIDOS y se comprueba
+  // que es, byte a byte, el que recibio la Wallet.
+  const expectedEnvelope = buildScopeProofV1Envelope({
+    verificationMethod: proof.verificationMethod,
+    canonicalHash: response.canonicalHash!
+  });
+
+  assert.equal(signMessageInputs.length, 1);
+  const signedBytes = signMessageInputs[0] as Uint8Array;
+  assert.ok(signedBytes instanceof Uint8Array);
+  assert.equal(Buffer.from(signedBytes).toString('utf8'), expectedEnvelope);
+
+  // Y la firma se recupera a la direccion de la assertion key.
+  assert.equal(
+    verifyMessage(toUtf8Bytes(expectedEnvelope), proof.proofValue),
+    signerAddress
+  );
+  assert.equal(
+    hashMessage(signedBytes),
+    hashMessage(toUtf8Bytes(expectedEnvelope))
+  );
+
+  // El hash dentro del envelope firmado es el de la columna, no otro.
+  assert.ok(expectedEnvelope.includes(`canonicalHash=${response.canonicalHash}`));
+});
+
+test('32: issuer_did sale de IssuerTechnicalIdentity, nunca del Issuer.did legacy', async () => {
+  const { service, hashCalls, technicalIdentityCalls } = createService();
+
+  const response = await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  assert.deepEqual(technicalIdentityCalls, [
+    { where: { issuerId: 'issuer-1' }, select: { did: true } }
+  ]);
+  assert.equal(hashCalls[0].issuerDid, TECHNICAL_IDENTITY_DID);
+  assert.equal(response.issuerDid, TECHNICAL_IDENTITY_DID);
+  assert.notEqual(hashCalls[0].issuerDid, 'did:example:issuer-demo');
+  assert.notEqual(
+    hashCalls[0].issuerDid,
+    '0x00000000000000000000000000000000000000aa'
+  );
+});
+
+test('33: el verificationMethod coincide con el fragmento que publica S8c3', async () => {
+  for (const keyVersion of [1, 2, 9]) {
+    const { service } = createService({ signerKeyVersion: keyVersion });
+
+    const response = await service.issueCredential(
+      'cred-123',
+      ISSUE_DTO,
+      currentUser
+    );
+
+    assert.equal(
+      response.proof?.verificationMethod,
+      `${TECHNICAL_IDENTITY_DID}#assert-${keyVersion}`,
+      String(keyVersion)
+    );
+  }
+});
+
+test('34: un did:web almacenado inconsistente falla ANTES de firmar y de anclar', async () => {
+  for (const storedDid of [
+    'did:example:issuer-demo',
+    'did:web:api.scopeedu.technology:did:issuers:otro-issuer',
+    'did:web:api.scopeedu.technology:did:users:issuer-1',
+    'did:key:z6Mk',
+    ''
+  ]) {
+    const {
+      service,
+      resolverCalls,
+      signMessageInputs,
+      blockchainCalls,
+      updateCalls
+    } = createService({ technicalIdentityDid: storedDid });
+
+    await assert.rejects(
+      service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+      (error: unknown) => {
+        assert.ok(error instanceof ConflictException, storedDid);
+        return true;
+      },
+      storedDid
+    );
+
+    // Falla cerrado ANTES del almacen de secretos, antes de la firma, antes
+    // de la escritura y antes de cualquier intento de anclaje.
+    assert.deepEqual(resolverCalls, [], storedDid);
+    assert.deepEqual(signMessageInputs, [], storedDid);
+    assert.deepEqual(blockchainCalls, [], storedDid);
+    assert.deepEqual(updateCalls, [], storedDid);
+  }
+});
+
+test('34b: sin fila de identidad tecnica no hay emision ni lectura de secreto', async () => {
+  const { service, resolverCalls, blockchainCalls, updateCalls } = createService({
+    technicalIdentityMissing: true
+  });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    ConflictException
+  );
+  assert.deepEqual(resolverCalls, []);
+  assert.deepEqual(blockchainCalls, []);
+  assert.deepEqual(updateCalls, []);
+});
+
+test('35-36: una identidad o un perfil no utilizables no emiten ni anclan', async () => {
+  // Los codes los decide S8c2; S8c4 solo tiene que fallar cerrado con todos.
+  const codes = [
+    'TECHNICAL_IDENTITY_NOT_CONFIGURED',
+    'TECHNICAL_IDENTITY_INACTIVE',
+    'SIGNER_PROFILE_NOT_CONFIGURED',
+    'SIGNER_PROFILE_INACTIVE',
+    'SIGNER_PURPOSE_MISMATCH',
+    'SIGNER_ADDRESS_NOT_VERIFIED',
+    'SIGNER_ADDRESS_MISMATCH',
+    'SIGNER_PUBLIC_KEY_MISMATCH',
+    'SIGNER_SECRET_INVALID',
+    'SIGNER_SECRET_REFERENCE_REJECTED'
+  ] as const;
+
+  for (const code of codes) {
+    const { service, signMessageInputs, blockchainCalls, updateCalls } =
+      createService({
+        resolverError: new SignerResolutionError(code, {
+          issuerId: 'issuer-1',
+          profileId: 'signer-profile-assertion-1'
+        })
+      });
+
+    await assert.rejects(
+      service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+      (error: unknown) => {
+        assert.ok(error instanceof ConflictException, code);
+
+        // 28: nada del detalle interno cruza el limite.
+        const body = (error as ConflictException).getResponse() as {
+          message: string;
+        };
+        assert.equal(
+          body.message,
+          'La identidad de firma del emisor no esta lista para emitir.'
+        );
+        for (const leak of [
+          code,
+          'secretRef',
+          'signer-profile-assertion-1',
+          'SignerProfile',
+          'SSM',
+          'ssm',
+          'publicKey',
+          'address'
+        ]) {
+          assert.ok(!body.message.includes(leak), `${code} filtra ${leak}`);
+        }
+        return true;
+      },
+      code
+    );
+
+    assert.deepEqual(signMessageInputs, [], code);
+    assert.deepEqual(blockchainCalls, [], code);
+    assert.deepEqual(updateCalls, [], code);
+  }
+});
+
+test('37: si el secreto no esta disponible no hay actualizacion parcial', async () => {
+  const { service, signMessageInputs, blockchainCalls, updateCalls } =
+    createService({
+      resolverError: new SignerResolutionError('SIGNER_SECRET_UNAVAILABLE', {
+        issuerId: 'issuer-1'
+      })
+    });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    (error: unknown) => {
+      // Se distingue de "no configurado": reintentar puede ayudar.
+      assert.ok(error instanceof ServiceUnavailableException, String(error));
+      const body = (error as ServiceUnavailableException).getResponse() as {
+        message: string;
+      };
+      assert.equal(
+        body.message,
+        'El servicio de firma del emisor no esta disponible temporalmente. Intentelo nuevamente.'
+      );
+      return true;
+    }
+  );
+
+  assert.deepEqual(signMessageInputs, []);
+  assert.deepEqual(blockchainCalls, []);
+  assert.deepEqual(updateCalls, [], 'la credencial no se toco');
+});
+
+test('38: un User sin autorizacion produce CERO resoluciones de signer', async () => {
+  const unauthorized = createService({
+    async assertUserCanIssueForIssuer() {
+      throw new ForbiddenException('sin membresia');
+    }
+  });
+
+  await assert.rejects(
+    unauthorized.service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    ForbiddenException
+  );
+
+  assert.deepEqual(unauthorized.resolverCalls, []);
+  assert.deepEqual(unauthorized.technicalIdentityCalls, []);
+  assert.deepEqual(unauthorized.signMessageInputs, []);
+  assert.deepEqual(unauthorized.blockchainCalls, []);
+
+  // Tampoco un issuer no elegible.
+  const ineligible = createService({
+    assertIssuerCanIssue() {
+      throw new BadRequestException('issuer no habilitado');
+    }
+  });
+
+  await assert.rejects(
+    ineligible.service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    BadRequestException
+  );
+  assert.deepEqual(ineligible.resolverCalls, []);
+  assert.deepEqual(ineligible.technicalIdentityCalls, []);
+});
+
+test('38b: la autorizacion ocurre ANTES de resolver el signer y de abrir la transaccion', async () => {
+  const { service, operationOrder } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  assert.deepEqual(operationOrder, [
+    'issuer_authorization',
+    'issuer_eligibility',
+    'technical_identity_lookup',
+    'signer_resolution',
+    'transaction_start',
+    'final_row_read',
+    'credential_update',
+    'blockchain_create',
+    'transaction_end'
+  ]);
+
+  // LIMITE CRITICO: la resolucion del signer -- que puede ir a SSM -- ocurre
+  // ESTRICTAMENTE antes de que la transaccion interactiva se abra.
+  assert.ok(
+    operationOrder.indexOf('signer_resolution') <
+      operationOrder.indexOf('transaction_start'),
+    'la lectura de secreto no puede entrar en la transaccion'
+  );
+  assert.equal(
+    operationOrder.filter((step) => step === 'signer_resolution').length,
+    1,
+    'se resuelve UNA sola vez'
+  );
+});
+
+test('39-40: crear y editar borradores produce CERO resoluciones de signer', async () => {
+  // El doble de proof de `createDraftService` lanza si lo invocan, asi que un
+  // borrador que intentara firmar fallaria ruidosamente.
+  const draft = createDraftService();
+
+  const created = await draft.service.createDraft(validDraftDto, currentUser);
+
+  assert.equal(created.status, 'draft');
+  assert.equal(created.schemaVersion, 'credential_v1');
+  assert.equal(created.canonicalHash, undefined);
+  assert.equal(created.canonicalizationVersion, undefined);
+  assert.equal(created.proof, undefined, 'un borrador no tiene proof');
+  assert.equal(created.issuerDid, undefined);
+
+  // Un borrador curricular tampoco.
+  const curricular = createDraftService();
+  const curricularDraft = await curricular.service.createDraft(
+    validCurricularDraftDto,
+    currentUser
+  );
+  assert.equal(curricularDraft.proof, undefined);
+  assert.equal(curricularDraft.schemaVersion, 'credential_v1');
+});
+
+test('41: una credencial ya emitida no se vuelve a firmar', async () => {
+  const alreadyIssued = createService({
+    credential: createCredentialFixture({
+      status: CredentialStatus.issued,
+      schemaVersion: 'credential_v2',
+      canonicalHash: '0x' + 'b'.repeat(64),
+      canonicalizationVersion: 'canon_v2',
+      issuedAt: new Date('2026-07-01T10:00:00Z')
+    })
+  });
+
+  await assert.rejects(
+    alreadyIssued.service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    (error: unknown) => {
+      assert.ok(error instanceof ConflictException);
+      return true;
+    }
+  );
+
+  assert.deepEqual(alreadyIssued.resolverCalls, []);
+  assert.deepEqual(alreadyIssued.signMessageInputs, []);
+  assert.deepEqual(alreadyIssued.updateCalls, []);
+  assert.deepEqual(alreadyIssued.blockchainCalls, []);
+});
+
+test('41b: si deja de estar en draft DENTRO de la transaccion, no se persiste nada', async () => {
+  const { service, signMessageInputs, updateCalls, blockchainCalls } =
+    createService({ finalRowStatus: CredentialStatus.issued });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    ConflictException
+  );
+
+  // El snapshot dentro de la transaccion es el que decide: se revalida el
+  // estado antes de canonicalizar y de firmar.
+  assert.deepEqual(signMessageInputs, []);
+  assert.deepEqual(updateCalls, []);
+  assert.deepEqual(blockchainCalls, []);
+});
+
+test('41c: si la fila desaparece entre la lectura y la transaccion, falla cerrado', async () => {
+  const { service, signMessageInputs, updateCalls } = createService({
+    finalRowMissing: true
+  });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    NotFoundException
+  );
+  assert.deepEqual(signMessageInputs, []);
+  assert.deepEqual(updateCalls, []);
+});
+
+test('42: con blockchain en modo mock la autenticidad sigue siendo REAL', async () => {
+  // El modo de evidencia de blockchain es un eje independiente: aqui el doble
+  // de evidencia es el camino mock, y el proof sigue siendo una firma real de
+  // la assertion key sobre canon_v2.
+  const original = process.env.BLOCKCHAIN_EVIDENCE_MODE;
+  process.env.BLOCKCHAIN_EVIDENCE_MODE = 'mock';
+
+  try {
+    const { service, signerAddress } = createService();
+
+    const response = await service.issueCredential(
+      'cred-123',
+      ISSUE_DTO,
+      currentUser
+    );
+    const proof = response.proof!;
+
+    assert.equal(response.canonicalizationVersion, 'canon_v2');
+    assert.equal(response.schemaVersion, 'credential_v2');
+    assert.match(proof.proofValue, /^0x[0-9a-f]{130}$/);
+
+    // No es un placeholder: la firma verifica contra la clave de asercion.
+    const envelope = buildScopeProofV1Envelope({
+      verificationMethod: proof.verificationMethod,
+      canonicalHash: response.canonicalHash!
+    });
+    assert.equal(
+      verifyMessage(toUtf8Bytes(envelope), proof.proofValue),
+      signerAddress
+    );
+    assert.ok(!proof.proofValue.includes('0'.repeat(64)));
+  } finally {
+    if (original === undefined) {
+      delete process.env.BLOCKCHAIN_EVIDENCE_MODE;
+    } else {
+      process.env.BLOCKCHAIN_EVIDENCE_MODE = original;
+    }
+  }
+});
+
+test('43: no existe estado v2 sin proof, ni proof con canon_v1, ni hash sin version', async () => {
+  const { service, updateCalls } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  const data = updateCalls[0].data as Record<string, unknown>;
+
+  // Las cinco combinaciones prohibidas, comprobadas sobre la MISMA mutacion.
+  assert.ok(data.schemaVersion === 'credential_v2' && data.proof !== undefined);
+  assert.ok(data.proof !== null);
+  assert.equal(data.canonicalizationVersion, 'canon_v2');
+  assert.notEqual(data.canonicalizationVersion, 'canon_v1');
+  assert.match(data.canonicalHash as string, /^0x[0-9a-f]{64}$/);
+  assert.equal(
+    (data.proof as Record<string, unknown>).canonicalizationVersion,
+    data.canonicalizationVersion
+  );
+});
+
+test('45: una credencial credential_v1 historica no se toca ni se resigna', async () => {
+  // Una fila legacy ya emitida: canon_v1, sin proof. No hay backfill, no hay
+  // resignado y no hay cambio retroactivo de hash -- la emision la rechaza
+  // por estado, igual que antes de S8c4.
+  const legacy = createService({
+    credential: createCredentialFixture({
+      status: CredentialStatus.issued,
+      schemaVersion: 'credential_v1',
+      canonicalizationVersion: 'canon_v1',
+      canonicalHash: '0x' + 'c'.repeat(64)
+    })
+  });
+
+  await assert.rejects(
+    legacy.service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    ConflictException
+  );
+
+  assert.deepEqual(legacy.updateCalls, []);
+  assert.deepEqual(legacy.resolverCalls, []);
+  assert.deepEqual(legacy.hashCalls, []);
+});
+
+// ---------------------------------------------------------------------------
+// 46-51: SEPARACION ASERCION / ANCLAJE
+// ---------------------------------------------------------------------------
+
+test('46: la Wallet de asercion NUNCA llega al cliente de blockchain', async () => {
+  const { service, blockchainCalls, signerAddress } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  assert.equal(blockchainCalls.length, 1);
+  const payload = blockchainCalls[0];
+
+  assert.deepEqual(Object.keys(payload).sort(), [
+    'canonicalizationVersion',
+    'credentialHash',
+    'credentialId',
+    'issuerAddress'
+  ]);
+
+  // Ni la Wallet, ni su direccion, ni el perfil de asercion.
+  const serialized = JSON.stringify(payload);
+  assert.ok(!serialized.includes(signerAddress));
+  assert.ok(!serialized.toLowerCase().includes(signerAddress.toLowerCase()));
+  assert.ok(!serialized.includes('signer-profile'));
+  assert.ok(!serialized.includes('wallet'));
+  assert.ok(!serialized.includes('proofValue'));
+
+  // La direccion que recibe el anclaje sigue siendo la del plano LEGACY.
+  assert.equal(payload.issuerAddress, '0x00000000000000000000000000000000000000aa');
+  assert.notEqual(payload.issuerAddress, signerAddress);
+});
+
+test('47: si el proof falla, CERO intentos de escritura on-chain', async () => {
+  const failures = [
+    createService({
+      resolverError: new SignerResolutionError('SIGNER_SECRET_UNAVAILABLE', {})
+    }),
+    createService({ technicalIdentityDid: 'did:example:issuer-demo' }),
+    createService({ signerPurpose: SignerProfilePurpose.anchor }),
+    createService({ signerKeyVersion: 0 })
+  ];
+
+  for (const [index, world] of failures.entries()) {
+    await assert.rejects(
+      world.service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+      String(index)
+    );
+
+    assert.deepEqual(world.blockchainCalls, [], String(index));
+    assert.deepEqual(world.updateCalls, [], String(index));
+  }
+});
+
+test('47b: el proof se construye ANTES de cualquier etapa de blockchain', async () => {
+  const { service, operationOrder } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  // Nunca se ancla una credencial que no obtuvo su autoria: la escritura de
+  // la credencial (que ya lleva el proof) precede al anclaje.
+  assert.ok(
+    operationOrder.indexOf('credential_update') <
+      operationOrder.indexOf('blockchain_create')
+  );
+  assert.ok(
+    operationOrder.indexOf('signer_resolution') <
+      operationOrder.indexOf('blockchain_create')
+  );
+});
+
+test('48: el anclaje recibe el MISMO canonicalHash, etiquetado canon_v2', async () => {
+  const { service, blockchainCalls, hashCalls } = createService();
+
+  const response = await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  // 20: el hash se calcula UNA sola vez para esta emision.
+  assert.equal(hashCalls.length, 1);
+  assert.equal(blockchainCalls[0].credentialHash, response.canonicalHash);
+  assert.equal(blockchainCalls[0].canonicalizationVersion, 'canon_v2');
+  assert.equal(
+    response.latestBlockchainRecord?.credentialHash,
+    response.canonicalHash
+  );
+  assert.equal(
+    response.latestBlockchainRecord?.canonicalizationVersion,
+    'canon_v2'
+  );
+});
+
+test('49-50: un fallo de anclaje no deja la credencial a medio emitir', async () => {
+  const { service, signMessageInputs, updateCalls } = createService({
+    blockchainError: new Error('fallo el registro on-chain')
+  });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    /fallo el registro on-chain/
+  );
+
+  // El proof SI se construyo (va antes), pero la transaccion entera revierte:
+  // la emision no queda consumada. El rediseno del ciclo de vida es S8c6.
+  assert.equal(signMessageInputs.length, 1);
+  assert.equal(updateCalls.length, 1);
+});
+
+test('51: el proof no introduce ningun provider, RPC ni dependencia de red', async () => {
+  const { service, anchorResolverCalls } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  // La cuenta de anclaje nunca se resuelve para la autoria.
+  assert.deepEqual(anchorResolverCalls, []);
+});
+
+// ---------------------------------------------------------------------------
+// issued_at: UNA sola eleccion
+// ---------------------------------------------------------------------------
+
+test('issued_at se elige UNA vez y es el mismo valor en hash, proof y fila', async () => {
+  const { service, hashCalls, updateCalls } = createService();
+
+  const response = await service.issueCredential(
+    'cred-123',
+    { issuerId: 'issuer-1', issuedAt: '2026-07-22T18:00:00.456Z' },
+    currentUser
+  );
+
+  const hashedIssuedAt = hashCalls[0].issuedAt as Date;
+  const persistedIssuedAt = (updateCalls[0].data as Record<string, unknown>)
+    .issuedAt as Date;
+
+  assert.equal(hashedIssuedAt.getTime(), persistedIssuedAt.getTime());
+  assert.equal(hashedIssuedAt.toISOString(), '2026-07-22T18:00:00.000Z');
+  assert.equal(response.issuedAt, '2026-07-22T18:00:00Z');
+});
+
+test('issued_at no llama al reloj dos veces para la misma emision', async () => {
+  const originalNow = Date.now;
+  const nowCalls: number[] = [];
+  let tick = Date.parse('2026-07-22T18:00:00.000Z');
+
+  // Cada consulta al reloj avanza un segundo: si la emision lo consultara dos
+  // veces para el mismo instante, el hash y la fila divergirian.
+  Date.now = () => {
+    tick += 1000;
+    nowCalls.push(tick);
+    return tick;
+  };
+
+  try {
+    const { service, hashCalls, updateCalls } = createService();
+
+    await service.issueCredential('cred-123', { issuerId: 'issuer-1' }, currentUser);
+
+    const hashedIssuedAt = hashCalls[0].issuedAt as Date;
+    const persistedIssuedAt = (updateCalls[0].data as Record<string, unknown>)
+      .issuedAt as Date;
+
+    assert.equal(hashedIssuedAt.getTime(), persistedIssuedAt.getTime());
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+// ---------------------------------------------------------------------------
+// SNAPSHOT: lo firmado es lo persistido
+// ---------------------------------------------------------------------------
+
+test('el snapshot firmado se lee DENTRO de la transaccion', async () => {
+  const { service, operationOrder, hashCalls } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  // La canonicalizacion usa la fila releida dentro de la transaccion, no la
+  // lectura inicial: entre ambas se resolvio el signer, que pudo ir a la red.
+  assert.ok(
+    operationOrder.indexOf('final_row_read') <
+      operationOrder.indexOf('credential_update')
+  );
+  assert.ok(
+    operationOrder.indexOf('transaction_start') <
+      operationOrder.indexOf('final_row_read')
+  );
+  assert.equal(hashCalls.length, 1);
+});
+
+test('la escritura lleva un token de version: estado draft y updatedAt del snapshot', async () => {
+  const { service, updateCalls } = createService();
+
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+
+  const where = updateCalls[0].where as Record<string, unknown>;
+  assert.deepEqual(Object.keys(where).sort(), ['id', 'status', 'updatedAt']);
+  assert.equal(where.id, 'cred-123');
+  assert.equal(where.status, CredentialStatus.draft);
+  assert.ok(where.updatedAt instanceof Date);
+});
+
+test('si la fila cambia despues del snapshot, la emision no se consuma', async () => {
+  const { service, blockchainCalls } = createService({
+    concurrentlyMutated: true
+  });
+
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    /P2025/
+  );
+
+  // La transaccion revierte: nunca se persiste una firma sobre un payload
+  // distinto del guardado.
+  assert.deepEqual(blockchainCalls, []);
 });
