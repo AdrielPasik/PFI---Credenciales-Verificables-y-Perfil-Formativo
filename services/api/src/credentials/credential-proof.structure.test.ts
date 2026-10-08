@@ -322,10 +322,17 @@ test('la API no resuelve su propio DID por HTTP durante la emision', () => {
 // ---------------------------------------------------------------------------
 
 test('la resolucion del signer esta FUERA de la transaccion interactiva', () => {
-  const issuance = executableCode(read(ISSUANCE_SOURCE));
+  // Acotado al cuerpo de `issueCredential`: `createDraft` tiene su propia
+  // transaccion y aparece ANTES en el archivo, asi que un `indexOf` sobre todo
+  // el modulo encontraria esa.
+  const issuance = executableCode(read(ISSUANCE_SOURCE)).slice(
+    executableCode(read(ISSUANCE_SOURCE)).indexOf('async issueCredential(')
+  );
 
   const prepare = issuance.indexOf('prepareAssertionSigner({');
-  const transaction = issuance.indexOf('this.prisma.$transaction(async (transaction) => {');
+  // S8c6: la transaccion de emision pasa a tener opciones (isolation), asi que
+  // la callback ya no esta en la misma linea que la llamada.
+  const transaction = issuance.indexOf('this.prisma.$transaction(');
   const createProof = issuance.indexOf('this.credentialProofService.createProof(');
   const blockchain = issuance.indexOf('this.blockchainEvidenceService.createRecord(');
 
@@ -403,7 +410,11 @@ test('la Wallet de asercion no se pasa a blockchain ni a revocacion', () => {
 
   // La llamada de evidencia recibe exactamente cuatro campos, y ninguno es la
   // Wallet, su direccion ni el perfil de asercion.
-  const call = /createRecord\(\s*transaction,\s*\{([\s\S]*?)\}\s*\)/.exec(issuance);
+  // S8c6: la llamada mock ahora recibe un tercer argumento (el target ya
+  // resuelto), asi que el cierre del objeto va seguido de `,` y no de `)`.
+  const call = /createRecord\(\s*transaction,\s*\{([\s\S]*?)\n\s*\},/.exec(
+    issuance
+  );
   assert.ok(call, 'no se encontro la llamada a createRecord');
 
   const fields = [...call[1].matchAll(/^\s*(\w+):/gm)].map((m) => m[1]);

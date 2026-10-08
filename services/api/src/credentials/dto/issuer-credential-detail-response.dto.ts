@@ -59,9 +59,15 @@ export class IssuerCredentialAcademicProgramResponseDto {
 export class IssuerCredentialBlockchainEvidenceResponseDto {
   network!: BlockchainNetwork;
   chainId!: number;
-  txHash!: string;
+  /**
+   * S8c6: `null` mientras la evidencia esta `pending`. El intent de
+   * registracion es durable desde antes de que exista la transaccion, asi que
+   * el hash de transaccion y la fecha de la cadena solo aparecen cuando fueron
+   * OBSERVADOS. `null` nunca es un placeholder.
+   */
+  txHash!: string | null;
   status!: BlockchainRecordStatus;
-  registeredAt!: string;
+  registeredAt!: string | null;
 }
 
 export class IssuerCredentialDetailResponseDto {

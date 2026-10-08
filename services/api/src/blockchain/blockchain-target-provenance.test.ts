@@ -21,12 +21,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  AnchorRegistrantScope,
   BlockchainEvidenceMode,
   BlockchainNetwork,
   BlockchainRecordStatus
 } from '@prisma/client';
 
 import { BlockchainEvidenceService } from './blockchain-evidence.service';
+import { BlockchainRegistrationService } from './blockchain-registration.service';
 import {
   type BlockchainTargetEnvironment,
   isCredentialRegistryTarget,
@@ -165,111 +167,144 @@ function createService(
 }
 
 // ---------------------------------------------------------------------------
-// 35: ANVIL
+// 35-36: PROCEDENCIA DEL TARGET EN EL INTENT
+//
+// S8c6 movio la escritura real fuera del servicio de evidencia: la procedencia
+// del target la escribe ahora el ciclo de vida, al crear el intent PENDING.
+// Las aserciones son las mismas -- la red, el chainId, el contrato y el
+// deployment salen del target VALIDADO, no de literales -- sobre el componente
+// que hoy las produce.
 // ---------------------------------------------------------------------------
 
-test('35: un target Anvil registra anvil/31337 y su deployment', async () => {
-  const { service, providerCalls, contractCalls } = createService(
-    ANVIL_ENV,
-    31337n
+function createIntentRecorder() {
+  const created: Array<Record<string, unknown>> = [];
+
+  const transaction = {
+    blockchainRecord: {
+      async create(input: { data: Record<string, unknown> }) {
+        created.push(input.data);
+        return { id: 'blockchain-record-1', ...input.data };
+      }
+    }
+  };
+
+  const service = new BlockchainRegistrationService(
+    {} as never,
+    {} as never,
+    {} as never
   );
-  const transaction = createTransactionDouble();
 
-  await service.createRecord(transaction as never, createInput());
+  return { service, transaction, created };
+}
 
-  assert.equal(transaction.calls.length, 1);
-  const data = transaction.calls[0].data;
+test('35: un target Anvil deja anvil/31337 y su deployment en el intent', async () => {
+  const { service, transaction, created } = createIntentRecorder();
+  const target = resolveBlockchainTarget(ANVIL_ENV);
+  assert.ok(isCredentialRegistryTarget(target));
+  if (!isCredentialRegistryTarget(target)) {
+    return;
+  }
+
+  await service.createPendingIntent(transaction as never, {
+    credentialId: 'cred-123',
+    credentialHash: VALID_HASH,
+    canonicalizationVersion: 'canon_v2',
+    target,
+    anchor: {
+      anchorSignerProfileId: 'anchor-profile-1',
+      anchorRegistrantScope: AnchorRegistrantScope.issuer_exclusive
+    }
+  });
+
+  assert.equal(created.length, 1);
+  const data = created[0];
 
   assert.equal(data.network, BlockchainNetwork.anvil);
   assert.equal(data.chainId, 31337);
   assert.equal(data.contractAddress, CONTRACT_ADDRESS);
   assert.equal(data.deploymentId, 'test-anvil-local');
   assert.equal(data.evidenceMode, BlockchainEvidenceMode.credential_registry);
-  assert.equal(data.status, BlockchainRecordStatus.registered);
+  assert.equal(data.status, BlockchainRecordStatus.pending);
   assert.equal(data.canonicalizationVersion, 'canon_v2');
-
-  // El preflight corrio antes de la escritura.
-  assert.deepEqual(providerCalls, ['getNetwork', 'getCode']);
-  assert.deepEqual(contractCalls, [`register:${VALID_HASH}`]);
 });
 
-// ---------------------------------------------------------------------------
-// 36: BASE SEPOLIA, SIN TOCAR BASE SEPOLIA
-// ---------------------------------------------------------------------------
+test('36: un target Base Sepolia deja base_sepolia/84532 -- sin tocar la red', async () => {
+  const { service, transaction, created } = createIntentRecorder();
+  const target = resolveBlockchainTarget(BASE_SEPOLIA_ENV);
+  assert.ok(isCredentialRegistryTarget(target));
+  if (!isCredentialRegistryTarget(target)) {
+    return;
+  }
 
-test('36: un target Base Sepolia registra base_sepolia/84532', async () => {
-  const { service, providerCalls, contractCalls } = createService(
-    BASE_SEPOLIA_ENV,
-    84532n
-  );
-  const transaction = createTransactionDouble();
+  await service.createPendingIntent(transaction as never, {
+    credentialId: 'cred-123',
+    credentialHash: VALID_HASH,
+    canonicalizationVersion: 'canon_v2',
+    target,
+    anchor: {
+      anchorSignerProfileId: 'anchor-profile-1',
+      anchorRegistrantScope: AnchorRegistrantScope.shared_custodial
+    }
+  });
 
-  await service.createRecord(transaction as never, createInput());
+  const data = created[0];
 
-  const data = transaction.calls[0].data;
-
-  // Esto es lo que S8c5 hace posible: la procedencia dice la cadena REAL en la
-  // que se escribio, no "anvil" por omision.
+  // Esto es lo que S8c5+S8c6 hacen posible: la procedencia dice la cadena REAL
+  // a la que se va a escribir, no "anvil" por omision.
   assert.equal(data.network, BlockchainNetwork.base_sepolia);
   assert.equal(data.chainId, 84532);
   assert.equal(data.deploymentId, 'test-base-sepolia-pending-deploy');
   assert.equal(data.evidenceMode, BlockchainEvidenceMode.credential_registry);
-
-  // Y no se contacto Base Sepolia: el provider es un doble.
-  assert.deepEqual(providerCalls, ['getNetwork', 'getCode']);
-  assert.deepEqual(contractCalls, [`register:${VALID_HASH}`]);
-});
-
-test('36b: si el provider no esta en 84532, no se escribe ni se registra nada', async () => {
-  const { service, contractCalls } = createService(BASE_SEPOLIA_ENV, 31337n);
-  const transaction = createTransactionDouble();
-
-  await assert.rejects(
-    service.createRecord(transaction as never, createInput()),
-    (error: unknown) => {
-      assert.ok(error instanceof Error);
-      assert.equal((error as { code?: string }).code, 'BLOCKCHAIN_NETWORK_MISMATCH');
-      return true;
-    }
+  assert.equal(
+    data.anchorRegistrantScope,
+    AnchorRegistrantScope.shared_custodial
   );
 
-  assert.deepEqual(contractCalls, []);
-  assert.equal(transaction.calls.length, 0, 'ninguna fila de evidencia');
-});
-
-test('la procedencia NO incluye nada del ciclo de vida de S8c6', async () => {
-  const { service } = createService(BASE_SEPOLIA_ENV, 84532n);
-  const transaction = createTransactionDouble();
-
-  await service.createRecord(transaction as never, createInput());
-
-  const data = transaction.calls[0].data;
-
-  // `txHash` sigue siendo NOT NULL y se escribe en la misma operacion: no hay
-  // intent pendiente, no hay finalize y no hay nullabilidad nueva.
-  assert.equal(typeof data.txHash, 'string');
-  assert.notEqual(data.status, BlockchainRecordStatus.pending);
-
-  // El anchor por issuer y su alcance son S8c6: se dejan sin poblar, no se
-  // adivinan.
-  assert.equal(data.anchorSignerProfileId, undefined);
-  assert.equal(data.anchorRegistrantScope, undefined);
-
-  // `blockNumber` existe en el schema desde S8c1 pero el write client todavia
-  // lo descarta. No se finge lo contrario.
+  // Y ningun hecho de la cadena: el intent no inventa nada.
+  assert.equal(data.txHash, undefined);
   assert.equal(data.blockNumber, undefined);
+  assert.equal(data.issuerAddress, undefined);
+  assert.equal(data.registeredAt, undefined);
 });
 
-test('issuerAddress sigue siendo el REGISTRANTE, no la identidad del issuer', async () => {
-  const { service } = createService(BASE_SEPOLIA_ENV, 84532n);
-  const transaction = createTransactionDouble();
+test('36b: el intent NO lleva ningun placeholder de cadena', async () => {
+  const { service, transaction, created } = createIntentRecorder();
+  const target = resolveBlockchainTarget(BASE_SEPOLIA_ENV);
+  assert.ok(isCredentialRegistryTarget(target));
+  if (!isCredentialRegistryTarget(target)) {
+    return;
+  }
 
-  await service.createRecord(transaction as never, createInput());
+  await service.createPendingIntent(transaction as never, {
+    credentialId: 'cred-123',
+    credentialHash: VALID_HASH,
+    canonicalizationVersion: 'canon_v2',
+    target,
+    anchor: {
+      anchorSignerProfileId: 'anchor-profile-1',
+      anchorRegistrantScope: AnchorRegistrantScope.issuer_exclusive
+    }
+  });
 
-  // Es `transaction.from`: la cuenta que envio la transaccion. S8c5 no lo
-  // reinterpreta como identidad criptografica del emisor, y en particular NO
-  // es la direccion de la assertion key de S8c4.
-  assert.equal(transaction.calls[0].data.issuerAddress, REGISTRANT_ADDRESS);
+  const data = created[0];
+
+  // Se afirma sobre los CAMPOS, no con un grep: `status: "pending"` es el
+  // valor legitimo del estado, y el deploymentId de prueba tambien contiene la
+  // palabra. Lo prohibido es que un HECHO DE LA CADENA traiga un placeholder.
+  for (const field of [
+    'txHash',
+    'blockNumber',
+    'issuerAddress',
+    'registeredAt'
+  ]) {
+    assert.ok(
+      !(field in data),
+      `el intent no debe fijar ${field}: es un hecho de la cadena`
+    );
+  }
+
+  // Y el estado SI es pending -- eso es lo que hace durable al intent.
+  assert.equal(data.status, BlockchainRecordStatus.pending);
 });
 
 // ---------------------------------------------------------------------------

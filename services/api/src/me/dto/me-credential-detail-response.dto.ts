@@ -57,9 +57,10 @@ export interface MeCredentialDetailResponseDto {
   blockchainRecords: Array<{
     network: string;
     chainId: number;
-    txHash: string;
+    // S8c6: null mientras la evidencia esta `pending`.
+    txHash: string | null;
     status: string;
-    registeredAt: string;
+    registeredAt: string | null;
     revokedAt: string | null;
   }>;
   latestSemanticAnalysis: {

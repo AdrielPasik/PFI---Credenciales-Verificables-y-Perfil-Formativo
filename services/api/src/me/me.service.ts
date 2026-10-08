@@ -234,7 +234,9 @@ export class MeService {
         chainId: record.chainId,
         txHash: record.txHash,
         status: record.status,
-        registeredAt: this.serializeDateTime(record.registeredAt),
+        registeredAt: record.registeredAt
+          ? this.serializeDateTime(record.registeredAt)
+          : null,
         revokedAt: record.revokedAt ? this.serializeDateTime(record.revokedAt) : null
       })),
       latestSemanticAnalysis: credential.semanticAnalyses[0]

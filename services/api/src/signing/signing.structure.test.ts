@@ -413,10 +413,12 @@ test('35: el camino legacy sigue intacto y sigue siendo el activo', () => {
  * publico de DID, identity, web y cualquier modulo no relacionado.
  */
 const RESOLVER_CONSUMER_ALLOWLIST = [
-  // Orquestador de la autoria de la credential. UNICO consumidor, y por DI
-  // ni siquiera el modulo necesita nombrar el resolver: alcanza con importar
-  // SigningModule, que ya lo exporta desde S8c2.
-  join('credentials', 'credential-proof.service.ts')
+  // ASERCION -- orquestador de la autoria de la credential (S8c4).
+  join('credentials', 'credential-proof.service.ts'),
+  // ANCLAJE -- orquestador del ciclo de vida de registracion (S8c6). Es el
+  // segundo y ultimo consumidor: resuelve el signer de anclaje FUERA de toda
+  // transaccion y se lo pasa al coordinador de escrituras.
+  join('blockchain', 'blockchain-registration.service.ts')
 ];
 
 test('36: el resolver solo lo consumen los componentes allowlisteados', () => {
@@ -474,7 +476,30 @@ test('36a: el CredentialsModule importa el modulo pero no nombra el resolver', (
   assert.ok(!credentialsModule.includes('SIGNER_SECRET_STORE'));
 });
 
-test('36b: la emision llega al signer SOLO a traves de la autoria', () => {
+test('36d: cada orquestador usa SOLO su proposito', () => {
+  // La autoria usa asercion y nunca anclaje; el ciclo de vida de registracion
+  // usa anclaje y nunca asercion. Cruzarlos seria firmar la credencial con la
+  // cuenta que paga gas, o anclar con la clave que acredita autoria.
+  const proof = executableCode(
+    readFileSync(
+      join(API_SRC_DIR, 'credentials', 'credential-proof.service.ts'),
+      'utf8'
+    )
+  );
+  assert.ok(proof.includes('resolveAssertionSignerForIssuer'));
+  assert.ok(!proof.includes('resolveAnchorSignerForIssuer'));
+
+  const registration = executableCode(
+    readFileSync(
+      join(API_SRC_DIR, 'blockchain', 'blockchain-registration.service.ts'),
+      'utf8'
+    )
+  );
+  assert.ok(registration.includes('resolveAnchorSignerForIssuer'));
+  assert.ok(!registration.includes('resolveAssertionSignerForIssuer'));
+});
+
+test('36b: la emision llega al signer SOLO a traves de los orquestadores', () => {
   // `credentials.service.ts` orquesta la emision pero no inyecta el resolver:
   // si lo hiciera, podria elegir el proposito (asercion vs anclaje) y saltarse
   // la validacion del DID.
@@ -498,12 +523,18 @@ test('36b: la emision llega al signer SOLO a traves de la autoria', () => {
   assert.ok(!proofService.includes('resolveAnchorSignerForIssuer'));
 });
 
-test('36c: blockchain, revocacion e identity siguen SIN tocar el resolver', () => {
-  // Estos son los limites que el guard original protegia y que S8c4 no afloja.
+test('36c: el resto del plano de blockchain sigue SIN tocar el resolver', () => {
+  // Estos son los limites que el guard original protegia y que ni S8c4 ni
+  // S8c6 aflojan. En particular: el cliente de bajo nivel, el preflight, el
+  // coordinador de escrituras y la reconciliacion NO resuelven identidad --
+  // reciben un signer ya autorizado, o no necesitan ninguno.
   for (const relativePath of [
     join('blockchain', 'blockchain-evidence.service.ts'),
     join('blockchain', 'credential-registry-write-client.ts'),
     join('blockchain', 'credential-registry-read-client.ts'),
+    join('blockchain', 'credential-registry-preflight.ts'),
+    join('blockchain', 'anchor-write-coordinator.ts'),
+    join('blockchain', 'blockchain-registration-reconciliation.service.ts'),
     join('blockchain', 'blockchain-record-reconciliation.service.ts'),
     join('credentials', 'issuer-credential-revocation.service.ts'),
     join('credentials', 'issuer-credential-draft-update.service.ts'),

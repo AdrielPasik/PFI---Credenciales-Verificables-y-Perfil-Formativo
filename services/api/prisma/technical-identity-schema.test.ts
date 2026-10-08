@@ -327,13 +327,19 @@ test('anchorRegistrantScope vive en el RECORD, no se deriva de los bindings vivo
   assert.doesNotMatch(profileBody, /anchorRegistrantScope/);
 });
 
-test('txHash sigue siendo NOT NULL en S8c1', async () => {
+test('S8c6 volvio nullable txHash, que S8c1 habia dejado NOT NULL a proposito', async () => {
   const body = await modelBody('BlockchainRecord');
 
-  // La nulabilidad que necesita `pending` llega con el rediseño de issuance
-  // (S8c6). Hacerla nullable aca obligaria a tocar lectores productivos,
-  // incluido el adapter web, que esta fuera del alcance de esta slice.
-  assert.match(body, /^\s*txHash\s+String\s*$/m);
+  // S8c1 lo dejo NOT NULL a proposito: la nulabilidad que necesita `pending`
+  // pertenecia al rediseño de issuance. S8c6 hizo ese rediseño, asi que la
+  // asercion se ACTUALIZA en vez de quedar afirmando algo que ya es falso.
+  //
+  // La forma completa la congela
+  // `prisma/blockchain-record-pending-migration.test.ts`; aca solo se registra
+  // que la transicion ocurrio y en que slice.
+  assert.match(body, /^\s*txHash\s+String\?\s*$/m);
+  assert.match(body, /^\s*issuerAddress\s+String\?\s*$/m);
+  assert.match(body, /^\s*registeredAt\s+DateTime\?\s*$/m);
 });
 
 // ---------------------------------------------------------------------------

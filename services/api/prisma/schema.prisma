@@ -689,16 +689,23 @@ model BlockchainRecord {
   network                 BlockchainNetwork
   chainId                 Int
   contractAddress         String
-  // NOT NULL todavia. La nulabilidad que necesita el estado `pending` (intent
-  // persistido antes de la tx) se introduce en S8c6 junto con el rediseño de
-  // issuance: hacerla nullable aca obligaria a tocar lectores productivos
-  // (incluido el adapter web), que esta fuera del alcance de S8c1.
-  txHash                  String
+  // NULLABLE desde S8c6: los tres campos de abajo son HECHOS DE LA CADENA y no
+  // existen todavia cuando se persiste el intent `pending`. NULL significa
+  // "todavia no observado", nunca "vacio": no hay placeholder `"pending"`, ni
+  // `""`, ni bloque 0, ni ZeroAddress. Una fila legacy o `registered` los tiene
+  // poblados; una fila `pending` real los tiene los tres en null.
+  //
+  // No hay `@unique` sobre `txHash` -- solo un indice -- asi que hacerlo
+  // nullable no toca ninguna restriccion de unicidad.
+  txHash                  String?
   // Es la cuenta que REGISTRO el hash (`transaction.from`), nunca la identidad
   // institucional del issuer. `anchorSignerProfileId` hace esa procedencia
-  // explicita.
-  issuerAddress           String
-  registeredAt            DateTime
+  // explicita. El registrante ESPERADO se deriva de ese perfil; este campo
+  // guarda el OBSERVADO, y por eso solo se completa con evidencia de cadena.
+  issuerAddress           String?
+  // Momento en que la registracion ocurrio EN LA CADENA: sale de
+  // `block.timestamp`, nunca del reloj del servidor.
+  registeredAt            DateTime?
   status                  BlockchainRecordStatus
   revokedAt               DateTime?
   revocationReason        String?                @db.Text

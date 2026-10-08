@@ -61,6 +61,15 @@ type RevocationCredential = Prisma.CredentialGetPayload<{
   select: typeof revocationCredentialSelect;
 }>;
 type RevocationBlockchainRecord = RevocationCredential['blockchainRecords'][number];
+/** Fila con los tres hechos de la cadena YA observados. */
+type FinalizedRevocationBlockchainRecord = Omit<
+  RevocationBlockchainRecord,
+  'txHash' | 'issuerAddress' | 'registeredAt'
+> & {
+  txHash: string;
+  issuerAddress: string;
+  registeredAt: Date;
+};
 
 interface CredentialRegistryRevocationWriter {
   revokeCredential(
@@ -109,7 +118,15 @@ export class IssuerCredentialRevocationService {
       throw new IssuerCredentialRevocationError('CREDENTIAL_NOT_FOUND');
     }
 
-    const record = credential.blockchainRecords[0] ?? null;
+    // S8c6: una registracion que todavia no fue CONFIRMADA en la cadena no es
+    // revocable on-chain. `pending` no es `registered`: el intent es durable,
+    // pero no hay transaccion que revocar y no hay registrante observado contra
+    // el que autorizar. Se trata como evidencia no resoluble -- el mismo camino
+    // que un record ausente -- en vez de intentar revocar algo que nunca se
+    // finalizo. El cutover del signer historico es S8c8.
+    const record = toFinalizedBlockchainRecord(
+      credential.blockchainRecords[0] ?? null
+    );
     const reconciliation = await this.classifySafely(credential, record);
 
     switch (reconciliation.state) {
@@ -143,7 +160,7 @@ export class IssuerCredentialRevocationService {
 
   private async revokeActiveRecord(
     credential: RevocationCredential,
-    record: RevocationBlockchainRecord | null,
+    record: FinalizedRevocationBlockchainRecord | null,
     reconciliation: BlockchainRecordReconciliationResult,
     reason: string | null
   ): Promise<void> {
@@ -182,7 +199,9 @@ export class IssuerCredentialRevocationService {
     await this.persistConfirmedRevocation(credential, record, afterWrite, reason);
   }
 
-  private assertConfiguredSignerCanRevoke(record: RevocationBlockchainRecord): void {
+  private assertConfiguredSignerCanRevoke(
+    record: FinalizedRevocationBlockchainRecord
+  ): void {
     let signerAddress: string;
     try {
       signerAddress = this.resolveSignerAddress();
@@ -197,7 +216,7 @@ export class IssuerCredentialRevocationService {
 
   private async persistConfirmedRevocation(
     credential: RevocationCredential,
-    record: RevocationBlockchainRecord | null,
+    record: FinalizedRevocationBlockchainRecord | null,
     reconciliation: BlockchainRecordReconciliationResult,
     reason: string | null
   ): Promise<void> {
@@ -290,7 +309,7 @@ export class IssuerCredentialRevocationService {
 
   private async classifySafely(
     credential: RevocationCredential,
-    record: RevocationBlockchainRecord | null
+    record: FinalizedRevocationBlockchainRecord | null
   ): Promise<BlockchainRecordReconciliationResult> {
     try {
       return await this.reconciliationService.classify({
@@ -348,12 +367,49 @@ function chainTimestampToDate(value: string | null): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function addressesMatch(left: string, right: string): boolean {
+function addressesMatch(left: string | null, right: string | null): boolean {
+  // S8c6: el registrante OBSERVADO puede ser null en una fila `pending`. Null
+  // nunca coincide con nada: falla cerrado.
+  if (typeof left !== 'string' || typeof right !== 'string') {
+    return false;
+  }
+
   if (!isAddress(left) || !isAddress(right)) {
     return false;
   }
 
   return getAddress(left) === getAddress(right);
+}
+
+/**
+ * Devuelve la fila SOLO si su evidencia de cadena esta completa.
+ *
+ * Una fila `pending` -- o cualquiera a la que le falte un hecho de la cadena --
+ * no describe una registracion confirmada, asi que para la revocacion equivale
+ * a no tener evidencia.
+ */
+function toFinalizedBlockchainRecord(
+  record: RevocationBlockchainRecord | null
+): FinalizedRevocationBlockchainRecord | null {
+  if (!record) {
+    return null;
+  }
+
+  if (
+    record.status === BlockchainRecordStatus.pending ||
+    typeof record.txHash !== 'string' ||
+    typeof record.issuerAddress !== 'string' ||
+    !(record.registeredAt instanceof Date)
+  ) {
+    return null;
+  }
+
+  return {
+    ...record,
+    txHash: record.txHash,
+    issuerAddress: record.issuerAddress,
+    registeredAt: record.registeredAt
+  };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

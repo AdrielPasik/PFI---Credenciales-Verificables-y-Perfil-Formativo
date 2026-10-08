@@ -223,7 +223,9 @@ test('los chainId viven SOLO en el mapeo de red', () => {
 test('la logica de escritura no decide red ni chainId por su cuenta', () => {
   for (const file of [
     'credential-registry-write-client.ts',
-    'blockchain-evidence.service.ts'
+    'blockchain-evidence.service.ts',
+    'blockchain-registration.service.ts',
+    'anchor-write-coordinator.ts'
   ] as const) {
     const code = executableCode(read(file));
 
@@ -233,12 +235,13 @@ test('la logica de escritura no decide red ni chainId por su cuenta', () => {
     assert.ok(!code.includes('BlockchainNetwork.base_sepolia'), file);
   }
 
-  // El servicio de evidencia toma red/chainId/contrato del target validado.
-  const evidence = executableCode(read('blockchain-evidence.service.ts'));
-  assert.match(evidence, /network: target\.network/);
-  assert.match(evidence, /chainId: target\.chainId/);
-  assert.match(evidence, /contractAddress: target\.contractAddress/);
-  assert.match(evidence, /deploymentId: target\.deploymentId/);
+  // S8c6: la procedencia del target la escribe el ciclo de vida, que es quien
+  // creo el intent. El servicio de evidencia quedo reducido al modo mock.
+  const registration = executableCode(read('blockchain-registration.service.ts'));
+  assert.match(registration, /network: input\.target\.network/);
+  assert.match(registration, /chainId: input\.target\.chainId/);
+  assert.match(registration, /contractAddress: input\.target\.contractAddress/);
+  assert.match(registration, /deploymentId: input\.target\.deploymentId/);
 });
 
 // ---------------------------------------------------------------------------
@@ -381,24 +384,27 @@ test('el timeout del RPC es un valor nombrado y real', () => {
 test('el preflight no se construye en modo mock', () => {
   const evidence = executableCode(read('blockchain-evidence.service.ts'));
 
-  // El camino mock retorna ANTES de cualquier cosa relacionada con el target
-  // real: ni provider, ni preflight, ni write client.
-  const mockBranch = /if \(target\.evidenceMode === 'mock'\) \{[\s\S]*?\n    \}/.exec(
-    evidence
-  );
-  assert.ok(mockBranch, 'no se encontro la rama mock');
-  assert.match(mockBranch[0], /return this\.createMockRecord\(/);
+  // S8c6: el servicio de evidencia es MOCK-ONLY. Un target real no entra: se
+  // rechaza y se deriva al ciclo de vida de registracion.
+  assert.match(evidence, /if \(target\.evidenceMode !== 'mock'\) \{/);
+  assert.match(evidence, /ciclo de vida de registracion/);
 
-  const mockRecord = /private async createMockRecord\([\s\S]*?\n  \}/.exec(evidence);
-  assert.ok(mockRecord, 'no se encontro createMockRecord');
+  // Y en todo el archivo no hay NADA del plano real: ni provider, ni preflight,
+  // ni write client, ni rpcUrl, ni nonce.
   for (const token of [
     'createWriteClient',
     'preflight',
+    'Preflight',
     'JsonRpcProvider',
     'rpcUrl',
-    'deploymentId: target'
+    'NonceManager',
+    'registerCredential',
+    'deploymentId'
   ]) {
-    assert.ok(!mockRecord[0].includes(token), `mock no debe tocar ${token}`);
+    assert.ok(
+      !evidence.includes(token),
+      `el servicio de evidencia mock no debe tocar ${token}`
+    );
   }
 });
 

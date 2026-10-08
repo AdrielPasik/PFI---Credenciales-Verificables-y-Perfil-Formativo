@@ -337,3 +337,115 @@ function hasRevocationCode(error: unknown, code: string): boolean {
   const response = error.getResponse();
   return typeof response === 'object' && response !== null && 'code' in response && response.code === code;
 }
+
+// ---------------------------------------------------------------------------
+// S8c6, matriz 84: PENDING NO ES REVOCABLE
+// ---------------------------------------------------------------------------
+
+/** Fila de registro real que todavia NO fue confirmada en la cadena. */
+function createPendingCredential() {
+  const credential = createCredential();
+
+  return {
+    ...credential,
+    canonicalizationVersion: 'canon_v2',
+    blockchainRecords: [
+      {
+        ...credential.blockchainRecords[0],
+        canonicalizationVersion: 'canon_v2',
+        network: BlockchainNetwork.base_sepolia,
+        chainId: 84532,
+        status: BlockchainRecordStatus.pending,
+        // Los tres hechos de la cadena todavia no se observaron.
+        txHash: null,
+        issuerAddress: null,
+        registeredAt: null
+      }
+    ]
+  };
+}
+
+test('84: una registracion PENDING no se revoca on-chain', async () => {
+  const context = setup({
+    initialCredential: createPendingCredential() as never
+  });
+
+  await assert.rejects(
+    context.service.revokeForIssuer(
+      'issuer-1',
+      'credential-1',
+      actor,
+      undefined
+    ),
+    (error: unknown) => {
+      // `pending` NO es `registered`: no hay transaccion que revocar y no hay
+      // registrante observado contra el que autorizar. Falla cerrado por el
+      // mismo camino que una evidencia ausente, en vez de intentar revocar
+      // algo que nunca se finalizo.
+      assert.ok(error instanceof IssuerCredentialRevocationError);
+      // El code viaja en el cuerpo de la HttpException.
+      const body = (error as IssuerCredentialRevocationError).getResponse() as {
+        code: string;
+      };
+      assert.equal(body.code, 'BLOCKCHAIN_RECORD_UNRESOLVABLE');
+      return true;
+    }
+  );
+
+  // CERO transacciones de revocacion.
+  assert.deepEqual(context.calls.writes, []);
+  assert.deepEqual(context.calls.transactionUpdates, []);
+});
+
+test('84b: una fila sin alguno de los hechos de cadena tampoco se revoca', async () => {
+  const incomplete = [
+    { txHash: null },
+    { issuerAddress: null },
+    { registeredAt: null }
+  ];
+
+  for (const missing of incomplete) {
+    const credential = createCredential();
+    const context = setup({
+      initialCredential: {
+        ...credential,
+        blockchainRecords: [{ ...credential.blockchainRecords[0], ...missing }]
+      } as never
+    });
+
+    await assert.rejects(
+      context.service.revokeForIssuer(
+        'issuer-1',
+        'credential-1',
+        actor,
+        undefined
+      ),
+      IssuerCredentialRevocationError,
+      JSON.stringify(missing)
+    );
+
+    assert.deepEqual(context.calls.writes, [], JSON.stringify(missing));
+  }
+});
+
+test('S8c6: la revocacion sigue usando el mecanismo TRANSITORIO, no el perfil historico', async () => {
+  // S8c6 NO hace el cutover del signer de revocacion: una fila registrada se
+  // sigue revocando con el signer global configurado. El cutover al
+  // `anchorSignerProfileId` historico es S8c8.
+  const context = setup({
+    classifications: [
+      reconciliation('DB_ISSUED_CHAIN_ACTIVE'),
+      reconciliation('DB_ISSUED_CHAIN_REVOKED')
+    ]
+  });
+
+  await context.service.revokeForIssuer(
+    'issuer-1',
+    'credential-1',
+    actor,
+    undefined
+  );
+
+  // Se escribio en la cadena por el camino legacy.
+  assert.equal(context.calls.writes.length, 1);
+});

@@ -363,6 +363,11 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
         return row;
       }
     },
+    blockchainRecord: {
+      async findUnique() {
+        return blockchainRecord;
+      }
+    },
     issuerTechnicalIdentity: {
       async findUnique() {
         return { did: TECHNICAL_IDENTITY_DID };
@@ -387,9 +392,14 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
     assertIssuerCanIssue() {}
   };
 
+  let blockchainRecord: Record<string, unknown> | null = null;
+
   const blockchainEvidenceService = {
+    resolveTarget() {
+      return { evidenceMode: 'mock' as const };
+    },
     async createRecord(_transaction: unknown, payload: Record<string, unknown>) {
-      return {
+      blockchainRecord = {
         id: 'blockchain-record-1',
         network: 'anvil',
         chainId: 31337,
@@ -402,6 +412,8 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
         issuerAddress: payload.issuerAddress,
         registeredAt: new Date('2026-07-22T18:00:00Z')
       };
+
+      return blockchainRecord;
     }
   };
 
@@ -422,7 +434,12 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
     issuersService as never,
     blockchainEvidenceService as never,
     new CredentialHashingService(),
-    new CredentialProofService(signerResolver as never)
+    new CredentialProofService(signerResolver as never),
+    {
+      async prepareAnchorSigner() {
+        throw new Error('una emision mock no resuelve el signer de anclaje');
+      }
+    } as never
   );
 
   return service.issueCredential(

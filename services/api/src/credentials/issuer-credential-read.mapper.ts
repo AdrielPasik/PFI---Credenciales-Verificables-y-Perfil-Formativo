@@ -166,9 +166,10 @@ export interface IssuerCredentialReadRecord {
   blockchainRecords: Array<{
     network: BlockchainNetwork;
     chainId: number;
-    txHash: string;
+    // S8c6: nullables mientras la evidencia esta `pending`.
+    txHash: string | null;
     status: BlockchainRecordStatus;
-    registeredAt: Date;
+    registeredAt: Date | null;
   }>;
 }
 
@@ -244,7 +245,7 @@ export function mapIssuerCredentialReadModel(
           txHash: credential.blockchainRecords[0].txHash,
           status: credential.blockchainRecords[0].status,
           registeredAt:
-            credential.blockchainRecords[0].registeredAt.toISOString()
+            credential.blockchainRecords[0].registeredAt?.toISOString() ?? null
         }
       : null,
     issuer: {

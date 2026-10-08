@@ -19,6 +19,12 @@ import {
 } from '@prisma/client';
 
 import { BlockchainEvidenceService } from '../blockchain/blockchain-evidence.service';
+import { isCredentialRegistryTarget } from '../blockchain/blockchain-target';
+import {
+  type AnchorIntentSnapshot,
+  BlockchainRegistrationService,
+  type PreparedAnchorSigner
+} from '../blockchain/blockchain-registration.service';
 import { ensureDidForUser } from '../identity/ensure-did-for-user';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -67,7 +73,8 @@ export class CredentialsService {
     private readonly issuersService: IssuersService,
     private readonly blockchainEvidenceService: BlockchainEvidenceService,
     private readonly credentialHashingService: CredentialHashingService,
-    private readonly credentialProofService: CredentialProofService
+    private readonly credentialProofService: CredentialProofService,
+    private readonly blockchainRegistrationService: BlockchainRegistrationService
   ) {}
 
   async createDraft(
@@ -355,131 +362,256 @@ export class CredentialsService {
       this.throwMappedSigningFailure(error);
     }
 
-    const result = await this.prisma.$transaction(async (transaction) => {
-      // SNAPSHOT FINAL. Se relee la fila DENTRO de la transaccion para que lo
-      // canonicalizado, lo firmado y lo persistido sean el MISMO estado: entre
-      // la lectura inicial y este punto se resolvio el signer, que pudo haber
-      // ido a la red.
-      //
-      // `Credential.id` ya es estable -- la emision parte de un borrador que
-      // existe -- asi que `credential_id` entra en canon_v2 sin inventar nada
-      // y sin que Prisma pueda generar despues otro id.
-      const finalRow = await transaction.credential.findUnique({
-        where: { id: credential.id },
-        select: {
-          id: true,
-          status: true,
-          updatedAt: true,
-          type: true,
-          title: true,
-          description: true,
-          hours: true,
-          credentialSubject: true
-        }
-      });
+    // TARGET DE BLOCKCHAIN: se resuelve UNA sola vez, localmente, y decide la
+    // FORMA del ciclo de vida. Un modo real mal configurado falla cerrado aca,
+    // antes de TX #1 y antes de tocar cualquier almacen de secretos.
+    const blockchainTarget = this.blockchainEvidenceService.resolveTarget();
+    const registryTarget = isCredentialRegistryTarget(blockchainTarget)
+      ? blockchainTarget
+      : null;
 
-      if (!finalRow) {
-        throw new NotFoundException(`Credential ${credentialId} no existe.`);
-      }
-
-      if (finalRow.status !== CredentialStatus.draft) {
-        throw new ConflictException(
-          `La credencial ${credentialId} no esta en estado draft.`
-        );
-      }
-
-      const finalCredentialSubject = this.assertJsonObject(
-        finalRow.credentialSubject,
-        'credential.credentialSubject'
-      );
-      this.assertRequiredCredentialSubjectFields(finalCredentialSubject);
-
-      // UN SOLO canonicalHash para esta emision. Este valor es el que se
-      // persiste, el que se embebe en el envelope firmado y el que recibe la
-      // evidencia de blockchain. No se vuelve a calcular en ningun otro lado.
-      const hashResult =
-        this.credentialHashingService.createCanonicalHashForVersion(
-          {
-            credentialId: finalRow.id,
-            schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
-            type: finalRow.type,
-            issuerDid: preparedSigner.issuerDid,
-            subjectDid,
-            title: finalRow.title,
-            description: finalRow.description,
-            issuedAt,
-            hours: finalRow.hours,
-            credentialSubject: finalCredentialSubject
-          },
-          CredentialHashingService.CANONICALIZATION_VERSION_V2
-        );
-
-      // FIRMA: computo LOCAL. `signMessage` sobre una Wallet desconectada no
-      // hace I/O, asi que no agrega latencia de red a la transaccion.
-      let proof: ScopeProofV1;
+    // SIGNER DE ANCLAJE -- solo en modo real, y FUERA de toda transaccion.
+    //
+    // Puede leer SSM en un miss de cache. En modo mock no se resuelve nada: no
+    // hay cadena, no hay nonce y no hay cola, asi que exigirle al emisor una
+    // identidad de anclaje para una evidencia simulada seria inventar un
+    // requisito.
+    //
+    // Si el emisor no tiene una identidad de anclaje utilizable, la emision
+    // falla ANTES de TX #1: no se fabrica un intent pendiente sin procedencia
+    // de anclaje veraz.
+    let preparedAnchor: PreparedAnchorSigner | null = null;
+    if (registryTarget) {
       try {
-        proof = await this.credentialProofService.createProof(
-          preparedSigner,
-          hashResult.canonicalHash,
-          finalRow.id
+        preparedAnchor = await this.blockchainRegistrationService.prepareAnchorSigner(
+          credential.issuerId
         );
       } catch (error) {
         this.throwMappedSigningFailure(error);
       }
+    }
 
-      // PERSISTENCIA ATOMICA de los campos de autenticidad: estado, forma del
-      // artifact, version de canonicalizacion, hash y proof viajan en UNA sola
-      // mutacion. No existe un estado intermedio `credential_v2` sin proof, ni
-      // `proof` con canon_v1, ni hash v2 etiquetado como v1.
-      //
-      // El `where` extendido actua como token de version optimista: si otra
-      // operacion toco la fila despues del snapshot, no hay fila que coincida
-      // y la transaccion entera se revierte -- nunca se persiste una firma
-      // sobre un payload distinto del guardado.
-      const updatedCredential = await transaction.credential.update({
-        where: {
-          id: finalRow.id,
-          status: CredentialStatus.draft,
-          updatedAt: finalRow.updatedAt
-        },
-        data: {
-          status: CredentialStatus.issued,
-          issuedAt,
-          schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
-          canonicalHash: hashResult.canonicalHash,
-          canonicalizationVersion: hashResult.canonicalizationVersion,
-          proof: proof as unknown as Prisma.InputJsonValue
+    // =======================================================================
+    // TX #1 -- CORTA Y SIN RED
+    //
+    // Deja durables, juntas: la credencial emitida y autenticada, y -- en modo
+    // real -- el intent PENDING de registracion. Adentro no hay SSM, ni RPC,
+    // ni provider, ni getNetwork, ni getCode, ni contrato, ni wait, ni
+    // receipt, ni getBlock. Lo unico criptografico es computo LOCAL: el hash
+    // canonico y `signMessage` sobre una Wallet desconectada.
+    //
+    // Isolation SERIALIZABLE en modo real: la revalidacion del binding de
+    // anclaje y el conteo de cardinalidad que deriva `anchorRegistrantScope`
+    // tienen que ver el MISMO snapshot, o la procedencia historica que se
+    // persiste no seria veraz.
+    // =======================================================================
+    const result = await this.prisma.$transaction(
+      async (transaction) => {
+        // SNAPSHOT FINAL. Se relee la fila DENTRO de la transaccion para que lo
+        // canonicalizado, lo firmado y lo persistido sean el MISMO estado:
+        // entre la lectura inicial y este punto se resolvieron signers que
+        // pudieron ir a la red.
+        //
+        // `Credential.id` ya es estable -- la emision parte de un borrador que
+        // existe -- asi que `credential_id` entra en canon_v2 sin inventar nada
+        // y sin que Prisma pueda generar despues otro id.
+        const finalRow = await transaction.credential.findUnique({
+          where: { id: credential.id },
+          select: {
+            id: true,
+            status: true,
+            updatedAt: true,
+            type: true,
+            title: true,
+            description: true,
+            hours: true,
+            credentialSubject: true
+          }
+        });
+
+        if (!finalRow) {
+          throw new NotFoundException(`Credential ${credentialId} no existe.`);
         }
-      });
 
-      // EVIDENCIA DE BLOCKCHAIN -- despues del proof, nunca antes: no se ancla
-      // una credencial que no logro obtener su autoria criptografica.
-      //
-      // Recibe el hash YA calculado y la version con la que fue calculado, asi
-      // que no puede divergir ni etiquetar un hash canon_v2 como canon_v1. La
-      // direccion sigue siendo la del plano de ANCLAJE legacy: la Wallet de
-      // asercion no se pasa aca, ni a ningun cliente de contrato.
-      const blockchainRecord = await this.blockchainEvidenceService.createRecord(
-        transaction,
-        {
-          credentialId: updatedCredential.id,
-          credentialHash: hashResult.canonicalHash,
-          canonicalizationVersion: hashResult.canonicalizationVersion,
-          issuerAddress: credential.issuer.walletAddress!
+        if (finalRow.status !== CredentialStatus.draft) {
+          throw new ConflictException(
+            `La credencial ${credentialId} no esta en estado draft.`
+          );
         }
-      );
 
-      return {
-        updatedCredential,
-        blockchainRecord,
-        proof
-      };
-    });
+        // REVALIDACION DEL BINDING DE ANCLAJE, con metadata PUBLICA unicamente.
+        // Entre la resolucion del signer y este punto pudo haber una rotacion;
+        // persistir un intent para un perfil que ya no es el ancla configurada
+        // del emisor seria persistir procedencia falsa.
+        let anchorIntent: AnchorIntentSnapshot | null = null;
+        if (registryTarget && preparedAnchor) {
+          await this.blockchainRegistrationService.revalidateAnchorBinding(
+            transaction,
+            {
+              issuerId: credential.issuerId,
+              signer: preparedAnchor.snapshot
+            }
+          );
+
+          anchorIntent = {
+            anchorSignerProfileId: preparedAnchor.snapshot.profileId,
+            anchorRegistrantScope:
+              await this.blockchainRegistrationService.deriveAnchorRegistrantScope(
+                transaction,
+                preparedAnchor.snapshot.profileId
+              )
+          };
+        }
+
+        const finalCredentialSubject = this.assertJsonObject(
+          finalRow.credentialSubject,
+          'credential.credentialSubject'
+        );
+        this.assertRequiredCredentialSubjectFields(finalCredentialSubject);
+
+        // UN SOLO canonicalHash para esta emision. Este valor es el que se
+        // persiste, el que se embebe en el envelope firmado y el que recibe la
+        // evidencia de blockchain. No se vuelve a calcular en ningun otro lado.
+        const hashResult =
+          this.credentialHashingService.createCanonicalHashForVersion(
+            {
+              credentialId: finalRow.id,
+              schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
+              type: finalRow.type,
+              issuerDid: preparedSigner.issuerDid,
+              subjectDid,
+              title: finalRow.title,
+              description: finalRow.description,
+              issuedAt,
+              hours: finalRow.hours,
+              credentialSubject: finalCredentialSubject
+            },
+            CredentialHashingService.CANONICALIZATION_VERSION_V2
+          );
+
+        // FIRMA: computo LOCAL. `signMessage` sobre una Wallet desconectada no
+        // hace I/O, asi que no agrega latencia de red a la transaccion.
+        let proof: ScopeProofV1;
+        try {
+          proof = await this.credentialProofService.createProof(
+            preparedSigner,
+            hashResult.canonicalHash,
+            finalRow.id
+          );
+        } catch (error) {
+          this.throwMappedSigningFailure(error);
+        }
+
+        // PERSISTENCIA ATOMICA de los campos de autenticidad: estado, forma del
+        // artifact, version de canonicalizacion, hash y proof viajan en UNA sola
+        // mutacion. No existe un estado intermedio `credential_v2` sin proof, ni
+        // `proof` con canon_v1, ni hash v2 etiquetado como v1.
+        //
+        // El `where` extendido actua como token de version optimista: si otra
+        // operacion toco la fila despues del snapshot, no hay fila que coincida
+        // y la transaccion entera se revierte -- nunca se persiste una firma
+        // sobre un payload distinto del guardado.
+        const updatedCredential = await transaction.credential.update({
+          where: {
+            id: finalRow.id,
+            status: CredentialStatus.draft,
+            updatedAt: finalRow.updatedAt
+          },
+          data: {
+            status: CredentialStatus.issued,
+            issuedAt,
+            schemaVersion: CREDENTIAL_SCHEMA_VERSION_V2,
+            canonicalHash: hashResult.canonicalHash,
+            canonicalizationVersion: hashResult.canonicalizationVersion,
+            proof: proof as unknown as Prisma.InputJsonValue
+          }
+        });
+
+        // EVIDENCIA DE BLOCKCHAIN -- despues del proof, nunca antes: no se
+        // ancla una credencial que no logro obtener su autoria criptografica.
+        //
+        // Las dos ramas reciben el hash YA calculado, asi que no puede
+        // divergir ni etiquetarse con otra version de canonicalizacion.
+        const blockchainRecord =
+          registryTarget && anchorIntent
+            ? // REAL: intent PENDING durable. Los tres hechos de la cadena
+              // -- txHash, registrante observado y fecha del bloque -- quedan
+              // en NULL hasta que se observen.
+              await this.blockchainRegistrationService.createPendingIntent(
+                transaction,
+                {
+                  credentialId: updatedCredential.id,
+                  credentialHash: hashResult.canonicalHash,
+                  canonicalizationVersion: hashResult.canonicalizationVersion,
+                  target: registryTarget,
+                  anchor: anchorIntent
+                }
+              )
+            : // MOCK: evidencia local, sin red, en esta misma transaccion.
+              await this.blockchainEvidenceService.createRecord(
+                transaction,
+                {
+                  credentialId: updatedCredential.id,
+                  credentialHash: hashResult.canonicalHash,
+                  canonicalizationVersion: hashResult.canonicalizationVersion,
+                  issuerAddress: credential.issuer.walletAddress!
+                },
+                blockchainTarget
+              );
+
+        return {
+          updatedCredential,
+          blockchainRecord,
+          proof,
+          canonicalHash: hashResult.canonicalHash
+        };
+      },
+      registryTarget
+        ? { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+        : {}
+    );
+
+    // =======================================================================
+    // DESPUES DE TX #1 -- SIN NINGUNA TRANSACCION ABIERTA
+    //
+    // A partir de aca la credencial ESTA EMITIDA y su proof es durable. La
+    // ejecucion en la cadena es best-effort RESPECTO DE LA EMISION: cualquier
+    // fallo deja la credencial emitida y la evidencia en PENDING, recuperable
+    // por reconciliacion.
+    //
+    // No se revierte la credencial a draft, no se borra el proof, no se cambia
+    // el hash canonico y no se elimina el intent. Tampoco se reenvia.
+    // =======================================================================
+    if (registryTarget && preparedAnchor) {
+      try {
+        await this.blockchainRegistrationService.executeRegistration({
+          recordId: result.blockchainRecord.id,
+          credentialHash: result.canonicalHash,
+          target: registryTarget,
+          signer: preparedAnchor.snapshot
+        });
+      } catch {
+        // Silencio DELIBERADO hacia el llamador: la emision tuvo exito y
+        // responder un error haria creer que no. El estado durable
+        // -- credencial emitida + evidencia PENDING -- ES la respuesta, y es
+        // lo que un reconciliador o un operador puede retomar. Tampoco se
+        // loguea el error crudo: podria arrastrar el endpoint del RPC.
+        void 0;
+      }
+    }
+
+    // La fila de evidencia se relee para que la respuesta refleje el estado
+    // REAL tras el ciclo de vida: `registered` si la cadena confirmo,
+    // `pending` si quedo por reconciliar.
+    const evidenceRecord =
+      (await this.prisma.blockchainRecord.findUnique({
+        where: { id: result.blockchainRecord.id }
+      })) ?? result.blockchainRecord;
 
     return this.toCredentialSummaryResponse(
       {
         ...result.updatedCredential,
-        blockchainRecords: [result.blockchainRecord]
+        blockchainRecords: [evidenceRecord]
       },
       {
         issuerDid: preparedSigner.issuerDid,
@@ -614,7 +746,7 @@ export class CredentialsService {
       blockchainRecordId: latestBlockchainRecord?.id,
       blockchainStatus: latestBlockchainRecord?.status,
       network: latestBlockchainRecord?.network,
-      registeredAt: latestBlockchainRecord?.registeredAt.toISOString()
+      registeredAt: latestBlockchainRecord?.registeredAt?.toISOString()
     };
   }
 
@@ -679,9 +811,10 @@ export class CredentialsService {
         hashAlgorithm: string;
         canonicalizationVersion: string;
         contractAddress: string;
-        txHash: string;
-        issuerAddress: string;
-        registeredAt: Date;
+        // S8c6: nullables mientras la evidencia esta `pending`.
+        txHash: string | null;
+        issuerAddress: string | null;
+        registeredAt: Date | null;
       }>;
     },
     authenticity?: {
@@ -730,7 +863,8 @@ export class CredentialsService {
             contractAddress: latestBlockchainRecord.contractAddress,
             txHash: latestBlockchainRecord.txHash,
             issuerAddress: latestBlockchainRecord.issuerAddress,
-            registeredAt: latestBlockchainRecord.registeredAt.toISOString()
+            registeredAt:
+              latestBlockchainRecord.registeredAt?.toISOString() ?? null
           }
         : undefined
     };

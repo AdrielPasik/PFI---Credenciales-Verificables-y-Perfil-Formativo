@@ -10,38 +10,35 @@ import { createHash } from 'crypto';
 import {
   type BlockchainTarget,
   type BlockchainTargetEnvironment,
-  type CredentialRegistryTarget,
   resolveBlockchainTarget
 } from './blockchain-target';
 import {
   ANVIL_CHAIN_ID,
   MOCK_REGISTRY_CONTRACT_ADDRESS
 } from './credential-registry-deployment';
-import {
-  type CredentialRegistryPreflight,
-  type CredentialRegistryPreflightProvider
-} from './credential-registry-preflight';
-import {
-  type CredentialRegistrySignerEnvironment,
-  CredentialRegistryWriteClient,
-  createCredentialRegistryWriteClientForTarget
-} from './credential-registry-write-client';
 
 /**
- * Creacion de evidencia de blockchain -- refactorizado en S8c5.
+ * Evidencia de blockchain en modo MOCK -- reducido a eso en S8c6.
  *
- * Lo que cambio: el MODO ya no lleva la red adentro. Antes
- * `credential_registry_anvil` significaba a la vez "usar el registry real" y
- * "esa red es Anvil, chainId 31337", y los dos literales estaban escritos a
- * mano en el cuerpo de la escritura. Ahora el modo solo dice QUE mecanismo se
- * usa, y la red/chainId/contrato/deployment salen de un `BlockchainTarget`
- * validado.
+ * ---------------------------------------------------------------------------
+ * POR QUE YA NO ESCRIBE EN LA CADENA
+ * ---------------------------------------------------------------------------
  *
- * Lo que NO cambio: el ciclo de vida. Esta sigue siendo una escritura
- * sincronica adentro de la transaccion interactiva de Prisma, que es el limite
- * malo que S8a encontro. S8c5 no lo arregla y tampoco lo empeora: no agrega
- * ninguna llamada de red nueva adentro de la transaccion mas alla del preflight
- * que precede a la escritura que ya estaba ahi. El pending/finalize es S8c6.
+ * Hasta S8c5 este servicio tambien hacia la escritura real, y la hacia ADENTRO
+ * de la transaccion interactiva de Prisma que recibe por parametro. Esa es
+ * exactamente la deuda que S8a encontro y que S8c6 elimina: una transaccion de
+ * PostgreSQL abierta durante el RPC y el minado.
+ *
+ * El camino `credential_registry` vive ahora en
+ * `BlockchainRegistrationService`, con intent PENDING durable, escritura
+ * despues del commit y finalizacion en una segunda transaccion corta.
+ *
+ * Lo que queda aca es el modo MOCK, que no tiene I/O externo: su evidencia se
+ * calcula localmente, asi que crearla dentro de una transaccion corta es
+ * correcto y no se la fuerza a pasar por PENDING solo por simetria.
+ *
+ * La autenticidad de la credencial (S8c4) es real en los dos modos: el modo de
+ * evidencia de blockchain es un eje independiente.
  */
 
 interface BlockchainEvidenceInput {
@@ -51,28 +48,29 @@ interface BlockchainEvidenceInput {
   issuerAddress: string;
 }
 
-interface BlockchainEvidenceOverrides {
-  /** Sirve a la vez al target y a la custodia legacy del signer. */
-  environment?: BlockchainTargetEnvironment & CredentialRegistrySignerEnvironment;
-  preflight?: CredentialRegistryPreflight;
-  preflightProvider?: CredentialRegistryPreflightProvider;
-}
-
 @Injectable()
 export class BlockchainEvidenceService {
+  /**
+   * Crea la evidencia MOCK. Se llama dentro de una transaccion corta y no
+   * hace ninguna llamada de red.
+   *
+   * `target` se puede inyectar para que el llamador resuelva la configuracion
+   * UNA sola vez y no haya dos resoluciones que puedan divergir.
+   */
   async createRecord(
     transaction: Prisma.TransactionClient,
-    input: BlockchainEvidenceInput
+    input: BlockchainEvidenceInput,
+    target: BlockchainTarget = this.resolveTarget()
   ) {
-    // UNA sola resolucion de configuracion, y es LOCAL: no toca la red. Un modo
-    // real incompleto falla cerrado aca, nunca degrada a mock.
-    const target = this.resolveTarget();
-
-    if (target.evidenceMode === 'mock') {
-      return this.createMockRecord(transaction, input);
+    if (target.evidenceMode !== 'mock') {
+      // Camino real: no es de este servicio. Un llamador que llegue aca con un
+      // target de registry esta usando el ciclo de vida equivocado.
+      throw new Error(
+        'La evidencia de credential_registry se crea a traves del ciclo de vida de registracion.'
+      );
     }
 
-    return this.createCredentialRegistryRecord(transaction, input, target);
+    return this.createMockRecord(transaction, input);
   }
 
   private async createMockRecord(
@@ -88,6 +86,10 @@ export class BlockchainEvidenceService {
     // reconocen `isMockBlockchainRecord` y la reconciliacion. No se toca: es lo
     // que impide que la revocacion intente mutar una cadena que no existe.
     // `evidenceMode` lo hace explicito ademas de implicito.
+    //
+    // Los tres campos que S8c6 volvio nullable se siguen poblando aca: la
+    // semantica mock estaba congelada y no se la degrada para parecerse al
+    // ciclo de vida real.
     return transaction.blockchainRecord.create({
       data: {
         credentialId: input.credentialId,
@@ -106,110 +108,16 @@ export class BlockchainEvidenceService {
     });
   }
 
-  private async createCredentialRegistryRecord(
-    transaction: Prisma.TransactionClient,
-    input: BlockchainEvidenceInput,
-    target: CredentialRegistryTarget
-  ) {
-    if (!input.credentialHash) {
-      throw new Error(
-        'credentialHash es requerido para registrar evidencia en CredentialRegistry.'
-      );
-    }
-
-    let transactionResult;
-
-    try {
-      // El preflight (cadena esperada + codigo del contrato) corre adentro del
-      // write client, antes de pedirle la transaccion al contrato.
-      transactionResult = await this.createWriteClient(
-        target
-      ).registerCredential(input.credentialHash);
-    } catch (error) {
-      // No se arrastra el error crudo: podria traer la URL del RPC con su
-      // credencial adentro. Se preserva el error tipado y seguro del target y
-      // se descarta cualquier otro detalle.
-      throw this.toSafeRegistryWriteError(error);
-    }
-
-    if (transactionResult.status !== 'success') {
-      throw new Error(
-        'La transaccion de CredentialRegistry no fue exitosa para la credencial solicitada.'
-      );
-    }
-
-    // PROCEDENCIA desde el target VALIDADO, no desde literales. Un hash anclado
-    // en Base Sepolia queda registrado como base_sepolia/84532, y nunca como
-    // anvil/31337.
-    return transaction.blockchainRecord.create({
-      data: {
-        credentialId: input.credentialId,
-        credentialHash: input.credentialHash,
-        hashAlgorithm: 'sha-256',
-        canonicalizationVersion: input.canonicalizationVersion,
-        network: target.network,
-        chainId: target.chainId,
-        contractAddress: target.contractAddress,
-        txHash: transactionResult.transactionHash,
-        issuerAddress: transactionResult.from ?? input.issuerAddress,
-        registeredAt: new Date(),
-        status: BlockchainRecordStatus.registered,
-        evidenceMode: BlockchainEvidenceMode.credential_registry,
-        deploymentId: target.deploymentId
-      }
-    });
-  }
-
   private createMockTransactionHash(credentialId: string, credentialHash: string) {
     return `0x${createHash('sha256')
       .update(`mock-tx:${credentialId}:${credentialHash}`, 'utf8')
       .digest('hex')}`;
   }
 
-  /**
-   * Punto de extension para tests: devuelve el cliente de escritura real para
-   * un target ya validado. Ningun test de S8c5 llega a la red -- los dobles
-   * sustituyen este metodo o inyectan `preflightProvider`.
-   */
-  protected createWriteClient(
-    target: CredentialRegistryTarget
-  ): CredentialRegistryWriteClient {
-    return createCredentialRegistryWriteClientForTarget(
-      target,
-      this.overrides().environment ?? process.env,
-      {
-        preflight: this.overrides().preflight,
-        preflightProvider: this.overrides().preflightProvider
-      }
-    );
-  }
-
-  /** Sobrescribible en tests; en produccion no aporta nada. */
-  protected overrides(): BlockchainEvidenceOverrides {
-    return {};
-  }
-
-  private resolveTarget(): BlockchainTarget {
-    return resolveBlockchainTarget(
-      this.overrides().environment ?? process.env
-    );
-  }
-
-  /**
-   * Reduce cualquier fallo de escritura a un error seguro.
-   *
-   * Un `BlockchainTargetError` ya tiene mensaje fijo y pasa tal cual: es lo que
-   * distingue "cadena equivocada" de "sin contrato" de "RPC caido". Cualquier
-   * otro error se reemplaza por un mensaje fijo, porque un error de ethers
-   * puede contener el endpoint completo.
-   */
-  private toSafeRegistryWriteError(error: unknown): Error {
-    if (error instanceof Error && error.name === 'BlockchainTargetError') {
-      return error;
-    }
-
-    return new Error(
-      'No se pudo registrar el hash on-chain en CredentialRegistry.'
-    );
+  /** Resolucion LOCAL de configuracion. No toca la red. */
+  resolveTarget(
+    environment: BlockchainTargetEnvironment = process.env
+  ): BlockchainTarget {
+    return resolveBlockchainTarget(environment);
   }
 }

@@ -225,6 +225,18 @@ function createDraftService(options?: {
       {
         prepareAssertionSigner: FORBIDDEN_DURING_DRAFT('prepareAssertionSigner'),
         createProof: FORBIDDEN_DURING_DRAFT('createProof')
+      } as never,
+      // S8c6: tampoco resuelve el signer de ANCLAJE ni crea intents.
+      {
+        prepareAnchorSigner: FORBIDDEN_DURING_DRAFT('prepareAnchorSigner'),
+        revalidateAnchorBinding: FORBIDDEN_DURING_DRAFT(
+          'revalidateAnchorBinding'
+        ),
+        deriveAnchorRegistrantScope: FORBIDDEN_DURING_DRAFT(
+          'deriveAnchorRegistrantScope'
+        ),
+        createPendingIntent: FORBIDDEN_DURING_DRAFT('createPendingIntent'),
+        executeRegistration: FORBIDDEN_DURING_DRAFT('executeRegistration')
       } as never
     ),
     authorizationCalls,
@@ -612,8 +624,12 @@ function createService(options?: {
   const anchorResolverCalls: string[] = [];
   const signMessageInputs: unknown[] = [];
   const updateCalls: Array<Record<string, unknown>> = [];
+  const targetResolutions: string[] = [];
+  const anchorResolutions: string[] = [];
   const operationOrder: string[] = [];
   let subjectUserState = { ...credential.subjectUser };
+
+  let createdBlockchainRecord: Record<string, unknown> | null = null;
 
   const signerWallet = new Wallet(
     options?.signerPrivateKey ?? PUBLIC_TEST_KEY_ONE.privateKey
@@ -730,6 +746,13 @@ function createService(options?: {
         return credential;
       }
     },
+    blockchainRecord: {
+      // S8c6: relectura de la fila de evidencia DESPUES de TX #1, para que la
+      // respuesta refleje el estado durable real.
+      async findUnique() {
+        return createdBlockchainRecord;
+      }
+    },
     issuerTechnicalIdentity: {
       async findUnique(args: Record<string, unknown>) {
         operationOrder.push('technical_identity_lookup');
@@ -801,6 +824,12 @@ function createService(options?: {
   };
 
   const blockchainEvidenceService = {
+    // S8c6: el llamador resuelve el target UNA sola vez y decide la forma del
+    // ciclo de vida. Este arnes queda en modo MOCK, que es el camino sin red.
+    resolveTarget() {
+      targetResolutions.push('mock');
+      return { evidenceMode: 'mock' as const };
+    },
     async createRecord(
       _transaction: unknown,
       payload: Record<string, unknown>
@@ -812,7 +841,7 @@ function createService(options?: {
         throw options.blockchainError;
       }
 
-      return {
+      const record: Record<string, unknown> = {
         id: 'blockchain-record-1',
         network: 'anvil',
         chainId: 31337,
@@ -825,6 +854,31 @@ function createService(options?: {
         issuerAddress: payload.issuerAddress,
         registeredAt: new Date('2026-07-22T18:00:00Z')
       };
+
+      createdBlockchainRecord = record;
+      return record;
+    }
+  };
+
+  // S8c6: en modo MOCK el ciclo de vida real no se toca. El doble falla
+  // ruidoso si alguien intenta resolver un ancla, crear un intent pendiente o
+  // escribir en la cadena desde una emision mock.
+  const blockchainRegistrationService = {
+    async prepareAnchorSigner(issuerId: string) {
+      anchorResolutions.push(issuerId);
+      throw new Error('una emision mock no debe resolver el signer de anclaje');
+    },
+    async revalidateAnchorBinding() {
+      throw new Error('una emision mock no revalida binding de anclaje');
+    },
+    async deriveAnchorRegistrantScope() {
+      throw new Error('una emision mock no deriva alcance de registrante');
+    },
+    async createPendingIntent() {
+      throw new Error('una emision mock no crea intent pendiente');
+    },
+    async executeRegistration() {
+      throw new Error('una emision mock no escribe en la cadena');
     }
   };
 
@@ -834,7 +888,8 @@ function createService(options?: {
       issuersService as never,
       blockchainEvidenceService as never,
       credentialHashingService as never,
-      new CredentialProofService(signerResolver as never)
+      new CredentialProofService(signerResolver as never),
+      blockchainRegistrationService as never
     ),
     issueMembershipCalls,
     issuerEligibilityCalls,
@@ -847,6 +902,8 @@ function createService(options?: {
     anchorResolverCalls,
     signMessageInputs,
     updateCalls,
+    targetResolutions,
+    anchorResolutions,
     operationOrder,
     signerAddress: signerWallet.address,
     getSubjectUserState: () => subjectUserState
