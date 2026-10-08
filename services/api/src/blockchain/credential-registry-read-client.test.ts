@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import { BlockchainNetwork } from '@prisma/client';
 
+import { CredentialRegistryPreflight } from './credential-registry-preflight';
 import {
   CredentialRegistryReadClient,
   normalizeCredentialRegistryStatus,
@@ -316,3 +319,212 @@ function createRecordBoundClient(networkProvider: {
     networkProvider
   });
 }
+
+// ---------------------------------------------------------------------------
+// S8c7, ADDENDUM B: UN SOLO PROVIDER POR EVALUACION
+// ---------------------------------------------------------------------------
+
+test('addendum B: el preflight y la lectura usan EL MISMO objeto provider', async () => {
+  // Hasta S8c6 este cliente creaba DOS providers: uno para validar cadena y
+  // codigo, y otro para la llamada al contrato. Validar un camino y observar
+  // por otro vacia de sentido la validacion.
+  const providersCreated: unknown[] = [];
+  const preflightProviders: unknown[] = [];
+  const readerProviders: unknown[] = [];
+
+  const client = new CredentialRegistryReadClient({
+    createProvider: () => {
+      const provider = {
+        async getNetwork() {
+          return { chainId: 31337n };
+        },
+        async getCode() {
+          return '0x60006000';
+        }
+      };
+      providersCreated.push(provider);
+      return provider;
+    },
+    preflight: new (class extends CredentialRegistryPreflight {
+      override async assertWritable(target: never, provider?: never) {
+        preflightProviders.push(provider);
+        return super.assertWritable(target, provider);
+      }
+    })(),
+    createContractReaderOnProvider: (_target, provider) => {
+      readerProviders.push(provider);
+      return {
+        async getCredentialStatus() {
+          return {
+            exists: true,
+            revoked: false,
+            issuer: VALID_ADDRESS,
+            registeredAt: 123n,
+            revokedAt: 0n
+          };
+        }
+      };
+    }
+  });
+
+  const result = await client.readTargetBoundCredentialState({
+    target: deployment(),
+    credentialHash: VALID_HASH,
+    expectedRegistrant: VALID_ADDRESS
+  } as never);
+
+  assert.equal(result.kind, 'credential_state');
+
+  // UNA sola construccion...
+  assert.equal(providersCreated.length, 1);
+  // ...y el MISMO objeto en las dos etapas.
+  assert.equal(preflightProviders.length, 1);
+  assert.equal(readerProviders.length, 1);
+  assert.equal(preflightProviders[0], providersCreated[0]);
+  assert.equal(readerProviders[0], providersCreated[0]);
+  assert.equal(preflightProviders[0], readerProviders[0]);
+});
+
+test('addendum B: el orden es preflight -> lectura, nunca al revés', async () => {
+  const order: string[] = [];
+
+  const client = new CredentialRegistryReadClient({
+    createProvider: () => ({
+      async getNetwork() {
+        order.push('getNetwork');
+        return { chainId: 31337n };
+      },
+      async getCode() {
+        order.push('getCode');
+        return '0x60006000';
+      }
+    }),
+    createContractReaderOnProvider: () => ({
+      async getCredentialStatus() {
+        order.push('getCredentialStatus');
+        return {
+          exists: true,
+          revoked: false,
+          issuer: VALID_ADDRESS,
+          registeredAt: 123n,
+          revokedAt: 0n
+        };
+      }
+    })
+  });
+
+  await client.readTargetBoundCredentialState({
+    target: deployment(),
+    credentialHash: VALID_HASH,
+    expectedRegistrant: VALID_ADDRESS
+  } as never);
+
+  assert.deepEqual(order, ['getNetwork', 'getCode', 'getCredentialStatus']);
+});
+
+test('S8c7: si el preflight falla NO se lee el contrato', async () => {
+  const cases: Array<[string, () => Promise<{ chainId: bigint }>, () => Promise<string>, string]> = [
+    [
+      'otra cadena',
+      async () => ({ chainId: 84532n }),
+      async () => '0x60006000',
+      'rpc_chain_id_mismatch'
+    ],
+    [
+      'sin codigo',
+      async () => ({ chainId: 31337n }),
+      async () => '0x',
+      'contract_code_missing'
+    ],
+    [
+      'getNetwork lanza',
+      async () => {
+        throw new Error('https://secreto.example/API_KEY no responde');
+      },
+      async () => '0x60006000',
+      'rpc_unavailable'
+    ],
+    [
+      'getCode lanza',
+      async () => ({ chainId: 31337n }),
+      async () => {
+        throw new Error('https://secreto.example/API_KEY no responde');
+      },
+      'rpc_unavailable'
+    ]
+  ];
+
+  for (const [label, getNetwork, getCode, expected] of cases) {
+    let contractReads = 0;
+
+    const client = new CredentialRegistryReadClient({
+      createProvider: () => ({ getNetwork, getCode }),
+      createContractReaderOnProvider: () => ({
+        async getCredentialStatus() {
+          contractReads += 1;
+          throw new Error('no deberia leerse el contrato');
+        }
+      })
+    });
+
+    const result = await client.readTargetBoundCredentialState({
+      target: deployment(),
+      credentialHash: VALID_HASH,
+      expectedRegistrant: VALID_ADDRESS
+    } as never);
+
+    assert.equal(result.kind, expected, label);
+    assert.equal(contractReads, 0, `${label}: cero lecturas de contrato`);
+    // El endpoint y su credencial nunca viajan en el resultado.
+    assert.ok(!JSON.stringify(result).includes('secreto.example'), label);
+    assert.ok(!JSON.stringify(result).includes('API_KEY'), label);
+  }
+});
+
+test('S8c7: el registrante esperado se pasa EXPLICITO, no se saca del record', async () => {
+  // El cliente de lectura no consulta Prisma y no elige identidades: la
+  // procedencia la decide quien conoce el record.
+  const client = new CredentialRegistryReadClient({
+    networkProvider: workingProvider(),
+    contractReader: {
+      async getCredentialStatus() {
+        return {
+          exists: true,
+          revoked: false,
+          issuer: VALID_ADDRESS,
+          registeredAt: 123n,
+          revokedAt: 0n
+        };
+      }
+    }
+  });
+
+  const matching = await client.readTargetBoundCredentialState({
+    target: deployment(),
+    credentialHash: VALID_HASH,
+    expectedRegistrant: VALID_ADDRESS
+  } as never);
+  assert.equal(matching.kind, 'credential_state');
+
+  const mismatching = await client.readTargetBoundCredentialState({
+    target: deployment(),
+    credentialHash: VALID_HASH,
+    expectedRegistrant: '0x1111111111111111111111111111111111111111'
+  } as never);
+  assert.equal(mismatching.kind, 'credential_issuer_mismatch');
+
+  // Sobre el codigo EJECUTABLE: los comentarios del cliente nombran a proposito
+  // la procedencia que NO resuelven, para explicar de quien es esa decision.
+  const source = readFileSync(
+    join(__dirname, 'credential-registry-read-client.ts'),
+    'utf8'
+  )
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('//'))
+    .join('\n');
+
+  assert.ok(!source.includes('PrismaService'));
+  assert.ok(!source.includes('anchorSignerProfile'));
+  assert.ok(!source.includes('issuerTechnicalIdentity'));
+});

@@ -86,7 +86,23 @@ const DEPLOYED_CODE_PATTERN = /^0x(?:[0-9a-fA-F]{2})+$/;
 export function createCredentialRegistryProvider(
   target: CredentialRegistryTarget
 ): JsonRpcProvider {
-  const request = new FetchRequest(target.rpcUrl);
+  return createCredentialRegistryProviderForRpcUrl(target.rpcUrl);
+}
+
+/**
+ * La construccion propiamente dicha, por endpoint.
+ *
+ * S8c7 la expone aparte para que la LECTURA del registry -- que tiene el
+ * endpoint pero no siempre un target completo -- use esta misma construccion en
+ * vez de un `new JsonRpcProvider(url)` sin timeout. Es un extract sin ningun
+ * cambio de comportamiento: `createCredentialRegistryProvider` sigue siendo la
+ * puerta para un target validado, y sigue siendo imposible construir un
+ * provider en modo mock a traves de ella.
+ */
+export function createCredentialRegistryProviderForRpcUrl(
+  rpcUrl: string
+): JsonRpcProvider {
+  const request = new FetchRequest(rpcUrl);
   request.timeout = CREDENTIAL_REGISTRY_RPC_TIMEOUT_MS;
 
   // Se pasa SOLO la request. Fijar `staticNetwork` haria que `getNetwork()`

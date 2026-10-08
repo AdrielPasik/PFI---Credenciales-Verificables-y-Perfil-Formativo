@@ -459,15 +459,40 @@ test('el camino legacy de anclaje queda intacto y sigue siendo el activo', () =>
 });
 
 // ---------------------------------------------------------------------------
-// S8c7 NO EMPIEZA ACA
+// LA VERIFICACION VIVE EN SU PROPIO PLANO
 // ---------------------------------------------------------------------------
 
-test('no se implementa verificacion de proofs en produccion', () => {
+test('la verificacion de proofs ocurre SOLO en el verificador de S8c7', () => {
+  // Hasta S8c6 este guard decia "no se implementa verificacion de proofs
+  // todavia: eso es S8c7". S8c7 la implemento, asi que la afirmacion se
+  // actualiza en vez de quedar probando algo que ya no es cierto.
+  //
+  // Lo que se conserva -- y es lo que realmente importaba -- es la separacion
+  // de planos: el plano de EMISION construye proofs y no los verifica, y el
+  // unico lugar del codigo de produccion que recupera una direccion de una
+  // firma es el verificador publico.
+  const ALLOWED = ['credential-authenticity.verifier.ts'];
+  const offenders: string[] = [];
+
   for (const file of productionSources()) {
+    for (const token of ['verifyMessage', 'recoverAddress', 'Signature.from']) {
+      if (file.code.includes(token) && !ALLOWED.includes(file.name)) {
+        offenders.push(`${file.name}:${token}`);
+      }
+    }
+  }
+
+  assert.deepEqual(offenders, []);
+
+  // Y el plano de emision sigue sin verificar nada.
+  for (const file of [
+    ...proofSources(),
+    { name: ISSUANCE_SOURCE, code: executableCode(read(ISSUANCE_SOURCE)) }
+  ]) {
     for (const token of ['verifyMessage', 'recoverAddress', 'Signature.from']) {
       assert.ok(
         !file.code.includes(token),
-        `${file.name} no debe verificar proofs todavia: eso es S8c7`
+        `${file.name} construye proofs, no los verifica`
       );
     }
   }

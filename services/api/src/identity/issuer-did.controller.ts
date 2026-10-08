@@ -6,16 +6,9 @@ import {
   NotFoundException,
   Param
 } from '@nestjs/common';
-import { SignerProfilePurpose, SignerProfileStatus } from '@prisma/client';
 
-import { PrismaService } from '../prisma/prisma.service';
-import { isDidForIssuerPath } from './did-web-issuer';
 import { type IssuerDidDocumentResponseDto } from './dto/issuer-did-document-response.dto';
-import {
-  buildIssuerDidDocument,
-  IssuerDidDocumentError,
-  type IssuerAssertionKeyInput
-} from './issuer-did-document.builder';
+import { IssuerDidDocumentResolver } from './issuer-did-document.resolver';
 
 /**
  * Resolver publico del DID del issuer -- S8c3.
@@ -26,9 +19,9 @@ import {
  * sin membership, sin sesion, sin wallet y sin provider de blockchain.
  *
  * SIN ACCESO A SECRETOS. El documento se construye exclusivamente con metadata
- * PUBLICA persistida. Este archivo no importa -- y un guard estructural lo
- * congela -- `IssuerSignerResolver`, `SignerSecretStore`, `SSMClient`,
- * `secretRef`, `Wallet` ni nada relacionado con claves privadas.
+ * PUBLICA persistida. Ni este archivo ni el resolver importan -- y un guard
+ * estructural lo congela -- `IssuerSignerResolver`, `SignerSecretStore`,
+ * `SSMClient`, `secretRef`, `Wallet` ni nada relacionado con claves privadas.
  *
  * SEPARACION DE PLANOS. Este endpoint responde "que clave(s) publica(s) de
  * asercion publica esta identidad tecnica". NO responde "puede este issuer
@@ -39,10 +32,28 @@ import {
  * credential emitida historicamente puede seguir necesitando su clave de
  * asercion despues de que la identidad quede `disabled` o
  * `rotation_required`. Publicar identidad != permiso de emitir.
+ *
+ * ---------------------------------------------------------------------------
+ * S8c7: LA RESOLUCION VIVE EN UN SERVICIO
+ * ---------------------------------------------------------------------------
+ *
+ * La consulta, la politica de publicacion por estado y la construccion del
+ * documento se movieron a `IssuerDidDocumentResolver`, para que el verificador
+ * publico de credentials obtenga el documento por la MISMA implementacion y no
+ * por un HTTP a esta propia API.
+ *
+ * Este controller queda como lo que es: la proyeccion HTTP. El mapeo de
+ * resultados a status es EXACTAMENTE el de antes --
+ *
+ *   not_resolvable              -> 404
+ *   inconsistent_configuration  -> 500
+ *   resolved                    -> 200 + el mismo cuerpo
+ *
+ * -- y los headers no cambian.
  */
 @Controller('did/issuers')
 export class IssuerDidController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly resolver: IssuerDidDocumentResolver) {}
 
   @Get(':issuerId/did.json')
   // `application/did+ld+json`: el documento lleva @context y es la
@@ -51,123 +62,25 @@ export class IssuerDidController {
   @Header('Content-Type', 'application/did+ld+json')
   // `no-store` conservador: si un SignerProfile pasa a `compromised`, su clave
   // tiene que dejar de publicarse YA. Una cache HTTP o un CDN intermedio no
-  // deben poder postergar esa transicion. Una politica de cache/revalidacion
-  // mas fina es asunto de verificacion (S8c7) o de una slice de deployment.
+  // deben poder postergar esa transicion. S8c7 aplica el mismo criterio a la
+  // verificacion publica de credentials, por la misma razon.
   @Header('Cache-Control', 'no-store')
   async getIssuerDidDocument(
     @Param('issuerId') issuerId: string
   ): Promise<IssuerDidDocumentResponseDto> {
-    if (typeof issuerId !== 'string' || issuerId.trim().length === 0) {
+    const resolution = await this.resolver.resolveForIssuer(issuerId);
+
+    if (resolution.kind === 'not_resolvable') {
       throw notResolvable();
     }
 
-    const technicalIdentity =
-      await this.prisma.issuerTechnicalIdentity.findUnique({
-        where: { issuerId },
-        // SELECT ANGOSTO, solo material PUBLICO. En particular NO pide
-        // `secretRef`, ni `custody`, ni `anchorSignerProfile`, ni nada de
-        // `Issuer` (ni `did` legacy ni `walletAddress`), ni User, ni
-        // membership, ni credentials.
-        select: {
-          did: true,
-          assertionSignerProfile: {
-            select: {
-              purpose: true,
-              status: true,
-              keyVersion: true,
-              publicKeyX: true,
-              publicKeyY: true,
-              publicKeyCompressed: true
-            }
-          }
-        }
-      });
-
-    // Sin identidad tecnica no hay DID de issuer. NO se cae a `Issuer.did`
-    // legacy: un `did:example:` nunca se sirve como el DID publico nuevo.
-    if (!technicalIdentity) {
-      throw notResolvable();
-    }
-
-    const storedDid = technicalIdentity.did;
-
-    // El DID ALMACENADO es la autoridad: no se regenera desde
-    // issuerId + configuracion actual en cada request, porque el DID es
-    // identidad persistente y no un render de la configuracion vigente.
-    //
-    // Pero si lo persistido no es exactamente un did:web de issuer para ESTE
-    // issuerId, se falla cerrado. Nunca se reescribe en silencio y nunca se
-    // devuelve un DID corregido o inventado. Desde afuera esto es
-    // indistinguible de "no configurado", que es justamente la respuesta mas
-    // segura: no revela que existe una identidad tecnica mal configurada.
-    if (!isDidForIssuerPath(storedDid, issuerId)) {
-      throw notResolvable();
-    }
-
-    const assertionKeys = this.resolvePublishableAssertionKeys(
-      technicalIdentity.assertionSignerProfile
-    );
-
-    try {
-      return buildIssuerDidDocument({ did: storedDid, assertionKeys });
-    } catch (error) {
-      // Material publico persistido inconsistente. Es corrupcion interna, no
-      // un 404: la identidad SI esta configurada. Nunca se publica una JWK mal
-      // formada, y el detalle no sale al cliente.
-      if (error instanceof IssuerDidDocumentError) {
-        throw inconsistentConfiguration();
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Semantica de publicacion por estado del perfil, congelada en S8b.1:
-   *
-   *   active      -> se publica la clave de asercion vigente;
-   *   retired     -> se sigue publicando, para que las credentials historicas
-   *                  firmadas con ella puedan seguir verificandose;
-   *   compromised -> NO se publica.
-   *
-   * S8c3 no tiene tabla de historia, asi que el perfil vinculado es el unico
-   * candidato. S8c8 agregara la historia para publicar `#assert-1`,
-   * `#assert-2`... a la vez; el builder ya recibe una lista.
-   */
-  private resolvePublishableAssertionKeys(
-    profile: {
-      purpose: SignerProfilePurpose;
-      status: SignerProfileStatus;
-      keyVersion: number;
-      publicKeyX: string | null;
-      publicKeyY: string | null;
-      publicKeyCompressed: string | null;
-    } | null
-  ): IssuerAssertionKeyInput[] {
-    if (!profile) {
+    if (resolution.kind === 'inconsistent_configuration') {
+      // La identidad SI esta configurada, asi que no es un 404. Nunca se
+      // publica una JWK mal formada, y el detalle no sale al cliente.
       throw inconsistentConfiguration();
     }
 
-    // Un anchor jamas se publica como assertionMethod: el anchor prueba
-    // anclaje, no autoria de la credential. Que la relacion de asercion
-    // apunte a un anchor es corrupcion interna.
-    if (profile.purpose !== SignerProfilePurpose.assertion) {
-      throw inconsistentConfiguration();
-    }
-
-    if (profile.status === SignerProfileStatus.compromised) {
-      // El DID sigue resolviendo; simplemente no publica esta clave. Tampoco
-      // se valida su material: no se va a publicar.
-      return [];
-    }
-
-    return [
-      {
-        keyVersion: profile.keyVersion,
-        publicKeyX: profile.publicKeyX,
-        publicKeyY: profile.publicKeyY,
-        publicKeyCompressed: profile.publicKeyCompressed
-      }
-    ];
+    return resolution.document;
   }
 }
 

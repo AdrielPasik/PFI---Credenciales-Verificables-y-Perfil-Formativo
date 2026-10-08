@@ -22,6 +22,7 @@ import {
   PUBLIC_TEST_KEY_TWO
 } from '../signing/__fixtures__/signer-test-keys';
 import { IssuerDidController } from './issuer-did.controller';
+import { IssuerDidDocumentResolver } from './issuer-did-document.resolver';
 
 const ISSUER_A = '3f2a7c18-5b94-4e61-9d0c-8a6f21b4e5d7';
 const ISSUER_B = '44444444-4444-4444-8444-444444444444';
@@ -98,7 +99,9 @@ function createController(
   };
 
   return {
-    controller: new IssuerDidController(prisma as never),
+    controller: new IssuerDidController(
+      new IssuerDidDocumentResolver(prisma as never)
+    ),
     findUniqueCalls
   };
 }

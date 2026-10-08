@@ -19,6 +19,9 @@ const IDENTITY_DIR = __dirname;
 
 const ISSUER_SOURCES = [
   'issuer-did.controller.ts',
+  // S8c7: la resolucion salio del controller y entra en TODOS los guards de
+  // este plano (secretos, logs, self-fetch, escrituras) por este mismo listado.
+  'issuer-did-document.resolver.ts',
   'issuer-did-document.builder.ts',
   'did-web-issuer.ts',
   'dto/issuer-did-document-response.dto.ts'
@@ -193,29 +196,35 @@ test('la resolucion del DID no consulta autorizacion ni readyToIssue', () => {
 });
 
 test('no se exige IssuerTechnicalIdentity.status: identidad != permiso', () => {
-  const controller = executableCode(read('issuer-did.controller.ts'));
+  // S8c7 movio la consulta al resolver; el contrato no cambio.
+  const resolver = executableCode(read('issuer-did-document.resolver.ts'));
 
   // El select pide `status` UNA sola vez, y es el del perfil de firma, que si
   // define publicacion. El de la identidad tecnica ni se consulta.
-  assert.equal((controller.match(/status: true/g) ?? []).length, 1);
-  assert.ok(!controller.includes('IssuerTechnicalIdentityStatus'));
+  assert.equal((resolver.match(/status: true/g) ?? []).length, 1);
+  assert.ok(!resolver.includes('IssuerTechnicalIdentityStatus'));
+
+  // Y el controller ya no consulta nada: solo proyecta a HTTP.
+  const controller = executableCode(read('issuer-did.controller.ts'));
+  assert.ok(!controller.includes('prisma'));
+  assert.ok(!controller.includes('select:'));
 });
 
 test('no hay fallback al Issuer legacy', () => {
-  const controller = executableCode(read('issuer-did.controller.ts'));
-
-  assert.ok(!controller.includes('prisma.issuer.'));
-  assert.ok(!controller.includes('walletAddress'));
-  assert.ok(!controller.includes('did:example'));
+  for (const file of issuerSources()) {
+    assert.ok(!file.code.includes('prisma.issuer.'), file.name);
+    assert.ok(!file.code.includes('walletAddress'), file.name);
+    assert.ok(!file.code.includes('did:example'), file.name);
+  }
 });
 
 // ---------------------------------------------------------------------------
 // FORMA DEL SELECT
 // ---------------------------------------------------------------------------
 
-test('el select del controller pide EXACTAMENTE los campos publicos necesarios', () => {
-  const controller = executableCode(read('issuer-did.controller.ts'));
-  const select = /select: \{([\s\S]*?)\n        \}/.exec(controller);
+test('el select del resolver pide EXACTAMENTE los campos publicos necesarios', () => {
+  const resolver = executableCode(read('issuer-did-document.resolver.ts'));
+  const select = /select: \{([\s\S]*?)\n        \}/.exec(resolver);
   assert.ok(select, 'no se encontro el select');
 
   const fields = [...select[1].matchAll(/(\w+): true/g)].map((m) => m[1]);
@@ -294,8 +303,13 @@ test('los dos controllers estan registrados y son independientes', () => {
   const module = read('identity.module.ts');
 
   assert.match(module, /controllers: \[DidController, IssuerDidController\]/);
-  // Ningun provider: los dos solo necesitan PrismaService, que es @Global.
-  assert.ok(!module.includes('providers:'));
+
+  // S8c7: el UNICO provider del modulo es el resolver del DID Document, y se
+  // exporta para que el verificador publico lo inyecte en vez de hacerle un
+  // HTTP a esta misma API. Nada mas se provee ni se exporta aca.
+  assert.match(module, /providers: \[IssuerDidDocumentResolver\]/);
+  assert.match(module, /exports: \[IssuerDidDocumentResolver\]/);
+  assert.ok(!module.includes('Service'), 'ningun servicio ajeno se provee aca');
 });
 
 test('los namespaces de ruta estan separados', () => {
