@@ -245,10 +245,30 @@ export class CredentialRegistryReadClient
       return { kind: preflightFailureKind(error) };
     }
 
+    return this.readCredentialStateOnProvider({ ...input, provider });
+  }
+
+  /**
+   * Lee el estado del contrato sobre un provider YA VALIDADO -- S8c8.
+   *
+   * Existe para la relectura DENTRO del carril del nonce: el coordinador ya
+   * creo el provider y ya corrio el preflight sobre el, asi que repetir la
+   * validacion seria duplicar trabajo, y crear un provider nuevo romperia
+   * justamente la propiedad del addendum B -- validar un camino y observar por
+   * otro.
+   *
+   * El llamador es responsable de haber autorizado ese provider.
+   */
+  async readCredentialStateOnProvider(input: {
+    target: CredentialRegistryTarget;
+    credentialHash: string;
+    expectedRegistrant: string;
+    provider: CredentialRegistryReadProvider;
+  }): Promise<RecordBoundCredentialRegistryReadResult> {
     let status: NormalizedCredentialRegistryStatus;
     try {
       // El MISMO provider que acaba de autorizarse.
-      const reader = this.resolveContractReader(input.target, provider);
+      const reader = this.resolveContractReader(input.target, input.provider);
       const normalizedHash = validateCredentialHash(input.credentialHash);
       const rawStatus = await reader.getCredentialStatus(normalizedHash);
       status = normalizeCredentialRegistryStatus(normalizedHash, rawStatus);

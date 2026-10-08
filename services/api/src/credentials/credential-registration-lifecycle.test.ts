@@ -43,6 +43,7 @@ import { buildScopeProofV1Envelope } from './scope-proof-v1';
 const ISSUER_ID = 'issuer-1';
 const CREDENTIAL_ID = 'cred-123';
 const ANCHOR_PROFILE_ID = 'anchor-profile-1';
+const ASSERTION_PROFILE_ID = 'assertion-profile-1';
 const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
 const DEPLOYMENT_ID = 'test-base-sepolia-pending-deploy';
 const TECHNICAL_DID = `did:web:api.scopeedu.technology:did:issuers:${ISSUER_ID}`;
@@ -135,6 +136,8 @@ interface WorldOptions {
   anchorResolverError?: unknown;
   anchorProfileStatus?: SignerProfileStatus;
   bindingProfileId?: string;
+  /** S8c8: una rotacion de asercion commiteo durante la emision. */
+  assertionBindingProfileId?: string;
   bindingCount?: number;
   technicalIdentityDid?: string | null;
 }
@@ -179,7 +182,26 @@ function createWorld(options: WorldOptions = {}) {
       }
     },
     issuerTechnicalIdentity: {
-      async findUnique() {
+      async findUnique(args: { select: Record<string, unknown> }) {
+        // S8c8: dentro de TX #1 se revalidan los DOS bindings. Se discrimina
+        // por el select, igual que lo hace Prisma.
+        if ('assertionSignerProfileId' in args.select) {
+          timeline.push('assertion_binding_revalidation');
+          return {
+            did: TECHNICAL_DID,
+            assertionSignerProfileId:
+              options.assertionBindingProfileId ?? ASSERTION_PROFILE_ID,
+            assertionSignerProfile: {
+              id: options.assertionBindingProfileId ?? ASSERTION_PROFILE_ID,
+              purpose: SignerProfilePurpose.assertion,
+              status: SignerProfileStatus.active,
+              addressVerifiedAt: new Date('2026-01-01T00:00:00Z'),
+              address: assertionWallet.address.toLowerCase(),
+              keyVersion: 1
+            }
+          };
+        }
+
         timeline.push('anchor_binding_revalidation');
         return {
           anchorSignerProfileId: options.bindingProfileId ?? ANCHOR_PROFILE_ID,
@@ -437,6 +459,9 @@ test('la linea de tiempo del camino feliz es la congelada por S8c6', async () =>
       'anchor_signer_resolution',
       'tx_start',
       'final_row_read',
+      // S8c8: el binding de ASERCION se revalida primero -- la autoria no
+      // depende de la blockchain -- y despues el de ANCLAJE.
+      'assertion_binding_revalidation',
       'anchor_binding_revalidation',
       'anchor_scope_count',
       'credential_update',

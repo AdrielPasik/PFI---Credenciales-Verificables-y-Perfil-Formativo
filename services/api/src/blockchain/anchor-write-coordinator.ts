@@ -11,11 +11,13 @@ import {
   createCredentialRegistryProvider
 } from './credential-registry-preflight';
 import {
+  type CredentialEvidenceSelection,
   type CredentialRegisteredEvidence,
   type CredentialRegistryLog,
   isCanonicalTransactionHash,
   isValidBlockNumber,
   selectCredentialRegisteredEvidence,
+  selectCredentialRevokedEvidence,
   toSafeUnixSeconds,
   unixSecondsToDate
 } from './credential-registry-events';
@@ -83,6 +85,32 @@ import {
  * El cerrojo es DE PROCESO, igual que la cola: no sobrevive a un reinicio y no
  * coordina replicas. Una politica explicita de recuperacion -- fuera de S8c6
  * -- podra limpiarlo; aca no hay endpoint, ni temporizador, ni tabla de nonces.
+ *
+ * ---------------------------------------------------------------------------
+ * REGISTRAR Y REVOCAR COMPARTEN TODO -- S8c8
+ * ---------------------------------------------------------------------------
+ *
+ * Una registracion y una revocacion firmadas por la MISMA cuenta consumen el
+ * MISMO stream de nonces. Dos colas separadas -- una por operacion -- se
+ * pisarian exactamente igual que no tener ninguna.
+ *
+ * Asi que las dos operaciones comparten la cola, la clave de carril, la cache
+ * de NonceManager, el cerrojo de incertidumbre, el provider y el preflight, y
+ * la politica de ambiguedad de envio. Lo unico que cambia entre ellas es el
+ * metodo del contrato y el evento que se exige en el receipt.
+ *
+ * ---------------------------------------------------------------------------
+ * REVOCAR EXIGE UNA RELECTURA DENTRO DEL CARRIL
+ * ---------------------------------------------------------------------------
+ *
+ * Una lectura de "esta revocada?" hecha ANTES de esperar el carril es apenas
+ * una optimizacion: mientras este intento espera, otra request con el mismo
+ * ancla puede haber revocado ese mismo hash. Serializar no alcanza -- el
+ * segundo intento no debe simplemente ir detras del primero, debe DARSE CUENTA.
+ *
+ * Por eso `revokeCredentialHash` recibe una compuerta que corre DENTRO del
+ * carril, despues del preflight, y recibe el MISMO provider ya validado. Si esa
+ * compuerta observa que el hash ya quedo revocado, no se envia nada.
  */
 
 /** Confirmaciones exigidas al esperar el minado. Sin claims de finalidad. */
@@ -129,7 +157,20 @@ export interface AnchorTransactionResponse {
 /** Cliente de contrato de bajo nivel: conoce target, signer y hash. Nada mas. */
 export interface AnchorRegistryWriter {
   registerCredential(credentialHash: string): Promise<AnchorTransactionResponse>;
+  revokeCredential(credentialHash: string): Promise<AnchorTransactionResponse>;
 }
+
+/** Las dos operaciones de escritura. Comparten carril, nonce y cerrojo. */
+export type AnchorWriteOperation = 'register' | 'revoke';
+
+/**
+ * Resultado de la compuerta de estado de cadena que corre DENTRO del carril.
+ *
+ *   'send'            -> el hash sigue sin revocar: se envia UNA transaccion;
+ *   'already_revoked' -> otra request lo revoco mientras este intento esperaba.
+ *                        CERO envios.
+ */
+export type AnchorRevocationGateDecision = 'send' | 'already_revoked';
 
 /** Evidencia de cadena confiable. Nada aca sale del reloj del servidor. */
 export interface AnchorRegistrationEvidence {
@@ -167,6 +208,16 @@ export type AnchorWriteErrorCode =
   | 'ANCHOR_BLOCK_UNAVAILABLE'
   | 'ANCHOR_LANE_UNCERTAIN';
 
+/** Resultado interno de un intento: se escribio, o la compuerta lo salteo. */
+type AnchorWriteAttemptResult =
+  | { readonly kind: 'written'; readonly evidence: AnchorRegistrationEvidence }
+  | { readonly kind: 'skipped' };
+
+/** Evidencia de una revocacion observada, o la constatacion de que ya estaba. */
+export type AnchorRevocationOutcome =
+  | { readonly kind: 'revoked'; readonly evidence: AnchorRegistrationEvidence }
+  | { readonly kind: 'already_revoked' };
+
 /** Mensajes FIJOS. Nunca se interpola el endpoint, el nonce ni la wallet. */
 const SAFE_MESSAGES: Record<AnchorWriteErrorCode, string> = {
   ANCHOR_SEND_FAILED: 'No se pudo enviar la registracion a la red.',
@@ -185,9 +236,15 @@ export function safeAnchorWriteMessage(code: AnchorWriteErrorCode): string {
   return SAFE_MESSAGES[code];
 }
 
-/** ABI de escritura. Solo el metodo que se usa. */
-const CREDENTIAL_REGISTRY_REGISTER_ABI = [
-  'function registerCredential(bytes32 credentialHash)'
+/**
+ * ABI de escritura. Solo los dos metodos que se usan.
+ *
+ * `revokeCredential` entra en S8c8 por la MISMA cuenta de anclaje: el contrato
+ * solo acepta la revocacion de quien registro el hash.
+ */
+const CREDENTIAL_REGISTRY_WRITE_ABI = [
+  'function registerCredential(bytes32 credentialHash)',
+  'function revokeCredential(bytes32 credentialHash)'
 ] as const;
 
 export interface AnchorWriteDependencies {
@@ -254,9 +311,48 @@ export class AnchorWriteCoordinator {
      */
     assertSignerUsable?: () => Promise<void>;
   }): Promise<AnchorRegistrationEvidence> {
-    return this.enqueue(input.signer.profileId, () =>
-      this.executeSingleAttempt(input)
+    const attempt = await this.enqueue(input.signer.profileId, () =>
+      this.executeSingleAttempt({ ...input, operation: 'register' })
     );
+
+    // Una registracion no pasa compuerta de estado de cadena, asi que no puede
+    // saltearse. El guard existe para que un cambio futuro no devuelva en
+    // silencio evidencia inexistente.
+    if (attempt.kind !== 'written') {
+      throw new AnchorWriteError('ANCHOR_EVIDENCE_INCONSISTENT');
+    }
+
+    return attempt.evidence;
+  }
+
+  /**
+   * Revoca un hash en el MISMO carril que la registracion -- S8c8.
+   *
+   * La clave de carril sigue siendo `profileId`, sin el tipo de operacion: una
+   * registracion y una revocacion del mismo ancla TIENEN que serializar entre
+   * si, porque comparten la cuenta y por lo tanto el nonce.
+   */
+  async revokeCredentialHash(input: {
+    target: CredentialRegistryTarget;
+    signer: AnchorSignerSnapshot;
+    credentialHash: string;
+    assertSignerUsable?: () => Promise<void>;
+    /**
+     * Compuerta de estado de CADENA. Corre dentro del carril, despues del
+     * preflight, con el MISMO provider ya validado. Si decide
+     * `already_revoked`, no se envia ninguna transaccion.
+     */
+    assertChainRevocable?: (
+      provider: AnchorChainProvider
+    ) => Promise<AnchorRevocationGateDecision>;
+  }): Promise<AnchorRevocationOutcome> {
+    const attempt = await this.enqueue(input.signer.profileId, () =>
+      this.executeSingleAttempt({ ...input, operation: 'revoke' })
+    );
+
+    return attempt.kind === 'written'
+      ? { kind: 'revoked', evidence: attempt.evidence }
+      : { kind: 'already_revoked' };
   }
 
   /** Solo lectura: no hay forma de limpiar el cerrojo desde la aplicacion. */
@@ -286,9 +382,13 @@ export class AnchorWriteCoordinator {
     target: CredentialRegistryTarget;
     signer: AnchorSignerSnapshot;
     credentialHash: string;
+    operation: AnchorWriteOperation;
     assertSignerUsable?: () => Promise<void>;
-  }): Promise<AnchorRegistrationEvidence> {
-    const { target, signer, credentialHash } = input;
+    assertChainRevocable?: (
+      provider: AnchorChainProvider
+    ) => Promise<AnchorRevocationGateDecision>;
+  }): Promise<AnchorWriteAttemptResult> {
+    const { target, signer, credentialHash, operation } = input;
     const lane = laneKey(signer.profileId, target.chainId);
 
     // CERROJO: si un envio anterior de este carril quedo ambiguo, no se manda
@@ -311,6 +411,24 @@ export class AnchorWriteCoordinator {
     // en la direccion; se deja propagar tal cual, ya tiene mensaje seguro.
     await this.preflight.assertWritable(target, entry.provider);
 
+    // COMPUERTA DE ESTADO DE CADENA, dentro del carril y despues del preflight.
+    //
+    // Es la diferencia entre serializar y darse cuenta: otra request con el
+    // mismo ancla pudo revocar este mismo hash mientras este intento esperaba,
+    // y en ese caso enviar una segunda revocacion solo lograria que el contrato
+    // revierta con `CredentialAlreadyRevoked` -- gastando gas y un nonce para
+    // aprender algo que ya se podia leer.
+    //
+    // Recibe el MISMO provider que acaba de autorizarse: validar un camino y
+    // observar por otro no probaria nada sobre esta observacion.
+    if (input.assertChainRevocable) {
+      const decision = await input.assertChainRevocable(entry.provider);
+
+      if (decision === 'already_revoked') {
+        return { kind: 'skipped' };
+      }
+    }
+
     const writer = this.createWriter({
       target,
       signer: entry.nonceManager
@@ -322,7 +440,10 @@ export class AnchorWriteCoordinator {
     // limpia el nonce local y el carril queda cerrado para envios posteriores.
     let transaction: AnchorTransactionResponse;
     try {
-      transaction = await writer.registerCredential(credentialHash);
+      transaction =
+        operation === 'register'
+          ? await writer.registerCredential(credentialHash)
+          : await writer.revokeCredential(credentialHash);
     } catch (error) {
       this.uncertainLanes.add(lane);
       throw new AnchorWriteError('ANCHOR_SEND_FAILED', {
@@ -361,6 +482,7 @@ export class AnchorWriteCoordinator {
       target,
       signer,
       credentialHash,
+      operation,
       broadcastHash: transaction.hash
     });
 
@@ -371,10 +493,13 @@ export class AnchorWriteCoordinator {
     );
 
     return {
-      txHash: evidence.txHash,
-      blockNumber: evidence.blockNumber,
-      registrant: evidence.registrant,
-      registeredAt
+      kind: 'written',
+      evidence: {
+        txHash: evidence.txHash,
+        blockNumber: evidence.blockNumber,
+        registrant: evidence.registrant,
+        registeredAt
+      }
     };
   }
 
@@ -391,9 +516,11 @@ export class AnchorWriteCoordinator {
     target: CredentialRegistryTarget;
     signer: AnchorSignerSnapshot;
     credentialHash: string;
+    operation: AnchorWriteOperation;
     broadcastHash: string;
   }): CredentialRegisteredEvidence {
-    const { receipt, target, signer, credentialHash, broadcastHash } = input;
+    const { receipt, target, signer, credentialHash, operation, broadcastHash } =
+      input;
 
     const txHash = receipt.hash ?? broadcastHash;
     if (!isCanonicalTransactionHash(txHash)) {
@@ -412,7 +539,18 @@ export class AnchorWriteCoordinator {
       throw new AnchorWriteError('ANCHOR_EVIDENCE_INCONSISTENT');
     }
 
-    const selection = selectCredentialRegisteredEvidence(receipt.logs ?? [], {
+    // El EVENTO que se exige depende de la operacion: un receipt de revocacion
+    // no lleva `CredentialRegistered`, y aceptar cualquiera de los dos dejaria
+    // pasar un receipt que no describe la operacion que se pidio.
+    const select: (
+      logs: readonly CredentialRegistryLog[],
+      expected: { credentialHash: string; registrant: string }
+    ) => CredentialEvidenceSelection =
+      operation === 'register'
+        ? selectCredentialRegisteredEvidence
+        : selectCredentialRevokedEvidence;
+
+    const selection = select(receipt.logs ?? [], {
       credentialHash,
       registrant: signer.address
     });
@@ -519,13 +657,18 @@ export class AnchorWriteCoordinator {
 
     const contract = new Contract(
       input.target.contractAddress,
-      CREDENTIAL_REGISTRY_REGISTER_ABI as unknown as string[],
+      CREDENTIAL_REGISTRY_WRITE_ABI as unknown as string[],
       input.signer
     );
 
     return {
       async registerCredential(credentialHash: string) {
         return (await contract.registerCredential(
+          credentialHash
+        )) as AnchorTransactionResponse;
+      },
+      async revokeCredential(credentialHash: string) {
+        return (await contract.revokeCredential(
           credentialHash
         )) as AnchorTransactionResponse;
       }

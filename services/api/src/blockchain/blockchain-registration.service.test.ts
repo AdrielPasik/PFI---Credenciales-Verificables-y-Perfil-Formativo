@@ -778,6 +778,11 @@ function createSharedAnchorWorld() {
               };
             }
           };
+        },
+        // S8c8: el contrato de escritura ahora declara las dos operaciones. Esta
+        // prueba es de REGISTRACION, asi que revocar aqui seria un fallo.
+        async revokeCredential() {
+          throw new Error('la registracion no debe revocar');
         }
       })
     }

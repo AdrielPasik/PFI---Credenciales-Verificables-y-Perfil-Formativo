@@ -67,6 +67,33 @@ export const CREDENTIAL_REGISTERED_TOPIC =
   credentialRegistryEventInterface.getEvent(CREDENTIAL_REGISTERED_EVENT_NAME)!
     .topicHash;
 
+/**
+ * Evento de REVOCACION -- S8c8. Tambien copiado literal del contrato.
+ *
+ * Tiene exactamente la misma forma que el de registracion: los dos valores que
+ * hacen falta para correlacionar -- el hash y la cuenta -- estan INDEXADOS, y
+ * `revokedAt` viaja en data como `block.timestamp`.
+ *
+ * Se declara en su propio ABI y su propia Interface en vez de ampliar el de
+ * registracion, para que el test que congela el ABI de S8c6 siga afirmando
+ * exactamente lo que afirmaba. La logica de decodificacion SI se comparte: una
+ * segunda implementacion de la validacion seria la forma de que una de las dos
+ * se quede atras.
+ */
+export const CREDENTIAL_REGISTRY_REVOKED_EVENT_ABI = [
+  'event CredentialRevoked(bytes32 indexed credentialHash, address indexed issuer, uint256 revokedAt)'
+] as const;
+
+export const CREDENTIAL_REVOKED_EVENT_NAME = 'CredentialRevoked';
+
+const credentialRevokedEventInterface = new Interface(
+  CREDENTIAL_REGISTRY_REVOKED_EVENT_ABI as unknown as string[]
+);
+
+export const CREDENTIAL_REVOKED_TOPIC =
+  credentialRevokedEventInterface.getEvent(CREDENTIAL_REVOKED_EVENT_NAME)!
+    .topicHash;
+
 const CANONICAL_HASH_PATTERN = /^0x[0-9a-f]{64}$/;
 
 /** Forma minima de un log, comun al receipt y a `getLogs`. */
@@ -126,18 +153,60 @@ export function buildCredentialRegisteredFilter(
 export function decodeCredentialRegisteredLog(
   log: CredentialRegistryLog
 ): CredentialRegisteredEvidence | null {
+  return decodeCredentialEventLog(log, {
+    eventInterface: credentialRegistryEventInterface,
+    eventName: CREDENTIAL_REGISTERED_EVENT_NAME,
+    topic: CREDENTIAL_REGISTERED_TOPIC,
+    timestampField: 'registeredAt'
+  });
+}
+
+/**
+ * Decodifica UN log de REVOCACION -- S8c8.
+ *
+ * Misma disciplina que la registracion: `null` en vez de lanzar, y procedencia
+ * completa obligatoria. El campo de segundos del evento es `revokedAt`, pero la
+ * forma de la evidencia es identica, asi que se reutiliza la misma estructura
+ * en vez de duplicar un tipo casi igual -- el nombre
+ * `registeredAtSeconds` se lee aqui como "el timestamp que emitio el evento".
+ */
+export function decodeCredentialRevokedLog(
+  log: CredentialRegistryLog
+): CredentialRegisteredEvidence | null {
+  return decodeCredentialEventLog(log, {
+    eventInterface: credentialRevokedEventInterface,
+    eventName: CREDENTIAL_REVOKED_EVENT_NAME,
+    topic: CREDENTIAL_REVOKED_TOPIC,
+    timestampField: 'revokedAt'
+  });
+}
+
+function decodeCredentialEventLog(
+  log: CredentialRegistryLog,
+  event: {
+    eventInterface: Interface;
+    eventName: string;
+    topic: string;
+    /**
+     * Nombre del campo de segundos en ESTE evento. El contrato lo llama
+     * `registeredAt` al registrar y `revokedAt` al revocar; la forma de la
+     * evidencia es la misma, pero el campo decodificado no.
+     */
+    timestampField: 'registeredAt' | 'revokedAt';
+  }
+): CredentialRegisteredEvidence | null {
   if (!Array.isArray(log.topics) || log.topics.length < 3) {
     return null;
   }
 
-  if (log.topics[0] !== CREDENTIAL_REGISTERED_TOPIC) {
+  if (log.topics[0] !== event.topic) {
     return null;
   }
 
   let decoded;
   try {
-    decoded = credentialRegistryEventInterface.decodeEventLog(
-      CREDENTIAL_REGISTERED_EVENT_NAME,
+    decoded = event.eventInterface.decodeEventLog(
+      event.eventName,
       log.data,
       log.topics as string[]
     );
@@ -156,7 +225,9 @@ export function decodeCredentialRegisteredLog(
     return null;
   }
 
-  const registeredAtSeconds = toSafeUnixSeconds(decoded.registeredAt);
+  const registeredAtSeconds = toSafeUnixSeconds(
+    decoded[event.timestampField]
+  );
   if (registeredAtSeconds === null) {
     return null;
   }
@@ -193,6 +264,39 @@ export function decodeCredentialRegisteredLog(
 export function selectCredentialRegisteredEvidence(
   logs: readonly CredentialRegistryLog[],
   expected: { credentialHash: string; registrant: string }
+): CredentialEvidenceSelection {
+  return selectCredentialEventEvidence(
+    logs,
+    expected,
+    decodeCredentialRegisteredLog
+  );
+}
+
+/**
+ * Selecciona la UNICA evidencia de REVOCACION del hash y la cuenta esperados
+ * -- S8c8. Misma disciplina de fallo cerrado que la registracion.
+ */
+export function selectCredentialRevokedEvidence(
+  logs: readonly CredentialRegistryLog[],
+  expected: { credentialHash: string; registrant: string }
+): CredentialEvidenceSelection {
+  return selectCredentialEventEvidence(
+    logs,
+    expected,
+    decodeCredentialRevokedLog
+  );
+}
+
+export type CredentialEvidenceSelection =
+  | { readonly kind: 'single'; readonly evidence: CredentialRegisteredEvidence }
+  | { readonly kind: 'none' }
+  | { readonly kind: 'conflicting' }
+  | { readonly kind: 'unexpected_registrant' };
+
+function selectCredentialEventEvidence(
+  logs: readonly CredentialRegistryLog[],
+  expected: { credentialHash: string; registrant: string },
+  decode: (log: CredentialRegistryLog) => CredentialRegisteredEvidence | null
 ):
   | { readonly kind: 'single'; readonly evidence: CredentialRegisteredEvidence }
   | { readonly kind: 'none' }
@@ -208,7 +312,7 @@ export function selectCredentialRegisteredEvidence(
   }
 
   const decoded = logs
-    .map((log) => decodeCredentialRegisteredLog(log))
+    .map((log) => decode(log))
     .filter((value): value is CredentialRegisteredEvidence => value !== null)
     .filter((value) => value.credentialHash === expectedHash);
 

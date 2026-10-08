@@ -224,12 +224,21 @@ test('no hay fallback al Issuer legacy', () => {
 
 test('el select del resolver pide EXACTAMENTE los campos publicos necesarios', () => {
   const resolver = executableCode(read('issuer-did-document.resolver.ts'));
-  const select = /select: \{([\s\S]*?)\n        \}/.exec(resolver);
-  assert.ok(select, 'no se encontro el select');
 
-  const fields = [...select[1].matchAll(/(\w+): true/g)].map((m) => m[1]);
-  assert.deepEqual(fields.sort(), [
+  // S8c8: el select abarca el PUNTERO VIGENTE mas la HISTORIA de bindings, asi
+  // que se afirma sobre TODOS los campos escalares pedidos en el archivo. Si un
+  // refactor agregara `secretRef`, `custody`, `address`, el anchor o cualquier
+  // otra cosa, este guard falla.
+  const fields = [...resolver.matchAll(/(\w+): true/g)].map((m) => m[1]);
+
+  assert.deepEqual([...new Set(fields)].sort(), [
+    // El puntero vigente, como id: la autoridad de firma nueva no se deriva de
+    // la historia.
+    'assertionSignerProfileId',
     'did',
+    // El id de cada perfil de la historia, para poder comparar contra el
+    // puntero vigente sin volver a consultar.
+    'id',
     'keyVersion',
     'publicKeyCompressed',
     'publicKeyX',
@@ -304,12 +313,34 @@ test('los dos controllers estan registrados y son independientes', () => {
 
   assert.match(module, /controllers: \[DidController, IssuerDidController\]/);
 
-  // S8c7: el UNICO provider del modulo es el resolver del DID Document, y se
-  // exporta para que el verificador publico lo inyecte en vez de hacerle un
-  // HTTP a esta misma API. Nada mas se provee ni se exporta aca.
-  assert.match(module, /providers: \[IssuerDidDocumentResolver\]/);
-  assert.match(module, /exports: \[IssuerDidDocumentResolver\]/);
-  assert.ok(!module.includes('Service'), 'ningun servicio ajeno se provee aca');
+  // S8c7 agrego el resolver del DID Document -- para que el verificador publico
+  // lo inyecte en vez de hacerle un HTTP a esta misma API -- y S8c8 las
+  // primitivas de rotacion. Los DOS se exportan, y nada mas se provee aca.
+  assert.match(
+    module,
+    /providers: \[IssuerDidDocumentResolver, SignerRotationService\]/
+  );
+  assert.match(
+    module,
+    /exports: \[IssuerDidDocumentResolver, SignerRotationService\]/
+  );
+
+  // Y en particular NO entra nada del plano de secretos ni de blockchain: rotar
+  // es una transicion de metadata publica.
+  //
+  // Sobre el codigo EJECUTABLE: el comentario del modulo nombra a proposito lo
+  // que NO importa, justamente para explicar por que.
+  const executable = executableCode(module);
+  for (const forbidden of [
+    'SigningModule',
+    'BlockchainModule',
+    'CredentialsModule',
+    'IssuerSignerResolver',
+    'SignerSecretStore',
+    'AnchorWriteCoordinator'
+  ]) {
+    assert.ok(!executable.includes(forbidden), forbidden);
+  }
 });
 
 test('los namespaces de ruta estan separados', () => {

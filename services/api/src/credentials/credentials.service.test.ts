@@ -13,11 +13,12 @@ import {
   CredentialStatus,
   CredentialType,
   SignerProfilePurpose,
+  SignerProfileStatus,
   UserStatus
 } from '@prisma/client';
 import { Wallet, hashMessage, toUtf8Bytes, verifyMessage } from 'ethers';
 
-import { PUBLIC_TEST_KEY_ONE } from '../signing/__fixtures__/signer-test-keys';
+import { PUBLIC_TEST_KEY_ONE, PUBLIC_TEST_KEY_TWO } from '../signing/__fixtures__/signer-test-keys';
 import { SignerResolutionError } from '../signing/signer-resolution.error';
 import { CreateCredentialDraftDto } from './dto/create-credential-draft.dto';
 import { CredentialHashingService } from './credential-hashing.service';
@@ -611,6 +612,16 @@ function createService(options?: {
   finalRowMissing?: boolean;
   /** La fila deja de estar en draft dentro de la transaccion. */
   finalRowStatus?: CredentialStatus;
+  // S8c8: estado del BINDING DE ASERCION tal como se lee DENTRO de TX #1.
+  /** Una rotacion concurrente movio el puntero vigente a otro perfil. */
+  assertionBindingRotated?: boolean;
+  /** La identidad tecnica desaparecio entre la resolucion y TX #1. */
+  assertionBindingMissing?: boolean;
+  assertionBindingPurpose?: SignerProfilePurpose;
+  assertionBindingStatus?: SignerProfileStatus;
+  assertionBindingAddress?: string;
+  assertionBindingKeyVersion?: number;
+  assertionBindingUnverified?: boolean;
 }) {
   const credential = options?.credential ?? createCredentialFixture();
   const issueMembershipCalls: Array<Record<string, unknown>> = [];
@@ -620,6 +631,7 @@ function createService(options?: {
   const userFindUniqueCalls: Array<Record<string, unknown>> = [];
   const userUpdateManyCalls: Array<Record<string, unknown>> = [];
   const technicalIdentityCalls: Array<Record<string, unknown>> = [];
+  const assertionRevalidationCalls: Array<Record<string, unknown>> = [];
   const resolverCalls: string[] = [];
   const anchorResolverCalls: string[] = [];
   const signMessageInputs: unknown[] = [];
@@ -735,6 +747,60 @@ function createService(options?: {
           canonicalHash: data.canonicalHash,
           canonicalizationVersion: data.canonicalizationVersion,
           proof: data.proof
+        };
+      }
+    },
+    // S8c8: revalidacion del BINDING DE ASERCION dentro de TX #1. Metadata
+    // publica unicamente: ni secreto, ni resolver, ni red.
+    issuerTechnicalIdentity: {
+      async findUnique(args: Record<string, unknown>) {
+        operationOrder.push('assertion_binding_revalidation');
+        assertionRevalidationCalls.push(args);
+
+        if (options?.assertionBindingRotated) {
+          // Una rotacion concurrente commiteo: el puntero vigente ya es otro
+          // perfil.
+          return {
+            did: TECHNICAL_IDENTITY_DID,
+            assertionSignerProfileId: 'signer-profile-assertion-2',
+            assertionSignerProfile: {
+              id: 'signer-profile-assertion-2',
+              purpose: SignerProfilePurpose.assertion,
+              status: SignerProfileStatus.active,
+              address: PUBLIC_TEST_KEY_TWO.addressLowercase,
+              keyVersion: 2,
+              addressVerifiedAt: new Date('2026-01-01T00:00:00.000Z')
+            }
+          };
+        }
+
+        if (options?.assertionBindingMissing) {
+          return null;
+        }
+
+        return {
+          did: TECHNICAL_IDENTITY_DID,
+          assertionSignerProfileId: 'signer-profile-assertion-1',
+          assertionSignerProfile: {
+            id: 'signer-profile-assertion-1',
+            purpose:
+              options?.assertionBindingPurpose ?? SignerProfilePurpose.assertion,
+            status:
+              options?.assertionBindingStatus ?? SignerProfileStatus.active,
+            address:
+              options?.assertionBindingAddress ??
+              signerWallet.address.toLowerCase(),
+            // Por defecto concuerda con el signer resuelto: el caso sano es que
+            // el puntero vigente siga describiendo exactamente esa clave.
+            keyVersion:
+              options?.assertionBindingKeyVersion ??
+              options?.signerKeyVersion ??
+              1,
+            addressVerifiedAt:
+              options?.assertionBindingUnverified === true
+                ? null
+                : new Date('2026-01-01T00:00:00.000Z')
+          }
         };
       }
     }
@@ -898,6 +964,7 @@ function createService(options?: {
     userFindUniqueCalls,
     userUpdateManyCalls,
     technicalIdentityCalls,
+    assertionRevalidationCalls,
     resolverCalls,
     anchorResolverCalls,
     signMessageInputs,
@@ -1857,6 +1924,9 @@ test('38b: la autorizacion ocurre ANTES de resolver el signer y de abrir la tran
     'signer_resolution',
     'transaction_start',
     'final_row_read',
+    // S8c8: el binding de ASERCION se revalida dentro de TX #1, antes de
+    // cualquier mutacion.
+    'assertion_binding_revalidation',
     'credential_update',
     'blockchain_create',
     'transaction_end'

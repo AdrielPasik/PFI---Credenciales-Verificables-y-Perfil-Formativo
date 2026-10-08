@@ -226,9 +226,14 @@ test('la registracion NUEVA no lee CREDENTIAL_REGISTRY_PRIVATE_KEY', () => {
   }
 });
 
-test('la clave legacy sigue viva SOLO en el camino transitorio de revocacion', () => {
-  // S8c6 NO la elimina: la revocacion todavia la usa. S8c8 hace ese cutover.
-  // Esto congela el limite temporal EXACTO en vez de declararla ya removida.
+test('la clave legacy quedo SIN consumidores de runtime', () => {
+  // Hasta S8c6 este guard afirmaba que la revocacion TODAVIA usaba la clave
+  // global, y congelaba ese limite temporal a proposito. S8c8 hizo el cutover,
+  // asi que la afirmacion se actualiza en vez de quedar probando algo que ya no
+  // es cierto.
+  //
+  // Lo que se conserva -- y es lo que de verdad importaba -- es que un solo
+  // archivo la posea.
   const owners = productionSources().filter((file) =>
     file.code.includes('CREDENTIAL_REGISTRY_PRIVATE_KEY')
   );
@@ -244,11 +249,16 @@ test('la clave legacy sigue viva SOLO en el camino transitorio de revocacion', (
       'utf8'
     )
   );
-  assert.match(revocation, /resolveCredentialRegistrySignerAddress/);
-  assert.match(revocation, /createRecordBoundCredentialRegistryWriteClient/);
 
-  // Y la revocacion todavia NO usa el perfil historico: eso es S8c8.
-  assert.ok(!revocation.includes('anchorSignerProfileId'));
+  // La revocacion ya NO firma con la clave global ni con su cliente.
+  assert.ok(!revocation.includes('resolveCredentialRegistrySignerAddress'));
+  assert.ok(!revocation.includes('createRecordBoundCredentialRegistryWriteClient'));
+  assert.ok(!revocation.includes('CREDENTIAL_REGISTRY_PRIVATE_KEY'));
+
+  // Ahora resuelve el ANCHOR HISTORICO que el record congelo, y nunca el
+  // binding vigente del issuer.
+  assert.match(revocation, /record\.anchorSignerProfileId/);
+  assert.match(revocation, /resolveHistoricalAnchorSigner/);
   assert.ok(!revocation.includes('resolveAnchorSignerForIssuer'));
 });
 
@@ -478,9 +488,12 @@ test('S8c6.1: un envio ambiguo no limpia el nonce y cierra el carril', () => {
   assert.ok(!/\.reset\(/.test(coordinator), 'no hay .reset( en el coordinador');
 
   // El carril se marca INCIERTO en el catch del envio...
+  // S8c8: el envio es una de las DOS operaciones, elegidas por `operation`.
+  // Lo que se congela es que el cerrojo esta en el catch de ESE envio, cualquiera
+  // de las dos que sea.
   assert.match(
     attempt,
-    /registerCredential\(credentialHash\);\s*\} catch \(error\) \{\s*this\.uncertainLanes\.add\(lane\);/
+    /await writer\.registerCredential\(credentialHash\)\s*:\s*await writer\.revokeCredential\(credentialHash\);\s*\} catch \(error\) \{\s*this\.uncertainLanes\.add\(lane\);/
   );
 
   // ...y se consulta ANTES del preflight y del envio.

@@ -25,7 +25,8 @@ import test from 'node:test';
 
 import {
   CredentialStatus,
-  SignerProfilePurpose
+  SignerProfilePurpose,
+  SignerProfileStatus
 } from '@prisma/client';
 import { Wallet, toUtf8Bytes, verifyMessage } from 'ethers';
 
@@ -353,6 +354,24 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
     blockchainRecord: {
       async create() {
         throw new Error('este test no ejercita la evidencia de blockchain');
+      }
+    },
+    // S8c8: revalidacion del binding de ASERCION dentro de TX #1, con metadata
+    // publica unicamente.
+    issuerTechnicalIdentity: {
+      async findUnique() {
+        return {
+          did: TECHNICAL_IDENTITY_DID,
+          assertionSignerProfileId: 'signer-profile-assertion-1',
+          assertionSignerProfile: {
+            id: 'signer-profile-assertion-1',
+            purpose: SignerProfilePurpose.assertion,
+            status: SignerProfileStatus.active,
+            address: wallet.address.toLowerCase(),
+            keyVersion: 1,
+            addressVerifiedAt: new Date('2026-01-01T00:00:00.000Z')
+          }
+        };
       }
     }
   };

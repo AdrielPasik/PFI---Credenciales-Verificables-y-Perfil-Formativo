@@ -512,7 +512,17 @@ test('addendum B: preflight y lectura comparten UN provider, sin duplicar logica
   // recibe ESE objeto.
   assert.match(client, /const provider = this\.resolveProvider\(input\.target\);/);
   assert.match(client, /this\.preflight\.assertWritable\(input\.target, provider\)/);
-  assert.match(client, /this\.resolveContractReader\(input\.target, provider\)/);
+  // S8c8 extrajo la lectura a `readCredentialStateOnProvider`, para que la
+  // relectura DENTRO del carril del nonce use el provider que el preflight ya
+  // autorizo en vez de crear uno nuevo. El provider sigue viajando explicito.
+  assert.match(
+    client,
+    /return this\.readCredentialStateOnProvider\(\{ \.\.\.input, provider \}\);/
+  );
+  assert.match(
+    client,
+    /this\.resolveContractReader\(input\.target, input\.provider\)/
+  );
 
   // Ningun `new JsonRpcProvider` propio: la construccion es la de S8c5.
   assert.ok(!client.includes('new JsonRpcProvider'));

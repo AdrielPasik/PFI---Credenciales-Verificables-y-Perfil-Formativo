@@ -30,6 +30,8 @@ const DID_A = `did:web:api.scopeedu.technology:did:issuers:${ISSUER_A}`;
 const DID_B = `did:web:api.scopeedu.technology:did:issuers:${ISSUER_B}`;
 
 interface ProfileFixture {
+  /** Id del perfil. Por defecto el del perfil vigente de la fixture. */
+  id?: string;
   purpose: SignerProfilePurpose;
   status: SignerProfileStatus;
   keyVersion: number;
@@ -38,8 +40,11 @@ interface ProfileFixture {
   publicKeyCompressed: string | null;
 }
 
+const CURRENT_PROFILE_ID = 'assertion-profile-current';
+
 function profile(overrides: Partial<ProfileFixture> = {}): ProfileFixture {
   return {
+    id: CURRENT_PROFILE_ID,
     purpose: SignerProfilePurpose.assertion,
     status: SignerProfileStatus.active,
     keyVersion: 1,
@@ -54,11 +59,23 @@ const FORBIDDEN_WRITE = (name: string) => () => {
   throw new Error(`resolver un DID Document no debe invocar ${name}`);
 };
 
+/**
+ * S8c8: el resolver consulta el PUNTERO VIGENTE mas la HISTORIA de bindings.
+ *
+ * Las fixtures existentes describen un issuer de una sola clave -- el estado
+ * previo a cualquier rotacion -- asi que la historia se sintetiza con ese unico
+ * perfil y el puntero apunta a el. Una fixture puede pasar `history` explicita
+ * para describir un issuer ya rotado.
+ */
 function createController(
   identities: Array<{
     issuerId: string;
     did: string;
     assertionSignerProfile: ProfileFixture | null;
+    /** Historia completa. Si se omite, es `[assertionSignerProfile]`. */
+    history?: ProfileFixture[];
+    /** Puntero vigente. Si se omite, es el id de `assertionSignerProfile`. */
+    currentProfileId?: string;
   }>
 ) {
   const findUniqueCalls: unknown[] = [];
@@ -76,9 +93,19 @@ function createController(
         if (!identity) {
           return null;
         }
+        const current = identity.assertionSignerProfile;
+        const history =
+          identity.history ?? (current ? [current] : []);
+
         return {
           did: identity.did,
-          assertionSignerProfile: identity.assertionSignerProfile
+          assertionSignerProfileId:
+            identity.currentProfileId ?? current?.id ?? CURRENT_PROFILE_ID,
+          issuer: {
+            assertionKeyBindings: history.map((signerProfile) => ({
+              signerProfile
+            }))
+          }
         };
       },
       create: FORBIDDEN_WRITE('issuerTechnicalIdentity.create'),
@@ -144,6 +171,50 @@ test('1: un perfil de asercion activo publica el DID Document exacto', async () 
 });
 
 test('2: un perfil RETIRADO y no comprometido se sigue publicando', async () => {
+  // S8c8: una clave retirada es, por definicion, una clave HISTORICA -- hay
+  // otra vigente. Antes de que existiera la rotacion este test describia un
+  // issuer de una sola clave retirada; ahora describe lo que realmente deja
+  // una rotacion, que es el estado en el que la propiedad importa.
+  const { controller } = createController([
+    {
+      issuerId: ISSUER_A,
+      did: DID_A,
+      assertionSignerProfile: profile({
+        id: 'assertion-profile-2',
+        keyVersion: 2,
+        publicKeyX: PUBLIC_TEST_KEY_TWO.publicKeyX,
+        publicKeyY: PUBLIC_TEST_KEY_TWO.publicKeyY,
+        publicKeyCompressed: PUBLIC_TEST_KEY_TWO.publicKeyCompressed
+      }),
+      history: [
+        profile({ id: 'assertion-profile-1', status: SignerProfileStatus.retired }),
+        profile({
+          id: 'assertion-profile-2',
+          keyVersion: 2,
+          publicKeyX: PUBLIC_TEST_KEY_TWO.publicKeyX,
+          publicKeyY: PUBLIC_TEST_KEY_TWO.publicKeyY,
+          publicKeyCompressed: PUBLIC_TEST_KEY_TWO.publicKeyCompressed
+        })
+      ],
+      currentProfileId: 'assertion-profile-2'
+    }
+  ]);
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  // Las credentials historicas firmadas con la clave retirada tienen que poder
+  // seguir verificandose, asi que #assert-1 sigue publicado junto a #assert-2.
+  assert.equal(document.verificationMethod?.length, 2);
+  assert.deepEqual(document.assertionMethod, [
+    `${DID_A}#assert-1`,
+    `${DID_A}#assert-2`
+  ]);
+});
+
+test('S8c8: una clave VIGENTE retirada es configuracion incoherente', async () => {
+  // `retired` significa "no se elige para operaciones nuevas"; el puntero
+  // vigente significa exactamente lo contrario. No se reactiva, no se rota en
+  // silencio y no se elige otra clave de la historia.
   const { controller } = createController([
     {
       issuerId: ISSUER_A,
@@ -152,12 +223,10 @@ test('2: un perfil RETIRADO y no comprometido se sigue publicando', async () => 
     }
   ]);
 
-  const document = await controller.getIssuerDidDocument(ISSUER_A);
-
-  // Las credentials historicas firmadas con esa clave tienen que poder seguir
-  // verificandose.
-  assert.equal(document.verificationMethod?.length, 1);
-  assert.deepEqual(document.assertionMethod, [`${DID_A}#assert-1`]);
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
 });
 
 test('3: un perfil COMPROMETIDO -> el DID resuelve, pero sin esa clave', async () => {
@@ -416,14 +485,27 @@ test('16/25: el select es angosto y NUNCA pide secretRef', async () => {
     where: { issuerId: ISSUER_A },
     select: {
       did: true,
-      assertionSignerProfile: {
+      // El PUNTERO VIGENTE, como id: la autoridad de firma nueva no se deriva
+      // de la historia.
+      assertionSignerProfileId: true,
+      // Y la HISTORIA, con metadata PUBLICA unicamente.
+      issuer: {
         select: {
-          purpose: true,
-          status: true,
-          keyVersion: true,
-          publicKeyX: true,
-          publicKeyY: true,
-          publicKeyCompressed: true
+          assertionKeyBindings: {
+            select: {
+              signerProfile: {
+                select: {
+                  id: true,
+                  purpose: true,
+                  status: true,
+                  keyVersion: true,
+                  publicKeyX: true,
+                  publicKeyY: true,
+                  publicKeyCompressed: true
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -517,4 +599,284 @@ test('el estado de la identidad tecnica NO condiciona la resolucion del DID', as
   // El unico `status` pedido es el del perfil de firma, que si define
   // publicacion.
   assert.equal((serialized.match(/"status":true/g) ?? []).length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// S8c8: HISTORIA DE CLAVES DE ASERCION -- items 5-20, A6-A8
+// ---------------------------------------------------------------------------
+
+const P1 = 'assertion-profile-1';
+const P2 = 'assertion-profile-2';
+const P3 = 'assertion-profile-3';
+
+/** Perfil de la historia, con la clave publica del escalar que corresponda. */
+function historical(
+  id: string,
+  keyVersion: number,
+  overrides: Partial<ProfileFixture> = {}
+): ProfileFixture {
+  const key = keyVersion % 2 === 1 ? PUBLIC_TEST_KEY_ONE : PUBLIC_TEST_KEY_TWO;
+
+  return {
+    id,
+    purpose: SignerProfilePurpose.assertion,
+    status: SignerProfileStatus.active,
+    keyVersion,
+    publicKeyX: key.publicKeyX,
+    publicKeyY: key.publicKeyY,
+    publicKeyCompressed: key.publicKeyCompressed,
+    ...overrides
+  };
+}
+
+function rotatedIssuer(history: ProfileFixture[], currentProfileId: string) {
+  const current = history.find((profile) => profile.id === currentProfileId);
+
+  return createController([
+    {
+      issuerId: ISSUER_A,
+      did: DID_A,
+      assertionSignerProfile: current ?? null,
+      history,
+      currentProfileId
+    }
+  ]);
+}
+
+test('8: tras rotar, el DID publica AMBAS claves en orden de version', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P2, 2),
+      historical(P1, 1, { status: SignerProfileStatus.retired })
+    ],
+    P2
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  // Orden DETERMINISTA por keyVersion ascendente, aunque la historia venga
+  // desordenada. Es presentacion: el orden NO define cual es la vigente.
+  assert.deepEqual(document.assertionMethod, [
+    `${DID_A}#assert-1`,
+    `${DID_A}#assert-2`
+  ]);
+  assert.deepEqual(
+    document.verificationMethod?.map((method) => method.id),
+    [`${DID_A}#assert-1`, `${DID_A}#assert-2`]
+  );
+
+  // 12: el identificador DID no cambia por rotar, y el documento NO agrega
+  // ningun campo "current": publicar una clave significa "autoriza verificar lo
+  // que firmo", no "firma lo proximo".
+  assert.equal(document.id, DID_A);
+  assert.deepEqual(Object.keys(document).sort(), [
+    '@context',
+    'assertionMethod',
+    'id',
+    'verificationMethod'
+  ]);
+});
+
+test('17: tras dos rotaciones el DID publica las TRES claves', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, { status: SignerProfileStatus.retired }),
+      historical(P2, 2, { status: SignerProfileStatus.retired }),
+      historical(P3, 3)
+    ],
+    P3
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  assert.deepEqual(document.assertionMethod, [
+    `${DID_A}#assert-1`,
+    `${DID_A}#assert-2`,
+    `${DID_A}#assert-3`
+  ]);
+});
+
+test('13-15: una clave historica COMPROMETIDA desaparece del DID', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, { status: SignerProfileStatus.compromised }),
+      historical(P2, 2)
+    ],
+    P2
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  // La credencial vieja que referencia #assert-1 pasa a INVALID en S8c7:
+  // el DID resuelve BIEN y NO publica esa clave, que es evidencia NEGATIVA.
+  assert.deepEqual(document.assertionMethod, [`${DID_A}#assert-2`]);
+  assert.equal(document.verificationMethod?.length, 1);
+});
+
+test('16: retirada != comprometida -- la retirada se publica, la otra no', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, { status: SignerProfileStatus.retired }),
+      historical(P2, 2, { status: SignerProfileStatus.compromised }),
+      historical(P3, 3)
+    ],
+    P3
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  assert.deepEqual(document.assertionMethod, [
+    `${DID_A}#assert-1`,
+    `${DID_A}#assert-3`
+  ]);
+});
+
+test('A7: una clave VIGENTE comprometida deja el DID resolviendo con la historica', async () => {
+  // Estado de RECUPERACION: cero claves activas, la vigente comprometida, y las
+  // retiradas historicas se siguen publicando. Convertir esto en una caida
+  // total del DID castigaria al verificador de credentials viejas por un
+  // incidente que no las afecta.
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, { status: SignerProfileStatus.retired }),
+      historical(P2, 2, { status: SignerProfileStatus.compromised })
+    ],
+    P2
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  assert.equal(document.id, DID_A);
+  assert.deepEqual(document.assertionMethod, [`${DID_A}#assert-1`]);
+});
+
+test('A8: una clave omitida con material corrupto no rompe el DID', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, {
+        status: SignerProfileStatus.compromised,
+        publicKeyX: 'basura',
+        publicKeyY: null,
+        publicKeyCompressed: null,
+        keyVersion: 0
+      }),
+      historical(P2, 2)
+    ],
+    P2
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  // De lo que no se publica no se valida nada.
+  assert.deepEqual(document.assertionMethod, [`${DID_A}#assert-2`]);
+});
+
+test('A6: una clave vinculada ACTIVA que no es la vigente es incoherente', async () => {
+  // `assertionMethod` es autorizacion publica: una clave activa no vigente
+  // quedaria plenamente autorizada sin que nadie reclame autoridad de firma
+  // sobre ella, y eso difumina la distincion que la slice protege.
+  const { controller } = rotatedIssuer(
+    [historical(P1, 1), historical(P2, 2)],
+    P2
+  );
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('el puntero vigente TIENE que estar en la historia', async () => {
+  const { controller } = rotatedIssuer(
+    [historical(P1, 1, { status: SignerProfileStatus.retired })],
+    'perfil-que-no-esta-en-la-historia'
+  );
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('19: dos claves publicadas con la MISMA version fallan cerrado', async () => {
+  // Resolverian al mismo `#assert-N` y un verificador elegiria una por
+  // accidente de orden.
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 2, { status: SignerProfileStatus.retired }),
+      historical(P2, 2)
+    ],
+    P2
+  );
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('una version no positiva en una clave PUBLICADA falla cerrado', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 0, { status: SignerProfileStatus.retired }),
+      historical(P2, 2)
+    ],
+    P2
+  );
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('un anchor en la historia de asercion es corrupcion interna', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, {
+        status: SignerProfileStatus.retired,
+        purpose: SignerProfilePurpose.anchor
+      }),
+      historical(P2, 2)
+    ],
+    P2
+  );
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('una historia vacia no publica un documento vacio como si fuera valido', async () => {
+  const { controller } = createController([
+    {
+      issuerId: ISSUER_A,
+      did: DID_A,
+      assertionSignerProfile: null,
+      history: [],
+      currentProfileId: P1
+    }
+  ]);
+
+  await assert.rejects(
+    () => controller.getIssuerDidDocument(ISSUER_A),
+    InternalServerErrorException
+  );
+});
+
+test('todas las claves comprometidas -> el DID resuelve SIN propiedades de clave', async () => {
+  const { controller } = rotatedIssuer(
+    [
+      historical(P1, 1, { status: SignerProfileStatus.compromised }),
+      historical(P2, 2, { status: SignerProfileStatus.compromised })
+    ],
+    P2
+  );
+
+  const document = await controller.getIssuerDidDocument(ISSUER_A);
+
+  assert.equal(document.id, DID_A);
+  assert.ok(!('verificationMethod' in document));
+  assert.ok(!('assertionMethod' in document));
 });

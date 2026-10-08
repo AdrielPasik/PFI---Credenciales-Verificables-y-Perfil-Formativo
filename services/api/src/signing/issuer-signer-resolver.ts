@@ -153,6 +153,63 @@ export class IssuerSignerResolver {
     //    efecto en la resolucion siguiente, sin esperar a que venza el TTL.
     const profile = await this.loadActiveProfile(issuerId, purpose);
 
+    return this.resolveFromProfile(profile, issuerId);
+  }
+
+  /**
+   * Resuelve el signer HISTORICO identificado por un `SignerProfile.id` exacto.
+   *
+   * ---------------------------------------------------------------------------
+   * POR QUE NO ALCANZA EL RESOLVER POR ISSUER
+   * ---------------------------------------------------------------------------
+   *
+   * `resolveAnchorSignerForIssuer` responde "cual es la cuenta de anclaje
+   * VIGENTE de este issuer". Para revocar un `BlockchainRecord` historico esa
+   * es la pregunta equivocada: el contrato solo acepta la revocacion de la
+   * cuenta que REGISTRO el hash, y despues de una rotacion esa cuenta ya no es
+   * la vigente.
+   *
+   * Asi que esta resolucion NO pasa por `IssuerTechnicalIdentity`: va derecho
+   * al perfil que `BlockchainRecord.anchorSignerProfileId` congelo.
+   *
+   * ---------------------------------------------------------------------------
+   * RETIRADO SI, COMPROMETIDO NO
+   * ---------------------------------------------------------------------------
+   *
+   *   active      -> permitido;
+   *   retired     -> PERMITIDO. Es exactamente la razon por la que `retired` y
+   *                  `compromised` no son el mismo estado: un anchor puede
+   *                  estar retirado porque ningun issuer lo elige para
+   *                  registraciones nuevas, y seguir siendo la unica cuenta que
+   *                  puede revocar lo que registro;
+   *   compromised -> PROHIBIDO, y se falla ANTES de tocar el almacen de
+   *                  secretos. No se lee un secreto que no se va a poder usar,
+   *                  y no hay sustituto: ni el anchor vigente, ni la clave
+   *                  global legacy, ni nada.
+   */
+  async resolveHistoricalAnchorSigner(
+    profileId: string
+  ): Promise<ResolvedIssuerSigner> {
+    // CONFIGURACION FRESCA SIEMPRE. La cache puede conservar la Wallet, pero
+    // NUNCA puede saltearse esta lectura: un perfil que paso a comprometido
+    // tiene que dejar de resolver en la siguiente llamada, no cuando venza el
+    // TTL.
+    const profile = await this.loadHistoricalAnchorProfile(profileId);
+
+    return this.resolveFromProfile(profile);
+  }
+
+  /**
+   * Cola compartida por la resolucion vigente y la historica: cache del
+   * secreto, construccion de la Wallet y validacion criptografica.
+   *
+   * Compartirla es deliberado -- dos implementaciones de la validacion serian
+   * exactamente la forma de que una de las dos se quede atras.
+   */
+  private async resolveFromProfile(
+    profile: SignerProfileRow,
+    issuerId?: string
+  ): Promise<ResolvedIssuerSigner> {
     // 2. Recien ahora se consulta la cache, y SOLO para evitar la lectura del
     //    secreto y la reconstruccion de la Wallet. Nunca para evitar las
     //    comprobaciones criptograficas contra la metadata ACTUAL.
@@ -199,6 +256,69 @@ export class IssuerSignerResolver {
     this.cache.set(profile.id, entry);
 
     return toResolvedSigner(entry);
+  }
+
+  /**
+   * Carga el perfil HISTORICO por id exacto, sin pasar por ninguna identidad
+   * tecnica y sin exigir que ningun issuer lo tenga como vigente.
+   */
+  private async loadHistoricalAnchorProfile(
+    profileId: string
+  ): Promise<SignerProfileRow> {
+    const profile = await this.prisma.signerProfile.findUnique({
+      where: { id: profileId },
+      select: signerProfileSelect
+    });
+
+    if (!profile) {
+      throw new SignerResolutionError('SIGNER_PROFILE_NOT_CONFIGURED', {
+        profileId
+      });
+    }
+
+    // Un perfil de asercion jamas firma una transaccion: son dos planos
+    // distintos y confundirlos es un error de seguridad, no de configuracion.
+    if (profile.purpose !== SignerProfilePurpose.anchor) {
+      throw new SignerResolutionError('SIGNER_PURPOSE_MISMATCH', {
+        profileId
+      });
+    }
+
+    if (profile.status === SignerProfileStatus.compromised) {
+      // Se desaloja la Wallet cacheada ANTES de fallar: no tiene por que
+      // quedarse en memoria hasta que venza el TTL. Y se falla aca, de modo que
+      // no hay ninguna lectura del almacen de secretos.
+      this.cache.delete(profile.id);
+      throw new SignerResolutionError('SIGNER_PROFILE_COMPROMISED', {
+        profileId
+      });
+    }
+
+    // `active` y `retired` son los dos estados utilizables para historia. Un
+    // estado futuro desconocido no se asume utilizable.
+    if (
+      profile.status !== SignerProfileStatus.active &&
+      profile.status !== SignerProfileStatus.retired
+    ) {
+      this.cache.delete(profile.id);
+      throw new SignerResolutionError('SIGNER_PROFILE_INACTIVE', {
+        profileId
+      });
+    }
+
+    if (profile.addressVerifiedAt === null) {
+      throw new SignerResolutionError('SIGNER_ADDRESS_NOT_VERIFIED', {
+        profileId
+      });
+    }
+
+    if (!isAddress(profile.address)) {
+      throw new SignerResolutionError('SIGNER_ADDRESS_MISMATCH', {
+        profileId
+      });
+    }
+
+    return profile;
   }
 
   private async loadActiveProfile(
@@ -288,7 +408,7 @@ export class IssuerSignerResolver {
 
   private normalizePersistedAddress(
     profile: SignerProfileRow,
-    issuerId: string
+    issuerId?: string
   ): string {
     if (!isAddress(profile.address)) {
       throw new SignerResolutionError('SIGNER_ADDRESS_MISMATCH', {
@@ -317,7 +437,7 @@ export class IssuerSignerResolver {
   private validateWalletAgainstProfile(
     wallet: Wallet,
     profile: SignerProfileRow,
-    issuerId: string
+    issuerId?: string
   ): void {
     const expectedAddress = this.normalizePersistedAddress(profile, issuerId);
 
@@ -356,7 +476,7 @@ export class IssuerSignerResolver {
 
   private async buildVerifiedWallet(
     profile: SignerProfileRow,
-    issuerId: string
+    issuerId?: string
   ): Promise<Wallet> {
     let privateKey: string;
     try {

@@ -166,7 +166,9 @@ test('la construccion del proof no construye Wallets: recibe un signer resuelto'
     }
   }
 
-  // De ethers se usa SOLO el codificador UTF-8, y solo en el orquestador.
+  // De ethers se usan SOLO primitivas locales: el codificador UTF-8 y la
+  // comparacion de direcciones con checksum que S8c8 necesita para revalidar el
+  // binding. Ninguna construye una Wallet, ninguna toca la red.
   const service = executableCode(read('credential-proof.service.ts'));
   const match = /import \{([^}]*)\} from 'ethers';/.exec(service);
   assert.ok(match, 'no se encontro el import de ethers');
@@ -175,7 +177,7 @@ test('la construccion del proof no construye Wallets: recibe un signer resuelto'
       .split(',')
       .map((name) => name.trim())
       .filter((name) => name.length > 0),
-    ['type Wallet', 'toUtf8Bytes']
+    ['type Wallet', 'getAddress', 'isAddress', 'toUtf8Bytes']
   );
 
   // El contrato PURO no importa ethers en absoluto.
@@ -455,7 +457,13 @@ test('el camino legacy de anclaje queda intacto y sigue siendo el activo', () =>
   );
   assert.ok(!revocation.includes('CredentialProofService'));
   assert.ok(!revocation.includes('scope-proof-v1'));
-  assert.ok(!revocation.includes('IssuerSignerResolver'));
+  // S8c8: la revocacion SI resuelve identidad -- el ANCHOR HISTORICO que el
+  // record congelo -- asi que ya no puede prohibirse el resolver entero. Lo que
+  // este guard protege sigue siendo el limite real: la revocacion no toca el
+  // plano de ASERCION.
+  assert.ok(!revocation.includes('resolveAssertionSignerForIssuer'));
+  assert.ok(!revocation.includes('prepareAssertionSigner'));
+  assert.match(revocation, /resolveHistoricalAnchorSigner/);
 });
 
 // ---------------------------------------------------------------------------

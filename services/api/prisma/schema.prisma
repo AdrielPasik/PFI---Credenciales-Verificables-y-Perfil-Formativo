@@ -408,6 +408,9 @@ model Issuer {
   academicCourses        AcademicCourse[]
   courseTemplates        IssuerCourseTemplate[]
   technicalIdentity      IssuerTechnicalIdentity?
+  // HISTORIA de claves de asercion (S8c8). Append-only: la rotacion agrega
+  // una fila y no borra ninguna.
+  assertionKeyBindings   IssuerAssertionKeyBinding[]
 
   @@index([authorizationStatus])
 }
@@ -1665,6 +1668,11 @@ model SignerProfile {
   assertionForIdentity IssuerTechnicalIdentity?  @relation("IssuerTechnicalIdentityAssertionSigner")
   anchorForIdentities  IssuerTechnicalIdentity[] @relation("IssuerTechnicalIdentityAnchorSigner")
   anchoredRecords      BlockchainRecord[]        @relation("BlockchainRecordAnchorSigner")
+  // S8c8: binding historico de asercion. Opcional y SINGULAR -- un perfil de
+  // asercion pertenece como maximo a un issuer, y el `@unique` del binding es
+  // lo que lo hace DURABLE: el `@unique` del puntero vigente en
+  // `IssuerTechnicalIdentity` se libera en cuanto una rotacion lo mueve.
+  assertionKeyBinding  IssuerAssertionKeyBinding?
 
   @@index([purpose])
   @@index([status])
@@ -1708,4 +1716,67 @@ model IssuerTechnicalIdentity {
 
   @@index([anchorSignerProfileId])
   @@index([status])
+}
+
+/**
+ * HISTORIA de claves de ASERCION por issuer -- S8c8.
+ *
+ * ---------------------------------------------------------------------------
+ * QUE PROBLEMA RESUELVE
+ * ---------------------------------------------------------------------------
+ *
+ * Una credential ya emitida lleva en su proof:
+ *
+ *   verificationMethod = <issuerDid>#assert-N
+ *
+ * Despues de rotar, `IssuerTechnicalIdentity.assertionSignerProfileId` apunta a
+ * la clave NUEVA. Sin esta tabla el sistema no tendria forma de saber que la
+ * clave vieja fue alguna vez la clave de asercion de ESE issuer, y la
+ * credential historica dejaria de verificar.
+ *
+ * Y esa historia NO se puede inferir: ni del nombre del `secretRef`, ni de la
+ * direccion, ni de `keyVersion` globalmente, ni de `createdAt`, ni del
+ * contenido de credentials viejas, ni del fragmento del DID. Todas esas serian
+ * correlaciones, no autorizaciones.
+ *
+ * ---------------------------------------------------------------------------
+ * VIGENTE != HISTORICO
+ * ---------------------------------------------------------------------------
+ *
+ * Esta tabla responde "fue esta clave de asercion de este issuer?".
+ *
+ * NO responde "es la clave vigente?". Eso lo responde UNICAMENTE
+ * `IssuerTechnicalIdentity.assertionSignerProfileId`, que sigue siendo la
+ * autoridad para FIRMAR credentials nuevas. Derivar la vigente de
+ * `max(keyVersion)` seria colapsar los dos conceptos.
+ *
+ * ---------------------------------------------------------------------------
+ * APPEND-ONLY, Y SIN SECRETOS
+ * ---------------------------------------------------------------------------
+ *
+ * Una rotacion AGREGA una fila. Nunca borra. Un compromiso tampoco borra: la
+ * publicacion en el DID filtra por `SignerProfile.status`, no por la existencia
+ * del binding.
+ *
+ * No hay `secretRef`, ni clave privada, ni copia de la clave publica, ni de la
+ * direccion, ni del estado, ni de `keyVersion`. `SignerProfile` sigue siendo la
+ * unica autoridad de la metadata de la clave; un lector obtiene el material
+ * publico haciendo join.
+ */
+model IssuerAssertionKeyBinding {
+  issuerId        String
+  // UNICO: un perfil de asercion pertenece como maximo a UN issuer, para
+  // siempre. Es la restriccion que impide que una clave retirada de un issuer
+  // termine siendo la clave vigente de otro.
+  signerProfileId String @unique
+
+  issuer        Issuer        @relation(fields: [issuerId], references: [id], onDelete: Cascade)
+  // `Restrict` explicito: borrar un SignerProfile no puede hacer desaparecer en
+  // silencio la historia que vuelve verificables las credentials emitidas con
+  // el.
+  signerProfile SignerProfile @relation(fields: [signerProfileId], references: [id], onDelete: Restrict)
+
+  // La identidad compuesta alcanza: no hace falta un id generado.
+  @@id([issuerId, signerProfileId])
+  @@index([issuerId])
 }

@@ -63,20 +63,38 @@ test('el resolver expone SOLO las dos operaciones de resolucion por proposito', 
     [
       'buildVerifiedWallet',
       'loadActiveProfile',
+      // S8c8: carga por id EXACTO, sin pasar por ninguna identidad tecnica.
+      'loadHistoricalAnchorProfile',
       'normalizePersistedAddress',
       'resolveAnchorSignerForIssuer',
       'resolveAssertionSignerForIssuer',
       'resolveForPurpose',
+      // S8c8: cola compartida por la resolucion vigente y la historica.
+      'resolveFromProfile',
+      // S8c8: revocacion historica. Acepta active y retired, rechaza
+      // compromised ANTES de leer el secreto.
+      'resolveHistoricalAnchorSigner',
       // UNA sola implementacion de consistencia criptografica, compartida por
       // el cache miss y el cache hit.
       'validateWalletAgainstProfile'
     ].sort()
   );
 
+  // S8c8 agrega UNA sola operacion de resolucion mas, y es explicita sobre su
+  // semantica: `Historical` + `Anchor`. Sigue sin existir ningun
+  // `resolveSigner(issuerId)` vago que permita omitir el proposito, y la
+  // historica no acepta un `issuerId`: resuelve un perfil por id exacto.
   const publicApi = methods.filter((name) => name.startsWith('resolve'));
   assert.deepEqual(publicApi.sort(), [
     'resolveAnchorSignerForIssuer',
     'resolveAssertionSignerForIssuer',
-    'resolveForPurpose'
+    'resolveForPurpose',
+    'resolveFromProfile',
+    'resolveHistoricalAnchorSigner'
   ]);
+
+  // Y ninguna de las dos resoluciones por issuer puede confundirse con la
+  // historica: la historica no lleva `ForIssuer` en el nombre.
+  assert.ok(!publicApi.includes('resolveSigner'));
+  assert.ok(!publicApi.includes('resolveHistoricalAnchorSignerForIssuer'));
 });

@@ -21,6 +21,8 @@ export type CredentialProofErrorCode =
   // Signer resuelto
   | 'SIGNER_PURPOSE_NOT_ASSERTION'
   | 'INVALID_KEY_VERSION'
+  // S8c8: la clave de asercion vigente cambio durante la emision
+  | 'ASSERTION_BINDING_CHANGED'
   // Envelope scope-proof-v1
   | 'MALFORMED_VERIFICATION_METHOD'
   | 'MALFORMED_CANONICAL_HASH'
@@ -36,6 +38,8 @@ export type CredentialProofErrorCode =
  * proposito del perfil o la correspondencia criptografica.
  */
 const SAFE_MESSAGES: Record<CredentialProofErrorCode, string> = {
+  ASSERTION_BINDING_CHANGED:
+    'La clave de asercion del emisor cambio durante la emision.',
   ISSUER_DID_NOT_CONFIGURED:
     'El emisor no tiene una identidad tecnica publicable configurada.',
   ISSUER_DID_NOT_RESOLVABLE:

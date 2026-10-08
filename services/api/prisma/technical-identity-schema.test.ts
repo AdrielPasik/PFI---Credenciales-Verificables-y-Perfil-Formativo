@@ -128,7 +128,11 @@ test('SignerProfile declara exactamente los campos congelados', async () => {
     'retiredAt',
     'assertionForIdentity',
     'anchorForIdentities',
-    'anchoredRecords'
+    'anchoredRecords',
+    // S8c8: lado reciproco de la historia de claves de asercion. Es un campo
+    // de RELACION -- no agrega ninguna columna a la tabla -- y es singular y
+    // opcional porque una clave de asercion pertenece como maximo a un issuer.
+    'assertionKeyBinding'
   ]);
 });
 
@@ -238,7 +242,10 @@ test('ninguna relacion hacia SignerProfile usa Cascade ni SetNull', async () => 
     .split('\n')
     .filter((line) => /SignerProfile\s+@relation|SignerProfile\?\s+@relation/.test(line));
 
-  assert.equal(toSignerProfile.length, 3, 'tres relaciones entrantes');
+  // S8c8 agrega la CUARTA: el binding historico de asercion, que tambien es
+  // `Restrict`. Borrar una clave no puede hacer desaparecer en silencio la
+  // historia que vuelve verificables las credentials firmadas con ella.
+  assert.equal(toSignerProfile.length, 4, 'cuatro relaciones entrantes');
   for (const line of toSignerProfile) {
     assert.match(line, /onDelete: Restrict/, line.trim());
     assert.doesNotMatch(line, /onDelete: Cascade/);

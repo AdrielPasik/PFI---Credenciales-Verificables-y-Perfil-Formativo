@@ -439,6 +439,25 @@ export class CredentialsService {
           );
         }
 
+        // REVALIDACION DEL BINDING DE ASERCION -- S8c8, y SIEMPRE, en los dos
+        // modos de evidencia: la autoria de la credential no depende de la
+        // blockchain.
+        //
+        // Desde que existe la rotacion, haber resuelto el signer antes de abrir
+        // la transaccion no alcanza: si una rotacion commiteo mientras esta
+        // emision estaba en vuelo, firmar con la clave vieja produciria una
+        // credential emitida por una autoridad que el emisor ya habia dejado de
+        // elegir. Se vuelve a leer el puntero vigente, con metadata publica
+        // unicamente, y si cambio se aborta ANTES de que la credential quede
+        // `issued`.
+        await this.credentialProofService.revalidateAssertionBinding(
+          transaction,
+          {
+            issuerId: credential.issuerId,
+            signer: preparedSigner
+          }
+        );
+
         // REVALIDACION DEL BINDING DE ANCLAJE, con metadata PUBLICA unicamente.
         // Entre la resolucion del signer y este punto pudo haber una rotacion;
         // persistir un intent para un perfil que ya no es el ancla configurada

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { SignerProfilePurpose } from '@prisma/client';
-import { type Wallet, toUtf8Bytes } from 'ethers';
+import {
+  type Prisma,
+  SignerProfilePurpose,
+  SignerProfileStatus
+} from '@prisma/client';
+import { type Wallet, getAddress, isAddress, toUtf8Bytes } from 'ethers';
 
 import { isDidForIssuerPath } from '../identity/did-web-issuer';
 import { IssuerSignerResolver } from '../signing/issuer-signer-resolver';
@@ -185,4 +189,91 @@ export class CredentialProofService {
       context
     );
   }
+
+  /**
+   * REVALIDACION DEL BINDING DE ASERCION dentro de la transaccion de emision
+   * -- S8c8.
+   *
+   * ---------------------------------------------------------------------------
+   * POR QUE NO ALCANZA RESOLVER ANTES
+   * ---------------------------------------------------------------------------
+   *
+   * Desde que existe la rotacion, resolver el signer antes de abrir la
+   * transaccion dejo de ser suficiente. Si una rotacion P1 -> P2 commitea
+   * mientras esta emision esta en vuelo, firmar con P1 produciria una
+   * credential cuya autoridad de firma ya es historica -- verificable, si, pero
+   * emitida por una clave que el emisor ya habia dejado de elegir.
+   *
+   * `IssuerTechnicalIdentity.assertionSignerProfileId` es la autoridad para
+   * firmar NUEVO. Asi que antes de que la credential quede `issued` se vuelve a
+   * leer, y si cambio se aborta: ni proof persistido, ni intent de blockchain.
+   *
+   * La direccion contraria es legitima: si la emision commitea primero, esa
+   * credential pertenece de verdad a la era de P1, y la rotacion posterior
+   * procede sin tocarla.
+   *
+   * ---------------------------------------------------------------------------
+   * SOLO METADATA PUBLICA
+   * ---------------------------------------------------------------------------
+   *
+   * Sin SSM, sin `SignerSecretStore`, sin volver a llamar al resolver y sin
+   * leer ninguna clave privada: la Wallet ya esta en memoria desde antes de la
+   * transaccion. Esto es una comprobacion de CONFIGURACION, no de posesion.
+   *
+   * Y NO se acepta una clave historica retirada para una emision nueva:
+   * publicar una clave para verificar lo que firmo no es lo mismo que
+   * autorizarla a firmar algo mas.
+   */
+  async revalidateAssertionBinding(
+    transaction: Prisma.TransactionClient,
+    input: { issuerId: string; signer: PreparedAssertionSigner }
+  ): Promise<void> {
+    const context = { profileId: input.signer.profileId };
+
+    const identity = await transaction.issuerTechnicalIdentity.findUnique({
+      where: { issuerId: input.issuerId },
+      select: {
+        did: true,
+        assertionSignerProfileId: true,
+        assertionSignerProfile: {
+          select: {
+            id: true,
+            purpose: true,
+            status: true,
+            address: true,
+            keyVersion: true,
+            addressVerifiedAt: true
+          }
+        }
+      }
+    });
+
+    const profile = identity?.assertionSignerProfile;
+
+    if (
+      !identity ||
+      !profile ||
+      // El PUNTERO VIGENTE tiene que seguir siendo exactamente el perfil que se
+      // resolvio. Una rotacion concurrente lo mueve, y eso es lo que se detecta.
+      identity.assertionSignerProfileId !== input.signer.profileId ||
+      profile.id !== input.signer.profileId ||
+      identity.did !== input.signer.issuerDid ||
+      profile.purpose !== SignerProfilePurpose.assertion ||
+      profile.status !== SignerProfileStatus.active ||
+      profile.addressVerifiedAt === null ||
+      profile.keyVersion !== input.signer.keyVersion ||
+      !addressEquals(profile.address, input.signer.wallet.address)
+    ) {
+      throw new CredentialProofError('ASSERTION_BINDING_CHANGED', context);
+    }
+  }
+}
+
+/** Comparacion de direcciones con checksum. Null nunca coincide con nada. */
+function addressEquals(left: string | null, right: string): boolean {
+  if (typeof left !== 'string' || !isAddress(left) || !isAddress(right)) {
+    return false;
+  }
+
+  return getAddress(left) === getAddress(right);
 }

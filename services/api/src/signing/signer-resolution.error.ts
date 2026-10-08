@@ -22,6 +22,7 @@ export type SignerResolutionErrorCode =
   // Perfil de firma
   | 'SIGNER_PROFILE_NOT_CONFIGURED'
   | 'SIGNER_PROFILE_INACTIVE'
+  | 'SIGNER_PROFILE_COMPROMISED'
   | 'SIGNER_PURPOSE_MISMATCH'
   | 'SIGNER_ADDRESS_NOT_VERIFIED'
   // Acceso al secreto
@@ -40,6 +41,8 @@ const SAFE_MESSAGES: Record<SignerResolutionErrorCode, string> = {
   SIGNER_PROFILE_NOT_CONFIGURED:
     'La identidad tecnica no tiene un perfil de firma para ese proposito.',
   SIGNER_PROFILE_INACTIVE: 'El perfil de firma no esta activo.',
+  SIGNER_PROFILE_COMPROMISED:
+    'El perfil de firma esta comprometido y no puede firmar.',
   SIGNER_PURPOSE_MISMATCH:
     'El perfil de firma no corresponde al proposito solicitado.',
   SIGNER_ADDRESS_NOT_VERIFIED:

@@ -226,7 +226,15 @@ test('la migration es nueva y las anteriores quedan intactas', async () => {
     .map((entry) => entry.name)
     .sort();
 
-  assert.equal(entries[entries.length - 1], MIGRATION_NAME);
+  // S8c8 agrego una migration POSTERIOR, asi que esta ya no es la ultima. Lo
+  // que sigue importando -- y es lo que este test siempre quiso decir -- es que
+  // existe y que todo lo que vino despues es estrictamente posterior, nunca una
+  // reescritura de esta.
+  assert.ok(entries.includes(MIGRATION_NAME));
+
+  for (const entry of entries.slice(entries.indexOf(MIGRATION_NAME) + 1)) {
+    assert.ok(entry > MIGRATION_NAME, `${entry} no es posterior`);
+  }
 
   // La de S8c1 sigue siendo la que creo los campos de procedencia.
   const s8c1 = await readFile(

@@ -31,6 +31,7 @@ import {
 } from './blockchain-target';
 import {
   CREDENTIAL_REGISTERED_TOPIC,
+  CREDENTIAL_REVOKED_TOPIC,
   type CredentialRegistryLog
 } from './credential-registry-events';
 import { CredentialRegistryPreflight } from './credential-registry-preflight';
@@ -65,6 +66,27 @@ function anchorSigner(key = PUBLIC_TEST_KEY_ONE, profileId = 'anchor-profile-1')
   } satisfies AnchorSignerSnapshot;
 }
 
+/** Log `CredentialRevoked` bien formado -- S8c8. */
+function revokedLog(input: {
+  credentialHash?: string;
+  registrant: string;
+  txHash?: string;
+  blockNumber?: number;
+}): CredentialRegistryLog {
+  const hash = (input.credentialHash ?? VALID_HASH).toLowerCase();
+  const registrantTopic = `0x${'0'.repeat(24)}${input.registrant
+    .slice(2)
+    .toLowerCase()}`;
+
+  return {
+    address: CONTRACT_ADDRESS,
+    topics: [CREDENTIAL_REVOKED_TOPIC, hash, registrantTopic],
+    data: `0x${BLOCK_TIMESTAMP_SECONDS.toString(16).padStart(64, '0')}`,
+    transactionHash: input.txHash ?? TX_HASH,
+    blockNumber: input.blockNumber ?? BLOCK_NUMBER
+  };
+}
+
 /** Log `CredentialRegistered` bien formado para un hash y un registrante. */
 function registeredLog(input: {
   credentialHash?: string;
@@ -88,6 +110,8 @@ function registeredLog(input: {
 }
 
 interface WorldOptions {
+  /** Emite `CredentialRevoked` en vez de `CredentialRegistered`. */
+  revokedLogs?: boolean;
   chainId?: bigint;
   code?: string;
   receipt?: AnchorTransactionReceipt | null;
@@ -153,8 +177,10 @@ function createWorld(options: WorldOptions = {}) {
   }): AnchorRegistryWriter => {
     writerSigners.push(input.signer);
 
-    return {
-      async registerCredential(credentialHash: string) {
+    // S8c8: las DOS operaciones pasan por el mismo doble y por lo tanto
+    // comparten `sends`, de modo que "un solo envio" se afirma sin importar
+    // cual de las dos fue.
+    const send = async (credentialHash: string) => {
         // La direccion sale del signer REALMENTE usado en esta escritura, para
         // que un test con dos anclas distintas no reciba el receipt del otro.
         const writerAddress = await input.signer.getAddress();
@@ -187,11 +213,19 @@ function createWorld(options: WorldOptions = {}) {
                   blockNumber: BLOCK_NUMBER,
                   from: writerAddress,
                   to: CONTRACT_ADDRESS,
-                  logs: [registeredLog({ registrant: writerAddress })]
+                  logs: [
+                    options.revokedLogs === true
+                      ? revokedLog({ registrant: writerAddress })
+                      : registeredLog({ registrant: writerAddress })
+                  ]
                 };
           }
         };
-      }
+    };
+
+    return {
+      registerCredential: send,
+      revokeCredential: send
     };
   };
 

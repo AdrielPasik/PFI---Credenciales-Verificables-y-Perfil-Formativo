@@ -382,9 +382,13 @@ test('35: el camino nuevo no introduce ninguna variable de entorno con una clave
   }
 });
 
-test('35: el camino legacy sigue intacto y sigue siendo el activo', () => {
-  // El signer global legacy vive en `src/blockchain/` y lo consume la
-  // revocacion actual. S8c2 NO lo toca: el cutover es una slice posterior.
+test('35: el signer global legacy ya no tiene consumidores de runtime', () => {
+  // S8c2 congelo que el camino legacy seguia siendo el activo, y eso era cierto
+  // entonces. S8c8 hizo el cutover, asi que la afirmacion se actualiza en vez
+  // de quedar probando algo que ya no pasa.
+  //
+  // El cliente legacy sigue EXISTIENDO -- su unico usuario es la herramienta de
+  // operacion por linea de comandos -- y eso es lo que se conserva.
   const writeClient = readFileSync(
     join(API_SRC_DIR, 'blockchain', 'credential-registry-write-client.ts'),
     'utf8'
@@ -395,7 +399,10 @@ test('35: el camino legacy sigue intacto y sigue siendo el activo', () => {
     join(API_SRC_DIR, 'credentials', 'issuer-credential-revocation.service.ts'),
     'utf8'
   );
-  assert.ok(revocation.includes('resolveCredentialRegistrySignerAddress'));
+  assert.ok(!revocation.includes('resolveCredentialRegistrySignerAddress'));
+  assert.ok(!revocation.includes('CREDENTIAL_REGISTRY_PRIVATE_KEY'));
+  // Y ahora resuelve el ANCHOR HISTORICO que el record congelo.
+  assert.ok(revocation.includes('resolveHistoricalAnchorSigner'));
 });
 
 /**
@@ -415,10 +422,14 @@ test('35: el camino legacy sigue intacto y sigue siendo el activo', () => {
 const RESOLVER_CONSUMER_ALLOWLIST = [
   // ASERCION -- orquestador de la autoria de la credential (S8c4).
   join('credentials', 'credential-proof.service.ts'),
-  // ANCLAJE -- orquestador del ciclo de vida de registracion (S8c6). Es el
-  // segundo y ultimo consumidor: resuelve el signer de anclaje FUERA de toda
-  // transaccion y se lo pasa al coordinador de escrituras.
-  join('blockchain', 'blockchain-registration.service.ts')
+  // ANCLAJE -- orquestador del ciclo de vida de registracion (S8c6). Resuelve
+  // el signer de anclaje VIGENTE fuera de toda transaccion y se lo pasa al
+  // coordinador de escrituras.
+  join('blockchain', 'blockchain-registration.service.ts'),
+  // ANCLAJE HISTORICO -- revocacion (S8c8). Es el tercer y ultimo consumidor:
+  // resuelve el perfil EXACTO que `BlockchainRecord.anchorSignerProfileId`
+  // congelo, nunca el binding vigente del issuer.
+  join('credentials', 'issuer-credential-revocation.service.ts')
 ];
 
 test('36: el resolver solo lo consumen los componentes allowlisteados', () => {
@@ -536,7 +547,10 @@ test('36c: el resto del plano de blockchain sigue SIN tocar el resolver', () => 
     join('blockchain', 'anchor-write-coordinator.ts'),
     join('blockchain', 'blockchain-registration-reconciliation.service.ts'),
     join('blockchain', 'blockchain-record-reconciliation.service.ts'),
-    join('credentials', 'issuer-credential-revocation.service.ts'),
+    // S8c8: la revocacion SI resuelve identidad -- el anchor historico -- y por
+    // eso salio de esta lista y entro en el allowlist de consumidores. El
+    // limite que este guard protege sigue intacto: los componentes de bajo
+    // nivel reciben un signer ya autorizado, o no necesitan ninguno.
     join('credentials', 'issuer-credential-draft-update.service.ts'),
     join('identity', 'issuer-did.controller.ts'),
     join('identity', 'did.controller.ts')

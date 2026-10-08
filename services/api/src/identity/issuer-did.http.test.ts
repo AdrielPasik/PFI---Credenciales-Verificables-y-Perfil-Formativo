@@ -34,6 +34,9 @@ const DID_CONFIGURED = `did:web:api.scopeedu.technology:did:issuers:${ISSUER_CON
 const DID_COMPROMISED = `did:web:api.scopeedu.technology:did:issuers:${ISSUER_COMPROMISED}`;
 const USER_DID = `did:web:api.scopeedu.technology:did:users:${USER_WITH_DID}`;
 
+const PROFILE_CONFIGURED = 'assertion-profile-configured';
+const PROFILE_COMPROMISED = 'assertion-profile-compromised';
+
 const FORBIDDEN_WRITE = (name: string) => () => {
   throw new Error(`el resolver publico no debe invocar ${name}`);
 };
@@ -41,16 +44,27 @@ const FORBIDDEN_WRITE = (name: string) => () => {
 const prismaDouble = {
   issuerTechnicalIdentity: {
     async findUnique(args: { where: { issuerId: string } }) {
+      // S8c8: el resolver pide el PUNTERO VIGENTE mas la HISTORIA de bindings.
+      // Estos dos issuers tienen una sola clave -- el estado previo a cualquier
+      // rotacion -- asi que su historia es exactamente esa clave.
       if (args.where.issuerId === ISSUER_CONFIGURED) {
         return {
           did: DID_CONFIGURED,
-          assertionSignerProfile: {
-            purpose: SignerProfilePurpose.assertion,
-            status: SignerProfileStatus.active,
-            keyVersion: 1,
-            publicKeyX: PUBLIC_TEST_KEY_ONE.publicKeyX,
-            publicKeyY: PUBLIC_TEST_KEY_ONE.publicKeyY,
-            publicKeyCompressed: PUBLIC_TEST_KEY_ONE.publicKeyCompressed
+          assertionSignerProfileId: PROFILE_CONFIGURED,
+          issuer: {
+            assertionKeyBindings: [
+              {
+                signerProfile: {
+                  id: PROFILE_CONFIGURED,
+                  purpose: SignerProfilePurpose.assertion,
+                  status: SignerProfileStatus.active,
+                  keyVersion: 1,
+                  publicKeyX: PUBLIC_TEST_KEY_ONE.publicKeyX,
+                  publicKeyY: PUBLIC_TEST_KEY_ONE.publicKeyY,
+                  publicKeyCompressed: PUBLIC_TEST_KEY_ONE.publicKeyCompressed
+                }
+              }
+            ]
           }
         };
       }
@@ -58,13 +72,21 @@ const prismaDouble = {
       if (args.where.issuerId === ISSUER_COMPROMISED) {
         return {
           did: DID_COMPROMISED,
-          assertionSignerProfile: {
-            purpose: SignerProfilePurpose.assertion,
-            status: SignerProfileStatus.compromised,
-            keyVersion: 1,
-            publicKeyX: PUBLIC_TEST_KEY_ONE.publicKeyX,
-            publicKeyY: PUBLIC_TEST_KEY_ONE.publicKeyY,
-            publicKeyCompressed: PUBLIC_TEST_KEY_ONE.publicKeyCompressed
+          assertionSignerProfileId: PROFILE_COMPROMISED,
+          issuer: {
+            assertionKeyBindings: [
+              {
+                signerProfile: {
+                  id: PROFILE_COMPROMISED,
+                  purpose: SignerProfilePurpose.assertion,
+                  status: SignerProfileStatus.compromised,
+                  keyVersion: 1,
+                  publicKeyX: PUBLIC_TEST_KEY_ONE.publicKeyX,
+                  publicKeyY: PUBLIC_TEST_KEY_ONE.publicKeyY,
+                  publicKeyCompressed: PUBLIC_TEST_KEY_ONE.publicKeyCompressed
+                }
+              }
+            ]
           }
         };
       }

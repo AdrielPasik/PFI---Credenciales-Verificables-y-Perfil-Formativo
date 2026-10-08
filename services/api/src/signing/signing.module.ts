@@ -22,9 +22,11 @@ import {
  * La recuperacion del secreto es PEREZOSA: ocurre unicamente cuando alguien
  * llama explicitamente a un metodo `resolve*`.
  *
- * El camino LEGACY de blockchain (`CREDENTIAL_REGISTRY_PRIVATE_KEY` dentro de
- * `src/blockchain/`) sigue intacto y sigue siendo el que usa la emision y la
- * revocacion actuales. El reemplazo se activa en la slice de cutover, no aca.
+ * S8c8 completo el cutover: ni la emision ni la revocacion firman ya con la
+ * clave global de entorno. El cliente legacy de `src/blockchain/` sigue
+ * existiendo, pero su unico usuario es la herramienta de operacion por linea de
+ * comandos; ningun servicio, controller ni factory de modulo lo instancia para
+ * firmar. La limpieza final de ese tooling es S8c10.
  */
 @Module({
   providers: [
