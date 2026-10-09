@@ -125,8 +125,9 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-`requirements-api.txt` instala solo runtime HTTP. No se incluyen ni se deben
-instalar dependencias de embeddings para este servicio v0.
+`requirements-api.txt` instala solo runtime HTTP. La variante opcional de
+embeddings se mantiene separada en `requirements-embeddings.txt` y queda
+desactivada por defecto hasta calibración sobre Development.
 
 Los wrappers npm invocan `python` desde `PATH`; no contienen rutas absolutas ni
 dependen de una ubicacion hardcodeada de `.venv`. Activar primero el entorno
@@ -158,6 +159,10 @@ AI_INTERNAL_JWT_SECRET=
 AI_INTERNAL_JWT_ISSUER=traza-api
 AI_INTERNAL_JWT_AUDIENCE=traza-ai-service
 AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS=30
+AI_AREA_EMBEDDINGS_ENABLED=false
+AI_AREA_EMBEDDINGS_LAMBDA=
+AI_AREA_EMBEDDINGS_RELATIVE_MARGIN=
+AI_AREA_EMBEDDINGS_MODEL_DIR=
 ```
 
 `disabled` es el default local y no requiere secretos. En demo/production se
@@ -170,6 +175,28 @@ uniformes y no imprimen tokens, secretos ni payloads.
 El secreto debe ser de alta entropia, distinto de `JWT_SECRET` y coincidir con
 `AI_SERVICE_JWT_SECRET` del backend. La rotacion `current/previous` queda como
 hardening futuro; P4i-3 usa un unico secreto interno vigente.
+
+### Reranking local opcional de áreas
+
+La variante está apagada con `AI_AREA_EMBEDDINGS_ENABLED=false`. No define
+valores operativos para `AI_AREA_EMBEDDINGS_LAMBDA` ni
+`AI_AREA_EMBEDDINGS_RELATIVE_MARGIN`: cuando se habilite, ambos deben venir de
+la calibración congelada sobre Development y validar `lambda ∈ [0,1]` y margen
+relativo `∈ [0,2]`.
+
+Usa el modelo local pinneado `intfloat/multilingual-e5-small` en la revisión
+`fd1525a9fd15316a2d503bf26ab031a61d056e98`. El proceso no descarga modelos ni
+envía texto en runtime (`local_files_only=True`); `AI_AREA_EMBEDDINGS_MODEL_DIR`
+debe apuntar a un snapshot local preaprovisionado y de solo lectura. Ese
+directorio debe incluir `pfi-model-manifest.json` con el `modelId` y la
+`revision` exactos; el loader rechaza cualquier otro modelo. Si faltan
+dependencias, modelo, manifest, referencias, texto válido o contexto de 512
+tokens, el resultado es exactamente el ranking léxico existente.
+
+La señal usa `query:` tanto para fuente como para prototipos porque se trata de
+similitud de clasificación, no recuperación asimétrica. Fusiona rangos léxico y
+embedding solo sobre candidatos que ya superaron gates. No persiste vectores ni
+texto de entrada, y no añade campos a `semantic_analysis_v1`.
 
 ## Tests
 
@@ -198,9 +225,16 @@ y valida ambos contra `packages/schemas`; no valida solamente JSON estatico.
 
 ## Docker
 
-El Dockerfile usa Python 3.12 slim, instala solo requirements del API, copia
+El Dockerfile usa Python 3.12 slim, instala solo requirements del API por
+defecto, copia
 `src` y `config`, y ejecuta como usuario no root. `EXPOSE 8000` documenta el
 default; el proceso usa `PORT` mediante `src.api.run`.
+
+Para una imagen que vaya a ejecutar la variante tras calibración, instalar las
+dependencias opcionales durante build con
+`--build-arg INSTALL_LOCAL_EMBEDDINGS=true` y montar/provisionar el snapshot
+pinneado fuera del repositorio. Los pesos no se copian desde el árbol del
+proyecto ni se descargan durante una request.
 
 ```powershell
 npm run docker:build --workspace @credential-intelligence/ai-service

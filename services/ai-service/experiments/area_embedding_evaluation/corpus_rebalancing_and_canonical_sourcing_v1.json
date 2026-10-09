@@ -1,0 +1,2463 @@
+{
+  "canonicalSourceSelectionsForOriginalEligibleGroups": [
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.227_ALGORITMOS Y ESTRUCTURAS DE DATOS I (PRESENCIAL)_17-12-2024.pdf",
+        "fileName": "3.4.227_ALGORITMOS Y ESTRUCTURAS DE DATOS I (PRESENCIAL)_17-12-2024.pdf",
+        "fileSha256": "1142bb85461e70bf804db247f61ea9fac758d9e7c07d435357708f31f5391570",
+        "filenameDate": "2024-12-17",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.227"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-001"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.229_ALGORITMOS Y ESTRUCTURAS DE DATOS II (PRESENCIAL)_10-06-2025.pdf",
+        "fileName": "3.4.229_ALGORITMOS Y ESTRUCTURAS DE DATOS II (PRESENCIAL)_10-06-2025.pdf",
+        "fileSha256": "15e871f562fd8377a1c778d54c2791a178f969f4b37f1abb93fdb18a1288dbe6",
+        "filenameDate": "2025-06-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.229"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-002"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.231_DISEÑO Y ANÁLISIS DE ALGORITMOS (PRESENCIAL)_31-03-2026.pdf",
+        "fileName": "3.4.231_DISEÑO Y ANÁLISIS DE ALGORITMOS (PRESENCIAL)_31-03-2026.pdf",
+        "fileSha256": "a062921e2a7806df2e7709112315f77c7b313ad4775902736666f80af2ddc2a8",
+        "filenameDate": "2026-03-31",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.231"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-003"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.094_ARQUITECTURA DE APLICACIONES (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.4.094_ARQUITECTURA DE APLICACIONES (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "b717f40ef1ab90a05d90c4aa0da29ebb7b6a1c5c6308617105acfbb1b57d876d",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.094",
+        "3.4094"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-004"
+    },
+    {
+      "alternatePdfCount": 4,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.072_ARQUITECTURA DE COMPUTADORES (PRESENCIAL)_10-03-2026.pdf",
+        "fileName": "3.4.072_ARQUITECTURA DE COMPUTADORES (PRESENCIAL)_10-03-2026.pdf",
+        "fileSha256": "efe219e6acebf3af4e4906e9cf56a5bff4ca09ca4507dda2309eea7bbcd43969",
+        "filenameDate": "2026-03-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.072",
+        "3.4072"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-005"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.103_BASES DE DATOS (PRESENCIAL)_30-07-2024.pdf",
+        "fileName": "3.4.103_BASES DE DATOS (PRESENCIAL)_30-07-2024.pdf",
+        "fileSha256": "cae4a1ae1618f7989ed76d4f29e34bd8a49fe0065d38a12ab55182ab417fef03",
+        "filenameDate": "2024-07-30",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.103",
+        "3.4103"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-006"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.209_INGENIERÍA DE DATOS I (PRESENCIAL)_30-07-2024.pdf",
+        "fileName": "3.4.209_INGENIERÍA DE DATOS I (PRESENCIAL)_30-07-2024.pdf",
+        "fileSha256": "7377574b232c7884224c8b5f9255c883dc14a6c7a62ec72d41aac103adc277dc",
+        "filenameDate": "2024-07-30",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.209"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-007"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.213_INGENIERÍA DE DATOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.4.213_INGENIERÍA DE DATOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "dece80b86d2324538e3fc5b40868e7acec3bd74a1f397e14eed25815fc767b83",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.213"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-008"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.214_INGENIERÍA DE SOFTWARE (PRESENCIAL)_30-07-2024.pdf",
+        "fileName": "3.4.214_INGENIERÍA DE SOFTWARE (PRESENCIAL)_30-07-2024.pdf",
+        "fileSha256": "846067b13ae479e5849683a2e9fdb371810695a8e32600b65b04343b9213f8e2",
+        "filenameDate": "2024-07-30",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.214"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-009"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.073_INGENIERÍA DE REQUERIMIENTOS (PRESENCIAL)_10-03-2026.pdf",
+        "fileName": "3.4.073_INGENIERÍA DE REQUERIMIENTOS (PRESENCIAL)_10-03-2026.pdf",
+        "fileSha256": "c80f490af102137f71fe7a4ca6dad1d8897b20f9d2b0d6089fc37cbeeecc9d78",
+        "filenameDate": "2026-03-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4073"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-010"
+    },
+    {
+      "alternatePdfCount": 4,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.075_SISTEMAS OPERATIVOS (PRESENCIAL)_30-07-2024.pdf",
+        "fileName": "3.4.075_SISTEMAS OPERATIVOS (PRESENCIAL)_30-07-2024.pdf",
+        "fileSha256": "1184fcbf5980ded76204f12a089f3d2f927ae56ca8c321d9f5961e0ef2bbc633",
+        "filenameDate": "2024-07-30",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.075",
+        "3.4075"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-013"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.228_TESTING DE APLICACIONES (PRESENCIAL)_20-08-2024.pdf",
+        "fileName": "3.4.228_TESTING DE APLICACIONES (PRESENCIAL)_20-08-2024.pdf",
+        "fileSha256": "2237fd4ffcdac3a42e1f84ae34d65ebd489fb2741e03692ca31f2059223a059a",
+        "filenameDate": "2024-08-20",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.228"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-014"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.175_ARQUITECTURA DE COMPUTADORES Y SISTEMAS OPERATIVOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.175_ARQUITECTURA DE COMPUTADORES Y SISTEMAS OPERATIVOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "ce3fab1303ca9e6c3facc880a8052539be2f8243e1d0c06071ea81cb80f6ffe8",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.175"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-015"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.101_ARQUITECTURA Y SISTEMAS OPERATIVOS (PRESENCIAL)_19-03-2024.pdf",
+        "fileName": "3.4.101_ARQUITECTURA Y SISTEMAS OPERATIVOS (PRESENCIAL)_19-03-2024.pdf",
+        "fileSha256": "6ad93a2f58a85024d525cd778ee2667e29a3f54d32c3a4248ff2cb711ef38c8f",
+        "filenameDate": "2024-03-19",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.101",
+        "3.4101"
+      ],
+      "disciplinaryFamily": "software_systems",
+      "groupId": "ua-de-area-eval-016"
+    },
+    {
+      "alternatePdfCount": 7,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.193_INTELIGENCIA ARTIFICIAL (PRESENCIAL)_02-12-2025.pdf",
+        "fileName": "3.4.193_INTELIGENCIA ARTIFICIAL (PRESENCIAL)_02-12-2025.pdf",
+        "fileSha256": "e0f4806ec8923901ac1b2c00043c1f7df2cd4a8b9cccb108d988c0377e593e17",
+        "filenameDate": "2025-12-02",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.096",
+        "3.4.193",
+        "3.4096"
+      ],
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-017"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.217_CIENCIA DE DATOS (PRESENCIAL)_13-05-2025.pdf",
+        "fileName": "3.4.217_CIENCIA DE DATOS (PRESENCIAL)_13-05-2025.pdf",
+        "fileSha256": "ed98aae0299d7ea89870a9629c9d176248f3504d5cfb7e4666d3c039333e6edb",
+        "filenameDate": "2025-05-13",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.217"
+      ],
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-022"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.230_REDES DE DATOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.230_REDES DE DATOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "36f8a11a66034ddd3f61101b6682bf00c735a0ca1d24a995dbfb5c9d8bd677cc",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.230"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-029"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.212_TELEINFORMÁTICA Y REDES (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.212_TELEINFORMÁTICA Y REDES (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "84c9dc146403879a5b289ae4074155f82464ee5fc80f528c05199f7a2c79b8ae",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.212"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-030"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.081_TELEINFORMÁTICA Y REDES I (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.081_TELEINFORMÁTICA Y REDES I (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "885bd0237905435982d6696823b6a521422f90267337816d53eacb312c3d71cf",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4081"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-031"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.078_FUNDAMENTOS DE TELECOMUNICACIONES (PRESENCIAL)_30-07-2024.pdf",
+        "fileName": "3.4.078_FUNDAMENTOS DE TELECOMUNICACIONES (PRESENCIAL)_30-07-2024.pdf",
+        "fileSha256": "ba2eb0cee140db7e91c1155f7e24132a4c058ffc185619e281b315295cbeb2f6",
+        "filenameDate": "2024-07-30",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.078",
+        "3.4078",
+        "3.4133"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-034"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.099_COMUNICACIÓN SATELITAL (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.3.099_COMUNICACIÓN SATELITAL (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "439549d9ca5be9ccb0707de722c812e49326a7f45d8de764077e6cb324cc9fae",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.099"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-035"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.094_DISEÑO Y SIMULACIÓN DE SISTEMAS DE COMUNICACIÓN (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.3.094_DISEÑO Y SIMULACIÓN DE SISTEMAS DE COMUNICACIÓN (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "9ac4df33c58ad049fce65dd796f987be08dbede95a4b29eadb1d7c02c2157e82",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.094"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-036"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.097_PLANIFICACIÓN DE LAS TELECOMUNICACIONES (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.097_PLANIFICACIÓN DE LAS TELECOMUNICACIONES (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "f185262d3644048b7a2f16165a89f0881465092d20b47d935290e49b75d0607b",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.097"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-037"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.085_SEGURIDAD EN LAS COMUNICACIONES (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.085_SEGURIDAD EN LAS COMUNICACIONES (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "39760af1ca43f63f24fe648a8e17427e473d82b5bdefdd8798db69fdeb7262d4",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.085"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-038"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.098_SISTEMA DE ENLACE (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.3.098_SISTEMA DE ENLACE (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "bb55314d535020711d25bfd06fcf03e39f4b14fa1088038b2a688e756026b700",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.098"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-039"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.081_TELECOMUNICACIONES I (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.081_TELECOMUNICACIONES I (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "393b5015b49b1d7506595b5368c98735f1b33321306cb2917f83ff54097080f2",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.081",
+        "3.3081"
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "groupId": "ua-de-area-eval-040"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.129_DISEÑO DE CIRCUITOS Y APLICACIONES I (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.129_DISEÑO DE CIRCUITOS Y APLICACIONES I (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "73c3574b702db6846c87a527e2739e5685f6b85141c48faf9a68f65aac9068ff",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1179",
+        "3.3.129"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-041"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.132_DISEÑO DE CIRCUITOS Y APLICACIONES II (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.132_DISEÑO DE CIRCUITOS Y APLICACIONES II (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "4f8dbb4429e20f800f85d4b8060c3af856db02b012dfdc337dc4fb270ba453d6",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.132"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-042"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.134_ELECTRÓNICA DE POTENCIA (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.134_ELECTRÓNICA DE POTENCIA (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "bf1db403dde53690be02412c2294defa97f14a2239bc58e89e738d5bd155ed6b",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.134",
+        "3.3154"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-043"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.074_ELECTRÓNICA BÁSICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileName": "3.3.074_ELECTRÓNICA BÁSICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileSha256": "ca67675c799ee13f018e3cb056719f1b349d1cb45b6181a0af0f2b8f4bba2d67",
+        "filenameDate": "2025-02-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3074"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-044"
+    },
+    {
+      "alternatePdfCount": 5,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.068_FUNDAMENTOS DE ELECTRÓNICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileName": "3.3.068_FUNDAMENTOS DE ELECTRÓNICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileSha256": "acc3216226729d1d05e88c5dc5d913acddd229b301cde04fe2b47a7ca542bc33",
+        "filenameDate": "2025-02-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.068",
+        "3.3068"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-045"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.126_LABORATORIO DE MEDICIONES ELECTRÓNICAS (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.126_LABORATORIO DE MEDICIONES ELECTRÓNICAS (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "d84a024f86f1f38c139231a805add94271a5ba39eae0255bf357f45c33b9d912",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3126"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-046"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.127_SISTEMAS EMBEBIDOS (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.127_SISTEMAS EMBEBIDOS (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "adad07fef4e2ef3416f095089b3cb203aabe98b0193c2bebc29a87b6e8a63ff8",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.127",
+        "3.3127"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-047"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.124_TECNOLOGÍA DE LOS MATERIALES ELECTRÓNICOS (PRESENCIAL)_04-02-2025.pdf",
+        "fileName": "3.3.124_TECNOLOGÍA DE LOS MATERIALES ELECTRÓNICOS (PRESENCIAL)_04-02-2025.pdf",
+        "fileSha256": "200cfd20fbff2b229f950fac14c9ecb841f54bdf48974e11a624507eb5f8cdfa",
+        "filenameDate": "2025-02-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3124"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-048"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.089_HIDRÁULICA Y NEUMÁTICA INDUSTRIAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.089_HIDRÁULICA Y NEUMÁTICA INDUSTRIAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "246e4ec2f5746b27e7f92d231ed22f026798f0b7e7b4a99aabbf7397a8f4b905",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3089"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-049"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.073_MECÁNICA AVANZADA (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.073_MECÁNICA AVANZADA (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "7e117b84ac7ecd94bfed2940f73acf352389d1dbddcaf005932a3fab49178ead",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.073",
+        "3.3073"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-050"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.091_MECÁNICA COMPUTACIONAL (PRESENCIAL)_01-04-2025.pdf",
+        "fileName": "3.3.091_MECÁNICA COMPUTACIONAL (PRESENCIAL)_01-04-2025.pdf",
+        "fileSha256": "5a46dc16cb7c44ce787ea3d66bc917a41556e2d9500067f37a590d633f627843",
+        "filenameDate": "2025-04-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3091"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-051"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.088_MECÁNICA DEL SÓLIDO (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.088_MECÁNICA DEL SÓLIDO (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "9b4a77eef0c9b36ca42b9bf4095e881d2426fa4f4704389c9e3be0b76abdd77c",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.088",
+        "3.3088"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-052"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.090_GENERACIÓN ELÉCTRICA (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.090_GENERACIÓN ELÉCTRICA (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "46170e95f2ca53ff267c17d73f9eeb390bc462866bdbc8953d9605242a85df5a",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3090"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-053"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.177_GENERACIÓN Y DISTRIBUCIÓN ELÉCTRICA (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.177_GENERACIÓN Y DISTRIBUCIÓN ELÉCTRICA (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "fc2fb1f23942197adfe744933fd0643806575e7ec2b0dcdb6b4b081268a7fa99",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.177"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-054"
+    },
+    {
+      "alternatePdfCount": 4,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.095_TECNOLOGÍA MECÁNICA Y MECANISMOS I (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.095_TECNOLOGÍA MECÁNICA Y MECANISMOS I (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "5191ccd719e1c2eb8e9ef079bd52854883c264580780469e1196981f59993ca1",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.095",
+        "3.3095"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-055"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.103_TECNOLOGÍA MECÁNICA Y MECANISMOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.103_TECNOLOGÍA MECÁNICA Y MECANISMOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "d9fd2e86890ffc924ee3542cdd8518a3512ff2581155d7979dfb010495c4f560",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.103",
+        "3.3103"
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "groupId": "ua-de-area-eval-056"
+    },
+    {
+      "alternatePdfCount": 10,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.109_COSTOS INDUSTRIALES (PRESENCIAL)_06-03-2025.pdf",
+        "fileName": "3.3.109_COSTOS INDUSTRIALES (PRESENCIAL)_06-03-2025.pdf",
+        "fileSha256": "7c9471e56e838607f70bc355f65535c2bdf6f68438e06062840cb7922d619ef1",
+        "filenameDate": "2025-03-06",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.064",
+        "3.3.109",
+        "3.3064",
+        "3.3109"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-057"
+    },
+    {
+      "alternatePdfCount": 1,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.161_COSTOS Y SISTEMAS CONTABLES (PRESENCIAL)_06-03-2025.pdf",
+        "fileName": "3.3.161_COSTOS Y SISTEMAS CONTABLES (PRESENCIAL)_06-03-2025.pdf",
+        "fileSha256": "750fa1ce85928fd7eedc14a211b6a12420ec27ff8604e73ec8759fcfa90651de",
+        "filenameDate": "2025-03-06",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.161"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-058"
+    },
+    {
+      "alternatePdfCount": 1,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.193_ANÁLISIS FINANCIERO (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.193_ANÁLISIS FINANCIERO (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "c05412f6128434057c1c618c354f986626cd2aec90128624406ae59682e1f9ad",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.193"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-059"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.009_ESTUDIO DEL TRABAJO (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.009_ESTUDIO DEL TRABAJO (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "c307d8a535131d8342b476e67ddb44047d296a99427830475cdf2cf295f6b0a0",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3009"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-060"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.184_GESTIÓN DE OPERACIONES I_ ORGANIZACIÓN DE LA PRODUCCIÓN (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.184_GESTIÓN DE OPERACIONES I_ ORGANIZACIÓN DE LA PRODUCCIÓN (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "d7d046c8fb97f67a8824efbfc683690e597251933a769c5e6dc54d5ead5b945b",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.184"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-061"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.186_GESTIÓN DE OPERACIONES II_ ANÁLISIS DE PRODUCTIVIDAD (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.3.186_GESTIÓN DE OPERACIONES II_ ANÁLISIS DE PRODUCTIVIDAD (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "9d4860de3d45c22e0adbe78a0a6c129323ed415f76e9b1d55ceac3198c9aae6f",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.186"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-062"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.189_GESTIÓN DE OPERACIONES III_ PROGRAMACIÓN Y CONTROL (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.189_GESTIÓN DE OPERACIONES III_ PROGRAMACIÓN Y CONTROL (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "c03d041c5a6c6540513051d7dc6d547d50adc01e3ab6a4d2c267fcc56b454ed5",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.189"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-063"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.078_LOGÍSTICA INDUSTRIAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.078_LOGÍSTICA INDUSTRIAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "063e55459773c47657dc23c5d3789f2e78b5c1ee9b79aa24e097b6307318681a",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3078"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-064"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.185_MODELADO Y SIMULACIÓN DE PROCESOS I (PRESENCIAL)_01-04-2025.pdf",
+        "fileName": "3.3.185_MODELADO Y SIMULACIÓN DE PROCESOS I (PRESENCIAL)_01-04-2025.pdf",
+        "fileSha256": "2c501ad804f65c680670c8aa41f98439e84896ced0498d490e2513dda2e0a5ab",
+        "filenameDate": "2025-04-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.185"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-065"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.188_MODELADO Y SIMULACIÓN DE PROCESOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.188_MODELADO Y SIMULACIÓN DE PROCESOS II (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "8849d32e44607351b993941b5664cf5e2b4d88b3d74a8e6ec864ff18d72103bd",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.188"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-066"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.111_PROCESOS INDUSTRIALES (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.111_PROCESOS INDUSTRIALES (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "8f93b0b1991eb9196c81f1d6fc345d2f8111e371651d3d93600d2d0a87ec1092",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3111"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-067"
+    },
+    {
+      "alternatePdfCount": 1,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.198_TECNOLOGÍAS DE PROCESOS INDUSTRIALES (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.198_TECNOLOGÍAS DE PROCESOS INDUSTRIALES (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "336cf012a1838528a0d2168129f3e1b09b732cfd51edfecb4f367d572f9d7f9a",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.3.198"
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "groupId": "ua-de-area-eval-068"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.060_TECNOLOGÍA DE ALIMENTOS I (PRESENCIAL)_17-12-2024.pdf",
+        "fileName": "3.2.060_TECNOLOGÍA DE ALIMENTOS I (PRESENCIAL)_17-12-2024.pdf",
+        "fileSha256": "93200e21f10741a03d353346618fed9f1bc737a2adb93f3e1ab731d0fffa8d6c",
+        "filenameDate": "2024-12-17",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.060",
+        "3.2060"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-069"
+    },
+    {
+      "alternatePdfCount": 1,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.061_TECNOLOGÍA DE ALIMENTOS II (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.061_TECNOLOGÍA DE ALIMENTOS II (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "82be896601de790f3898190608e655c6bdb28256d41a5c774841dab7eef9e0a7",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.061"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-070"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.062_TECNOLOGÍA DE ALIMENTOS III (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.062_TECNOLOGÍA DE ALIMENTOS III (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "ed6b654716269f45acc5ba86cc86619cc7035bd3eca46ef650c45a32710563bb",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.062",
+        "3.2062"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-071"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.057_OPERACIONES UNITARIAS (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.057_OPERACIONES UNITARIAS (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "3a7b0cddfde10896968328c0fad4ed17d4821f81a5927de0175e79c1697f6f39",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.057",
+        "3.2057"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-072"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.065_PROCESAMIENTO DE ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.065_PROCESAMIENTO DE ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "92f565675231a26cb973cc85cc144c486d897edac4cf046fe0fee26b7056635e",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.065",
+        "3.2065"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-073"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.199_PROCESOS DE CONSERVACIÓN DE ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.199_PROCESOS DE CONSERVACIÓN DE ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "25b899a7945f8be28599711ae066e1444cc3327a085bdc0ec133041712274468",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.199"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-074"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.063_MATERIALES Y TÉCNICAS DE ENVASADO (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.063_MATERIALES Y TÉCNICAS DE ENVASADO (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "7994d072acc5c66b1a43ed2a920b5aed812ce7d84e4aedb0c377ecea37fa7fa4",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.063",
+        "3.2063"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-075"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.064_CALIDAD ALIMENTARIA (PRESENCIAL)_18-02-2025.pdf",
+        "fileName": "3.2.064_CALIDAD ALIMENTARIA (PRESENCIAL)_18-02-2025.pdf",
+        "fileSha256": "fbc3b750016bf5b69f77d8224bdcc163520e70200d7894a7b7ce649afcb0bc07",
+        "filenameDate": "2025-02-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.064",
+        "3.2064"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-076"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.021_MICROBIOLOGÍA DE LOS ALIMENTOS (PRESENCIAL)_16-04-2024.pdf",
+        "fileName": "3.2.021_MICROBIOLOGÍA DE LOS ALIMENTOS (PRESENCIAL)_16-04-2024.pdf",
+        "fileSha256": "f8cade08cbdf3dbc25120587f21e14c5c1efd3d6f8fc69e42e892866f84d976b",
+        "filenameDate": "2024-04-16",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.021",
+        "3.2021"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-077"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.022_LABORATORIO DE MICROBIOLOGÍA DE LOS ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.022_LABORATORIO DE MICROBIOLOGÍA DE LOS ALIMENTOS (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "d62222914bb7874215b21f57d76d9d9359817db34e9ea8b495fd008110fe0adc",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.022",
+        "3.2022"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-078"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.058_BROMATOLOGÍA (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.058_BROMATOLOGÍA (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "7c9c59209c25e250cc7117f6a4837a35e511839bf539c0716106236dde418f87",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.058",
+        "3.2058"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-079"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.197_ANÁLISIS SENSORIAL (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.197_ANÁLISIS SENSORIAL (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "f9051ab2a611c3d6f51f2bd8f7419c5ac4e444e12fbd938b2c009afa2709603e",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.197"
+      ],
+      "disciplinaryFamily": "food_science",
+      "groupId": "ua-de-area-eval-080"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.100_ANÁLISIS COMPUTACIONAL DE SECUENCIAS (PRESENCIAL)_12-11-2024.pdf",
+        "fileName": "3.2.100_ANÁLISIS COMPUTACIONAL DE SECUENCIAS (PRESENCIAL)_12-11-2024.pdf",
+        "fileSha256": "74421a251a62b2d97fa1f5600dda27bbccb34a8b3ee55bd10eedd216f2bbe3bd",
+        "filenameDate": "2024-11-12",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.100",
+        "3.2100"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-081"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.101_GENÓMICA FUNCIONAL (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.2.101_GENÓMICA FUNCIONAL (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "eb52d88b82815d9f98ee510c0822d4e5c8a8038927750e9b8fd3b897e09d3371",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.101",
+        "3.2101"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-083"
+    },
+    {
+      "alternatePdfCount": 1,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.187_BIOLOGÍA DE SISTEMAS E INGENIERÍA METABÓLICA (PRESENCIAL)_05-12-2024.pdf",
+        "fileName": "3.2.187_BIOLOGÍA DE SISTEMAS E INGENIERÍA METABÓLICA (PRESENCIAL)_05-12-2024.pdf",
+        "fileSha256": "bee2e7d12128a8039351471c2aba75b990d5147d25091feba7846375d6540455",
+        "filenameDate": "2024-12-05",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.187"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-084"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.104_COMPUTACIÓN DE ALTO RENDIMIENTO (PRESENCIAL)_09-09-2025.pdf",
+        "fileName": "3.4.104_COMPUTACIÓN DE ALTO RENDIMIENTO (PRESENCIAL)_09-09-2025.pdf",
+        "fileSha256": "3074193c908ca90440dffaa5e1cf675b1878ebbf2757b3039db7520a56cc799b",
+        "filenameDate": "2025-09-09",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.104",
+        "3.4104"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-085"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.1.028_BIOESTADÍSTICA AVANZADA (PRESENCIAL)_13-05-2025.pdf",
+        "fileName": "3.1.028_BIOESTADÍSTICA AVANZADA (PRESENCIAL)_13-05-2025.pdf",
+        "fileSha256": "35dd64cd2084d12dbed3bf89543f91c6484cc4688eaf6203d27651d9190e39dd",
+        "filenameDate": "2025-05-13",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.028",
+        "3.1028"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-086"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.102_PROYECTO FINAL DE BIOINFORMÁTICA (PRESENCIAL)_27-05-2025.pdf",
+        "fileName": "3.2.102_PROYECTO FINAL DE BIOINFORMÁTICA (PRESENCIAL)_27-05-2025.pdf",
+        "fileSha256": "0192918e1435590b58002622e5f566cf59dfd33fa7e271be1864922d92a04f82",
+        "filenameDate": "2025-05-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.102",
+        "3.2102"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-087"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.166_AGROBIOTECNOLOGÍA (PRESENCIAL)_01-04-2025.pdf",
+        "fileName": "3.2.166_AGROBIOTECNOLOGÍA (PRESENCIAL)_01-04-2025.pdf",
+        "fileSha256": "c9dd155c2e56f206d8009bb2b78b06dc02f03827b5b94ac8fc930f8ffe9b9cde",
+        "filenameDate": "2025-04-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.166"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-088"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.088_BIOINFORMÁTICA (PRESENCIAL)_12-11-2024.pdf",
+        "fileName": "3.2.088_BIOINFORMÁTICA (PRESENCIAL)_12-11-2024.pdf",
+        "fileSha256": "a0175c237a9be5daeac16970bac34fac5d063085575a8e02fdc483481d90edb2",
+        "filenameDate": "2024-11-12",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.088",
+        "3.2088"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-089"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.095_GENÓMICA Y PROTEÓMICA (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.2.095_GENÓMICA Y PROTEÓMICA (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "8ca3d496521e17a401308031b1b584fbea5b667d7d79a85182016872af1ed18a",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.095",
+        "3.2095"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-090"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.096_INDUSTRIAS Y PROCESOS BIOTECNOLÓGICOS (PRESENCIAL)_12-11-2024.pdf",
+        "fileName": "3.2.096_INDUSTRIAS Y PROCESOS BIOTECNOLÓGICOS (PRESENCIAL)_12-11-2024.pdf",
+        "fileSha256": "c9728a84e8a35f688e67e090299e9ffa762b4e036aeeb36e75e3edbdeceb9624",
+        "filenameDate": "2024-11-12",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.096",
+        "3.2096"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-091"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.167_LABORATORIO DE BIOPROCESOS (PRESENCIAL)_16-04-2024.pdf",
+        "fileName": "3.2.167_LABORATORIO DE BIOPROCESOS (PRESENCIAL)_16-04-2024.pdf",
+        "fileSha256": "0b24ed3d575967251ca6dcd01706b8e191d5d863215b0768705353cf4537f565",
+        "filenameDate": "2024-04-16",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.167"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-092"
+    },
+    {
+      "alternatePdfCount": 3,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.097_NANOBIOTECNOLOGÍA (PRESENCIAL)_12-11-2024.pdf",
+        "fileName": "3.2.097_NANOBIOTECNOLOGÍA (PRESENCIAL)_12-11-2024.pdf",
+        "fileSha256": "e5fc2fa6197c6a7701e64c30b8444e2744d81a8f61648b27db511ffc717d2327",
+        "filenameDate": "2024-11-12",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.097",
+        "3.2097"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-093"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.168_LABORATORIO DE DIAGNÓSTICO Y CIENCIAS FORENSES (PRESENCIAL)_16-04-2024.pdf",
+        "fileName": "3.2.168_LABORATORIO DE DIAGNÓSTICO Y CIENCIAS FORENSES (PRESENCIAL)_16-04-2024.pdf",
+        "fileSha256": "8f2c8750598b68cad72e0df5c952eb5cf834ff73b00f549f422423934feb1170",
+        "filenameDate": "2024-04-16",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.168"
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "groupId": "ua-de-area-eval-094"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.040_BIODIVERSIDAD Y AMBIENTE (PRESENCIAL)_14-05-2024.pdf",
+        "fileName": "3.5.040_BIODIVERSIDAD Y AMBIENTE (PRESENCIAL)_14-05-2024.pdf",
+        "fileSha256": "f6fb23428d2e3ac17ecc5e1ba2ee95d67df3153a4d6fab03594b126f710d2722",
+        "filenameDate": "2024-05-14",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.040"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-095"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.039_ECOSISTEMAS ACUÁTICOS (PRESENCIAL)_14-05-2024.pdf",
+        "fileName": "3.5.039_ECOSISTEMAS ACUÁTICOS (PRESENCIAL)_14-05-2024.pdf",
+        "fileSha256": "157b68f0aadb115b1f469458bdc8d75cfdac2300cb2a00de44ab787f5908d8b1",
+        "filenameDate": "2024-05-14",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.039"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-096"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.048_EVALUACIÓN DE IMPACTO AMBIENTAL (PRESENCIAL)_18-02-2025.pdf",
+        "fileName": "3.5.048_EVALUACIÓN DE IMPACTO AMBIENTAL (PRESENCIAL)_18-02-2025.pdf",
+        "fileSha256": "dd495e5fc5b35f535e8968fb96371249a9b06c206ba8ef699748105f3df5f06a",
+        "filenameDate": "2025-02-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.048"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-097"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.051_GESTIÓN AMBIENTAL URBANA Y PERIURBANA (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.5.051_GESTIÓN AMBIENTAL URBANA Y PERIURBANA (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "7aaa54e56ed729b5c522dcffde632a3c61d63d5f1369c09f2e4f41ad56a5e2c1",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.051"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-098"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.055_RECURSOS HÍDRICOS (PRESENCIAL)_29-07-2025.pdf",
+        "fileName": "3.5.055_RECURSOS HÍDRICOS (PRESENCIAL)_29-07-2025.pdf",
+        "fileSha256": "9499e8eb505b3c3e7d5861321e64fa25085665bc13670f940af58014b309af2b",
+        "filenameDate": "2025-07-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.055"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-099"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.049_SISTEMAS DE REMEDIACIÓN - MANEJO Y CONSERVACIÓN DE SUELOS (PRESENCIAL)_17-12-2025.pdf",
+        "fileName": "3.5.049_SISTEMAS DE REMEDIACIÓN - MANEJO Y CONSERVACIÓN DE SUELOS (PRESENCIAL)_17-12-2025.pdf",
+        "fileSha256": "5126eb0534abc290123a48a0aeb991b107624118be4d590885fa4b06de53807d",
+        "filenameDate": "2025-12-17",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.049"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-100"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.014_AGRICULTURA DE PRECISIÓN (PRESENCIAL)_04-06-2024.pdf",
+        "fileName": "3.5.014_AGRICULTURA DE PRECISIÓN (PRESENCIAL)_04-06-2024.pdf",
+        "fileSha256": "80a46a1d29f3f8b7ebbe61f7694ab34dab10f5b2f27f1643bda312d43035840a",
+        "filenameDate": "2024-06-04",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.014"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-101"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.028_AGROINDUSTRIAS (PRESENCIAL)_24-06-2025.pdf",
+        "fileName": "3.5.028_AGROINDUSTRIAS (PRESENCIAL)_24-06-2025.pdf",
+        "fileSha256": "54362981a2164e1a25746a2296ddc76fd75f611aa99c72935bc6bcc583e6b6ea",
+        "filenameDate": "2025-06-24",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.028"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-102"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.001_IMPACTO AMBIENTAL EN AGROECOSISTEMAS (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.5.001_IMPACTO AMBIENTAL EN AGROECOSISTEMAS (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "f5fbd163f00fc4feeb0fa77bc96a7ab96ae84e5d4e59c99861a5ee2f1cf164b7",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.001"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-103"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.003_SUELOS Y AGROCLIMATOLOGÍA (PRESENCIAL)_02-07-2024.pdf",
+        "fileName": "3.5.003_SUELOS Y AGROCLIMATOLOGÍA (PRESENCIAL)_02-07-2024.pdf",
+        "fileSha256": "e468e6ea4e80fa319a0f44d7f8f05f1b45f860d8e58be8b7616c9f5beb2d704c",
+        "filenameDate": "2024-07-02",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.003"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-104"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.013_TECNOLOGÍA DE RIEGO (PRESENCIAL)_10-02-2026.pdf",
+        "fileName": "3.5.013_TECNOLOGÍA DE RIEGO (PRESENCIAL)_10-02-2026.pdf",
+        "fileSha256": "27640bd7ab138ab198219cb2d74b2eef84fa81f7230b86087be31b31ad870429",
+        "filenameDate": "2026-02-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.013"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-105"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.5.007_TECNOLOGÍA PARA EL AGRO (PRESENCIAL)_10-02-2026.pdf",
+        "fileName": "3.5.007_TECNOLOGÍA PARA EL AGRO (PRESENCIAL)_10-02-2026.pdf",
+        "fileSha256": "6d0af0fe61e3f62d8216df1103bb6ef94d74879f4891dda78d2fb55d9253eec2",
+        "filenameDate": "2026-02-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.5.007"
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "groupId": "ua-de-area-eval-106"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.176_INTRODUCCIÓN AL DISEÑO DE VIDEOJUEGOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.176_INTRODUCCIÓN AL DISEÑO DE VIDEOJUEGOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "3978a6980ab0810016cd6617c6b6dfa1ae83c4626967b5d5479182a1209a17cb",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.176"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-107"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.179_DISEÑO DE VIDEOJUEGOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.179_DISEÑO DE VIDEOJUEGOS (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "52d4366a6726ad15d638896c16e81ee30d529cda537f5f4e53d9a3e11870abc0",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.179"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-108"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.191_DESARROLLO AVANZADO DE VIDEOJUEGOS (PRESENCIAL)_27-05-2025.pdf",
+        "fileName": "3.4.191_DESARROLLO AVANZADO DE VIDEOJUEGOS (PRESENCIAL)_27-05-2025.pdf",
+        "fileSha256": "8c27314469bb70b77896205a756505a1024c324445648243a423051a71b56728",
+        "filenameDate": "2025-05-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.191"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-109"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.178_DESARROLLO DE JUEGOS EN TIEMPO REAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.4.178_DESARROLLO DE JUEGOS EN TIEMPO REAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "97875e5f88fbda04a47219d7dd1ac6fbf2f05d1d0c0f338ac1992668d796ab6d",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.178"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-110"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.198_JUEGOS EN RED (PRESENCIAL)_02-12-2025.pdf",
+        "fileName": "3.4.198_JUEGOS EN RED (PRESENCIAL)_02-12-2025.pdf",
+        "fileSha256": "8c46e5e6b576fdfeb333d9665f5d78d9e729f07765378afb8af565b8502e09e2",
+        "filenameDate": "2025-12-02",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.198"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-111"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.199_MÉTRICAS DE VIDEOJUEGOS (PRESENCIAL)_01-10-2024.pdf",
+        "fileName": "3.4.199_MÉTRICAS DE VIDEOJUEGOS (PRESENCIAL)_01-10-2024.pdf",
+        "fileSha256": "6aa36b5e8bafbb6b4c2a03153a1e19778a5a9b793cbf3623b1f8918f97989d98",
+        "filenameDate": "2024-10-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.199"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-112"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.194_OPTIMIZACIÓN DE VIDEOJUEGOS (PRESENCIAL)_02-12-2025.pdf",
+        "fileName": "3.4.194_OPTIMIZACIÓN DE VIDEOJUEGOS (PRESENCIAL)_02-12-2025.pdf",
+        "fileSha256": "f07cc237336dc4f531e9216ac254e09ee7271f5074bbb16b4c5145b82a7dc033",
+        "filenameDate": "2025-12-02",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.194"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-113"
+    },
+    {
+      "alternatePdfCount": 2,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.4.181_FÍSICA DE OBJETOS Y PERSONAJES (PRESENCIAL)_29-04-2025.pdf",
+        "fileName": "3.4.181_FÍSICA DE OBJETOS Y PERSONAJES (PRESENCIAL)_29-04-2025.pdf",
+        "fileSha256": "acd5be69113145555c728a301b4cb2cb5a64b4844e8bfdacaff4d631e5d92a90",
+        "filenameDate": "2025-04-29",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.4.181"
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "groupId": "ua-de-area-eval-114"
+    },
+    {
+      "alternatePdfCount": 11,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.3.002_FÍSICA GENERAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileName": "3.3.002_FÍSICA GENERAL (PRESENCIAL)_18-03-2025.pdf",
+        "fileSha256": "1f523b8a1f87dcbb4360dbbf2dcdd4cb9a4fa8e170117f7dd94ca357857a6a5c",
+        "filenameDate": "2025-03-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.066",
+        "3.3.002",
+        "3.3002"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-115"
+    },
+    {
+      "alternatePdfCount": 9,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.1.018_ESTADÍSTICA GENERAL (PRESENCIAL)_01-04-2025.pdf",
+        "fileName": "3.1.018_ESTADÍSTICA GENERAL (PRESENCIAL)_01-04-2025.pdf",
+        "fileSha256": "90e6eb912a9afc00a618ed8e889912489adb7eb2bb6369bbabbaa206229c4c6f",
+        "filenameDate": "2025-04-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.018",
+        "3.1018"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-116"
+    },
+    {
+      "alternatePdfCount": 7,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.1.049_PROBABILIDAD Y ESTADÍSTICA (PRESENCIAL)_01-04-2025.pdf",
+        "fileName": "3.1.049_PROBABILIDAD Y ESTADÍSTICA (PRESENCIAL)_01-04-2025.pdf",
+        "fileSha256": "0b18aa3f8f1f646c3b68dab7f6cd672a947566aacbddfbc28fbb9749151c4e8b",
+        "filenameDate": "2025-04-01",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.049"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-117"
+    },
+    {
+      "alternatePdfCount": 9,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.1.006_ÁLGEBRA Y GEOMETRÍA ANALÍTICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileName": "3.1.006_ÁLGEBRA Y GEOMETRÍA ANALÍTICA (PRESENCIAL)_18-02-2025.pdf",
+        "fileSha256": "9f6821f2dd9fd8489e512f88aa6890634a6a666a3732282d87ea42b901b00cf3",
+        "filenameDate": "2025-02-18",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.006",
+        "3.1006"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-118"
+    },
+    {
+      "alternatePdfCount": 18,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.2.188_QUÍMICA GENERAL (PRESENCIAL)_10-02-2026.pdf",
+        "fileName": "3.2.188_QUÍMICA GENERAL (PRESENCIAL)_10-02-2026.pdf",
+        "fileSha256": "807130fc18305bdf8e75a6cc192aac16d87a81f29e6a44d9e49e63d432cb0cae",
+        "filenameDate": "2026-02-10",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.2.007",
+        "3.2.180",
+        "3.2.188",
+        "3.2007"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-119"
+    },
+    {
+      "alternatePdfCount": 10,
+      "canonicalSource": {
+        "absolutePath": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\TODAS MATERIAS JUNTAS\\3.1.020_CÁLCULO NUMÉRICO (PRESENCIAL)_27-01-2026.pdf",
+        "fileName": "3.1.020_CÁLCULO NUMÉRICO (PRESENCIAL)_27-01-2026.pdf",
+        "fileSha256": "e87e096c39f8aaf0541934e4bb10b512410ba1f3e1c6962c746907e5c6d2f5cd",
+        "filenameDate": "2026-01-27",
+        "selectionBasis": [
+          "explicit_course_code",
+          "most_recent_verifiable_filename_date",
+          "casefolded_absolute_path_tie_breaker"
+        ]
+      },
+      "courseCodes": [
+        "3.1.020",
+        "3.1020"
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "groupId": "ua-de-area-eval-120"
+    }
+  ],
+  "constraintsObserved": [
+    "No semantic_analysis_v1, baseline, E5 inference, reranking, or classification executed.",
+    "No gold or Development/Holdout split created.",
+    "No prototype or source PDF modified."
+  ],
+  "dataAiGate": {
+    "available": 8,
+    "minimumBeforeContinuing": 8,
+    "status": "MINIMUM_MET_TARGET_NOT_MET",
+    "target": 12
+  },
+  "finalAvailableByFamily": {
+    "data_ai": 8,
+    "electronics_mechanics": 16,
+    "environmental_agro": 12,
+    "food_science": 12,
+    "foundational_sciences": 6,
+    "industrial_operations": 12,
+    "interactive_media": 8,
+    "life_sciences": 14,
+    "networking_telecommunications": 12,
+    "software_systems": 16
+  },
+  "replacements": [
+    {
+      "availableCurricularSections": {
+        "attitudinalContentsRaw": [
+          2
+        ],
+        "conceptualContentsRaw": [
+          2
+        ],
+        "contentsRaw": [
+          2
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ],
+        "proceduralContentsRaw": [
+          2
+        ]
+      },
+      "boundary": "aprendizaje automático / minería de datos",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-019",
+      "replacementCourseCode": "3.4.102",
+      "replacementCourseName": "Minería de Datos",
+      "replacementGroupId": "ua-de-area-eval-rb-001",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 4,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Licenciatura En Bioinformática (5910)\\3.4.102_MINERÍA DE DATOS (PRESENCIAL)_13-05-2025.pdf",
+      "sourceSha256": "11789c65d218a0a6315ac00cbb93417728e0ab229a46c72746ac34a3425bcdc2"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2,
+          4
+        ]
+      },
+      "boundary": "modelado estadístico avanzado",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-020",
+      "replacementCourseCode": "3.1.056",
+      "replacementCourseName": "Estadística Avanzada",
+      "replacementGroupId": "ua-de-area-eval-rb-002",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 6,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingenieria Informatica(1621)\\3.1.056_ESTADÍSTICA AVANZADA (PRESENCIAL)_01-04-2025.pdf",
+      "sourceSha256": "5509d0f7e28291c34342e88cd82b1d5149b28c3b5a1c15ae4c34f3d9aca0d31f"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2,
+          4
+        ]
+      },
+      "boundary": "estadística y ciencia de datos para decisión",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-023",
+      "replacementCourseCode": "3.1.071",
+      "replacementCourseName": "Estadística y Ciencia de Datos para Toma de Decisiones",
+      "replacementGroupId": "ua-de-area-eval-rb-003",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 6,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingeniería Industrial (4524)\\3.1.071_ESTADÍSTICA Y CIENCIA DE DATOS PARA TOMA DE DECISIONES (PRESENCIAL)_01-04-2025.pdf",
+      "sourceSha256": "481b611e6428d11f669a02ef47302aef63065dc0659a06d6f8968dabbe039e6d"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2,
+          4
+        ]
+      },
+      "boundary": "inferencia y estadística aplicada",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-025",
+      "replacementCourseCode": "3.1.019",
+      "replacementCourseName": "Estadística Aplicada",
+      "replacementGroupId": "ua-de-area-eval-rb-004",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 6,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingenieria Industrial(4505)\\3.1.019_ESTADÍSTICA APLICADA (PRESENCIAL)_01-04-2025.pdf",
+      "sourceSha256": "178057f62860fa74c4df5b80529a4774f802528e8dea528a45505b734080d963"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2,
+          4
+        ],
+        "objectivesRaw": [
+          2
+        ]
+      },
+      "boundary": "análisis geoespacial y sistemas de información geográfica",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-026",
+      "replacementCourseCode": "3.5.047",
+      "replacementCourseName": "Sistemas de Información Geográfica",
+      "replacementGroupId": "ua-de-area-eval-rb-005",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 4,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Licenciatura en Gestion Ambiental(10215)\\3.5.047_SISTEMAS DE INFORMACIÓN GEOGRÁFICA (PRESENCIAL)_04-06-2024.pdf",
+      "sourceSha256": "66db7e45637b83a7d1b2419c9e2b726b2e8f042e3ff47c6c636d1e81692ec710"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ]
+      },
+      "boundary": "bases de datos relacionales",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "data_ai",
+      "originalGroupId": "ua-de-area-eval-028",
+      "replacementCourseCode": "3.4.080",
+      "replacementCourseName": "Base de Datos I",
+      "replacementGroupId": "ua-de-area-eval-rb-006",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 4,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingenieria Informatica(1608)\\3.4.080_BASE DE DATOS I (PRESENCIAL)_30-07-2024.pdf",
+      "sourceSha256": "61bb6a9fb2c4a732fdd6c13b5d046fc1b170e0403d5283bfa373527f7716c2ba"
+    },
+    {
+      "availableCurricularSections": {
+        "attitudinalContentsRaw": [
+          2
+        ],
+        "conceptualContentsRaw": [
+          2
+        ],
+        "contentsRaw": [
+          2,
+          3
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ],
+        "proceduralContentsRaw": [
+          2
+        ]
+      },
+      "boundary": "desarrollo de aplicaciones",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "software_systems",
+      "originalGroupId": "ua-de-area-eval-011",
+      "replacementCourseCode": "3.4.216",
+      "replacementCourseName": "Desarrollo de Aplicaciones I",
+      "replacementGroupId": "ua-de-area-eval-rb-007",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 4,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingenieria Informatica(1621)\\3.4.216_DESARROLLO DE APLICACIONES I (PRESENCIAL)_01-04-2025.pdf",
+      "sourceSha256": "ec9c2a4bfdb2ed224e1cbbbe3597062ae1ed8fe07a7fff55c0cf637d62288e44"
+    },
+    {
+      "availableCurricularSections": {
+        "attitudinalContentsRaw": [
+          3
+        ],
+        "conceptualContentsRaw": [
+          2
+        ],
+        "contentsRaw": [
+          2,
+          3
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ],
+        "proceduralContentsRaw": [
+          3
+        ]
+      },
+      "boundary": "desarrollo e integración de aplicaciones",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "software_systems",
+      "originalGroupId": "ua-de-area-eval-012",
+      "replacementCourseCode": "3.4.218",
+      "replacementCourseName": "Desarrollo de Aplicaciones II",
+      "replacementGroupId": "ua-de-area-eval-rb-008",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 6,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingenieria Informatica(1621)\\3.4.218_DESARROLLO DE APLICACIONES II (PRESENCIAL)_01-04-2025.pdf",
+      "sourceSha256": "ed93cb3c8ecf23c62d0d2d30cde470bac361ecd44f9cebadcb8bb5cdf66f2380"
+    },
+    {
+      "availableCurricularSections": {
+        "attitudinalContentsRaw": [
+          2,
+          3
+        ],
+        "conceptualContentsRaw": [
+          2,
+          3
+        ],
+        "contentsRaw": [
+          2,
+          3
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ],
+        "proceduralContentsRaw": [
+          2,
+          3
+        ]
+      },
+      "boundary": "transmisión y sistemas de telecomunicaciones",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "networking_telecommunications",
+      "originalGroupId": "ua-de-area-eval-032",
+      "replacementCourseCode": "3.3.113",
+      "replacementCourseName": "Telecomunicaciones II",
+      "replacementGroupId": "ua-de-area-eval-rb-009",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 5,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingeniería en Telecomunicaciones (3905)\\3.3.113_TELECOMUNICACIONES II (PRESENCIAL)_04-06-2024.pdf",
+      "sourceSha256": "76519e472d99aac989134b1675c14421f8585c9c0f02edc13bec1f84b3915235"
+    },
+    {
+      "availableCurricularSections": {
+        "attitudinalContentsRaw": [
+          2,
+          3
+        ],
+        "conceptualContentsRaw": [
+          2,
+          3
+        ],
+        "contentsRaw": [
+          2,
+          3
+        ],
+        "minimumContentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ],
+        "proceduralContentsRaw": [
+          2,
+          3
+        ]
+      },
+      "boundary": "sistemas de comunicaciones",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "networking_telecommunications",
+      "originalGroupId": "ua-de-area-eval-033",
+      "replacementCourseCode": "3.3.149",
+      "replacementCourseName": "Sistemas de Comunicaciones I",
+      "replacementGroupId": "ua-de-area-eval-rb-010",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 6,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Ingeniería Electrónica (9513)\\3.3.149_SISTEMAS DE COMUNICACIONES I (PRESENCIAL)_18-03-2025.pdf",
+      "sourceSha256": "d683e03d7d605372aeb798143763166748dd2137a569ec94c0d22b6d5c97ee02"
+    },
+    {
+      "availableCurricularSections": {
+        "contentsRaw": [
+          2
+        ],
+        "objectivesRaw": [
+          2
+        ]
+      },
+      "boundary": "bioestadística para bioinformática",
+      "canonicalSelectionBasis": [
+        "explicit_course_code",
+        "most_recent_verifiable_filename_date",
+        "casefolded_absolute_path_tie_breaker"
+      ],
+      "family": "life_sciences",
+      "originalGroupId": "ua-de-area-eval-082",
+      "replacementCourseCode": "3.1.027",
+      "replacementCourseName": "Bioestadística",
+      "replacementGroupId": "ua-de-area-eval-rb-011",
+      "replacementReason": "Local institutional PDF with explicit course code/title, objectives and curricular contents; selected before any classifier or embedding execution.",
+      "sourcePages": 4,
+      "sourcePdf": "C:\\Users\\Personal\\Documents\\Universidad\\PFI\\PFI ADRIEL PASIK\\Planes de estudio Materias\\FAIN\\Licenciatura En Bioinformática (5910)\\3.1.027_BIOESTADÍSTICA (PRESENCIAL)_04-06-2024.pdf",
+      "sourceSha256": "e21213df5f997eed71f40d6a2d2cd9deb5e3869a5b732a1daaa5ec0164d80eb8"
+    }
+  ],
+  "schemaVersion": "scope_area_embedding_corpus_rebalancing_v1",
+  "selectionRule": "Among candidates with explicit course-code correspondence, select the most recent verifiable filename date; if tied, select the casefolded absolute path. A source must also expose objectives/propósitos/resultados or a substantive equivalent and curricular contents. No classifier or embedding output is consulted.",
+  "status": "REBALANCED_SOURCE_SELECTION_TOKEN_AUDIT_PENDING",
+  "tokenAudit": "BLOCKED: local directory with pfi-model-manifest.json for intfloat/multilingual-e5-small revision fd1525a9fd15316a2d503bf26ab031a61d056e98 is not available in the accessible environment; no remote download attempted.",
+  "unresolvedDeficits": [
+    {
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-018",
+      "normalizedTitle": "introduccion a la inteligencia artificial",
+      "reason": "No distinct local replacement met the same-family/boundary and no-selected-leakage-group constraints.",
+      "status": "SOURCE_NOT_FOUND"
+    },
+    {
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-021",
+      "normalizedTitle": "deep learning redes neuronales avanzadas",
+      "reason": "No distinct local replacement met the same-family/boundary and no-selected-leakage-group constraints.",
+      "status": "SOURCE_NOT_FOUND"
+    },
+    {
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-024",
+      "normalizedTitle": "python para ciencia de datos",
+      "reason": "No distinct local replacement met the same-family/boundary and no-selected-leakage-group constraints.",
+      "status": "SOURCE_NOT_FOUND"
+    },
+    {
+      "disciplinaryFamily": "data_ai",
+      "groupId": "ua-de-area-eval-027",
+      "normalizedTitle": "bases de datos avanzadas",
+      "reason": "No distinct local replacement met the same-family/boundary and no-selected-leakage-group constraints.",
+      "status": "SOURCE_NOT_FOUND"
+    }
+  ]
+}

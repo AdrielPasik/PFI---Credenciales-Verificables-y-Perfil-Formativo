@@ -5,8 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY requirements.txt requirements-api.txt ./
-RUN python -m pip install --no-cache-dir -r requirements-api.txt
+COPY requirements.txt requirements-api.txt requirements-embeddings.txt ./
+ARG INSTALL_LOCAL_EMBEDDINGS=false
+RUN python -m pip install --no-cache-dir -r requirements-api.txt \
+    && if [ "$INSTALL_LOCAL_EMBEDDINGS" = "true" ]; then python -m pip install --no-cache-dir -r requirements-embeddings.txt; fi
 
 COPY src ./src
 COPY config ./config

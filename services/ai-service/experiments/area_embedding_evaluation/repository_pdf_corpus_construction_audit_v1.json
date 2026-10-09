@@ -1,0 +1,2637 @@
+{
+  "acquisitionCounts": {
+    "acquiredEligible": 0,
+    "acquiredInsufficient": 0,
+    "duplicateOrEquivalent": 0,
+    "proposedGroups": 120,
+    "sourceNotFound": 120
+  },
+  "approvedPrototypeFreeze": {
+    "referencesVersion": "scope-areas-2026-10-08-v1-frozen",
+    "sha256": "a2e5010cd64a4534039b1e919c7b6169bce9029f25056975217bf42dc181c55c",
+    "status": "NORMATIVE_UNMODIFIED_DURING_THIS_AUDIT"
+  },
+  "blockingDecision": {
+    "externalLookup": "NOT_STARTED",
+    "minimumToContinue": 96,
+    "reason": "No institutional repository PDFs map to any proposed group; 0 eligible is below the approved floor of 96.",
+    "status": "STOPPED_BEFORE_EXTERNAL_SOURCES",
+    "target": 120
+  },
+  "caseResults": [
+    {
+      "codes": [
+        "3.4.227"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-001",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Algoritmos y Estructuras de Datos I"
+    },
+    {
+      "codes": [
+        "3.4.229"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-002",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Algoritmos y Estructuras de Datos II"
+    },
+    {
+      "codes": [
+        "3.4.231"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-003",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Diseño y Análisis de Algoritmos"
+    },
+    {
+      "codes": [
+        "3.4.094",
+        "3.4094"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-004",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Arquitectura de Aplicaciones"
+    },
+    {
+      "codes": [
+        "3.4.072",
+        "3.4072"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-005",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Arquitectura de Computadores"
+    },
+    {
+      "codes": [
+        "3.4.103",
+        "3.4103"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-006",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bases de Datos"
+    },
+    {
+      "codes": [
+        "3.4.209"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-007",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ingeniería de Datos I"
+    },
+    {
+      "codes": [
+        "3.4.213"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-008",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ingeniería de Datos II"
+    },
+    {
+      "codes": [
+        "3.4.214"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-009",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ingeniería de Software"
+    },
+    {
+      "codes": [
+        "3.4073"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-010",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ingeniería de Requerimientos"
+    },
+    {
+      "codes": [
+        "3.4087"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-011",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Aplicaciones Distribuidas"
+    },
+    {
+      "codes": [
+        "3.4090"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-012",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Integración de Aplicaciones"
+    },
+    {
+      "codes": [
+        "3.4.075",
+        "3.4075"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-013",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Sistemas Operativos"
+    },
+    {
+      "codes": [
+        "3.4.228"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-014",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Testing de Aplicaciones"
+    },
+    {
+      "codes": [
+        "3.4.175"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-015",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Arquitectura de Computadores y Sistemas Operativos"
+    },
+    {
+      "codes": [
+        "3.4.101",
+        "3.4101"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-016",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Arquitectura y Sistemas Operativos"
+    },
+    {
+      "codes": [
+        "3.4.096",
+        "3.4.193",
+        "3.4096"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-017",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Inteligencia Artificial"
+    },
+    {
+      "codes": [
+        "3.4.257"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-018",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Introducción a la Inteligencia Artificial"
+    },
+    {
+      "codes": [
+        "3.4.263"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-019",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Machine Learning I"
+    },
+    {
+      "codes": [
+        "3.4.267"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-020",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Machine Learning II"
+    },
+    {
+      "codes": [
+        "3.4.268"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-021",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Deep Learning: Redes Neuronales Avanzadas"
+    },
+    {
+      "codes": [
+        "3.4.217"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-022",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ciencia de Datos"
+    },
+    {
+      "codes": [
+        "3.4.256"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-023",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Introducción a la Ciencia de Datos"
+    },
+    {
+      "codes": [
+        "3.4.258"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-024",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Python para Ciencia de Datos"
+    },
+    {
+      "codes": [
+        "3.4.259"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-025",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Inferencia y Estimación"
+    },
+    {
+      "codes": [
+        "3.4.265"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-026",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Analíticas para Sistemas de Información Geográficos"
+    },
+    {
+      "codes": [
+        "3.4.266"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-027",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bases de Datos Avanzadas"
+    },
+    {
+      "codes": [
+        "3.4.261"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-028",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bases de Datos Relacionales"
+    },
+    {
+      "codes": [
+        "3.4.230"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-029",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Redes de Datos"
+    },
+    {
+      "codes": [
+        "3.4.212"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-030",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Teleinformática y Redes"
+    },
+    {
+      "codes": [
+        "3.4081"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-031",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Teleinformática y Redes I"
+    },
+    {
+      "codes": [
+        "3.4085"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-032",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Teleinformática y Redes II"
+    },
+    {
+      "codes": [
+        "3.4134"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-033",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Teleinformática y Redes de Datos"
+    },
+    {
+      "codes": [
+        "3.4.078",
+        "3.4078",
+        "3.4133"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-034",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Fundamentos de Telecomunicaciones"
+    },
+    {
+      "codes": [
+        "3.3.099"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-035",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Comunicación Satelital"
+    },
+    {
+      "codes": [
+        "3.3.094"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-036",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Diseño y Simulación de Sistemas de Comunicación"
+    },
+    {
+      "codes": [
+        "3.3.097"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-037",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Planificación de las Telecomunicaciones"
+    },
+    {
+      "codes": [
+        "3.3.085"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-038",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Seguridad en las Comunicaciones"
+    },
+    {
+      "codes": [
+        "3.3.098"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-039",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Sistema de Enlace"
+    },
+    {
+      "codes": [
+        "3.3.081",
+        "3.3081"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-040",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Telecomunicaciones I"
+    },
+    {
+      "codes": [
+        "3.1179",
+        "3.3.129"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-041",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Diseño de Circuitos y Aplicaciones I"
+    },
+    {
+      "codes": [
+        "3.3.132"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-042",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Diseño de Circuitos y Aplicaciones II"
+    },
+    {
+      "codes": [
+        "3.3.134",
+        "3.3154"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-043",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Electrónica de Potencia"
+    },
+    {
+      "codes": [
+        "3.3074"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-044",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Electrónica Básica"
+    },
+    {
+      "codes": [
+        "3.3.068",
+        "3.3068"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-045",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Fundamentos de Electrónica"
+    },
+    {
+      "codes": [
+        "3.3126"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-046",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Laboratorio de Mediciones Electrónicas"
+    },
+    {
+      "codes": [
+        "3.3.127",
+        "3.3127"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-047",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Sistemas Embebidos"
+    },
+    {
+      "codes": [
+        "3.3124"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-048",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología de los Materiales Electrónicos"
+    },
+    {
+      "codes": [
+        "3.3089"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-049",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Hidráulica y Neumática Industrial"
+    },
+    {
+      "codes": [
+        "3.3.073",
+        "3.3073"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-050",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Mecánica Avanzada"
+    },
+    {
+      "codes": [
+        "3.3091"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-051",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Mecánica Computacional"
+    },
+    {
+      "codes": [
+        "3.3.088",
+        "3.3088"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-052",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Mecánica del Sólido"
+    },
+    {
+      "codes": [
+        "3.3090"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-053",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Generación Eléctrica"
+    },
+    {
+      "codes": [
+        "3.3.177"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-054",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Generación y Distribución Eléctrica"
+    },
+    {
+      "codes": [
+        "3.3.095",
+        "3.3095"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-055",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología Mecánica y Mecanismos I"
+    },
+    {
+      "codes": [
+        "3.3.103",
+        "3.3103"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-056",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología Mecánica y Mecanismos II"
+    },
+    {
+      "codes": [
+        "3.3.064",
+        "3.3.109",
+        "3.3064",
+        "3.3109"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-057",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Costos Industriales"
+    },
+    {
+      "codes": [
+        "3.3.161"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-058",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Costos y Sistemas Contables"
+    },
+    {
+      "codes": [
+        "3.3.193"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-059",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Análisis Financiero"
+    },
+    {
+      "codes": [
+        "3.3009"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-060",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Estudio del Trabajo"
+    },
+    {
+      "codes": [
+        "3.3.184"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-061",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Gestión de Operaciones I: Organización de la Producción"
+    },
+    {
+      "codes": [
+        "3.3.186"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-062",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Gestión de Operaciones II: Análisis de Productividad"
+    },
+    {
+      "codes": [
+        "3.3.189"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-063",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Gestión de Operaciones III: Programación y Control"
+    },
+    {
+      "codes": [
+        "3.3078"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-064",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Logística Industrial"
+    },
+    {
+      "codes": [
+        "3.3.185"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-065",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Modelado y Simulación de Procesos I"
+    },
+    {
+      "codes": [
+        "3.3.188"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-066",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Modelado y Simulación de Procesos II"
+    },
+    {
+      "codes": [
+        "3.3111"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-067",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Procesos Industriales"
+    },
+    {
+      "codes": [
+        "3.3.198"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-068",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnologías de Procesos Industriales"
+    },
+    {
+      "codes": [
+        "3.2.060",
+        "3.2060"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-069",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología de Alimentos I"
+    },
+    {
+      "codes": [
+        "3.2.061"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-070",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología de Alimentos II"
+    },
+    {
+      "codes": [
+        "3.2.062",
+        "3.2062"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-071",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología de Alimentos III"
+    },
+    {
+      "codes": [
+        "3.2.057",
+        "3.2057"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-072",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Operaciones Unitarias"
+    },
+    {
+      "codes": [
+        "3.2.065",
+        "3.2065"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-073",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Procesamiento de Alimentos"
+    },
+    {
+      "codes": [
+        "3.2.199"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-074",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Procesos de Conservación de Alimentos"
+    },
+    {
+      "codes": [
+        "3.2.063",
+        "3.2063"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-075",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Materiales y Técnicas de Envasado"
+    },
+    {
+      "codes": [
+        "3.2.064",
+        "3.2064"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-076",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Calidad Alimentaria"
+    },
+    {
+      "codes": [
+        "3.2.021",
+        "3.2021"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-077",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Microbiología de los Alimentos"
+    },
+    {
+      "codes": [
+        "3.2.022",
+        "3.2022"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-078",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Laboratorio de Microbiología de los Alimentos"
+    },
+    {
+      "codes": [
+        "3.2.058",
+        "3.2058"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-079",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bromatología"
+    },
+    {
+      "codes": [
+        "3.2.197"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-080",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Análisis Sensorial"
+    },
+    {
+      "codes": [
+        "3.2.100",
+        "3.2100"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-081",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Análisis Computacional de Secuencias"
+    },
+    {
+      "codes": [
+        "3.2.185"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-082",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Introducción a la Bioinformática"
+    },
+    {
+      "codes": [
+        "3.2.101",
+        "3.2101"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-083",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Genómica Funcional"
+    },
+    {
+      "codes": [
+        "3.2.187"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-084",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Biología de Sistemas e Ingeniería Metabólica"
+    },
+    {
+      "codes": [
+        "3.4.104",
+        "3.4104"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-085",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Computación de Alto Rendimiento"
+    },
+    {
+      "codes": [
+        "3.1.028",
+        "3.1028"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-086",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bioestadística Avanzada"
+    },
+    {
+      "codes": [
+        "3.2.102",
+        "3.2102"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-087",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Proyecto Final de Bioinformática"
+    },
+    {
+      "codes": [
+        "3.2.166"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-088",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Agrobiotecnología"
+    },
+    {
+      "codes": [
+        "3.2.088",
+        "3.2088"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-089",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Bioinformática"
+    },
+    {
+      "codes": [
+        "3.2.095",
+        "3.2095"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-090",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Genómica y Proteómica"
+    },
+    {
+      "codes": [
+        "3.2.096",
+        "3.2096"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-091",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Industrias y Procesos Biotecnológicos"
+    },
+    {
+      "codes": [
+        "3.2.167"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-092",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Laboratorio de Bioprocesos"
+    },
+    {
+      "codes": [
+        "3.2.097",
+        "3.2097"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-093",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Nanobiotecnología"
+    },
+    {
+      "codes": [
+        "3.2.168"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-094",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Laboratorio de Diagnóstico y Ciencias Forenses"
+    },
+    {
+      "codes": [
+        "3.5.040"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-095",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Biodiversidad y Ambiente"
+    },
+    {
+      "codes": [
+        "3.5.039"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-096",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Ecosistemas Acuáticos"
+    },
+    {
+      "codes": [
+        "3.5.048"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-097",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Evaluación de Impacto Ambiental"
+    },
+    {
+      "codes": [
+        "3.5.051"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-098",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Gestión Ambiental Urbana y Periurbana"
+    },
+    {
+      "codes": [
+        "3.5.055"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-099",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Recursos Hídricos"
+    },
+    {
+      "codes": [
+        "3.5.049"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-100",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Sistemas de Remediación, Manejo y Conservación de Suelos"
+    },
+    {
+      "codes": [
+        "3.5.014"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-101",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Agricultura de Precisión"
+    },
+    {
+      "codes": [
+        "3.5.028"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-102",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Agroindustrias"
+    },
+    {
+      "codes": [
+        "3.5.001"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-103",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Impacto Ambiental en Agroecosistemas"
+    },
+    {
+      "codes": [
+        "3.5.003"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-104",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Suelos y Agroclimatología"
+    },
+    {
+      "codes": [
+        "3.5.013"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-105",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología de Riego"
+    },
+    {
+      "codes": [
+        "3.5.007"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-106",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Tecnología para el Agro"
+    },
+    {
+      "codes": [
+        "3.4.176"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-107",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Introducción al Diseño de Videojuegos"
+    },
+    {
+      "codes": [
+        "3.4.179"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-108",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Diseño de Videojuegos"
+    },
+    {
+      "codes": [
+        "3.4.191"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-109",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Desarrollo Avanzado de Videojuegos"
+    },
+    {
+      "codes": [
+        "3.4.178"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-110",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Desarrollo de Juegos en Tiempo Real"
+    },
+    {
+      "codes": [
+        "3.4.198"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-111",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Juegos en Red"
+    },
+    {
+      "codes": [
+        "3.4.199"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-112",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Métricas de Videojuegos"
+    },
+    {
+      "codes": [
+        "3.4.194"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-113",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Optimización de Videojuegos"
+    },
+    {
+      "codes": [
+        "3.4.181"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-114",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Física de Objetos y Personajes"
+    },
+    {
+      "codes": [
+        "3.1.066",
+        "3.3.002",
+        "3.3002"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-115",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Física General"
+    },
+    {
+      "codes": [
+        "3.1.018",
+        "3.1018"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-116",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        },
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Estadística General"
+    },
+    {
+      "codes": [
+        "3.1.049"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-117",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Probabilidad y Estadística"
+    },
+    {
+      "codes": [
+        "3.1.006",
+        "3.1006"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-118",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Álgebra y Geometría Analítica"
+    },
+    {
+      "codes": [
+        "3.2.007",
+        "3.2.180",
+        "3.2.188",
+        "3.2007"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-119",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Química General"
+    },
+    {
+      "codes": [
+        "3.1.020",
+        "3.1020"
+      ],
+      "eligibility": "SOURCE_NOT_FOUND",
+      "groupId": "ua-de-area-eval-120",
+      "matchedRepositoryPdfs": [],
+      "programs": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "reason": "No institutional curricular PDF was found in the repository for this normalized-title equivalence group.",
+      "sourceTitle": "Cálculo Numérico"
+    }
+  ],
+  "disciplinaryDistribution": {
+    "data_ai": {
+      "eligible": 0,
+      "proposed": 12
+    },
+    "electronics_mechanics": {
+      "eligible": 0,
+      "proposed": 16
+    },
+    "environmental_agro": {
+      "eligible": 0,
+      "proposed": 12
+    },
+    "food_science": {
+      "eligible": 0,
+      "proposed": 12
+    },
+    "foundational_sciences": {
+      "eligible": 0,
+      "proposed": 6
+    },
+    "industrial_operations": {
+      "eligible": 0,
+      "proposed": 12
+    },
+    "interactive_media": {
+      "eligible": 0,
+      "proposed": 8
+    },
+    "life_sciences": {
+      "eligible": 0,
+      "proposed": 14
+    },
+    "networking_telecommunications": {
+      "eligible": 0,
+      "proposed": 12
+    },
+    "software_systems": {
+      "eligible": 0,
+      "proposed": 16
+    }
+  },
+  "leakageAudit": {
+    "additionalEquivalencesDetectedFromRepositoryPdfContent": 0,
+    "identicalPdfShaGroups": [],
+    "nearDuplicateTextGroups": [],
+    "normalizedTextHashGroups": [],
+    "note": "No eligible institutional PDF was acquired, so content-level duplicate checks have no corpus to compare. The 120 planned groups already retain the 40 normalized-title groups that cover more than one catalog code as indivisible groups."
+  },
+  "pdfInventory": {
+    "candidateInstitutionalCurricularPdfs": 0,
+    "excludedNonCurricularPdfs": [
+      {
+        "bytes": 956,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/astral-unicode.pdf",
+        "sha256": "58ec6dc0a550a79aad1de8ebc485c2387806283e3cc419d4bc39c27ca557157a",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 857,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/blank-page.pdf",
+        "sha256": "fe6d4194440b7c2b887dbb838574f02bc1818fbfe9f31009d803fdf3cbae325c",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 929,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/encrypted.pdf",
+        "sha256": "ba72f04890a7373397b2bd3d7ffaf86f8262dfec49a1f3619d276903a99ad9ee",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 1058,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/fully-scanned.pdf",
+        "sha256": "4babbd764a2e92c9ecf0fd88a7014b62c76f9e1bcb23666dd6e82641fa9cd826",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 138,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/malformed.pdf",
+        "sha256": "b4c72291b44227e126496bc93690e1ef708cd29515645b1c3253f94317156e20",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 640,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/non-breaking-space.pdf",
+        "sha256": "940a580b571b7baba1e31f6b18976e7f0d5e6a90601390f0525d146bed531b3e",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 1005,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/normal-multipage.pdf",
+        "sha256": "b6dfee1275f1c45a348f577bfb90ef85a0214956cda20375cd062001bee73aee",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 1057,
+        "classification": "TEST_FIXTURE_NOT_INSTITUTIONAL_CURRICULUM",
+        "path": "services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/scanned-image-only-page.pdf",
+        "sha256": "9835e8f7ba90564c8302f67c6216a4c1bf41916108fcea0fb28ff9a2974de0aa",
+        "whyExcluded": "Fixture under the source-extraction test corpus; it is not a UADE analytical program."
+      },
+      {
+        "bytes": 26,
+        "classification": "LOCAL_RUNTIME_ARTIFACT_NOT_CURRICULAR_PROGRAM",
+        "path": "services/api/.local-storage/document-evidence/7867e639-d657-49cd-a8b8-d627c84e654b.pdf",
+        "sha256": "fc9da7b558f565ef57c81d0a55327c68fca620de2bae4b88da850be361422838",
+        "whyExcluded": "Runtime local-storage artifact with no course provenance and too few bytes to be an analytical program."
+      },
+      {
+        "bytes": 16,
+        "classification": "LOCAL_RUNTIME_ARTIFACT_NOT_CURRICULAR_PROGRAM",
+        "path": "services/api/.local-storage/document-evidence/e0cd961e-086d-48c3-9190-5a6a2fefebba.pdf",
+        "sha256": "36105003a740a7bd80afc20d505e4fe59ee43f1f85f691a3ec528737a52f5158",
+        "whyExcluded": "Runtime local-storage artifact with no course provenance and too few bytes to be an analytical program."
+      }
+    ],
+    "searchScope": "All .pdf files under the repository checkout, including hidden and ignored worktree paths, excluding dependency/build/VCS caches.",
+    "totalPdfsFound": 10
+  },
+  "pipelineInputMappingAudit": {
+    "actualFlowReadOnly": [
+      "PDF/text source -> source extraction -> section_detector.detect_relevant_sections -> raw_sections -> parser.build_course_candidate -> semantic_builder.build_semantic_output.",
+      "The optional area embedding source is constructed from course name, objectives_raw, and curricular content raw sections only."
+    ],
+    "futureExtractionPolicy": [
+      "Preserve the literal source heading, exact extracted text, page range, and source SHA before any evaluation representation is chosen.",
+      "Do not place a description, learning outcome, or purpose into objectives_raw solely to populate a preferred field.",
+      "If a heading does not match configured section patterns, retain it as source provenance and assess eligibility without inventing a mapping."
+    ],
+    "recognizedRawSections": {
+      "contents_raw": [
+        "contenidos",
+        "programa analítico",
+        "unidades",
+        "temario"
+      ],
+      "objectives_raw": [
+        "objetivos",
+        "objetivos de aprendizaje",
+        "propósitos",
+        "expectativas de logro"
+      ],
+      "otherCurricularContent": [
+        "contenidos mínimos",
+        "contenidos conceptuales",
+        "contenidos procedimentales",
+        "contenidos actitudinales"
+      ]
+    },
+    "sourceFieldsRequiredForEligibility": [
+      "official course name",
+      "substantive curricular contents",
+      "objectives or learning outcomes/purposes or substantive academic description"
+    ]
+  },
+  "prohibitionsObserved": [
+    "semantic_analysis_v1 was not executed.",
+    "Baseline, E5, and reranking were not executed.",
+    "No gold labels were generated.",
+    "No Development/Holdout split was opened.",
+    "No prototype was modified."
+  ],
+  "schemaVersion": "scope_area_embedding_repository_pdf_construction_audit_v1",
+  "status": "BLOCKED_NO_INSTITUTIONAL_REPOSITORY_PDFS"
+}

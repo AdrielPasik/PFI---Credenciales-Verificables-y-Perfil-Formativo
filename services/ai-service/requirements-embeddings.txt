@@ -1,0 +1,6 @@
+# Optional local-only runtime for area embedding reranking.
+# This file is deliberately excluded from the default image because the feature
+# ships disabled and production calibration has not been approved.
+torch>=2.6.0,<2.8.0
+transformers>=4.48.0,<6.0.0
+safetensors>=0.5.0,<1.0.0
