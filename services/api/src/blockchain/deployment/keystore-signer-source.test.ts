@@ -163,8 +163,8 @@ test('A. el operador REAL usa el adaptador real: preflight completo con el signe
     { deploymentSourceCommit: SOURCE_COMMIT, mode: 'preflight' }
   );
 
-  assert.equal(result.kind, 'preflight_ok');
-  assert.equal(result.kind === 'preflight_ok' && result.attempt.deployerAddress, EXPECTED_ADDRESS);
+  assert.equal(result.kind, 'preflight');
+  assert.equal(result.kind === 'preflight' && result.evidence.deployerAddress, EXPECTED_ADDRESS);
 });
 
 // ---------------------------------------------------------------------------

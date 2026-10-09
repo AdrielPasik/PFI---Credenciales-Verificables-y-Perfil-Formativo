@@ -180,16 +180,80 @@ test('48 el operador tiene UN solo sendDeployment, sin bucles, sin reintentos', 
   assert.equal(total, 1);
 });
 
-test('el nonce del envio es explicito y la direccion CREATE se calcula antes de enviar', () => {
+test('el nonce del envio es explicito y la compuerta de LECTURA corre antes de enviar', () => {
   const operator = code(join(DEPLOYMENT_DIR, 'deployment-operator.ts'));
+  const gate = code(join(DEPLOYMENT_DIR, 'deployment-preflight.ts'));
 
-  assert.ok(operator.indexOf('computeExpectedCreateAddress(') < operator.indexOf('.sendDeployment('));
-  assert.ok(operator.indexOf('CHAIN_MISMATCH') < operator.indexOf('signerSource.load('));
-  assert.ok(operator.indexOf('signerSource.load(') < operator.indexOf('.sendDeployment('));
-  assert.ok(operator.indexOf('estimateGas(') < operator.indexOf('.sendDeployment('));
-  assert.ok(operator.indexOf('.sendDeployment(') < operator.indexOf('buildDeploymentManifest('));
+  // Dentro de la compuerta: cadena PRIMERO, el signer solo despues, y la CREATE se
+  // calcula con el nonce pending.
+  assert.ok(gate.indexOf('provider.getNetwork()') < gate.indexOf('signerSource.load('));
+  assert.ok(gate.indexOf("block('CHAIN_MISMATCH')") < gate.indexOf('signerSource.load('));
+  assert.ok(gate.indexOf("'pending'") < gate.indexOf('computeExpectedCreateAddress('));
+  assert.ok(gate.indexOf('computeExpectedCreateAddress(') < gate.indexOf('provider.getCode('));
+  assert.ok(gate.indexOf('provider.getCode(') < gate.indexOf('provider.estimateGas('));
+  assert.ok(gate.indexOf('provider.estimateGas(') < gate.indexOf('provider.getFeeData('));
+  assert.ok(gate.indexOf('provider.getFeeData(') < gate.indexOf('provider.getBalance('));
+
+  // En el operador: la compuerta, luego el corte del preflight, y SOLO despues el envio.
+  const gateCall = operator.indexOf('runPreflightGate(');
+  const preflightReturn = operator.indexOf("options.mode === 'preflight'");
+  const readyCheck = operator.indexOf('readyForExplicitBroadcastApproval');
+  const send = operator.indexOf('.sendDeployment(');
+  assert.ok(gateCall > 0 && gateCall < preflightReturn);
+  assert.ok(preflightReturn < readyCheck && readyCheck < send);
+  assert.ok(send < operator.indexOf('buildDeploymentManifest('));
   assert.ok(operator.indexOf('buildDeploymentManifest(') < operator.indexOf('writeNew('));
   assert.equal(/create2|CREATE2|Proxy|factory/i.test(operator), false);
+});
+
+test('el preflight es de SOLO LECTURA: no firma, no envia, no escribe y usa un unico provider', () => {
+  const gate = code(join(DEPLOYMENT_DIR, 'deployment-preflight.ts'));
+
+  // Nada de firma ni de envio en la compuerta.
+  for (const forbidden of [
+    'sendDeployment',
+    'sendTransaction',
+    'sendRawTransaction',
+    'signTransaction',
+    'signMessage',
+    'broadcast',
+    'writeNew',
+    '.wait(',
+    'new Wallet',
+    'JsonRpcProvider',
+    'createCredentialRegistryProvider'
+  ]) {
+    assert.equal(gate.includes(forbidden), false, forbidden);
+  }
+
+  // Unicas llamadas al provider: lecturas.
+  const providerCalls = [...gate.matchAll(/provider\.(\w+)\(/g)].map((match) => match[1]);
+  assert.ok(providerCalls.length > 0);
+  for (const call of new Set(providerCalls)) {
+    assert.ok(
+      ['getNetwork', 'getTransactionCount', 'getCode', 'estimateGas', 'getFeeData', 'getBalance'].includes(call),
+      `llamada de provider no permitida en el preflight: ${call}`
+    );
+  }
+
+  // UN provider para toda la ejecucion: el operador y la compuerta lo reciben, no lo crean.
+  const operator = code(join(DEPLOYMENT_DIR, 'deployment-operator.ts'));
+  for (const source of [gate, operator]) {
+    assert.equal(/createCredentialRegistryProvider|new JsonRpcProvider|new FallbackProvider/.test(source), false);
+  }
+  const deployScript = code(join(DEPLOYMENT_DIR, 'scripts', 'deploy-credential-registry.ts'));
+  assert.equal((deployScript.match(/createCredentialRegistryProviderForRpcUrl\(/g) ?? []).length, 1);
+});
+
+test('el preflight no depende de ningun script de sondeo externo', () => {
+  for (const file of deploymentFiles) {
+    const source = code(file);
+    assert.equal(/readonly_probe|s8c10_2|probe\.js/i.test(source), false, rel(file));
+    // Ni lanza procesos hijos para observar la cadena.
+    if (!file.endsWith('deployment-source-gate.ts') && !file.endsWith('deploy-credential-registry.ts')) {
+      assert.equal(/child_process|execFile|spawn/.test(source), false, rel(file));
+    }
+  }
 });
 
 test('el manifest es append-only y se publica ATOMICAMENTE: temporal exclusivo + fsync + enlace duro exclusivo', () => {

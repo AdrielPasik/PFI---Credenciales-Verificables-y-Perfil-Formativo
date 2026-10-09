@@ -13,6 +13,7 @@ import {
   type DeploymentProvider,
   runCredentialRegistryDeployment
 } from '../deployment-operator';
+import { PREFLIGHT_EVIDENCE_FIELDS } from '../deployment-preflight';
 import { ProcessGitStateReader } from '../deployment-source-gate';
 import { readDeploymentToolchainFile } from '../deployment-toolchain';
 import { HiddenPromptError, promptHidden } from '../hidden-prompt';
@@ -26,8 +27,10 @@ import { FileManifestStore } from '../manifest-store';
  *
  * NO se ejecuto en S8c10.1: no hay deployment, ni RPC, ni keystore real.
  *
- * Sin `--execute` corre SOLO la compuerta previa (commit, arbol, toolchain,
- * artefacto, cadena, signer, nonce, direccion CREATE, gas) y no envia nada.
+ * Sin `--execute` corre SOLO la compuerta previa de LECTURA (commit, arbol,
+ * toolchain, artefacto, cadena 84532, signer, nonces latest/pending, direccion
+ * CREATE esperada, gas, fee data, saldo y costo maximo estimado) y no firma ni
+ * envia nada. Imprime UN resultado sanitizado con sus bloqueantes.
  *
  * Esta CLI NO usa `--env-file`: no debe heredar el `.env` de la API (que puede
  * contener la clave global legacy). Tampoco lee `CREDENTIAL_REGISTRY_PRIVATE_KEY`.
@@ -84,11 +87,21 @@ async function main() {
     }
   );
 
+  if (result.kind === 'preflight') {
+    // Solo los campos de la allowlist, en orden estable.
+    const evidence: Record<string, unknown> = {};
+    for (const field of PREFLIGHT_EVIDENCE_FIELDS) {
+      evidence[field] = result.evidence[field];
+    }
+    console.log(JSON.stringify({ ok: true, kind: result.kind, ...evidence }, null, 2));
+    // 0 = lista para pedir aprobacion humana; 3 = hay bloqueantes (no es un error).
+    process.exitCode = result.evidence.readyForExplicitBroadcastApproval ? 0 : 3;
+    return;
+  }
+
   console.log(
     JSON.stringify(
-      result.kind === 'preflight_ok'
-        ? { ok: true, kind: result.kind, attempt: result.attempt, estimatedGas: result.estimatedGas }
-        : { ok: true, kind: result.kind, deploymentId: result.manifest.deploymentId, manifestPath: result.manifestPath },
+      { ok: true, kind: result.kind, deploymentId: result.manifest.deploymentId, manifestPath: result.manifestPath },
       null,
       2
     )

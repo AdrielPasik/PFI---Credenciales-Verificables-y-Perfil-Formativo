@@ -103,17 +103,17 @@ test('18 la direccion CREATE esperada es la derivacion estandar deployer+nonce',
   const { dependencies } = makeHarness();
   const result = await runCredentialRegistryDeployment(dependencies, PREFLIGHT);
 
-  assert.equal(result.kind, 'preflight_ok');
-  assert.equal(result.kind === 'preflight_ok' && result.attempt.expectedCreateAddress, EXPECTED_CREATE_ADDRESS);
-  assert.equal(result.kind === 'preflight_ok' && result.attempt.nonce, NONCE);
-  assert.equal(result.kind === 'preflight_ok' && result.attempt.deployerAddress, DEPLOYER_ADDRESS);
+  assert.equal(result.kind, 'preflight');
+  assert.equal(result.kind === 'preflight' && result.evidence.expectedCreateAddress, EXPECTED_CREATE_ADDRESS);
+  assert.equal(result.kind === 'preflight' && result.evidence.pendingNonce, NONCE);
+  assert.equal(result.kind === 'preflight' && result.evidence.deployerAddress, DEPLOYER_ADDRESS);
 });
 
 test('preflight: toda la compuerta previa y CERO envios', async () => {
   const { dependencies, counters } = makeHarness();
   const result = await runCredentialRegistryDeployment(dependencies, PREFLIGHT);
 
-  assert.equal(result.kind, 'preflight_ok');
+  assert.equal(result.kind, 'preflight');
   assert.equal(counters.send, 0);
   assert.equal(counters.signerLoads, 1);
   assert.equal(counters.manifestWrites.length, 0);

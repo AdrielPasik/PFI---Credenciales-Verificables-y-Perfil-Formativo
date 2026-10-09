@@ -22,6 +22,9 @@ export type DeploymentOperatorErrorCode =
   | 'CREATE_ADDRESS_OCCUPIED'
   | 'MANIFEST_ALREADY_EXISTS'
   | 'PRE_SEND_ESTIMATE_FAILED'
+  | 'DEPLOYER_HAS_PENDING_TRANSACTIONS'
+  | 'COST_ESTIMATE_UNAVAILABLE'
+  | 'INSUFFICIENT_TESTNET_ETH'
   // --- envio ---
   | 'AMBIGUOUS_DEPLOYMENT_SEND'
   // --- despues de tener un hash confiable ---
@@ -60,6 +63,12 @@ const SAFE_MESSAGES: Record<DeploymentOperatorErrorCode, string> = {
     'Ya existe un manifest para la direccion CREATE esperada. No se envio ninguna transaccion.',
   PRE_SEND_ESTIMATE_FAILED:
     'La estimacion de gas previa al envio fallo. No se envio ninguna transaccion.',
+  DEPLOYER_HAS_PENDING_TRANSACTIONS:
+    'El deployer tiene transacciones pendientes (nonce pending distinto de latest). No se reemplaza ni se sustituye ningun nonce. No se envio ninguna transaccion.',
+  COST_ESTIMATE_UNAVAILABLE:
+    'No hay fee data defendible para estimar el costo maximo. No se envio ninguna transaccion.',
+  INSUFFICIENT_TESTNET_ETH:
+    'El saldo publico del deployer no cubre el costo maximo estimado. No se envio ninguna transaccion.',
   AMBIGUOUS_DEPLOYMENT_SEND:
     'El envio del deployment termino sin un hash de transaccion confiable. NO reenviar: reconciliar primero el nonce del deployer y la direccion CREATE esperada.',
   DEPLOYMENT_PENDING_RECONCILIATION:

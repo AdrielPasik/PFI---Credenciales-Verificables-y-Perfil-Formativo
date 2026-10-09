@@ -154,6 +154,20 @@ export interface HarnessOptions {
   manifestExists?: boolean;
   writeError?: boolean;
   occupied?: boolean;
+  // S8c10.2: lecturas del preflight.
+  latestNonce?: number;
+  pendingNonce?: number;
+  /** `getTransactionCount(expectedCreateAddress, 'latest')`. Default 0. */
+  createAddressNonce?: number;
+  fee?: { gasPrice: bigint | null; maxFeePerGas: bigint | null; maxPriorityFeePerGas: bigint | null };
+  feeError?: boolean;
+  balance?: bigint;
+  balanceError?: boolean;
+  /** Mensaje crudo con una URL y un token: jamas debe reflejarse. */
+  poisonedProviderErrors?: boolean;
+  estimatedGas?: bigint;
+  /** Se invoca en cada llamada al signer que no sea `address`/`sendDeployment`. */
+  signerTrap?: boolean;
 }
 
 export function goodReceipt(over: Partial<ObservedReceipt> = {}): ObservedReceipt {
@@ -188,6 +202,7 @@ export function makeHarness(options: HarnessOptions = {}) {
     waits: [] as Array<{ confirmations: number; timeoutMs: number }>,
     manifestWrites: [] as DeploymentManifest[],
     providerCalls: [] as string[],
+    signerTouches: [] as string[],
     sentRequests: [] as Array<{ data: string; nonce: number; chainId: number }>
   };
 
@@ -200,9 +215,42 @@ export function makeHarness(options: HarnessOptions = {}) {
       }
       return { chainId: options.chainId ?? 84532n };
     },
-    async getTransactionCount() {
-      counters.providerCalls.push('getTransactionCount');
-      return NONCE;
+    async getTransactionCount(address: string, blockTag: 'pending' | 'latest') {
+      counters.providerCalls.push(`getTransactionCount:${blockTag}`);
+      if (address === EXPECTED_CREATE_ADDRESS && blockTag === 'latest' && counters.send === 0) {
+        return options.createAddressNonce ?? 0;
+      }
+      return blockTag === 'latest'
+        ? (options.latestNonce ?? NONCE)
+        : (options.pendingNonce ?? NONCE);
+    },
+    async getFeeData() {
+      counters.providerCalls.push('getFeeData');
+      if (options.feeError) {
+        throw new Error(
+          options.poisonedProviderErrors
+            ? 'fee fetch failed https://base-sepolia.example/v2/SECRET-TOKEN'
+            : 'fee fetch failed'
+        );
+      }
+      return (
+        options.fee ?? {
+          gasPrice: 1_000_000n,
+          maxFeePerGas: 2_000_000n,
+          maxPriorityFeePerGas: 1_000n
+        }
+      );
+    },
+    async getBalance() {
+      counters.providerCalls.push('getBalance');
+      if (options.balanceError) {
+        throw new Error(
+          options.poisonedProviderErrors
+            ? 'balance failed https://base-sepolia.example/v2/SECRET-TOKEN'
+            : 'balance failed'
+        );
+      }
+      return options.balance ?? 10n ** 18n;
     },
     async getCode(address: string) {
       counters.codeReads += 1;
@@ -224,7 +272,7 @@ export function makeHarness(options: HarnessOptions = {}) {
       if (options.estimateError) {
         throw new Error('execution reverted');
       }
-      return 600_000n;
+      return options.estimatedGas ?? 600_000n;
     },
     async getBlockNumber() {
       counters.providerCalls.push('getBlockNumber');
@@ -302,8 +350,26 @@ export function makeHarness(options: HarnessOptions = {}) {
     signerSource: {
       async load() {
         counters.signerLoads += 1;
+        counters.providerCalls.push('signerLoad');
         if (options.signerLoadError) {
           throw new Error('invalid password for /home/operator/keystore.json');
+        }
+        if (options.signerTrap) {
+          // Cualquier acceso que no sea la direccion PUBLICA delata un intento de
+          // firmar o enviar. El preflight no debe tocar nada mas.
+          return new Proxy(signer, {
+            get(target, property) {
+              if (property === 'address') {
+                return target.address;
+              }
+              // `await` consulta `.then` para asimilar promesas: no es un uso del signer.
+              if (property === 'then') {
+                return undefined;
+              }
+              counters.signerTouches.push(String(property));
+              throw new Error('signer tocado por el preflight');
+            }
+          });
         }
         return signer;
       }

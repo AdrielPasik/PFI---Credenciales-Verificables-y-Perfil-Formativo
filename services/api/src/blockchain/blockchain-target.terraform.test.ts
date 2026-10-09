@@ -21,6 +21,7 @@
  */
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -270,33 +271,185 @@ test('48: el RPC se espera como SecureString referenciada por NOMBRE', () => {
   );
 });
 
-test('38: no hay variable de Terraform cuyo valor seria el RPC', () => {
-  const variables = executableHcl(readTf('variables.tf'));
-  const tfvarsExample = readFileSync(
-    join(TERRAFORM_PROD_DIR, 'terraform.tfvars.example'),
-    'utf8'
-  );
-  const tfvars = readFileSync(
-    join(TERRAFORM_PROD_DIR, 'terraform.tfvars'),
-    'utf8'
+/**
+ * Archivos de Terraform VERSIONADOS en `infra/terraform/prod`, segun Git.
+ *
+ * S8c10.2: este test NO enumera el directorio. Un `readdirSync` o un
+ * `readFileSync('terraform.tfvars')` dependeria de archivos locales e ignorados
+ * del operador (que no existen en un clon limpio, en un worktree de deployment ni
+ * en CI) y, peor, leeria valores reales de infraestructura. `git ls-files` lista
+ * por construccion SOLO lo versionado.
+ */
+function trackedTerraformFiles(): string[] {
+  const repositoryRoot = join(TERRAFORM_PROD_DIR, '..', '..', '..');
+  const listed = execFileSync(
+    'git',
+    ['ls-files', '--', 'infra/terraform/prod'],
+    { cwd: repositoryRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
   );
 
-  // Una `variable` con el valor del RPC quedaria persistida en tfstate.
-  for (const [name, contents] of [
-    ['variables.tf', variables],
-    ['terraform.tfvars.example', tfvarsExample],
-    ['terraform.tfvars', tfvars]
-  ] as const) {
-    assert.ok(
-      !contents.includes('credential_registry_rpc'),
-      `${name} no debe declarar la rpcUrl como variable`
+  return listed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(
+      (line) => line.endsWith('.tf') || line.endsWith('terraform.tfvars.example')
     );
-    assert.ok(
-      !contents.includes('CREDENTIAL_REGISTRY_RPC_URL'),
-      `${name} no debe declarar la rpcUrl como variable`
-    );
+}
+
+/**
+ * Violaciones del invariante "el RPC no es un valor ordinario de Terraform". PURA:
+ * recibe archivos ya leidos, de modo que el invariante tambien se prueba con
+ * entradas SINTETICAS inseguras (y se demuestra que sigue fallando).
+ */
+function rpcModelingViolations(files: ReadonlyArray<{ name: string; hcl: string }>): string[] {
+  const violations: string[] = [];
+  let referenceOccurrences = 0;
+
+  for (const { name, hcl } of files) {
+    const contents = executableHcl(hcl);
+
+    // (a) Ninguna `variable` modela el RPC.
+    if (/variable\s+"[^"]*rpc[^"]*"/i.test(contents)) {
+      violations.push(`${name}: variable de RPC`);
+    }
+    if (contents.includes('credential_registry_rpc')) {
+      violations.push(`${name}: credential_registry_rpc`);
+    }
+
+    // (b) El nombre del secreto es SOLO una referencia al parametro SSM en la rama
+    // condicional de locals.tf; nunca un valor en claro, nunca otro archivo.
+    const occurrences = (contents.match(/CREDENTIAL_REGISTRY_RPC_URL/g) ?? []).length;
+    if (occurrences === 0) {
+      continue;
+    }
+    if (!name.endsWith('/locals.tf')) {
+      violations.push(`${name}: menciona CREDENTIAL_REGISTRY_RPC_URL`);
+      continue;
+    }
+    if (
+      !contents.includes(
+        'CREDENTIAL_REGISTRY_RPC_URL = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_RPC_URL"'
+      )
+    ) {
+      violations.push(`${name}: el RPC no es una referencia al parametro SSM`);
+    }
+    referenceOccurrences += occurrences;
+  }
+
+  // Exactamente la referencia (clave y ruta), en el condicional.
+  if (referenceOccurrences !== 2) {
+    violations.push(`referencias al secreto: ${referenceOccurrences} (se esperaban 2)`);
+  }
+  return violations;
+}
+
+test('38: no hay variable de Terraform cuyo valor seria el RPC (solo archivos versionados)', () => {
+  // INVARIANTE ORIGINAL (S8c5): el RPC lleva su credencial en la URL; si fuera una
+  // `variable` de Terraform quedaria persistido en tfstate y en los tfvars. Entra
+  // SOLO por el mecanismo de secretos (SecureString creada fuera de banda).
+  //
+  // La version previa verificaba ademas el `terraform.tfvars` REAL del operador,
+  // que esta en .gitignore: fallaba en cualquier checkout limpio. Ese archivo ya
+  // no se lee. La garantia sobre lo que SI se versiona es la misma o mas fuerte:
+  // se revisan TODOS los .tf versionados de prod, no solo `variables.tf`.
+  const tracked = trackedTerraformFiles();
+  assert.ok(tracked.length >= 10, 'Git deberia listar los .tf versionados de prod');
+  assert.ok(tracked.some((name) => name.endsWith('/variables.tf')));
+  assert.ok(tracked.some((name) => name.endsWith('/terraform.tfvars.example')));
+
+  const repositoryRoot = join(TERRAFORM_PROD_DIR, '..', '..', '..');
+  const files = tracked.map((name) => ({
+    name,
+    hcl: readFileSync(join(repositoryRoot, name), 'utf8')
+  }));
+
+  assert.deepEqual(rpcModelingViolations(files), []);
+});
+
+test('38d: el invariante SIGUE FALLANDO si Terraform versionado modelara el RPC de forma insegura', () => {
+  const safeLocals = [
+    'locals {',
+    '  api_rpc_secret_parameters = {',
+    '    CREDENTIAL_REGISTRY_RPC_URL = "${local.ssm_prefix}/api/CREDENTIAL_REGISTRY_RPC_URL"',
+    '  }',
+    '}'
+  ].join('\n');
+  const base = [{ name: 'infra/terraform/prod/locals.tf', hcl: safeLocals }];
+
+  // La entrada segura pasa: el chequeo no esta simplemente siempre roto.
+  assert.deepEqual(rpcModelingViolations(base), []);
+
+  const unsafe: Array<[string, Array<{ name: string; hcl: string }>]> = [
+    [
+      'variable de Terraform con el RPC',
+      [...base, { name: 'infra/terraform/prod/variables.tf', hcl: 'variable "credential_registry_rpc_url" { type = string }' }]
+    ],
+    [
+      'variable con "rpc" en el nombre',
+      [...base, { name: 'infra/terraform/prod/variables.tf', hcl: 'variable "base_sepolia_rpc" { type = string }' }]
+    ],
+    [
+      'RPC como valor en claro en la task definition',
+      [...base, { name: 'infra/terraform/prod/ecs.tf', hcl: 'environment = [{ name = "CREDENTIAL_REGISTRY_RPC_URL", value = "https://x" }]' }]
+    ],
+    [
+      'RPC como parametro String en claro',
+      [{ name: 'infra/terraform/prod/locals.tf', hcl: safeLocals + '\nCREDENTIAL_REGISTRY_RPC_URL = "https://provider.example/KEY"' }]
+    ],
+    [
+      'RPC en un tfvars versionado',
+      [...base, { name: 'infra/terraform/prod/terraform.tfvars.example', hcl: 'CREDENTIAL_REGISTRY_RPC_URL = "https://x"' }]
+    ],
+    [
+      'la referencia al secreto desaparece',
+      [{ name: 'infra/terraform/prod/locals.tf', hcl: 'locals {}' }]
+    ]
+  ];
+
+  for (const [label, files] of unsafe) {
+    assert.notDeepEqual(rpcModelingViolations(files), [], label);
   }
 });
+
+test('38b: el RPC nunca es un valor en claro: ni en environment ni en parametros String', () => {
+  const locals = executableHcl(readTf('locals.tf'));
+  const ecs = executableHcl(readTf('ecs.tf'));
+
+  assert.ok(
+    !block(locals, 'managed_string_parameters = {').includes('RPC'),
+    'managed_string_parameters crea Strings en claro: no puede tocar el RPC'
+  );
+  assert.ok(!block(locals, 'api_string_parameters = {').includes('RPC'));
+  assert.ok(!ecs.includes('CREDENTIAL_REGISTRY_RPC_URL'), 'ecs.tf lo consume via locals.api_container_secrets');
+  assert.ok(!/api_environment[\s\S]{0,400}CREDENTIAL_REGISTRY_RPC_URL/.test(locals));
+});
+
+test('38c: los tfvars reales del operador NUNCA se versionan y este test no los lee', () => {
+  const gitignore = readFileSync(
+    join(TERRAFORM_PROD_DIR, '..', '.gitignore'),
+    'utf8'
+  );
+  // `*.tfvars` ignorado, y solo las plantillas `*.example` quedan versionadas.
+  assert.match(gitignore, /^\*\.tfvars$/m);
+  assert.match(gitignore, /^!\*\.example$/m);
+
+  // El archivo versionado de ejemplo es el unico tfvars que se lee aca.
+  const self = stripLineComments(readFileSync(__filename, 'utf8'));
+  const reads = self.match(/['"`][^'"`\n]*terraform\.tfvars(?!\.example)['"`]/g) ?? [];
+  assert.deepEqual(
+    reads.filter((literal) => !literal.includes('git') && !literal.includes('*')),
+    [],
+    'el test no debe abrir terraform.tfvars (archivo local e ignorado)'
+  );
+});
+
+function stripLineComments(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('//'))
+    .join('\n');
+}
 
 test('el RPC no sale por ningun output', () => {
   const outputs = executableHcl(readTf('outputs.tf'));

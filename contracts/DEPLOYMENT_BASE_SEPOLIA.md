@@ -77,21 +77,49 @@ npm run blockchain:deploy-registry --workspace @credential-intelligence/api -- \
   --keystore <path-to-encrypted-keystore> --source-commit <40-hex deploymentSourceCommit>
 ```
 
-Without `--execute` the tool performs the whole gate and **sends nothing**:
+Without `--execute` the tool runs the whole **read-only** gate and **signs and sends
+nothing**. This is the ONE canonical preflight: there is no separate probe script, and
+every chain observation uses the same single provider.
 
-- `HEAD == deploymentSourceCommit` and a clean relevant tree;
-- toolchain and artifact checks above;
-- **one** provider is created, `getNetwork()` must be chain `84532`. A wrong chain
-  means zero transactions, with no fallback to Anvil, mainnet or any other network
-  and no second provider;
-- only then is the keystore opened (hidden passphrase prompt);
-- the deployer's pending nonce and the **expected CREATE address**
-  (`deployer + nonce`) are computed; that address must be empty and have no
-  manifest;
-- `estimateGas` succeeds.
+1. `HEAD == deploymentSourceCommit` and a clean relevant tree; toolchain and artifact
+   checks above.
+2. **One** provider is created and `getNetwork()` must be chain `84532`. A wrong chain
+   means zero transactions: the keystore is **not** opened and there is no fallback to
+   Anvil, mainnet or any other network.
+3. Only then is the keystore opened (hidden passphrase prompt), solely to learn the
+   deployer's **public** address. Nothing is signed.
+4. Nonces: `pending` (authoritative, the base of the CREATE address) and `latest`
+   (contrast). If they differ, the deployer has an unresolved transaction: blocker
+   `DEPLOYER_HAS_PENDING_TRANSACTIONS`. The tool never replaces, cancels or re-numbers
+   anything. A deployer with confirmed outgoing transactions (`latest > 0`) is reported
+   for operator review; a "fresh wallet" is never assumed.
+5. Expected **CREATE address** (`deployer + pending nonce`): it must have no code
+   **and** a transaction count of `0`. Empty code alone is not enough. Otherwise
+   `EXPECTED_CREATE_ADDRESS_OCCUPIED`. No manifest may exist for its `deploymentId`.
+6. `estimateGas` for the exact creation request (`GAS_ESTIMATION_FAILED` otherwise).
+7. Public fee data as supplied by the provider (`gasPrice`, `maxFeePerGas`,
+   `maxPriorityFeePerGas`; an absent field is `null`, never `0`).
+8. **PRE-FLIGHT ESTIMATE, not a guarantee:** `estimatedMaxCostWei = estimatedGas x
+   maxFeePerGas` (falling back to `gasPrice` when there is no `maxFeePerGas`). This is
+   the ceiling the sender actually uses; there is no extra multiplier. Missing or zero
+   fee data is `COST_ESTIMATE_UNAVAILABLE`, never ready.
+9. The deployer's public balance, and `balanceCoversEstimatedMaxCost`
+   (`INSUFFICIENT_TESTNET_ETH` otherwise). The tool never funds anything.
 
-It prints only public facts: deployer address, nonce, expected CREATE address,
-chain id, bytecode hashes, source commit. No secret, no RPC URL, no path.
+It prints one sanitized JSON result: `kind`, `deploymentSourceCommit`, `chainId`,
+`deployerAddress`, `latestNonce`, `pendingNonce`,
+`deployerHasConfirmedOutgoingTransactions`, `expectedCreateAddress`,
+`expectedCreateAddressCodeEmpty`, `expectedCreateAddressNonce`, `futureDeploymentId`,
+`finalManifestCollision`, both bytecode hashes, `estimatedGas`, the fee fields,
+`costBasis`, `estimatedMaxCostWei`, `estimatedMaxCostEth`, `deployerBalanceWei`,
+`deployerBalanceEth`, `balanceCoversEstimatedMaxCost`, `blockers` and
+`readyForExplicitBroadcastApproval`. No secret, no RPC URL, no keystore path, no signed
+transaction. The exit code is `0` when ready and `3` when there are blockers.
+
+`readyForExplicitBroadcastApproval = true` authorizes **nothing**: a human approves
+the later `--execute`. Every value is time-sensitive. `--execute` re-runs this same gate
+in the same process, immediately before its single send, and refuses to send unless it
+is ready; a preflight result from an earlier moment is never reused.
 
 **Secret input.** The RPC URL carries a provider token, so it is **never** an
 argument: it is read from `CREDENTIAL_REGISTRY_RPC_URL` or typed into a hidden

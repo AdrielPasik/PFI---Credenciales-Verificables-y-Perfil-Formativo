@@ -1,5 +1,3 @@
-import { getAddress } from 'ethers';
-
 import {
   DeploymentArtifactError,
   type ValidatedCredentialRegistryArtifact,
@@ -13,22 +11,22 @@ import {
   type ObservedReceipt,
   type ObservedTransaction,
   type ValidatedReceipt,
-  computeExpectedCreateAddress,
   validateDeploymentReceipt,
   verifyDeployedRuntimeCode,
   verifyDeploymentBlock,
   verifyDeploymentTransaction
 } from './deployment-evidence';
-import {
-  CANONICAL_DEPLOYMENT_CHAIN_ID,
-  CANONICAL_DEPLOYMENT_NETWORK,
-  deriveCanonicalDeploymentId
-} from './deployment-id';
+import { CANONICAL_DEPLOYMENT_CHAIN_ID } from './deployment-id';
 import {
   type DeploymentManifest,
   DeploymentManifestError,
   buildDeploymentManifest
 } from './deployment-manifest';
+import {
+  type PreflightBlocker,
+  type PreflightEvidence,
+  runPreflightGate
+} from './deployment-preflight';
 import {
   type GitStateReader,
   assertCleanSourceAtCommit,
@@ -77,9 +75,15 @@ import { type ManifestStore } from './manifest-store';
 
 export interface DeploymentProvider {
   getNetwork(): Promise<{ chainId: bigint }>;
-  getTransactionCount(address: string, blockTag: 'pending'): Promise<number>;
+  getTransactionCount(address: string, blockTag: 'pending' | 'latest'): Promise<number>;
   getCode(address: string): Promise<string>;
   estimateGas(request: { from: string; data: string }): Promise<bigint>;
+  getFeeData(): Promise<{
+    gasPrice: bigint | null;
+    maxFeePerGas: bigint | null;
+    maxPriorityFeePerGas: bigint | null;
+  }>;
+  getBalance(address: string): Promise<bigint>;
   getBlockNumber(): Promise<number>;
   getTransaction(hash: string): Promise<ObservedTransaction | null>;
   getTransactionReceipt(hash: string): Promise<ObservedReceipt | null>;
@@ -128,9 +132,13 @@ export interface DeploymentRunOptions {
 
 export type DeploymentRunResult =
   | {
-      readonly kind: 'preflight_ok';
-      readonly attempt: Readonly<SafeDeploymentContext>;
-      readonly estimatedGas: string;
+      /**
+       * Compuerta previa de SOLO LECTURA. `blockers` vacio y
+       * `readyForExplicitBroadcastApproval` verdadero NO autorizan nada: un humano
+       * aprueba el `--execute`, que vuelve a correr esta compuerta.
+       */
+      readonly kind: 'preflight';
+      readonly evidence: PreflightEvidence;
     }
   | {
       readonly kind: 'finalized';
@@ -168,84 +176,46 @@ export async function runCredentialRegistryDeployment(
 
   const artifact = loadArtifact(dependencies);
 
-  // ===== B. COMPUERTA PREVIA AL ENVIO =======================================
+  // ===== B. COMPUERTA PREVIA AL ENVIO (SOLO LECTURA) ========================
+  //
+  // La misma compuerta sirve al preflight y a `--execute`: un solo camino, un solo
+  // provider. Ver `deployment-preflight.ts`.
+  const gate = await runPreflightGate({
+    provider,
+    signerSource: dependencies.signerSource,
+    manifestStore: dependencies.manifestStore,
+    artifact,
+    deploymentSourceCommit
+  });
+  const { evidence } = gate;
 
-  // Un solo provider; sin reintento con otro y sin fallback de red.
-  let observedChainId: bigint;
-  try {
-    observedChainId = (await provider.getNetwork()).chainId;
-  } catch {
-    throw new DeploymentOperatorError('CHAIN_UNAVAILABLE');
-  }
-  if (observedChainId !== BigInt(CANONICAL_DEPLOYMENT_CHAIN_ID)) {
-    // El chainId observado no viaja en el error.
-    throw new DeploymentOperatorError('CHAIN_MISMATCH');
-  }
-
-  let signer: DeployerSigner;
-  try {
-    signer = await dependencies.signerSource.load(provider);
-  } catch {
-    throw new DeploymentOperatorError('SIGNER_UNAVAILABLE');
+  if (options.mode === 'preflight') {
+    return { kind: 'preflight', evidence };
   }
 
-  const deployerAddress = getAddress(signer.address);
-
-  let nonce: number;
-  try {
-    nonce = await provider.getTransactionCount(deployerAddress, 'pending');
-  } catch {
-    throw new DeploymentOperatorError('CHAIN_UNAVAILABLE');
-  }
-
-  const expectedCreateAddress = computeExpectedCreateAddress(deployerAddress, nonce);
-
+  // `--execute`: se envia SOLO si la compuerta, releida ahora mismo, esta lista.
+  // Lo observado en un preflight anterior no vale: caduca.
   const attempt: SafeDeploymentContext = {
-    deployerAddress,
-    nonce,
-    expectedCreateAddress,
-    chainId: CANONICAL_DEPLOYMENT_CHAIN_ID,
+    deployerAddress: evidence.deployerAddress ?? undefined,
+    nonce: evidence.pendingNonce ?? undefined,
+    expectedCreateAddress: evidence.expectedCreateAddress ?? undefined,
+    chainId: evidence.chainId ?? undefined,
     creationBytecodeHash: artifact.creationBytecodeHash,
     runtimeBytecodeHash: artifact.runtimeBytecodeHash,
     deploymentSourceCommit
   };
 
-  try {
-    const existing = await provider.getCode(expectedCreateAddress);
-    if (existing !== '0x' && existing !== '') {
-      throw new DeploymentOperatorError('CREATE_ADDRESS_OCCUPIED', { context: attempt });
-    }
-  } catch (error) {
-    throw asOperatorError(error, 'CHAIN_UNAVAILABLE', attempt);
-  }
-
-  const plannedDeploymentId = deriveCanonicalDeploymentId({
-    network: CANONICAL_DEPLOYMENT_NETWORK,
-    chainId: CANONICAL_DEPLOYMENT_CHAIN_ID,
-    contractAddress: expectedCreateAddress
-  });
-  try {
-    if (await dependencies.manifestStore.exists(plannedDeploymentId)) {
-      throw new DeploymentOperatorError('MANIFEST_ALREADY_EXISTS', {
-        context: { ...attempt, deploymentId: plannedDeploymentId }
-      });
-    }
-  } catch (error) {
-    throw asOperatorError(error, 'MANIFEST_ALREADY_EXISTS', attempt);
-  }
-
-  let estimatedGas: bigint;
-  try {
-    estimatedGas = await provider.estimateGas({
-      from: deployerAddress,
-      data: artifact.creationBytecode
+  if (!evidence.readyForExplicitBroadcastApproval) {
+    throw new DeploymentOperatorError(errorCodeForBlocker(evidence.blockers[0]), {
+      context: attempt,
+      reasons: evidence.blockers
     });
-  } catch {
-    throw new DeploymentOperatorError('PRE_SEND_ESTIMATE_FAILED', { context: attempt });
   }
 
-  if (options.mode === 'preflight') {
-    return { kind: 'preflight_ok', attempt, estimatedGas: estimatedGas.toString(10) };
+  const { signer, pendingNonce: nonce, expectedCreateAddress } = gate;
+  const deployerAddress = evidence.deployerAddress as string;
+  if (signer === null || nonce === null || expectedCreateAddress === null) {
+    throw new DeploymentOperatorError('CHAIN_UNAVAILABLE', { context: attempt });
   }
 
   // ===== C. MUTACION: UN SOLO ENVIO =========================================
@@ -446,6 +416,31 @@ function loadArtifact(
     throw new DeploymentOperatorError('ARTIFACT_INVALID', {
       reasons: error instanceof DeploymentArtifactError ? error.reasons : []
     });
+  }
+}
+
+/** Bloqueante del preflight -> codigo de error de `--execute` (que no envia). */
+function errorCodeForBlocker(
+  blocker: PreflightBlocker | undefined
+): ConstructorParameters<typeof DeploymentOperatorError>[0] {
+  switch (blocker) {
+    case 'CHAIN_MISMATCH':
+      return 'CHAIN_MISMATCH';
+    case 'DEPLOYER_HAS_PENDING_TRANSACTIONS':
+      return 'DEPLOYER_HAS_PENDING_TRANSACTIONS';
+    case 'EXPECTED_CREATE_ADDRESS_OCCUPIED':
+      return 'CREATE_ADDRESS_OCCUPIED';
+    case 'FINAL_MANIFEST_COLLISION':
+      return 'MANIFEST_ALREADY_EXISTS';
+    case 'GAS_ESTIMATION_FAILED':
+      return 'PRE_SEND_ESTIMATE_FAILED';
+    case 'COST_ESTIMATE_UNAVAILABLE':
+      return 'COST_ESTIMATE_UNAVAILABLE';
+    case 'INSUFFICIENT_TESTNET_ETH':
+      return 'INSUFFICIENT_TESTNET_ETH';
+    case 'CHAIN_UNAVAILABLE':
+    default:
+      return 'CHAIN_UNAVAILABLE';
   }
 }
 
