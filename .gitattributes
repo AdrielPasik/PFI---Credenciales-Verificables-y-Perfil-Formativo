@@ -1,2 +1,10 @@
 services/ai-service/tests/contracts/fixtures/source_extraction_v1/sources/* -text
 *.sh text eol=lf
+
+# S8c10.1: the Solidity metadata hash covers the exact source bytes, so CRLF vs
+# LF changes the CredentialRegistry bytecode. Contract sources and the pinned
+# build config are checked out with LF on every platform (including a fresh
+# deployment worktree on Windows with core.autocrlf=true).
+contracts/**/*.sol text eol=lf
+contracts/foundry.toml text eol=lf
+contracts/deployments/*.json text eol=lf

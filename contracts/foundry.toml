@@ -4,4 +4,22 @@ test = "test"
 script = "script"
 out = "out"
 libs = ["lib"]
+
+# --- Deployment-critical build settings (S8c10.1) --------------------------
+#
+# These were IMPLICIT Foundry defaults until S8c10.1. They are written out so
+# the bytecode identity of the audited CredentialRegistry artifact no longer
+# depends on which forge version happens to be installed. They freeze the
+# behaviour that was already audited; they do NOT optimize.
+#
+# Changing ANY of them changes the creation/runtime bytecode and therefore the
+# deployment identity. A change here needs an explicit review and a new
+# deployment toolchain file (contracts/deployments/deployment-toolchain.json).
 solc_version = "0.8.26"
+auto_detect_solc = false
+optimizer = false
+optimizer_runs = 200
+via_ir = false
+evm_version = "cancun"
+bytecode_hash = "ipfs"
+cbor_metadata = true

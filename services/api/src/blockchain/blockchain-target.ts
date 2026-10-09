@@ -227,6 +227,8 @@ export type BlockchainTargetResolution =
     };
 
 const DEPLOYMENT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{2,63}$/;
+// Valores reservados que NUNCA son un deploymentId real (comparacion en minuscula).
+const RESERVED_DEPLOYMENT_IDS = new Set(['unset']);
 // Decimal, sin cero a la izquierda: `031337` es un valor plausible-pero-sucio
 // que `Number` aceptaria igual, y en cualquier otro contexto se leeria como
 // octal. Se rechaza por ambiguo, igual que el padding de espacios.
@@ -471,6 +473,13 @@ function validateDeploymentId(raw: string | undefined): string | null {
   }
 
   if (!DEPLOYMENT_ID_PATTERN.test(raw)) {
+    return null;
+  }
+
+  // S8c10.1: `unset` es el marcador que Terraform siembra en los parametros del
+  // target y pasaria el patron generico. Un registro real NUNCA debe congelar
+  // `unset` como deploymentId.
+  if (RESERVED_DEPLOYMENT_IDS.has(raw.toLowerCase())) {
     return null;
   }
 

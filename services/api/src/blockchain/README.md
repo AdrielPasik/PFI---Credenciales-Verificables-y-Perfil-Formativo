@@ -1,5 +1,40 @@
 # Blockchain Module
 
+## Estado vigente (S8c5 – S8c10.1)
+
+Esta seccion es la que manda. **Todo lo que sigue debajo describe el tooling
+historico/local (Anvil) y se conserva solo como referencia**; donde contradice a
+esta seccion, esta seccion es la correcta.
+
+- **Target.** El modo de evidencia (`mock` | `credential_registry`) y la red
+  (`anvil` | `base_sepolia`) son ejes independientes. `credential_registry_anvil`
+  **ya no existe** como modo. La red final obligatoria es `base_sepolia`
+  (`chainId` 84532). `blockchain-target.ts` es el unico lugar que lee
+  `BLOCKCHAIN_EVIDENCE_MODE`, `CREDENTIAL_REGISTRY_NETWORK`,
+  `CREDENTIAL_REGISTRY_CHAIN_ID`, `CREDENTIAL_REGISTRY_CONTRACT_ADDRESS`,
+  `CREDENTIAL_REGISTRY_DEPLOYMENT_ID` y `CREDENTIAL_REGISTRY_RPC_URL`. Un target real
+  incompleto o mal formado **falla cerrado**, nunca degrada a mock; el
+  `deploymentId` reservado `unset` se rechaza.
+- **Quien firma en runtime.** Las escrituras de produccion (registro y revocacion)
+  las firma el **anchor `SignerProfile` por issuer**, cuya clave vive en SSM y se
+  resuelve por perfil (S8c2/S8c6/S8c8). **No** es la variable global
+  `CREDENTIAL_REGISTRY_PRIVATE_KEY`, que sobrevive solo como entrada de las CLI
+  locales `blockchain:register|revoke|status` contra Anvil y **no** es autoridad de
+  runtime ni la clave de deployment.
+- **Deployment del contrato.** Se hace con una herramienta de operacion aparte
+  (`deployment/`), **no** con `forge create` ni con ninguna clave en la linea de
+  comandos: keystore cifrado, frase de paso sin eco, una sola transmision, evidencia
+  verificada de recibo / bytecode / bloque y un manifest append-only en
+  `contracts/deployments/`. El runtime Nest **no** importa esa herramienta. Ver
+  `contracts/DEPLOYMENT_BASE_SEPOLIA.md`.
+- **Una sola deployment canonica.** Los records congelan su deployment, pero la
+  resolucion operativa solo soporta el target configurado hoy: no cambiar
+  `contractAddress` / `deploymentId` despues del primer `BlockchainRecord` real.
+- **Limitaciones abiertas (S8c11).** El preflight de runtime prueba presencia de
+  codigo, no identidad del contrato (la identidad la prueba el manifest);
+  la reconciliacion no tiene invocacion de produccion ni busqueda en chunks; el nonce
+  es local al proceso (un solo escritor efectivo); y el migrator comparte tag con la API.
+
 Responsabilidad actual:
 
 - adaptador de evidencia blockchain;

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "credential_registry_deployment_toolchain_v1",
+  "contractName": "CredentialRegistry",
+  "network": "base_sepolia",
+  "chainId": 84532,
+  "requiredForgeVersion": "1.2.3-stable",
+  "requiredForgeCommitSha": "a813a2cee7dd4926e7c56fd8a785b54f32e0d10f",
+  "solcVersion": "0.8.26",
+  "compilerSettings": {
+    "optimizer": { "enabled": false, "runs": 200 },
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "bytecodeHash": "ipfs"
+  },
+  "reviewedArtifact": {
+    "creationBytecodeHash": "0xfa18528625e8e50c534c833f40593172ca4a709db355be93c190795c931322c6",
+    "runtimeBytecodeHash": "0x69899c6edebeee4029d2e057d0125ece794217a14db7c33c805bed3b58d33c93"
+  }
+}

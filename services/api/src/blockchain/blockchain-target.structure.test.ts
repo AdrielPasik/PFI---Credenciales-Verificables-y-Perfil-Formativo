@@ -441,24 +441,146 @@ test('no se implemento verificacion publica de cadena (S8c7)', () => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// S8c10.1 -- los conceptos de EVIDENCIA de deployment viven SOLO en la
+// herramienta de operacion, nunca como autoridad del target de runtime.
+//
+// SEMANTICA ANTERIOR (S8c5): ningun archivo de produccion de TODA la API podia
+// contener `deploymentManifest`, `deploymentBlock` ni `bytecodeHash`
+// (el guard existia para que nadie fingiera un deployment antes de S8c10).
+//
+// SEMANTICA ACTUAL: esas palabras siguen prohibidas en todo archivo de
+// produccion SALVO un allowlist EXACTO de archivos de la herramienta de
+// deployment, token por token. No es una excepcion por directorio: un archivo
+// nuevo dentro de `blockchain/deployment/` que empiece a usarlas FALLA hasta que
+// se lo revise y se lo agregue aca. Los nombres de deployment inventados y los
+// hashes de tx escritos a mano siguen prohibidos en TODO el codigo, herramienta
+// incluida.
+// ---------------------------------------------------------------------------
+
+/** token -> archivos (relativos a `src/`) donde es legitimo. */
+const DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS: Readonly<Record<string, readonly string[]>> = {
+  // El manifest y el operador nombran el bloque donde se desplego el contrato.
+  deploymentBlock: [
+    'blockchain/deployment/deployment-manifest.ts',
+    'blockchain/deployment/deployment-operator.ts'
+  ],
+  // El artefacto lee el `bytecodeHash` de los settings del compilador.
+  bytecodeHash: ['blockchain/deployment/deployment-artifact.ts'],
+  // Nadie lo necesita: sigue prohibido en todas partes.
+  deploymentManifest: []
+};
+
+const ALWAYS_FORBIDDEN_DEPLOYMENT_TOKENS = [
+  'base-sepolia-prod',
+  'base_sepolia_prod',
+  'deployTxHash'
+] as const;
+
+function relativeToApiSrc(path: string): string {
+  const normalized = path.replaceAll('\\', '/');
+  return normalized.slice(normalized.indexOf('/src/') + '/src/'.length);
+}
+
 test('no se inventa ningun deployment de Base Sepolia (S8c10)', () => {
   for (const file of productionSources()) {
-    for (const token of [
-      'base-sepolia-prod',
-      'base_sepolia_prod',
-      'deploymentManifest',
-      'deployTxHash',
-      'deploymentBlock',
-      'bytecodeHash'
-    ]) {
+    for (const token of ALWAYS_FORBIDDEN_DEPLOYMENT_TOKENS) {
       assert.ok(
         !file.code.includes(token),
         `${file.name} no debe fingir un deployment: eso es S8c10`
       );
     }
+
+    for (const [token, allowedFiles] of Object.entries(DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS)) {
+      if (allowedFiles.includes(relativeToApiSrc(file.path))) {
+        continue;
+      }
+
+      assert.ok(
+        !file.code.includes(token),
+        `${file.name} no debe usar ${token}: la evidencia de deployment es de la herramienta de operacion (S8c10)`
+      );
+    }
+  }
+});
+
+test('la excepcion de deployment es EXACTA: solo archivos de la herramienta, y todos existen', () => {
+  const allowed = Object.values(DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS).flat();
+
+  for (const path of allowed) {
+    assert.ok(path.startsWith('blockchain/deployment/'), path);
+    assert.ok(!path.endsWith('.test.ts'), path);
+    // Si el archivo desaparece o deja de usar el token, la excepcion sobra y hay
+    // que quitarla: no se acumulan permisos huerfanos.
+    const code = executableCode(readFileSync(join(API_SRC_DIR, path), 'utf8'));
+    const tokens = Object.entries(DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS)
+      .filter(([, files]) => files.includes(path))
+      .map(([token]) => token);
+    for (const token of tokens) {
+      assert.ok(code.includes(token), `${path} ya no usa ${token}: quitar la excepcion`);
+    }
+  }
+});
+
+test('el runtime NO usa evidencia de deployment como autoridad del target (S8c10 / S8c5)', () => {
+  // Cobertura por nombre completo: `bytecodeHash` en minuscula NO alcanza a
+  // `runtimeBytecodeHash` / `creationBytecodeHash` (la B es mayuscula).
+  const deploymentAuthorityTokens = [
+    'deploymentBlock',
+    'runtimeBytecodeHash',
+    'creationBytecodeHash',
+    'deploymentSourceCommit',
+    'deploymentTransactionHash',
+    'deploymentTimestamp',
+    'deployment-manifest',
+    'deployment-toolchain',
+    'deployment-operator',
+    'target-manifest-consistency'
+  ];
+
+  const runtime = productionSources().filter(
+    (file) => !relativeToApiSrc(file.path).startsWith('blockchain/deployment/')
+  );
+  assert.ok(runtime.length > 0);
+
+  for (const file of runtime) {
+    for (const token of deploymentAuthorityTokens) {
+      assert.ok(
+        !file.code.includes(token),
+        `${file.name} (runtime) no debe usar ${token}: no es parte del contrato BlockchainTarget`
+      );
+    }
+    assert.ok(
+      !/from\s+'[^']*\/deployment\//.test(file.code),
+      `${file.name} (runtime) no debe importar la herramienta de deployment`
+    );
   }
 
-  // Y no hay manifest commiteado todavia.
+  // Y el contrato del target sigue siendo EXACTAMENTE el de S8c5: seis variables.
+  const targetSource = executableCode(read('blockchain-target.ts'));
+  const fieldUnion = /export type BlockchainTargetField =([\s\S]*?);/.exec(targetSource)?.[1] ?? '';
+  assert.deepEqual(
+    [...fieldUnion.matchAll(/'([A-Z_]+)'/g)].map((match) => match[1]).sort(),
+    [
+      'BLOCKCHAIN_EVIDENCE_MODE',
+      'CREDENTIAL_REGISTRY_CHAIN_ID',
+      'CREDENTIAL_REGISTRY_CONTRACT_ADDRESS',
+      'CREDENTIAL_REGISTRY_DEPLOYMENT_ID',
+      'CREDENTIAL_REGISTRY_NETWORK',
+      'CREDENTIAL_REGISTRY_RPC_URL'
+    ]
+  );
+
+  // La variante real del target tiene EXACTAMENTE estos campos y ninguno de deployment.
+  const realVariant = /evidenceMode: 'credential_registry';([\s\S]*?)\n {4}\};/.exec(targetSource)?.[1] ?? '';
+  assert.deepEqual(
+    [...realVariant.matchAll(/readonly (\w+):/g)].map((match) => match[1]),
+    ['network', 'chainId', 'rpcUrl', 'contractAddress', 'deploymentId']
+  );
+});
+
+test('no hay ningun manifest real de Base Sepolia commiteado todavia (S8c10)', () => {
+  // Este guard se reemplaza deliberadamente en S8c10.2, cuando exista el manifest real.
   const { existsSync } = require('node:fs') as typeof import('node:fs');
   const manifestDir = join(API_SRC_DIR, '..', '..', '..', 'contracts', 'deployments');
   if (existsSync(manifestDir)) {
