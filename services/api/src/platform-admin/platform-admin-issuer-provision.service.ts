@@ -12,7 +12,12 @@ import {
 } from '@prisma/client';
 
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
+import {
+  evaluateIssuerReadiness,
+  resolveReadinessTarget
+} from '../issuers/issuer-readiness';
 import { PrismaService } from '../prisma/prisma.service';
+import { projectAdminIssuerReadiness } from './admin-issuer-readiness.projection';
 import { type AdminIssuerProvisionResponseDto } from './dto/admin-issuer-provision-response.dto';
 import {
   ISSUER_MEMBERSHIP_GRANTED_ACTION,
@@ -175,8 +180,9 @@ export class PlatformAdminIssuerProvisionService {
           name: true,
           legalName: true,
           authorizationStatus: true,
-          did: true,
-          walletAddress: true,
+          // S8c9: la politica de capacidades queda en su default `[]`; se lee
+          // para evaluar la readiness real, no para afirmarla.
+          allowedCredentialTypes: true,
           createdAt: true
         }
       });
@@ -251,22 +257,21 @@ export class PlatformAdminIssuerProvisionService {
           name: issuer.name,
           legalName: issuer.legalName,
           authorizationStatus: issuer.authorizationStatus,
-          technicalIdentity: {
-            // DERIVADO de lo que realmente quedo en la fila, no afirmado: la
-            // misma expresion que usa `PlatformAdminReadService` para
-            // `GET /admin/issuers`. El VALOR de `did`/`walletAddress` nunca
-            // sale en la respuesta.
-            didConfigured: issuer.did !== null,
-            walletConfigured: issuer.walletAddress !== null,
-            // Misma precondicion que `IssuersService.assertIssuerCanIssue`:
-            // authorized + walletAddress + did. Para un issuer recien
-            // provisionado da `false`, y eso es correcto, no un bug.
-            readyToIssue:
-              issuer.authorizationStatus ===
-                IssuerAuthorizationStatus.authorized &&
-              issuer.did !== null &&
-              issuer.walletAddress !== null
-          },
+          // S8c9: la readiness UNICA, evaluada sobre lo que realmente quedo en
+          // la fila. Un issuer recien provisionado por S5b no tiene identidad
+          // tecnica ni capacidades: AUTORIZADO no es LISTO, y da `false`.
+          technicalIdentity: projectAdminIssuerReadiness(
+            evaluateIssuerReadiness(
+              {
+                issuerId: issuer.id,
+                authorizationStatus: issuer.authorizationStatus,
+                allowedCredentialTypes: issuer.allowedCredentialTypes,
+                technicalIdentity: null,
+                assertionHistory: []
+              },
+              resolveReadinessTarget()
+            )
+          ),
           createdAt: issuer.createdAt
         },
         initialAdminMembership: {

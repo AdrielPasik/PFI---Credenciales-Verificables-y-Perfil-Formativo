@@ -5,17 +5,28 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import {
-  Issuer,
+  CredentialType,
   IssuerAuthorizationStatus,
   IssuerMembershipRole,
   IssuerMembershipStatus
 } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { type IssuerReadinessResult } from './issuer-readiness';
+import { IssuerReadinessService } from './issuer-readiness.service';
 
 @Injectable()
 export class IssuersService {
-  constructor(private readonly prisma: PrismaService) {}
+  /**
+   * S8c9: la readiness se evalua por la UNICA implementacion, sobre el mismo
+   * `PrismaService`. Se construye aca en vez de inyectarse para no cambiar la
+   * firma de un servicio que muchos modulos construyen.
+   */
+  private readonly readiness: IssuerReadinessService;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.readiness = new IssuerReadinessService(prisma);
+  }
 
   async assertUserCanCreateDraftForIssuer(userId: string, issuerId: string) {
     return this.assertUserCanOperateAuthorizedIssuer(
@@ -237,21 +248,54 @@ export class IssuersService {
     return membership;
   }
 
-  assertIssuerCanIssue(issuer: Issuer) {
-    if (issuer.authorizationStatus !== IssuerAuthorizationStatus.authorized) {
-      throw new BadRequestException(
-        `El issuer ${issuer.id} no esta autorizado para emitir.`
+  /**
+   * Precondicion de emision v2 -- S8c9.
+   *
+   * Antes: `authorizationStatus` + truthiness de `Issuer.walletAddress` +
+   * truthiness de `Issuer.did`. Esos dos campos legacy ya NO son autoridad.
+   *
+   * Ahora: la readiness unica (autorizado + configuracion tecnica coherente) y
+   * la capacidad para ESTE tipo. La membresia del usuario se sigue evaluando
+   * aparte -- "puede este usuario actuar por el issuer?" es otra pregunta.
+   *
+   * Sin signers, sin SSM, sin red.
+   */
+  async assertIssuerCanIssue(
+    issuerId: string,
+    credentialType: CredentialType
+  ): Promise<IssuerReadinessResult> {
+    return this.readiness.assertIssuerCanIssueType(issuerId, credentialType);
+  }
+
+  /**
+   * Lectura de la configuracion TECNICA y diagnostico explicito -- S8c9.
+   *
+   * Deliberadamente distinto de los helpers operativos: NO exige que el issuer
+   * este autorizado, porque la pagina existe justamente para que un admin vea
+   * POR QUE no lo esta. Exige membresia activa con rol `admin`: operator y
+   * viewer quedan afuera. Ningun PlatformAdmin la saltea.
+   *
+   * No reemplaza ni debilita `assertUserCanOperateAuthorizedIssuer`.
+   */
+  async assertUserCanReadTechnicalIdentityForIssuer(
+    userId: string,
+    issuerId: string
+  ) {
+    const membership = await this.prisma.issuerMembership.findUnique({
+      where: { userId_issuerId: { userId, issuerId } },
+      select: { role: true, status: true }
+    });
+
+    if (
+      !membership ||
+      membership.status !== IssuerMembershipStatus.active ||
+      membership.role !== IssuerMembershipRole.admin
+    ) {
+      throw new ForbiddenException(
+        'El usuario no tiene permisos para consultar la configuracion tecnica del issuer solicitado.'
       );
     }
 
-    if (!issuer.walletAddress) {
-      throw new BadRequestException(
-        `El issuer ${issuer.id} no tiene walletAddress configurado.`
-      );
-    }
-
-    if (!issuer.did) {
-      throw new BadRequestException(`El issuer ${issuer.id} no tiene DID configurado.`);
-    }
+    return membership;
   }
 }

@@ -36,13 +36,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { BadRequestException } from '@nestjs/common';
 import {
+  CredentialType,
   type Issuer,
   IssuerAuthorizationStatus,
+  IssuerTechnicalIdentityStatus,
+  SignerProfilePurpose,
+  SignerProfileStatus,
   UserStatus
 } from '@prisma/client';
 
+import { materialFromScalar } from '../../identity/operator/signer-material-generator';
+import { IssuerReadinessError } from '../../issuers/issuer-readiness.service';
 import { IssuersService } from '../../issuers/issuers.service';
 import { PlatformAdminIssuerProvisionService } from '../platform-admin-issuer-provision.service';
 
@@ -95,6 +100,8 @@ function createProvisionDouble() {
               legalName: null,
               did: null,
               walletAddress: null,
+              // Default REAL del schema (S8c1): ninguna capacidad.
+              allowedCredentialTypes: [],
               authorizationStatus: IssuerAuthorizationStatus.pending,
               authorizedAt: null,
               revokedAt: null,
@@ -158,31 +165,45 @@ async function provisionAndCaptureIssuer(): Promise<Issuer> {
 }
 
 /**
- * `IssuersService` real. `assertIssuerCanIssue` es puro -- no toca Prisma --
- * asi que un cliente que lanza ante cualquier uso es el doble correcto: si la
- * regla empezara a consultar la base, este test lo delataria en vez de
- * pasarlo por alto.
+ * S8c9 -- `assertIssuerCanIssue(issuerId, tipo)` pasa por la READINESS, que lee
+ * la base (snapshot publico, sin secretos ni red). El doble devuelve la fila
+ * REAL que S5b persistio, con la forma de la consulta de readiness.
+ *
+ * Este archivo SUPERSEDE la version S5b que afirmaba "falla por walletAddress /
+ * por DID": esos campos legacy dejaron de ser autoridad. La PROPIEDAD de
+ * seguridad se conserva intacta -- el issuer recien provisionado sigue sin
+ * poder emitir -- pero ahora por las razones del modelo nuevo.
  */
-function createIssuersService(): IssuersService {
-  const prisma = new Proxy(
-    {},
-    {
-      get(_target, property) {
-        throw new Error(
-          `assertIssuerCanIssue no deberia tocar Prisma (se accedio a ${String(property)})`
-        );
+function createIssuersService(
+  issuer: Issuer,
+  technical: { technicalIdentity: unknown; assertionKeyBindings: unknown[] } = {
+    technicalIdentity: null,
+    assertionKeyBindings: []
+  }
+): IssuersService {
+  const prisma = {
+    issuer: {
+      async findUnique() {
+        return {
+          id: issuer.id,
+          authorizationStatus: issuer.authorizationStatus,
+          allowedCredentialTypes: issuer.allowedCredentialTypes,
+          ...technical
+        };
       }
     }
-  );
+  };
 
   return new IssuersService(prisma as never);
 }
+
+const ALL_TYPES = Object.values(CredentialType);
 
 // ---------------------------------------------------------------------------
 // El estado con el que nace el issuer
 // ---------------------------------------------------------------------------
 
-test('el Issuer provisionado por S5b nace authorized pero SIN identidad tecnica', async () => {
+test('el Issuer provisionado por S5b nace authorized pero SIN identidad tecnica ni capacidades', async () => {
   const issuer = await provisionAndCaptureIssuer();
 
   assert.equal(
@@ -191,93 +212,114 @@ test('el Issuer provisionado por S5b nace authorized pero SIN identidad tecnica'
   );
   assert.equal(issuer.did, null);
   assert.equal(issuer.walletAddress, null);
+  assert.deepEqual(issuer.allowedCredentialTypes, []);
 });
 
 // ---------------------------------------------------------------------------
 // LA PROPIEDAD DE SEGURIDAD
 // ---------------------------------------------------------------------------
 
-test('REGRESION: la regla de emision REAL sigue rechazando al issuer de S5b', async () => {
+test('REGRESION: la regla de emision REAL sigue rechazando al issuer de S5b, para los cuatro tipos', async () => {
   const issuer = await provisionAndCaptureIssuer();
-  const issuersService = createIssuersService();
+  const issuersService = createIssuersService(issuer);
 
-  assert.throws(
-    () => issuersService.assertIssuerCanIssue(issuer),
-    (error: unknown) => {
-      assert.ok(
-        error instanceof BadRequestException,
-        'deberia fallar closed con 400, no pasar'
-      );
-      // Falla por la WALLET, que es la primera precondicion tecnica que
-      // `assertIssuerCanIssue` comprueba tras `authorized`.
-      assert.match(
-        (error as Error).message,
-        /no tiene walletAddress configurado/
-      );
-      return true;
-    }
-  );
+  for (const type of ALL_TYPES) {
+    await assert.rejects(
+      issuersService.assertIssuerCanIssue(issuer.id, type),
+      (error: unknown) => {
+        assert.ok(error instanceof IssuerReadinessError, 'deberia fallar closed');
+        assert.equal(error.getStatus(), 400);
+        assert.equal(error.code, 'ISSUER_NOT_READY');
+        return true;
+      }
+    );
+  }
 });
 
-test('REGRESION: tambien falta el DID -- no alcanza con configurar la wallet', async () => {
-  // Se comprueba la segunda precondicion por separado, porque si alguien
-  // configurara solo la wallet el issuer SEGUIRIA sin poder emitir. Es el
-  // mismo issuer de S5b con una wallet puesta a mano SOLO para este test; no
-  // se crea ninguna identidad real ni se toca cadena.
+test('REGRESION: did/walletAddress LEGACY puestos a mano NO habilitan la emision', async () => {
   const issuer = await provisionAndCaptureIssuer();
-  const issuersService = createIssuersService();
+  const issuersService = createIssuersService({
+    ...issuer,
+    did: 'did:example:issuer-completo',
+    walletAddress: '0x00000000000000000000000000000000000000aa',
+    allowedCredentialTypes: ALL_TYPES
+  });
 
-  assert.throws(
-    () =>
-      issuersService.assertIssuerCanIssue({
-        ...issuer,
-        walletAddress: '0x0000000000000000000000000000000000000000'
-      }),
-    (error: unknown) => {
-      assert.ok(error instanceof BadRequestException);
-      assert.match((error as Error).message, /no tiene DID configurado/);
-      return true;
-    }
+  await assert.rejects(
+    issuersService.assertIssuerCanIssue(issuer.id, CredentialType.course),
+    (error: unknown) =>
+      error instanceof IssuerReadinessError && error.code === 'ISSUER_NOT_READY'
   );
 });
 
 test('la regla NO se satisface con authorizationStatus solo: eso es el bug que se previene', async () => {
-  // Control negativo del test mismo. Si `assertIssuerCanIssue` se redujera a
-  // comprobar `authorized`, este caso pasaria y los dos de arriba fallarian:
-  // el issuer de S5b ya es `authorized`.
   const issuer = await provisionAndCaptureIssuer();
-  const issuersService = createIssuersService();
 
-  assert.equal(
-    issuer.authorizationStatus,
-    IssuerAuthorizationStatus.authorized,
-    'la habilitacion operacional SI esta'
-  );
-  assert.throws(
-    () => issuersService.assertIssuerCanIssue(issuer),
-    BadRequestException,
-    'y pese a eso la emision sigue cerrada'
+  assert.equal(issuer.authorizationStatus, IssuerAuthorizationStatus.authorized);
+  await assert.rejects(
+    createIssuersService(issuer).assertIssuerCanIssue(issuer.id, CredentialType.course)
   );
 });
 
-test('un issuer COMPLETO si pasa: la regla no esta simplemente siempre rota', async () => {
-  // Sin este control, los tests de arriba pasarian incluso si
-  // `assertIssuerCanIssue` lanzara siempre, y no probarian nada sobre S5b.
+test('un issuer COMPLETO en el modelo nuevo si pasa, y solo para tipos habilitados', async () => {
+  // Control positivo: sin el, los tests de arriba pasarian aunque la regla
+  // lanzara siempre. Claves: SOLO escalares publicos de test 1 y 2.
   const issuer = await provisionAndCaptureIssuer();
-  const issuersService = createIssuersService();
+  const assertion = materialFromScalar(`0x${'0'.repeat(63)}1`);
+  const anchor = materialFromScalar(`0x${'0'.repeat(63)}2`);
+  const issuerId = '11111111-1111-4111-8111-111111111111';
+  const verifiedAt = new Date('2026-10-01T00:00:00.000Z');
+  const issuersService = createIssuersService(
+    { ...issuer, id: issuerId, allowedCredentialTypes: [CredentialType.course] },
+    {
+      technicalIdentity: {
+        status: IssuerTechnicalIdentityStatus.active,
+        did: `did:web:scope.example:did:issuers:${issuerId}`,
+        assertionSignerProfileId: 'assert-1',
+        assertionSignerProfile: {
+          id: 'assert-1',
+          purpose: SignerProfilePurpose.assertion,
+          status: SignerProfileStatus.active,
+          keyVersion: 1,
+          address: assertion.address.toLowerCase(),
+          addressVerifiedAt: verifiedAt
+        },
+        anchorSignerProfile: {
+          id: 'anchor-1',
+          purpose: SignerProfilePurpose.anchor,
+          status: SignerProfileStatus.active,
+          keyVersion: 1,
+          address: anchor.address.toLowerCase(),
+          addressVerifiedAt: verifiedAt
+        }
+      },
+      assertionKeyBindings: [
+        {
+          signerProfile: {
+            id: 'assert-1',
+            purpose: SignerProfilePurpose.assertion,
+            status: SignerProfileStatus.active,
+            keyVersion: 1,
+            publicKeyX: assertion.publicKeyX,
+            publicKeyY: assertion.publicKeyY,
+            publicKeyCompressed: assertion.publicKeyCompressed
+          }
+        }
+      ]
+    }
+  );
 
-  assert.doesNotThrow(() =>
-    issuersService.assertIssuerCanIssue({
-      ...issuer,
-      did: 'did:example:issuer-completo',
-      walletAddress: '0x00000000000000000000000000000000000000aa'
-    })
+  await assert.doesNotReject(
+    issuersService.assertIssuerCanIssue(issuerId, CredentialType.course)
+  );
+  await assert.rejects(
+    issuersService.assertIssuerCanIssue(issuerId, CredentialType.degree),
+    (error: unknown) =>
+      error instanceof IssuerReadinessError && error.code === 'CREDENTIAL_TYPE_NOT_ENABLED'
   );
 });
 
-test('la respuesta de S5b ya lo anuncia: readyToIssue = false', async () => {
-  // El contrato HTTP no miente sobre esto: el cliente no tiene que descubrir
-  // por un 400 que el issuer no puede emitir todavia.
+test('la respuesta de S5b ya lo anuncia: readyToIssue = false, con las preguntas separadas', async () => {
   const { client } = createProvisionDouble();
   const service = new PlatformAdminIssuerProvisionService(client as never);
 
@@ -287,7 +329,10 @@ test('la respuesta de S5b ya lo anuncia: readyToIssue = false', async () => {
   assert.deepEqual(response.issuer.technicalIdentity, {
     didConfigured: false,
     walletConfigured: false,
-    readyToIssue: false
+    readyToIssue: false,
+    administrativelyAuthorized: true,
+    configurationReady: false,
+    hasCredentialCapabilities: false
   });
 });
 

@@ -142,7 +142,8 @@ function createDraftService(options?: {
   ) => Promise<unknown>;
   subjectUser?: { id: string } | null;
   programCourse?: ProgramCourseFixture | null;
-  issuerDid?: string | null;
+  /** S8c9: politica de capacidades del issuer. Default: los cuatro tipos. */
+  allowedCredentialTypes?: CredentialType[];
 }) {
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const subjectLookupCalls: Array<Record<string, unknown>> = [];
@@ -187,7 +188,10 @@ function createDraftService(options?: {
     issuer: {
       async findUnique() {
         operationOrder.push('issuer_lookup');
-        return { did: options?.issuerDid ?? 'did:example:issuer-demo' };
+        return {
+          allowedCredentialTypes:
+            options?.allowedCredentialTypes ?? Object.values(CredentialType)
+        };
       }
     },
     async $transaction(
@@ -622,6 +626,9 @@ function createService(options?: {
   assertionBindingAddress?: string;
   assertionBindingKeyVersion?: number;
   assertionBindingUnverified?: boolean;
+  // S8c9: politica del issuer tal como se RE-LEE dentro de TX #1.
+  txIssuerAuthorizationStatus?: string;
+  txAllowedCredentialTypes?: CredentialType[];
 }) {
   const credential = options?.credential ?? createCredentialFixture();
   const issueMembershipCalls: Array<Record<string, unknown>> = [];
@@ -699,6 +706,16 @@ function createService(options?: {
   };
 
   const transaction = {
+    issuer: {
+      async findUnique() {
+        operationOrder.push('issuer_policy_reread');
+        return {
+          authorizationStatus: options?.txIssuerAuthorizationStatus ?? 'authorized',
+          allowedCredentialTypes:
+            options?.txAllowedCredentialTypes ?? Object.values(CredentialType)
+        };
+      }
+    },
     credential: {
       async findUnique(args: Record<string, unknown>) {
         operationOrder.push('final_row_read');
@@ -882,10 +899,11 @@ function createService(options?: {
         id: 'membership-1'
       };
     },
-    assertIssuerCanIssue(issuer: CredentialFixture['issuer']) {
+    // S8c9: la precondicion es (issuerId, tipo) y pasa por la readiness.
+    async assertIssuerCanIssue(issuerId: string, credentialType: CredentialType) {
       operationOrder.push('issuer_eligibility');
-      issuerEligibilityCalls.push({ issuer });
-      options?.assertIssuerCanIssue?.(issuer);
+      issuerEligibilityCalls.push({ issuerId, credentialType });
+      options?.assertIssuerCanIssue?.(credential.issuer);
     }
   };
 
@@ -1108,10 +1126,15 @@ test('CredentialsService keeps platform_name untouched for non-course credential
   );
 });
 
-test('CredentialsService rejects academic credential types for non-UADE issuers', async () => {
-  for (const type of [CredentialType.academic_subject, CredentialType.degree]) {
+// S8c9 (decision A) SUPERSEDE el gate S1 por DID literal "UADE vs no-UADE": la
+// autorizacion de tipos ahora es la politica `allowedCredentialTypes`, y aplica
+// a los CUATRO tipos -- tambien a `course` y `certification`.
+test('CredentialsService rejects every credential type not enabled by issuer capability policy', async () => {
+  for (const type of Object.values(CredentialType)) {
     const { service, createCalls } = createDraftService({
-      issuerDid: 'did:example:course-platform-issuer-demo'
+      allowedCredentialTypes: Object.values(CredentialType).filter(
+        (allowed) => allowed !== type
+      )
     });
 
     await assert.rejects(
@@ -1128,16 +1151,23 @@ test('CredentialsService rejects academic credential types for non-UADE issuers'
         currentUser
       ),
       (error: unknown) => {
-        assert.equal(error instanceof BadRequestException, true);
+        assert.equal((error as { getStatus(): number }).getStatus(), 400);
         assert.equal(
           (error as Error).message,
-      'Este emisor no puede crear credenciales académicas.'
+          'Este emisor no tiene habilitado este tipo de credencial.'
         );
         return true;
       }
     );
     assert.equal(createCalls.length, 0);
   }
+});
+
+test('CredentialsService: empty capability policy rejects all types; DID literal is irrelevant', async () => {
+  const { service, createCalls } = createDraftService({ allowedCredentialTypes: [] });
+
+  await assert.rejects(service.createDraft(validDraftDto, currentUser));
+  assert.equal(createCalls.length, 0);
 });
 
 test('CredentialsService rejects arbitrary issuerIds before holder lookup or credential creation', async () => {
@@ -1924,6 +1954,9 @@ test('38b: la autorizacion ocurre ANTES de resolver el signer y de abrir la tran
     'signer_resolution',
     'transaction_start',
     'final_row_read',
+    // S8c9: autorizacion y capacidad del issuer se RE-LEEN dentro de TX #1,
+    // antes de cualquier mutacion.
+    'issuer_policy_reread',
     // S8c8: el binding de ASERCION se revalida dentro de TX #1, antes de
     // cualquier mutacion.
     'assertion_binding_revalidation',
@@ -2317,4 +2350,61 @@ test('si la fila cambia despues del snapshot, la emision no se consuma', async (
   // La transaccion revierte: nunca se persiste una firma sobre un payload
   // distinto del guardado.
   assert.deepEqual(blockchainCalls, []);
+});
+
+// ---------------------------------------------------------------------------
+// S8c9 -- re-lectura de politica del issuer DENTRO de TX #1 (decision A)
+// ---------------------------------------------------------------------------
+
+test('S8c9 A5: la precondicion recibe (issuerId, tipo), no la fila del issuer', async () => {
+  const { service, issuerEligibilityCalls } = createService();
+  await service.issueCredential('cred-123', ISSUE_DTO, currentUser);
+  assert.deepEqual(issuerEligibilityCalls, [
+    { issuerId: 'issuer-1', credentialType: CredentialType.academic_subject }
+  ]);
+});
+
+test('S8c9 A6: issuer des-autorizado entre la precondicion y TX #1: nada se escribe', async () => {
+  for (const status of ['pending', 'revoked']) {
+    const { service, operationOrder, updateCalls, blockchainCalls } = createService({
+      txIssuerAuthorizationStatus: status
+    });
+    await assert.rejects(
+      service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+      (error: unknown) => (error as { code?: string }).code === 'ISSUER_NOT_READY'
+    );
+    assert.equal(updateCalls.length, 0);
+    assert.equal(blockchainCalls.length, 0);
+    assert.equal(operationOrder.includes('credential_update'), false);
+    assert.equal(operationOrder.includes('assertion_binding_revalidation'), false);
+  }
+});
+
+test('S8c9 A7: capacidad retirada entre la precondicion y TX #1: nada se escribe', async () => {
+  const { service, updateCalls, blockchainCalls } = createService({
+    txAllowedCredentialTypes: [CredentialType.course]
+  });
+  await assert.rejects(
+    service.issueCredential('cred-123', ISSUE_DTO, currentUser),
+    (error: unknown) =>
+      (error as { code?: string }).code === 'CREDENTIAL_TYPE_NOT_ENABLED' &&
+      (error as Error).message === 'Este emisor no tiene habilitado este tipo de credencial.'
+  );
+  assert.equal(updateCalls.length, 0);
+  assert.equal(blockchainCalls.length, 0);
+});
+
+test('S8c9 A8: politica vacia en TX #1 rechaza; la precondicion temprana ocurre antes del signer', async () => {
+  const blocked = createService({
+    assertIssuerCanIssue() {
+      throw new BadRequestException('x');
+    }
+  });
+  await assert.rejects(blocked.service.issueCredential('cred-123', ISSUE_DTO, currentUser));
+  assert.equal(blocked.operationOrder.includes('signer_resolution'), false);
+  assert.equal(blocked.operationOrder.includes('transaction_start'), false);
+
+  const empty = createService({ txAllowedCredentialTypes: [] });
+  await assert.rejects(empty.service.issueCredential('cred-123', ISSUE_DTO, currentUser));
+  assert.equal(empty.updateCalls.length, 0);
 });

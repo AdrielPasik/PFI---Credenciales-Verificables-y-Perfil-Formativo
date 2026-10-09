@@ -333,6 +333,15 @@ async function issueThroughService(): Promise<CredentialSummaryResponseDto> {
   const wallet = new Wallet(PUBLIC_TEST_KEY_ONE.privateKey);
 
   const transaction = {
+    // S8c9: TX #1 re-lee autorizacion y capacidades del issuer.
+    issuer: {
+      async findUnique() {
+        return {
+          authorizationStatus: 'authorized',
+          allowedCredentialTypes: ['academic_subject', 'course', 'certification', 'degree']
+        };
+      }
+    },
     credential: {
       async findUnique() {
         return {

@@ -13,6 +13,14 @@ interface IssuerShellProps {
   isPlatformAdmin?: boolean;
   onChangeIssuer: () => void;
   onLogout: () => void;
+  /**
+   * S8c9: rotulo del contexto. Por defecto es "Institución activa", que es
+   * lo que afirman las paginas OPERATIVAS (el boundary operativo solo las
+   * renderiza para un issuer autorizado). La configuracion tecnica tambien
+   * la ve un issuer NO autorizado, asi que pasa un rotulo propio en vez de
+   * afirmar un estado operativo que puede ser falso.
+   */
+  contextBadge?: string;
 }
 
 export function IssuerShell({
@@ -21,6 +29,7 @@ export function IssuerShell({
   isPlatformAdmin = false,
   label,
   issuerName,
+  contextBadge = 'Institución activa',
   onChangeIssuer,
   onLogout
 }: IssuerShellProps) {
@@ -51,7 +60,7 @@ export function IssuerShell({
             />
           </div>
           <div className="mt-4 flex min-w-0 flex-wrap items-center gap-3">
-            <Badge variant="secondary">{'Instituci\u00f3n activa'}</Badge>
+            <Badge variant="secondary">{contextBadge}</Badge>
             <span className="min-w-0 text-sm font-semibold text-brand-100 sm:truncate">
               {issuerName}
             </span>

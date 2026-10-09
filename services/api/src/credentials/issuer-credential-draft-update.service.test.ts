@@ -96,8 +96,11 @@ function createService(options?: {
     hours: Prisma.Decimal | null;
   } | null;
   programCourse?: Record<string, unknown> | null;
+  /** S8c9: politica de capacidades leida dentro de la TX. Default: los cuatro. */
+  allowedCredentialTypes?: CredentialType[];
 }) {
   const operationOrder: string[] = [];
+  const issuerPolicyCalls: Array<Record<string, unknown>> = [];
   const authorizationCalls: Array<Record<string, unknown>> = [];
   const transactionOptions: Array<Record<string, unknown>> = [];
   const findFirstCalls: Array<Record<string, unknown>> = [];
@@ -105,6 +108,15 @@ function createService(options?: {
   const academicCourseCalls: Array<Record<string, unknown>> = [];
   const programCourseCalls: Array<Record<string, unknown>> = [];
   const transaction = {
+    issuer: {
+      async findUnique(args: Record<string, unknown>) {
+        issuerPolicyCalls.push(args);
+        return {
+          allowedCredentialTypes:
+            options?.allowedCredentialTypes ?? Object.values(CredentialType)
+        };
+      }
+    },
     academicCourse: {
       async findFirst(args: Record<string, unknown>) {
         operationOrder.push('academic_course_lookup');
@@ -200,6 +212,7 @@ function createService(options?: {
       issuersService as never
     ),
     operationOrder,
+    issuerPolicyCalls,
     authorizationCalls,
     transactionOptions,
     findFirstCalls,
@@ -1075,37 +1088,35 @@ test('service rejects every field that is not applicable to the final type, incl
   }
 });
 
-test('service rejects non-UADE draft type changes to academic types before persistence', async () => {
-  for (const targetType of [
-    CredentialType.academic_subject,
-    CredentialType.degree
-  ]) {
-    const { service, updateManyCalls, academicCourseCalls, operationOrder } =
-      createService({
-        credential: createCredentialRecord({
-          type: CredentialType.course,
-          issuer: {
-            name: 'Plataforma de Cursos Demo',
-            did: 'did:example:course-platform-demo'
-          }
-        })
-      });
+// S8c9 (decision A) SUPERSEDE los tests S1 "UADE / no-UADE" por DID literal: la
+// regla es ahora `allowedCredentialTypes`, igual para los cuatro tipos, leida
+// DENTRO de la transaccion y antes de cualquier escritura.
+test('service rejects draft type changes to a type not enabled by capability policy', async () => {
+  for (const targetType of Object.values(CredentialType)) {
+    const { service, updateManyCalls, academicCourseCalls } = createService({
+      credential: createCredentialRecord({
+        type:
+          targetType === CredentialType.course
+            ? CredentialType.certification
+            : CredentialType.course
+      }),
+      allowedCredentialTypes: Object.values(CredentialType).filter(
+        (allowed) => allowed !== targetType
+      )
+    });
 
     await assert.rejects(
       service.updateDraftForIssuer(
         'issuer-1',
         'credential-1',
-        {
-          expectedUpdatedAt: EXPECTED_UPDATED_AT,
-          type: targetType
-        },
+        { expectedUpdatedAt: EXPECTED_UPDATED_AT, type: targetType },
         currentUser
       ),
       (error: unknown) => {
-        assert.ok(error instanceof BadRequestException);
+        assert.equal((error as { getStatus(): number }).getStatus(), 400);
         assert.equal(
-          error.message,
-          'Este emisor no puede crear credenciales académicas.'
+          (error as Error).message,
+          'Este emisor no tiene habilitado este tipo de credencial.'
         );
         return true;
       }
@@ -1113,52 +1124,35 @@ test('service rejects non-UADE draft type changes to academic types before persi
 
     assert.deepEqual(updateManyCalls, []);
     assert.deepEqual(academicCourseCalls, []);
-    assert.deepEqual(operationOrder, [
-      'issuer_authorization',
-      'transaction',
-      'credential_read'
-    ]);
   }
 });
 
-test('service allows non-UADE drafts to remain course or become certification', async () => {
-  for (const targetType of [CredentialType.course, CredentialType.certification]) {
-    const { service, updateManyCalls } = createService({
-      credential: createCredentialRecord({
-        type: CredentialType.course,
-        issuer: {
-          name: 'Plataforma de Cursos Demo',
-          did: 'did:example:course-platform-demo'
-        }
-      })
-    });
+test('service rejects editing a draft whose CURRENT type was disabled, even without type change', async () => {
+  const { service, updateManyCalls } = createService({
+    credential: createCredentialRecord({ type: CredentialType.course }),
+    allowedCredentialTypes: []
+  });
 
-    await service.updateDraftForIssuer(
+  await assert.rejects(
+    service.updateDraftForIssuer(
       'issuer-1',
       'credential-1',
-      {
-        expectedUpdatedAt: EXPECTED_UPDATED_AT,
-        ...(targetType === CredentialType.course ? { description: 'Valido' } : { type: targetType })
-      },
+      { expectedUpdatedAt: EXPECTED_UPDATED_AT, description: 'x' },
       currentUser
-    );
-
-    assert.equal(updateManyCalls.length, 1);
-    const data = (updateManyCalls[0] as { data: Record<string, unknown> }).data;
-    assert.equal(
-      'type' in data ? data.type : CredentialType.course,
-      targetType
-    );
-  }
+    )
+  );
+  assert.deepEqual(updateManyCalls, []);
 });
 
-test('service preserves UADE draft type changes to academic types', async () => {
+test('service allows type changes to any enabled type; policy is read by issuerId inside the tx', async () => {
   for (const targetType of [
     CredentialType.academic_subject,
-    CredentialType.degree
+    CredentialType.degree,
+    CredentialType.certification
   ]) {
-    const { service, updateManyCalls } = createService({
-      credential: createCredentialRecord({ type: CredentialType.course })
+    const { service, updateManyCalls, issuerPolicyCalls } = createService({
+      credential: createCredentialRecord({ type: CredentialType.course }),
+      allowedCredentialTypes: [CredentialType.course, targetType]
     });
 
     await service.updateDraftForIssuer(
@@ -1172,6 +1166,10 @@ test('service preserves UADE draft type changes to academic types', async () => 
     assert.equal(
       (updateManyCalls[0] as { data: Record<string, unknown> }).data.type,
       targetType
+    );
+    assert.deepEqual(
+      (issuerPolicyCalls[0] as { where: unknown }).where,
+      { id: 'issuer-1' }
     );
   }
 });

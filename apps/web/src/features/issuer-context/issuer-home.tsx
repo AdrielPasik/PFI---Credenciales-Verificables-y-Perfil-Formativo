@@ -2,6 +2,7 @@ import {
   FilePlus2,
   Fingerprint,
   Landmark,
+  Settings2,
   ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
@@ -93,6 +94,14 @@ export function IssuerHome({
                 Crear credencial
               </Link>
             </Button>
+            {membership.role === 'admin' && (
+              <Button asChild variant="secondary" className="mt-3 w-full">
+                <Link href="/issuer/configuracion-tecnica">
+                  <Settings2 aria-hidden="true" />
+                  {'Configuración técnica'}
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </aside>

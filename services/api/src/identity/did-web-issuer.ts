@@ -51,3 +51,26 @@ export function isDidForIssuerPath(did: string, issuerId: string): boolean {
 
   return host.length > 0 && !host.includes(':');
 }
+
+// S8c9: URL del Documento DID de un issuer, derivada del DID ALMACENADO por la
+// transformacion did:web -- la misma que define la ruta de arriba. No hay una
+// segunda regla de base URL: el host sale del propio DID (con `%3A` decodificado
+// a `:`, segun la especificacion), y el camino es el de la ruta publica.
+//
+// Devuelve null si el DID no corresponde exactamente a ESTE issuer: nunca se
+// arma un link a un documento que el endpoint publico rechazaria.
+export function issuerDidDocumentUrl(
+  did: string,
+  issuerId: string
+): string | null {
+  if (!isDidForIssuerPath(did, issuerId)) {
+    return null;
+  }
+
+  const suffix = `:${DID_PATH_SEGMENTS.join(':')}:${issuerId}`;
+  const host = did
+    .slice(DID_WEB_PREFIX.length, did.length - suffix.length)
+    .replace(/%3A/gi, ':');
+
+  return `https://${host}/${DID_PATH_SEGMENTS.join('/')}/${issuerId}/did.json`;
+}

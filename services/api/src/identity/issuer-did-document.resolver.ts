@@ -103,7 +103,7 @@ export type IssuerDidInconsistencyCode =
   | 'INVALID_ASSERTION_KEY_VERSION';
 
 /** Metadata PUBLICA de un perfil vinculado. Nada privado. */
-const boundProfileSelect = {
+export const boundProfileSelect = {
   id: true,
   purpose: true,
   status: true,
@@ -113,7 +113,7 @@ const boundProfileSelect = {
   publicKeyCompressed: true
 } as const;
 
-interface BoundAssertionProfile {
+export interface BoundAssertionProfile {
   readonly id: string;
   readonly purpose: SignerProfilePurpose;
   readonly status: SignerProfileStatus;
@@ -162,58 +162,76 @@ export class IssuerDidDocumentResolver {
       return { kind: 'not_resolvable' };
     }
 
-    const storedDid = technicalIdentity.did;
-
-    // El DID ALMACENADO es la autoridad: no se regenera desde
-    // issuerId + configuracion actual en cada request, porque el DID es
-    // identidad persistente y no un render de la configuracion vigente. La
-    // rotacion cambia los verificationMethod del documento, nunca el DID.
-    //
-    // Pero si lo persistido no es exactamente un did:web de issuer para ESTE
-    // issuerId, se falla cerrado. Nunca se reescribe en silencio y nunca se
-    // devuelve un DID corregido o inventado. Desde afuera esto es
-    // indistinguible de "no configurado", que es justamente la respuesta mas
-    // segura: no revela que existe una identidad tecnica mal configurada.
-    if (!isDidForIssuerPath(storedDid, issuerId)) {
-      return { kind: 'not_resolvable' };
-    }
-
-    const bound = technicalIdentity.issuer.assertionKeyBindings.map(
-      (binding) => binding.signerProfile as BoundAssertionProfile
-    );
-
-    const validation = validateAssertionHistory({
-      bound,
-      currentProfileId: technicalIdentity.assertionSignerProfileId
+    return evaluateIssuerDidPublication({
+      issuerId,
+      did: technicalIdentity.did,
+      currentProfileId: technicalIdentity.assertionSignerProfileId,
+      bound: technicalIdentity.issuer.assertionKeyBindings.map(
+        (binding) => binding.signerProfile as BoundAssertionProfile
+      )
     });
+  }
+}
 
-    if (validation.kind === 'invalid') {
+/**
+ * Evaluacion PURA de la publicacion del DID Document -- extraida en S8c9.
+ *
+ * Es la UNICA implementacion de "este DID con esta historia de asercion se
+ * puede publicar coherentemente". La usa el resolver del endpoint publico y la
+ * usa la readiness de emision de S8c9: si fueran dos implementaciones, una
+ * podria declarar "listo para emitir" a un issuer cuyo DID el endpoint publico
+ * rechaza, y la credencial emitida seria inverificable.
+ *
+ * Sin base de datos, sin red, sin secretos. Extraer la funcion no cambia ninguna
+ * semantica de S8c3/S8c7/S8c8: es el mismo cuerpo que antes vivia dentro de
+ * `resolveForIssuer`.
+ */
+export function evaluateIssuerDidPublication(input: {
+  issuerId: string;
+  did: string;
+  currentProfileId: string;
+  bound: readonly BoundAssertionProfile[];
+}): IssuerDidDocumentResolution {
+  // El DID ALMACENADO es la autoridad: no se regenera desde
+  // issuerId + configuracion actual, porque el DID es identidad persistente y
+  // no un render de la configuracion vigente. La rotacion cambia los
+  // verificationMethod del documento, nunca el DID.
+  //
+  // Si lo persistido no es exactamente un did:web de issuer para ESTE
+  // issuerId, se falla cerrado. Nunca se reescribe en silencio y nunca se
+  // devuelve un DID corregido o inventado.
+  if (!isDidForIssuerPath(input.did, input.issuerId)) {
+    return { kind: 'not_resolvable' };
+  }
+
+  const validation = validateAssertionHistory({
+    bound: input.bound,
+    currentProfileId: input.currentProfileId
+  });
+
+  if (validation.kind === 'invalid') {
+    return { kind: 'inconsistent_configuration', code: validation.code };
+  }
+
+  try {
+    return {
+      kind: 'resolved',
+      document: buildIssuerDidDocument({
+        did: input.did,
+        assertionKeys: validation.publishable
+      })
+    };
+  } catch (error) {
+    // Material publico persistido inconsistente. El detalle de ethers y los
+    // valores de la base se descartan por completo.
+    if (error instanceof IssuerDidDocumentError) {
       return {
         kind: 'inconsistent_configuration',
-        code: validation.code
+        code: 'MALFORMED_PUBLIC_KEY_MATERIAL'
       };
     }
 
-    try {
-      return {
-        kind: 'resolved',
-        document: buildIssuerDidDocument({
-          did: storedDid,
-          assertionKeys: validation.publishable
-        })
-      };
-    } catch (error) {
-      // Material publico persistido inconsistente. El detalle de ethers y los
-      // valores de la base se descartan por completo.
-      if (error instanceof IssuerDidDocumentError) {
-        return {
-          kind: 'inconsistent_configuration',
-          code: 'MALFORMED_PUBLIC_KEY_MATERIAL'
-        };
-      }
-
-      throw error;
-    }
+    throw error;
   }
 }
 

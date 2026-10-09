@@ -74,6 +74,8 @@ export interface IssuerRow {
   legalName: string | null;
   did: string | null;
   walletAddress: string | null;
+  /** S8c9: default del schema = []. */
+  allowedCredentialTypes: string[];
   authorizationStatus: IssuerAuthorizationStatus;
   authorizedAt: Date | null;
   revokedAt: Date | null;
@@ -301,8 +303,15 @@ export class InMemoryPrisma {
       return this.projectIssuer(found, args.select);
     },
 
-    findMany: async (args: { select?: Select; orderBy?: unknown }) => {
-      const rows = [...this.store.issuers].sort(
+    findMany: async (args: {
+      select?: Select;
+      orderBy?: unknown;
+      where?: { id?: { in?: string[] } };
+    }) => {
+      const ids = args.where?.id?.in;
+      const rows = [...this.store.issuers]
+        .filter((row) => !ids || ids.includes(row.id))
+        .sort(
         (a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)
       );
       return rows.map((row) => this.projectIssuer(row, args.select));
@@ -318,6 +327,8 @@ export class InMemoryPrisma {
         did: (args.data.did as string | null | undefined) ?? null,
         walletAddress:
           (args.data.walletAddress as string | null | undefined) ?? null,
+        allowedCredentialTypes:
+          (args.data.allowedCredentialTypes as string[] | undefined) ?? [],
         authorizationStatus:
           (args.data.authorizationStatus as
             | IssuerAuthorizationStatus
@@ -547,6 +558,15 @@ export class InMemoryPrisma {
     if (!select) return { ...issuer };
 
     const out = projectScalars(issuer, select);
+
+    // S8c9: el E2E nunca provisiona identidad tecnica de emisor: la
+    // readiness ve "sin identidad" y "sin historia".
+    if (select.technicalIdentity) {
+      out.technicalIdentity = null;
+    }
+    if (select.assertionKeyBindings) {
+      out.assertionKeyBindings = [];
+    }
 
     // S3: `_count` de las relaciones DIRECTAS del Issuer. Siempre 0 en el
     // E2E porque no se toca el catalogo academico.

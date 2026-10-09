@@ -12,23 +12,31 @@ import { IssuerAuthorizationStatus } from '@prisma/client';
  *   - credenciales, evidencia, catalogo en detalle ni objetos Prisma completos.
  */
 export interface AdminIssuerTechnicalIdentityDto {
-  /** `Issuer.did !== null`. Nunca el valor. */
+  /**
+   * COMPATIBILIDAD (S8c9): hay `IssuerTechnicalIdentity` y su DID almacenado es
+   * exactamente un did:web de ESTE issuer. Ya NO lee `Issuer.did`, que es un
+   * campo legacy sin autoridad. Nunca expone el valor. No significa que toda la
+   * configuracion este lista.
+   */
   didConfigured: boolean;
-  /** `Issuer.walletAddress !== null`. Nunca el valor. */
+  /**
+   * COMPATIBILIDAD (S8c9): nombre historico para "la cuenta de ANCLAJE vigente
+   * esta configurada estructuralmente" -- existe, es anchor, esta activa,
+   * verificada y con direccion valida. Ya NO lee `Issuer.walletAddress`.
+   */
   walletConfigured: boolean;
   /**
-   * Derivado: `authorizationStatus === authorized && didConfigured &&
-   * walletConfigured`.
-   *
-   * Es exactamente la precondicion que `IssuersService.assertIssuerCanIssue`
-   * comprueba antes de emitir, proyectada para que /admin pueda mostrar
-   * "identidad tecnica lista / pendiente" sin duplicar la regla en el cliente.
-   *
-   * NO afirma nada sobre verificacion institucional o juridica. Un issuer con
-   * `readyToIssue: true` esta habilitado OPERACIONALMENTE dentro de Scope; eso
-   * es todo lo que `authorized` significa en este sistema.
+   * `administrativelyAuthorized && configurationReady &&
+   * hasCredentialCapabilities`, de la readiness UNICA de S8c9. No hay una
+   * segunda regla. DB/configuracion unicamente: no depende del RPC.
    */
   readyToIssue: boolean;
+  /** `Issuer.authorizationStatus === authorized`. Aditivo, S8c9. */
+  administrativelyAuthorized: boolean;
+  /** Configuracion TECNICA coherente. No incluye autorizacion ni capacidades. */
+  configurationReady: boolean;
+  /** `Issuer.allowedCredentialTypes` no vacio. */
+  hasCredentialCapabilities: boolean;
 }
 
 export interface AdminIssuerMembershipCountsDto {

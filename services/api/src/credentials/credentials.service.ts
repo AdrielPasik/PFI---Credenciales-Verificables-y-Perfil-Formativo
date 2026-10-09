@@ -15,6 +15,7 @@ import {
   CurriculumVersionStatus,
   ProgramStatus,
   Prisma,
+  IssuerAuthorizationStatus,
   UserStatus
 } from '@prisma/client';
 
@@ -26,6 +27,10 @@ import {
   type PreparedAnchorSigner
 } from '../blockchain/blockchain-registration.service';
 import { ensureDidForUser } from '../identity/ensure-did-for-user';
+import {
+  IssuerReadinessError,
+  assertCredentialTypeAllowed
+} from '../issuers/issuer-readiness.service';
 import { IssuersService } from '../issuers/issuers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { type AuthenticatedUser } from '../auth/auth.types';
@@ -47,7 +52,6 @@ import { CredentialStatusResponseDto } from './dto/credential-status-response.dt
 import { CredentialSummaryResponseDto } from './dto/credential-summary-response.dto';
 import { IssueCredentialDto } from './dto/issue-credential.dto';
 
-const UADE_ISSUER_DID = 'did:example:issuer-demo';
 /**
  * Forma del artifact que produce una emision AUTENTICADA. S8c4 hace el cutover
  * en la TRANSICION a emitida, no en el default de la base: un borrador y una
@@ -61,10 +65,6 @@ const SIGNING_TEMPORARILY_UNAVAILABLE_MESSAGE =
   'El servicio de firma del emisor no esta disponible temporalmente. Intentelo nuevamente.';
 const PROOF_CONSTRUCTION_FAILED_MESSAGE =
   'No se pudo generar la prueba de autoria de la credencial.';
-const ACADEMIC_CREDENTIAL_TYPES = new Set<CredentialType>([
-  CredentialType.academic_subject,
-  CredentialType.degree
-]);
 
 @Injectable()
 export class CredentialsService {
@@ -101,21 +101,17 @@ export class CredentialsService {
 
     const issuer = await this.prisma.issuer.findUnique({
       where: { id: dto.issuerId },
-      select: { did: true }
+      select: { allowedCredentialTypes: true }
     });
 
     if (!issuer) {
       throw new NotFoundException('No se encontro el emisor solicitado.');
     }
 
-    if (
-      issuer.did !== UADE_ISSUER_DID &&
-      ACADEMIC_CREDENTIAL_TYPES.has(dto.type)
-    ) {
-      throw new BadRequestException(
-        'Este emisor no puede crear credenciales académicas.'
-      );
-    }
+    // S8c9: CAPACIDAD por politica de plataforma, para los CUATRO tipos. Antes
+    // esto era "solo el issuer con DID `did:example:issuer-demo` crea tipos
+    // academicos", y los demas tipos eran universales.
+    assertCredentialTypeAllowed(issuer.allowedCredentialTypes, dto.type);
 
     const manualTitle = curricularSelection
       ? null
@@ -296,7 +292,13 @@ export class CredentialsService {
       currentUser.id,
       credential.issuerId
     );
-    this.issuersService.assertIssuerCanIssue(credential.issuer);
+    // S8c9: readiness unica + capacidad para ESTE tipo. Falla ANTES de resolver
+    // signers, de leer SSM y de tocar la red. La revalidacion dentro de TX #1
+    // cierra la carrera; esta precondicion no la reemplaza.
+    await this.issuersService.assertIssuerCanIssue(
+      credential.issuerId,
+      credential.type
+    );
 
     // A2.1: provisioning perezoso -- recien se intenta DESPUES de superar
     // autenticacion/autorizacion/estado del issuer, nunca antes (una
@@ -438,6 +440,31 @@ export class CredentialsService {
             `La credencial ${credentialId} no esta en estado draft.`
           );
         }
+
+        // REVALIDACION DE LA POLITICA DEL ISSUER -- S8c9.
+        //
+        // `authorizationStatus` y `allowedCredentialTypes` son autoridad de
+        // emision desde esta slice, y pueden cambiar entre la precondicion de
+        // afuera y este punto. Se vuelven a leer ANTES de cualquier mutacion:
+        // una credencial redactada mientras T estaba habilitado no puede
+        // quedar emitible para siempre si T se quita despues.
+        const currentPolicy = await transaction.issuer.findUnique({
+          where: { id: credential.issuerId },
+          select: { authorizationStatus: true, allowedCredentialTypes: true }
+        });
+
+        if (
+          !currentPolicy ||
+          currentPolicy.authorizationStatus !==
+            IssuerAuthorizationStatus.authorized
+        ) {
+          throw new IssuerReadinessError('ISSUER_NOT_READY');
+        }
+
+        assertCredentialTypeAllowed(
+          currentPolicy.allowedCredentialTypes,
+          finalRow.type
+        );
 
         // REVALIDACION DEL BINDING DE ASERCION -- S8c8, y SIEMPRE, en los dos
         // modos de evidencia: la autoria de la credential no depende de la

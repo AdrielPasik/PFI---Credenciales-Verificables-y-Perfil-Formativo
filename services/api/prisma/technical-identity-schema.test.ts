@@ -16,7 +16,7 @@
 
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import test from 'node:test';
 
 const SCHEMA_PATH = join(__dirname, 'schema.prisma');
@@ -381,14 +381,16 @@ test('allowedCredentialTypes no es una lista nullable', async () => {
   assert.doesNotMatch(body, /allowedCredentialTypes\s+CredentialType\[\]\?/);
 });
 
-test('allowedCredentialTypes NO activa ningun reader ni regla de autorizacion en S8c1', async () => {
-  // El campo existe en el schema y en la migration, pero todavia no lo lee
-  // nadie: el discriminante vigente sigue siendo el literal
-  // `did:example:issuer-demo`. Cambiar eso es S8c9, y ANTES hay que
-  // aprovisionar capacidades, porque con @default([]) todos los issuers
-  // arrancan sin ningun tipo habilitado.
+// S8c9 SUPERSEDE el guard S8c1 "allowedCredentialTypes NO activa ningun
+// reader": S8c9 es exactamente el slice que lo activa (decision A). Lo que se
+// conserva -- y se endurece -- es que la politica tenga ESCRITORES
+// ALLOWLISTED: la primitiva de capacidades y el provisioning inicial, ambos
+// herramienta de operacion. Ningun controller, ningun DTO de request y ningun
+// otro service productivo la escribe.
+test('S8c9: allowedCredentialTypes tiene SOLO los escritores productivos allowlisted', async () => {
   const srcDir = join(__dirname, '..', 'src');
-  const offenders: string[] = [];
+  const writers: string[] = [];
+  const controllersMentioning: string[] = [];
 
   const walk = async (dir: string): Promise<void> => {
     for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -397,23 +399,29 @@ test('allowedCredentialTypes NO activa ningun reader ni regla de autorizacion en
         await walk(full);
         continue;
       }
-      if (!entry.name.endsWith('.ts')) {
+      if (!entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts')) {
         continue;
       }
       const contents = await readFile(full, 'utf8');
-      if (contents.includes('allowedCredentialTypes')) {
-        offenders.push(full);
+      if (/data:\s*\{[^}]*allowedCredentialTypes/.test(contents)) {
+        writers.push(relative(srcDir, full).split(sep).join('/'));
+      }
+      if (
+        entry.name.endsWith('.controller.ts') &&
+        contents.includes('allowedCredentialTypes')
+      ) {
+        controllersMentioning.push(full);
       }
     }
   };
 
   await walk(srcDir);
 
-  assert.deepEqual(
-    offenders,
-    [],
-    `allowedCredentialTypes no debe leerse en src/ todavia: ${offenders.join(', ')}`
-  );
+  assert.deepEqual(writers.sort(), [
+    'identity/technical-identity-provisioning.service.ts',
+    'issuers/issuer-capability-policy.ts'
+  ]);
+  assert.deepEqual(controllersMentioning, []);
 });
 
 test('Credential.proof es Json nullable y no hay columnas de proof desplegadas', async () => {

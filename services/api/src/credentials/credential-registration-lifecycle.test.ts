@@ -169,6 +169,15 @@ function createWorld(options: WorldOptions = {}) {
   };
 
   const transactionClient = {
+    // S8c9: TX #1 re-lee autorizacion y capacidades del issuer.
+    issuer: {
+      async findUnique() {
+        return {
+          authorizationStatus: 'authorized',
+          allowedCredentialTypes: ['academic_subject', 'course', 'certification', 'degree']
+        };
+      }
+    },
     credential: {
       async findUnique() {
         timeline.push('final_row_read');

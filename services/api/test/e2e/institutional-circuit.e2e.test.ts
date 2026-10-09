@@ -223,10 +223,14 @@ describe('S7a -- circuito institucional de punta a punta', () => {
     assert.equal(provisioned.status, 201);
     const issuerId = provisioned.body.issuer.id;
     assert.equal(provisioned.body.issuer.authorizationStatus, 'authorized');
+    // S8c9 (decision D): legacy + tres preguntas separadas.
     assert.deepEqual(provisioned.body.issuer.technicalIdentity, {
       didConfigured: false,
       walletConfigured: false,
-      readyToIssue: false
+      readyToIssue: false,
+      administrativelyAuthorized: true,
+      configurationReady: false,
+      hasCredentialCapabilities: false
     });
     assert.equal(provisioned.body.initialAdminMembership.role, 'admin');
     assert.equal(provisioned.body.initialAdminMembership.status, 'active');
@@ -292,11 +296,13 @@ describe('S7a -- circuito institucional de punta a punta', () => {
     assert.equal(issuerRow.did, null);
     assert.equal(issuerRow.walletAddress, null);
 
-    // La regla real de emision, sobre la fila real que quedo persistida.
+    // La regla real de emision (S8c9: via readiness), sobre la base real
+    // del harness.
     const issuersService = new IssuersService(client.prisma as never);
-    assert.throws(
-      () => issuersService.assertIssuerCanIssue(issuerRow as never),
-      /no tiene walletAddress configurado/,
+    await assert.rejects(
+      issuersService.assertIssuerCanIssue(issuerId, 'course' as never),
+      (error: unknown) =>
+        (error as { code?: string }).code === 'ISSUER_NOT_READY',
       'authorized operacionalmente NO es listo tecnicamente para emitir'
     );
   });
@@ -553,10 +559,14 @@ describe('S7a/6+22 -- alta de institucion y auditoria', () => {
     assert.equal(provisioned.body.issuer.name, ISSUER_NAME);
     assert.equal(provisioned.body.issuer.legalName, ISSUER_LEGAL_NAME);
     assert.equal(provisioned.body.issuer.authorizationStatus, 'authorized');
+    // S8c9 (decision D): legacy + tres preguntas separadas.
     assert.deepEqual(provisioned.body.issuer.technicalIdentity, {
       didConfigured: false,
       walletConfigured: false,
-      readyToIssue: false
+      readyToIssue: false,
+      administrativelyAuthorized: true,
+      configurationReady: false,
+      hasCredentialCapabilities: false
     });
 
     // La fila real: `authorized` + `authorizedAt`, y DID/wallet en null.
@@ -916,28 +926,27 @@ describe('S7a/13 -- autoridad administrativa completa != capacidad de emitir', (
     assert.ok(issuer);
     const issuersService = new IssuersService(client.prisma as never);
 
-    assert.throws(
-      () => issuersService.assertIssuerCanIssue(issuer as never),
-      /no tiene walletAddress configurado/
-    );
+    // S8c9: falla closed para los cuatro tipos -- sin identidad tecnica y sin
+    // capacidades.
+    for (const type of ['course', 'academic_subject', 'degree', 'certification']) {
+      await assert.rejects(
+        issuersService.assertIssuerCanIssue(issuerId, type as never),
+        (error: unknown) =>
+          (error as { code?: string }).code === 'ISSUER_NOT_READY'
+      );
+    }
 
-    // Tampoco alcanza con la wallet: falta el DID.
-    assert.throws(
-      () =>
-        issuersService.assertIssuerCanIssue({
-          ...issuer,
-          walletAddress: '0x0000000000000000000000000000000000000000'
-        } as never),
-      /no tiene DID configurado/
-    );
-
-    // Control negativo: la regla no esta simplemente siempre rota.
-    assert.doesNotThrow(() =>
-      issuersService.assertIssuerCanIssue({
-        ...issuer,
-        did: 'did:example:completo',
-        walletAddress: '0x00000000000000000000000000000000000000aa'
-      } as never)
+    // Y did/wallet LEGACY puestos a mano tampoco alcanzan: dejaron de ser
+    // autoridad. (El control positivo con identidad tecnica completa vive en
+    // `provisioned-issuer-cannot-issue.test.ts`: este harness no provisiona
+    // identidad tecnica de emisor a proposito.)
+    issuer.did = 'did:example:completo';
+    issuer.walletAddress = '0x00000000000000000000000000000000000000aa';
+    issuer.allowedCredentialTypes = ['course'];
+    await assert.rejects(
+      issuersService.assertIssuerCanIssue(issuerId, 'course' as never),
+      (error: unknown) =>
+        (error as { code?: string }).code === 'ISSUER_NOT_READY'
     );
   });
 

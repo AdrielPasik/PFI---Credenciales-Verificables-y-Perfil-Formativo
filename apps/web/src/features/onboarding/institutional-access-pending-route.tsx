@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Building2, LoaderCircle, Mail, RefreshCw } from 'lucide-react';
+import { ArrowRight, Building2, LoaderCircle, Mail, RefreshCw, Settings2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
@@ -11,6 +11,7 @@ import { WalletShell } from '@/components/layout/wallet-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { listUnauthorizedTechnicalAdminMemberships } from '@/features/issuer-technical-identity/technical-admin-memberships';
 import { useSession } from '@/lib/session/session-provider';
 
 /**
@@ -39,11 +40,12 @@ import { useSession } from '@/lib/session/session-provider';
 export function InstitutionalAccessPendingRoute() {
   return (
     <InstitutionalAccessPendingBoundary>
-      {({ email, onRecheck, isRechecking }) => (
+      {({ email, onRecheck, isRechecking, technicalConfigurationIssuers }) => (
         <InstitutionalAccessPendingView
           email={email}
           isRechecking={isRechecking}
           onRecheck={onRecheck}
+          technicalConfigurationIssuers={technicalConfigurationIssuers}
         />
       )}
     </InstitutionalAccessPendingBoundary>
@@ -54,6 +56,13 @@ interface PendingBoundaryRenderProps {
   email: string;
   isRechecking: boolean;
   onRecheck: () => void;
+  /**
+   * S8c9: nombres de las instituciones donde la persona es ADMIN ACTIVA pero
+   * que no estan autorizadas. Es lo unico que justifica el enlace a la
+   * configuracion tecnica. Vacio/ausente = sin enlace (operator, viewer,
+   * membership inactiva, sin membership).
+   */
+  technicalConfigurationIssuers?: string[];
 }
 
 /**
@@ -148,7 +157,10 @@ export function InstitutionalAccessPendingBoundary({
       {children({
         email: state.currentUser.email,
         isRechecking,
-        onRecheck: () => void handleRecheck()
+        onRecheck: () => void handleRecheck(),
+        technicalConfigurationIssuers: listUnauthorizedTechnicalAdminMemberships(
+          state.issuerContext.issuerContexts
+        ).map((membership) => membership.issuerName)
       })}
     </WalletShell>
   );
@@ -157,7 +169,8 @@ export function InstitutionalAccessPendingBoundary({
 export function InstitutionalAccessPendingView({
   email,
   isRechecking,
-  onRecheck
+  onRecheck,
+  technicalConfigurationIssuers = []
 }: PendingBoundaryRenderProps) {
   return (
     <section
@@ -215,6 +228,25 @@ export function InstitutionalAccessPendingView({
             </Link>
           </Button>
         </CardContent>
+
+        {technicalConfigurationIssuers.length > 0 ? (
+          <>
+            <Separator />
+            <CardContent className="grid gap-3 pt-6 sm:px-8 sm:pb-8">
+              <p className="text-sm leading-6 text-text-muted">
+                {'Sos administrador de '}
+                {technicalConfigurationIssuers.join(', ')}
+                {', que todavía no está habilitada para emitir. Podés revisar su configuración técnica.'}
+              </p>
+              <Button asChild variant="secondary" className="justify-self-start">
+                <Link href="/issuer/configuracion-tecnica">
+                  <Settings2 aria-hidden="true" />
+                  {'Configuración técnica'}
+                </Link>
+              </Button>
+            </CardContent>
+          </>
+        ) : null}
       </Card>
     </section>
   );

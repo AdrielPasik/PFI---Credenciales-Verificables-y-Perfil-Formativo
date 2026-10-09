@@ -5,7 +5,9 @@ import {
 } from '@prisma/client';
 
 import { buildHolderDisplayLabel } from '../issuers/holder-display-label';
+import { IssuerReadinessService } from '../issuers/issuer-readiness.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { projectAdminIssuerReadiness } from './admin-issuer-readiness.projection';
 import {
   type AdminIssuerListResponseDto,
   type AdminIssuerSummaryDto
@@ -38,7 +40,12 @@ const ISSUER_NOT_FOUND_MESSAGE = 'No se encontro el issuer solicitado.';
  */
 @Injectable()
 export class PlatformAdminReadService {
-  constructor(private readonly prisma: PrismaService) {}
+  /** Readiness unica, sobre el mismo PrismaService. Sin SSM ni RPC. */
+  private readonly readiness: IssuerReadinessService;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.readiness = new IssuerReadinessService(prisma);
+  }
 
   /**
    * Inventario completo de Issuers con sus contadores.
@@ -84,10 +91,6 @@ export class PlatformAdminReadService {
             name: true,
             legalName: true,
             authorizationStatus: true,
-            // Se leen para DERIVAR booleanos; el valor nunca sale en la
-            // respuesta (ver el mapeo mas abajo y los DTOs).
-            did: true,
-            walletAddress: true,
             createdAt: true,
             _count: {
               select: {
@@ -172,26 +175,21 @@ export class PlatformAdminReadService {
       );
     }
 
+    // S8c9: readiness UNICA, evaluada en LOTE -- una consulta para toda la
+    // pagina, no una por issuer. DB/configuracion unicamente: ni SSM ni RPC.
+    const readiness = await this.readiness.evaluateMany(
+      issuers.map((issuer) => issuer.id)
+    );
+
     const items: AdminIssuerSummaryDto[] = issuers.map((issuer) => {
-      const didConfigured = issuer.did !== null;
-      const walletConfigured = issuer.walletAddress !== null;
+      const issuerReadiness = readiness.get(issuer.id);
 
       return {
         id: issuer.id,
         name: issuer.name,
         legalName: issuer.legalName,
         authorizationStatus: issuer.authorizationStatus,
-        technicalIdentity: {
-          didConfigured,
-          walletConfigured,
-          // Misma precondicion que `IssuersService.assertIssuerCanIssue`:
-          // authorized + walletAddress + did. Derivada, nunca persistida.
-          readyToIssue:
-            issuer.authorizationStatus ===
-              IssuerAuthorizationStatus.authorized &&
-            didConfigured &&
-            walletConfigured
-        },
+        technicalIdentity: projectAdminIssuerReadiness(issuerReadiness!),
         membershipCounts: {
           active: activeMemberships.get(issuer.id) ?? 0,
           total: totalMemberships.get(issuer.id) ?? 0

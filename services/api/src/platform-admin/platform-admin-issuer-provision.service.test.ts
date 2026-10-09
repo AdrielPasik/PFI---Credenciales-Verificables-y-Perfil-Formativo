@@ -66,6 +66,7 @@ interface FakeIssuer {
   revokedAt: Date | null;
   did: string | null;
   walletAddress: string | null;
+  allowedCredentialTypes: string[];
   metadata: unknown;
   createdAt: Date;
 }
@@ -237,6 +238,7 @@ function createDouble(
               revokedAt: null,
               did: null,
               walletAddress: null,
+              allowedCredentialTypes: [],
               metadata: null,
               createdAt: new Date('2026-10-04T12:00:00.000Z'),
               ...(data as Partial<FakeIssuer>)
@@ -956,8 +958,12 @@ test('response: allowlist EXACTA, dos claves raiz', async () => {
     'status',
     'userId'
   ]);
+  // S8c9 (decision D): tres booleanos legacy + tres preguntas aditivas.
   assert.deepEqual(Object.keys(response.issuer.technicalIdentity).sort(), [
+    'administrativelyAuthorized',
+    'configurationReady',
     'didConfigured',
+    'hasCredentialCapabilities',
     'readyToIssue',
     'walletConfigured'
   ]);
@@ -985,7 +991,10 @@ test('response: didConfigured / walletConfigured / readyToIssue en false', async
   assert.deepEqual(response.issuer.technicalIdentity, {
     didConfigured: false,
     walletConfigured: false,
-    readyToIssue: false
+    readyToIssue: false,
+    administrativelyAuthorized: true,
+    configurationReady: false,
+    hasCredentialCapabilities: false
   });
 });
 

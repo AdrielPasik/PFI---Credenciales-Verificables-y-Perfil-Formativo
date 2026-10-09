@@ -17,6 +17,7 @@ import {
   IssuerMembershipStatus
 } from '@prisma/client';
 
+import { materialFromScalar } from '../identity/operator/signer-material-generator';
 import { PlatformAdminReadService } from './platform-admin-read.service';
 
 const FORBIDDEN_WRITE = (name: string) => () => {
@@ -41,6 +42,9 @@ function createListDouble(options: {
     createdAt: Date;
     academicCourses: number;
     programs: number;
+    /** S8c9: politica y modelo tecnico NUEVO (los unicos que cuentan). */
+    allowedCredentialTypes?: string[];
+    technical?: TechnicalFixture | null;
   }>;
   memberships?: Array<{
     issuerId: string;
@@ -51,10 +55,26 @@ function createListDouble(options: {
   curriculumVersions?: Array<{ issuerId: string; programCourses: number }>;
 }) {
   const orderBys: unknown[] = [];
+  const readinessQueries: unknown[] = [];
 
   const prisma = {
     issuer: {
-      async findMany(args: { orderBy?: unknown }) {
+      async findMany(args: {
+        orderBy?: unknown;
+        where?: unknown;
+        select?: Record<string, unknown>;
+      }) {
+        // S8c9: la readiness del lote es UNA consulta aparte, por ids.
+        if (args.select && 'assertionKeyBindings' in args.select) {
+          readinessQueries.push(args.where);
+          return options.issuers.map((issuer) => ({
+            id: issuer.id,
+            authorizationStatus: issuer.authorizationStatus,
+            allowedCredentialTypes: issuer.allowedCredentialTypes ?? [],
+            technicalIdentity: issuer.technical?.technicalIdentity ?? null,
+            assertionKeyBindings: issuer.technical?.assertionKeyBindings ?? []
+          }));
+        }
         orderBys.push(args.orderBy);
         // El doble NO ordena: devuelve en el orden en que se declararon los
         // issuers, para que un test pueda comprobar que el `orderBy` se le pide
@@ -121,7 +141,7 @@ function createListDouble(options: {
     $transaction: FORBIDDEN_WRITE('$transaction')
   };
 
-  return { prisma, orderBys };
+  return { prisma, orderBys, readinessQueries };
 }
 
 const UADE = {
@@ -246,49 +266,138 @@ test('listIssuers: no mezcla contadores entre issuers', async () => {
   assert.equal(nueva.catalogCounts.programCourses, 11);
 });
 
-test('listIssuers: didConfigured y walletConfigured son booleanos derivados', async () => {
+// ---------------------------------------------------------------------------
+// S8c9 (decision D) -- los booleanos legacy se RE-DERIVAN del modelo nuevo.
+//
+// SUPERSEDE los tests S6a "didConfigured/walletConfigured = truthiness de
+// Issuer.did / Issuer.walletAddress" y "readyToIssue = authorized + did +
+// wallet": esos campos dejaron de ser autoridad. Claves: SOLO escalares
+// publicos de test 1 y 2.
+// ---------------------------------------------------------------------------
+
+type TechnicalFixture = {
+  technicalIdentity: Record<string, unknown> | null;
+  assertionKeyBindings: unknown[];
+};
+
+const TEST_ASSERTION = materialFromScalar(`0x${'0'.repeat(63)}1`);
+const TEST_ANCHOR = materialFromScalar(`0x${'0'.repeat(63)}2`);
+const UUID_ISSUER = '11111111-1111-4111-8111-111111111111';
+
+function completeTechnical(
+  issuerId: string,
+  overrides: {
+    did?: string;
+    anchorStatus?: string;
+    anchorAddress?: string;
+  } = {}
+): TechnicalFixture {
+  const verifiedAt = new Date('2026-10-01T00:00:00.000Z');
+  return {
+    technicalIdentity: {
+      status: 'active',
+      did: overrides.did ?? `did:web:scope.example:did:issuers:${issuerId}`,
+      assertionSignerProfileId: 'assert-1',
+      assertionSignerProfile: {
+        id: 'assert-1',
+        purpose: 'assertion',
+        status: 'active',
+        keyVersion: 1,
+        address: TEST_ASSERTION.address.toLowerCase(),
+        addressVerifiedAt: verifiedAt
+      },
+      anchorSignerProfile: {
+        id: 'anchor-1',
+        purpose: 'anchor',
+        status: overrides.anchorStatus ?? 'active',
+        keyVersion: 1,
+        address: overrides.anchorAddress ?? TEST_ANCHOR.address.toLowerCase(),
+        addressVerifiedAt: verifiedAt
+      }
+    },
+    assertionKeyBindings: [
+      {
+        signerProfile: {
+          id: 'assert-1',
+          purpose: 'assertion',
+          status: 'active',
+          keyVersion: 1,
+          publicKeyX: TEST_ASSERTION.publicKeyX,
+          publicKeyY: TEST_ASSERTION.publicKeyY,
+          publicKeyCompressed: TEST_ASSERTION.publicKeyCompressed
+        }
+      }
+    ]
+  };
+}
+
+test('D2 listIssuers: legacy did/walletAddress SIN identidad tecnica -> todo false', async () => {
+  // UADE tiene did y walletAddress legacy cargados: ya no cuentan.
   const { prisma } = createListDouble({ issuers: [UADE, NUEVA] });
   const service = new PlatformAdminReadService(prisma as never);
 
   const [uade, nueva] = (await service.listIssuers()).items;
 
-  assert.equal(uade.technicalIdentity.didConfigured, true);
-  assert.equal(uade.technicalIdentity.walletConfigured, true);
-  assert.equal(nueva.technicalIdentity.didConfigured, false);
-  assert.equal(nueva.technicalIdentity.walletConfigured, false);
+  for (const item of [uade, nueva]) {
+    assert.equal(item.technicalIdentity.didConfigured, false);
+    assert.equal(item.technicalIdentity.walletConfigured, false);
+    assert.equal(item.technicalIdentity.readyToIssue, false);
+    assert.equal(item.technicalIdentity.configurationReady, false);
+  }
 });
 
-test('listIssuers: readyToIssue exige authorized + did + wallet, igual que assertIssuerCanIssue', async () => {
-  const combinaciones = [
-    { authorizationStatus: IssuerAuthorizationStatus.authorized, did: 'd', walletAddress: '0x1', esperado: true },
-    { authorizationStatus: IssuerAuthorizationStatus.authorized, did: null, walletAddress: '0x1', esperado: false },
-    { authorizationStatus: IssuerAuthorizationStatus.authorized, did: 'd', walletAddress: null, esperado: false },
-    { authorizationStatus: IssuerAuthorizationStatus.authorized, did: null, walletAddress: null, esperado: false },
-    { authorizationStatus: IssuerAuthorizationStatus.pending, did: 'd', walletAddress: '0x1', esperado: false },
-    { authorizationStatus: IssuerAuthorizationStatus.revoked, did: 'd', walletAddress: '0x1', esperado: false }
+test('D3 listIssuers: booleanos re-derivados del modelo tecnico', async () => {
+  const casos = [
+    {
+      nombre: 'completo y habilitado',
+      issuer: { authorizationStatus: IssuerAuthorizationStatus.authorized, allowedCredentialTypes: ['course'], technical: completeTechnical(UUID_ISSUER) },
+      esperado: { didConfigured: true, walletConfigured: true, readyToIssue: true, administrativelyAuthorized: true, configurationReady: true, hasCredentialCapabilities: true }
+    },
+    {
+      nombre: 'completo sin capacidades',
+      issuer: { authorizationStatus: IssuerAuthorizationStatus.authorized, allowedCredentialTypes: [], technical: completeTechnical(UUID_ISSUER) },
+      esperado: { didConfigured: true, walletConfigured: true, readyToIssue: false, administrativelyAuthorized: true, configurationReady: true, hasCredentialCapabilities: false }
+    },
+    {
+      nombre: 'completo pero pendiente',
+      issuer: { authorizationStatus: IssuerAuthorizationStatus.pending, allowedCredentialTypes: ['course'], technical: completeTechnical(UUID_ISSUER) },
+      esperado: { didConfigured: true, walletConfigured: true, readyToIssue: false, administrativelyAuthorized: false, configurationReady: true, hasCredentialCapabilities: true }
+    },
+    {
+      nombre: 'anchor retirado',
+      issuer: { authorizationStatus: IssuerAuthorizationStatus.authorized, allowedCredentialTypes: ['course'], technical: completeTechnical(UUID_ISSUER, { anchorStatus: 'retired' }) },
+      esperado: { didConfigured: true, walletConfigured: false, readyToIssue: false, administrativelyAuthorized: true, configurationReady: false, hasCredentialCapabilities: true }
+    },
+    {
+      nombre: 'DID de otro issuer',
+      issuer: { authorizationStatus: IssuerAuthorizationStatus.authorized, allowedCredentialTypes: ['course'], technical: completeTechnical(UUID_ISSUER, { did: 'did:example:issuer-demo' }) },
+      esperado: { didConfigured: false, walletConfigured: true, readyToIssue: false, administrativelyAuthorized: true, configurationReady: false, hasCredentialCapabilities: true }
+    }
   ];
 
-  for (const [index, combinacion] of combinaciones.entries()) {
+  for (const caso of casos) {
     const { prisma } = createListDouble({
-      issuers: [
-        {
-          ...UADE,
-          id: `issuer-${index}`,
-          did: combinacion.did,
-          walletAddress: combinacion.walletAddress,
-          authorizationStatus: combinacion.authorizationStatus
-        }
-      ]
+      issuers: [{ ...NUEVA, id: UUID_ISSUER, ...caso.issuer }]
     });
-    const service = new PlatformAdminReadService(prisma as never);
-    const [item] = (await service.listIssuers()).items;
-
-    assert.equal(
-      item.technicalIdentity.readyToIssue,
-      combinacion.esperado,
-      `combinacion ${index}: ${combinacion.authorizationStatus}/${combinacion.did}/${combinacion.walletAddress}`
-    );
+    const [item] = (await new PlatformAdminReadService(prisma as never).listIssuers()).items;
+    assert.deepEqual(item.technicalIdentity, caso.esperado, caso.nombre);
   }
+});
+
+test('D4 listIssuers: la readiness del lote es UNA consulta, sin N+1', async () => {
+  const many = Array.from({ length: 12 }, (_, index) => ({
+    ...NUEVA,
+    id: `issuer-${index}`
+  }));
+  const { prisma, readinessQueries } = createListDouble({ issuers: many });
+
+  const response = await new PlatformAdminReadService(prisma as never).listIssuers();
+
+  assert.equal(response.items.length, 12);
+  assert.equal(readinessQueries.length, 1);
+  assert.deepEqual(readinessQueries[0], {
+    id: { in: many.map((issuer) => issuer.id) }
+  });
 });
 
 test('listIssuers: NUNCA devuelve el valor del did ni de la walletAddress', async () => {
