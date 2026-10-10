@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -13,6 +14,7 @@ from src.area_embedding_reranker import (
     AREA_EMBEDDING_RELATIVE_MARGIN,
     AreaEmbeddingSettings,
     AreaReferenceSet,
+    AreaReferenceVectors,
     ChunkPlan,
     LocalE5Embedder,
     MAX_INPUT_TOKENS,
@@ -22,6 +24,7 @@ from src.area_embedding_reranker import (
     load_reference_set,
     load_settings,
     plan_source_token_chunks,
+    prewarm_area_embeddings,
     rerank_existing_area_candidates,
 )
 from src.semantic_builder import AREA_PROFILES
@@ -51,6 +54,22 @@ class PlannedFakeEmbedder(FakeEmbedder):
         if self.raises:
             raise RuntimeError("chunk failure")
         return self.plan
+
+
+class CachedFakeEmbedder(PlannedFakeEmbedder):
+    """Test backend that exposes immutable prototype vectors after prewarm."""
+
+    def __init__(self, source_vectors: list[list[float]], reference_vectors: dict[str, tuple[float, ...]]) -> None:
+        super().__init__(source_vectors)
+        self.reference_vectors = reference_vectors
+        self.encode_calls: list[list[str]] = []
+
+    def get_reference_vectors(self, references: AreaReferenceSet) -> AreaReferenceVectors:
+        return AreaReferenceVectors(references.version, self.reference_vectors)
+
+    def encode(self, texts: list[str]) -> list[list[float]]:
+        self.encode_calls.append(texts)
+        return self.vectors
 
 
 def _candidate(area: str, score: float) -> dict:
@@ -391,6 +410,110 @@ def test_model_initialization_is_singleton_under_concurrent_access(monkeypatch) 
         results = list(executor.map(lambda _: reranker._get_local_embedder(model_dir), range(8)))
     assert calls == 1
     assert all(result is results[0] for result in results)
+
+
+def test_reference_vectors_are_encoded_once_per_local_embedder_and_are_immutable() -> None:
+    backend = object.__new__(LocalE5Embedder)
+    backend._reference_vector_cache = {}
+    backend._reference_vector_cache_lock = threading.Lock()
+    calls = 0
+
+    def encode(texts: list[str]) -> list[list[float]]:
+        nonlocal calls
+        calls += 1
+        assert len(texts) == reranker.FROZEN_REFERENCE_COUNT
+        return [[0.6, 0.8] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 2) for _ in texts]
+
+    backend.encode = encode
+    references = AreaReferenceSet(
+        reranker.FROZEN_REFERENCES_VERSION,
+        {f"Area {index}": f"prototype {index}" for index in range(reranker.FROZEN_REFERENCE_COUNT)},
+    )
+    first = backend.get_reference_vectors(references)
+    second = backend.get_reference_vectors(references)
+
+    assert calls == 1
+    assert first is second
+    assert len(first.vectors_by_area) == reranker.FROZEN_REFERENCE_COUNT
+    expected = [0.6, 0.8] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 2)
+    assert max(abs(value - expected_value) for value, expected_value in zip(first.vectors_by_area["Area 0"], expected)) <= 1e-7
+    try:
+        first.vectors_by_area["Area 0"] = (1.0,)  # type: ignore[index]
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("cached reference vectors must be immutable")
+
+
+def test_reference_vector_initialization_is_singleton_under_concurrent_access() -> None:
+    backend = object.__new__(LocalE5Embedder)
+    backend._reference_vector_cache = {}
+    backend._reference_vector_cache_lock = threading.Lock()
+    calls = 0
+
+    def encode(texts: list[str]) -> list[list[float]]:
+        nonlocal calls
+        calls += 1
+        time.sleep(0.01)
+        return [[1.0] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 1) for _ in texts]
+
+    backend.encode = encode
+    references = AreaReferenceSet(
+        reranker.FROZEN_REFERENCES_VERSION,
+        {f"Area {index}": f"prototype {index}" for index in range(reranker.FROZEN_REFERENCE_COUNT)},
+    )
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: backend.get_reference_vectors(references), range(8)))
+
+    assert calls == 1
+    assert all(result is results[0] for result in results)
+
+
+def test_cached_reference_path_matches_the_validated_ranking_without_reencoding_prototypes() -> None:
+    candidates = [_candidate("A", 10), _candidate("B", 9), _candidate("C", 8)]
+    references = _references("A", "B", "C")
+    source = [1.0, 0.0]
+    prototypes = {
+        "A": (0.1, math.sqrt(0.99)),
+        "B": (0.9, math.sqrt(0.19)),
+        "C": (0.8, 0.6),
+    }
+    legacy, legacy_diagnostic = rerank_existing_area_candidates(
+        candidates,
+        "texto original",
+        _enabled(),
+        embedder=FakeEmbedder([source, *[list(prototypes[item["area"]]) for item in candidates]]),
+        references=references,
+    )
+    cached_backend = CachedFakeEmbedder([source], prototypes)
+    cached, cached_diagnostic = rerank_existing_area_candidates(
+        candidates,
+        "texto original",
+        _enabled(),
+        embedder=cached_backend,
+        references=references,
+    )
+
+    assert [item["area"] for item in cached] == [item["area"] for item in legacy]
+    assert cached_diagnostic["candidates"] == legacy_diagnostic["candidates"]
+    assert cached_backend.encode_calls == [["query: texto original"]]
+
+
+def test_prewarm_skips_disabled_feature_and_initializes_model_and_references_once(monkeypatch) -> None:
+    calls: list[str] = []
+
+    class StubEmbedder:
+        def get_reference_vectors(self, references: AreaReferenceSet) -> AreaReferenceVectors:
+            calls.append("references")
+            return AreaReferenceVectors(references.version, {})
+
+    monkeypatch.setattr(reranker, "load_reference_set", lambda: _references("A"))
+    monkeypatch.setattr(reranker, "_get_local_embedder", lambda _: calls.append("model") or StubEmbedder())
+
+    prewarm_area_embeddings(AreaEmbeddingSettings(enabled=False))
+    assert calls == []
+    prewarm_area_embeddings(AreaEmbeddingSettings(enabled=True, model_dir=Path("/models/e5")))
+    assert calls == ["model", "references"]
 
 
 def test_local_loader_rejects_an_unpinned_model_manifest_before_importing_ml_dependencies() -> None:

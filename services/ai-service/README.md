@@ -182,13 +182,13 @@ habilita, usa la configuración experimental congelada `GLOBAL_HYBRID`:
 entorno; el único switch operativo es `AI_AREA_EMBEDDINGS_ENABLED`.
 
 Usa el modelo local pinneado `intfloat/multilingual-e5-small` en la revisión
-`fd1525a9fd15316a2d503bf26ab031a61d056e98`. El proceso no descarga modelos ni
-envía texto en runtime (`local_files_only=True`); `AI_AREA_EMBEDDINGS_MODEL_DIR`
-debe apuntar a un snapshot local preaprovisionado y de solo lectura. Ese
-directorio debe incluir `pfi-model-manifest.json` con el `modelId` y la
-`revision` exactos; el loader rechaza cualquier otro modelo. Si faltan
-dependencias, modelo, manifest, referencias, texto válido o falla cualquier
-chunk, el resultado es exactamente el ranking léxico existente. El texto
+`fd1525a9fd15316a2d503bf26ab031a61d056e98`. La imagen de producción incorpora
+el snapshot y verifica el SHA-256 de `model.safetensors` durante el build; el
+proceso no descarga modelos ni envía texto en runtime (`local_files_only=True`).
+`AI_AREA_EMBEDDINGS_MODEL_DIR` queda fijado a esa ruta de solo lectura dentro de
+la imagen. El loader rechaza cualquier manifest, revisión o dimensión distinta.
+Si faltan dependencias, modelo, manifest, referencias, texto válido o falla
+cualquier chunk, el resultado es exactamente el ranking léxico existente. El texto
 fuente se fragmenta sin solapamiento en bloques de hasta 480 tokens fuente;
 cada bloque incluye el prefijo `query:` y se verifica contra el límite efectivo
 de 512 tokens antes de codificarlo. Los vectores de bloques se agregan por
@@ -196,8 +196,14 @@ media ponderada por tokens y se normalizan con L2.
 
 Antes de cargarlo, el runtime verifica además el SHA-256 congelado de
 `model.safetensors`. Las referencias deben ser la versión congelada de 69 áreas
-y se cargan una vez por proceso; modelo y referencias usan inicialización
-protegida para solicitudes concurrentes.
+y se codifican una sola vez por proceso durante el prewarm; modelo y referencias
+usan inicialización protegida para solicitudes concurrentes. Cada solicitud sólo
+codifica sus chunks fuente.
+
+`GET /health` conserva liveness barato. `GET /ready` es el endpoint operativo:
+con embeddings apagados queda listo tras el inicio normal; con embeddings
+activos responde 503 hasta que el prewarm local y el cache de referencias hayan
+terminado. No expone paths, vectores ni detalles internos.
 
 La señal usa `query:` tanto para fuente como para prototipos porque se trata de
 similitud de clasificación, no recuperación asimétrica. Fusiona rangos léxico y
@@ -271,6 +277,6 @@ Service o equivalente son la mejora estructural futura.
 - sin acceso del browser;
 - sin persistencia propia;
 - sin acceso a S3 o PostgreSQL;
-- sin embeddings o descarga de modelos;
+- embeddings apagados por default y sin descarga de modelos en runtime;
 - sin ejecucion automatica desde evidencias;
-- sin `AnalysisRun`, readiness, emision o blockchain.
+- sin `AnalysisRun`, emision o blockchain.

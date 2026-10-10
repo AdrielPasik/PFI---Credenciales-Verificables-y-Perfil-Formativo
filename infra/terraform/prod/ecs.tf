@@ -130,15 +130,17 @@ resource "aws_ecs_task_definition" "ai" {
         }
       ]
 
-      # There is no load balancer in front of this service, so the container health
-      # check is the only liveness signal. The image has no curl, so the check uses
-      # the interpreter that is already there.
+      # Cloud Map receives ECS container health. `/health` remains a cheap
+      # diagnostic liveness endpoint; `/ready` gates discovery traffic until an
+      # enabled embedding runtime has completed its local prewarm.
       healthCheck = {
-        command     = ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:${var.ai_container_port}/health\", timeout=3).status == 200 else 1)'"]
+        command     = ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:${var.ai_container_port}/ready\", timeout=3).status == 200 else 1)'"]
         interval    = 30
         timeout     = 5
         retries     = 3
-        startPeriod = 30
+        # Provisional: the frozen E5 local cold initialization reached ~38 s.
+        # Final value requires measurement in the deployed Fargate task.
+        startPeriod = 120
       }
 
       logConfiguration = {

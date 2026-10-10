@@ -8,7 +8,8 @@ import os
 import threading
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol, Sequence
+from types import MappingProxyType
+from typing import Any, Mapping, Protocol, Sequence
 
 from .text_utils import normalize_whitespace
 
@@ -45,6 +46,14 @@ class AreaEmbeddingSettings:
 class AreaReferenceSet:
     version: str
     descriptions: dict[str, str]
+
+
+@dataclass(frozen=True)
+class AreaReferenceVectors:
+    """Immutable, process-local vectors for the frozen area references."""
+
+    version: str
+    vectors_by_area: Mapping[str, tuple[float, ...]]
 
 
 @dataclass(frozen=True)
@@ -246,6 +255,8 @@ class LocalE5Embedder:
         if getattr(self._model.config, "hidden_size", None) != MODEL_EMBEDDING_DIMENSION:
             raise ValueError("embedding model dimension does not match the frozen encoder")
         self._model.eval()
+        self._reference_vector_cache: dict[tuple[str, tuple[tuple[str, str], ...]], AreaReferenceVectors] = {}
+        self._reference_vector_cache_lock = threading.Lock()
 
     def count_tokens(self, text: str) -> int:
         return len(self._tokenizer(text, add_special_tokens=True, truncation=False)["input_ids"])
@@ -281,6 +292,46 @@ class LocalE5Embedder:
             raise ValueError("embedding output dimension does not match the frozen encoder")
         return vectors
 
+    def get_reference_vectors(self, reference_set: AreaReferenceSet) -> AreaReferenceVectors:
+        """Encode each frozen prototype once and retain only immutable vectors.
+
+        The reference file is already validated on load. This second validation
+        keeps the process cache bound to the exact frozen 69-area identity before
+        it can be reused by document requests.
+        """
+        identity = tuple(reference_set.descriptions.items())
+        if (
+            reference_set.version != FROZEN_REFERENCES_VERSION
+            or len(identity) != FROZEN_REFERENCE_COUNT
+            or len({area for area, _ in identity}) != FROZEN_REFERENCE_COUNT
+        ):
+            raise ValueError("reference vector cache requires the frozen area reference set")
+        cache_key = (reference_set.version, identity)
+        cached = self._reference_vector_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        with self._reference_vector_cache_lock:
+            cached = self._reference_vector_cache.get(cache_key)
+            if cached is not None:
+                return cached
+            vectors = self.encode([QUERY_PREFIX + description for _, description in identity])
+            if len(vectors) != FROZEN_REFERENCE_COUNT:
+                raise ValueError("reference vector cache did not encode every frozen area")
+            immutable_vectors: dict[str, tuple[float, ...]] = {}
+            for (area, _), vector in zip(identity, vectors):
+                if (
+                    len(vector) != MODEL_EMBEDDING_DIMENSION
+                    or not all(math.isfinite(float(value)) for value in vector)
+                ):
+                    raise ValueError("reference vector cache contains an invalid vector")
+                immutable_vectors[area] = tuple(float(value) for value in vector)
+            result = AreaReferenceVectors(
+                version=reference_set.version,
+                vectors_by_area=MappingProxyType(immutable_vectors),
+            )
+            self._reference_vector_cache[cache_key] = result
+            return result
+
 
 def _get_local_embedder(model_dir: Path) -> LocalE5Embedder:
     resolved = model_dir.resolve()
@@ -289,6 +340,19 @@ def _get_local_embedder(model_dir: Path) -> LocalE5Embedder:
             if resolved not in _MODEL_CACHE:
                 _MODEL_CACHE[resolved] = LocalE5Embedder(resolved)
     return _MODEL_CACHE[resolved]
+
+
+def prewarm_area_embeddings(settings: AreaEmbeddingSettings) -> None:
+    """Initialize the enabled local runtime before it is declared ready."""
+    if settings.configuration_error:
+        raise ValueError(settings.configuration_error)
+    if not settings.enabled:
+        return
+    if settings.model_dir is None:
+        raise ValueError("enabled embeddings require a model directory")
+    reference_set = load_reference_set()
+    backend = _get_local_embedder(settings.model_dir)
+    backend.get_reference_vectors(reference_set)
 
 
 def _lexical_sort_key(item: dict[str, Any]) -> tuple[float, float, int, int]:
@@ -384,17 +448,34 @@ def rerank_existing_area_candidates(
             return candidates, _fallback("invalid_chunk_plan", plan)
 
         source_queries = [QUERY_PREFIX + chunk for chunk in plan.chunks]
-        prototype_queries = [QUERY_PREFIX + reference_set.descriptions[item["area"]] for item in candidates]
-        vectors = backend.encode([*source_queries, *prototype_queries])
-        if len(vectors) != len(plan.chunks) + len(candidates) or not vectors[0]:
+        cached_reference_vectors: Mapping[str, tuple[float, ...]] | None = None
+        reference_vector_getter = getattr(backend, "get_reference_vectors", None)
+        if callable(reference_vector_getter):
+            reference_vectors = reference_vector_getter(reference_set)
+            if reference_vectors.version != reference_set.version:
+                return candidates, _fallback("invalid_embedding_output", plan)
+            cached_reference_vectors = reference_vectors.vectors_by_area
+            if any(item["area"] not in cached_reference_vectors for item in candidates):
+                return candidates, _fallback("missing_area_reference", plan)
+            source_vectors = backend.encode(source_queries)
+            prototype_vectors = [cached_reference_vectors[item["area"]] for item in candidates]
+        else:
+            # Explicit test/alternate backends retain the original combined-batch
+            # path. The production LocalE5Embedder always takes the immutable
+            # reference-vector cache path above.
+            prototype_queries = [QUERY_PREFIX + reference_set.descriptions[item["area"]] for item in candidates]
+            vectors = backend.encode([*source_queries, *prototype_queries])
+            source_vectors = vectors[: len(plan.chunks)]
+            prototype_vectors = vectors[len(plan.chunks) :]
+        if len(source_vectors) != len(plan.chunks) or len(prototype_vectors) != len(candidates) or not source_vectors[0]:
             return candidates, _fallback("invalid_embedding_output", plan)
-        source_vector = aggregate_chunk_vectors(vectors[: len(plan.chunks)], plan.source_token_counts)
+        source_vector = aggregate_chunk_vectors(source_vectors, plan.source_token_counts)
         scored = [dict(item) for item in candidates]
 
         lexical_order = sorted(range(len(scored)), key=lambda index: _lexical_sort_key(scored[index]), reverse=True)
         for rank, index in enumerate(lexical_order, start=1):
             scored[index]["_lexical_rank"] = rank
-        for index, vector in enumerate(vectors[len(plan.chunks) :]):
+        for index, vector in enumerate(prototype_vectors):
             cosine = cosine_similarity(source_vector, vector)
             if not math.isfinite(cosine):
                 return candidates, _fallback("invalid_embedding_output", plan)
