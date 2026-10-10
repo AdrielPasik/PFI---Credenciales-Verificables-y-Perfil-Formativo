@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import json
 import math
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
 
+import src.area_embedding_reranker as reranker
 from src.area_embedding_reranker import (
+    AREA_EMBEDDING_LAMBDA,
+    AREA_EMBEDDING_RELATIVE_MARGIN,
     AreaEmbeddingSettings,
     AreaReferenceSet,
     ChunkPlan,
@@ -62,7 +67,7 @@ def _references(*areas: str) -> AreaReferenceSet:
     return AreaReferenceSet("test-references-v1", {area: f"prototype for {area}" for area in areas})
 
 
-def _enabled(lambda_weight: float = 0.75, margin: float = 0.05) -> AreaEmbeddingSettings:
+def _enabled(lambda_weight: float = AREA_EMBEDDING_LAMBDA, margin: float = AREA_EMBEDDING_RELATIVE_MARGIN) -> AreaEmbeddingSettings:
     return AreaEmbeddingSettings(True, lambda_weight, margin)
 
 
@@ -167,7 +172,7 @@ def test_weighted_rank_fusion_changes_order_only_after_existing_candidates() -> 
         "lexical_score": 9,
         "cosine": 0.9,
         "embedding_rank": 1,
-        "combined_rank_score": 0.875,
+        "combined_rank_score": 0.9,
     }
 
 
@@ -177,7 +182,7 @@ def test_multiple_chunks_are_encoded_then_aggregated_with_internal_diagnostics()
     ordered, diagnostic = rerank_existing_area_candidates(
         candidates,
         "texto original largo",
-        _enabled(margin=0.01),
+        _enabled(),
         embedder=PlannedFakeEmbedder(
             [[1, 0], [0, 1], [0.9, math.sqrt(0.19)], [0.1, math.sqrt(0.99)]], plan
         ),
@@ -215,7 +220,7 @@ def test_missing_local_model_returns_the_exact_lexical_baseline() -> None:
     assert diagnostic["fallback_reason"] == "model_or_reference_failure"
 
 
-def test_relative_margin_is_not_an_absolute_cosine_threshold() -> None:
+def test_runtime_uses_the_frozen_zero_relative_margin_even_when_a_setting_attempts_an_override() -> None:
     candidates = [_candidate("A", 10), _candidate("B", 9)]
     ordered, diagnostic = rerank_existing_area_candidates(
         candidates,
@@ -224,22 +229,30 @@ def test_relative_margin_is_not_an_absolute_cosine_threshold() -> None:
         embedder=FakeEmbedder([[1, 0], [0.2, math.sqrt(0.96)], [0.1, math.sqrt(0.99)]]),
         references=_references("A", "B"),
     )
-    assert ordered is candidates
-    assert diagnostic["applied"] is False
-    assert diagnostic["fallback_reason"] == "relative_margin_not_met"
+    assert diagnostic["applied"] is True
+    assert [item["area"] for item in ordered] == ["A", "B"]
 
 
 def test_combined_rank_tie_uses_lexical_rank_as_final_tie_break() -> None:
-    candidates = [_candidate("A", 10), _candidate("B", 9)]
+    candidates = [_candidate("A", 10), _candidate("B", 6), _candidate("C", 8), _candidate("D", 7), _candidate("E", 9)]
     ordered, diagnostic = rerank_existing_area_candidates(
         candidates,
         "texto original",
         _enabled(lambda_weight=0.5, margin=0.01),
-        embedder=FakeEmbedder([[1, 0], [0.1, math.sqrt(0.99)], [0.9, math.sqrt(0.19)]]),
-        references=_references("A", "B"),
+        embedder=FakeEmbedder(
+            [
+                [1, 0],
+                [0.1, math.sqrt(0.99)],
+                [0.2, math.sqrt(0.96)],
+                [0.3, math.sqrt(0.91)],
+                [0.4, math.sqrt(0.84)],
+                [0.5, math.sqrt(0.75)],
+            ]
+        ),
+        references=_references("A", "B", "C", "D", "E"),
     )
     assert diagnostic["applied"] is True
-    assert [item["area"] for item in ordered] == ["A", "B"]
+    assert [item["area"] for item in ordered][-2:] == ["A", "B"]
 
 
 def test_disabled_and_failure_paths_return_the_exact_baseline_candidate_sequence() -> None:
@@ -299,7 +312,7 @@ def test_empty_and_single_candidate_sets_are_baseline_only() -> None:
     assert single_diagnostic["fallback_reason"] == "insufficient_candidates"
 
 
-def test_runtime_configuration_requires_explicit_valid_calibration_when_enabled() -> None:
+def test_runtime_configuration_uses_frozen_calibration_and_ignores_environment_overrides() -> None:
     assert load_settings({"AI_AREA_EMBEDDINGS_ENABLED": "false"}).enabled is False
     settings = load_settings(
         {
@@ -309,22 +322,75 @@ def test_runtime_configuration_requires_explicit_valid_calibration_when_enabled(
             "AI_AREA_EMBEDDINGS_MODEL_DIR": "/models/e5",
         }
     )
-    assert settings.lambda_weight == 0.4
-    assert settings.relative_margin == 0.1
-    for invalid in ("-0.01", "1.01"):
-        try:
-            load_settings(
-                {
-                    "AI_AREA_EMBEDDINGS_ENABLED": "true",
-                    "AI_AREA_EMBEDDINGS_LAMBDA": invalid,
-                    "AI_AREA_EMBEDDINGS_RELATIVE_MARGIN": "0.1",
-                    "AI_AREA_EMBEDDINGS_MODEL_DIR": "/models/e5",
-                }
-            )
-        except ValueError:
-            pass
-        else:
-            raise AssertionError("invalid lambda must fail validation")
+    assert settings.lambda_weight == AREA_EMBEDDING_LAMBDA == 0.8
+    assert settings.relative_margin == AREA_EMBEDDING_RELATIVE_MARGIN == 0.0
+    invalid_override_settings = load_settings(
+        {
+            "AI_AREA_EMBEDDINGS_ENABLED": "true",
+            "AI_AREA_EMBEDDINGS_LAMBDA": "not-a-number",
+            "AI_AREA_EMBEDDINGS_RELATIVE_MARGIN": "also-not-a-number",
+            "AI_AREA_EMBEDDINGS_MODEL_DIR": "/models/e5",
+        }
+    )
+    assert invalid_override_settings.lambda_weight == AREA_EMBEDDING_LAMBDA
+    assert invalid_override_settings.relative_margin == AREA_EMBEDDING_RELATIVE_MARGIN
+
+
+def test_disabled_feature_never_initializes_the_local_model(monkeypatch) -> None:
+    candidates = [_candidate("A", 10), _candidate("B", 9)]
+
+    def fail_if_called(model_dir: Path):
+        raise AssertionError(f"model must not load while disabled: {model_dir}")
+
+    monkeypatch.setattr(reranker, "_get_local_embedder", fail_if_called)
+    ordered, diagnostic = rerank_existing_area_candidates(
+        candidates,
+        "texto original",
+        load_settings({"AI_AREA_EMBEDDINGS_ENABLED": "false"}),
+    )
+    assert ordered is candidates
+    assert diagnostic["fallback_reason"] == "feature_disabled"
+
+
+def test_reference_initialization_is_singleton_under_concurrent_access(monkeypatch) -> None:
+    resolved = reranker.REFERENCES_PATH.resolve()
+    with reranker._REFERENCE_CACHE_LOCK:
+        reranker._REFERENCE_CACHE.pop(resolved, None)
+    original_load = reranker.json.load
+    calls = 0
+
+    def counted_load(handle):
+        nonlocal calls
+        calls += 1
+        time.sleep(0.01)
+        return original_load(handle)
+
+    monkeypatch.setattr(reranker.json, "load", counted_load)
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: load_reference_set(), range(8)))
+    assert calls == 1
+    assert all(result is results[0] for result in results)
+
+
+def test_model_initialization_is_singleton_under_concurrent_access(monkeypatch) -> None:
+    model_dir = Path("concurrency-test-model").resolve()
+    resolved = model_dir
+    with reranker._MODEL_CACHE_LOCK:
+        reranker._MODEL_CACHE.pop(resolved, None)
+    calls = 0
+
+    class StubEmbedder:
+        def __init__(self, path: Path) -> None:
+            nonlocal calls
+            calls += 1
+            time.sleep(0.01)
+            self.path = path
+
+    monkeypatch.setattr(reranker, "LocalE5Embedder", StubEmbedder)
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        results = list(executor.map(lambda _: reranker._get_local_embedder(model_dir), range(8)))
+    assert calls == 1
+    assert all(result is results[0] for result in results)
 
 
 def test_local_loader_rejects_an_unpinned_model_manifest_before_importing_ml_dependencies() -> None:

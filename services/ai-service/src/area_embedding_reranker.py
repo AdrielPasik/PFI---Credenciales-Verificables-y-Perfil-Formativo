@@ -1,9 +1,11 @@
 """Optional local embedding reranking for already eligible area candidates."""
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, Sequence
@@ -13,6 +15,7 @@ from .text_utils import normalize_whitespace
 
 MODEL_ID = "intfloat/multilingual-e5-small"
 MODEL_REVISION = "fd1525a9fd15316a2d503bf26ab031a61d056e98"
+MODEL_EMBEDDING_DIMENSION = 384
 MAX_INPUT_TOKENS = 512
 QUERY_PREFIX = "query: "
 LONG_TEXT_POLICY_VERSION = "area_embedding_long_text_policy_v1"
@@ -21,6 +24,12 @@ SOURCE_TOKEN_OVERLAP = 0
 AGGREGATION_METHOD = "token_weighted_mean_then_l2_normalize"
 REFERENCES_PATH = Path(__file__).resolve().parents[1] / "config" / "semantic" / "area_embedding_references_v1.json"
 MODEL_MANIFEST_FILE = "pfi-model-manifest.json"
+MODEL_WEIGHTS_FILE = "model.safetensors"
+MODEL_WEIGHTS_SHA256 = "1a55775f53449dac10a2bcbc312469fac40b96d53198c407081a831f81c98477"
+AREA_EMBEDDING_LAMBDA = 0.8
+AREA_EMBEDDING_RELATIVE_MARGIN = 0.0
+FROZEN_REFERENCES_VERSION = "scope-areas-2026-10-08-v1-frozen"
+FROZEN_REFERENCE_COUNT = 69
 
 
 @dataclass(frozen=True)
@@ -61,6 +70,8 @@ class EmbeddingBackend(Protocol):
 
 _REFERENCE_CACHE: dict[Path, AreaReferenceSet] = {}
 _MODEL_CACHE: dict[Path, "LocalE5Embedder"] = {}
+_REFERENCE_CACHE_LOCK = threading.Lock()
+_MODEL_CACHE_LOCK = threading.Lock()
 
 
 def build_area_embedding_source(name: str, raw_sections: dict[str, str]) -> str:
@@ -85,47 +96,42 @@ def load_settings(environ: dict[str, str] | None = None) -> AreaEmbeddingSetting
     if raw_enabled == "false":
         return AreaEmbeddingSettings(enabled=False)
 
-    raw_lambda = env.get("AI_AREA_EMBEDDINGS_LAMBDA", "").strip()
-    raw_margin = env.get("AI_AREA_EMBEDDINGS_RELATIVE_MARGIN", "").strip()
     raw_model_dir = env.get("AI_AREA_EMBEDDINGS_MODEL_DIR", "").strip()
-    if not raw_lambda or not raw_margin or not raw_model_dir:
-        raise ValueError("enabled embeddings require lambda, relative margin and model directory")
-    try:
-        lambda_weight = float(raw_lambda)
-        relative_margin = float(raw_margin)
-    except ValueError as exc:
-        raise ValueError("embedding lambda and relative margin must be numeric") from exc
-    if not 0.0 <= lambda_weight <= 1.0:
-        raise ValueError("AI_AREA_EMBEDDINGS_LAMBDA must be in [0, 1]")
-    if not 0.0 <= relative_margin <= 2.0:
-        raise ValueError("AI_AREA_EMBEDDINGS_RELATIVE_MARGIN must be in [0, 2]")
-    return AreaEmbeddingSettings(True, lambda_weight, relative_margin, Path(raw_model_dir))
+    if not raw_model_dir:
+        raise ValueError("enabled embeddings require a model directory")
+    return AreaEmbeddingSettings(True, AREA_EMBEDDING_LAMBDA, AREA_EMBEDDING_RELATIVE_MARGIN, Path(raw_model_dir))
 
 
 def load_reference_set(path: Path = REFERENCES_PATH) -> AreaReferenceSet:
     resolved = path.resolve()
     if resolved in _REFERENCE_CACHE:
         return _REFERENCE_CACHE[resolved]
-    with resolved.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
-    if not isinstance(payload, dict) or payload.get("schemaVersion") != "scope_area_embedding_references_v1":
-        raise ValueError("invalid area embedding references schema")
-    version, references = payload.get("referencesVersion"), payload.get("references")
-    if not isinstance(version, str) or not version.strip() or not isinstance(references, list):
-        raise ValueError("area embedding references require a version and references")
-    descriptions: dict[str, str] = {}
-    for item in references:
-        if not isinstance(item, dict):
-            raise ValueError("area embedding reference must be an object")
-        area, description = item.get("area"), item.get("description")
-        if not isinstance(area, str) or not area.strip() or not isinstance(description, str) or not description.strip():
-            raise ValueError("area embedding reference requires area and description")
-        if area in descriptions:
-            raise ValueError(f"duplicate area embedding reference: {area}")
-        descriptions[area] = normalize_whitespace(description)
-    result = AreaReferenceSet(version, descriptions)
-    _REFERENCE_CACHE[resolved] = result
-    return result
+    with _REFERENCE_CACHE_LOCK:
+        cached = _REFERENCE_CACHE.get(resolved)
+        if cached is not None:
+            return cached
+        with resolved.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if not isinstance(payload, dict) or payload.get("schemaVersion") != "scope_area_embedding_references_v1":
+            raise ValueError("invalid area embedding references schema")
+        version, references = payload.get("referencesVersion"), payload.get("references")
+        if version != FROZEN_REFERENCES_VERSION or not isinstance(references, list):
+            raise ValueError("area embedding references do not match the frozen reference version")
+        descriptions: dict[str, str] = {}
+        for item in references:
+            if not isinstance(item, dict):
+                raise ValueError("area embedding reference must be an object")
+            area, description = item.get("area"), item.get("description")
+            if not isinstance(area, str) or not area.strip() or not isinstance(description, str) or not description.strip():
+                raise ValueError("area embedding reference requires area and description")
+            if area in descriptions:
+                raise ValueError(f"duplicate area embedding reference: {area}")
+            descriptions[area] = normalize_whitespace(description)
+        if len(descriptions) != FROZEN_REFERENCE_COUNT:
+            raise ValueError("area embedding references do not contain the frozen area count")
+        result = AreaReferenceSet(version, descriptions)
+        _REFERENCE_CACHE[resolved] = result
+        return result
 
 
 def plan_source_token_chunks(
@@ -215,6 +221,18 @@ class LocalE5Embedder:
             raise ValueError("embedding model manifest is unavailable") from exc
         if manifest.get("modelId") != MODEL_ID or manifest.get("revision") != MODEL_REVISION:
             raise ValueError("embedding model manifest does not match the pinned model revision")
+        weights_path = model_dir / MODEL_WEIGHTS_FILE
+        if not weights_path.is_file():
+            raise ValueError("embedding model weights are unavailable")
+        weights_hash = hashlib.sha256()
+        try:
+            with weights_path.open("rb") as handle:
+                for block in iter(lambda: handle.read(1024 * 1024), b""):
+                    weights_hash.update(block)
+        except OSError as exc:
+            raise ValueError("embedding model weights are unavailable") from exc
+        if weights_hash.hexdigest() != MODEL_WEIGHTS_SHA256:
+            raise ValueError("embedding model weights do not match the frozen snapshot")
         try:
             import torch
             import torch.nn.functional as functional
@@ -225,13 +243,20 @@ class LocalE5Embedder:
         self._functional = functional
         self._tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True)
         self._model = AutoModel.from_pretrained(model_dir, local_files_only=True)
+        if getattr(self._model.config, "hidden_size", None) != MODEL_EMBEDDING_DIMENSION:
+            raise ValueError("embedding model dimension does not match the frozen encoder")
         self._model.eval()
 
     def count_tokens(self, text: str) -> int:
         return len(self._tokenizer(text, add_special_tokens=True, truncation=False)["input_ids"])
 
     def plan_source_chunks(self, source_text: str) -> ChunkPlan:
-        source_token_ids = self._tokenizer.encode(source_text, add_special_tokens=False)
+        source_token_ids = self._tokenizer(
+            source_text,
+            add_special_tokens=False,
+            truncation=False,
+            verbose=False,
+        )["input_ids"]
         return plan_source_token_chunks(
             source_token_ids,
             decode_source_tokens=lambda token_ids: self._tokenizer.decode(
@@ -251,13 +276,18 @@ class LocalE5Embedder:
             masked = output.last_hidden_state.masked_fill(~batch["attention_mask"][..., None].bool(), 0.0)
             pooled = masked.sum(dim=1) / batch["attention_mask"].sum(dim=1)[..., None]
             normalized = self._functional.normalize(pooled, p=2, dim=1)
-        return normalized.cpu().tolist()
+        vectors = normalized.cpu().tolist()
+        if any(len(vector) != MODEL_EMBEDDING_DIMENSION for vector in vectors):
+            raise ValueError("embedding output dimension does not match the frozen encoder")
+        return vectors
 
 
 def _get_local_embedder(model_dir: Path) -> LocalE5Embedder:
     resolved = model_dir.resolve()
     if resolved not in _MODEL_CACHE:
-        _MODEL_CACHE[resolved] = LocalE5Embedder(resolved)
+        with _MODEL_CACHE_LOCK:
+            if resolved not in _MODEL_CACHE:
+                _MODEL_CACHE[resolved] = LocalE5Embedder(resolved)
     return _MODEL_CACHE[resolved]
 
 
@@ -326,9 +356,6 @@ def rerank_existing_area_candidates(
         return candidates, _fallback("insufficient_candidates")
     if not source_text.strip():
         return candidates, _fallback("invalid_source_text")
-    if settings.lambda_weight is None or settings.relative_margin is None:
-        return candidates, _fallback("invalid_configuration")
-
     plan: ChunkPlan | None = None
     try:
         reference_set = references or load_reference_set()
@@ -378,7 +405,7 @@ def rerank_existing_area_candidates(
             key=lambda index: (-scored[index]["_cosine"], scored[index]["_lexical_rank"]),
         )
         margin = scored[embedding_order[0]]["_cosine"] - scored[embedding_order[1]]["_cosine"]
-        if margin < settings.relative_margin:
+        if margin < AREA_EMBEDDING_RELATIVE_MARGIN:
             return candidates, _fallback("relative_margin_not_met", plan)
 
         count = len(scored)
@@ -387,9 +414,10 @@ def rerank_existing_area_candidates(
         for item in scored:
             lexical_rank_score = 1.0 - ((item["_lexical_rank"] - 1) / (count - 1))
             embedding_rank_score = 1.0 - ((item["_embedding_rank"] - 1) / (count - 1))
-            item["_combined_rank_score"] = (
-                (1.0 - settings.lambda_weight) * lexical_rank_score
-                + settings.lambda_weight * embedding_rank_score
+            item["_combined_rank_score"] = round(
+                (1.0 - AREA_EMBEDDING_LAMBDA) * lexical_rank_score
+                + AREA_EMBEDDING_LAMBDA * embedding_rank_score,
+                12,
             )
 
         ordered = sorted(

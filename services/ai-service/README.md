@@ -160,8 +160,6 @@ AI_INTERNAL_JWT_ISSUER=traza-api
 AI_INTERNAL_JWT_AUDIENCE=traza-ai-service
 AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS=30
 AI_AREA_EMBEDDINGS_ENABLED=false
-AI_AREA_EMBEDDINGS_LAMBDA=
-AI_AREA_EMBEDDINGS_RELATIVE_MARGIN=
 AI_AREA_EMBEDDINGS_MODEL_DIR=
 ```
 
@@ -178,11 +176,10 @@ hardening futuro; P4i-3 usa un unico secreto interno vigente.
 
 ### Reranking local opcional de áreas
 
-La variante está apagada con `AI_AREA_EMBEDDINGS_ENABLED=false`. No define
-valores operativos para `AI_AREA_EMBEDDINGS_LAMBDA` ni
-`AI_AREA_EMBEDDINGS_RELATIVE_MARGIN`: cuando se habilite, ambos deben venir de
-la calibración congelada sobre Development y validar `lambda ∈ [0,1]` y margen
-relativo `∈ [0,2]`.
+La variante está apagada con `AI_AREA_EMBEDDINGS_ENABLED=false`. Cuando se
+habilita, usa la configuración experimental congelada `GLOBAL_HYBRID`:
+`lambda = 0.8` y margen relativo `= 0.0`. Esos valores no son variables de
+entorno; el único switch operativo es `AI_AREA_EMBEDDINGS_ENABLED`.
 
 Usa el modelo local pinneado `intfloat/multilingual-e5-small` en la revisión
 `fd1525a9fd15316a2d503bf26ab031a61d056e98`. El proceso no descarga modelos ni
@@ -190,8 +187,17 @@ envía texto en runtime (`local_files_only=True`); `AI_AREA_EMBEDDINGS_MODEL_DIR
 debe apuntar a un snapshot local preaprovisionado y de solo lectura. Ese
 directorio debe incluir `pfi-model-manifest.json` con el `modelId` y la
 `revision` exactos; el loader rechaza cualquier otro modelo. Si faltan
-dependencias, modelo, manifest, referencias, texto válido o contexto de 512
-tokens, el resultado es exactamente el ranking léxico existente.
+dependencias, modelo, manifest, referencias, texto válido o falla cualquier
+chunk, el resultado es exactamente el ranking léxico existente. El texto
+fuente se fragmenta sin solapamiento en bloques de hasta 480 tokens fuente;
+cada bloque incluye el prefijo `query:` y se verifica contra el límite efectivo
+de 512 tokens antes de codificarlo. Los vectores de bloques se agregan por
+media ponderada por tokens y se normalizan con L2.
+
+Antes de cargarlo, el runtime verifica además el SHA-256 congelado de
+`model.safetensors`. Las referencias deben ser la versión congelada de 69 áreas
+y se cargan una vez por proceso; modelo y referencias usan inicialización
+protegida para solicitudes concurrentes.
 
 La señal usa `query:` tanto para fuente como para prototipos porque se trata de
 similitud de clasificación, no recuperación asimétrica. Fusiona rangos léxico y
@@ -230,8 +236,8 @@ defecto, copia
 `src` y `config`, y ejecuta como usuario no root. `EXPOSE 8000` documenta el
 default; el proceso usa `PORT` mediante `src.api.run`.
 
-Para una imagen que vaya a ejecutar la variante tras calibración, instalar las
-dependencias opcionales durante build con
+Para una imagen que vaya a ejecutar la variante, instalar las dependencias
+opcionales durante build con
 `--build-arg INSTALL_LOCAL_EMBEDDINGS=true` y montar/provisionar el snapshot
 pinneado fuera del repositorio. Los pesos no se copian desde el árbol del
 proyecto ni se descargan durante una request.
