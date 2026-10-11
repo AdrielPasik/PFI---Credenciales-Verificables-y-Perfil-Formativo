@@ -149,9 +149,9 @@ locals {
     AI_INTERNAL_JWT_ISSUER             = var.ai_internal_jwt_issuer
     AI_INTERNAL_JWT_AUDIENCE           = var.ai_internal_jwt_audience
     AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS = tostring(var.ai_internal_jwt_clock_skew_seconds)
-    # The baked image also defaults to false. Keeping it explicit in the task
-    # definition makes production activation a deliberate future change.
-    AI_AREA_EMBEDDINGS_ENABLED          = "false"
+    # The baked image also defaults to false. This separate deployment input
+    # permits feature activation and rollback without changing task capacity.
+    AI_AREA_EMBEDDINGS_ENABLED = tostring(var.ai_area_embeddings_enabled)
   }
 
   # Existing bucket, referenced by ARN only. Never created, imported or destroyed.

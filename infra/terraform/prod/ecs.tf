@@ -5,8 +5,9 @@
 # and they are the reviewable contract between the infrastructure and the two
 # services (ports, secrets, log groups, roles, stop timeout).
 #
-# The SERVICES are gated behind enable_services (false in this slice), so the
-# first apply starts no task, pulls no image and allocates no task public IPv4.
+# Service-resource existence is controlled separately from task capacity.
+# `enable_services` only controls desired_count, so stopping workloads does not
+# delete ECS services or their Cloud Map registration.
 # ---------------------------------------------------------------------------
 
 resource "aws_ecs_cluster" "main" {
@@ -134,10 +135,10 @@ resource "aws_ecs_task_definition" "ai" {
       # diagnostic liveness endpoint; `/ready` gates discovery traffic until an
       # enabled embedding runtime has completed its local prewarm.
       healthCheck = {
-        command     = ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:${var.ai_container_port}/ready\", timeout=3).status == 200 else 1)'"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
+        command  = ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:${var.ai_container_port}/ready\", timeout=3).status == 200 else 1)'"]
+        interval = 30
+        timeout  = 5
+        retries  = 3
         # Provisional: the frozen E5 local cold initialization reached ~38 s.
         # Final value requires measurement in the deployed Fargate task.
         startPeriod = 120
@@ -245,15 +246,18 @@ resource "aws_ecs_task_definition" "migrator" {
   }
 }
 
-# --- services (gated) ------------------------------------------------------
+# --- services (managed independently from capacity) ------------------------
 
 resource "aws_ecs_service" "api" {
-  count = var.enable_services ? 1 : 0
+  # Preserve the [0] identity independently of task capacity and listener
+  # toggles. The precondition below still requires HTTPS when this
+  # load-balanced service is managed.
+  count = var.manage_ecs_services ? 1 : 0
 
   name            = "${local.name_prefix}-api"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.api.arn
-  desired_count   = var.api_desired_count
+  desired_count   = var.enable_services ? var.api_desired_count : 0
 
   launch_type      = "FARGATE"
   platform_version = "LATEST"
@@ -290,7 +294,7 @@ resource "aws_ecs_service" "api" {
       # listener, and the placeholder listener returns a fixed response instead of
       # forwarding. So HTTPS must be live before the service is enabled.
       condition     = var.enable_https_listener
-      error_message = "enable_services requires enable_https_listener: the target group must be attached to a real listener first."
+      error_message = "manage_ecs_services requires enable_https_listener: the target group must be attached to a real listener first."
     }
   }
 
@@ -298,12 +302,14 @@ resource "aws_ecs_service" "api" {
 }
 
 resource "aws_ecs_service" "ai" {
-  count = var.enable_services ? 1 : 0
+  # Keep the Cloud Map-backed AI service managed independently of both task
+  # capacity and listener lifecycle.
+  count = var.manage_ecs_services ? 1 : 0
 
   name            = "${local.name_prefix}-ai"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.ai.arn
-  desired_count   = var.ai_desired_count
+  desired_count   = var.enable_services ? var.ai_desired_count : 0
 
   launch_type      = "FARGATE"
   platform_version = "LATEST"
