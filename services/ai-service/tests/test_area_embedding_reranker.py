@@ -412,6 +412,64 @@ def test_model_initialization_is_singleton_under_concurrent_access(monkeypatch) 
     assert all(result is results[0] for result in results)
 
 
+def test_shared_encoder_critical_section_serializes_concurrent_calls() -> None:
+    """Model the fast-tokenizer borrow failure with one shared embedder.
+
+    The private encoder stand-in raises the exact error emitted by the Rust
+    tokenizer when it is entered concurrently. Calling it directly proves the
+    race, while ``encode`` must eliminate it without changing returned values.
+    """
+    backend = object.__new__(LocalE5Embedder)
+    state_lock = threading.Lock()
+    active = 0
+    max_active = 0
+
+    def borrowing_encoder(_: list[str]) -> list[list[float]]:
+        nonlocal active, max_active
+        with state_lock:
+            if active:
+                raise RuntimeError("Already borrowed")
+            active += 1
+            max_active = max(max_active, active)
+        try:
+            time.sleep(0.01)
+            return [[0.6, 0.8]]
+        finally:
+            with state_lock:
+                active -= 1
+
+    backend._encode_unlocked = borrowing_encoder  # type: ignore[method-assign]
+
+    unsafe_start = threading.Barrier(4)
+
+    def unsafe_worker(_: int) -> str:
+        unsafe_start.wait()
+        try:
+            backend._encode_unlocked(["query: texto sintético"])
+        except RuntimeError as exc:
+            return str(exc)
+        return "success"
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        unsafe_results = list(executor.map(unsafe_worker, range(4)))
+    assert unsafe_results.count("Already borrowed") == 3
+    assert unsafe_results.count("success") == 1
+
+    max_active = 0
+    for _ in range(10):
+        protected_start = threading.Barrier(4)
+
+        def protected_worker(_: int) -> list[list[float]]:
+            protected_start.wait()
+            return backend.encode(["query: texto sintético"])
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            protected_results = list(executor.map(protected_worker, range(4)))
+        assert protected_results == [[[0.6, 0.8]]] * 4
+
+    assert max_active == 1
+
+
 def test_reference_vectors_are_encoded_once_per_local_embedder_and_are_immutable() -> None:
     backend = object.__new__(LocalE5Embedder)
     backend._reference_vector_cache = {}

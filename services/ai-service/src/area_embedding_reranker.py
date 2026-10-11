@@ -81,6 +81,10 @@ _REFERENCE_CACHE: dict[Path, AreaReferenceSet] = {}
 _MODEL_CACHE: dict[Path, "LocalE5Embedder"] = {}
 _REFERENCE_CACHE_LOCK = threading.Lock()
 _MODEL_CACHE_LOCK = threading.Lock()
+# Fast tokenizers mutate padding/truncation state while preparing a batch. The
+# cached model and tokenizer are process-wide singletons, so serialize only
+# their use, separately from lifecycle/cache initialization.
+_EMBEDDING_INFERENCE_LOCK = threading.Lock()
 
 
 def build_area_embedding_source(name: str, raw_sections: dict[str, str]) -> str:
@@ -258,28 +262,37 @@ class LocalE5Embedder:
         self._reference_vector_cache: dict[tuple[str, tuple[tuple[str, str], ...]], AreaReferenceVectors] = {}
         self._reference_vector_cache_lock = threading.Lock()
 
-    def count_tokens(self, text: str) -> int:
+    def _count_tokens_unlocked(self, text: str) -> int:
         return len(self._tokenizer(text, add_special_tokens=True, truncation=False)["input_ids"])
 
+    def count_tokens(self, text: str) -> int:
+        with _EMBEDDING_INFERENCE_LOCK:
+            return self._count_tokens_unlocked(text)
+
     def plan_source_chunks(self, source_text: str) -> ChunkPlan:
-        source_token_ids = self._tokenizer(
-            source_text,
-            add_special_tokens=False,
-            truncation=False,
-            verbose=False,
-        )["input_ids"]
-        return plan_source_token_chunks(
-            source_token_ids,
-            decode_source_tokens=lambda token_ids: self._tokenizer.decode(
-                list(token_ids), skip_special_tokens=True, clean_up_tokenization_spaces=False
-            ),
-            encode_source_text=lambda text: self._tokenizer.encode(text, add_special_tokens=False),
-            count_effective_tokens=self.count_tokens,
-            is_safe_chunk_start=lambda token_id: self._tokenizer.convert_ids_to_tokens(int(token_id)).startswith("▁"),
-        )
+        with _EMBEDDING_INFERENCE_LOCK:
+            source_token_ids = self._tokenizer(
+                source_text,
+                add_special_tokens=False,
+                truncation=False,
+                verbose=False,
+            )["input_ids"]
+            return plan_source_token_chunks(
+                source_token_ids,
+                decode_source_tokens=lambda token_ids: self._tokenizer.decode(
+                    list(token_ids), skip_special_tokens=True, clean_up_tokenization_spaces=False
+                ),
+                encode_source_text=lambda text: self._tokenizer.encode(text, add_special_tokens=False),
+                count_effective_tokens=self._count_tokens_unlocked,
+                is_safe_chunk_start=lambda token_id: self._tokenizer.convert_ids_to_tokens(int(token_id)).startswith("▁"),
+            )
 
     def encode(self, texts: Sequence[str]) -> list[list[float]]:
-        if not texts or any(self.count_tokens(text) > MAX_INPUT_TOKENS for text in texts):
+        with _EMBEDDING_INFERENCE_LOCK:
+            return self._encode_unlocked(texts)
+
+    def _encode_unlocked(self, texts: Sequence[str]) -> list[list[float]]:
+        if not texts or any(self._count_tokens_unlocked(text) > MAX_INPUT_TOKENS for text in texts):
             raise ValueError("embedding input exceeds model token limit")
         batch = self._tokenizer(list(texts), padding=True, truncation=False, return_tensors="pt")
         with self._torch.inference_mode():
