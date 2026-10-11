@@ -34,6 +34,11 @@ rds_backup_retention_days = 1
 # --- Block 1B (deploy) -----------------------------------------------------
 # api_image_tag = "<git-sha>"
 # ai_image_tag  = "<git-sha>"
+# REQUIRED, no default, no fallback to api_image_tag: plan/apply fail closed
+# without it. First apply: copy the EXACT tag the live scope-prod-migrator task
+# definition runs today (never rebuild it from a short SHA), so the migrator image
+# does not change. Moving it to a newer image is a separate reviewed rollout.
+# migrator_image_tag = "<exact-existing-migrator-tag>"
 
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only

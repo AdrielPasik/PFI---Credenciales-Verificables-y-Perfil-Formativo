@@ -160,7 +160,9 @@ resource "aws_ecs_task_definition" "ai" {
 # --- migrator task definition ----------------------------------------------
 #
 # Run on demand with `aws ecs run-task`, never as a service. It reuses the API
-# image, which must therefore ship the Prisma CLI and prisma/migrations.
+# image repository, which must therefore ship the Prisma CLI and
+# prisma/migrations. Its TAG is selected independently through
+# var.migrator_image_tag; it never falls back to var.api_image_tag.
 #
 # This is the ONLY workload that uses the RDS master identity, because it is the
 # only one that needs DDL authority. The NestJS service connects as scope_app,
@@ -185,7 +187,7 @@ resource "aws_ecs_task_definition" "migrator" {
   container_definitions = jsonencode([
     {
       name      = "migrator"
-      image     = "${aws_ecr_repository.api.repository_url}:${var.api_image_tag}"
+      image     = "${aws_ecr_repository.api.repository_url}:${var.migrator_image_tag}"
       essential = true
 
       # The API image ships a dedicated migrator entrypoint that assembles the

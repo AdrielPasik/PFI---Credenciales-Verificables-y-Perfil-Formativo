@@ -143,6 +143,31 @@ variable "api_image_tag" {
   default     = "bootstrap"
 }
 
+variable "migrator_image_tag" {
+  description = <<-EOT
+    Image tag for the production migrator task definition. It selects a tag in the
+    SAME ECR repository as the API (the migrator reuses the API image), but it is
+    chosen INDEPENDENTLY of api_image_tag: changing one never changes the other,
+    and there is no fallback between them.
+
+    REQUIRED, deliberately WITHOUT a default. If the operator has not set it,
+    plan and apply fail closed instead of silently reusing the API tag.
+
+    First apply of this variable: set it to the EXACT tag the live
+    scope-prod-migrator task definition already runs, read from that task
+    definition. Never reconstruct a full tag from a shortened SHA. The first plan
+    must show the migrator image unchanged; any unexpected image change in either
+    task definition is a deployment blocker. Moving the migrator to a newer image
+    is a separate, reviewed migration rollout.
+  EOT
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.migrator_image_tag)) > 0
+    error_message = "migrator_image_tag must be set to the exact image tag the migrator should run. It has no default and never falls back to api_image_tag."
+  }
+}
+
 variable "ai_image_tag" {
   description = "Image tag for the AI task definition. Block 1B replaces this with the immutable git SHA."
   type        = string

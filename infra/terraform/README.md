@@ -495,7 +495,9 @@ of the road, and none of it is executed by this code.
    **No task runs.**
 6. Put the SecureString parameters in place (section 2) and bootstrap `scope_app`
    (section 3).
-7. Build and push the two images; set `api_image_tag` / `ai_image_tag`.
+7. Build and push the two images; set `api_image_tag` / `ai_image_tag`, and
+   `migrator_image_tag` separately (required, no default, never derived from
+   `api_image_tag`). The plan must show the API and migrator images separately.
 8. Handle DNS + certificate, then `enable_https_listener = true`.
 9. `enable_services = true` (the API service has a precondition on step 8).
 10. Run the migrator task, then the seed, then `db:verify-demo`.
