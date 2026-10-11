@@ -185,9 +185,11 @@ test('S8c11.4b-5: el provisioner no tiene servicio y nada existente referencia s
   // Sin servicio propio.
   assert.ok(!/resource "aws_ecs_service" "provisioner"/.test(ecs));
 
-  // Ningun recurso existente (servicio, trigger, scheduler, politica, etc.)
-  // referencia la task definition del provisioner.
+  // Solo el broker (provisioner_invocation.tf, S8c11.4c1) puede referenciar la
+  // task definition del provisioner. Ningun otro recurso (servicio, trigger,
+  // scheduler, politica, etc.) lo hace.
   for (const file of tfFileNames()) {
+    if (file === 'provisioner_invocation.tf') continue;
     assert.ok(
       !/aws_ecs_task_definition\.provisioner/.test(executableHcl(readTf(file))),
       `${file} referencia la task definition del provisioner`
