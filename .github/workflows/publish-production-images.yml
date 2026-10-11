@@ -1,5 +1,24 @@
 name: Publish production images
 
+# PUBLISH ONLY. This workflow builds images and pushes them to ECR. It does not
+# register task definitions, update services, run tasks, run migrations, run
+# Terraform, write SSM parameters or provision anything.
+#
+# It must be dispatched from refs/heads/main. The workflow definition itself is
+# part of what is being trusted, so a dispatch from any other ref fails before
+# anything is built.
+#
+# What a run proves: THIS run checked out the validated source SHA and pushed the
+# digest it reports. That is SPECIFIC_RUN_SOURCE_BINDING. It is not
+# REBUILD_REPRODUCIBILITY: the base image is a mutable tag, apt is unpinned and npm
+# is fetched at build time, so a later rebuild of the same commit can differ.
+#
+#   PROVENANCE_FOR_FIRST_PROVISIONER_RELEASE = DISABLED_BY_DESIGN
+#   SBOM_FOR_FIRST_PROVISIONER_RELEASE = DISABLED_BY_DESIGN
+#   WORKFLOW_DEPENDENCY_PINNING = NOT_HARDENED (actions use mutable major tags)
+#   REBUILD_REPRODUCIBILITY = NOT_PROVEN
+#   ACTUAL_RELEASE_BINDING = NOT_YET_PROVEN (no run has been executed)
+
 on:
   workflow_dispatch:
     inputs:
@@ -7,6 +26,11 @@ on:
         description: "Exact Git commit SHA from main to build and publish"
         required: true
         type: string
+      publish_ai:
+        description: "Also build and publish the AI image. Set to false to publish the API image only."
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   validate:
@@ -18,6 +42,16 @@ jobs:
       source_sha: ${{ steps.verify.outputs.sha }}
 
     steps:
+      - name: Require workflow execution from main
+        shell: bash
+        env:
+          WORKFLOW_EXECUTION_REF: ${{ github.ref }}
+        run: |
+          if [ "$WORKFLOW_EXECUTION_REF" != "refs/heads/main" ]; then
+            echo "This workflow must be dispatched from refs/heads/main." >&2
+            exit 1
+          fi
+
       - name: Validate SHA format
         shell: bash
         env:
@@ -64,11 +98,28 @@ jobs:
       contents: read
       id-token: write
 
+    outputs:
+      source_sha: ${{ needs.validate.outputs.source_sha }}
+      api_image_tag: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/api:${{ needs.validate.outputs.source_sha }}
+      api_image_digest: ${{ steps.build_api.outputs.digest }}
+
     steps:
       - name: Checkout validated source SHA
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.validate.outputs.source_sha }}
+
+      - name: Verify the checked-out commit is the validated source SHA
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.validate.outputs.source_sha }}
+        run: |
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+            echo "Checked-out commit does not match the validated source SHA." >&2
+            exit 1
+          fi
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -82,17 +133,59 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Provenance and SBOM attestations are disabled by design for the first
+      # provisioner release, so the result is a plain tag -> digest chain that does
+      # not depend on the action's defaults. They can return as later hardening.
       - name: Build and push API image
+        id: build_api
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./services/api/Dockerfile
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
+          labels: |
+            org.opencontainers.image.revision=${{ needs.validate.outputs.source_sha }}
           tags: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/api:${{ needs.validate.outputs.source_sha }}
+
+      - name: Record API image evidence
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ needs.validate.outputs.source_sha }}
+          IMAGE_DIGEST: ${{ steps.build_api.outputs.digest }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          EXECUTION_REF: ${{ github.ref }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          if [[ ! "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "The build did not report a valid image digest." >&2
+            exit 1
+          fi
+
+          {
+            echo "## API image evidence"
+            echo
+            echo "- SOURCE_SHA: $SOURCE_SHA"
+            echo "- WORKFLOW_REF: $WORKFLOW_REF"
+            echo "- WORKFLOW_SHA: $WORKFLOW_SHA"
+            echo "- GITHUB_REF: $EXECUTION_REF"
+            echo "- RUN_ID: $RUN_ID"
+            echo "- RUN_ATTEMPT: $RUN_ATTEMPT"
+            echo "- ECR_REPOSITORY: scope/api"
+            echo "- IMAGE_TAG: $SOURCE_SHA"
+            echo "- IMAGE_DIGEST: $IMAGE_DIGEST"
+            echo "- PLATFORM: linux/amd64"
+            echo "- PROVENANCE: disabled-for-first-provisioner-release"
+            echo "- SBOM: disabled-for-first-provisioner-release"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   publish-ai:
     needs: validate
+    if: ${{ inputs.publish_ai }}
     runs-on: ubuntu-latest
     environment: production
     permissions:
