@@ -163,7 +163,9 @@ resource "aws_ecs_task_definition" "ai" {
 # --- migrator task definition ----------------------------------------------
 #
 # Run on demand with `aws ecs run-task`, never as a service. It reuses the API
-# image, which must therefore ship the Prisma CLI and prisma/migrations.
+# image repository, which must therefore ship the Prisma CLI and
+# prisma/migrations. Its TAG is selected independently through
+# var.migrator_image_tag; it never falls back to var.api_image_tag.
 #
 # This is the ONLY workload that uses the RDS master identity, because it is the
 # only one that needs DDL authority. The NestJS service connects as scope_app,
@@ -188,7 +190,7 @@ resource "aws_ecs_task_definition" "migrator" {
   container_definitions = jsonencode([
     {
       name      = "migrator"
-      image     = "${aws_ecr_repository.api.repository_url}:${var.api_image_tag}"
+      image     = "${aws_ecr_repository.api.repository_url}:${var.migrator_image_tag}"
       essential = true
 
       # The API image ships a dedicated migrator entrypoint that assembles the
@@ -246,6 +248,100 @@ resource "aws_ecs_task_definition" "migrator" {
   }
 }
 
+# --- issuer provisioner task definition (S8c11.4b) ---------------------------
+#
+# One-off task, run on demand with `aws ecs run-task`. There is deliberately NO
+# aws_ecs_service, scheduler or trigger for it, and no always-on capacity.
+#
+# It reuses the API image repository but is referenced by CONTENT:
+# repository@var.provisioner_image_digest (sha256:<64 hex>), selected independently
+# of the API and the migrator and never falling back to a tag. The digest is an
+# explicit, reviewed input; Terraform does not look it up (no ECR data source).
+# The image must contain services/api/docker/provisioner-entrypoint.sh.
+# PROVISIONER_IMAGE_REFERENCE_MODE = DIGEST_ONLY. This does not prove artifact
+# integrity (PROVISIONER_ARTIFACT_INTEGRITY = NOT_YET_PROVEN): no release digest has
+# been selected, verified or applied.
+#
+# The fixed entryPoint is the S8c11.4a execution gate, which accepts exactly one
+# operation (`provision --issuer <uuid> --types <list>`) and delegates to the
+# compiled provisioning CLI. The default command below is deliberately invalid, so
+# starting this task without an explicit command fails closed.
+#
+# RunTask can override `command` and container `environment`. Security must NOT
+# depend on `command`: the allowed surface lives in the fixed entryPoint. The
+# entrypoint cannot prove where DATABASE_URL, AWS_REGION, PUBLIC_DID_BASE_URL, PATH
+# or any other variable came from, so who may start this task and with which
+# overrides is NOT resolved here: ENVIRONMENT_OVERRIDE_AUTHORIZATION_NOT_YET_RESOLVED.
+# The current GitHub deploy role is not granted RunTask or PassRole authority over
+# the provisioner (see github_oidc.tf). Provisioner invocation authorization is not
+# implemented here.
+#
+# Database identity: the same scope_app runtime credential the API uses, injected
+# as an ECS secret. Never the RDS master secret the migrator holds.
+#
+# For a future RunTask: cluster aws_ecs_cluster.main, subnets aws_subnet.public[*],
+# security group aws_security_group.provisioner, assignPublicIp ENABLED (public
+# subnets, no NAT: the public IP is egress only).
+resource "aws_ecs_task_definition" "provisioner" {
+  family                   = "${local.name_prefix}-provisioner"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.provisioner_execution.arn
+  task_role_arn            = aws_iam_role.provisioner_task.arn
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = var.task_cpu_architecture
+  }
+
+  container_definitions = jsonencode([
+    {
+      name      = "provisioner"
+      image     = "${aws_ecr_repository.api.repository_url}@${var.provisioner_image_digest}"
+      essential = true
+
+      entryPoint  = ["/bin/sh", "/app/services/api/docker/provisioner-entrypoint.sh"]
+      command     = ["disabled"]
+      stopTimeout = 120
+
+      # Public configuration only. The signer secret namespace is forced inside the
+      # entrypoint and is intentionally not configurable here.
+      environment = [
+        {
+          name  = "AWS_REGION"
+          value = var.aws_region
+        },
+        {
+          name  = "PUBLIC_DID_BASE_URL"
+          value = var.public_did_base_url
+        },
+      ]
+
+      secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = "${local.ssm_parameter_arn_prefix}${local.api_secret_parameters.DATABASE_URL}"
+        },
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.provisioner.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+  ])
+
+  tags = {
+    Component = "provisioner"
+  }
+}
+
 # --- services (managed independently from capacity) ------------------------
 
 resource "aws_ecs_service" "api" {
@@ -268,8 +364,12 @@ resource "aws_ecs_service" "api" {
   # Long enough for Nest bootstrap plus the first ALB health checks.
   health_check_grace_period_seconds = 120
 
-  deployment_minimum_healthy_percent = 100
-  deployment_maximum_percent         = 200
+  # Prevent rolling overlap of API tasks. Blockchain nonce coordination is
+  # process-local, so with desired_count=1 the service deliberately stops the old
+  # task before starting the replacement. This trades rolling availability for no
+  # ECS-managed old/new overlap; it does not coordinate any other writer.
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent         = 100
 
   deployment_circuit_breaker {
     enable   = true

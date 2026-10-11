@@ -34,6 +34,19 @@ rds_backup_retention_days = 1
 # --- Block 1B (deploy) -----------------------------------------------------
 # api_image_tag = "<git-sha>"
 # ai_image_tag  = "<git-sha>"
+# REQUIRED, no default, no fallback to api_image_tag: plan/apply fail closed
+# without it. First apply: copy the EXACT tag the live scope-prod-migrator task
+# definition runs today (never rebuild it from a short SHA), so the migrator image
+# does not change. Moving it to a newer image is a separate reviewed rollout.
+# migrator_image_tag = "<exact-existing-migrator-tag>"
+# REQUIRED, no default, no fallback to any tag. The provisioner image is referenced
+# by CONTENT: the exact manifest digest, complete with the sha256: prefix. Take it
+# from the reviewed API image release (a build of a commit that contains
+# services/api/docker/provisioner-entrypoint.sh, S8c11.4a or later; the image the
+# API runs today predates it). Never derive it from "latest" or a tag. A concrete
+# value must be reviewed before any plan/apply, together with confirmation that the
+# digest exists in the repository and that no lifecycle rule will expire it first.
+# provisioner_image_digest = "sha256:<64-lowercase-hex>"
 
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only

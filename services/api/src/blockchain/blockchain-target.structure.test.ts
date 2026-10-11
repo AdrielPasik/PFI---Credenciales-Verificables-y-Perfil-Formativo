@@ -579,19 +579,43 @@ test('el runtime NO usa evidencia de deployment como autoridad del target (S8c10
   );
 });
 
-test('no hay ningun manifest real de Base Sepolia commiteado todavia (S8c10)', () => {
-  // Este guard se reemplaza deliberadamente en S8c10.2, cuando exista el manifest real.
-  const { existsSync } = require('node:fs') as typeof import('node:fs');
+test('existe exactamente UN manifest real de Base Sepolia y es el deployment canonico (S8c10.2)', () => {
   const manifestDir = join(API_SRC_DIR, '..', '..', '..', 'contracts', 'deployments');
-  if (existsSync(manifestDir)) {
-    const entries = readdirSync(manifestDir);
-    for (const entry of entries) {
-      assert.ok(
-        !entry.includes('base-sepolia') && !entry.includes('base_sepolia'),
-        `no deberia haber manifest de Base Sepolia todavia: ${entry}`
-      );
-    }
-  }
+  const CANONICAL_FILE =
+    'base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json';
+
+  // Exactamente un manifest real de Base Sepolia: ni cero, ni uno inesperado,
+  // ni varios. Un segundo deployment exige una decision de arquitectura explicita.
+  const sepoliaManifests = readdirSync(manifestDir).filter(
+    (entry) => /base[-_]sepolia/i.test(entry) && entry.endsWith('.json')
+  );
+  assert.deepEqual(sepoliaManifests, [CANONICAL_FILE]);
+
+  // Campos criticos del deployment congelado.
+  const manifest = JSON.parse(
+    readFileSync(join(manifestDir, CANONICAL_FILE), 'utf8')
+  ) as Record<string, unknown>;
+
+  assert.equal(manifest.network, 'base_sepolia');
+  assert.equal(manifest.chainId, 84532);
+  assert.equal(
+    manifest.contractAddress,
+    '0xCb7401e268f61b1242B17fE141453471CFbdc6e1'
+  );
+  assert.equal(
+    manifest.deploymentId,
+    'base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1'
+  );
+  assert.equal(
+    manifest.deploymentSourceCommit,
+    '5dc9d2ff3a6c83ea88f18a2cbef69eefd6d23a0c'
+  );
+  assert.equal(
+    manifest.runtimeBytecodeHash,
+    '0x69899c6edebeee4029d2e057d0125ece794217a14db7c33c805bed3b58d33c93'
+  );
+  // El nombre de archivo es consecuencia del deploymentId, no una fuente aparte.
+  assert.equal(`${manifest.deploymentId}.json`, CANONICAL_FILE);
 });
 
 test('el contrato Solidity no cambio', () => {

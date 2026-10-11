@@ -919,3 +919,110 @@ test('el modo de evidencia tiene UNA sola fuente del lado de Terraform', () => {
     1
   );
 });
+
+// ---------------------------------------------------------------------------
+// S8c11.3a: EL TAG DE IMAGEN DEL MIGRATOR ES INDEPENDIENTE DEL DE LA API
+// ---------------------------------------------------------------------------
+
+/** `var.<name>` como referencia real, sin confundirse con un prefijo mayor. */
+function countVarReferences(hcl: string, name: string): number {
+  return (hcl.match(new RegExp(`\\bvar\\.${name}\\b`, 'g')) ?? []).length;
+}
+
+/** Valor de `image = "..."` dentro del primer contenedor del bloque dado. */
+function containerImage(taskDefinitionBlock: string): string {
+  const match = taskDefinitionBlock.match(/\bimage\s*=\s*("[^"\n]*")/);
+  assert.ok(match, 'la task definition no declara image');
+  return match[1];
+}
+
+test('S8c11.3a-1: migrator_image_tag existe, es requerida y no tiene fallback', () => {
+  const variables = executableHcl(readTf('variables.tf'));
+  const declaration = block(variables, 'variable "migrator_image_tag"');
+
+  assert.equal((variables.match(/variable "migrator_image_tag"/g) ?? []).length, 1);
+  assert.match(declaration, /type\s*=\s*string/);
+
+  // Sin default: la falta de configuracion del operador FALLA CERRADO.
+  assert.ok(!/^\s*default\s*=/m.test(declaration), 'no debe tener default');
+
+  // Valida que no llegue vacia, y no se define a partir de otra variable.
+  assert.match(declaration, /validation\s*\{/);
+  assert.match(declaration, /length\(trimspace\(var\.migrator_image_tag\)\)\s*>\s*0/);
+  // Solo se autorreferencia (en la validacion): ninguna referencia a otra
+  // variable. El mensaje de error puede NOMBRAR a api_image_tag como texto.
+  assert.equal(countVarReferences(declaration, 'api_image_tag'), 0);
+  assert.equal(countVarReferences(declaration, 'ai_image_tag'), 0);
+  assert.equal(countVarReferences(declaration, 'migrator_image_tag'), 1);
+});
+
+test('S8c11.3a-2: la task definition del migrator usa SOLO migrator_image_tag', () => {
+  const ecs = executableHcl(readTf('ecs.tf'));
+  const migrator = block(ecs, 'resource "aws_ecs_task_definition" "migrator"');
+
+  assert.equal(
+    containerImage(migrator),
+    '"${aws_ecr_repository.api.repository_url}:${var.migrator_image_tag}"'
+  );
+  assert.equal(countVarReferences(migrator, 'migrator_image_tag'), 1);
+  assert.equal(countVarReferences(migrator, 'api_image_tag'), 0);
+  assert.equal(countVarReferences(migrator, 'ai_image_tag'), 0);
+});
+
+test('S8c11.3a-3: la task definition de la API usa SOLO api_image_tag', () => {
+  const ecs = executableHcl(readTf('ecs.tf'));
+  const api = block(ecs, 'resource "aws_ecs_task_definition" "api"');
+
+  assert.equal(
+    containerImage(api),
+    '"${aws_ecr_repository.api.repository_url}:${var.api_image_tag}"'
+  );
+  assert.equal(countVarReferences(api, 'api_image_tag'), 1);
+  assert.equal(countVarReferences(api, 'migrator_image_tag'), 0);
+
+  // La imagen de la IA tampoco se mezcla con ninguno de los dos.
+  const ai = block(ecs, 'resource "aws_ecs_task_definition" "ai"');
+  assert.equal(countVarReferences(ai, 'migrator_image_tag'), 0);
+  assert.equal(countVarReferences(ai, 'api_image_tag'), 0);
+});
+
+test('S8c11.3a-4: ningun fallback ni expresion de imagen mezcla los dos tags', () => {
+  for (const name of tfFileNames()) {
+    for (const line of executableHcl(readTf(name)).split('\n')) {
+      // Ninguna expresion de seleccion de imagen mezcla ambos tags.
+      assert.ok(
+        !(/\bvar\.api_image_tag\b/.test(line) && /\bvar\.migrator_image_tag\b/.test(line)),
+        `linea que mezcla ambos tags en ${name}`
+      );
+
+      // Nada que se llame "migrator..." deriva su valor de api_image_tag
+      // (alias, local o default). Los tests -1 y -2 cubren el resto.
+      assert.ok(
+        !/migrator\w*\s*=\s*[^\n]*\bvar\.api_image_tag\b/.test(line),
+        `fallback del migrator hacia api_image_tag en ${name}`
+      );
+    }
+  }
+});
+
+test('S8c11.3a-5: el ejemplo de tfvars no fija el tag y el cambio no abre secretos', () => {
+  const example = readFileSync(
+    join(TERRAFORM_PROD_DIR, 'terraform.tfvars.example'),
+    'utf8'
+  );
+  const uncommented = example
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('#'))
+    .join('\n');
+
+  // El ejemplo deja la linea comentada: ningun valor real en el repo.
+  assert.ok(!uncommented.includes('migrator_image_tag'));
+  assert.match(example, /# migrator_image_tag\s*=/);
+
+  // El migrator sigue sin material de firma ni RPC en su task definition.
+  const ecs = executableHcl(readTf('ecs.tf'));
+  const migrator = block(ecs, 'resource "aws_ecs_task_definition" "migrator"');
+  assert.ok(!/PRIVATE_KEY/.test(migrator));
+  assert.ok(!/CREDENTIAL_REGISTRY_RPC_URL/.test(migrator));
+  assert.ok(!/signers/.test(migrator));
+});

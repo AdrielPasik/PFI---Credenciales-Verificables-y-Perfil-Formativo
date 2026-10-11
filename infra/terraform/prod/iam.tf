@@ -295,3 +295,113 @@ resource "aws_iam_role_policy" "migrator_task_exec" {
   role   = aws_iam_role.migrator_task.id
   policy = data.aws_iam_policy_document.ecs_exec.json
 }
+
+# --- issuer provisioner (S8c11.4b) ------------------------------------------
+#
+# Two roles that are deliberately NOT part of local.execution_roles. That map is
+# enumerated by the CI/CD deploy role's PassRole statement (github_oidc.tf); a
+# provisioner entry there would let the deploy role pass the provisioner roles.
+# Keeping them as standalone resources is what keeps that boundary closed.
+#
+# TASK ROLE. Can CREATE issuer signer secrets and nothing else. It cannot read
+# them (no ssm:GetParameter*), cannot delete them, cannot use ECS Exec (no
+# ssmmessages) and holds no other AWS data permission. The create-only property is
+# enforced by IAM and not only by the CLI, which already sends Overwrite=false: an
+# explicit Deny blocks any PutParameter with ssm:Overwrite=true in the signer
+# namespace. A future key-rotation flow needs its own reviewed authorization.
+# SecureStrings use the AWS managed key alias/aws/ssm, so no KMS grant is needed.
+resource "aws_iam_role" "provisioner_task" {
+  name               = "${local.name_prefix}-provisioner-task"
+  description        = "Issuer provisioner: create-only PutParameter under the signer namespace, no read, no delete, no ECS Exec"
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+}
+
+data "aws_iam_policy_document" "provisioner_signer_create" {
+  statement {
+    sid       = "CreateIssuerSignerSecretsOnly"
+    effect    = "Allow"
+    actions   = ["ssm:PutParameter"]
+    resources = ["${local.ssm_parameter_arn_prefix}${local.ssm_prefix}/signers/*"]
+  }
+
+  statement {
+    sid       = "NeverOverwriteIssuerSignerSecrets"
+    effect    = "Deny"
+    actions   = ["ssm:PutParameter"]
+    resources = ["${local.ssm_parameter_arn_prefix}${local.ssm_prefix}/signers/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ssm:Overwrite"
+      values   = ["true"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "provisioner_signer_create" {
+  name   = "${local.name_prefix}-provisioner-task-signer-create"
+  role   = aws_iam_role.provisioner_task.id
+  policy = data.aws_iam_policy_document.provisioner_signer_create.json
+}
+
+# EXECUTION ROLE. Dedicated, never shared with the migrator (which can resolve the
+# RDS master secret). Pull the API image, write its own log streams and resolve the
+# exact scope_app DATABASE_URL parameter the task definition injects. No signer
+# access of any kind and no RPC secret.
+resource "aws_iam_role" "provisioner_execution" {
+  name               = "${local.name_prefix}-provisioner-execution"
+  description        = "ECS agent role for the provisioner: pull the API image, write its own log streams, resolve the scope_app DATABASE_URL parameter."
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
+
+  tags = {
+    Name     = "${local.name_prefix}-provisioner-execution"
+    Workload = "provisioner"
+  }
+}
+
+data "aws_iam_policy_document" "provisioner_execution" {
+  statement {
+    sid       = "EcrAuthorizationToken"
+    effect    = "Allow"
+    actions   = ["ecr:GetAuthorizationToken"]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "PullApiImageOnly"
+    effect = "Allow"
+
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+    ]
+
+    resources = [aws_ecr_repository.api.arn]
+  }
+
+  statement {
+    sid    = "WriteOwnLogStreamsOnly"
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = ["${aws_cloudwatch_log_group.provisioner.arn}:*"]
+  }
+
+  statement {
+    sid       = "ReadDatabaseUrlOnly"
+    effect    = "Allow"
+    actions   = ["ssm:GetParameters"]
+    resources = ["${local.ssm_parameter_arn_prefix}${local.api_secret_parameters.DATABASE_URL}"]
+  }
+}
+
+resource "aws_iam_role_policy" "provisioner_execution" {
+  name   = "${local.name_prefix}-provisioner-execution"
+  role   = aws_iam_role.provisioner_execution.id
+  policy = data.aws_iam_policy_document.provisioner_execution.json
+}

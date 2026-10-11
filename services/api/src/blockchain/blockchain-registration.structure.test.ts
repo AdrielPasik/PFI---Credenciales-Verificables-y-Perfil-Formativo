@@ -703,13 +703,15 @@ test('el evento adoptado es el REAL del contrato, sin campos inventados', () => 
 });
 
 // ---------------------------------------------------------------------------
-// LIMITE MULTI-REPLICA -- DOCUMENTADO, NO RESUELTO
+// LIMITE MULTI-REPLICA -- RESUELTO EN DESIRED STATE DE ECS
 // ---------------------------------------------------------------------------
 
-test('la realidad operativa actual: un escritor activo, pero deploy rolling', () => {
+test('el desired state de ECS limita la API a una tarea y evita solapamiento rolling', () => {
   // La cola y el NonceManager viven EN ESTE PROCESO. Protegen un solo proceso
   // Node.js. Este test congela la configuracion que hace que esa proteccion
-  // alcance HOY -- y tambien la que puede violarla.
+  // alcance para el solapamiento de ECS (S8c11.3b). NO prueba exclusividad
+  // global: scripts manuales, otras tareas o maquinas con la misma clave quedan
+  // fuera de lo que Terraform puede garantizar.
   const terraform = readFileSync(
     join(API_SRC_DIR, '..', '..', '..', 'infra', 'terraform', 'prod', 'variables.tf'),
     'utf8'
@@ -722,13 +724,59 @@ test('la realidad operativa actual: un escritor activo, pero deploy rolling', ()
   // UNA task de API en regimen, sin autoscaling: un solo escritor activo.
   const desired = /variable "api_desired_count" \{[\s\S]*?\n\}/.exec(terraform);
   assert.ok(desired, 'no se encontro api_desired_count');
-  assert.match(desired[0], /default\s+=\s+1/);
+  assert.match(desired[0], /default\s+=\s+1\s*\n/);
+  assert.match(desired[0], /type\s+=\s+number\b/);
   assert.ok(!ecs.includes('aws_appautoscaling'));
 
-  // PERO el despliegue permite 200%: durante un rolling deploy conviven DOS
-  // tasks, y en esa ventana la serializacion en proceso NO coordina entre
-  // ellas. No es seguridad de nonce distribuida y no se la presenta como tal.
-  assert.match(ecs, /deployment_maximum_percent\s+=\s+200/);
+  // Invariante de ESTADO DESEADO: api_desired_count solo admite {0, 1}. Se
+  // exige `contains([0, 1], ...)` y no un rango, que admitiria fraccionarios.
+  assert.match(desired[0], /validation\s*\{/);
+  assert.match(desired[0], /condition\s+=\s+contains\(\[0, 1\], var\.api_desired_count\)/);
+
+  // Sin alias ni fallback que esquive ese limite: nada en locals.tf reinterpreta
+  // la variable (el servicio la consume directo, se comprueba mas abajo).
+  const locals = readFileSync(
+    join(API_SRC_DIR, '..', '..', '..', 'infra', 'terraform', 'prod', 'locals.tf'),
+    'utf8'
+  );
+  assert.ok(!locals.includes('api_desired_count'));
+
+  // El servicio de la API NO permite solapamiento: 0% minimo sano y 100% maximo.
+  // Con desired_count=1 ECS detiene la task vieja antes de arrancar la nueva.
+  // No es seguridad de nonce distribuida y no se la presenta como tal.
+  const resourceBlock = (header: string): string => {
+    const start = ecs.indexOf(header);
+    assert.notEqual(start, -1, header);
+    let depth = 0;
+    for (let cursor = ecs.indexOf('{', start); cursor < ecs.length; cursor += 1) {
+      if (ecs[cursor] === '{') depth += 1;
+      if (ecs[cursor] === '}' && --depth === 0) return ecs.slice(start, cursor + 1);
+    }
+    return assert.fail(`${header} no cierra`);
+  };
+  const executable = (hcl: string): string =>
+    hcl
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith('#'))
+      .join('\n');
+
+  const api = executable(resourceBlock('resource "aws_ecs_service" "api"'));
+  assert.match(api, /deployment_minimum_healthy_percent\s+=\s+0\b/);
+  assert.match(api, /deployment_maximum_percent\s+=\s+100\b/);
+  // desired_count y el circuit breaker con rollback no cambian.
+  assert.match(api, /desired_count\s+=\s+var\.api_desired_count\b/);
+  assert.match(
+    api,
+    /deployment_circuit_breaker\s*\{\s*enable\s+=\s+true\s+rollback\s+=\s+true\s*\}/
+  );
+
+  // El servicio de IA no escribe en cadena: su politica NO se toco.
+  const ai = executable(resourceBlock('resource "aws_ecs_service" "ai"'));
+  assert.match(ai, /deployment_minimum_healthy_percent\s+=\s+100\b/);
+  assert.match(ai, /deployment_maximum_percent\s+=\s+200\b/);
+
+  // El cambio no introduce material de firma ni RPC en el servicio.
+  assert.ok(!/PRIVATE_KEY|CREDENTIAL_REGISTRY_RPC_URL/.test(api));
 });
 
 test('no se agrego un lock de base de datos alrededor del I/O de cadena', () => {

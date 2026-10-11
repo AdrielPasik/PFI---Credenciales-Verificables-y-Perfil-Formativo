@@ -252,3 +252,72 @@ resource "aws_vpc_security_group_egress_rule" "migrator_to_rds" {
   to_port                      = 5432
   referenced_security_group_id = aws_security_group.rds.id
 }
+
+# --- issuer provisioner (S8c11.4b) -----------------------------------------
+#
+# Dedicated group for the one-off provisioner task, separate from the migrator so
+# its database path can be revoked on its own (delete the RDS ingress rule below).
+# No inbound at all. Egress follows the topology that actually exists: the tasks
+# run in public subnets with no NAT and no interface endpoints, so ECR, CloudWatch
+# Logs and SSM are reached over 443 through the task's public IP; DNS stays inside
+# the VPC; PostgreSQL goes to the RDS group only.
+#
+# PROVISIONER_NETWORK_EGRESS_CONFINEMENT = PARTIAL. TCP/443 to 0.0.0.0/0 is not
+# confined to AWS service endpoints. It is a limitation accepted for now because
+# the current topology (public subnets, no interface endpoints) offers no narrower
+# destination; VPC endpoints are intentionally not part of this change.
+
+resource "aws_security_group" "provisioner" {
+  name        = "${local.name_prefix}-provisioner-sg"
+  description = "One-off issuer provisioner task: no inbound, HTTPS egress via public internet, PostgreSQL only to RDS"
+  vpc_id      = aws_vpc.main.id
+
+  tags = {
+    Name = "${local.name_prefix}-provisioner-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "rds_from_provisioner" {
+  security_group_id            = aws_security_group.rds.id
+  description                  = "PostgreSQL from the one-off issuer provisioner task"
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.provisioner.id
+}
+
+resource "aws_vpc_security_group_egress_rule" "provisioner_https" {
+  security_group_id = aws_security_group.provisioner.id
+  description       = "ECR, CloudWatch Logs and SSM"
+  ip_protocol       = "tcp"
+  from_port         = 443
+  to_port           = 443
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "provisioner_dns_udp" {
+  security_group_id = aws_security_group.provisioner.id
+  description       = "VPC resolver"
+  ip_protocol       = "udp"
+  from_port         = 53
+  to_port           = 53
+  cidr_ipv4         = var.vpc_cidr
+}
+
+resource "aws_vpc_security_group_egress_rule" "provisioner_dns_tcp" {
+  security_group_id = aws_security_group.provisioner.id
+  description       = "VPC resolver (TCP fallback)"
+  ip_protocol       = "tcp"
+  from_port         = 53
+  to_port           = 53
+  cidr_ipv4         = var.vpc_cidr
+}
+
+resource "aws_vpc_security_group_egress_rule" "provisioner_to_rds" {
+  security_group_id            = aws_security_group.provisioner.id
+  description                  = "PostgreSQL for the provisioning transaction"
+  ip_protocol                  = "tcp"
+  from_port                    = 5432
+  to_port                      = 5432
+  referenced_security_group_id = aws_security_group.rds.id
+}

@@ -114,9 +114,14 @@ variable "task_cpu_architecture" {
 }
 
 variable "api_desired_count" {
-  description = "Desired API tasks once services are enabled. 1 = always-on, no scale-to-zero, no autoscaling."
+  description = "Desired API tasks once services are enabled. Only 0 (scaled to zero) or 1 (a single API task, the default; no autoscaling) are supported while blockchain nonce coordination is process-local."
   type        = number
   default     = 1
+
+  validation {
+    condition     = contains([0, 1], var.api_desired_count)
+    error_message = "api_desired_count must be 0 or 1 while blockchain nonce coordination is process-local."
+  }
 }
 
 variable "ai_desired_count" {
@@ -157,6 +162,62 @@ variable "api_image_tag" {
   description = "Image tag for the API task definition. Block 1B replaces this with the immutable git SHA."
   type        = string
   default     = "bootstrap"
+}
+
+variable "migrator_image_tag" {
+  description = <<-EOT
+    Image tag for the production migrator task definition. It selects a tag in the
+    SAME ECR repository as the API (the migrator reuses the API image), but it is
+    chosen INDEPENDENTLY of api_image_tag: changing one never changes the other,
+    and there is no fallback between them.
+
+    REQUIRED, deliberately WITHOUT a default. If the operator has not set it,
+    plan and apply fail closed instead of silently reusing the API tag.
+
+    First apply of this variable: set it to the EXACT tag the live
+    scope-prod-migrator task definition already runs, read from that task
+    definition. Never reconstruct a full tag from a shortened SHA. The first plan
+    must show the migrator image unchanged; any unexpected image change in either
+    task definition is a deployment blocker. Moving the migrator to a newer image
+    is a separate, reviewed migration rollout.
+  EOT
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.migrator_image_tag)) > 0
+    error_message = "migrator_image_tag must be set to the exact image tag the migrator should run. It has no default and never falls back to api_image_tag."
+  }
+}
+
+variable "provisioner_image_digest" {
+  description = <<-EOT
+    Exact ECR image manifest digest for the dedicated issuer-provisioner task
+    definition, in the complete canonical form sha256:<64 lowercase hex>. The task
+    runs the SAME ECR repository as the API, but is referenced by CONTENT
+    (repository@digest), never by tag, and independently of api_image_tag and
+    migrator_image_tag.
+
+    REQUIRED, deliberately WITHOUT a default and with NO fallback to any tag. If it
+    is missing or malformed, plan and apply fail closed.
+
+    The value is NOT chosen by Terraform: there is no lookup of a tag, no ECR data
+    source and no discovery. It must be copied from a reviewed release image (one
+    built from a commit that contains services/api/docker/provisioner-entrypoint.sh,
+    S8c11.4a or later) and reviewed before plan/apply. It is public metadata, not a
+    secret.
+
+    Before using a value, the release process must confirm that the digest exists
+    in this ECR repository, that the manifest matches the task CPU architecture,
+    that it corresponds to the reviewed release artifact, and that no ECR
+    lifecycle rule will expire it before the task is meant to run. A missing image
+    makes the task fail to start; it never falls back to a tag.
+  EOT
+  type        = string
+
+  validation {
+    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.provisioner_image_digest))
+    error_message = "provisioner_image_digest must be a complete digest of the form sha256:<64 lowercase hex characters>. It has no default and never falls back to a tag."
+  }
 }
 
 variable "ai_image_tag" {

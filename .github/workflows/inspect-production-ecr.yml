@@ -1,0 +1,288 @@
+name: Inspect production ECR inventory
+
+# READ-ONLY EVIDENCE PROBE. It lists the images of the scope/api ECR repository and
+# computes whether adding ONE more image would keep the live artifact inside the
+# retention window. It publishes nothing, builds nothing and mutates nothing. It
+# is not connected to the publish workflow in any way.
+#
+#   WORKFLOW_COMMAND_SURFACE = READ_ONLY_ECR
+#   ROLE_BASE_AUTHORITY = SHARED_DEPLOY_ROLE
+#   IAM_ROLE_AUTHORITY = SHARED_DEPLOY_ROLE
+#   SESSION_POLICY_SCOPE = ECR_DESCRIBE_IMAGES_ONLY
+#   IAM_SESSION_ENFORCED_READ_ONLY = YES
+#   INVENTORY_PROBE_ROLE_SEPARATION = SHARED_DEPLOY_ROLE
+#   LIVE_ECR_INVENTORY = OBSERVED_AT_RUN_TIME
+#
+# The assumed role is the existing deploy role, which holds far more authority
+# than this probe needs (task definitions, services, RunTask, PassRole, ECR push).
+# The session policy below narrows THIS SESSION to ecr:DescribeImages on exactly
+# scope/api, so AWS IAM enforces read-only for the session. The base role itself is
+# unchanged and still powerful: this is NOT a read-only role. The main-ref check is
+# a workflow-level control. GitHub Environment protection rules and deployment
+# branch restrictions for `production` are UNKNOWN until verified live. Before the
+# first execution the operator must review those GitHub controls and explicitly
+# approve assuming the shared deploy role.
+#
+# RETENTION_SAFETY_METHOD = CONSERVATIVE_TOTAL_COUNT_BOUND. The live lifecycle
+# policy has two prioritized rules (untagged after 1 day; any, count more than 10).
+# This probe does NOT emulate their interaction. SAFE_TO_ADD_ONE = YES only when
+# the repository holds at most RETAIN - 1 imageDetails, so one more image keeps the
+# total at or below 10 and the count rule has nothing to expire. The live image's
+# rank is informational only and never decides.
+#
+# ASSUMED_RETAIN_COUNT = 10 comes from the live preflight S8c11.4c2a2. This
+# session cannot read the policy, so
+# LIFECYCLE_POLICY_RECHECK_REQUIRED_BEFORE_PUBLISH = YES: right before publishing,
+# the operator re-checks with scope-signin that the policy is still priority 1
+# untagged / sinceImagePushed / 1 day and priority 2 any / imageCountMoreThan / 10.
+# Human authorization needs probe YES plus a fresh policy MATCH.
+#
+# SAFE_TO_ADD_ONE = YES is a point-in-time, advisory result. It does not authorize
+# publication, does not prove future retention, does not guarantee the inventory
+# stays unchanged and does not prove the new build produces exactly one ECR
+# imageDetail. The publish workflow is designed for single-platform builds with
+# provenance and sbom disabled, so the working hypothesis is one imageDetail, which
+# is NOT proven live yet.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Require workflow execution from main
+        shell: bash
+        env:
+          WORKFLOW_EXECUTION_REF: ${{ github.ref }}
+        run: |
+          if [ "$WORKFLOW_EXECUTION_REF" != "refs/heads/main" ]; then
+            echo "This workflow must be dispatched from refs/heads/main." >&2
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          role-session-name: ecr-inventory-${{ github.run_id }}
+          aws-region: us-east-1
+          inline-session-policy: |
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "ecr:DescribeImages",
+                  "Resource": "arn:aws:ecr:us-east-1:309490997821:repository/scope/api"
+                }
+              ]
+            }
+
+      # One logical query. The AWS CLI follows the pagination of DescribeImages on
+      # its own (no page-size or no-paginate option is passed), so the file holds
+      # the complete list. The file lives only on the runner.
+      - name: Capture ECR image inventory
+        shell: bash
+        run: |
+          aws ecr describe-images \
+            --repository-name scope/api \
+            --region us-east-1 \
+            --output json > ecr-images.json
+
+      - name: Compute inventory and retention evidence
+        shell: bash
+        env:
+          LIVE_TAG: 4ef16bc44e8e2b932268d3ac20da648517723d55
+          CANDIDATE_TAG: 0d8ffbfec8a465f8043df0c1c2b2b4c179f0fd30
+          ASSUMED_RETAIN_COUNT: "10"
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          EXECUTION_REF: ${{ github.ref }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          OBSERVED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)" python3 - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from datetime import datetime, timezone
+
+          LIVE_TAG = os.environ["LIVE_TAG"]
+          CANDIDATE_TAG = os.environ["CANDIDATE_TAG"]
+          RETAIN = int(os.environ["ASSUMED_RETAIN_COUNT"])
+          OBSERVED_AT = os.environ["OBSERVED_AT"]
+          SUMMARY = os.environ["GITHUB_STEP_SUMMARY"]
+
+
+          def fail(message):
+              print("INVENTORY_PROBE_FAILED: " + message, file=sys.stderr)
+              sys.exit(1)
+
+
+          def parse_time(value):
+              if isinstance(value, (int, float)) and not isinstance(value, bool):
+                  return datetime.fromtimestamp(value, timezone.utc)
+              if not isinstance(value, str):
+                  fail("imagePushedAt is missing or not a timestamp")
+              try:
+                  parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+              except ValueError:
+                  fail("imagePushedAt is not a valid timestamp")
+              if parsed.tzinfo is None:
+                  fail("imagePushedAt has no timezone")
+              return parsed
+
+
+          try:
+              with open("ecr-images.json", encoding="utf-8") as handle:
+                  document = json.load(handle)
+          except (OSError, ValueError) as error:
+              fail("the inventory is not valid JSON: %s" % error)
+
+          if not isinstance(document, dict) or not isinstance(document.get("imageDetails"), list):
+              fail("the inventory has no imageDetails list")
+          if document.get("nextToken"):
+              fail("the inventory is incomplete (a next page token is present)")
+
+          details = []
+          seen_digests = set()
+          for raw in document["imageDetails"]:
+              if not isinstance(raw, dict):
+                  fail("an imageDetail is malformed")
+              digest = raw.get("imageDigest")
+              if not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+                  fail("an imageDetail has no valid imageDigest")
+              if digest in seen_digests:
+                  fail("duplicate imageDigest in the inventory")
+              seen_digests.add(digest)
+              if raw.get("repositoryName", "scope/api") != "scope/api":
+                  fail("an imageDetail belongs to another repository")
+              tags = raw.get("imageTags", [])
+              if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
+                  fail("imageTags is malformed")
+              details.append(
+                  {
+                      "digest": digest,
+                      "tags": tags,
+                      "pushed": parse_time(raw.get("imagePushedAt")),
+                      "manifest": raw.get("imageManifestMediaType") or "unknown",
+                      "artifact": raw.get("artifactMediaType") or "none",
+                      "size": raw.get("imageSizeInBytes", "unknown"),
+                  }
+              )
+
+          ordered = sorted(details, key=lambda item: (item["pushed"], item["digest"]), reverse=True)
+          total = len(ordered)
+          tagged = sum(1 for item in ordered if item["tags"])
+          untagged = total - tagged
+
+
+          def find_unique(tag, label):
+              found = [item for item in ordered if tag in item["tags"]]
+              if len(found) > 1:
+                  fail("the %s tag resolves to more than one image" % label)
+              return found[0] if found else None
+
+
+          live = find_unique(LIVE_TAG, "live")
+          candidate = find_unique(CANDIDATE_TAG, "candidate")
+
+          live_exists = live is not None
+          live_digest = live["digest"] if live_exists else "NONE"
+          newer_count = "NOT_APPLICABLE"
+          if live_exists:
+              newer_count = sum(1 for item in ordered if item["pushed"] > live["pushed"])
+
+          candidate_exists = candidate is not None
+          max_total_before_push = RETAIN - 1
+
+          if not live_exists:
+              safe = "NO"
+              reason = "The live tag is not present in the inventory."
+          elif candidate_exists:
+              safe = "NO"
+              reason = "The candidate tag already exists in the repository."
+          elif total <= max_total_before_push:
+              safe = "YES"
+              reason = (
+                  "Repository holds %d imageDetail(s), at most %d; one more image keeps the total at or "
+                  "below %d, so the count rule has nothing to expire." % (total, max_total_before_push, RETAIN)
+              )
+          else:
+              safe = "NO"
+              reason = (
+                  "Repository already contains %d imageDetails. The probe does not emulate multi-rule ECR "
+                  "lifecycle evaluation, so one additional image is not proven safe." % total
+              )
+
+          lines = [
+              "## ECR inventory probe",
+              "",
+              "- LIVE_ECR_INVENTORY: OBSERVED_AT_RUN_TIME",
+              "- OBSERVED_AT: " + OBSERVED_AT,
+              "- WORKFLOW_REF: " + os.environ["WORKFLOW_REF"],
+              "- WORKFLOW_SHA: " + os.environ["WORKFLOW_SHA"],
+              "- GITHUB_REF: " + os.environ["EXECUTION_REF"],
+              "- RUN_ID: " + os.environ["RUN_ID"],
+              "- RUN_ATTEMPT: " + os.environ["RUN_ATTEMPT"],
+              "- ECR_REPOSITORY: scope/api",
+              "- WORKFLOW_COMMAND_SURFACE: READ_ONLY_ECR",
+              "- ROLE_BASE_AUTHORITY: SHARED_DEPLOY_ROLE",
+              "- IAM_ROLE_AUTHORITY: SHARED_DEPLOY_ROLE",
+              "- SESSION_POLICY_SCOPE: ECR_DESCRIBE_IMAGES_ONLY",
+              "- IAM_SESSION_ENFORCED_READ_ONLY: YES",
+              "- INVENTORY_PROBE_ROLE_SEPARATION: SHARED_DEPLOY_ROLE",
+              "- RETENTION_SAFETY_METHOD: CONSERVATIVE_TOTAL_COUNT_BOUND",
+              "- RETENTION_POLICY_ASSUMPTION: tagStatus any, imageCountMoreThan %d (observed in S8c11.4c2a2, not re-read by this run)" % RETAIN,
+              "- LIFECYCLE_POLICY_RECHECK_REQUIRED_BEFORE_PUBLISH: YES",
+              "",
+              "- TOTAL_IMAGE_DETAILS: %d" % total,
+              "- TAGGED_IMAGE_DETAILS: %d" % tagged,
+              "- UNTAGGED_IMAGE_DETAILS: %d" % untagged,
+              "",
+              "| position | imagePushedAt | imageTags | imageDigest | imageManifestMediaType | artifactMediaType | imageSizeInBytes |",
+              "|---|---|---|---|---|---|---|",
+          ]
+          for index, item in enumerate(ordered, start=1):
+              lines.append(
+                  "| %d | %s | %s | %s | %s | %s | %s |"
+                  % (
+                      index,
+                      item["pushed"].isoformat(),
+                      ", ".join(item["tags"]) if item["tags"] else "(untagged)",
+                      item["digest"],
+                      item["manifest"],
+                      item["artifact"],
+                      item["size"],
+                  )
+              )
+          lines += [
+              "",
+              "- LIVE_TAG: " + LIVE_TAG,
+              "- LIVE_TAG_EXISTS: " + ("YES" if live_exists else "NO"),
+              "- LIVE_TAG_DIGEST: " + live_digest,
+              "- LIVE_TAG_NEWER_COUNT (informational, not used for the verdict): " + str(newer_count),
+              "- CANDIDATE_TAG: " + CANDIDATE_TAG,
+              "- CANDIDATE_TAG_EXISTS: " + ("YES" if candidate_exists else "NO"),
+              "- SAFE_TO_ADD_ONE: " + safe,
+              "- REASON: " + reason,
+              "",
+              "SAFE_TO_ADD_ONE does not emulate the multi-rule lifecycle policy. It returns YES only when "
+              "one additional image would keep the total at or below %d. Before publishing, re-check the "
+              "live lifecycle policy (priority 1 untagged / 1 day, priority 2 any / more than %d)." % (RETAIN, RETAIN),
+              "",
+              "SAFE_TO_ADD_ONE is a point-in-time, advisory result. It does not authorize publication, "
+              "does not prove future retention, does not guarantee the inventory stays unchanged and does "
+              "not prove that the new build produces exactly one ECR imageDetail. GitHub Environment "
+              "protection and deployment branch restrictions for production are UNKNOWN until verified live.",
+          ]
+          with open(SUMMARY, "a", encoding="utf-8") as handle:
+              handle.write("\n".join(lines) + "\n")
+          PY
