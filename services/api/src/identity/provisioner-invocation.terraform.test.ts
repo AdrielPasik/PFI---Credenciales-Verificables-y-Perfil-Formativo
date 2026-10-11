@@ -27,7 +27,8 @@ const TERRAFORM_PROD_DIR = join(
 );
 
 function readTf(fileName: string): string {
-  return readFileSync(join(TERRAFORM_PROD_DIR, fileName), 'utf8');
+  // Fin de linea normalizado: con core.autocrlf un checkout de Windows trae CRLF.
+  return readFileSync(join(TERRAFORM_PROD_DIR, fileName), 'utf8').replace(/\r\n/g, '\n');
 }
 
 /** HCL sin comentarios: las aserciones negativas miran configuracion real. */
@@ -276,7 +277,10 @@ test('S8c11.4c1-4: solo issuer_id y credential_types son entrada dinamica del re
     '$.database_url',
     '$.region',
     '$.command',
-    '$.image'
+    '$.image',
+    '$.image_digest',
+    '$.digest',
+    '$.tag'
   ]) {
     assert.ok(!everyPath.includes(forbidden), forbidden);
   }

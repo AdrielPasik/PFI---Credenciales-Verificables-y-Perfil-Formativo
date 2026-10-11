@@ -20,10 +20,19 @@
 #
 # Open items, deliberately NOT resolved here:
 #   PROVISIONER_EXTERNAL_CALLER = NOT_IMPLEMENTED
+#   PROVISIONER_IMAGE_DIGEST_PINNING = REPO_READY
 #   PROVISIONER_ARTIFACT_INTEGRITY = NOT_YET_PROVEN
-#     The task definition references the image by tag. An exact task-definition
-#     revision pins the task definition, not necessarily the image bytes. Image
-#     pinning by digest is the next step and must precede any live execution.
+#     The task definition now REQUIRES a content-addressed image reference
+#     (repository@sha256:<digest>, var.provisioner_image_digest). That is a
+#     mechanism, not proof of integrity: no release digest has been selected or
+#     verified, nothing has been planned or applied, live ECR has not been
+#     inspected, and no commit -> digest provenance or attestation exists yet.
+#   PINNED_DIGEST_RETENTION_GUARANTEED = NOT_PROVEN, LIVE_IMAGE_AVAILABILITY = UNKNOWN
+#     ecr.tf expires all but the newest ecr_kept_image_count images (and untagged
+#     images after one day), so a pinned digest can be removed later. Before use,
+#     confirm the digest exists, matches the task CPU architecture and the reviewed
+#     release, and will not expire first. A missing image fails the task; there is
+#     no tag fallback.
 #   PROVISIONER_NETWORK_EGRESS_CONFINEMENT = PARTIAL
 #     See security_groups.tf: 443 to 0.0.0.0/0.
 #   ECS_SYNC_EXIT_CODE_PATH = HYPOTHESIS_NOT_LIVE_VERIFIED

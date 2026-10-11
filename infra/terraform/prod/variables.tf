@@ -173,26 +173,34 @@ variable "migrator_image_tag" {
   }
 }
 
-variable "provisioner_image_tag" {
+variable "provisioner_image_digest" {
   description = <<-EOT
-    Image tag for the dedicated issuer-provisioner task definition. It selects a tag
-    in the SAME ECR repository as the API, but it is chosen INDEPENDENTLY of
-    api_image_tag and migrator_image_tag: changing one never changes the others,
-    and there is no fallback between them.
+    Exact ECR image manifest digest for the dedicated issuer-provisioner task
+    definition, in the complete canonical form sha256:<64 lowercase hex>. The task
+    runs the SAME ECR repository as the API, but is referenced by CONTENT
+    (repository@digest), never by tag, and independently of api_image_tag and
+    migrator_image_tag.
 
-    REQUIRED, deliberately WITHOUT a default. If the operator has not set it, plan
-    and apply fail closed.
+    REQUIRED, deliberately WITHOUT a default and with NO fallback to any tag. If it
+    is missing or malformed, plan and apply fail closed.
 
-    Use an immutable tag built from a release that contains the provisioner
-    execution gate (services/api/docker/provisioner-entrypoint.sh, S8c11.4a) or
-    later. Do NOT reuse the tag of an image built before that file existed: the task
-    would have no entrypoint to run. Never use "latest".
+    The value is NOT chosen by Terraform: there is no lookup of a tag, no ECR data
+    source and no discovery. It must be copied from a reviewed release image (one
+    built from a commit that contains services/api/docker/provisioner-entrypoint.sh,
+    S8c11.4a or later) and reviewed before plan/apply. It is public metadata, not a
+    secret.
+
+    Before using a value, the release process must confirm that the digest exists
+    in this ECR repository, that the manifest matches the task CPU architecture,
+    that it corresponds to the reviewed release artifact, and that no ECR
+    lifecycle rule will expire it before the task is meant to run. A missing image
+    makes the task fail to start; it never falls back to a tag.
   EOT
   type        = string
 
   validation {
-    condition     = length(trimspace(var.provisioner_image_tag)) > 0
-    error_message = "provisioner_image_tag must be set to an immutable image tag that contains the provisioner entrypoint. It has no default and never falls back to another image tag."
+    condition     = can(regex("^sha256:[0-9a-f]{64}$", var.provisioner_image_digest))
+    error_message = "provisioner_image_digest must be a complete digest of the form sha256:<64 lowercase hex characters>. It has no default and never falls back to a tag."
   }
 }
 

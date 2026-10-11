@@ -250,9 +250,14 @@ resource "aws_ecs_task_definition" "migrator" {
 # One-off task, run on demand with `aws ecs run-task`. There is deliberately NO
 # aws_ecs_service, scheduler or trigger for it, and no always-on capacity.
 #
-# It reuses the API image repository; its TAG is var.provisioner_image_tag,
-# selected independently of the API and the migrator, and it never falls back to
-# either. The image must contain services/api/docker/provisioner-entrypoint.sh.
+# It reuses the API image repository but is referenced by CONTENT:
+# repository@var.provisioner_image_digest (sha256:<64 hex>), selected independently
+# of the API and the migrator and never falling back to a tag. The digest is an
+# explicit, reviewed input; Terraform does not look it up (no ECR data source).
+# The image must contain services/api/docker/provisioner-entrypoint.sh.
+# PROVISIONER_IMAGE_REFERENCE_MODE = DIGEST_ONLY. This does not prove artifact
+# integrity (PROVISIONER_ARTIFACT_INTEGRITY = NOT_YET_PROVEN): no release digest has
+# been selected, verified or applied.
 #
 # The fixed entryPoint is the S8c11.4a execution gate, which accepts exactly one
 # operation (`provision --issuer <uuid> --types <list>`) and delegates to the
@@ -291,7 +296,7 @@ resource "aws_ecs_task_definition" "provisioner" {
   container_definitions = jsonencode([
     {
       name      = "provisioner"
-      image     = "${aws_ecr_repository.api.repository_url}:${var.provisioner_image_tag}"
+      image     = "${aws_ecr_repository.api.repository_url}@${var.provisioner_image_digest}"
       essential = true
 
       entryPoint  = ["/bin/sh", "/app/services/api/docker/provisioner-entrypoint.sh"]

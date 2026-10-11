@@ -91,54 +91,136 @@ const provisionerTaskDefinition = block(
 );
 
 // ---------------------------------------------------------------------------
-// PROVISIONER_IMAGE_TAG_INDEPENDENT
+// PROVISIONER_IMAGE_REFERENCE_MODE = DIGEST_ONLY (S8c11.4c2)
 // ---------------------------------------------------------------------------
 
-test('S8c11.4b-1: provisioner_image_tag es requerida, sin default y sin fallback', () => {
-  assert.equal((variables.match(/variable "provisioner_image_tag"/g) ?? []).length, 1);
-  const declaration = block(variables, 'variable "provisioner_image_tag"');
+test('S8c11.4b-1: provisioner_image_digest es requerida, sin default, con validacion exacta; el tag se retiro', () => {
+  assert.equal((variables.match(/variable "provisioner_image_digest"/g) ?? []).length, 1);
+  const declaration = block(variables, 'variable "provisioner_image_digest"');
 
   assert.match(declaration, /type\s*=\s*string/);
   assert.ok(!/^\s*default\s*=/m.test(declaration), 'sin default');
-  assert.match(declaration, /length\(trimspace\(var\.provisioner_image_tag\)\)\s*>\s*0/);
+  assert.ok(!/sensitive\s*=\s*true/.test(declaration), 'el digest es metadata publica');
 
-  // Solo se autorreferencia: no depende de ninguna otra variable de tag.
-  assert.equal(varReferences(declaration, 'provisioner_image_tag'), 1);
+  // Digest canonico completo, en minuscula, sin espacios, tag, '@' ni URL.
+  assert.match(
+    declaration,
+    /condition\s*=\s*can\(regex\("\^sha256:\[0-9a-f\]\{64\}\$", var\.provisioner_image_digest\)\)/
+  );
+
+  // Solo se autorreferencia: no depende de ninguna otra variable de imagen.
+  assert.equal(varReferences(declaration, 'provisioner_image_digest'), 1);
   assert.equal(varReferences(declaration, 'api_image_tag'), 0);
   assert.equal(varReferences(declaration, 'migrator_image_tag'), 0);
+
+  // La variable antigua ya no existe como configuracion. (Esta mencion es una
+  // asercion NEGATIVA; el nombre retirado no aparece en ningun .tf ejecutable.)
+  assert.equal((variables.match(/variable "provisioner_image_tag"/g) ?? []).length, 0);
+  for (const file of tfFileNames()) {
+    assert.equal(
+      varReferences(executableHcl(readTf(file)), 'provisioner_image_tag'),
+      0,
+      `${file} aun referencia la variable retirada`
+    );
+    assert.ok(
+      !/provisioner_image_tag/.test(executableHcl(readTf(file))),
+      `${file} aun menciona la variable retirada en codigo ejecutable`
+    );
+  }
 });
 
-test('S8c11.4b-2: la imagen del provisioner usa SOLO provisioner_image_tag', () => {
+test('S8c11.4b-2: la imagen del provisioner es repository@digest, sin tag, sin fallback ni lookup', () => {
   assert.match(
     provisionerTaskDefinition,
-    /\bimage\s*=\s*"\$\{aws_ecr_repository\.api\.repository_url\}:\$\{var\.provisioner_image_tag\}"/
+    /\bimage\s*=\s*"\$\{aws_ecr_repository\.api\.repository_url\}@\$\{var\.provisioner_image_digest\}"/
   );
-  assert.equal(varReferences(provisionerTaskDefinition, 'provisioner_image_tag'), 1);
+  assert.equal(varReferences(provisionerTaskDefinition, 'provisioner_image_digest'), 1);
   assert.equal(varReferences(provisionerTaskDefinition, 'api_image_tag'), 0);
   assert.equal(varReferences(provisionerTaskDefinition, 'migrator_image_tag'), 0);
+  assert.equal(varReferences(provisionerTaskDefinition, 'ai_image_tag'), 0);
   assert.ok(!provisionerTaskDefinition.includes('latest'));
+  assert.ok(!/repository_url\}:/.test(provisionerTaskDefinition), 'sin sintaxis repo:tag');
 
-  // Y las otras task definitions no lo usan.
-  for (const name of ['api', 'ai', 'migrator']) {
-    const other = block(ecs, `resource "aws_ecs_task_definition" "${name}"`);
-    assert.equal(varReferences(other, 'provisioner_image_tag'), 0, name);
+  // El provisioner usa el repositorio de la API y NINGUN otro: no tiene repositorio
+  // propio y su task definition no referencia otro aws_ecr_repository.
+  assert.deepEqual(
+    [...provisionerTaskDefinition.matchAll(/aws_ecr_repository\.(\w+)/g)].map((m) => m[1]),
+    ['api']
+  );
+  for (const file of tfFileNames()) {
+    assert.ok(
+      !/resource\s+"aws_ecr_repository"\s+"provisioner"/.test(executableHcl(readTf(file))),
+      `${file}: repositorio ECR propio del provisioner`
+    );
   }
 
-  // Ninguna linea ejecutable mezcla el tag del provisioner con otro tag.
+  // PROVISIONER_DIGEST_HAS_NO_TERRAFORM_DISCOVERY. Solo se mira lo vinculado al
+  // provisioner; no se prohibe que existan estos mecanismos para otras cargas.
+  //
+  // 1. El digest solo lo consume la task definition del provisioner.
+  for (const file of tfFileNames()) {
+    const referencing = varReferences(executableHcl(readTf(file)), 'provisioner_image_digest');
+    const expected = file === 'ecs.tf' ? 1 : file === 'variables.tf' ? 1 : 0;
+    assert.equal(referencing, expected, `${file} referencia el digest`);
+  }
+
+  // 2. La imagen y la declaracion del digest no pasan por data sources, locals,
+  //    funciones de fallback ni lookups: es la variable, tal cual.
+  const digestDeclaration = block(variables, 'variable "provisioner_image_digest"');
+  for (const piece of [provisionerTaskDefinition, digestDeclaration]) {
+    assert.ok(!/\bdata\.\w+/.test(piece.replace(/regex\([^)]*\)/g, '')), 'sin data sources');
+    assert.ok(!/\blocal\.\w*(digest|image)/i.test(piece), 'sin locals de imagen');
+    assert.ok(!/coalesce|try\(|lookup\(|\?\?/.test(piece), 'sin fallback ni lookup');
+  }
+
+  // 3. Ningun mecanismo de descubrimiento esta vinculado al provisioner o a su digest.
+  for (const file of tfFileNames()) {
+    const code = executableHcl(readTf(file));
+    for (const match of code.matchAll(/^(resource|data)\s+"([^"]+)"\s+"([^"]+)"\s*\{/gm)) {
+      const [, kind, type, name] = match;
+      const body = block(code.slice(match.index), match[0]);
+      const discovery =
+        (kind === 'data' && (type === 'aws_ecr_image' || type === 'external')) ||
+        type === 'null_resource' ||
+        body.includes('local-exec');
+      if (discovery) {
+        assert.ok(
+          !/provisioner/i.test(`${name}\n${body}`),
+          `${file}: ${kind}.${type}.${name} esta vinculado al provisioner`
+        );
+      }
+    }
+  }
+
+  // Las otras task definitions no cambian y no usan el digest.
+  for (const name of ['api', 'ai', 'migrator']) {
+    const other = block(ecs, `resource "aws_ecs_task_definition" "${name}"`);
+    assert.equal(varReferences(other, 'provisioner_image_digest'), 0, name);
+  }
+  assert.match(
+    block(ecs, 'resource "aws_ecs_task_definition" "api"'),
+    /\$\{aws_ecr_repository\.api\.repository_url\}:\$\{var\.api_image_tag\}/
+  );
+  assert.match(
+    block(ecs, 'resource "aws_ecs_task_definition" "migrator"'),
+    /\$\{aws_ecr_repository\.api\.repository_url\}:\$\{var\.migrator_image_tag\}/
+  );
+
+  // Ninguna linea ejecutable mezcla el digest del provisioner con otro tag.
   for (const file of tfFileNames()) {
     for (const line of executableHcl(readTf(file)).split('\n')) {
       assert.ok(
         !(
-          /\bvar\.provisioner_image_tag\b/.test(line) &&
+          /\bvar\.provisioner_image_digest\b/.test(line) &&
           /\bvar\.(api|migrator|ai)_image_tag\b/.test(line)
         ),
-        `linea que mezcla tags en ${file}`
+        `linea que mezcla referencias de imagen en ${file}`
       );
     }
   }
 });
 
-test('S8c11.4b-3: el ejemplo de tfvars deja provisioner_image_tag comentada', () => {
+test('S8c11.4b-3: el ejemplo de tfvars deja provisioner_image_digest comentada y sin valor real', () => {
   const example = readFileSync(
     join(TERRAFORM_PROD_DIR, 'terraform.tfvars.example'),
     'utf8'
@@ -148,8 +230,33 @@ test('S8c11.4b-3: el ejemplo de tfvars deja provisioner_image_tag comentada', ()
     .filter((line) => !line.trimStart().startsWith('#'))
     .join('\n');
 
-  assert.ok(!uncommented.includes('provisioner_image_tag'));
-  assert.match(example, /# provisioner_image_tag\s*=/);
+  assert.ok(!uncommented.includes('provisioner_image_digest'));
+  assert.match(example, /# provisioner_image_digest\s*=\s*"sha256:<64-lowercase-hex>"/);
+  assert.ok(!/sha256:[0-9a-f]{64}/.test(example), 'sin digest real en el ejemplo');
+
+  // La documentacion operativa vigente ya no pide un tag para el provisioner.
+  assert.ok(!example.includes('provisioner_image_tag'));
+});
+
+test('S8c11.4b-3b: el execution role no gana permisos de descubrimiento de imagenes', () => {
+  const policy = block(iam, 'data "aws_iam_policy_document" "provisioner_execution"');
+  for (const forbidden of ['ecr:DescribeImages', 'ecr:ListImages', 'ecr:Put', 'ecr:BatchDeleteImage']) {
+    assert.ok(!policy.includes(forbidden), forbidden);
+  }
+});
+
+test('S8c11.4b-3c: la retencion de ECR queda documentada: el digest fijado podria expirar', () => {
+  // ecr.tf expira todo salvo las N imagenes mas nuevas, y las sin tag en 1 dia.
+  const ecr = executableHcl(readTf('ecr.tf'));
+  assert.match(ecr, /countType\s*=\s*"imageCountMoreThan"/);
+  assert.match(ecr, /tagStatus\s*=\s*"untagged"/);
+
+  const invocation = readTf('provisioner_invocation.tf');
+  assert.match(invocation, /PINNED_DIGEST_RETENTION_GUARANTEED = NOT_PROVEN/);
+  assert.match(invocation, /LIVE_IMAGE_AVAILABILITY = UNKNOWN/);
+  assert.match(invocation, /PROVISIONER_IMAGE_DIGEST_PINNING = REPO_READY/);
+  assert.match(invocation, /PROVISIONER_ARTIFACT_INTEGRITY = NOT_YET_PROVEN/);
+  assert.match(readTf('ecs.tf'), /PROVISIONER_IMAGE_REFERENCE_MODE = DIGEST_ONLY/);
 });
 
 // ---------------------------------------------------------------------------
