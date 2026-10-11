@@ -39,6 +39,11 @@ rds_backup_retention_days = 1
 # definition runs today (never rebuild it from a short SHA), so the migrator image
 # does not change. Moving it to a newer image is a separate reviewed rollout.
 # migrator_image_tag = "<exact-existing-migrator-tag>"
+# REQUIRED, no default, no fallback to api_image_tag or migrator_image_tag. Use an
+# immutable tag of an image built from a release that contains
+# services/api/docker/provisioner-entrypoint.sh (S8c11.4a) or later. The image the
+# API runs today predates it. Never "latest".
+# provisioner_image_tag = "<immutable-tag-with-provisioner-entrypoint>"
 
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only

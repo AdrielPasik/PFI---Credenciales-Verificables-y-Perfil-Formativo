@@ -173,6 +173,29 @@ variable "migrator_image_tag" {
   }
 }
 
+variable "provisioner_image_tag" {
+  description = <<-EOT
+    Image tag for the dedicated issuer-provisioner task definition. It selects a tag
+    in the SAME ECR repository as the API, but it is chosen INDEPENDENTLY of
+    api_image_tag and migrator_image_tag: changing one never changes the others,
+    and there is no fallback between them.
+
+    REQUIRED, deliberately WITHOUT a default. If the operator has not set it, plan
+    and apply fail closed.
+
+    Use an immutable tag built from a release that contains the provisioner
+    execution gate (services/api/docker/provisioner-entrypoint.sh, S8c11.4a) or
+    later. Do NOT reuse the tag of an image built before that file existed: the task
+    would have no entrypoint to run. Never use "latest".
+  EOT
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.provisioner_image_tag)) > 0
+    error_message = "provisioner_image_tag must be set to an immutable image tag that contains the provisioner entrypoint. It has no default and never falls back to another image tag."
+  }
+}
+
 variable "ai_image_tag" {
   description = "Image tag for the AI task definition. Block 1B replaces this with the immutable git SHA."
   type        = string

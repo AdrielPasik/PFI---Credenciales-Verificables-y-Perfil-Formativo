@@ -37,3 +37,14 @@ resource "aws_cloudwatch_log_group" "migrator" {
     Component = "migrator"
   }
 }
+
+# Issuer provisioner (one-off task). Its output is the existing CLI's sanitized
+# JSON (ids, DID, addresses, secret references); it never contains key material.
+resource "aws_cloudwatch_log_group" "provisioner" {
+  name              = "/scope/${var.environment}/provisioner"
+  retention_in_days = var.log_retention_days
+
+  tags = {
+    Component = "provisioner"
+  }
+}

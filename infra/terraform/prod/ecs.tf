@@ -245,6 +245,95 @@ resource "aws_ecs_task_definition" "migrator" {
   }
 }
 
+# --- issuer provisioner task definition (S8c11.4b) ---------------------------
+#
+# One-off task, run on demand with `aws ecs run-task`. There is deliberately NO
+# aws_ecs_service, scheduler or trigger for it, and no always-on capacity.
+#
+# It reuses the API image repository; its TAG is var.provisioner_image_tag,
+# selected independently of the API and the migrator, and it never falls back to
+# either. The image must contain services/api/docker/provisioner-entrypoint.sh.
+#
+# The fixed entryPoint is the S8c11.4a execution gate, which accepts exactly one
+# operation (`provision --issuer <uuid> --types <list>`) and delegates to the
+# compiled provisioning CLI. The default command below is deliberately invalid, so
+# starting this task without an explicit command fails closed.
+#
+# RunTask can override `command` and container `environment`. Security must NOT
+# depend on `command`: the allowed surface lives in the fixed entryPoint. The
+# entrypoint cannot prove where DATABASE_URL, AWS_REGION, PUBLIC_DID_BASE_URL, PATH
+# or any other variable came from, so who may start this task and with which
+# overrides is NOT resolved here: ENVIRONMENT_OVERRIDE_AUTHORIZATION_NOT_YET_RESOLVED.
+# The current GitHub deploy role is not granted RunTask or PassRole authority over
+# the provisioner (see github_oidc.tf). Provisioner invocation authorization is not
+# implemented here.
+#
+# Database identity: the same scope_app runtime credential the API uses, injected
+# as an ECS secret. Never the RDS master secret the migrator holds.
+#
+# For a future RunTask: cluster aws_ecs_cluster.main, subnets aws_subnet.public[*],
+# security group aws_security_group.provisioner, assignPublicIp ENABLED (public
+# subnets, no NAT: the public IP is egress only).
+resource "aws_ecs_task_definition" "provisioner" {
+  family                   = "${local.name_prefix}-provisioner"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.provisioner_execution.arn
+  task_role_arn            = aws_iam_role.provisioner_task.arn
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = var.task_cpu_architecture
+  }
+
+  container_definitions = jsonencode([
+    {
+      name      = "provisioner"
+      image     = "${aws_ecr_repository.api.repository_url}:${var.provisioner_image_tag}"
+      essential = true
+
+      entryPoint  = ["/bin/sh", "/app/services/api/docker/provisioner-entrypoint.sh"]
+      command     = ["disabled"]
+      stopTimeout = 120
+
+      # Public configuration only. The signer secret namespace is forced inside the
+      # entrypoint and is intentionally not configurable here.
+      environment = [
+        {
+          name  = "AWS_REGION"
+          value = var.aws_region
+        },
+        {
+          name  = "PUBLIC_DID_BASE_URL"
+          value = var.public_did_base_url
+        },
+      ]
+
+      secrets = [
+        {
+          name      = "DATABASE_URL"
+          valueFrom = "${local.ssm_parameter_arn_prefix}${local.api_secret_parameters.DATABASE_URL}"
+        },
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = aws_cloudwatch_log_group.provisioner.name
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+  ])
+
+  tags = {
+    Component = "provisioner"
+  }
+}
+
 # --- services (gated) ------------------------------------------------------
 
 resource "aws_ecs_service" "api" {
