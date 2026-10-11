@@ -114,9 +114,14 @@ variable "task_cpu_architecture" {
 }
 
 variable "api_desired_count" {
-  description = "Desired API tasks once services are enabled. 1 = always-on, no scale-to-zero, no autoscaling."
+  description = "Desired API tasks once services are enabled. Only 0 (scaled to zero) or 1 (a single API task, the default; no autoscaling) are supported while blockchain nonce coordination is process-local."
   type        = number
   default     = 1
+
+  validation {
+    condition     = contains([0, 1], var.api_desired_count)
+    error_message = "api_desired_count must be 0 or 1 while blockchain nonce coordination is process-local."
+  }
 }
 
 variable "ai_desired_count" {

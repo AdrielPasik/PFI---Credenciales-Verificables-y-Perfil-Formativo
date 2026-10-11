@@ -264,8 +264,12 @@ resource "aws_ecs_service" "api" {
   # Long enough for Nest bootstrap plus the first ALB health checks.
   health_check_grace_period_seconds = 120
 
-  deployment_minimum_healthy_percent = 100
-  deployment_maximum_percent         = 200
+  # Prevent rolling overlap of API tasks. Blockchain nonce coordination is
+  # process-local, so with desired_count=1 the service deliberately stops the old
+  # task before starting the replacement. This trades rolling availability for no
+  # ECS-managed old/new overlap; it does not coordinate any other writer.
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent         = 100
 
   deployment_circuit_breaker {
     enable   = true
