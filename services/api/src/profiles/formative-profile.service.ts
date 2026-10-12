@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Optional } from '@nestjs/common';
 import {
   CredentialSemanticInterpretationStatus,
   CredentialStatus,
@@ -14,6 +14,10 @@ import {
   type ReviewedApprovedTemplateSemanticSnapshot
 } from '../issuer-course-templates/issuer-course-templates.helpers';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  ProfileEmbeddingCompositionService
+} from '../profile-embedding/profile-embedding-composition.service';
+import { profileEmbeddingsEnabled } from '../profile-embedding/profile-embedding.contract';
 import {
   type CurrentProfileResponseDto,
   type FormativeProfileSnapshotDto
@@ -207,7 +211,13 @@ type ResolvedSemanticSource =
 
 @Injectable()
 export class FormativeProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(FormativeProfileService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional()
+    private readonly profileEmbeddingComposition?: ProfileEmbeddingCompositionService
+  ) {}
 
   async getCurrentForUser(userId: string): Promise<CurrentProfileResponseDto> {
     const currentProfile = await this.prisma.formativeProfile.findFirst({
@@ -328,10 +338,37 @@ export class FormativeProfileService {
       }
     );
 
+    // V1-F is deliberately post-commit and best-effort. The immutable
+    // FormativeProfile snapshot remains the authoritative structured result
+    // whether composition succeeds, is disabled, or later needs a dedicated
+    // historical backfill.
+    await this.attemptProfileEmbeddingComposition(profile.id);
+
     return {
       userId,
       currentProfile: this.toCurrentProfileResponse(profile)
     };
+  }
+
+  private async attemptProfileEmbeddingComposition(
+    formativeProfileId: string
+  ): Promise<void> {
+    if (!profileEmbeddingsEnabled() || !this.profileEmbeddingComposition) return;
+    try {
+      await this.profileEmbeddingComposition.composeForFormativeProfile(
+        formativeProfileId
+      );
+    } catch {
+      // No exception detail, vector, source text, or holder data enters logs.
+      // The profile was committed already and must be returned unchanged.
+      this.logger.error(
+        JSON.stringify({
+          event: 'formative_profile_embedding_composition_failed',
+          errorCode: 'formative_profile_embedding_composition_failed',
+          formativeProfileId
+        })
+      );
+    }
   }
 
   async persistAiArtifactForUser(

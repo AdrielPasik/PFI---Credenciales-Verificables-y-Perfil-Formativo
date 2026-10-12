@@ -18,7 +18,8 @@ import {
   PROFILE_EMBEDDING_MODEL_ID,
   PROFILE_EMBEDDING_MODEL_REVISION,
   PROFILE_EMBEDDING_REQUEST_SCHEMA_VERSION,
-  PROFILE_EMBEDDING_SOURCE_POLICY_VERSION
+  PROFILE_EMBEDDING_SOURCE_POLICY_VERSION,
+  profileEmbeddingsEnabled
 } from './profile-embedding.contract';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -318,9 +319,7 @@ export class SourceEmbeddingGenerationService {
   }
 
   private isEnabled(): boolean {
-    const configured = process.env.PROFILE_EMBEDDINGS_ENABLED;
-    if (configured === undefined || configured.trim() === '') return false;
-    return configured.trim().toLowerCase() === 'true';
+    return profileEmbeddingsEnabled();
   }
 
   private assertExistingIdentity(

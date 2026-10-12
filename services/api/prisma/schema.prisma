@@ -723,8 +723,9 @@ model SourceEmbedding {
   @@index([sourceSha256])
 }
 
-/// Artefacto interno futuro para UN snapshot de FormativeProfile. V1-C fija la
-/// forma historica; V1-D no crea ni consume estas filas.
+/// Artefacto interno inmutable para UN snapshot de FormativeProfile. La
+/// composicion V1-E usa exclusivamente SourceEmbedding ya persistidos y no se
+/// expone mediante DTOs de perfil.
 model FormativeProfileEmbedding {
   id                       String                               @id @default(uuid())
   formativeProfileId       String                               @unique
@@ -745,8 +746,8 @@ model FormativeProfileEmbedding {
   components               FormativeProfileEmbeddingComponent[]
 }
 
-/// Provenance de una componente que una fase futura incluira o excluira al
-/// componer el vector del perfil. No se expone por DTOs ni se usa en V1-D.
+/// Provenance de una componente incluida o excluida durante la composicion
+/// V1-E. No se expone por DTOs.
 model FormativeProfileEmbeddingComponent {
   id                          String                          @id @default(uuid())
   formativeProfileEmbeddingId String
