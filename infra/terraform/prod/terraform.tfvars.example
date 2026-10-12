@@ -35,6 +35,12 @@ rds_backup_retention_days = 1
 # api_image_tag = "<git-sha>"
 # ai_image_tag  = "<git-sha>"
 
+# Profile Embedding V1 remains disabled until the controlled rollout. Both the
+# API and AI task definition receive the same gate. The default model directory
+# is the frozen E5 snapshot baked into the AI image; do not use a host path.
+# profile_embeddings_enabled   = false
+# profile_embeddings_model_dir = "/opt/pfi/models/multilingual-e5-small"
+
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only
 # one OIDC provider for token.actions.githubusercontent.com: if one already

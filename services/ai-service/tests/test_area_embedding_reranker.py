@@ -254,6 +254,38 @@ def test_profile_source_encoder_reuses_the_process_local_embedder_cache(monkeypa
     assert first.vector == second.vector
 
 
+def test_area_and_profile_embeddings_share_one_process_local_model_instance(monkeypatch) -> None:
+    created: list[Path] = []
+
+    class StubEmbedder:
+        def __init__(self, model_dir: Path) -> None:
+            created.append(model_dir)
+
+        def get_reference_vectors(self, _references):
+            return object()
+
+        def count_tokens(self, _text: str) -> int:
+            return 4
+
+        def plan_source_chunks(self, _source_text: str) -> ChunkPlan:
+            return ChunkPlan(("texto",), (2,), (4,))
+
+        def encode(self, _texts: list[str]) -> list[list[float]]:
+            return [[1.0] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 1)]
+
+    model_dir = Path("/models/shared-e5")
+    monkeypatch.setattr(reranker, "_MODEL_CACHE", {})
+    monkeypatch.setattr(reranker, "LocalE5Embedder", StubEmbedder)
+
+    prewarm_area_embeddings(AreaEmbeddingSettings(enabled=True, model_dir=model_dir))
+    encode_profile_embedding_source(
+        "texto fuente",
+        ProfileEmbeddingSettings(enabled=True, model_dir=model_dir),
+    )
+
+    assert created == [model_dir.resolve()]
+
+
 def test_cosine_similarity_normalizes_vector_magnitude() -> None:
     assert cosine_similarity([3, 4], [0, 5]) == 0.8
 
