@@ -27,6 +27,8 @@ from src.api.models import (
     FormativeProfileBuildRequest,
     ObjectiveAnalysisRequest,
     ObjectiveRequirementProposalRequest,
+    ProfileEmbeddingSourceRequest,
+    ProfileEmbeddingSourceResponse,
     SemanticAnalysisTextRequest,
     SourceExtractionTextRequest,
 )
@@ -93,7 +95,15 @@ from src.api.source_extraction_transport import (
     read_upload_bytes,
 )
 from src.profile_builder.artifact_loader import InvalidArtifactError
-from src.area_embedding_reranker import AreaEmbeddingSettings, load_settings, prewarm_area_embeddings
+from src.area_embedding_reranker import (
+    AreaEmbeddingSettings,
+    ProfileEmbeddingSettings,
+    encode_profile_embedding_source,
+    load_profile_embedding_settings,
+    load_settings,
+    prewarm_area_embeddings,
+    prewarm_profile_embeddings,
+)
 
 
 @dataclass
@@ -101,6 +111,7 @@ class EmbeddingReadiness:
     """Internal readiness state; it intentionally contains no model details."""
 
     settings: AreaEmbeddingSettings
+    profile_settings: ProfileEmbeddingSettings
     ready: bool
 
 
@@ -111,12 +122,22 @@ def _embedding_settings_for_startup() -> AreaEmbeddingSettings:
         return AreaEmbeddingSettings(configuration_error="invalid_embedding_configuration")
 
 
+def _profile_embedding_settings_for_startup() -> ProfileEmbeddingSettings:
+    try:
+        return load_profile_embedding_settings()
+    except ValueError:
+        return ProfileEmbeddingSettings(configuration_error="invalid_profile_embedding_configuration")
+
+
 @asynccontextmanager
 async def embedding_runtime_lifespan(application: FastAPI) -> AsyncIterator[None]:
     readiness: EmbeddingReadiness = application.state.embedding_readiness
-    if readiness.settings.enabled:
+    if readiness.settings.enabled or readiness.profile_settings.enabled:
         try:
-            prewarm_area_embeddings(readiness.settings)
+            if readiness.settings.enabled:
+                prewarm_area_embeddings(readiness.settings)
+            if readiness.profile_settings.enabled:
+                prewarm_profile_embeddings(readiness.profile_settings)
         except Exception:
             readiness.ready = False
         else:
@@ -133,6 +154,39 @@ def ready(request: Request) -> Any:
     if readiness.ready:
         return {"status": "ready"}
     return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"status": "not_ready"})
+
+
+def profile_embedding_source(
+    payload: ProfileEmbeddingSourceRequest,
+    request: Request,
+) -> ProfileEmbeddingSourceResponse:
+    """Encode only canonical source text received from the authenticated API.
+
+    This endpoint deliberately has no source identifiers, persistence, database,
+    S3, semantic-analysis, or profile inputs. It is an internal encoder surface.
+    """
+    settings: ProfileEmbeddingSettings = request.app.state.embedding_readiness.profile_settings
+    if settings.configuration_error:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="profile_embedding_unavailable")
+    if not settings.enabled:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="profile_embeddings_disabled")
+    try:
+        result = encode_profile_embedding_source(payload.embeddingSource, settings)
+    except Exception as exc:
+        # Source text, vectors, tensors, and model errors stay out of the response.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="profile_embedding_unavailable",
+        ) from exc
+    return ProfileEmbeddingSourceResponse(
+        vector=result.vector,
+        modelId=result.model_id,
+        modelRevision=result.model_revision,
+        embeddingDimension=result.embedding_dimension,
+        sourcePolicyVersion=result.source_policy_version,
+        longTextPolicyVersion=result.long_text_policy_version,
+        longTextPolicySha256=result.long_text_policy_sha256,
+    )
 
 
 def formative_profile_build(payload: FormativeProfileBuildRequest) -> dict[str, Any]:
@@ -575,6 +629,7 @@ def create_app(
 ) -> FastAPI:
     settings = internal_auth_settings or load_internal_auth_settings()
     embedding_settings = _embedding_settings_for_startup()
+    profile_embedding_settings = _profile_embedding_settings_for_startup()
     application = FastAPI(
         title="PFI AI Service",
         version="0.1.0",
@@ -584,7 +639,13 @@ def create_app(
     application.state.internal_auth_settings = settings
     application.state.embedding_readiness = EmbeddingReadiness(
         settings=embedding_settings,
-        ready=not embedding_settings.enabled and embedding_settings.configuration_error is None,
+        profile_settings=profile_embedding_settings,
+        ready=(
+            not embedding_settings.enabled
+            and embedding_settings.configuration_error is None
+            and not profile_embedding_settings.enabled
+            and profile_embedding_settings.configuration_error is None
+        ),
     )
     auth_dependency = Depends(require_internal_service)
 
@@ -606,6 +667,13 @@ def create_app(
         "/v1/semantic-analysis/text",
         semantic_analysis_text,
         methods=["POST"],
+        dependencies=[auth_dependency],
+    )
+    application.add_api_route(
+        "/v1/profile-embedding/source",
+        profile_embedding_source,
+        methods=["POST"],
+        response_model=ProfileEmbeddingSourceResponse,
         dependencies=[auth_dependency],
     )
     # F1.3: dos rutas explicitas en vez de un endpoint union. PDF y TEXT tienen
