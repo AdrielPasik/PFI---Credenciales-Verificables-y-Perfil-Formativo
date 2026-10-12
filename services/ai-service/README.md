@@ -34,6 +34,31 @@ El servicio todavia no tiene conexion automatica de `DocumentEvidence` o
 - `POST /v1/formative-profile/build`: recibe artifacts
   `semantic_analysis_v1` y devuelve `formative_profile_result_v0`; requiere
   JWT interno en modo `jwt`.
+- `POST /v1/profile-embedding/source`: codifica texto fuente canónico ya
+  autorizado por NestJS para Profile Embedding V1; requiere JWT interno y no
+  persiste vectores ni acepta artifacts semánticos, perfiles o labels.
+
+### `POST /v1/profile-embedding/source`
+
+Es un endpoint interno, nunca para browser. Está apagado por default mediante
+`PROFILE_EMBEDDINGS_ENABLED=false` y es independiente de
+`AI_AREA_EMBEDDINGS_ENABLED`. Cuando se habilita requiere
+`PROFILE_EMBEDDINGS_MODEL_DIR`, normalmente el mismo snapshot local congelado
+de E5 que usa el reranker de áreas. El request solo acepta texto fuente ya
+canónico; NestJS conserva la autorización, provenance y persistencia futura.
+
+```json
+{
+  "schemaVersion": "profile_embedding_source_request_v1",
+  "embeddingSource": "Texto curricular fuente ya autorizado."
+}
+```
+
+La respuesta interna contiene un único vector normalizado de 384 dimensiones y
+la identidad congelada de modelo, revisión y políticas. No modifica
+`semantic_analysis_v1`, no carga referencias de áreas y no registra el texto ni
+el vector. Los textos largos usan el mismo chunking determinista de la política
+`area_embedding_long_text_policy_v1`.
 
 ### `POST /v1/semantic-analysis/text` (C2b.1)
 
@@ -161,6 +186,8 @@ AI_INTERNAL_JWT_AUDIENCE=traza-ai-service
 AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS=30
 AI_AREA_EMBEDDINGS_ENABLED=false
 AI_AREA_EMBEDDINGS_MODEL_DIR=
+PROFILE_EMBEDDINGS_ENABLED=false
+PROFILE_EMBEDDINGS_MODEL_DIR=
 ```
 
 `disabled` es el default local y no requiere secretos. En demo/production se

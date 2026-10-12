@@ -136,10 +136,14 @@ locals {
     AI_SERVICE_JWT_ISSUER             = var.ai_internal_jwt_issuer
     AI_SERVICE_JWT_AUDIENCE           = var.ai_internal_jwt_audience
     AI_SERVICE_JWT_EXPIRES_IN_SECONDS = tostring(var.ai_internal_jwt_expires_in_seconds)
-    DOCUMENT_STORAGE_PROVIDER         = "s3"
-    AWS_REGION                        = var.aws_region
-    AWS_S3_BUCKET                     = var.document_evidence_bucket_name
-    AWS_S3_PREFIX                     = var.document_evidence_prefix
+    # API and AI deliberately share one false-by-default rollout gate: source
+    # persistence/composition and its private local encoder become available as
+    # one capability, and a single false value rolls both back safely.
+    PROFILE_EMBEDDINGS_ENABLED = tostring(var.profile_embeddings_enabled)
+    DOCUMENT_STORAGE_PROVIDER  = "s3"
+    AWS_REGION                 = var.aws_region
+    AWS_S3_BUCKET              = var.document_evidence_bucket_name
+    AWS_S3_PREFIX              = var.document_evidence_prefix
   }
 
   ai_environment = {
@@ -151,7 +155,9 @@ locals {
     AI_INTERNAL_JWT_CLOCK_SKEW_SECONDS = tostring(var.ai_internal_jwt_clock_skew_seconds)
     # The baked image also defaults to false. This separate deployment input
     # permits feature activation and rollback without changing task capacity.
-    AI_AREA_EMBEDDINGS_ENABLED = tostring(var.ai_area_embeddings_enabled)
+    AI_AREA_EMBEDDINGS_ENABLED   = tostring(var.ai_area_embeddings_enabled)
+    PROFILE_EMBEDDINGS_ENABLED   = tostring(var.profile_embeddings_enabled)
+    PROFILE_EMBEDDINGS_MODEL_DIR = var.profile_embeddings_model_dir
   }
 
   # Existing bucket, referenced by ARN only. Never created, imported or destroyed.

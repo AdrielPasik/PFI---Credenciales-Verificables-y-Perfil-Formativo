@@ -48,6 +48,12 @@ rds_backup_retention_days = 1
 # digest exists in the repository and that no lifecycle rule will expire it first.
 # provisioner_image_digest = "sha256:<64-lowercase-hex>"
 
+# Profile Embedding V1 remains disabled until the controlled rollout. Both the
+# API and AI task definition receive the same gate. The default model directory
+# is the frozen E5 snapshot baked into the AI image; do not use a host path.
+# profile_embeddings_enabled   = false
+# profile_embeddings_model_dir = "/opt/pfi/models/multilingual-e5-small"
+
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only
 # one OIDC provider for token.actions.githubusercontent.com: if one already

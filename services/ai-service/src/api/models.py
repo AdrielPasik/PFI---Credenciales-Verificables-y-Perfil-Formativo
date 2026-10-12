@@ -19,6 +19,8 @@ class FormativeProfileBuildRequest(BaseModel):
 # memoria — pero un tope evita que un payload enorme se cuele como "texto de
 # curso" y degrade el pipeline de deteccion de secciones.
 MAX_TEXT_CONTENT_LENGTH = 30_000
+PROFILE_EMBEDDING_SOURCE_REQUEST_SCHEMA_VERSION = "profile_embedding_source_request_v1"
+PROFILE_EMBEDDING_SOURCE_RESPONSE_SCHEMA_VERSION = "profile_embedding_source_response_v1"
 
 
 class SemanticAnalysisTextMetadata(BaseModel):
@@ -65,6 +67,50 @@ class SemanticAnalysisTextRequest(BaseModel):
         if not value.strip():
             raise ValueError("content must not be blank")
         return value
+
+
+class ProfileEmbeddingSourceRequest(BaseModel):
+    """Canonical source-only input for the private Profile Embedding endpoint.
+
+    NestJS is responsible for authorizing and constructing this text from a
+    verified formative source. This transport deliberately has no fields for
+    semantic artifacts, profile data, source identifiers, or generated output.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    schemaVersion: str
+    embeddingSource: str = Field(min_length=1, max_length=MAX_TEXT_CONTENT_LENGTH)
+
+    @field_validator("schemaVersion")
+    @classmethod
+    def _schema_version_must_match(cls, value: str) -> str:
+        if value != PROFILE_EMBEDDING_SOURCE_REQUEST_SCHEMA_VERSION:
+            raise ValueError("profile embedding source request schema is unsupported")
+        return value
+
+    @field_validator("embeddingSource")
+    @classmethod
+    def _source_must_not_be_blank(cls, value: str) -> str:
+        # Do not normalize or rewrite the canonical source supplied by NestJS.
+        if not value.strip():
+            raise ValueError("embeddingSource must not be blank")
+        return value
+
+
+class ProfileEmbeddingSourceResponse(BaseModel):
+    """Versioned internal response; vector and source stay inside service trust boundaries."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    schemaVersion: str = PROFILE_EMBEDDING_SOURCE_RESPONSE_SCHEMA_VERSION
+    vector: list[float] = Field(min_length=384, max_length=384)
+    modelId: str
+    modelRevision: str
+    embeddingDimension: int = 384
+    sourcePolicyVersion: str
+    longTextPolicyVersion: str
+    longTextPolicySha256: str
 
 
 

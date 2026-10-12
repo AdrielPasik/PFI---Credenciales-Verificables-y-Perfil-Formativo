@@ -18,9 +18,12 @@ from src.area_embedding_reranker import (
     ChunkPlan,
     LocalE5Embedder,
     MAX_INPUT_TOKENS,
+    ProfileEmbeddingSettings,
     aggregate_chunk_vectors,
     build_area_embedding_source,
     cosine_similarity,
+    encode_profile_embedding_source,
+    encode_source_document,
     load_reference_set,
     load_settings,
     plan_source_token_chunks,
@@ -145,6 +148,142 @@ def test_token_weighted_aggregation_is_l2_normalized_and_single_chunk_equivalent
     assert math.isclose(combined[0], 1 / math.sqrt(10), rel_tol=1e-12)
     assert math.isclose(combined[1], 3 / math.sqrt(10), rel_tol=1e-12)
     assert math.isclose(math.sqrt(sum(value * value for value in combined)), 1.0, rel_tol=1e-12)
+
+
+def test_reusable_source_document_encoder_uses_the_frozen_chunk_plan_and_aggregation() -> None:
+    plan = ChunkPlan(("primer chunk", "segundo chunk"), (1, 3), (4, 4))
+    backend = PlannedFakeEmbedder([[1.0, 0.0], [0.0, 1.0]], plan)
+
+    vector = encode_source_document("texto fuente largo", backend)
+
+    assert math.isclose(vector[0], 1 / math.sqrt(10), rel_tol=1e-12)
+    assert math.isclose(vector[1], 3 / math.sqrt(10), rel_tol=1e-12)
+
+
+def test_profile_source_encoder_returns_exact_frozen_metadata_and_a_normalized_384d_vector() -> None:
+    source_vector = [1.0] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 1)
+    result = encode_profile_embedding_source(
+        "texto fuente canonico",
+        ProfileEmbeddingSettings(enabled=True),
+        embedder=PlannedFakeEmbedder([source_vector]),
+    )
+
+    assert result.model_id == reranker.MODEL_ID
+    assert result.model_revision == reranker.MODEL_REVISION
+    assert result.embedding_dimension == reranker.MODEL_EMBEDDING_DIMENSION
+    assert result.source_policy_version == "profile_embedding_source_v1"
+    assert result.long_text_policy_version == reranker.LONG_TEXT_POLICY_VERSION
+    assert result.long_text_policy_sha256 == reranker.LONG_TEXT_POLICY_SHA256
+    assert len(result.vector) == 384
+    assert all(math.isfinite(value) for value in result.vector)
+    assert math.isclose(math.sqrt(sum(value * value for value in result.vector)), 1.0, rel_tol=1e-12)
+
+
+def test_profile_source_encoder_rejects_blank_or_invalid_outputs() -> None:
+    try:
+        encode_profile_embedding_source("   ", ProfileEmbeddingSettings(enabled=True), embedder=FakeEmbedder([]))
+    except ValueError as exc:
+        assert "blank" in str(exc)
+    else:
+        raise AssertionError("blank source must fail before model work")
+
+    try:
+        encode_profile_embedding_source(
+            "texto fuente canonico",
+            ProfileEmbeddingSettings(enabled=True),
+            embedder=PlannedFakeEmbedder([[1.0, 0.0]]),
+        )
+    except ValueError as exc:
+        assert "dimension" in str(exc)
+    else:
+        raise AssertionError("non-384-dimensional output must fail")
+
+
+def test_area_reranker_delegates_source_encoding_to_the_reusable_encoder(monkeypatch) -> None:
+    calls: list[tuple[str, ChunkPlan | None]] = []
+    original = reranker.encode_source_document
+
+    def tracked(source_text, backend, *, plan=None, chunk_vectors=None):
+        calls.append((source_text, plan))
+        return original(source_text, backend, plan=plan, chunk_vectors=chunk_vectors)
+
+    monkeypatch.setattr(reranker, "encode_source_document", tracked)
+    references = _references("A", "B")
+    backend = CachedFakeEmbedder(
+        [[1.0, 0.0]],
+        {"A": (0.1, math.sqrt(0.99)), "B": (0.9, math.sqrt(0.19))},
+    )
+
+    ordered, diagnostic = rerank_existing_area_candidates(
+        [_candidate("A", 10), _candidate("B", 9)],
+        "texto original",
+        _enabled(),
+        embedder=backend,
+        references=references,
+    )
+
+    assert [item["area"] for item in ordered] == ["B", "A"]
+    assert diagnostic["candidates"][0]["cosine"] == 0.9
+    assert calls == [("texto original", backend.plan)]
+
+
+def test_profile_source_encoder_reuses_the_process_local_embedder_cache(monkeypatch) -> None:
+    created: list[Path] = []
+
+    class StubEmbedder:
+        def __init__(self, model_dir: Path) -> None:
+            created.append(model_dir)
+
+        def count_tokens(self, _text: str) -> int:
+            return 4
+
+        def plan_source_chunks(self, _source_text: str) -> ChunkPlan:
+            return ChunkPlan(("texto",), (2,), (4,))
+
+        def encode(self, _texts: list[str]) -> list[list[float]]:
+            return [[1.0] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 1)]
+
+    monkeypatch.setattr(reranker, "_MODEL_CACHE", {})
+    monkeypatch.setattr(reranker, "LocalE5Embedder", StubEmbedder)
+    settings = ProfileEmbeddingSettings(enabled=True, model_dir=Path("/models/e5"))
+
+    first = encode_profile_embedding_source("texto fuente", settings)
+    second = encode_profile_embedding_source("otro texto fuente", settings)
+
+    assert len(created) == 1
+    assert first.vector == second.vector
+
+
+def test_area_and_profile_embeddings_share_one_process_local_model_instance(monkeypatch) -> None:
+    created: list[Path] = []
+
+    class StubEmbedder:
+        def __init__(self, model_dir: Path) -> None:
+            created.append(model_dir)
+
+        def get_reference_vectors(self, _references):
+            return object()
+
+        def count_tokens(self, _text: str) -> int:
+            return 4
+
+        def plan_source_chunks(self, _source_text: str) -> ChunkPlan:
+            return ChunkPlan(("texto",), (2,), (4,))
+
+        def encode(self, _texts: list[str]) -> list[list[float]]:
+            return [[1.0] + [0.0] * (reranker.MODEL_EMBEDDING_DIMENSION - 1)]
+
+    model_dir = Path("/models/shared-e5")
+    monkeypatch.setattr(reranker, "_MODEL_CACHE", {})
+    monkeypatch.setattr(reranker, "LocalE5Embedder", StubEmbedder)
+
+    prewarm_area_embeddings(AreaEmbeddingSettings(enabled=True, model_dir=model_dir))
+    encode_profile_embedding_source(
+        "texto fuente",
+        ProfileEmbeddingSettings(enabled=True, model_dir=model_dir),
+    )
+
+    assert created == [model_dir.resolve()]
 
 
 def test_cosine_similarity_normalizes_vector_magnitude() -> None:

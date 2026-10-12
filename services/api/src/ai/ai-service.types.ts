@@ -3,6 +3,13 @@ export interface AiServiceHealthResponse {
   service: string;
 }
 
+/** Request interno para codificar una fuente canónica ya autorizada. */
+export interface EncodeProfileEmbeddingSourceInput {
+  readonly schemaVersion: 'profile_embedding_source_request_v1';
+  /** Texto fuente original solamente; nunca una salida semántica derivada. */
+  readonly embeddingSource: string;
+}
+
 export interface AnalyzePdfWithAiInput {
   filePath?: string;
   fileBytes?: Uint8Array;

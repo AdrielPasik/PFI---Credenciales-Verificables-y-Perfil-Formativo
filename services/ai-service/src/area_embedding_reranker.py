@@ -20,6 +20,7 @@ MODEL_EMBEDDING_DIMENSION = 384
 MAX_INPUT_TOKENS = 512
 QUERY_PREFIX = "query: "
 LONG_TEXT_POLICY_VERSION = "area_embedding_long_text_policy_v1"
+LONG_TEXT_POLICY_SHA256 = "1319e903ae818b2a0290dc3b952e7f4ca89a15621c4dc176b27fd0c7197f4cc1"
 SOURCE_TOKEN_BUDGET = 480
 SOURCE_TOKEN_OVERLAP = 0
 AGGREGATION_METHOD = "token_weighted_mean_then_l2_normalize"
@@ -31,6 +32,7 @@ AREA_EMBEDDING_LAMBDA = 0.8
 AREA_EMBEDDING_RELATIVE_MARGIN = 0.0
 FROZEN_REFERENCES_VERSION = "scope-areas-2026-10-08-v1-frozen"
 FROZEN_REFERENCE_COUNT = 69
+PROFILE_EMBEDDING_SOURCE_POLICY_VERSION = "profile_embedding_source_v1"
 
 
 @dataclass(frozen=True)
@@ -40,6 +42,28 @@ class AreaEmbeddingSettings:
     relative_margin: float | None = None
     model_dir: Path | None = None
     configuration_error: str | None = None
+
+
+@dataclass(frozen=True)
+class ProfileEmbeddingSettings:
+    """Independent runtime gate for internal source-document embeddings."""
+
+    enabled: bool = False
+    model_dir: Path | None = None
+    configuration_error: str | None = None
+
+
+@dataclass(frozen=True)
+class ProfileEmbeddingSourceResult:
+    """Validated, non-persisted result for the private profile-embedding API."""
+
+    vector: list[float]
+    model_id: str
+    model_revision: str
+    embedding_dimension: int
+    source_policy_version: str
+    long_text_policy_version: str
+    long_text_policy_sha256: str
 
 
 @dataclass(frozen=True)
@@ -113,6 +137,26 @@ def load_settings(environ: dict[str, str] | None = None) -> AreaEmbeddingSetting
     if not raw_model_dir:
         raise ValueError("enabled embeddings require a model directory")
     return AreaEmbeddingSettings(True, AREA_EMBEDDING_LAMBDA, AREA_EMBEDDING_RELATIVE_MARGIN, Path(raw_model_dir))
+
+
+def load_profile_embedding_settings(environ: dict[str, str] | None = None) -> ProfileEmbeddingSettings:
+    """Read the independent Profile Embedding V1 runtime gate.
+
+    The model path is intentionally separate from the area-reranking setting so
+    either capability can be rolled out or rolled back independently. Both use
+    the same process-local loader when configured with the same snapshot path.
+    """
+    env = os.environ if environ is None else environ
+    raw_enabled = env.get("PROFILE_EMBEDDINGS_ENABLED", "false").strip().lower()
+    if raw_enabled not in {"true", "false"}:
+        raise ValueError("PROFILE_EMBEDDINGS_ENABLED must be true or false")
+    if raw_enabled == "false":
+        return ProfileEmbeddingSettings(enabled=False)
+
+    raw_model_dir = env.get("PROFILE_EMBEDDINGS_MODEL_DIR", "").strip()
+    if not raw_model_dir:
+        raise ValueError("enabled profile embeddings require a model directory")
+    return ProfileEmbeddingSettings(enabled=True, model_dir=Path(raw_model_dir))
 
 
 def load_reference_set(path: Path = REFERENCES_PATH) -> AreaReferenceSet:
@@ -355,6 +399,89 @@ def _get_local_embedder(model_dir: Path) -> LocalE5Embedder:
     return _MODEL_CACHE[resolved]
 
 
+def _plan_source_document(source_text: str, backend: EmbeddingBackend) -> ChunkPlan:
+    """Build the frozen lossless chunk plan used by every source embedding."""
+    if not source_text.strip():
+        raise ValueError("source text must not be blank")
+    planner = getattr(backend, "plan_source_chunks", None)
+    if not callable(planner):
+        # Alternative/test backends retain the established one-document path,
+        # but they may never silently truncate a source.
+        effective_tokens = backend.count_tokens(QUERY_PREFIX + source_text)
+        if effective_tokens > MAX_INPUT_TOKENS:
+            raise ValueError("chunk planner unavailable for a long source")
+        return ChunkPlan((source_text,), (max(1, effective_tokens - 2),), (effective_tokens,))
+    return planner(source_text)
+
+
+def encode_source_document(
+    source_text: str,
+    backend: EmbeddingBackend,
+    *,
+    plan: ChunkPlan | None = None,
+    chunk_vectors: Sequence[Sequence[float]] | None = None,
+) -> list[float]:
+    """Encode one source-only document with the frozen long-text policy.
+
+    ``chunk_vectors`` exists only so the historical combined-batch test/alternate
+    backend path can keep its exact batching behavior. Production callers omit
+    it and encode source chunks through the shared local singleton.
+    """
+    selected_plan = plan or _plan_source_document(source_text, backend)
+    if not selected_plan.chunks or any(count > MAX_INPUT_TOKENS for count in selected_plan.effective_token_counts):
+        raise ValueError("invalid source chunk plan")
+    vectors = (
+        [list(vector) for vector in chunk_vectors]
+        if chunk_vectors is not None
+        else backend.encode([QUERY_PREFIX + chunk for chunk in selected_plan.chunks])
+    )
+    if len(vectors) != len(selected_plan.chunks) or not vectors or not vectors[0]:
+        raise ValueError("invalid source embedding output")
+    return aggregate_chunk_vectors(vectors, selected_plan.source_token_counts)
+
+
+def encode_profile_embedding_source(
+    source_text: str,
+    settings: ProfileEmbeddingSettings,
+    *,
+    embedder: EmbeddingBackend | None = None,
+) -> ProfileEmbeddingSourceResult:
+    """Encode already-authorized canonical source text for Profile Embedding V1.
+
+    This function is deliberately stateless: it neither identifies the source
+    nor persists the result. The NestJS caller owns source authorization and
+    provenance in subsequent slices.
+    """
+    if settings.configuration_error:
+        raise ValueError(settings.configuration_error)
+    if not settings.enabled:
+        raise ValueError("profile_embeddings_disabled")
+    if not source_text.strip():
+        raise ValueError("source text must not be blank")
+    backend = embedder
+    if backend is None:
+        if settings.model_dir is None:
+            raise ValueError("enabled profile embeddings require a model directory")
+        backend = _get_local_embedder(settings.model_dir)
+    vector = encode_source_document(source_text, backend)
+    if len(vector) != MODEL_EMBEDDING_DIMENSION:
+        raise ValueError("profile embedding dimension does not match the frozen encoder")
+    if not all(math.isfinite(float(value)) for value in vector):
+        raise ValueError("profile embedding contains non-finite values")
+    norm = math.sqrt(sum(float(value) * float(value) for value in vector))
+    if not math.isfinite(norm) or norm == 0.0 or not math.isclose(norm, 1.0, rel_tol=1e-6, abs_tol=1e-6):
+        raise ValueError("profile embedding is not L2 normalized")
+    return ProfileEmbeddingSourceResult(
+        vector=[float(value) for value in vector],
+        model_id=MODEL_ID,
+        model_revision=MODEL_REVISION,
+        embedding_dimension=MODEL_EMBEDDING_DIMENSION,
+        source_policy_version=PROFILE_EMBEDDING_SOURCE_POLICY_VERSION,
+        long_text_policy_version=LONG_TEXT_POLICY_VERSION,
+        long_text_policy_sha256=LONG_TEXT_POLICY_SHA256,
+    )
+
+
 def prewarm_area_embeddings(settings: AreaEmbeddingSettings) -> None:
     """Initialize the enabled local runtime before it is declared ready."""
     if settings.configuration_error:
@@ -366,6 +493,17 @@ def prewarm_area_embeddings(settings: AreaEmbeddingSettings) -> None:
     reference_set = load_reference_set()
     backend = _get_local_embedder(settings.model_dir)
     backend.get_reference_vectors(reference_set)
+
+
+def prewarm_profile_embeddings(settings: ProfileEmbeddingSettings) -> None:
+    """Load the shared local model without creating area reference vectors."""
+    if settings.configuration_error:
+        raise ValueError(settings.configuration_error)
+    if not settings.enabled:
+        return
+    if settings.model_dir is None:
+        raise ValueError("enabled profile embeddings require a model directory")
+    _get_local_embedder(settings.model_dir)
 
 
 def _lexical_sort_key(item: dict[str, Any]) -> tuple[float, float, int, int]:
@@ -444,19 +582,14 @@ def rerank_existing_area_candidates(
                 return candidates, _fallback("invalid_configuration")
             backend = _get_local_embedder(settings.model_dir)
 
-        planner = getattr(backend, "plan_source_chunks", None)
-        if not callable(planner):
-            # Test or alternative backends can preserve the established
-            # single-document path, but may never silently truncate a long one.
-            effective_tokens = backend.count_tokens(QUERY_PREFIX + source_text)
-            if effective_tokens > MAX_INPUT_TOKENS:
+        try:
+            plan = _plan_source_document(source_text, backend)
+        except Exception:
+            # Retain the established diagnostic distinction for the existing
+            # candidate reranker while sharing the actual planning mechanics.
+            if not callable(getattr(backend, "plan_source_chunks", None)):
                 return candidates, _fallback("chunk_planner_unavailable")
-            plan = ChunkPlan((source_text,), (max(1, effective_tokens - 2),), (effective_tokens,))
-        else:
-            try:
-                plan = planner(source_text)
-            except Exception:
-                return candidates, _fallback("chunk_tokenization_failure")
+            return candidates, _fallback("chunk_tokenization_failure")
         if not plan.chunks or any(count > MAX_INPUT_TOKENS for count in plan.effective_token_counts):
             return candidates, _fallback("invalid_chunk_plan", plan)
 
@@ -470,7 +603,7 @@ def rerank_existing_area_candidates(
             cached_reference_vectors = reference_vectors.vectors_by_area
             if any(item["area"] not in cached_reference_vectors for item in candidates):
                 return candidates, _fallback("missing_area_reference", plan)
-            source_vectors = backend.encode(source_queries)
+            source_vector = encode_source_document(source_text, backend, plan=plan)
             prototype_vectors = [cached_reference_vectors[item["area"]] for item in candidates]
         else:
             # Explicit test/alternate backends retain the original combined-batch
@@ -480,9 +613,11 @@ def rerank_existing_area_candidates(
             vectors = backend.encode([*source_queries, *prototype_queries])
             source_vectors = vectors[: len(plan.chunks)]
             prototype_vectors = vectors[len(plan.chunks) :]
-        if len(source_vectors) != len(plan.chunks) or len(prototype_vectors) != len(candidates) or not source_vectors[0]:
+            source_vector = encode_source_document(
+                source_text, backend, plan=plan, chunk_vectors=source_vectors
+            )
+        if len(prototype_vectors) != len(candidates) or not prototype_vectors[0]:
             return candidates, _fallback("invalid_embedding_output", plan)
-        source_vector = aggregate_chunk_vectors(source_vectors, plan.source_token_counts)
         scored = [dict(item) for item in candidates]
 
         lexical_order = sorted(range(len(scored)), key=lambda index: _lexical_sort_key(scored[index]), reverse=True)

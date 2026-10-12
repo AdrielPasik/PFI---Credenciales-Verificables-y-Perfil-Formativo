@@ -251,6 +251,27 @@ enum AnalysisRunSourceType {
   text_evidence
 }
 
+/// Cobertura del artefacto vectorial de un snapshot historico de perfil.
+///
+/// Esta enum no modifica el perfil estructurado vigente. Solo describe el
+/// artefacto interno que una fase posterior podra componer desde fuentes ya
+/// congeladas.
+enum ProfileEmbeddingCoverageStatus {
+  COMPLETE
+  PARTIAL
+  UNAVAILABLE
+}
+
+/// Estado de una fuente al componer un vector de perfil. V1-C solo crea el
+/// esquema; V1-D no instancia estas filas todavia.
+enum ProfileEmbeddingComponentStatus {
+  INCLUDED
+  UNAVAILABLE
+  INVALID
+  DUPLICATE
+  INCOMPATIBLE
+}
+
 // F1.1: nivel de confianza de la DERIVACION del texto extraido, establecido por el
 // trust gate de F0.5 al atar el artifact a su fuente autoritativa. NO es un booleano
 // "trusted": la asimetria entre TEXT y PDF es real, y borrarla dejaria al consumidor
@@ -488,6 +509,7 @@ model Credential {
   verificationRunInventoryItems   VerificationRunInventoryItem[]
   reusableSemanticInterpretations CredentialReusableSemanticInterpretation[]
   shareVerificationAuthorizations ShareVerificationCredentialAuthorization[]
+  profileEmbeddingComponents      FormativeProfileEmbeddingComponent[]
 
   @@index([issuerId])
   @@index([subjectUserId])
@@ -616,6 +638,8 @@ model AnalysisRunSource {
   // extraccion. Solo filas INCLUDED pueden apuntar aca.
   selectedByReasoningRunInventoryItems ReasoningRunInventoryItem[]
   selectedByVerificationRunInventoryItems VerificationRunInventoryItem[]
+  sourceEmbeddings                         SourceEmbedding[]
+  profileEmbeddingComponents               FormativeProfileEmbeddingComponent[]
 
   // F1.1 -- EXTRACTION SLOT. Ver evidence-reasoning-f0.6-persistence-design.md.
   //
@@ -668,12 +692,82 @@ model FormativeProfile {
   profileJson      Json?
   user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   sharingGrants    SharingGrant[]
+  embedding        FormativeProfileEmbedding?
 
   @@index([userId])
   @@index([generatedAt])
   @@index([isCurrent])
 }
+/// Embedding exitoso e inmutable de una fuente original congelada por un run.
+/// Nunca representa una falla: no hay estado mutable, placeholder ni vector
+/// cero. La unicidad del fingerprint permite reuso idempotente entre reintentos
+/// que dependen exactamente de la misma fuente y configuracion congelada.
+model SourceEmbedding {
+  id                          String                              @id @default(uuid())
+  analysisRunSourceId         String
+  sourceSha256                String
+  sourceArtifactBlobSha256    String?
+  dependencyFingerprintSha256 String                              @unique
+  modelId                     String
+  modelRevision               String
+  embeddingDimension          Int
+  sourcePolicyVersion         String
+  longTextPolicyVersion       String
+  longTextPolicySha256        String
+  vector                      Float[]
+  createdAt                   DateTime                            @default(now())
+  analysisRunSource           AnalysisRunSource                   @relation(fields: [analysisRunSourceId], references: [id], onDelete: Restrict)
+  profileComponents           FormativeProfileEmbeddingComponent[]
 
+  @@index([analysisRunSourceId])
+  @@index([sourceSha256])
+}
+
+/// Artefacto interno inmutable para UN snapshot de FormativeProfile. La
+/// composicion V1-E usa exclusivamente SourceEmbedding ya persistidos y no se
+/// expone mediante DTOs de perfil.
+model FormativeProfileEmbedding {
+  id                       String                               @id @default(uuid())
+  formativeProfileId       String                               @unique
+  modelId                  String
+  modelRevision            String
+  embeddingDimension       Int
+  sourcePolicyVersion      String
+  longTextPolicyVersion    String
+  longTextPolicySha256     String
+  compositionPolicyVersion String
+  vector                   Float[]                              @default([])
+  coverageStatus           ProfileEmbeddingCoverageStatus
+  totalExpectedSources     Int
+  includedSourceCount      Int
+  unavailableSourceCount   Int
+  createdAt                DateTime                             @default(now())
+  formativeProfile         FormativeProfile                     @relation(fields: [formativeProfileId], references: [id], onDelete: Cascade)
+  components               FormativeProfileEmbeddingComponent[]
+}
+
+/// Provenance de una componente incluida o excluida durante la composicion
+/// V1-E. No se expone por DTOs.
+model FormativeProfileEmbeddingComponent {
+  id                          String                          @id @default(uuid())
+  formativeProfileEmbeddingId String
+  ordinal                     Int
+  credentialId                String
+  analysisRunSourceId         String?
+  sourceEmbeddingId           String?
+  status                      ProfileEmbeddingComponentStatus
+  reasonCode                  String?
+  createdAt                   DateTime                        @default(now())
+  formativeProfileEmbedding   FormativeProfileEmbedding       @relation(fields: [formativeProfileEmbeddingId], references: [id], onDelete: Cascade)
+  credential                  Credential                      @relation(fields: [credentialId], references: [id], onDelete: Restrict)
+  analysisRunSource           AnalysisRunSource?              @relation(fields: [analysisRunSourceId], references: [id], onDelete: Restrict)
+  sourceEmbedding             SourceEmbedding?                @relation(fields: [sourceEmbeddingId], references: [id], onDelete: Restrict)
+
+  @@unique([formativeProfileEmbeddingId, ordinal])
+  @@index([credentialId])
+  @@index([analysisRunSourceId])
+  @@index([sourceEmbeddingId])
+}
 // PROVENANCE EXPLICITA (S8c1). Hasta ahora "mock vs real" solo se podia
 // inferir del contract address centinela `0x...0001`; eso alcanzaba mientras
 // la unica red real era Anvil, pero NO distingue mock / Anvil real / Base

@@ -76,6 +76,8 @@ function setup(options: {
   coverageStatus?: string;
   perSourceExtractionError?: Record<string, Error | undefined>;
   documentKind?: DocumentEvidenceKind;
+  sourceEmbeddingError?: Error;
+  enableSourceEmbeddings?: boolean;
 } = {}) {
   const calls = {
     updates: [] as any[], documents: [] as any[], reads: [] as string[],
@@ -84,7 +86,8 @@ function setup(options: {
     infoLogs: [] as string[], warnLogs: [] as string[],
     // Orden relativo extraccion/IA. Separado de `events` a proposito: esa lista
     // es la que los tests previos a F1.6 ya afirmaban, y no debe moverse.
-    order: [] as string[]
+    order: [] as string[],
+    sourceEmbeddingCalls: [] as string[]
   };
   const run = {
     id: 'run-1', credentialId: 'credential-1',
@@ -168,12 +171,26 @@ function setup(options: {
     perSource: options.perSourceExtractionError,
     order: calls.order
   });
+  const sourceEmbeddings = {
+    async generateForAnalysisRunSource(analysisRunSourceId: string) {
+      calls.sourceEmbeddingCalls.push(analysisRunSourceId);
+      calls.order.push('source_embedding');
+      if (options.sourceEmbeddingError) throw options.sourceEmbeddingError;
+      return {
+        status: 'generated',
+        analysisRunSourceId,
+        dependencyFingerprintSha256: 'd'.repeat(64),
+        reasonCode: null
+      };
+    }
+  };
   const service = new AnalysisRunExecutionService(
     prisma as never,
     ai as never,
     semantic as never,
     storage,
-    extraction.orchestrator as never
+    extraction.orchestrator as never,
+    ...(options.enableSourceEmbeddings ? [sourceEmbeddings as never] : [])
   );
   Object.defineProperty(service, 'logger', {
     value: {
@@ -804,6 +821,31 @@ test('F1.6 document: the successful run is unchanged and the slot gets populated
   // Y ademas se intento la extraccion, con la fila CONGELADA de este run.
   assert.deepEqual(extractionCalls, ['ars-doc-1']);
   assert.equal(calls.warnLogs.length, 0);
+});
+
+test('V1-D: source embedding runs only after semantic completion and is best-effort', async () => {
+  const { service, calls } = setup({ enableSourceEmbeddings: true });
+  const result = await service.executePendingDocumentRun('run-1');
+
+  assert.equal(result.status, AnalysisRunStatus.completed);
+  assert.deepEqual(calls.sourceEmbeddingCalls, ['ars-doc-1']);
+  assert.ok(
+    calls.order.indexOf('source_embedding') > calls.order.indexOf('ai'),
+    'embedding is post-semantic processing, never part of the semantic request'
+  );
+});
+
+test('V1-D: source embedding failure cannot fail an already persisted semantic run', async () => {
+  const { service, calls } = setup({
+    enableSourceEmbeddings: true,
+    sourceEmbeddingError: new Error('AI unavailable')
+  });
+  const result = await service.executePendingDocumentRun('run-1');
+
+  assert.equal(result.status, AnalysisRunStatus.completed);
+  assert.equal(calls.updates.at(-1).data.status, AnalysisRunStatus.completed);
+  assert.equal(calls.sourceEmbeddingCalls.length, 1);
+  assert.equal(calls.warnLogs.length, 1);
 });
 
 test('F1.6 document: extraction runs after source validation and before the AI call', async () => {
