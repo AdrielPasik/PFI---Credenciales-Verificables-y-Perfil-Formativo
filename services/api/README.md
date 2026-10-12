@@ -843,14 +843,20 @@ AI_SERVICE_TIMEOUT_MS=60000
 AI_SERVICE_AUTH_MODE=none
 ```
 
-`PROFILE_EMBEDDINGS_ENABLED=false` controla de manera independiente la
-generación best-effort de `SourceEmbedding`. Cuando está desactivado no se lee
-fuente, no se llama al AI service y no se persiste ningún vector. Cuando se
-habilite en un rollout futuro, NestJS solo puede enviar texto original ya
-verificado de `AnalysisRunSource`: `TextEvidence` con SHA comprobado o el
-artifact canónico del extraction slot PDF. El vector queda interno; no se
-incluye en DTOs, `SemanticAnalysis`, ni en el perfil estructurado. La
-composición de `FormativeProfileEmbedding` todavía no está implementada.
+`PROFILE_EMBEDDINGS_ENABLED=false` controla de manera independiente Profile
+Embedding V1. Cuando está desactivado no se lee fuente, no se llama al AI
+service, no se persiste `SourceEmbedding` y el rebuild estructurado del perfil
+no compone vectores. Cuando se habilita, NestJS sólo puede enviar texto
+original ya verificado de `AnalysisRunSource`: `TextEvidence` con SHA
+comprobado o el artifact canónico del extraction slot PDF.
+
+Después de que el perfil estructurado se confirma, la composición interna usa
+exclusivamente `SourceEmbedding` inmutables compatibles: media de fuentes
+únicas con igual peso y normalización L2. Las fuentes faltantes, inválidas o
+incompatibles producen cobertura `PARTIAL` o `UNAVAILABLE`; no disparan un
+backfill ni cambian áreas, skills, conceptos, confianza u horas. Los vectores
+quedan internos y no se incluyen en DTOs, `SemanticAnalysis` ni
+`FormativeProfile.profileJson`.
 
 Para demo/production, NestJS genera por request un JWT interno HS256, diferente
 del JWT humano y con TTL maximo de 300 segundos:

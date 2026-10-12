@@ -136,6 +136,23 @@ variable "ai_area_embeddings_enabled" {
   default     = false
 }
 
+variable "profile_embeddings_enabled" {
+  description = "Enables Profile Embedding V1 end-to-end. The same explicit false-by-default gate is passed to API persistence/composition and the private AI encoder."
+  type        = bool
+  default     = false
+}
+
+variable "profile_embeddings_model_dir" {
+  description = "Absolute, read-only in-image path of the frozen E5 snapshot used by Profile Embedding V1. This is not a host path and must match the AI image Dockerfile."
+  type        = string
+  default     = "/opt/pfi/models/multilingual-e5-small"
+
+  validation {
+    condition     = startswith(var.profile_embeddings_model_dir, "/")
+    error_message = "profile_embeddings_model_dir must be an absolute in-container path."
+  }
+}
+
 variable "manage_ecs_services" {
   description = <<-EOT
     Lifecycle gate for the persistent ECS service resources. Defaults to TRUE
