@@ -10,6 +10,7 @@ import { SourceExtractionOrchestrationService } from '../source-extraction/sourc
 import { SourceExtractionSlotService } from '../source-extraction/source-extraction-slot.service';
 import { SourceExtractionTrustGateService } from '../source-extraction/source-extraction-trust-gate.service';
 import { TextEvidenceModule } from '../text-evidence/text-evidence.module';
+import { SourceEmbeddingGenerationService } from '../profile-embedding/source-embedding-generation.service';
 import { AnalysisRunBackfillService } from './analysis-run-backfill.service';
 import { AnalysisRunExecutionService } from './analysis-run-execution.service';
 import { AnalysisRunService } from './analysis-run.service';
@@ -54,6 +55,9 @@ import { IssuerAnalysisRunService } from './issuer-analysis-run.service';
     SourceExtractionTrustGateService,
     SourceExtractionSlotService,
     SourceExtractionOrchestrationService,
+    // V1-D: artefactos de fuente inmutables y best-effort; la composicion de
+    // perfiles sigue fuera de este modulo y no se habilita en esta fase.
+    SourceEmbeddingGenerationService,
     AutomaticDocumentAnalysisService,
     AutomaticCourseTextAnalysisService,
     // C2b.4: usado dentro de este modulo por

@@ -57,6 +57,79 @@ test('getHealth reports an unavailable AI Service', async (context) => {
   );
 });
 
+test('profile embedding source sends the exact private request with the internal JWT', async (context) => {
+  configureJwtAiEnv(context);
+  context.mock.method(
+    globalThis,
+    'fetch',
+    async (url: string | URL | Request, init?: RequestInit) => {
+      assert.equal(url, 'http://ai.test/v1/profile-embedding/source');
+      assert.equal(init?.method, 'POST');
+      assert.deepEqual(JSON.parse(String(init?.body)), {
+        schemaVersion: 'profile_embedding_source_request_v1',
+        embeddingSource: 'fuente original canónica'
+      });
+      const authorization = new Headers(init?.headers).get('authorization');
+      assert.ok(authorization?.startsWith('Bearer '));
+      assert.equal(decodeJwtPayload(authorization as string).aud, 'traza-ai-service');
+      return jsonResponse(profileEmbeddingResponse());
+    }
+  );
+
+  const response = await new AiServiceClient().encodeProfileEmbeddingSource({
+    schemaVersion: 'profile_embedding_source_request_v1',
+    embeddingSource: 'fuente original canónica'
+  });
+  assert.equal(response.vector.length, 384);
+  assert.equal(response.modelId, 'intfloat/multilingual-e5-small');
+});
+
+test('profile embedding source rejects malformed vectors and frozen metadata drift', async (context) => {
+  configureAiEnv(context);
+  const invalidResponses = [
+    { vector: Array.from({ length: 383 }, () => 0) },
+    { vector: [2, ...Array.from({ length: 383 }, () => 0)] },
+    { modelId: 'other-model' },
+    { modelRevision: 'other-revision' },
+    { embeddingDimension: 385 },
+    { sourcePolicyVersion: 'other-policy' },
+    { longTextPolicyVersion: 'other-long-policy' },
+    { longTextPolicySha256: 'c'.repeat(64) },
+    { unexpected: true }
+  ];
+  let index = 0;
+  context.mock.method(globalThis, 'fetch', async () => {
+    const next = invalidResponses[index++];
+    return jsonResponse({ ...profileEmbeddingResponse(), ...next });
+  });
+
+  for (const _invalid of invalidResponses) {
+    await assert.rejects(
+      () =>
+        new AiServiceClient().encodeProfileEmbeddingSource({
+          schemaVersion: 'profile_embedding_source_request_v1',
+          embeddingSource: 'texto'
+        }),
+      (error: unknown) =>
+        error instanceof AiServiceClientError && error.code === 'invalid_response'
+    );
+  }
+});
+
+test('profile embedding source rejects a non-finite vector before persistence can see it', (context) => {
+  configureAiEnv(context);
+  const client = new AiServiceClient() as unknown as {
+    validateProfileEmbeddingSourceResponse(value: unknown): unknown;
+  };
+  const invalid = profileEmbeddingResponse();
+  invalid.vector[17] = Number.NaN;
+  assert.throws(
+    () => client.validateProfileEmbeddingSourceResponse(invalid),
+    (error: unknown) =>
+      error instanceof AiServiceClientError && error.code === 'invalid_response'
+  );
+});
+
 test('analyzePdf sends native multipart fields and file', async (context) => {
   configureAiEnv(context);
   await withTemporaryPdf(async (filePath) => {
@@ -607,6 +680,20 @@ function restoreEnv(name: string, value: string | undefined) {
     return;
   }
   process.env[name] = value;
+}
+
+function profileEmbeddingResponse() {
+  return {
+    schemaVersion: 'profile_embedding_source_response_v1',
+    vector: [1, ...Array.from({ length: 383 }, () => 0)],
+    modelId: 'intfloat/multilingual-e5-small',
+    modelRevision: 'fd1525a9fd15316a2d503bf26ab031a61d056e98',
+    embeddingDimension: 384,
+    sourcePolicyVersion: 'profile_embedding_source_v1',
+    longTextPolicyVersion: 'area_embedding_long_text_policy_v1',
+    longTextPolicySha256:
+      '1319e903ae818b2a0290dc3b952e7f4ca89a15621c4dc176b27fd0c7197f4cc1'
+  };
 }
 
 function jsonResponse(value: unknown, status = 200): Response {
