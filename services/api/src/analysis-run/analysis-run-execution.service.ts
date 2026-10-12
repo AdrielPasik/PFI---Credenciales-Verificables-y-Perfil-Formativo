@@ -4,6 +4,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
   ServiceUnavailableException
 } from '@nestjs/common';
 import {
@@ -28,6 +29,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { SemanticService } from '../semantic/semantic.service';
 import { SourceExtractionOrchestrationService } from '../source-extraction/source-extraction-orchestration.service';
+import { SourceEmbeddingGenerationService } from '../profile-embedding/source-embedding-generation.service';
 import { AnalysisRunExecutionSummary } from './analysis-run.types';
 
 type ClaimedRunBase = {
@@ -83,7 +85,11 @@ export class AnalysisRunExecutionService {
     @Inject(DOCUMENT_STORAGE_PORT)
     private readonly storage: DocumentStoragePort,
     // F1.6: unico consumidor productivo del pipeline de source extraction.
-    private readonly sourceExtraction: SourceExtractionOrchestrationService
+    private readonly sourceExtraction: SourceExtractionOrchestrationService,
+    // Opcional solo para compatibilidad con los dobles unitarios pre-V1-D. En
+    // el modulo productivo siempre se registra y se invoca despues del commit.
+    @Optional()
+    private readonly sourceEmbeddings?: SourceEmbeddingGenerationService
   ) {}
 
   async executePendingDocumentRun(
@@ -199,7 +205,7 @@ export class AnalysisRunExecutionService {
    * text, para no duplicar esa logica por cada modo.
    */
   private async executeAndComplete(
-    claimed: { id: string; credentialId: string; sourceCount: number },
+    claimed: ClaimedRunBase,
     executionStartedAt: number,
     initialStage: ExecutionStage,
     produceArtifact: (
@@ -241,6 +247,11 @@ export class AnalysisRunExecutionService {
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       );
 
+      // V1-D: estrictamente despues del commit que hizo duradero el artifact
+      // semantico y el estado completed. Esta fase es best-effort: no puede
+      // afectar el resumen ni el lifecycle ya exitoso del AnalysisRun.
+      await this.attemptSourceEmbeddingGeneration(claimed);
+
       return {
         runReference: claimed.id,
         credentialReference: claimed.credentialId,
@@ -275,6 +286,39 @@ export class AnalysisRunExecutionService {
         throw error;
       }
       throw new ServiceUnavailableException(safe.message);
+    }
+  }
+
+  private async attemptSourceEmbeddingGeneration(claimed: ClaimedRunBase): Promise<void> {
+    if (!this.sourceEmbeddings) return;
+
+    for (const analysisRunSourceId of claimed.analysisRunSourceIds) {
+      try {
+        const result = await this.sourceEmbeddings.generateForAnalysisRunSource(
+          analysisRunSourceId
+        );
+        this.logger.log(
+          JSON.stringify({
+            event: 'source_embedding_generation_finished',
+            analysisRunId: claimed.id,
+            analysisRunSourceId,
+            result: result.status,
+            reasonCode: result.reasonCode,
+            dependencyFingerprintPrefix: result.dependencyFingerprintSha256?.slice(0, 12) ?? null
+          })
+        );
+      } catch (error: unknown) {
+        // Ninguna excepcion de post-procesamiento cambia un run que ya esta
+        // completed; tampoco se serializa el mensaje por frontera de privacidad.
+        this.logger.warn(
+          JSON.stringify({
+            event: 'source_embedding_generation_failed',
+            analysisRunId: claimed.id,
+            analysisRunSourceId,
+            errorClass: this.safeErrorClass(error)
+          })
+        );
+      }
     }
   }
 

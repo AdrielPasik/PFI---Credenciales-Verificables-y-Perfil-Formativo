@@ -24,11 +24,23 @@ import {
   type AnalyzeTextWithAiMetadata,
   type AnalyzeTextWithAiSourceRefs,
   type BuildFormativeProfileWithAiInput,
+  type EncodeProfileEmbeddingSourceInput,
   type ExtractPdfSourceInput,
   type ExtractTextSourceInput,
   type ProposeObjectiveRequirementsWithAiInput
 } from './ai-service.types';
 import { AiServiceInternalAuth } from './ai-service-internal-auth';
+import {
+  PROFILE_EMBEDDING_DIMENSION,
+  PROFILE_EMBEDDING_LONG_TEXT_POLICY_SHA256,
+  PROFILE_EMBEDDING_LONG_TEXT_POLICY_VERSION,
+  PROFILE_EMBEDDING_MODEL_ID,
+  PROFILE_EMBEDDING_MODEL_REVISION,
+  PROFILE_EMBEDDING_REQUEST_SCHEMA_VERSION,
+  PROFILE_EMBEDDING_RESPONSE_SCHEMA_VERSION,
+  PROFILE_EMBEDDING_SOURCE_POLICY_VERSION,
+  type ProfileEmbeddingSourceResponse
+} from '../profile-embedding/profile-embedding.contract';
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 
@@ -62,6 +74,41 @@ export class AiServiceClient {
       status: health.status,
       service: health.service
     };
+  }
+
+  /**
+   * Codifica una fuente canónica ya autorizada por el backend.
+   *
+   * El borde valida la respuesta en forma cerrada: la persistencia nunca recibe
+   * un vector o metadata no verificados del AI service.
+   */
+  async encodeProfileEmbeddingSource(
+    input: EncodeProfileEmbeddingSourceInput
+  ): Promise<ProfileEmbeddingSourceResponse> {
+    if (input.schemaVersion !== PROFILE_EMBEDDING_REQUEST_SCHEMA_VERSION) {
+      throw new AiServiceClientError(
+        'Unsupported profile embedding source request schema.',
+        'configuration'
+      );
+    }
+    if (typeof input.embeddingSource !== 'string' || input.embeddingSource.trim().length === 0) {
+      throw new AiServiceClientError('embeddingSource is required.', 'configuration');
+    }
+
+    const response = await this.requestJson(
+      '/v1/profile-embedding/source',
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          schemaVersion: PROFILE_EMBEDDING_REQUEST_SCHEMA_VERSION,
+          embeddingSource: input.embeddingSource
+        })
+      },
+      true
+    );
+
+    return this.validateProfileEmbeddingSourceResponse(response);
   }
 
   async analyzePdf(input: AnalyzePdfWithAiInput): Promise<unknown> {
@@ -881,6 +928,71 @@ export class AiServiceClient {
       );
     }
     return value as Record<string, unknown>;
+  }
+
+  private validateProfileEmbeddingSourceResponse(
+    value: unknown
+  ): ProfileEmbeddingSourceResponse {
+    const response = this.expectRecord(value, 'Profile embedding source response');
+    const expectedKeys = [
+      'schemaVersion',
+      'vector',
+      'modelId',
+      'modelRevision',
+      'embeddingDimension',
+      'sourcePolicyVersion',
+      'longTextPolicyVersion',
+      'longTextPolicySha256'
+    ].sort();
+    const actualKeys = Object.keys(response).sort();
+    if (
+      actualKeys.length !== expectedKeys.length ||
+      actualKeys.some((key, index) => key !== expectedKeys[index])
+    ) {
+      throw new AiServiceClientError(
+        'Profile embedding source response has an invalid shape.',
+        'invalid_response'
+      );
+    }
+
+    if (
+      response.schemaVersion !== PROFILE_EMBEDDING_RESPONSE_SCHEMA_VERSION ||
+      response.modelId !== PROFILE_EMBEDDING_MODEL_ID ||
+      response.modelRevision !== PROFILE_EMBEDDING_MODEL_REVISION ||
+      response.embeddingDimension !== PROFILE_EMBEDDING_DIMENSION ||
+      response.sourcePolicyVersion !== PROFILE_EMBEDDING_SOURCE_POLICY_VERSION ||
+      response.longTextPolicyVersion !== PROFILE_EMBEDDING_LONG_TEXT_POLICY_VERSION ||
+      response.longTextPolicySha256 !== PROFILE_EMBEDDING_LONG_TEXT_POLICY_SHA256 ||
+      !Array.isArray(response.vector) ||
+      response.vector.length !== PROFILE_EMBEDDING_DIMENSION ||
+      !response.vector.every((entry) => typeof entry === 'number' && Number.isFinite(entry))
+    ) {
+      throw new AiServiceClientError(
+        'Profile embedding source response violates the frozen contract.',
+        'invalid_response'
+      );
+    }
+
+    const norm = Math.sqrt(
+      response.vector.reduce((sum, entry) => sum + (entry as number) ** 2, 0)
+    );
+    if (!Number.isFinite(norm) || Math.abs(norm - 1) > 1e-5) {
+      throw new AiServiceClientError(
+        'Profile embedding source response vector is not L2 normalized.',
+        'invalid_response'
+      );
+    }
+
+    return {
+      schemaVersion: PROFILE_EMBEDDING_RESPONSE_SCHEMA_VERSION,
+      vector: Object.freeze([...response.vector]) as readonly number[],
+      modelId: PROFILE_EMBEDDING_MODEL_ID,
+      modelRevision: PROFILE_EMBEDDING_MODEL_REVISION,
+      embeddingDimension: PROFILE_EMBEDDING_DIMENSION,
+      sourcePolicyVersion: PROFILE_EMBEDDING_SOURCE_POLICY_VERSION,
+      longTextPolicyVersion: PROFILE_EMBEDDING_LONG_TEXT_POLICY_VERSION,
+      longTextPolicySha256: PROFILE_EMBEDDING_LONG_TEXT_POLICY_SHA256
+    };
   }
 
   private isAbortError(error: unknown): boolean {
