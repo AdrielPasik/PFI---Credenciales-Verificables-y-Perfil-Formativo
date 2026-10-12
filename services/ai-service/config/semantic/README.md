@@ -11,6 +11,7 @@ Supported optional files:
 - skill_evidence_patterns.json
 - concept_canonical_patterns.json
 - family_coverage_gate.json
+- area_embedding_references_v1.json
 
 Merge behavior:
 - Maps are merged by key.
@@ -51,3 +52,10 @@ Examples:
   "telecom_family": {"min_hits": 3, "min_ratio": 0.35}
 }
 ```
+
+## area_embedding_references_v1.json
+
+Versioned, reviewable semantic prototypes for the existing Scope areas. They
+must cover exactly the active area profiles, keep their existing labels, and be
+reviewed independently from any Development or Holdout examples. They are only
+used when the optional local embedding feature is enabled.

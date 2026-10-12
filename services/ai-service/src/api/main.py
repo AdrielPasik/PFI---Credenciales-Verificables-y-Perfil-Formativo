@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Annotated, Any
+from typing import Annotated, Any, AsyncIterator
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
 
 from src.api.error_envelope import (
@@ -91,10 +93,46 @@ from src.api.source_extraction_transport import (
     read_upload_bytes,
 )
 from src.profile_builder.artifact_loader import InvalidArtifactError
+from src.area_embedding_reranker import AreaEmbeddingSettings, load_settings, prewarm_area_embeddings
+
+
+@dataclass
+class EmbeddingReadiness:
+    """Internal readiness state; it intentionally contains no model details."""
+
+    settings: AreaEmbeddingSettings
+    ready: bool
+
+
+def _embedding_settings_for_startup() -> AreaEmbeddingSettings:
+    try:
+        return load_settings()
+    except ValueError:
+        return AreaEmbeddingSettings(configuration_error="invalid_embedding_configuration")
+
+
+@asynccontextmanager
+async def embedding_runtime_lifespan(application: FastAPI) -> AsyncIterator[None]:
+    readiness: EmbeddingReadiness = application.state.embedding_readiness
+    if readiness.settings.enabled:
+        try:
+            prewarm_area_embeddings(readiness.settings)
+        except Exception:
+            readiness.ready = False
+        else:
+            readiness.ready = True
+    yield
 
 
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "pfi-ai-service"}
+
+
+def ready(request: Request) -> Any:
+    readiness: EmbeddingReadiness = request.app.state.embedding_readiness
+    if readiness.ready:
+        return {"status": "ready"}
+    return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content={"status": "not_ready"})
 
 
 def formative_profile_build(payload: FormativeProfileBuildRequest) -> dict[str, Any]:
@@ -536,15 +574,22 @@ def create_app(
     internal_auth_settings: InternalAuthSettings | None = None,
 ) -> FastAPI:
     settings = internal_auth_settings or load_internal_auth_settings()
+    embedding_settings = _embedding_settings_for_startup()
     application = FastAPI(
         title="PFI AI Service",
         version="0.1.0",
         description="HTTP adapter over the existing semantic and formative-profile pipelines.",
+        lifespan=embedding_runtime_lifespan,
     )
     application.state.internal_auth_settings = settings
+    application.state.embedding_readiness = EmbeddingReadiness(
+        settings=embedding_settings,
+        ready=not embedding_settings.enabled and embedding_settings.configuration_error is None,
+    )
     auth_dependency = Depends(require_internal_service)
 
     application.add_api_route("/health", health, methods=["GET"])
+    application.add_api_route("/ready", ready, methods=["GET"])
     application.add_api_route(
         "/v1/formative-profile/build",
         formative_profile_build,

@@ -96,15 +96,15 @@ variable "api_task_memory" {
 }
 
 variable "ai_task_cpu" {
-  description = "Fargate CPU units for the AI task (512 = 0.5 vCPU)."
+  description = "Fargate CPU units for the AI task (1024 = 1 vCPU; required by validated local E5 runtime capacity evidence)."
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "ai_task_memory" {
-  description = "Fargate memory (MiB) for the AI task."
+  description = "Fargate memory (MiB) for the AI task (2048 MiB; required by validated local E5 runtime capacity evidence)."
   type        = number
-  default     = 1024
+  default     = 2048
 }
 
 variable "task_cpu_architecture" {
@@ -130,13 +130,29 @@ variable "ai_desired_count" {
   default     = 1
 }
 
+variable "ai_area_embeddings_enabled" {
+  description = "Enables the validated area-embedding reranker in the AI task definition. Keep false for the initial runtime deployment and lexical smoke."
+  type        = bool
+  default     = false
+}
+
+variable "manage_ecs_services" {
+  description = <<-EOT
+    Lifecycle gate for the persistent ECS service resources. Defaults to TRUE
+    so a production state cannot propose deleting API and Cloud Map-backed AI
+    services solely because an ignored local tfvars file is absent. Set FALSE
+    only in a separate bootstrap state before these services have ever existed.
+  EOT
+  type        = bool
+  default     = true
+}
+
 variable "enable_services" {
   description = <<-EOT
-    Gate for the two ECS services. FALSE in Block 1A: task definitions, roles,
-    log groups, target group and Cloud Map entries are created, but nothing runs,
-    so no Fargate or task public IPv4 cost is incurred and no image is required
-    yet. Block 1B flips this to true after the images exist in ECR and after every
-    SSM parameter listed in README.md has been created out of band.
+    Capacity gate for the ECS services. FALSE preserves their managed resource
+    identities while setting desired_count to zero, so no Fargate task or task
+    public IPv4 is allocated. TRUE applies api_desired_count and
+    ai_desired_count after images and every required SSM parameter exist.
   EOT
   type        = bool
   default     = false

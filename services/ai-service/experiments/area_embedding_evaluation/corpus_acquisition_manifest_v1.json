@@ -1,0 +1,4425 @@
+{
+  "acquisitionStatus": "PLANNING_ONLY_NO_TEXT_ACQUIRED_NO_SPLIT_NO_GOLD",
+  "candidateGroupCount": 120,
+  "candidates": [
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-001",
+      "catalogCourses": [
+        {
+          "code": "3.4.227",
+          "title": "Algoritmos y Estructuras de Datos I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "algoritmos y estructuras de datos i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Algoritmos y Estructuras de Datos I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-002",
+      "catalogCourses": [
+        {
+          "code": "3.4.229",
+          "title": "Algoritmos y Estructuras de Datos II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "algoritmos y estructuras de datos ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Algoritmos y Estructuras de Datos II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-003",
+      "catalogCourses": [
+        {
+          "code": "3.4.231",
+          "title": "Diseño y Análisis de Algoritmos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "diseno y analisis de algoritmos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Diseño y Análisis de Algoritmos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-004",
+      "catalogCourses": [
+        {
+          "code": "3.4.094",
+          "title": "Arquitectura de Aplicaciones"
+        },
+        {
+          "code": "3.4094",
+          "title": "Arquitectura de Aplicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "arquitectura de aplicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Arquitectura de Aplicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-005",
+      "catalogCourses": [
+        {
+          "code": "3.4.072",
+          "title": "Arquitectura de Computadores"
+        },
+        {
+          "code": "3.4072",
+          "title": "Arquitectura de Computadores"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "arquitectura de computadores",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Arquitectura de Computadores"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-006",
+      "catalogCourses": [
+        {
+          "code": "3.4.103",
+          "title": "Bases de Datos"
+        },
+        {
+          "code": "3.4103",
+          "title": "Bases de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bases de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bases de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-007",
+      "catalogCourses": [
+        {
+          "code": "3.4.209",
+          "title": "Ingeniería de Datos I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ingenieria de datos i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ingeniería de Datos I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-008",
+      "catalogCourses": [
+        {
+          "code": "3.4.213",
+          "title": "Ingeniería de Datos II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ingenieria de datos ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ingeniería de Datos II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-009",
+      "catalogCourses": [
+        {
+          "code": "3.4.214",
+          "title": "Ingeniería de Software"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ingenieria de software",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ingeniería de Software"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-010",
+      "catalogCourses": [
+        {
+          "code": "3.4073",
+          "title": "Ingeniería de Requerimientos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ingenieria de requerimientos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ingeniería de Requerimientos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-011",
+      "catalogCourses": [
+        {
+          "code": "3.4087",
+          "title": "Aplicaciones Distribuidas"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "aplicaciones distribuidas",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Aplicaciones Distribuidas"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-012",
+      "catalogCourses": [
+        {
+          "code": "3.4090",
+          "title": "Integración de Aplicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "integracion de aplicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Integración de Aplicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-013",
+      "catalogCourses": [
+        {
+          "code": "3.4.075",
+          "title": "Sistemas Operativos"
+        },
+        {
+          "code": "3.4075",
+          "title": "Sistemas Operativos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "sistemas operativos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Sistemas Operativos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-014",
+      "catalogCourses": [
+        {
+          "code": "3.4.228",
+          "title": "Testing de Aplicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "testing de aplicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Testing de Aplicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-015",
+      "catalogCourses": [
+        {
+          "code": "3.4.175",
+          "title": "Arquitectura de Computadores y Sistemas Operativos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "arquitectura de computadores y sistemas operativos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Arquitectura de Computadores y Sistemas Operativos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "software engineering and computer architecture",
+      "candidateGroupId": "ua-de-area-eval-016",
+      "catalogCourses": [
+        {
+          "code": "3.4.101",
+          "title": "Arquitectura y Sistemas Operativos"
+        },
+        {
+          "code": "3.4101",
+          "title": "Arquitectura y Sistemas Operativos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "software_systems",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "arquitectura y sistemas operativos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Arquitectura y Sistemas Operativos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-017",
+      "catalogCourses": [
+        {
+          "code": "3.4.096",
+          "title": "Inteligencia Artificial"
+        },
+        {
+          "code": "3.4.193",
+          "title": "Inteligencia Artificial"
+        },
+        {
+          "code": "3.4096",
+          "title": "Inteligencia Artificial"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "inteligencia artificial",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Inteligencia Artificial"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-018",
+      "catalogCourses": [
+        {
+          "code": "3.4.257",
+          "title": "Introducción a la Inteligencia Artificial"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "introduccion a la inteligencia artificial",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Introducción a la Inteligencia Artificial"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-019",
+      "catalogCourses": [
+        {
+          "code": "3.4.263",
+          "title": "Machine Learning I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "machine learning i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Machine Learning I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-020",
+      "catalogCourses": [
+        {
+          "code": "3.4.267",
+          "title": "Machine Learning II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "machine learning ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Machine Learning II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-021",
+      "catalogCourses": [
+        {
+          "code": "3.4.268",
+          "title": "Deep Learning: Redes Neuronales Avanzadas"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "deep learning redes neuronales avanzadas",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Deep Learning: Redes Neuronales Avanzadas"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-022",
+      "catalogCourses": [
+        {
+          "code": "3.4.217",
+          "title": "Ciencia de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ciencia de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ciencia de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-023",
+      "catalogCourses": [
+        {
+          "code": "3.4.256",
+          "title": "Introducción a la Ciencia de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "introduccion a la ciencia de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Introducción a la Ciencia de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-024",
+      "catalogCourses": [
+        {
+          "code": "3.4.258",
+          "title": "Python para Ciencia de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "python para ciencia de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Python para Ciencia de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-025",
+      "catalogCourses": [
+        {
+          "code": "3.4.259",
+          "title": "Inferencia y Estimación"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "inferencia y estimacion",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Inferencia y Estimación"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-026",
+      "catalogCourses": [
+        {
+          "code": "3.4.265",
+          "title": "Analíticas para Sistemas de Información Geográficos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "analiticas para sistemas de informacion geograficos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Analíticas para Sistemas de Información Geográficos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-027",
+      "catalogCourses": [
+        {
+          "code": "3.4.266",
+          "title": "Bases de Datos Avanzadas"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bases de datos avanzadas",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bases de Datos Avanzadas"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IA, machine learning, data analysis, and data platforms",
+      "candidateGroupId": "ua-de-area-eval-028",
+      "catalogCourses": [
+        {
+          "code": "3.4.261",
+          "title": "Bases de Datos Relacionales"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        }
+      ],
+      "disciplinaryFamily": "data_ai",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bases de datos relacionales",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bases de Datos Relacionales"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-029",
+      "catalogCourses": [
+        {
+          "code": "3.4.230",
+          "title": "Redes de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "redes de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Redes de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-030",
+      "catalogCourses": [
+        {
+          "code": "3.4.212",
+          "title": "Teleinformática y Redes"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "teleinformatica y redes",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Teleinformática y Redes"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-031",
+      "catalogCourses": [
+        {
+          "code": "3.4081",
+          "title": "Teleinformática y Redes I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "teleinformatica y redes i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Teleinformática y Redes I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-032",
+      "catalogCourses": [
+        {
+          "code": "3.4085",
+          "title": "Teleinformática y Redes II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "teleinformatica y redes ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Teleinformática y Redes II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-033",
+      "catalogCourses": [
+        {
+          "code": "3.4134",
+          "title": "Teleinformática y Redes de Datos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "teleinformatica y redes de datos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Teleinformática y Redes de Datos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-034",
+      "catalogCourses": [
+        {
+          "code": "3.4.078",
+          "title": "Fundamentos de Telecomunicaciones"
+        },
+        {
+          "code": "3.4078",
+          "title": "Fundamentos de Telecomunicaciones"
+        },
+        {
+          "code": "3.4133",
+          "title": "Fundamentos de Telecomunicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "fundamentos de telecomunicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Fundamentos de Telecomunicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-035",
+      "catalogCourses": [
+        {
+          "code": "3.3.099",
+          "title": "Comunicación Satelital"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "comunicacion satelital",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Comunicación Satelital"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-036",
+      "catalogCourses": [
+        {
+          "code": "3.3.094",
+          "title": "Diseño y Simulación de Sistemas de Comunicación"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "diseno y simulacion de sistemas de comunicacion",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Diseño y Simulación de Sistemas de Comunicación"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-037",
+      "catalogCourses": [
+        {
+          "code": "3.3.097",
+          "title": "Planificación de las Telecomunicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "planificacion de las telecomunicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Planificación de las Telecomunicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-038",
+      "catalogCourses": [
+        {
+          "code": "3.3.085",
+          "title": "Seguridad en las Comunicaciones"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "seguridad en las comunicaciones",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Seguridad en las Comunicaciones"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-039",
+      "catalogCourses": [
+        {
+          "code": "3.3.098",
+          "title": "Sistema de Enlace"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "sistema de enlace",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Sistema de Enlace"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "IP infrastructure, network services, signal/channel, integration, and transport/access",
+      "candidateGroupId": "ua-de-area-eval-040",
+      "catalogCourses": [
+        {
+          "code": "3.3.081",
+          "title": "Telecomunicaciones I"
+        },
+        {
+          "code": "3.3081",
+          "title": "Telecomunicaciones I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "networking_telecommunications",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "telecomunicaciones i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Telecomunicaciones I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-041",
+      "catalogCourses": [
+        {
+          "code": "3.1179",
+          "title": "Diseño de Circuitos y Aplicaciones I"
+        },
+        {
+          "code": "3.3.129",
+          "title": "Diseño de Circuitos y Aplicaciones I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "diseno de circuitos y aplicaciones i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Diseño de Circuitos y Aplicaciones I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-042",
+      "catalogCourses": [
+        {
+          "code": "3.3.132",
+          "title": "Diseño de Circuitos y Aplicaciones II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "diseno de circuitos y aplicaciones ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Diseño de Circuitos y Aplicaciones II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-043",
+      "catalogCourses": [
+        {
+          "code": "3.3.134",
+          "title": "Electrónica de Potencia"
+        },
+        {
+          "code": "3.3154",
+          "title": "Electrónica de Potencia"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "electronica de potencia",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Electrónica de Potencia"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-044",
+      "catalogCourses": [
+        {
+          "code": "3.3074",
+          "title": "Electrónica Básica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "electronica basica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Electrónica Básica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-045",
+      "catalogCourses": [
+        {
+          "code": "3.3.068",
+          "title": "Fundamentos de Electrónica"
+        },
+        {
+          "code": "3.3068",
+          "title": "Fundamentos de Electrónica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "fundamentos de electronica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Fundamentos de Electrónica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-046",
+      "catalogCourses": [
+        {
+          "code": "3.3126",
+          "title": "Laboratorio de Mediciones Electrónicas"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "laboratorio de mediciones electronicas",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Laboratorio de Mediciones Electrónicas"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-047",
+      "catalogCourses": [
+        {
+          "code": "3.3.127",
+          "title": "Sistemas Embebidos"
+        },
+        {
+          "code": "3.3127",
+          "title": "Sistemas Embebidos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "sistemas embebidos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Sistemas Embebidos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-048",
+      "catalogCourses": [
+        {
+          "code": "3.3124",
+          "title": "Tecnología de los Materiales Electrónicos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia de los materiales electronicos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología de los Materiales Electrónicos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-049",
+      "catalogCourses": [
+        {
+          "code": "3.3089",
+          "title": "Hidráulica y Neumática Industrial"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "hidraulica y neumatica industrial",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Hidráulica y Neumática Industrial"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-050",
+      "catalogCourses": [
+        {
+          "code": "3.3.073",
+          "title": "Mecánica Avanzada"
+        },
+        {
+          "code": "3.3073",
+          "title": "Mecánica Avanzada"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "mecanica avanzada",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Mecánica Avanzada"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-051",
+      "catalogCourses": [
+        {
+          "code": "3.3091",
+          "title": "Mecánica Computacional"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "mecanica computacional",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Mecánica Computacional"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-052",
+      "catalogCourses": [
+        {
+          "code": "3.3.088",
+          "title": "Mecánica del Sólido"
+        },
+        {
+          "code": "3.3088",
+          "title": "Mecánica del Sólido"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "mecanica del solido",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Mecánica del Sólido"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-053",
+      "catalogCourses": [
+        {
+          "code": "3.3090",
+          "title": "Generación Eléctrica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "generacion electrica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Generación Eléctrica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-054",
+      "catalogCourses": [
+        {
+          "code": "3.3.177",
+          "title": "Generación y Distribución Eléctrica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "generacion y distribucion electrica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Generación y Distribución Eléctrica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-055",
+      "catalogCourses": [
+        {
+          "code": "3.3.095",
+          "title": "Tecnología Mecánica y Mecanismos I"
+        },
+        {
+          "code": "3.3095",
+          "title": "Tecnología Mecánica y Mecanismos I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia mecanica y mecanismos i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología Mecánica y Mecanismos I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "electronic circuits and devices; electrical, mechanical, and fluid systems",
+      "candidateGroupId": "ua-de-area-eval-056",
+      "catalogCourses": [
+        {
+          "code": "3.3.103",
+          "title": "Tecnología Mecánica y Mecanismos II"
+        },
+        {
+          "code": "3.3103",
+          "title": "Tecnología Mecánica y Mecanismos II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        }
+      ],
+      "disciplinaryFamily": "electronics_mechanics",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia mecanica y mecanismos ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología Mecánica y Mecanismos II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-057",
+      "catalogCourses": [
+        {
+          "code": "3.3.064",
+          "title": "Costos Industriales"
+        },
+        {
+          "code": "3.3.109",
+          "title": "Costos Industriales"
+        },
+        {
+          "code": "3.3064",
+          "title": "Costos Industriales"
+        },
+        {
+          "code": "3.3109",
+          "title": "Costos Industriales"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "costos industriales",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Costos Industriales"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-058",
+      "catalogCourses": [
+        {
+          "code": "3.3.161",
+          "title": "Costos y Sistemas Contables"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "costos y sistemas contables",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Costos y Sistemas Contables"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-059",
+      "catalogCourses": [
+        {
+          "code": "3.3.193",
+          "title": "Análisis Financiero"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "analisis financiero",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Análisis Financiero"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-060",
+      "catalogCourses": [
+        {
+          "code": "3.3009",
+          "title": "Estudio del Trabajo"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "estudio del trabajo",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Estudio del Trabajo"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-061",
+      "catalogCourses": [
+        {
+          "code": "3.3.184",
+          "title": "Gestión de Operaciones I: Organización de la Producción"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "gestion de operaciones i organizacion de la produccion",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Gestión de Operaciones I: Organización de la Producción"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-062",
+      "catalogCourses": [
+        {
+          "code": "3.3.186",
+          "title": "Gestión de Operaciones II: Análisis de Productividad"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "gestion de operaciones ii analisis de productividad",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Gestión de Operaciones II: Análisis de Productividad"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-063",
+      "catalogCourses": [
+        {
+          "code": "3.3.189",
+          "title": "Gestión de Operaciones III: Programación y Control"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "gestion de operaciones iii programacion y control",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Gestión de Operaciones III: Programación y Control"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-064",
+      "catalogCourses": [
+        {
+          "code": "3.3078",
+          "title": "Logística Industrial"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "logistica industrial",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Logística Industrial"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-065",
+      "catalogCourses": [
+        {
+          "code": "3.3.185",
+          "title": "Modelado y Simulación de Procesos I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "modelado y simulacion de procesos i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Modelado y Simulación de Procesos I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-066",
+      "catalogCourses": [
+        {
+          "code": "3.3.188",
+          "title": "Modelado y Simulación de Procesos II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "modelado y simulacion de procesos ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Modelado y Simulación de Procesos II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-067",
+      "catalogCourses": [
+        {
+          "code": "3.3111",
+          "title": "Procesos Industriales"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "procesos industriales",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Procesos Industriales"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cost accounting, industrial economic evaluation, and productive process cost management",
+      "candidateGroupId": "ua-de-area-eval-068",
+      "catalogCourses": [
+        {
+          "code": "3.3.198",
+          "title": "Tecnologías de Procesos Industriales"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        }
+      ],
+      "disciplinaryFamily": "industrial_operations",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologias de procesos industriales",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnologías de Procesos Industriales"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-069",
+      "catalogCourses": [
+        {
+          "code": "3.2.060",
+          "title": "Tecnología de Alimentos I"
+        },
+        {
+          "code": "3.2060",
+          "title": "Tecnología de Alimentos I"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia de alimentos i",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología de Alimentos I"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-070",
+      "catalogCourses": [
+        {
+          "code": "3.2.061",
+          "title": "Tecnología de Alimentos II"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia de alimentos ii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología de Alimentos II"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-071",
+      "catalogCourses": [
+        {
+          "code": "3.2.062",
+          "title": "Tecnología de Alimentos III"
+        },
+        {
+          "code": "3.2062",
+          "title": "Tecnología de Alimentos III"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia de alimentos iii",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología de Alimentos III"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-072",
+      "catalogCourses": [
+        {
+          "code": "3.2.057",
+          "title": "Operaciones Unitarias"
+        },
+        {
+          "code": "3.2057",
+          "title": "Operaciones Unitarias"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "operaciones unitarias",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Operaciones Unitarias"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-073",
+      "catalogCourses": [
+        {
+          "code": "3.2.065",
+          "title": "Procesamiento de Alimentos"
+        },
+        {
+          "code": "3.2065",
+          "title": "Procesamiento de Alimentos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "procesamiento de alimentos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Procesamiento de Alimentos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-074",
+      "catalogCourses": [
+        {
+          "code": "3.2.199",
+          "title": "Procesos de Conservación de Alimentos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "procesos de conservacion de alimentos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Procesos de Conservación de Alimentos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-075",
+      "catalogCourses": [
+        {
+          "code": "3.2.063",
+          "title": "Materiales y Técnicas de Envasado"
+        },
+        {
+          "code": "3.2063",
+          "title": "Materiales y Técnicas de Envasado"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "materiales y tecnicas de envasado",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Materiales y Técnicas de Envasado"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-076",
+      "catalogCourses": [
+        {
+          "code": "3.2.064",
+          "title": "Calidad Alimentaria"
+        },
+        {
+          "code": "3.2064",
+          "title": "Calidad Alimentaria"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "calidad alimentaria",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Calidad Alimentaria"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-077",
+      "catalogCourses": [
+        {
+          "code": "3.2.021",
+          "title": "Microbiología de los Alimentos"
+        },
+        {
+          "code": "3.2021",
+          "title": "Microbiología de los Alimentos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "microbiologia de los alimentos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Microbiología de los Alimentos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-078",
+      "catalogCourses": [
+        {
+          "code": "3.2.022",
+          "title": "Laboratorio de Microbiología de los Alimentos"
+        },
+        {
+          "code": "3.2022",
+          "title": "Laboratorio de Microbiología de los Alimentos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "laboratorio de microbiologia de los alimentos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Laboratorio de Microbiología de los Alimentos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-079",
+      "catalogCourses": [
+        {
+          "code": "3.2.058",
+          "title": "Bromatología"
+        },
+        {
+          "code": "3.2058",
+          "title": "Bromatología"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bromatologia",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bromatología"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "food product technology, process operations, and integrated industrial food systems",
+      "candidateGroupId": "ua-de-area-eval-080",
+      "catalogCourses": [
+        {
+          "code": "3.2.197",
+          "title": "Análisis Sensorial"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        }
+      ],
+      "disciplinaryFamily": "food_science",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "analisis sensorial",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Análisis Sensorial"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-081",
+      "catalogCourses": [
+        {
+          "code": "3.2.100",
+          "title": "Análisis Computacional de Secuencias"
+        },
+        {
+          "code": "3.2100",
+          "title": "Análisis Computacional de Secuencias"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "analisis computacional de secuencias",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Análisis Computacional de Secuencias"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-082",
+      "catalogCourses": [
+        {
+          "code": "3.2.185",
+          "title": "Introducción a la Bioinformática"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "introduccion a la bioinformatica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Introducción a la Bioinformática"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-083",
+      "catalogCourses": [
+        {
+          "code": "3.2.101",
+          "title": "Genómica Funcional"
+        },
+        {
+          "code": "3.2101",
+          "title": "Genómica Funcional"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "genomica funcional",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Genómica Funcional"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-084",
+      "catalogCourses": [
+        {
+          "code": "3.2.187",
+          "title": "Biología de Sistemas e Ingeniería Metabólica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "biologia de sistemas e ingenieria metabolica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Biología de Sistemas e Ingeniería Metabólica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-085",
+      "catalogCourses": [
+        {
+          "code": "3.4.104",
+          "title": "Computación de Alto Rendimiento"
+        },
+        {
+          "code": "3.4104",
+          "title": "Computación de Alto Rendimiento"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "computacion de alto rendimiento",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Computación de Alto Rendimiento"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-086",
+      "catalogCourses": [
+        {
+          "code": "3.1.028",
+          "title": "Bioestadística Avanzada"
+        },
+        {
+          "code": "3.1028",
+          "title": "Bioestadística Avanzada"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bioestadistica avanzada",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bioestadística Avanzada"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-087",
+      "catalogCourses": [
+        {
+          "code": "3.2.102",
+          "title": "Proyecto Final de Bioinformática"
+        },
+        {
+          "code": "3.2102",
+          "title": "Proyecto Final de Bioinformática"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "proyecto final de bioinformatica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Proyecto Final de Bioinformática"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-088",
+      "catalogCourses": [
+        {
+          "code": "3.2.166",
+          "title": "Agrobiotecnología"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "agrobiotecnologia",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Agrobiotecnología"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-089",
+      "catalogCourses": [
+        {
+          "code": "3.2.088",
+          "title": "Bioinformática"
+        },
+        {
+          "code": "3.2088",
+          "title": "Bioinformática"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "bioinformatica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Bioinformática"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-090",
+      "catalogCourses": [
+        {
+          "code": "3.2.095",
+          "title": "Genómica y Proteómica"
+        },
+        {
+          "code": "3.2095",
+          "title": "Genómica y Proteómica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "genomica y proteomica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Genómica y Proteómica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-091",
+      "catalogCourses": [
+        {
+          "code": "3.2.096",
+          "title": "Industrias y Procesos Biotecnológicos"
+        },
+        {
+          "code": "3.2096",
+          "title": "Industrias y Procesos Biotecnológicos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "industrias y procesos biotecnologicos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Industrias y Procesos Biotecnológicos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-092",
+      "catalogCourses": [
+        {
+          "code": "3.2.167",
+          "title": "Laboratorio de Bioprocesos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "laboratorio de bioprocesos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Laboratorio de Bioprocesos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-093",
+      "catalogCourses": [
+        {
+          "code": "3.2.097",
+          "title": "Nanobiotecnología"
+        },
+        {
+          "code": "3.2097",
+          "title": "Nanobiotecnología"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "nanobiotecnologia",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Nanobiotecnología"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "bioinformatics, molecular biology, and biotechnology process boundaries",
+      "candidateGroupId": "ua-de-area-eval-094",
+      "catalogCourses": [
+        {
+          "code": "3.2.168",
+          "title": "Laboratorio de Diagnóstico y Ciencias Forenses"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        }
+      ],
+      "disciplinaryFamily": "life_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "laboratorio de diagnostico y ciencias forenses",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Laboratorio de Diagnóstico y Ciencias Forenses"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-095",
+      "catalogCourses": [
+        {
+          "code": "3.5.040",
+          "title": "Biodiversidad y Ambiente"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "biodiversidad y ambiente",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Biodiversidad y Ambiente"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-096",
+      "catalogCourses": [
+        {
+          "code": "3.5.039",
+          "title": "Ecosistemas Acuáticos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "ecosistemas acuaticos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Ecosistemas Acuáticos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-097",
+      "catalogCourses": [
+        {
+          "code": "3.5.048",
+          "title": "Evaluación de Impacto Ambiental"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "evaluacion de impacto ambiental",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Evaluación de Impacto Ambiental"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-098",
+      "catalogCourses": [
+        {
+          "code": "3.5.051",
+          "title": "Gestión Ambiental Urbana y Periurbana"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "gestion ambiental urbana y periurbana",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Gestión Ambiental Urbana y Periurbana"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-099",
+      "catalogCourses": [
+        {
+          "code": "3.5.055",
+          "title": "Recursos Hídricos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "recursos hidricos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Recursos Hídricos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-100",
+      "catalogCourses": [
+        {
+          "code": "3.5.049",
+          "title": "Sistemas de Remediación, Manejo y Conservación de Suelos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "10215",
+          "name": "Licenciatura en Gestión Ambiental"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "sistemas de remediacion manejo y conservacion de suelos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Sistemas de Remediación, Manejo y Conservación de Suelos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-101",
+      "catalogCourses": [
+        {
+          "code": "3.5.014",
+          "title": "Agricultura de Precisión"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "agricultura de precision",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Agricultura de Precisión"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-102",
+      "catalogCourses": [
+        {
+          "code": "3.5.028",
+          "title": "Agroindustrias"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "agroindustrias",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Agroindustrias"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-103",
+      "catalogCourses": [
+        {
+          "code": "3.5.001",
+          "title": "Impacto Ambiental en Agroecosistemas"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "impacto ambiental en agroecosistemas",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Impacto Ambiental en Agroecosistemas"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-104",
+      "catalogCourses": [
+        {
+          "code": "3.5.003",
+          "title": "Suelos y Agroclimatología"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "suelos y agroclimatologia",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Suelos y Agroclimatología"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-105",
+      "catalogCourses": [
+        {
+          "code": "3.5.013",
+          "title": "Tecnología de Riego"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia de riego",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología de Riego"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "environment and sustainability, water/environmental management, and agro production",
+      "candidateGroupId": "ua-de-area-eval-106",
+      "catalogCourses": [
+        {
+          "code": "3.5.007",
+          "title": "Tecnología para el Agro"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "6015",
+          "name": "Licenciatura en Producción y Gestión Agropecuaria"
+        }
+      ],
+      "disciplinaryFamily": "environmental_agro",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "tecnologia para el agro",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Tecnología para el Agro"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-107",
+      "catalogCourses": [
+        {
+          "code": "3.4.176",
+          "title": "Introducción al Diseño de Videojuegos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "introduccion al diseno de videojuegos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Introducción al Diseño de Videojuegos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-108",
+      "catalogCourses": [
+        {
+          "code": "3.4.179",
+          "title": "Diseño de Videojuegos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "diseno de videojuegos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Diseño de Videojuegos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-109",
+      "catalogCourses": [
+        {
+          "code": "3.4.191",
+          "title": "Desarrollo Avanzado de Videojuegos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "desarrollo avanzado de videojuegos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Desarrollo Avanzado de Videojuegos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-110",
+      "catalogCourses": [
+        {
+          "code": "3.4.178",
+          "title": "Desarrollo de Juegos en Tiempo Real"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "desarrollo de juegos en tiempo real",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Desarrollo de Juegos en Tiempo Real"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-111",
+      "catalogCourses": [
+        {
+          "code": "3.4.198",
+          "title": "Juegos en Red"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "juegos en red",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Juegos en Red"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-112",
+      "catalogCourses": [
+        {
+          "code": "3.4.199",
+          "title": "Métricas de Videojuegos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "metricas de videojuegos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Métricas de Videojuegos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-113",
+      "catalogCourses": [
+        {
+          "code": "3.4.194",
+          "title": "Optimización de Videojuegos"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "optimizacion de videojuegos",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Optimización de Videojuegos"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "game design, production, networking, and real-time systems",
+      "candidateGroupId": "ua-de-area-eval-114",
+      "catalogCourses": [
+        {
+          "code": "3.4.181",
+          "title": "Física de Objetos y Personajes"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "59221",
+          "name": "Licenciatura en Desarrollo de Videojuegos"
+        }
+      ],
+      "disciplinaryFamily": "interactive_media",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "fisica de objetos y personajes",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Física de Objetos y Personajes"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-115",
+      "catalogCourses": [
+        {
+          "code": "3.1.066",
+          "title": "Física General"
+        },
+        {
+          "code": "3.3.002",
+          "title": "Física General"
+        },
+        {
+          "code": "3.3002",
+          "title": "Física General"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "fisica general",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Física General"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-116",
+      "catalogCourses": [
+        {
+          "code": "3.1.018",
+          "title": "Estadística General"
+        },
+        {
+          "code": "3.1018",
+          "title": "Estadística General"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "107425",
+          "name": "Licenciatura en Inteligencia Artificial y Ciencia de Datos"
+        },
+        {
+          "code": "13116",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "estadistica general",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Estadística General"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-117",
+      "catalogCourses": [
+        {
+          "code": "3.1.049",
+          "title": "Probabilidad y Estadística"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "13121",
+          "name": "Licenciatura en Gestión de Tecnología de la Información"
+        },
+        {
+          "code": "1621",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "probabilidad y estadistica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Probabilidad y Estadística"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-118",
+      "catalogCourses": [
+        {
+          "code": "3.1.006",
+          "title": "Álgebra y Geometría Analítica"
+        },
+        {
+          "code": "3.1006",
+          "title": "Álgebra y Geometría Analítica"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "1608",
+          "name": "Ingeniería en Informática"
+        },
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "algebra y geometria analitica",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Álgebra y Geometría Analítica"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-119",
+      "catalogCourses": [
+        {
+          "code": "3.2.007",
+          "title": "Química General"
+        },
+        {
+          "code": "3.2.180",
+          "title": "Química General"
+        },
+        {
+          "code": "3.2.188",
+          "title": "Química General"
+        },
+        {
+          "code": "3.2007",
+          "title": "Química General"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5405",
+          "name": "Licenciatura en Tecnología Industrial de los Alimentos"
+        },
+        {
+          "code": "5509",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5520",
+          "name": "Licenciatura en Biotecnología"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5910",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "59121",
+          "name": "Licenciatura en Bioinformática"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "quimica general",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Química General"
+    },
+    {
+      "acquisitionStatus": "pending_curricular_text_not_in_repository",
+      "boundaryFocus": "cross-disciplinary foundational sciences and quantitative methods",
+      "candidateGroupId": "ua-de-area-eval-120",
+      "catalogCourses": [
+        {
+          "code": "3.1.020",
+          "title": "Cálculo Numérico"
+        },
+        {
+          "code": "3.1020",
+          "title": "Cálculo Numérico"
+        }
+      ],
+      "catalogPrograms": [
+        {
+          "code": "3805",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3824",
+          "name": "Ingeniería Electromecánica"
+        },
+        {
+          "code": "3905",
+          "name": "Ingeniería en Telecomunicaciones"
+        },
+        {
+          "code": "4505",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "4524",
+          "name": "Ingeniería Industrial"
+        },
+        {
+          "code": "5705",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "5724",
+          "name": "Ingeniería en Alimentos"
+        },
+        {
+          "code": "9513",
+          "name": "Ingeniería Electrónica"
+        },
+        {
+          "code": "9524",
+          "name": "Ingeniería Electrónica"
+        }
+      ],
+      "disciplinaryFamily": "foundational_sciences",
+      "equivalenceRule": "All catalog records sharing this accent-insensitive normalized title form one indivisible future split group.",
+      "normalizedTitleGroup": "calculo numerico",
+      "plannedCurricularTextSource": {
+        "fallback": "Formal analytical syllabus or program PDF supplied by UADE for the same institutional course code.",
+        "primary": "Official UADE course/program page or analytical syllabus for the catalog course code(s).",
+        "requiredFields": [
+          "course name",
+          "substantive objectives or curricular description",
+          "contents"
+        ]
+      },
+      "selectionBasis": "UADE catalog title and program metadata only; no semantic_analysis_v1 output, gold label, baseline, or embedding result was used.",
+      "sourceTitle": "Cálculo Numérico"
+    }
+  ],
+  "catalogFrame": {
+    "courseCatalog": "data/academic_catalog/demo-academic-courses-v0.json",
+    "courseCountInFrame": 617,
+    "curriculumCatalog": "data/academic_catalog/demo-academic-curriculum-v0.json",
+    "description": "UADE catalog is used only as a sampling frame. It is not an evaluation corpus because it lacks objectives/descriptions and contents."
+  },
+  "futureEvaluationTarget": {
+    "developmentUnits": 80,
+    "holdoutUnits": 40,
+    "totalUnits": 120
+  },
+  "leakageControl": {
+    "grouping": "Normalized-title equivalence groups are indivisible; every matching catalog code and associated program travels together in a future split.",
+    "splitStatus": "not_created"
+  },
+  "prohibitionsObserved": [
+    "No semantic_analysis_v1 output was used for sampling or as gold.",
+    "No baseline or embedding classifier was executed.",
+    "No Development/Holdout split was created.",
+    "No gold labels were created."
+  ],
+  "schemaVersion": "scope_area_embedding_corpus_acquisition_manifest_v1",
+  "selectionCoverage": {
+    "data_ai": 12,
+    "electronics_mechanics": 16,
+    "environmental_agro": 12,
+    "food_science": 12,
+    "foundational_sciences": 6,
+    "industrial_operations": 12,
+    "interactive_media": 8,
+    "life_sciences": 14,
+    "networking_telecommunications": 12,
+    "software_systems": 16
+  },
+  "textAvailabilityBlocker": "The local catalog records provide code and title only. No selected candidate is eligible until official curricular text supplies all three required fields."
+}

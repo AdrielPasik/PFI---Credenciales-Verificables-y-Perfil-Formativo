@@ -1,0 +1,438 @@
+{
+  "areaCount": 69,
+  "areas": [
+    {
+      "area": "Agro y Producción Agropecuaria",
+      "disciplinaryFamily": "agro_family",
+      "prototype": "Producción agropecuaria y agroindustrias: suelos, riego, cultivos, fertilidad, agricultura de precisión, SIG y manejo ambiental.",
+      "taxonomyContextGroup": "agro"
+    },
+    {
+      "area": "Algoritmos y Estructuras de Datos",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Diseño, análisis y eficiencia de algoritmos y estructuras de datos: listas, árboles, grafos, pilas, colas y complejidad.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Ambiente y Sostenibilidad",
+      "disciplinaryFamily": "environmental_family",
+      "prototype": "Ambiente y sostenibilidad a escala de sistemas: recursos naturales, cambio climático, huella ambiental, economía circular y desarrollo sostenible.",
+      "taxonomyContextGroup": "environmental"
+    },
+    {
+      "area": "Antenas, Propagación y Microondas",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Sistemas de radiofrecuencia y telecomunicaciones avanzadas: antenas, propagación electromagnética, microondas, guías de onda y enlaces.",
+      "taxonomyContextGroup": "telecom_advanced"
+    },
+    {
+      "area": "Arquitectura de Aplicaciones",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Diseño estructural de aplicaciones de software: arquitectura, patrones, integración, despliegue, escalabilidad y organización de proyectos.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Arquitectura y Organización de Computadores",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Diseño y organización interna de computadores: CPU, memoria, conjunto de instrucciones, ensamblador, pipeline y la interacción de los sistemas operativos con el hardware.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Automatización y Control Industrial",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Automatización de procesos industriales: control automático, realimentación, PID, PLC, SCADA, sensores, actuadores y lazos cerrados.",
+      "taxonomyContextGroup": "industrial_automation"
+    },
+    {
+      "area": "Bases de Datos",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Modelado, consulta y administración de bases de datos relacionales o no relacionales: SQL, transacciones, normalización y persistencia.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Bioética y Bioseguridad",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Principios éticos y prácticas de seguridad en ciencias de la vida: consentimiento informado, riesgos biológicos, comités de ética y bienestar.",
+      "taxonomyContextGroup": "life_sciences"
+    },
+    {
+      "area": "Bioinformática",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Métodos computacionales para almacenar, procesar y analizar secuencias, genomas, anotaciones y datos biológicos.",
+      "taxonomyContextGroup": "life_sciences"
+    },
+    {
+      "area": "Biotecnología",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Aplicación de organismos, células, enzimas y técnicas de ingeniería genética para desarrollar productos, procesos y bioprocesos.",
+      "taxonomyContextGroup": "life_sciences"
+    },
+    {
+      "area": "Bromatología y Nutrición",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Bromatología y nutrición: composición de alimentos, inocuidad, toxicología alimentaria, etiquetado, evaluación sensorial y fortificación.",
+      "taxonomyContextGroup": "food_sciences"
+    },
+    {
+      "area": "Ciberseguridad",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Protección de sistemas e información: criptografía, autenticación, confidencialidad, integridad, amenazas, vulnerabilidades y cifrado.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Ciencia de Materiales",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Propiedades, estructura y comportamiento de materiales: microestructura, aleaciones, polímeros, cerámicos, ensayos, fatiga y fractura.",
+      "taxonomyContextGroup": "mechanical"
+    },
+    {
+      "area": "Cloud Computing",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Computación en la nube y plataformas distribuidas: servicios cloud, contenedores, microservicios, Kubernetes, serverless y orquestación.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Comunicación y Humanidades",
+      "disciplinaryFamily": "generic_academic_family",
+      "prototype": "Comunicación, pensamiento crítico y formación humanística: lectura, escritura, argumentación, debate, discurso, ética y filosofía.",
+      "taxonomyContextGroup": "humanities"
+    },
+    {
+      "area": "Costos y Contabilidad",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Contabilidad y determinación de costos: plan de cuentas, estados contables, costos directos e indirectos, valuación y costeo ABC.",
+      "taxonomyContextGroup": "industrial_costs"
+    },
+    {
+      "area": "Datos",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Análisis, minería, exploración y visualización de datos para generar indicadores, métricas y conocimiento a partir de conjuntos de datos.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Derecho Informático",
+      "disciplinaryFamily": "legal_management_family",
+      "prototype": "Normativa aplicable a tecnologías de información: protección de datos, privacidad, propiedad intelectual, delitos informáticos y cumplimiento.",
+      "taxonomyContextGroup": "legal_regulatory"
+    },
+    {
+      "area": "Derecho y Regulación",
+      "disciplinaryFamily": "legal_management_family",
+      "prototype": "Marco jurídico y regulatorio aplicable a actividad científica, tecnológica, ambiental o industrial: patentes, responsabilidad, licencias y cumplimiento.",
+      "taxonomyContextGroup": "legal_regulatory"
+    },
+    {
+      "area": "Desarrollo de Aplicaciones Móviles",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Diseño y desarrollo de aplicaciones móviles para Android, iOS y tecnologías multiplataforma como Flutter o React Native.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Diseño y Desarrollo de Videojuegos",
+      "disciplinaryFamily": "interactive_media_family",
+      "prototype": "Diseño y desarrollo de videojuegos: game design, narrativa interactiva, motores gráficos, renderizado, animación, UX, UI y sonido.",
+      "taxonomyContextGroup": "interactive_media"
+    },
+    {
+      "area": "Electrónica",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Electrónica general y análisis de circuitos: topologías analógicas y digitales, señales, amplificación, filtrado, polarización y diseño de circuitos electrónicos.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Electrónica y Dispositivos",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Dispositivos y componentes electrónicos: semiconductores, diodos, transistores, circuitos integrados, sensores, actuadores y sus características de funcionamiento.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Electrotecnia y Circuitos Eléctricos",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Análisis de circuitos eléctricos y electromagnetismo aplicado: Ohm, Kirchhoff, impedancia, potencia, Faraday, Thevenin y Norton.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Estadística",
+      "disciplinaryFamily": "mathematical_family",
+      "prototype": "Probabilidad, estadística e inferencia: distribuciones, muestreo, estimación, pruebas de hipótesis, regresión, ANOVA y análisis.",
+      "taxonomyContextGroup": "statistics"
+    },
+    {
+      "area": "Física",
+      "disciplinaryFamily": "physical_sciences_family",
+      "prototype": "Principios de física: mecánica, energía, fuerzas, cinemática, termodinámica y electromagnetismo para describir fenómenos naturales.",
+      "taxonomyContextGroup": "physics_foundational"
+    },
+    {
+      "area": "Fisicoquímica y Química Analítica",
+      "disciplinaryFamily": "chemical_family",
+      "prototype": "Fisicoquímica y análisis químico: equilibrio ácido base, electroquímica, cinética, calorimetría, cromatografía y espectrofotometría.",
+      "taxonomyContextGroup": "chemistry"
+    },
+    {
+      "area": "Genómica y Proteómica",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Estudio y análisis de genomas, transcriptomas, proteínas, metabolitos y datos moleculares mediante técnicas ómicas.",
+      "taxonomyContextGroup": "life_sciences"
+    },
+    {
+      "area": "Gestión de Operaciones y Calidad Industrial",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Gestión de operaciones industriales y calidad: productividad, control de producción, balance de línea, lean, seis sigma y mejora continua.",
+      "taxonomyContextGroup": "industrial_operations"
+    },
+    {
+      "area": "Gestión de Proyectos Tecnológicos",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Dirección de proyectos tecnológicos e integradores: alcance, planificación, cronograma, riesgos, costos, interesados y seguimiento.",
+      "taxonomyContextGroup": "industrial_operations"
+    },
+    {
+      "area": "Gestión Económica Industrial",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Evaluación económica de alternativas industriales: inversión, costos y beneficios, análisis marginal, flujo de fondos, planificación financiera y decisiones de ingeniería.",
+      "taxonomyContextGroup": "industrial_costs"
+    },
+    {
+      "area": "Hidráulica y Neumática",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Sistemas hidráulicos y neumáticos: presión, caudal, tuberías, bombas, compresores, pérdidas de carga y accionamientos.",
+      "taxonomyContextGroup": "fluids"
+    },
+    {
+      "area": "Ingeniería de Datos",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Diseño de flujos y plataformas de datos: ingestión, ETL, calidad, almacenamiento analítico, procesamiento distribuido y orquestación.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Ingeniería de Software",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Proceso sistemático de desarrollo de software: requisitos, diseño, calidad, pruebas, versionado, mantenimiento y metodologías de trabajo.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Ingeniería Eléctrica y Potencia",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Generación, conversión, distribución y uso de energía eléctrica: sistemas trifásicos, transformadores, factor de potencia y redes.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Ingeniería Industrial y Gestión de Costos",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Gestión de costos de procesos productivos: estructura de producción, asignación y control de costos, eficiencia operativa, valuación y mejora de procesos industriales.",
+      "taxonomyContextGroup": "industrial_costs"
+    },
+    {
+      "area": "Innovación Tecnológica",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Innovación y transformación tecnológica: tendencias emergentes, adopción de tecnologías, transformación digital y evaluación de impacto.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Instrumentación y Mediciones",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Instrumentación, metrología y mediciones: sensores, calibración, incertidumbre, trazabilidad, resolución y adquisición de datos.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Inteligencia Artificial",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Inteligencia artificial simbólica y basada en conocimiento: representación de conocimiento, búsqueda, planificación, inferencia, razonamiento y agentes.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Investigación Operativa y Optimización",
+      "disciplinaryFamily": "mathematical_family",
+      "prototype": "Modelos y métodos para decidir y optimizar: programación lineal, redes, asignación, transporte, optimización y análisis de operaciones.",
+      "taxonomyContextGroup": "mathematical_modeling"
+    },
+    {
+      "area": "Logística y Cadena de Abastecimiento",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Logística y cadena de abastecimiento: inventarios, transporte, almacenamiento, MRP, distribución, demanda y flujo de materiales.",
+      "taxonomyContextGroup": "industrial_operations"
+    },
+    {
+      "area": "Machine Learning",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Aprendizaje automático supervisado y no supervisado a partir de datos: clasificación, regresión, clustering, entrenamiento y validación de modelos, redes neuronales y deep learning.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Manufactura y CAD/CAM",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Diseño y producción manufacturera asistidos por computadora: CAD, CAM, mecanizado, tolerancias, prototipado y fabricación aditiva.",
+      "taxonomyContextGroup": "mechanical"
+    },
+    {
+      "area": "Máquinas Eléctricas y Conversión Electromecánica",
+      "disciplinaryFamily": "electrical_family",
+      "prototype": "Máquinas eléctricas y conversión electromecánica: motores, transformadores, campos rotativos, corriente continua y accionamientos.",
+      "taxonomyContextGroup": "electrical"
+    },
+    {
+      "area": "Matemática",
+      "disciplinaryFamily": "mathematical_family",
+      "prototype": "Fundamentos matemáticos: álgebra, geometría, matrices, sistemas lineales, espacios vectoriales, ecuaciones y transformaciones.",
+      "taxonomyContextGroup": "math_foundational"
+    },
+    {
+      "area": "Mecánica de Fluidos y Termofluidos",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Comportamiento de fluidos y sistemas termofluidos: conservación, Bernoulli, Reynolds, flujo en tuberías, hidráulica y transferencia.",
+      "taxonomyContextGroup": "fluids"
+    },
+    {
+      "area": "Métodos Numéricos y Cálculo Científico",
+      "disciplinaryFamily": "mathematical_family",
+      "prototype": "Métodos numéricos y cálculo científico: aproximación, resolución computacional de ecuaciones, error, interpolación, integración y simulación.",
+      "taxonomyContextGroup": "mathematical_modeling"
+    },
+    {
+      "area": "Microbiología",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Microorganismos, cultivos, patógenos, fermentación, control microbiológico, inocuidad y técnicas de laboratorio microbiológico.",
+      "taxonomyContextGroup": "life_sciences"
+    },
+    {
+      "area": "Modelado, Simulación y Sistemas Dinámicos",
+      "disciplinaryFamily": "mathematical_family",
+      "prototype": "Modelado matemático, simulación y análisis de sistemas dinámicos: ecuaciones diferenciales, estados, comportamiento temporal y modelos.",
+      "taxonomyContextGroup": "mathematical_modeling"
+    },
+    {
+      "area": "Procesos de Alimentos y Bebidas",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Operaciones de proceso para elaborar alimentos y bebidas: tratamientos térmicos, homogeneización, carbonatación, limpieza, separación, transferencia y envasado.",
+      "taxonomyContextGroup": "food_sciences"
+    },
+    {
+      "area": "Química",
+      "disciplinaryFamily": "chemical_family",
+      "prototype": "Fundamentos de química: estructura atómica, enlaces, reacciones, estequiometría, equilibrio, soluciones, oxidación y compuestos.",
+      "taxonomyContextGroup": "chemistry_foundational"
+    },
+    {
+      "area": "Química Orgánica y Biológica",
+      "disciplinaryFamily": "chemical_family",
+      "prototype": "Química orgánica y biológica: enlaces covalentes, orbitales, grupos funcionales, biomoléculas, isomería y reacciones orgánicas.",
+      "taxonomyContextGroup": "chemistry"
+    },
+    {
+      "area": "Recursos Hídricos y Gestión Ambiental",
+      "disciplinaryFamily": "environmental_family",
+      "prototype": "Gestión ambiental aplicada con foco en recursos hídricos: cantidad y calidad de agua, cuencas, residuos, remediación, biodiversidad, ecosistemas e impacto ambiental.",
+      "taxonomyContextGroup": "environmental"
+    },
+    {
+      "area": "Redes de Computadoras y Servicios de Red",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Servicios de red sobre redes de computadoras: DNS, DHCP, web, correo, archivos, VPN, firewalls, administración y monitoreo cliente servidor.",
+      "taxonomyContextGroup": "networks"
+    },
+    {
+      "area": "Redes de Datos",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Infraestructura IP de redes de datos: TCP/IP, LAN, WAN, routing, switching, direccionamiento, subredes y capas de comunicación.",
+      "taxonomyContextGroup": "networks"
+    },
+    {
+      "area": "Redes y Comunicaciones",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Integración general de sistemas mediante redes y comunicaciones: interconexión de aplicaciones, protocolos, sockets, routing y compatibilidad entre componentes distribuidos.",
+      "taxonomyContextGroup": "networks"
+    },
+    {
+      "area": "Resistencia de Materiales y Mecánica del Sólido",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Mecánica de sólidos y resistencia de materiales: esfuerzos, deformaciones, elasticidad, plasticidad, flexión, torsión, fatiga y fractura.",
+      "taxonomyContextGroup": "mechanical"
+    },
+    {
+      "area": "Robótica y Sistemas Autónomos",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Robótica y sistemas autónomos: cinemática, control de robots, navegación, planificación de trayectorias, visión artificial y SLAM.",
+      "taxonomyContextGroup": "industrial_automation"
+    },
+    {
+      "area": "Seguridad Industrial e Higiene",
+      "disciplinaryFamily": "industrial_family",
+      "prototype": "Prevención de riesgos laborales en entornos industriales: higiene, seguridad, accidentes, salud ocupacional, normas y control de riesgos.",
+      "taxonomyContextGroup": "industrial_operations"
+    },
+    {
+      "area": "Señales y Sistemas",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Modelado y análisis de señales y sistemas: Fourier, Laplace, convolución, sistemas lineales, muestreo, estabilidad y respuesta en frecuencia.",
+      "taxonomyContextGroup": "telecom_advanced"
+    },
+    {
+      "area": "Sistemas de Información y Negocio",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Sistemas de información aplicados a organizaciones: procesos de negocio, análisis organizacional, estrategia, empresa y cadena de valor.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Sistemas de Representación y Dibujo Técnico",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Representación gráfica y dibujo técnico para ingeniería: proyecciones, geometría descriptiva, planos, normas, acotación y documentación visual.",
+      "taxonomyContextGroup": "representation_graphics"
+    },
+    {
+      "area": "Sistemas Digitales y Hardware",
+      "disciplinaryFamily": "software_family",
+      "prototype": "Sistemas digitales y componentes físicos de computación: lógica digital, compuertas, buses, memoria, almacenamiento y entrada salida.",
+      "taxonomyContextGroup": "software"
+    },
+    {
+      "area": "Tecnología de Alimentos",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Tecnología de producto alimentario: formulación, transformación, conservación y control de productos como lácteos, bebidas y fermentados, con envasado e inocuidad.",
+      "taxonomyContextGroup": "food_sciences"
+    },
+    {
+      "area": "Tecnología Industrial de los Alimentos",
+      "disciplinaryFamily": "life_sciences_family",
+      "prototype": "Sistema industrial alimentario integral: articulación de materias primas, operaciones unitarias, producción, calidad, inocuidad, conservación y control de planta.",
+      "taxonomyContextGroup": "food_sciences"
+    },
+    {
+      "area": "Telecomunicaciones",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Transmisión de información por señales y canales de telecomunicación: modulación, codificación, espectro, antenas, ruido, ancho de banda y desempeño del enlace.",
+      "taxonomyContextGroup": "telecom_advanced"
+    },
+    {
+      "area": "Telecomunicaciones de Datos",
+      "disciplinaryFamily": "telecom_family",
+      "prototype": "Transporte y acceso de datos en telecomunicaciones: enlaces WAN, tecnologías de acceso cableado e inalámbrico, ruteo de transporte, voz sobre IP y conectividad de última milla.",
+      "taxonomyContextGroup": "networks"
+    },
+    {
+      "area": "Termodinámica y Transferencia de Calor",
+      "disciplinaryFamily": "mechanical_family",
+      "prototype": "Energía térmica y transferencia de calor: entalpía, entropía, ciclos, conducción, convección, radiación e intercambiadores.",
+      "taxonomyContextGroup": "mechanical"
+    }
+  ],
+  "canonicalization": {
+    "arrayOrder": "references sorted by accent-insensitive normalized area",
+    "encoding": "UTF-8",
+    "objectKeyOrder": "lexicographic",
+    "trailingNewline": true
+  },
+  "freezeStatus": "FROZEN_BEFORE_DEVELOPMENT",
+  "immutabilityPolicy": "Do not modify these prototypes during Development or Holdout. Any later change requires a new references version, a new review, and a new SHA-256 before evaluation.",
+  "referenceFile": "area_embedding_references_v1.json",
+  "referencesVersion": "scope-areas-2026-10-08-v1-frozen",
+  "reviewBasis": "Human-adjudicated disciplinary definitions only; no Development/Holdout examples, classifier outputs, embeddings, cosines, or calibration results were used.",
+  "schemaVersion": "scope_area_embedding_reference_freeze_v1",
+  "sha256": "a2e5010cd64a4534039b1e919c7b6169bce9029f25056975217bf42dc181c55c",
+  "validation": {
+    "areaProfilesCoverage": "69/69 exact area labels",
+    "literalDuplicateAreas": 0,
+    "literalDuplicateDescriptions": 0,
+    "taxonomyContextGroupCoverage": "66/69 direct plus 3 reviewed family mappings (Bioética y Bioseguridad, Ciencia de Materiales, Redes de Datos)"
+  }
+}

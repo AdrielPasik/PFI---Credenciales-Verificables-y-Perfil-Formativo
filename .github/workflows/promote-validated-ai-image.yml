@@ -1,0 +1,141 @@
+name: Promote validated AI image
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact 40-character source commit SHA already integrated into main
+        required: true
+        type: string
+      approved_validation_digest:
+        description: Approved immutable ECR digest to promote without rebuilding
+        required: true
+        type: string
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Validate input syntax
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          APPROVED_DIGEST: ${{ inputs.approved_validation_digest }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "source_sha must be exactly 40 lowercase hexadecimal characters." >&2
+            exit 1
+          fi
+
+          if [[ ! "$APPROVED_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "approved_validation_digest must be an exact lowercase sha256 digest." >&2
+            exit 1
+          fi
+
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify source ancestry
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$SOURCE_SHA" ]]; then
+            echo "Checked-out commit does not match source_sha." >&2
+            exit 1
+          fi
+
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$SOURCE_SHA" origin/main; then
+            echo "source_sha is not contained in origin/main." >&2
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Promote the approved AI manifest without rebuilding
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          APPROVED_DIGEST: ${{ inputs.approved_validation_digest }}
+          REPOSITORY: scope/ai
+        run: |
+          set -euo pipefail
+
+          validation_tag="fargate-validation-${SOURCE_SHA:0:8}"
+          target_tag="$SOURCE_SHA"
+          manifest_path="$(mktemp)"
+          manifest_file="$(mktemp)"
+          target_error_path="$(mktemp)"
+          trap 'rm -f "$manifest_path" "$manifest_file" "$target_error_path"' EXIT
+
+          aws ecr batch-get-image \
+            --repository-name "$REPOSITORY" \
+            --image-ids "imageTag=$validation_tag" \
+            --accepted-media-types application/vnd.oci.image.index.v1+json \
+            --output json > "$manifest_path"
+
+          validation_digest="$(jq -r '.images[0].imageId.imageDigest // empty' "$manifest_path")"
+          media_type="$(jq -r '.images[0].imageManifestMediaType // empty' "$manifest_path")"
+          # `-j` emits exactly the JSON string payload: no newline is appended,
+          # and Bash does not get a chance to trim it via command substitution.
+          jq -j '.images[0].imageManifest // empty' "$manifest_path" > "$manifest_file"
+
+          if [[ "$validation_digest" != "$APPROVED_DIGEST" || ! -s "$manifest_file" || "$media_type" != "application/vnd.oci.image.index.v1+json" ]]; then
+            echo "The validation tag does not resolve to the approved OCI index manifest." >&2
+            exit 1
+          fi
+
+          if aws ecr describe-images \
+            --repository-name "$REPOSITORY" \
+            --image-ids "imageTag=$target_tag" \
+            --output json > "$target_error_path" 2>&1; then
+            target_digest="$(jq -r '.imageDetails[0].imageDigest // empty' "$target_error_path")"
+            if [[ "$target_digest" != "$APPROVED_DIGEST" ]]; then
+              echo "The immutable production tag already exists with a different digest." >&2
+              exit 1
+            fi
+            echo "Target tag already resolves to the approved digest; no mutation is needed."
+            exit 0
+          fi
+
+          if ! grep -q 'ImageNotFoundException' "$target_error_path"; then
+            cat "$target_error_path" >&2
+            exit 1
+          fi
+
+          aws ecr put-image \
+            --repository-name "$REPOSITORY" \
+            --image-tag "$target_tag" \
+            --image-manifest "file://$manifest_file" \
+            --image-manifest-media-type "$media_type" > /dev/null
+
+          promoted_digest="$(aws ecr describe-images \
+            --repository-name "$REPOSITORY" \
+            --image-ids "imageTag=$target_tag" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)"
+
+          if [[ "$promoted_digest" != "$APPROVED_DIGEST" ]]; then
+            echo "Promotion completed with an unexpected digest." >&2
+            exit 1
+          fi
+
+          echo "Promoted $REPOSITORY:$target_tag at $promoted_digest"

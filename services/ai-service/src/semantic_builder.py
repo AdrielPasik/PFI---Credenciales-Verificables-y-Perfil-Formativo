@@ -2,6 +2,13 @@ import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .models import CourseCandidate
+from .area_embedding_reranker import (
+    AreaEmbeddingSettings,
+    EmbeddingBackend,
+    build_area_embedding_source,
+    load_settings as load_area_embedding_settings,
+    rerank_existing_area_candidates,
+)
 from .semantic_ontology import apply_semantic_ontology
 from .text_utils import normalize_for_match, normalize_whitespace, split_bullets_or_lines, split_sentences
 
@@ -2155,6 +2162,7 @@ def build_semantic_output(candidate: CourseCandidate, max_objectives: int, max_c
     keywords = build_keywords(candidate.raw_sections, objectives, contents, concepts=concepts_detected_raw)
 
     transversal_noise_risk = build_transversal_noise_risk(candidate.raw_sections.get("objectives_raw", ""))
+    area_embedding_source = build_area_embedding_source(candidate.name or "", candidate.raw_sections)
     area_inference = infer_areas_with_validation(
         candidate.name or "",
         candidate.source_file,
@@ -2162,6 +2170,7 @@ def build_semantic_output(candidate: CourseCandidate, max_objectives: int, max_c
         concepts_detected_raw,
         keywords,
         transversal_noise_risk=transversal_noise_risk,
+        embedding_source_text=area_embedding_source,
     )
     areas = area_inference.get("areas", ["unresolved_domain_candidate"])
     disciplinary_anchor = area_inference.get("disciplinary_anchor", {})
@@ -2473,6 +2482,9 @@ def infer_areas_with_validation(
     contents: List[str],
     keywords: List[str],
     transversal_noise_risk: float = 0.0,
+    embedding_source_text: str = "",
+    embedding_settings: Optional[AreaEmbeddingSettings] = None,
+    embedding_backend: Optional[EmbeddingBackend] = None,
 ) -> Dict[str, Any]:
     source_name_clean = normalize_whitespace(source_file.replace("_", " ").replace(".pdf", "").replace(".PDF", ""))
     sources = {
@@ -2606,10 +2618,23 @@ def infer_areas_with_validation(
             "area_validation_map": {},
         }
 
-    candidates.sort(
-        key=lambda item: (item["validated_area_score"], item["raw_area_signal_score"], item["context_unique"], item["strong_hits"]),
-        reverse=True,
+    if embedding_settings is None:
+        try:
+            embedding_settings = load_area_embedding_settings()
+        except ValueError:
+            # A malformed optional configuration must not change the baseline.
+            embedding_settings = AreaEmbeddingSettings(configuration_error="invalid_configuration")
+    candidates, embedding_rerank_diagnostic = rerank_existing_area_candidates(
+        candidates,
+        embedding_source_text,
+        embedding_settings,
+        embedder=embedding_backend,
     )
+    if not embedding_rerank_diagnostic["applied"]:
+        candidates.sort(
+            key=lambda item: (item["validated_area_score"], item["raw_area_signal_score"], item["context_unique"], item["strong_hits"]),
+            reverse=True,
+        )
     primary = candidates[0]
     primary_area = primary["area"]
     primary_score = float(primary["validated_area_score"])
@@ -2701,6 +2726,9 @@ def infer_areas_with_validation(
         "ranked_candidates": candidates,
         "disciplinary_anchor": anchor,
         "area_validation_map": area_validation_map,
+        # Internal only: build_semantic_output deliberately does not export or
+        # persist this diagnostic in semantic_analysis_v1.
+        "embedding_rerank_diagnostic": embedding_rerank_diagnostic,
     }
 
 

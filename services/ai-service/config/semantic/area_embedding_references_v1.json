@@ -1,0 +1,282 @@
+{
+  "references": [
+    {
+      "area": "Agro y Producción Agropecuaria",
+      "description": "Producción agropecuaria y agroindustrias: suelos, riego, cultivos, fertilidad, agricultura de precisión, SIG y manejo ambiental."
+    },
+    {
+      "area": "Algoritmos y Estructuras de Datos",
+      "description": "Diseño, análisis y eficiencia de algoritmos y estructuras de datos: listas, árboles, grafos, pilas, colas y complejidad."
+    },
+    {
+      "area": "Ambiente y Sostenibilidad",
+      "description": "Ambiente y sostenibilidad a escala de sistemas: recursos naturales, cambio climático, huella ambiental, economía circular y desarrollo sostenible."
+    },
+    {
+      "area": "Antenas, Propagación y Microondas",
+      "description": "Sistemas de radiofrecuencia y telecomunicaciones avanzadas: antenas, propagación electromagnética, microondas, guías de onda y enlaces."
+    },
+    {
+      "area": "Arquitectura de Aplicaciones",
+      "description": "Diseño estructural de aplicaciones de software: arquitectura, patrones, integración, despliegue, escalabilidad y organización de proyectos."
+    },
+    {
+      "area": "Arquitectura y Organización de Computadores",
+      "description": "Diseño y organización interna de computadores: CPU, memoria, conjunto de instrucciones, ensamblador, pipeline y la interacción de los sistemas operativos con el hardware."
+    },
+    {
+      "area": "Automatización y Control Industrial",
+      "description": "Automatización de procesos industriales: control automático, realimentación, PID, PLC, SCADA, sensores, actuadores y lazos cerrados."
+    },
+    {
+      "area": "Bases de Datos",
+      "description": "Modelado, consulta y administración de bases de datos relacionales o no relacionales: SQL, transacciones, normalización y persistencia."
+    },
+    {
+      "area": "Bioética y Bioseguridad",
+      "description": "Principios éticos y prácticas de seguridad en ciencias de la vida: consentimiento informado, riesgos biológicos, comités de ética y bienestar."
+    },
+    {
+      "area": "Bioinformática",
+      "description": "Métodos computacionales para almacenar, procesar y analizar secuencias, genomas, anotaciones y datos biológicos."
+    },
+    {
+      "area": "Biotecnología",
+      "description": "Aplicación de organismos, células, enzimas y técnicas de ingeniería genética para desarrollar productos, procesos y bioprocesos."
+    },
+    {
+      "area": "Bromatología y Nutrición",
+      "description": "Bromatología y nutrición: composición de alimentos, inocuidad, toxicología alimentaria, etiquetado, evaluación sensorial y fortificación."
+    },
+    {
+      "area": "Ciberseguridad",
+      "description": "Protección de sistemas e información: criptografía, autenticación, confidencialidad, integridad, amenazas, vulnerabilidades y cifrado."
+    },
+    {
+      "area": "Ciencia de Materiales",
+      "description": "Propiedades, estructura y comportamiento de materiales: microestructura, aleaciones, polímeros, cerámicos, ensayos, fatiga y fractura."
+    },
+    {
+      "area": "Cloud Computing",
+      "description": "Computación en la nube y plataformas distribuidas: servicios cloud, contenedores, microservicios, Kubernetes, serverless y orquestación."
+    },
+    {
+      "area": "Comunicación y Humanidades",
+      "description": "Comunicación, pensamiento crítico y formación humanística: lectura, escritura, argumentación, debate, discurso, ética y filosofía."
+    },
+    {
+      "area": "Costos y Contabilidad",
+      "description": "Contabilidad y determinación de costos: plan de cuentas, estados contables, costos directos e indirectos, valuación y costeo ABC."
+    },
+    {
+      "area": "Datos",
+      "description": "Análisis, minería, exploración y visualización de datos para generar indicadores, métricas y conocimiento a partir de conjuntos de datos."
+    },
+    {
+      "area": "Derecho Informático",
+      "description": "Normativa aplicable a tecnologías de información: protección de datos, privacidad, propiedad intelectual, delitos informáticos y cumplimiento."
+    },
+    {
+      "area": "Derecho y Regulación",
+      "description": "Marco jurídico y regulatorio aplicable a actividad científica, tecnológica, ambiental o industrial: patentes, responsabilidad, licencias y cumplimiento."
+    },
+    {
+      "area": "Desarrollo de Aplicaciones Móviles",
+      "description": "Diseño y desarrollo de aplicaciones móviles para Android, iOS y tecnologías multiplataforma como Flutter o React Native."
+    },
+    {
+      "area": "Diseño y Desarrollo de Videojuegos",
+      "description": "Diseño y desarrollo de videojuegos: game design, narrativa interactiva, motores gráficos, renderizado, animación, UX, UI y sonido."
+    },
+    {
+      "area": "Electrónica",
+      "description": "Electrónica general y análisis de circuitos: topologías analógicas y digitales, señales, amplificación, filtrado, polarización y diseño de circuitos electrónicos."
+    },
+    {
+      "area": "Electrónica y Dispositivos",
+      "description": "Dispositivos y componentes electrónicos: semiconductores, diodos, transistores, circuitos integrados, sensores, actuadores y sus características de funcionamiento."
+    },
+    {
+      "area": "Electrotecnia y Circuitos Eléctricos",
+      "description": "Análisis de circuitos eléctricos y electromagnetismo aplicado: Ohm, Kirchhoff, impedancia, potencia, Faraday, Thevenin y Norton."
+    },
+    {
+      "area": "Estadística",
+      "description": "Probabilidad, estadística e inferencia: distribuciones, muestreo, estimación, pruebas de hipótesis, regresión, ANOVA y análisis."
+    },
+    {
+      "area": "Física",
+      "description": "Principios de física: mecánica, energía, fuerzas, cinemática, termodinámica y electromagnetismo para describir fenómenos naturales."
+    },
+    {
+      "area": "Fisicoquímica y Química Analítica",
+      "description": "Fisicoquímica y análisis químico: equilibrio ácido base, electroquímica, cinética, calorimetría, cromatografía y espectrofotometría."
+    },
+    {
+      "area": "Genómica y Proteómica",
+      "description": "Estudio y análisis de genomas, transcriptomas, proteínas, metabolitos y datos moleculares mediante técnicas ómicas."
+    },
+    {
+      "area": "Gestión de Operaciones y Calidad Industrial",
+      "description": "Gestión de operaciones industriales y calidad: productividad, control de producción, balance de línea, lean, seis sigma y mejora continua."
+    },
+    {
+      "area": "Gestión de Proyectos Tecnológicos",
+      "description": "Dirección de proyectos tecnológicos e integradores: alcance, planificación, cronograma, riesgos, costos, interesados y seguimiento."
+    },
+    {
+      "area": "Gestión Económica Industrial",
+      "description": "Evaluación económica de alternativas industriales: inversión, costos y beneficios, análisis marginal, flujo de fondos, planificación financiera y decisiones de ingeniería."
+    },
+    {
+      "area": "Hidráulica y Neumática",
+      "description": "Sistemas hidráulicos y neumáticos: presión, caudal, tuberías, bombas, compresores, pérdidas de carga y accionamientos."
+    },
+    {
+      "area": "Ingeniería de Datos",
+      "description": "Diseño de flujos y plataformas de datos: ingestión, ETL, calidad, almacenamiento analítico, procesamiento distribuido y orquestación."
+    },
+    {
+      "area": "Ingeniería de Software",
+      "description": "Proceso sistemático de desarrollo de software: requisitos, diseño, calidad, pruebas, versionado, mantenimiento y metodologías de trabajo."
+    },
+    {
+      "area": "Ingeniería Eléctrica y Potencia",
+      "description": "Generación, conversión, distribución y uso de energía eléctrica: sistemas trifásicos, transformadores, factor de potencia y redes."
+    },
+    {
+      "area": "Ingeniería Industrial y Gestión de Costos",
+      "description": "Gestión de costos de procesos productivos: estructura de producción, asignación y control de costos, eficiencia operativa, valuación y mejora de procesos industriales."
+    },
+    {
+      "area": "Innovación Tecnológica",
+      "description": "Innovación y transformación tecnológica: tendencias emergentes, adopción de tecnologías, transformación digital y evaluación de impacto."
+    },
+    {
+      "area": "Instrumentación y Mediciones",
+      "description": "Instrumentación, metrología y mediciones: sensores, calibración, incertidumbre, trazabilidad, resolución y adquisición de datos."
+    },
+    {
+      "area": "Inteligencia Artificial",
+      "description": "Inteligencia artificial simbólica y basada en conocimiento: representación de conocimiento, búsqueda, planificación, inferencia, razonamiento y agentes."
+    },
+    {
+      "area": "Investigación Operativa y Optimización",
+      "description": "Modelos y métodos para decidir y optimizar: programación lineal, redes, asignación, transporte, optimización y análisis de operaciones."
+    },
+    {
+      "area": "Logística y Cadena de Abastecimiento",
+      "description": "Logística y cadena de abastecimiento: inventarios, transporte, almacenamiento, MRP, distribución, demanda y flujo de materiales."
+    },
+    {
+      "area": "Machine Learning",
+      "description": "Aprendizaje automático supervisado y no supervisado a partir de datos: clasificación, regresión, clustering, entrenamiento y validación de modelos, redes neuronales y deep learning."
+    },
+    {
+      "area": "Manufactura y CAD/CAM",
+      "description": "Diseño y producción manufacturera asistidos por computadora: CAD, CAM, mecanizado, tolerancias, prototipado y fabricación aditiva."
+    },
+    {
+      "area": "Máquinas Eléctricas y Conversión Electromecánica",
+      "description": "Máquinas eléctricas y conversión electromecánica: motores, transformadores, campos rotativos, corriente continua y accionamientos."
+    },
+    {
+      "area": "Matemática",
+      "description": "Fundamentos matemáticos: álgebra, geometría, matrices, sistemas lineales, espacios vectoriales, ecuaciones y transformaciones."
+    },
+    {
+      "area": "Mecánica de Fluidos y Termofluidos",
+      "description": "Comportamiento de fluidos y sistemas termofluidos: conservación, Bernoulli, Reynolds, flujo en tuberías, hidráulica y transferencia."
+    },
+    {
+      "area": "Métodos Numéricos y Cálculo Científico",
+      "description": "Métodos numéricos y cálculo científico: aproximación, resolución computacional de ecuaciones, error, interpolación, integración y simulación."
+    },
+    {
+      "area": "Microbiología",
+      "description": "Microorganismos, cultivos, patógenos, fermentación, control microbiológico, inocuidad y técnicas de laboratorio microbiológico."
+    },
+    {
+      "area": "Modelado, Simulación y Sistemas Dinámicos",
+      "description": "Modelado matemático, simulación y análisis de sistemas dinámicos: ecuaciones diferenciales, estados, comportamiento temporal y modelos."
+    },
+    {
+      "area": "Procesos de Alimentos y Bebidas",
+      "description": "Operaciones de proceso para elaborar alimentos y bebidas: tratamientos térmicos, homogeneización, carbonatación, limpieza, separación, transferencia y envasado."
+    },
+    {
+      "area": "Química",
+      "description": "Fundamentos de química: estructura atómica, enlaces, reacciones, estequiometría, equilibrio, soluciones, oxidación y compuestos."
+    },
+    {
+      "area": "Química Orgánica y Biológica",
+      "description": "Química orgánica y biológica: enlaces covalentes, orbitales, grupos funcionales, biomoléculas, isomería y reacciones orgánicas."
+    },
+    {
+      "area": "Recursos Hídricos y Gestión Ambiental",
+      "description": "Gestión ambiental aplicada con foco en recursos hídricos: cantidad y calidad de agua, cuencas, residuos, remediación, biodiversidad, ecosistemas e impacto ambiental."
+    },
+    {
+      "area": "Redes de Computadoras y Servicios de Red",
+      "description": "Servicios de red sobre redes de computadoras: DNS, DHCP, web, correo, archivos, VPN, firewalls, administración y monitoreo cliente servidor."
+    },
+    {
+      "area": "Redes de Datos",
+      "description": "Infraestructura IP de redes de datos: TCP/IP, LAN, WAN, routing, switching, direccionamiento, subredes y capas de comunicación."
+    },
+    {
+      "area": "Redes y Comunicaciones",
+      "description": "Integración general de sistemas mediante redes y comunicaciones: interconexión de aplicaciones, protocolos, sockets, routing y compatibilidad entre componentes distribuidos."
+    },
+    {
+      "area": "Resistencia de Materiales y Mecánica del Sólido",
+      "description": "Mecánica de sólidos y resistencia de materiales: esfuerzos, deformaciones, elasticidad, plasticidad, flexión, torsión, fatiga y fractura."
+    },
+    {
+      "area": "Robótica y Sistemas Autónomos",
+      "description": "Robótica y sistemas autónomos: cinemática, control de robots, navegación, planificación de trayectorias, visión artificial y SLAM."
+    },
+    {
+      "area": "Seguridad Industrial e Higiene",
+      "description": "Prevención de riesgos laborales en entornos industriales: higiene, seguridad, accidentes, salud ocupacional, normas y control de riesgos."
+    },
+    {
+      "area": "Señales y Sistemas",
+      "description": "Modelado y análisis de señales y sistemas: Fourier, Laplace, convolución, sistemas lineales, muestreo, estabilidad y respuesta en frecuencia."
+    },
+    {
+      "area": "Sistemas de Información y Negocio",
+      "description": "Sistemas de información aplicados a organizaciones: procesos de negocio, análisis organizacional, estrategia, empresa y cadena de valor."
+    },
+    {
+      "area": "Sistemas de Representación y Dibujo Técnico",
+      "description": "Representación gráfica y dibujo técnico para ingeniería: proyecciones, geometría descriptiva, planos, normas, acotación y documentación visual."
+    },
+    {
+      "area": "Sistemas Digitales y Hardware",
+      "description": "Sistemas digitales y componentes físicos de computación: lógica digital, compuertas, buses, memoria, almacenamiento y entrada salida."
+    },
+    {
+      "area": "Tecnología de Alimentos",
+      "description": "Tecnología de producto alimentario: formulación, transformación, conservación y control de productos como lácteos, bebidas y fermentados, con envasado e inocuidad."
+    },
+    {
+      "area": "Tecnología Industrial de los Alimentos",
+      "description": "Sistema industrial alimentario integral: articulación de materias primas, operaciones unitarias, producción, calidad, inocuidad, conservación y control de planta."
+    },
+    {
+      "area": "Telecomunicaciones",
+      "description": "Transmisión de información por señales y canales de telecomunicación: modulación, codificación, espectro, antenas, ruido, ancho de banda y desempeño del enlace."
+    },
+    {
+      "area": "Telecomunicaciones de Datos",
+      "description": "Transporte y acceso de datos en telecomunicaciones: enlaces WAN, tecnologías de acceso cableado e inalámbrico, ruteo de transporte, voz sobre IP y conectividad de última milla."
+    },
+    {
+      "area": "Termodinámica y Transferencia de Calor",
+      "description": "Energía térmica y transferencia de calor: entalpía, entropía, ciclos, conducción, convección, radiación e intercambiadores."
+    }
+  ],
+  "referencesVersion": "scope-areas-2026-10-08-v1-frozen",
+  "schemaVersion": "scope_area_embedding_references_v1"
+}

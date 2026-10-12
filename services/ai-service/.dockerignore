@@ -30,7 +30,6 @@ docs
 scripts
 run_phase1_embeddings.py
 run_phase2_embeddings_sample.py
-requirements-embeddings.txt
 requirements-api-dev.txt
 *.npy
 *.npz
