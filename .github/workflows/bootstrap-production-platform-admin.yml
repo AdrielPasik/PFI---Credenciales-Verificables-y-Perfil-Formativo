@@ -1,0 +1,119 @@
+name: Bootstrap production PlatformAdmin
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      AWS_REGION: us-east-1
+      ECS_CLUSTER: scope-prod-cluster
+      TASK_DEFINITION: scope-prod-migrator:7
+      EXPECTED_IMAGE: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/api@sha256:fba0060d99c5aaa68b544c32fd92d76108118d04bf703432e9e8649d25affbc7
+      TARGET_EMAIL: profile-embedding-operator@scopeedu.technology
+      MIGRATOR_SUBNETS: subnet-075ecbc2b61716fef,subnet-0d58aa21130801c05
+      MIGRATOR_SECURITY_GROUP: sg-0b7284f9025ac2749
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify frozen migrator provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TASK_DEFINITION_ARN="$(aws ecs describe-task-definition \
+            --task-definition "$TASK_DEFINITION" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)"
+          IMAGE="$(aws ecs describe-task-definition \
+            --task-definition "$TASK_DEFINITION" \
+            --query "taskDefinition.containerDefinitions[?name=='migrator'].image | [0]" \
+            --output text)"
+
+          if [ "$TASK_DEFINITION_ARN" != "arn:aws:ecs:us-east-1:309490997821:task-definition/scope-prod-migrator:7" ]; then
+            echo "Unexpected migrator task definition: $TASK_DEFINITION_ARN" >&2
+            exit 1
+          fi
+
+          if [ "$IMAGE" != "$EXPECTED_IMAGE" ]; then
+            echo "Frozen migrator image provenance check failed." >&2
+            exit 1
+          fi
+
+          echo "Verified task definition: $TASK_DEFINITION"
+
+      - name: Run fixed PlatformAdmin bootstrap task
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          COMMAND='["node","-r","ts-node/register/transpile-only","prisma/bootstrap-platform-admin.ts","--email","profile-embedding-operator@scopeedu.technology"]'
+          OVERRIDES="$(jq -cn --argjson command "$COMMAND" '{
+            containerOverrides: [
+              {
+                name: "migrator",
+                command: $command
+              }
+            ]
+          }')"
+
+          TASK_ARN="$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition "$TASK_DEFINITION" \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[$MIGRATOR_SUBNETS],securityGroups=[$MIGRATOR_SECURITY_GROUP],assignPublicIp=ENABLED}" \
+            --overrides "$OVERRIDES" \
+            --query 'tasks[0].taskArn' \
+            --output text)"
+
+          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
+            echo "ECS did not return a bootstrap task ARN." >&2
+            exit 1
+          fi
+
+          echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
+          echo "Started bootstrap task: $TASK_ARN"
+
+      - name: Require successful bootstrap completion
+        shell: bash
+        env:
+          TASK_ARN: ${{ steps.run.outputs.task_arn }}
+        run: |
+          set -euo pipefail
+
+          aws ecs wait tasks-stopped \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN"
+
+          aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query "tasks[0].containers[?name=='migrator'] | [0].{ExitCode:exitCode,LastStatus:lastStatus,Reason:reason}" \
+            --output table
+
+          EXIT_CODE="$(aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query "tasks[0].containers[?name=='migrator'] | [0].exitCode" \
+            --output text)"
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "PlatformAdmin bootstrap failed with exit code $EXIT_CODE." >&2
+            exit 1
+          fi
+
+          echo "PlatformAdmin bootstrap succeeded for $TARGET_EMAIL."
