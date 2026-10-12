@@ -10,6 +10,8 @@ export const PROFILE_EMBEDDING_RESPONSE_SCHEMA_VERSION =
   'profile_embedding_source_response_v1';
 export const PROFILE_EMBEDDING_DEPENDENCY_FINGERPRINT_VERSION =
   'profile_embedding_dependency_fingerprint_v1';
+export const PROFILE_EMBEDDING_COMPOSITION_POLICY_VERSION =
+  'profile_embedding_composition_v1';
 
 export const PROFILE_EMBEDDING_MODEL_ID = 'intfloat/multilingual-e5-small';
 export const PROFILE_EMBEDDING_MODEL_REVISION =
@@ -21,6 +23,17 @@ export const PROFILE_EMBEDDING_LONG_TEXT_POLICY_VERSION =
 export const PROFILE_EMBEDDING_LONG_TEXT_POLICY_SHA256 =
   '1319e903ae818b2a0290dc3b952e7f4ca89a15621c4dc176b27fd0c7197f4cc1';
 export const PROFILE_EMBEDDING_MAX_SOURCE_CHARACTERS = 30_000;
+
+/**
+ * Product flag shared by source generation and profile composition. Empty and
+ * absent values are deliberately disabled so an undeclared runtime setting
+ * cannot create embeddings or alter a structured profile rebuild.
+ */
+export function profileEmbeddingsEnabled(
+  configured: string | undefined = process.env.PROFILE_EMBEDDINGS_ENABLED
+): boolean {
+  return configured?.trim().toLowerCase() === 'true';
+}
 
 export interface ProfileEmbeddingSourceResponse {
   readonly schemaVersion: typeof PROFILE_EMBEDDING_RESPONSE_SCHEMA_VERSION;
