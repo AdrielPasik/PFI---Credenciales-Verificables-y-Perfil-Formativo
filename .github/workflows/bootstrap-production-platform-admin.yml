@@ -18,7 +18,7 @@ jobs:
       ECS_CLUSTER: scope-prod-cluster
       TASK_DEFINITION: scope-prod-migrator:7
       EXPECTED_IMAGE: 309490997821.dkr.ecr.us-east-1.amazonaws.com/scope/api@sha256:fba0060d99c5aaa68b544c32fd92d76108118d04bf703432e9e8649d25affbc7
-      TARGET_EMAIL: profile-embedding-operator@scopeedu.technology
+      TARGET_EMAIL: profile-embedding-operator-h2b@scopeedu.technology
       MIGRATOR_SUBNETS: subnet-075ecbc2b61716fef,subnet-0d58aa21130801c05
       MIGRATOR_SECURITY_GROUP: sg-0b7284f9025ac2749
 
@@ -61,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          COMMAND='["node","-r","ts-node/register/transpile-only","prisma/bootstrap-platform-admin.ts","--email","profile-embedding-operator@scopeedu.technology"]'
+          COMMAND='["node","-r","ts-node/register/transpile-only","prisma/bootstrap-platform-admin.ts","--email","profile-embedding-operator-h2b@scopeedu.technology"]'
           OVERRIDES="$(jq -cn --argjson command "$COMMAND" '{
             containerOverrides: [
               {

@@ -548,9 +548,13 @@ test('12c: un error que no es P2002 se propaga sin convertirse en already_exists
 const API_ROOT = join(__dirname, '..');
 const SRC = join(API_ROOT, 'src');
 
+function isProductionTypeScriptFile(file: string): boolean {
+  return file.endsWith('.ts') && !/\.(?:test|spec)\.ts$/.test(file);
+}
+
 function sourceFiles(root: string): string[] {
   return readdirSync(root, { recursive: true, encoding: 'utf8' })
-    .filter((entry) => entry.endsWith('.ts'))
+    .filter(isProductionTypeScriptFile)
     .map((entry) => entry.split('/').join(sep));
 }
 
@@ -580,6 +584,12 @@ test('11b: ningun archivo de src/ importa el bootstrap', () => {
   });
 
   assert.deepEqual(offenders, []);
+});
+
+test('11b: el scan excluye tests/specs pero conserva TypeScript ejecutable', () => {
+  assert.equal(isProductionTypeScriptFile('identity/runtime.ts'), true);
+  assert.equal(isProductionTypeScriptFile('identity/runtime.test.ts'), false);
+  assert.equal(isProductionTypeScriptFile('identity/runtime.spec.ts'), false);
 });
 
 test('11c: el bootstrap no quedo enganchado a ningun seed ni al arranque de Nest', () => {
