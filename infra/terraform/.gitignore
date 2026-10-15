@@ -7,12 +7,15 @@
 crash.log
 crash.*.log
 
-# Local variable and backend files. Only the *.example templates are versioned.
+# Local variable and backend files. Only the *.example templates are versioned,
+# except the non-secret, production probe desired-state file explicitly
+# re-included below.
 *.tfvars
 *.tfvars.json
 backend.hcl
 bootstrap/backend.tf
 !*.example
+!prod/ecs_sync_probe.auto.tfvars
 
 # Terraform plan artifacts (may embed resource values).
 *.tfplan

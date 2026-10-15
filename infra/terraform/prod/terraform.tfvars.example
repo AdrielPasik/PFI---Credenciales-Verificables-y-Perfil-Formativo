@@ -54,6 +54,11 @@ rds_backup_retention_days = 1
 # profile_embeddings_enabled   = false
 # profile_embeddings_model_dir = "/opt/pfi/models/multilingual-e5-small"
 
+# --- Isolated ECS sync probe -----------------------------------------------
+# Its non-secret desired state is versioned in ecs_sync_probe.auto.tfvars so
+# every ordinary plan from this production root retains the reviewed probe
+# resources. Do not override these values in this ignored local file.
+
 # --- GitHub Actions federation (OIDC, no access keys) ----------------------
 # Verify against `git remote -v` before applying. An AWS account may hold only
 # one OIDC provider for token.actions.githubusercontent.com: if one already
