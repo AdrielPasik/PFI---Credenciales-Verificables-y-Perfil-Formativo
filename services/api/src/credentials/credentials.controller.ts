@@ -33,15 +33,29 @@ export class CredentialsController {
     return this.credentialsService.issueCredential(credentialId, dto, currentUser);
   }
 
+  // S8: estas dos lecturas eran PUBLICAS (filtraban contenido de credenciales y
+  // borradores a quien conociera el UUID). Ahora exigen sesion y pertenencia:
+  // titular de una credencial ya emitida, o miembro activo admin/operator del
+  // issuer duenio. La verificacion publica de terceros es
+  // `GET /verify/credentials/:id`, que NO se toca.
   @Get(':id')
-  getCredential(@Param('id') credentialId: string): Promise<CredentialSummaryResponseDto> {
-    return this.credentialsService.getCredential(credentialId);
+  @UseGuards(AuthGuard)
+  getCredential(
+    @Param('id') credentialId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<CredentialSummaryResponseDto> {
+    return this.credentialsService.getCredential(credentialId, currentUser);
   }
 
   @Get(':id/status')
+  @UseGuards(AuthGuard)
   getCredentialStatus(
-    @Param('id') credentialId: string
+    @Param('id') credentialId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
   ): Promise<CredentialStatusResponseDto> {
-    return this.credentialsService.getCredentialStatus(credentialId);
+    return this.credentialsService.getCredentialStatus(
+      credentialId,
+      currentUser
+    );
   }
 }

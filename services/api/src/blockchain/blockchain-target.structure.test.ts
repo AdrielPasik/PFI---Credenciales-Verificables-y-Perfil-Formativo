@@ -471,6 +471,14 @@ const DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS: Readonly<Record<string, readonly str
   deploymentManifest: []
 };
 
+/**
+ * S8: UNICA excepcion de runtime. La reconciliacion necesita un limite inferior
+ * SEGURO para buscar logs y el unico dato confiable es el bloque de deploy del
+ * manifest publicado. Se lee en este archivo, solo para ese limite, y NUNCA como
+ * autoridad del target: red, chainId y contrato salen de la fila y del entorno.
+ */
+const RUNTIME_SEARCH_BOUND_FILE = 'blockchain/reconciliation-search-range.ts';
+
 const ALWAYS_FORBIDDEN_DEPLOYMENT_TOKENS = [
   'base-sepolia-prod',
   'base_sepolia_prod',
@@ -493,6 +501,10 @@ test('no se inventa ningun deployment de Base Sepolia (S8c10)', () => {
 
     for (const [token, allowedFiles] of Object.entries(DEPLOYMENT_EVIDENCE_TOKEN_EXCEPTIONS)) {
       if (allowedFiles.includes(relativeToApiSrc(file.path))) {
+        continue;
+      }
+
+      if (token === 'deploymentBlock' && relativeToApiSrc(file.path) === RUNTIME_SEARCH_BOUND_FILE) {
         continue;
       }
 
@@ -522,6 +534,36 @@ test('la excepcion de deployment es EXACTA: solo archivos de la herramienta, y t
   }
 });
 
+test('S8: la excepcion del limite de busqueda es EXACTA: un archivo, un token, sin autoridad de target', () => {
+  const file = productionSources().find(
+    (candidate) => relativeToApiSrc(candidate.path) === RUNTIME_SEARCH_BOUND_FILE
+  );
+  assert.ok(file, 'el archivo de la excepcion debe existir');
+
+  // Solo ese token, solo ese archivo: ningun otro archivo de runtime lo usa.
+  const users = productionSources()
+    .filter((candidate) => candidate.code.includes('deploymentBlock'))
+    .map((candidate) => relativeToApiSrc(candidate.path))
+    .filter((path) => !path.startsWith('blockchain/deployment/'));
+  assert.deepEqual(users, [RUNTIME_SEARCH_BOUND_FILE]);
+
+  // No importa la herramienta de deployment, no lee variables de entorno (no
+  // puede cambiar el target) y no usa ningun otro token de autoridad.
+  assert.ok(!/from\s+'[^']*\/deployment\//.test(file.code));
+  assert.ok(!file.code.includes('process.env'));
+  for (const token of [
+    'runtimeBytecodeHash',
+    'creationBytecodeHash',
+    'deploymentSourceCommit',
+    'deploymentTransactionHash',
+    'deploymentTimestamp',
+    'deployment-manifest',
+    'target-manifest-consistency'
+  ]) {
+    assert.ok(!file.code.includes(token), token);
+  }
+});
+
 test('el runtime NO usa evidencia de deployment como autoridad del target (S8c10 / S8c5)', () => {
   // Cobertura por nombre completo: `bytecodeHash` en minuscula NO alcanza a
   // `runtimeBytecodeHash` / `creationBytecodeHash` (la B es mayuscula).
@@ -545,6 +587,10 @@ test('el runtime NO usa evidencia de deployment como autoridad del target (S8c10
 
   for (const file of runtime) {
     for (const token of deploymentAuthorityTokens) {
+      if (token === 'deploymentBlock' && relativeToApiSrc(file.path) === RUNTIME_SEARCH_BOUND_FILE) {
+        continue;
+      }
+
       assert.ok(
         !file.code.includes(token),
         `${file.name} (runtime) no debe usar ${token}: no es parte del contrato BlockchainTarget`

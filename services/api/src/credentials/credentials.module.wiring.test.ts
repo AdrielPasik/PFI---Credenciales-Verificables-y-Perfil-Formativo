@@ -18,6 +18,8 @@ import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft
 import { IssuerCredentialDraftUpdateService } from './issuer-credential-draft-update.service';
 import { IssuerCredentialIssueController } from './issuer-credential-issue.controller';
 import { IssuerCredentialIssueService } from './issuer-credential-issue.service';
+import { IssuerCredentialBlockchainReconciliationController } from './issuer-credential-blockchain-reconciliation.controller';
+import { IssuerCredentialBlockchainReconciliationService } from './issuer-credential-blockchain-reconciliation.service';
 import { IssuerCredentialRevocationController } from './issuer-credential-revocation.controller';
 import { IssuerCredentialRevocationService } from './issuer-credential-revocation.service';
 import { IssuerCredentialReadController } from './issuer-credential-read.controller';
@@ -46,6 +48,8 @@ test('CredentialsModule wires issuer credential read without duplicate auth prov
   assert.equal(providers.includes(IssuerCredentialIssueService), true);
   assert.equal(providers.includes(IssuerCredentialRevocationService), true);
   assert.equal(providers.includes(IssuerCredentialDraftUpdateService), true);
+  assert.equal(providers.includes(IssuerCredentialBlockchainReconciliationService), true);
+  assert.equal(controllers.includes(IssuerCredentialBlockchainReconciliationController), true);
   assert.equal(controllers.includes(IssuerCredentialReadController), true);
   assert.equal(controllers.includes(IssuerCredentialIssueController), true);
   assert.equal(controllers.includes(IssuerCredentialRevocationController), true);
@@ -71,6 +75,8 @@ test('CredentialsModule wires issuer credential read without duplicate auth prov
     assert.ok(applicationContext.get(IssuerCredentialRevocationService));
     assert.ok(applicationContext.get(IssuerCredentialDraftUpdateController));
     assert.ok(applicationContext.get(IssuerCredentialDraftUpdateService));
+    assert.ok(applicationContext.get(IssuerCredentialBlockchainReconciliationController));
+    assert.ok(applicationContext.get(IssuerCredentialBlockchainReconciliationService));
   } finally {
     await applicationContext.close();
   }

@@ -61,7 +61,11 @@ function registeredRecord(overrides: Record<string, unknown> = {}) {
     txHash: `0x${'b'.repeat(64)}`,
     status: BlockchainRecordStatus.registered,
     registeredAt: new Date('2026-03-31T23:33:20.000Z'),
+    revokedAt: null,
     issuerAddress: ANCHOR_ADDRESS,
+    evidenceMode: 'credential_registry',
+    deploymentId: DEPLOYMENT_ID,
+    blockNumber: 47934200,
     anchorSignerProfileId: 'anchor-profile-1',
     anchorSignerProfile: { address: ANCHOR_ADDRESS },
     ...overrides
@@ -85,6 +89,9 @@ function mockEvidenceRecord(overrides: Record<string, unknown> = {}) {
     network: BlockchainNetwork.anvil,
     chainId: 31337,
     contractAddress: MOCK_CONTRACT_ADDRESS,
+    evidenceMode: 'mock',
+    deploymentId: null,
+    blockNumber: null,
     anchorSignerProfileId: null,
     anchorSignerProfile: null,
     ...overrides
@@ -651,10 +658,154 @@ test('la verificacion publica es de SOLO LECTURA y no consulta analisis semantic
     'passwordHash',
     'walletAddress',
     'issuerAddress',
-    'contractAddress',
     'secretRef',
     'privateKey',
     'anchorSignerProfileId'
+  ]) {
+    assert.equal(serialized.includes(forbidden), false, `${forbidden} must not leak`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// S8 cierre de Base Sepolia: MATERIAL PUBLICO DE VERIFICACION
+// ---------------------------------------------------------------------------
+
+test('S8-A1: el proof sale por allowlist explicita y el hash canonico va completo', async () => {
+  const { service } = createContext();
+  const response = await service.getCredentialVerification('x');
+
+  assert.deepEqual(response.proof, vectorProof());
+  assert.deepEqual(Object.keys(response.proof ?? {}).sort(), [
+    'canonicalizationVersion',
+    'cryptosuite',
+    'hashAlgorithm',
+    'profile',
+    'proofPurpose',
+    'proofValue',
+    'type',
+    'verificationMethod'
+  ]);
+  assert.equal(response.canonicalHash, VECTOR_CANONICAL_HASH);
+  assert.match(response.canonicalHash ?? '', /^0x[0-9a-f]{64}$/);
+  assert.notEqual(response.canonicalHashShort, response.canonicalHash);
+});
+
+test('S8-A2: una clave extra en la columna proof NO sale por la API publica', async () => {
+  const { service } = createContext({
+    credential: v2Credential({
+      proof: { ...vectorProof(), signerAddress: ANCHOR_ADDRESS, secretRef: 'x' }
+    })
+  });
+  const response = await service.getCredentialVerification('x');
+
+  assert.deepEqual(response.proof, vectorProof());
+  assert.equal(JSON.stringify(response).includes('secretRef'), false);
+  assert.equal(JSON.stringify(response).includes('signerAddress'), false);
+});
+
+test('S8-A3: un proof ausente o mal formado se publica como null', async () => {
+  for (const proof of [null, 'x', [], { type: 'only' }, { ...vectorProof(), proofValue: 7 }]) {
+    const { service } = createContext({ credential: v2Credential({ proof }) });
+    const response = await service.getCredentialVerification('x');
+
+    assert.equal(response.proof, null);
+  }
+});
+
+test('S8-A4: un registro real expone las coordenadas publicas completas', async () => {
+  const { service } = createContext();
+  const response = await service.getCredentialVerification('x');
+  const record = response.integrity.latestBlockchainRecord;
+
+  assert.equal(response.verification.headline, 'VERIFIED');
+  assert.ok(record);
+  assert.equal(record.evidenceMode, 'credential_registry');
+  assert.equal(record.network, BlockchainNetwork.base_sepolia);
+  assert.equal(record.chainId, 84532);
+  assert.equal(record.contractAddress, CONTRACT_ADDRESS);
+  assert.equal(record.deploymentId, DEPLOYMENT_ID);
+  assert.equal(record.txHash, `0x${'b'.repeat(64)}`);
+  assert.equal(record.blockNumber, 47934200);
+  assert.equal(record.registrantAddress, ANCHOR_ADDRESS);
+  assert.equal(record.registeredAt, '2026-03-31T23:33:20Z');
+  assert.equal(record.revokedAt, null);
+});
+
+test('S8-A5: un registro PENDING no inventa tx, bloque ni registrante', async () => {
+  const { service } = createContext({
+    credential: v2Credential({ blockchainRecords: [pendingRecord({ blockNumber: null })] }),
+    chainResult: { kind: 'credential_missing' }
+  });
+  const response = await service.getCredentialVerification('x');
+  const record = response.integrity.latestBlockchainRecord;
+
+  assert.ok(record);
+  assert.equal(record.evidenceMode, 'credential_registry');
+  assert.equal(record.txHash, null);
+  assert.equal(record.blockNumber, null);
+  assert.equal(record.registrantAddress, null);
+  assert.equal(record.registeredAt, null);
+  assert.equal(response.verification.blockchainEvidence.result, 'PENDING');
+});
+
+test('S8-A6: la evidencia MOCK se distingue y no publica coordenadas simuladas', async () => {
+  const { service } = createContext({
+    credential: v2Credential({
+      blockchainRecords: [mockEvidenceRecord({ credentialHash: VECTOR_CANONICAL_HASH })]
+    })
+  });
+  const response = await service.getCredentialVerification('x');
+  const record = response.integrity.latestBlockchainRecord;
+
+  assert.ok(record);
+  assert.equal(record.evidenceMode, 'mock');
+  assert.equal(record.contractAddress, null);
+  assert.equal(record.deploymentId, null);
+  assert.equal(record.blockNumber, null);
+  assert.equal(record.registrantAddress, null);
+  assert.equal(response.verification.blockchainEvidence.result, 'NOT_APPLICABLE_MOCK');
+  assert.equal(JSON.stringify(response).includes(MOCK_CONTRACT_ADDRESS), false);
+});
+
+test('S8-A7: una fila legacy sin evidenceMode se clasifica por su identidad mock', async () => {
+  const { service } = createContext({
+    credential: v2Credential({
+      blockchainRecords: [mockEvidenceRecord({ evidenceMode: null })]
+    })
+  });
+  const response = await service.getCredentialVerification('x');
+
+  assert.equal(response.integrity.latestBlockchainRecord?.evidenceMode, 'mock');
+  assert.equal(response.integrity.latestBlockchainRecord?.contractAddress, null);
+});
+
+test('S8-A8: una credencial alterada nunca recibe un resultado positivo aunque lleve proof y registro', async () => {
+  const { service } = createContext({
+    credential: v2Credential({ title: 'Titulo alterado despues de emitir' })
+  });
+  const response = await service.getCredentialVerification('x');
+
+  assert.equal(response.verification.headline, 'INVALID');
+  assert.equal(response.verification.result, 'not_verifiable');
+  assert.equal(response.verification.authenticity.result, 'INVALID');
+  // El material publico sigue siendo el almacenado; el veredicto es lo que manda.
+  assert.deepEqual(response.proof, vectorProof());
+});
+
+test('S8-A9: ni los campos nuevos filtran RPC, secretRef, claves ni rutas internas', async () => {
+  const { service } = createContext();
+  const serialized = JSON.stringify(await service.getCredentialVerification('x'));
+
+  for (const forbidden of [
+    'SECRET_API_KEY',
+    'provider.example',
+    'secretRef',
+    'privateKey',
+    '/scope/prod/signers',
+    'anchorSignerProfileId',
+    'arn:aws',
+    'passwordHash',
+    'email'
   ]) {
     assert.equal(serialized.includes(forbidden), false, `${forbidden} must not leak`);
   }

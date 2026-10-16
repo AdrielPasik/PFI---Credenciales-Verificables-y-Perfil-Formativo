@@ -733,24 +733,52 @@ ni afirma que un draft este listo para emitir.
 
 ### `GET /credentials/:id`
 
-- Proposito actual: obtener el resumen tecnico existente de una credencial.
-- Actor actual: consumidor tecnico/demo; el runtime mantiene este endpoint sin
-  auth por compatibilidad transitoria.
+- Proposito actual: obtener el resumen tecnico de una credencial.
+- Actor actual (S8): requiere `AuthGuard`. Lo leen (a) el TITULAR, solo cuando la
+  credencial ya no es borrador, y (b) un miembro activo `admin`/`operator` del
+  issuer duenio con el issuer autorizado. **Antes era publico** y filtraba
+  `credentialSubject`, `subjectUserId` y la evidencia de cadena, borradores
+  incluidos, a quien conociera el UUID.
 - Request conceptual: path `id`.
 - Response actual: `CredentialSummaryResponseDto`.
-- Errores esperados: `400`, `404`.
-- Estado: implementado, transitorio. El Portal del Emisor debe migrar en P1b
-  al read institucional seguro y el verificador no debe reutilizar este DTO
-  como contrato publico final.
+- Errores esperados: `401`, `404`. Un usuario sin derecho a leer recibe EXACTAMENTE
+  el mismo `404` que una credencial inexistente (no se confirma la existencia).
+- Estado: implementado, legacy. Ningun cliente del repo lo consume (la web usa
+  las rutas issuer-scoped, `/me` y `/verify`). La verificacion publica de
+  terceros es `GET /verify/credentials/:id`, que NO se toca.
 
 ### `GET /credentials/:id/status`
 
-- Proposito: obtener el estado operativo y verificable de una credencial.
-- Actor: `holder`, `issuer_admin`, `verifier`, `system_admin`.
+- Proposito: obtener el estado operativo de una credencial.
+- Actor (S8): `AuthGuard`; mismas reglas de lectura que `GET /credentials/:id`
+  (titular de una credencial no borrador, o miembro activo admin/operator del
+  issuer duenio). Antes era publico.
 - Request conceptual: path `id`.
-- Response conceptual: `status`, `issued_at`, `revoked_at`, presencia de hash y registro blockchain.
-- Errores esperados: `401`, `403`, `404`.
-- Estado: `v1_candidate`.
+- Response: `status`, `issuedAt`, `revokedAt`, hash y resumen del registro blockchain.
+- Errores esperados: `401`, `404` (indistinguible de inexistente).
+- Estado: implementado, legacy.
+
+### `POST /issuers/:issuerId/credentials/:credentialId/blockchain/reconcile`
+
+- Proposito (S8): resolver una registracion blockchain `pending` SIN retransmitir.
+  Delega en `BlockchainRegistrationReconciliationService`; no hay una segunda
+  implementacion.
+- Actor: `AuthGuard` + membership activa `admin`/`operator` del issuer
+  (la misma autorizacion que emitir y revocar).
+- Request: solo los ids de la ruta, sin body ni query. El llamador NO elige
+  contrato, red, bloque ni rango: el target sale del `BlockchainRecord` y el
+  limite inferior de busqueda, del manifest de deployment de ese registro
+  (`contracts/deployments/<deploymentId>.json`).
+- Response `200`: `{ credentialReference, result, outcome, blockchain }` con
+  `result` en `registered | still_pending | revoked`. `outcome` es un codigo
+  cerrado (`FINALIZED`, `ALREADY_REGISTERED`, `REVOKED`, `CHAIN_NOT_REGISTERED`,
+  `CHAIN_UNAVAILABLE`, `EVIDENCE_INCOMPLETE`).
+- Errores: `404` credencial de otro issuer; `409` no emitida, sin registro,
+  registro ambiguo, no reconciliable, registrante inesperado o evidencia en
+  conflicto; `503` manifest o target no disponibles.
+- Garantias: NUNCA envia una transaccion; `registered` es idempotente;
+  `revoked` no retrocede; una falla del RPC deja `still_pending`.
+- Estado: implementado.
 
 ### `POST /credentials/:id/revoke`
 
@@ -831,10 +859,24 @@ ni afirma que un draft este listo para emitir.
 - Privacidad: `draft` se comporta como inexistente (`404` generico). Nunca
   expone email, `credentialSubject`, `rawData`, metadata, evidencia, analisis
   IA, rutas de storage, secretos ni datos de membership.
-- Blockchain: no consulta RPC ni red en vivo; la evidencia es tecnica y no
-  valida el contenido academico.
+- Material publico de verificacion (S8, aditivo): `proof` (las ocho claves de
+  `scope-proof-v1`, por allowlist), `canonicalHash` completo y, en
+  `integrity.latestBlockchainRecord`: `evidenceMode` (`mock | credential_registry`),
+  `contractAddress`, `deploymentId`, `blockNumber`, `registrantAddress`,
+  `txHash` completo y `revokedAt`. Para evidencia **mock** las coordenadas de
+  cadena (`contractAddress`, `deploymentId`, `blockNumber`, `registrantAddress`)
+  son `null`: no se publican coordenadas simuladas como si fueran de una red.
+- El titular autoritativo es `verification.headline`
+  (`VERIFIED | VERIFIED_WITH_LIMITED_EVIDENCE | INDETERMINATE | INVALID | REVOKED`);
+  `verification.result` es solo una proyeccion de compatibilidad. Los clientes
+  deben presentar el titular, no `result`.
+- Blockchain: el servidor consulta el contrato (solo lectura) cuando el registro
+  es real; no devuelve el endpoint RPC. La evidencia es tecnica y no valida el
+  contenido academico ni la legitimidad de la institucion.
+- Lo que un tercero NO obtiene de este endpoint: el contenido de la credencial
+  (privacidad). Ver `docs/blockchain/independent-verification.md`.
 - Errores esperados: `400`, `404`, `5xx` sanitizado.
-- Estado: implementado en V1.
+- Estado: implementado en V1; ampliado en S8.
 
 ### `POST /verification/shared-link/:token`
 

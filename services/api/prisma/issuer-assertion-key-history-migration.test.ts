@@ -228,7 +228,7 @@ test('la historia sigue la politica de retencion del issuer', async () => {
 // 111-112: LAS MIGRATIONS ANTERIORES QUEDAN INTACTAS
 // ---------------------------------------------------------------------------
 
-test('111-112: la migration es la ultima y no reescribe ninguna anterior', async () => {
+test('111-112: la migration conserva su posicion historica y no reescribe ninguna anterior', async () => {
   const entries = (
     await readdir(join(PRISMA_DIR, 'migrations'), { withFileTypes: true })
   )
@@ -236,7 +236,15 @@ test('111-112: la migration es la ultima y no reescribe ninguna anterior', async
     .map((entry) => entry.name)
     .sort();
 
-  assert.equal(entries[entries.length - 1], MIGRATION_NAME);
+  // Posicion historica, no "es la ultima": agregar una migration POSTERIOR es
+  // legitimo (p. ej. la de embeddings de perfil) y no debe romper este test. Sigue
+  // fallando si esta migration se borra o se renombra, o si algo posterior no es
+  // estrictamente posterior (una reescritura o un timestamp anterior).
+  assert.ok(entries.includes(MIGRATION_NAME));
+
+  for (const entry of entries.slice(entries.indexOf(MIGRATION_NAME) + 1)) {
+    assert.ok(entry > MIGRATION_NAME, `${entry} no es posterior`);
+  }
 
   // La de S8c1 sigue creando la identidad tecnica y la procedencia.
   const s8c1 = await readFile(

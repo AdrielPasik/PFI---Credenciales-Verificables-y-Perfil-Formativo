@@ -144,6 +144,12 @@ locals {
     AWS_REGION                 = var.aws_region
     AWS_S3_BUCKET              = var.document_evidence_bucket_name
     AWS_S3_PREFIX              = var.document_evidence_prefix
+
+    # S8: defensa en profundidad del resolver de signers. El store SSM rechaza
+    # cualquier `secretRef` fuera de este namespace ANTES de llamar a AWS. El
+    # limite AUTORITATIVO sigue siendo IAM (api_task_signers); esto no lo
+    # reemplaza. Valor PUBLICO, no un secreto.
+    SIGNER_SECRET_REF_PREFIX = "${local.ssm_prefix}/signers/"
   }
 
   ai_environment = {

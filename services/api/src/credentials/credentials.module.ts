@@ -9,6 +9,8 @@ import { CredentialHashingService } from './credential-hashing.service';
 import { CredentialProofService } from './credential-proof.service';
 import { CredentialsController } from './credentials.controller';
 import { CredentialsService } from './credentials.service';
+import { IssuerCredentialBlockchainReconciliationController } from './issuer-credential-blockchain-reconciliation.controller';
+import { IssuerCredentialBlockchainReconciliationService } from './issuer-credential-blockchain-reconciliation.service';
 import { IssuerCredentialDraftUpdateController } from './issuer-credential-draft-update.controller';
 import { IssuerCredentialDraftUpdateService } from './issuer-credential-draft-update.service';
 import { IssuerCredentialIssueController } from './issuer-credential-issue.controller';
@@ -39,6 +41,7 @@ import { IssuerCredentialReadService } from './issuer-credential-read.service';
     CredentialsController,
     IssuerCredentialIssueController,
     IssuerCredentialRevocationController,
+    IssuerCredentialBlockchainReconciliationController,
     IssuerCredentialReadController,
     IssuerCredentialDraftUpdateController
   ],
@@ -48,6 +51,7 @@ import { IssuerCredentialReadService } from './issuer-credential-read.service';
     CredentialProofService,
     IssuerCredentialIssueService,
     IssuerCredentialRevocationService,
+    IssuerCredentialBlockchainReconciliationService,
     IssuerCredentialReadService,
     IssuerCredentialDraftUpdateService
   ],

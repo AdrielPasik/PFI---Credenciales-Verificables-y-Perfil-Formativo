@@ -31,9 +31,53 @@ esta seccion, esta seccion es la correcta.
   resolucion operativa solo soporta el target configurado hoy: no cambiar
   `contractAddress` / `deploymentId` despues del primer `BlockchainRecord` real.
 - **Limitaciones abiertas (S8c11).** El preflight de runtime prueba presencia de
-  codigo, no identidad del contrato (la identidad la prueba el manifest);
-  la reconciliacion no tiene invocacion de produccion ni busqueda en chunks; el nonce
+  codigo, no identidad del contrato (la identidad la prueba el manifest); el nonce
   es local al proceso (un solo escritor efectivo); y el migrator comparte tag con la API.
+  (S8: la reconciliacion ya tiene invocacion de produccion --
+  `POST /issuers/:issuerId/credentials/:credentialId/blockchain/reconcile` -- y busca
+  en ventanas de 10.000 bloques desde el bloque de deploy del manifest. Nunca
+  retransmite.)
+
+## Escritor unico (S8)
+
+`AnchorWriteCoordinator` serializa por `SignerProfile.id` **dentro de UN proceso**.
+No coordina dos tareas ECS. El repositorio lo mitiga limitando el despliegue de la API
+a una tarea y evitando el solapamiento entre la tarea vieja y la nueva.
+
+Lo que **declara el repositorio** (Terraform; no se verifico ningun estado vivo):
+
+| Concepto | Valor declarado | Efecto sobre el escritor |
+|---|---|---|
+| `desired_count` del servicio de la API | `var.enable_services ? var.api_desired_count : 0` | Con los servicios habilitados, la cantidad sale de `api_desired_count`; con `enable_services = false`, 0. |
+| `api_desired_count` | validado en `{0, 1}`, por defecto 1 | Regimen: a lo sumo **una** tarea de API deseada. |
+| Autoscaling | no existe | No hay camino a mas de una tarea deseada. |
+| `deployment_minimum_healthy_percent` / `deployment_maximum_percent` | `0 / 100` | **Sin solapamiento intencional** entre tarea vieja y nueva durante un reemplazo. |
+
+Estado estable: `enable_services = true` y `api_desired_count = 1` equivalen a exactamente
+**una** tarea de API deseada.
+
+Despliegue: con `0 / 100`, ECS puede detener la tarea existente **antes** de que la
+reemplazante este sana. Eso evita que dos procesos firmen a la vez con la misma cuenta de
+anclaje (dos `NonceManager` independientes podrian elegir el mismo nonce y una transaccion
+se reemplazaria o se perderia). Es, hoy, la mitigacion del repositorio para la
+coordinacion de nonce local al proceso.
+
+Costo: **disponibilidad por seguridad del escritor unico.** Un reemplazo puede dejar la API
+temporalmente sin servicio, y si la tarea nueva no arranca la API queda no disponible; el
+`deployment_circuit_breaker` con rollback puede restaurar la task definition anterior,
+pero `0 / 100` no garantiza disponibilidad durante ese proceso. No se midio ninguna
+duracion de indisponibilidad en vivo; el ALB tiene un drenaje configurado de
+`alb_deregistration_delay_seconds` (900 s en el repositorio), que puede alargarla.
+
+Lo que esto **no** es: no es exclusividad global. Scripts manuales, otras tareas o otras
+maquinas con la misma clave quedan fuera de lo que Terraform puede garantizar.
+
+**Decision de S8:** no se cambio ningun porcentaje ni `desired_count`. Para el E2E
+controlado la compuerta operativa es: despliegue `COMPLETED`, `desiredCount = 1`,
+`runningCount = 1`, `pendingCount = 0`, una sola tarea de API y ninguna emision concurrente
+durante la ventana de prueba. Para uso sostenido sigue pendiente una decision de
+arquitectura (coordinacion de nonce entre procesos o una politica de recuperacion de
+`pending`); no se resuelve aqui.
 
 Responsabilidad actual:
 

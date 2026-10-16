@@ -193,13 +193,81 @@ test('un manifest invalido no toca el disco y el id nunca escapa del directorio'
   }
 });
 
-test('NO se crea ningun manifest real de Base Sepolia en el repositorio', () => {
-  const deployments = join(__dirname, '..', '..', '..', '..', '..', 'contracts', 'deployments');
-  assert.ok(existsSync(deployments));
-  assert.deepEqual(
-    readdirSync(deployments).filter((name) => name.startsWith('base-sepolia-')),
-    []
+// S8: invariante VIGENTE. La fase Anvil-only exigia que no existiera ningun manifest
+// real de Base Sepolia; S8 adopto el deployment canonico, asi que el invariante
+// correcto es que exista EXACTAMENTE ese y ninguno mas.
+const CANONICAL_DEPLOYMENT_FILE =
+  'base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json';
+const CANONICAL_ADDRESS = '0xCb7401e268f61b1242B17fE141453471CFbdc6e1';
+const CANONICAL_DEPLOYMENT_ID =
+  'base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1';
+
+function deploymentsDirectory(): string {
+  return join(__dirname, '..', '..', '..', '..', '..', 'contracts', 'deployments');
+}
+
+function canonicalManifestRaw(): string {
+  return readFileSync(join(deploymentsDirectory(), CANONICAL_DEPLOYMENT_FILE), 'utf8');
+}
+
+test('S8 existe EXACTAMENTE un manifest de registry y es el canonico de Base Sepolia', () => {
+  const manifests = readdirSync(deploymentsDirectory()).filter(
+    (name) => name.endsWith('.json') && name !== 'credential-registry-deployment.schema.json' && name !== 'deployment-toolchain.json'
   );
+
+  // Ningun segundo manifest (otra red, otro contrato, "latest") puede volverse
+  // autoritativo en silencio.
+  assert.deepEqual(manifests, [CANONICAL_DEPLOYMENT_FILE]);
+});
+
+test('S8 el manifest canonico valida y fija red, chain, contrato y bloque de deploy', () => {
+  const parsed = JSON.parse(canonicalManifestRaw()) as unknown;
+  const validation = validateDeploymentManifest(parsed);
+  assert.equal(validation.ok, true);
+
+  const record = parsed as DeploymentManifest;
+  assert.equal(record.network, 'base_sepolia');
+  assert.equal(record.chainId, 84532);
+  assert.equal(record.contractAddress, CANONICAL_ADDRESS);
+  assert.equal(record.deploymentId, CANONICAL_DEPLOYMENT_ID);
+  assert.equal(record.contractName, 'CredentialRegistry');
+  assert.ok(Number.isSafeInteger(record.deploymentBlockNumber) && record.deploymentBlockNumber > 0);
+  // El nombre del archivo es el deploymentId: no hay alias ni "latest".
+  assert.equal(`${record.deploymentId}.json`, CANONICAL_DEPLOYMENT_FILE);
+});
+
+test('S8 el target de la aplicacion coincide con el manifest canonico (y solo con el)', () => {
+  const record = JSON.parse(canonicalManifestRaw()) as DeploymentManifest;
+  const target = {
+    CREDENTIAL_REGISTRY_NETWORK: 'base_sepolia',
+    CREDENTIAL_REGISTRY_CHAIN_ID: '84532',
+    CREDENTIAL_REGISTRY_CONTRACT_ADDRESS: CANONICAL_ADDRESS,
+    CREDENTIAL_REGISTRY_DEPLOYMENT_ID: CANONICAL_DEPLOYMENT_ID
+  };
+
+  assert.equal(checkTargetAgainstManifest(record, target).ok, true);
+  // Anvil u otro contrato NO coinciden con el manifest canonico.
+  assert.equal(
+    checkTargetAgainstManifest(record, { ...target, CREDENTIAL_REGISTRY_CHAIN_ID: '31337' }).ok,
+    false
+  );
+  assert.equal(
+    checkTargetAgainstManifest(record, {
+      ...target,
+      CREDENTIAL_REGISTRY_CONTRACT_ADDRESS: OTHER_ADDRESS
+    }).ok,
+    false
+  );
+});
+
+test('S8 el manifest canonico no contiene secretos ni endpoints', () => {
+  const raw = canonicalManifestRaw();
+
+  assert.ok(!/https?:\/\//i.test(raw), 'no URLs (RPC)');
+  assert.ok(!/private|secret|mnemonic|keystore|password|rpc/i.test(raw));
+  // Las unicas cadenas de 32 bytes son hashes publicos con campo conocido.
+  const hex64 = raw.match(/0x[0-9a-fA-F]{64}/g) ?? [];
+  assert.equal(hex64.length, 4);
 });
 
 // ---------------------------------------------------------------------------

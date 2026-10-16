@@ -19,6 +19,10 @@ RUN npm ci \
 COPY services/api ./services/api
 COPY data/academic_catalog ./data/academic_catalog
 COPY infra/terraform/sql ./infra/terraform/sql
+# S8: la reconciliacion lee el bloque de deploy del manifest publicado. SOLO los
+# manifests de deployment (JSON publico, sin secretos): ni el schema, ni el
+# toolchain, ni el README, ni el resto de contracts/.
+COPY contracts/deployments/base-sepolia-*.json ./contracts/deployments/
 
 RUN npm run prisma:generate --workspace @credential-intelligence/api \
     && npm run build --workspace @credential-intelligence/api \

@@ -163,11 +163,24 @@ test('el EXECUTION role no recibe ningun permiso nuevo de signers', () => {
 test('ningun parametro de signer se declara en los secrets del task definition', () => {
   // Los secretos de signer son dinamicos (uno por SignerProfile): no pueden
   // enumerarse en un task definition, y por eso el camino es el task role.
+  // S8: UNICA excepcion. `SIGNER_SECRET_REF_PREFIX` es una variable de ENTORNO
+  // PUBLICA (el namespace que el store SSM exige, defensa en profundidad), no un
+  // secret ni un parametro de signer. Se quita esa linea exacta y TODO lo demas
+  // sigue sin poder mencionar signers.
+  const publicPrefixEnvironment =
+    'SIGNER_SECRET_REF_PREFIX = "${local.ssm_prefix}/signers/"';
   const locals = executableHcl(readTf('locals.tf'));
 
-  assert.ok(!locals.includes('/signers/'));
-  assert.ok(!locals.includes('SIGNER'));
-  assert.ok(!locals.includes('PRIVATE_KEY'));
+  assert.equal(locals.split(publicPrefixEnvironment).length - 1, 1);
+  const rest = locals.replace(publicPrefixEnvironment, '');
+
+  assert.ok(!rest.includes('/signers/'));
+  assert.ok(!rest.includes('SIGNER'));
+  assert.ok(!rest.includes('PRIVATE_KEY'));
+
+  // Y la linea esta en el ENTORNO de la API, no en ningun mapa de secrets.
+  const apiEnvironment = /api_environment = \{[\s\S]*?\n  \}/.exec(locals);
+  assert.ok(apiEnvironment?.[0].includes(publicPrefixEnvironment));
 });
 
 /** Cada `aws_iam_role_policy`, con el rol y el documento que adjunta. */

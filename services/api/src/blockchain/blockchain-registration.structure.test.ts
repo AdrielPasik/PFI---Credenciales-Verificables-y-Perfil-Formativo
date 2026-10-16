@@ -764,7 +764,9 @@ test('el desired state de ECS limita la API a una tarea y evita solapamiento rol
   assert.match(api, /deployment_minimum_healthy_percent\s+=\s+0\b/);
   assert.match(api, /deployment_maximum_percent\s+=\s+100\b/);
   // desired_count y el circuit breaker con rollback no cambian.
-  assert.match(api, /desired_count\s+=\s+var\.api_desired_count\b/);
+  // La capacidad esta detras de `enable_services` (puede bajarla a 0, nunca subirla) y,
+  // habilitada, sale EXCLUSIVAMENTE de `api_desired_count`, que arriba se exigio en {0, 1}.
+  assert.match(api, /desired_count\s+=\s+var\.enable_services\s*\?\s*var\.api_desired_count\s*:\s*0\b/);
   assert.match(
     api,
     /deployment_circuit_breaker\s*\{\s*enable\s+=\s+true\s+rollback\s+=\s+true\s*\}/

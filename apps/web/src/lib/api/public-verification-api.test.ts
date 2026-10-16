@@ -13,8 +13,8 @@ describe('getPublicCredentialVerificationRequest', () => {
 
   it('uses the public endpoint without an authenticated request or token', async () => {
     request.mockResolvedValue({
-      credentialReference: 'credential-1', exists: true, status: 'issued', statusLabel: 'Emitida', title: 'Curso', type: 'course', typeLabel: 'Curso', issuer: { displayName: 'Issuer', did: null }, holder: { displayLabel: null, did: null }, issuedAt: null, revokedAt: null, revocationReason: null, canonicalHash: null, canonicalHashShort: null, canonicalizationVersion: null,
-      integrity: { canonicalHashPresent: false, blockchainRecordsCount: 0, latestBlockchainRecord: null }, verification: { result: 'not_verifiable', summary: 'Seguro', checkedAt: '2026-08-14T00:00:00.000Z' }
+      credentialReference: 'credential-1', exists: true, status: 'issued', statusLabel: 'Emitida', title: 'Curso', type: 'course', typeLabel: 'Curso', issuer: { displayName: 'Issuer', did: null }, holder: { displayLabel: null, did: null }, issuedAt: null, revokedAt: null, revocationReason: null, canonicalHash: null, canonicalHashShort: null, canonicalizationVersion: null, proof: null,
+      integrity: { canonicalHashPresent: false, blockchainRecordsCount: 0, latestBlockchainRecord: null }, verification: { result: 'not_verifiable', summary: 'Seguro', checkedAt: '2026-08-14T00:00:00.000Z', headline: 'INDETERMINATE', authenticity: { result: 'INDETERMINATE', reason: 'LEGACY_UNSIGNED_CREDENTIAL' }, blockchainEvidence: { result: 'NOT_FOUND', reason: 'NO_BLOCKCHAIN_RECORD' } }
     });
 
     await getPublicCredentialVerificationRequest('credential-1');

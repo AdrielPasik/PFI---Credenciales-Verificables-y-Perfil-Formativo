@@ -155,8 +155,24 @@ test('CredentialsController delegates issueCredential with current user to the s
   assert.deepEqual(response, expectedResponse);
 });
 
-test('existing GET /credentials/:id remains unguarded and delegates to the generic read', async () => {
-  const calls: string[] = [];
+test('GET /credentials/:id y /status exigen AuthGuard (S8: ya no son publicos)', () => {
+  for (const handler of [
+    CredentialsController.prototype.getCredential,
+    CredentialsController.prototype.getCredentialStatus
+  ]) {
+    assert.deepEqual(Reflect.getMetadata(GUARDS_METADATA, handler), [AuthGuard]);
+    assert.equal(Reflect.getMetadata(METHOD_METADATA, handler), RequestMethod.GET);
+  }
+});
+
+test('GET /credentials/:id delegates to the generic read WITH the authenticated user', async () => {
+  const calls: Array<{ credentialId: string; userId: string }> = [];
+  const user = {
+    id: 'reader-1',
+    email: 'reader@example.com',
+    did: 'did:example:reader',
+    status: UserStatus.active
+  };
   const controller = new CredentialsController({
     async createDraft() {
       throw new Error('should not be called');
@@ -164,8 +180,11 @@ test('existing GET /credentials/:id remains unguarded and delegates to the gener
     async issueCredential() {
       throw new Error('should not be called');
     },
-    async getCredential(credentialId: string) {
-      calls.push(credentialId);
+    async getCredential(
+      credentialId: string,
+      currentUser: { id: string }
+    ) {
+      calls.push({ credentialId, userId: currentUser.id });
       return {
         id: credentialId,
         issuerId: 'issuer-1',
@@ -186,16 +205,11 @@ test('existing GET /credentials/:id remains unguarded and delegates to the gener
     METHOD_METADATA,
     CredentialsController.prototype.getCredential
   );
-  const guards = Reflect.getMetadata(
-    GUARDS_METADATA,
-    CredentialsController.prototype.getCredential
-  );
-  const response = await controller.getCredential('credential-legacy');
+  const response = await controller.getCredential('credential-legacy', user);
 
   assert.equal(methodPath, ':id');
   assert.equal(requestMethod, RequestMethod.GET);
-  assert.equal(guards, undefined);
-  assert.deepEqual(calls, ['credential-legacy']);
+  assert.deepEqual(calls, [{ credentialId: 'credential-legacy', userId: 'reader-1' }]);
   assert.deepEqual(response, {
     id: 'credential-legacy',
     issuerId: 'issuer-1',
