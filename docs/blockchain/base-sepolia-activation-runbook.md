@@ -75,27 +75,40 @@ Detalles que importan:
   `aws_iam_role_policy.execution`: en un mismo apply, los parametros nuevos y el permiso
   existen **antes** de que el despliegue lance tareas. (Antes de S8 no habia esa dependencia.)
 - Terraform **no puede** comprobar que la SecureString del RPC existe sin copiar su valor
-  al estado, y eso esta prohibido. Por eso el orden es operativo: crear el secreto ANTES
-  del apply de la compuerta A. Red de seguridad: el servicio usa 100/200 con
-  `deployment_circuit_breaker { rollback = true }`; si la tarea nueva no arranca, la vieja
-  sigue sirviendo y el despliegue revierte.
+  al estado, y eso esta prohibido. Por eso el orden es operativo y **crear la SecureString
+  ANTES de que cualquier task definition la referencie es una PRECONDICION DURA.**
+- **No hay red de seguridad por solapamiento.** El servicio de la API declara
+  `deployment_minimum_healthy_percent = 0` y `deployment_maximum_percent = 100`: ECS puede
+  detener la tarea existente antes de que la nueva este sana. Si la tarea nueva no puede
+  resolver un secreto y no arranca, es un **INCIDENTE DE DISPONIBILIDAD**, no una
+  degradacion segura hacia la tarea vieja. El `deployment_circuit_breaker` con rollback puede
+  restaurar la task definition anterior, pero `0 / 100` no garantiza disponibilidad mientras
+  eso ocurre. No se midio ninguna duracion de caida en vivo.
 - Si luego se vuelve a `mock` en Terraform pero SSM sigue en `credential_registry`, la API
   queda sin RPC y **falla cerrada** (`BLOCKCHAIN_TARGET_CONFIG_INVALID`); nunca degrada a mock.
 
 Secuencia segura completa:
 
-1. **Fase 1**: desplegar codigo + IAM de signers con produccion en `mock` (pasos de arriba).
-   Resultado: tarea sana, modo `mock`, ninguna escritura real posible.
-2. Crear la SecureString del RPC fuera de banda y cargar los 4 valores publicos del target.
-   (Todavia no hay ninguna task definition activa que la referencie.)
-3. **Compuerta A**: apply con `blockchain_evidence_mode = "credential_registry"`. La nueva
-   task definition inyecta el RPC existente; el modo SSM sigue en `mock`.
-4. Verificar que la tarea nueva arranco, `desiredCount = runningCount = 1` y `/health` 200.
-5. Validacion de solo lectura (abajo): salud de red, identidad del contrato, saldo.
-6. **Compuerta B**: poner SSM `BLOCKCHAIN_EVIDENCE_MODE = credential_registry` solo si todas
-   las compuertas pasaron.
-7. **Reiniciar la tarea** (`force-new-deployment`): el modo SSM se inyecta al arrancar; sin
-   reinicio la API sigue en `mock`.
+- **A0 -- produccion en `mock`.** Punto de partida; ninguna escritura real posible.
+- **A1 -- crear la SecureString del RPC PRIMERO**, fuera de banda
+  (`/scope/prod/api/CREDENTIAL_REGISTRY_RPC_URL`, clave administrada `alias/aws/ssm`).
+  No exponer ni imprimir su valor. Todavia ninguna task definition activa la referencia.
+- **A2 -- capacidad de infraestructura mientras el modo operativo sigue en `mock`.** Apply de
+  Terraform con `blockchain_evidence_mode = "credential_registry"` (la task definition pasa
+  a inyectar el RPC **ya existente**). En el mismo ciclo se puede aplicar la politica IAM de
+  signers de la API y preparar los 4 valores publicos del target. El valor SSM del modo no
+  cambia y sigue en `mock`.
+- **A3 -- esperar a que el despliegue de ECS termine.** Compuerta obligatoria:
+  `desiredCount = 1`, `runningCount = 1`, `pendingCount = 0`, estado del despliegue
+  `COMPLETED`, una sola tarea de API activa y `/health` = 200. Si la tarea de reemplazo no
+  arranca: **incidente de disponibilidad** (ver arriba); no continuar.
+- **Validacion de solo lectura** (abajo): salud de red, identidad del contrato, saldo
+  fondeado de la cuenta de anclaje.
+- **B -- solo con todo lo anterior en verde:** cambiar SSM `BLOCKCHAIN_EVIDENCE_MODE` de
+  `mock` a `credential_registry` y **forzar/iniciar una tarea nueva de API** para que ECS
+  recargue los secrets de SSM (sin reinicio la API sigue en `mock`). Exigir de nuevo 1/1
+  estable antes de emitir.
+- **Una emision controlada** (seccion siguiente), sin otra emision ni despliegue en curso.
 
 ## Validacion antes de emitir (todo de solo lectura)
 
@@ -121,5 +134,5 @@ Secuencia segura completa:
 ## Un solo escritor
 
 El nonce y la cola del ancla viven en el proceso. Durante la prueba: ningun otro
-despliegue ni emision concurrente. Ver el analisis de `0/100` vs `100/200` en
-`services/api/src/blockchain/README.md`.
+despliegue ni emision concurrente. El repositorio declara `0 / 100` para la API (sin
+solapamiento a costa de disponibilidad); ver `services/api/src/blockchain/README.md`.

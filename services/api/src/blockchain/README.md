@@ -41,33 +41,43 @@ esta seccion, esta seccion es la correcta.
 ## Escritor unico (S8)
 
 `AnchorWriteCoordinator` serializa por `SignerProfile.id` **dentro de UN proceso**.
-No coordina dos tareas ECS. Hay que distinguir:
+No coordina dos tareas ECS. El repositorio lo mitiga limitando el despliegue de la API
+a una tarea y evitando el solapamiento entre la tarea vieja y la nueva.
 
-| Concepto | Valor | Efecto sobre el escritor |
+Lo que **declara el repositorio** (Terraform; no se verifico ningun estado vivo):
+
+| Concepto | Valor declarado | Efecto sobre el escritor |
 |---|---|---|
-| `desiredCount` | `api_desired_count`, por defecto 1 (sin autoscaling; Terraform no valida el rango) | Estado estable: **una** tarea = un escritor, salvo que alguien suba la variable. |
-| `deployment_minimum_healthy_percent` / `maximum_percent` | repo y vivo: `100 / 200` | Solo afectan al **reemplazo** de la tarea (despliegue o falla). |
-| Autoscaling | no existe | No hay camino a >1 tarea fuera de un despliegue. |
+| `desired_count` del servicio de la API | `var.enable_services ? var.api_desired_count : 0` | Con los servicios habilitados, la cantidad sale de `api_desired_count`; con `enable_services = false`, 0. |
+| `api_desired_count` | validado en `{0, 1}`, por defecto 1 | Regimen: a lo sumo **una** tarea de API deseada. |
+| Autoscaling | no existe | No hay camino a mas de una tarea deseada. |
+| `deployment_minimum_healthy_percent` / `deployment_maximum_percent` | `0 / 100` | **Sin solapamiento intencional** entre tarea vieja y nueva durante un reemplazo. |
 
-- Con **100/200** un despliegue arranca la tarea nueva *antes* de parar la vieja: hay
-  una ventana con **dos procesos** que pueden firmar con la misma cuenta de anclaje.
-  Dos `NonceManager` independientes pueden elegir el mismo nonce: una transaccion se
-  reemplaza o se pierde. **No se duplica ningun registro** (el contrato rechaza un
-  hash ya registrado), pero un registro puede quedar `pending` sin transaccion
-  recuperable por reconciliacion (que nunca reenvia).
-- Con **0/100** no hay solapamiento, a cambio de **indisponibilidad** durante el
-  despliegue. Ojo con la combinacion con `alb_deregistration_delay_seconds = 900`: ECS
-  espera el drenaje antes de parar la tarea vieja, asi que un despliegue 0/100 puede
-  dejar la API sin servicio hasta ~15 minutos (no verificado en vivo). Esa es una
-  decision operativa, no un detalle.
+Estado estable: `enable_services = true` y `api_desired_count = 1` equivalen a exactamente
+**una** tarea de API deseada.
 
-**Decision de S8:** no se cambio ningun porcentaje: el repo declara 100/200, igual que el
-estado vivo. Para el E2E
-controlado el gate es operativo y suficiente: despliegue `COMPLETED`, `desiredCount = 1`,
-`runningCount = 1`, `pendingCount = 0`, una sola tarea y ningun despliegue ni emision
-concurrente durante la ventana de prueba. Antes de un uso productivo sostenido hay que
-decidir entre 0/100 con ventana de mantenimiento, reducir el drenaje del ALB, o una
-politica de recuperacion de `pending` sin tarea de por medio.
+Despliegue: con `0 / 100`, ECS puede detener la tarea existente **antes** de que la
+reemplazante este sana. Eso evita que dos procesos firmen a la vez con la misma cuenta de
+anclaje (dos `NonceManager` independientes podrian elegir el mismo nonce y una transaccion
+se reemplazaria o se perderia). Es, hoy, la mitigacion del repositorio para la
+coordinacion de nonce local al proceso.
+
+Costo: **disponibilidad por seguridad del escritor unico.** Un reemplazo puede dejar la API
+temporalmente sin servicio, y si la tarea nueva no arranca la API queda no disponible; el
+`deployment_circuit_breaker` con rollback puede restaurar la task definition anterior,
+pero `0 / 100` no garantiza disponibilidad durante ese proceso. No se midio ninguna
+duracion de indisponibilidad en vivo; el ALB tiene un drenaje configurado de
+`alb_deregistration_delay_seconds` (900 s en el repositorio), que puede alargarla.
+
+Lo que esto **no** es: no es exclusividad global. Scripts manuales, otras tareas o otras
+maquinas con la misma clave quedan fuera de lo que Terraform puede garantizar.
+
+**Decision de S8:** no se cambio ningun porcentaje ni `desired_count`. Para el E2E
+controlado la compuerta operativa es: despliegue `COMPLETED`, `desiredCount = 1`,
+`runningCount = 1`, `pendingCount = 0`, una sola tarea de API y ninguna emision concurrente
+durante la ventana de prueba. Para uso sostenido sigue pendiente una decision de
+arquitectura (coordinacion de nonce entre procesos o una politica de recuperacion de
+`pending`); no se resuelve aqui.
 
 Responsabilidad actual:
 
