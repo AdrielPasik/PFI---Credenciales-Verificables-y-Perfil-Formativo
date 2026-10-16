@@ -899,6 +899,10 @@ function createService(options?: {
         id: 'membership-1'
       };
     },
+    // S8: la lectura generica exige membership. El miembro del fixture lee.
+    async assertUserCanReadCredentialsForIssuer() {
+      return { id: 'membership-1' };
+    },
     // S8c9: la precondicion es (issuerId, tipo) y pasa por la readiness.
     async assertIssuerCanIssue(issuerId: string, credentialType: CredentialType) {
       operationOrder.push('issuer_eligibility');
@@ -1631,7 +1635,9 @@ test('CredentialsService still rejects credentials that are not in draft', async
 test('CredentialsService preserves the existing generic credential read response', async () => {
   const { service } = createService();
 
-  const response = await service.getCredential('cred-123');
+  // S8: la lectura generica exige pertenencia. El fixture de createService
+  // autoriza `assertUserCanReadCredentialsForIssuer` para el miembro del issuer.
+  const response = await service.getCredential('cred-123', currentUser);
 
   assert.equal(response.id, 'cred-123');
   assert.equal(response.issuerId, 'issuer-1');

@@ -31,9 +31,43 @@ esta seccion, esta seccion es la correcta.
   resolucion operativa solo soporta el target configurado hoy: no cambiar
   `contractAddress` / `deploymentId` despues del primer `BlockchainRecord` real.
 - **Limitaciones abiertas (S8c11).** El preflight de runtime prueba presencia de
-  codigo, no identidad del contrato (la identidad la prueba el manifest);
-  la reconciliacion no tiene invocacion de produccion ni busqueda en chunks; el nonce
+  codigo, no identidad del contrato (la identidad la prueba el manifest); el nonce
   es local al proceso (un solo escritor efectivo); y el migrator comparte tag con la API.
+  (S8: la reconciliacion ya tiene invocacion de produccion --
+  `POST /issuers/:issuerId/credentials/:credentialId/blockchain/reconcile` -- y busca
+  en ventanas de 10.000 bloques desde el bloque de deploy del manifest. Nunca
+  retransmite.)
+
+## Escritor unico (S8)
+
+`AnchorWriteCoordinator` serializa por `SignerProfile.id` **dentro de UN proceso**.
+No coordina dos tareas ECS. Hay que distinguir:
+
+| Concepto | Valor | Efecto sobre el escritor |
+|---|---|---|
+| `desiredCount` | `api_desired_count`, por defecto 1 (sin autoscaling; Terraform no valida el rango) | Estado estable: **una** tarea = un escritor, salvo que alguien suba la variable. |
+| `deployment_minimum_healthy_percent` / `maximum_percent` | repo y vivo: `100 / 200` | Solo afectan al **reemplazo** de la tarea (despliegue o falla). |
+| Autoscaling | no existe | No hay camino a >1 tarea fuera de un despliegue. |
+
+- Con **100/200** un despliegue arranca la tarea nueva *antes* de parar la vieja: hay
+  una ventana con **dos procesos** que pueden firmar con la misma cuenta de anclaje.
+  Dos `NonceManager` independientes pueden elegir el mismo nonce: una transaccion se
+  reemplaza o se pierde. **No se duplica ningun registro** (el contrato rechaza un
+  hash ya registrado), pero un registro puede quedar `pending` sin transaccion
+  recuperable por reconciliacion (que nunca reenvia).
+- Con **0/100** no hay solapamiento, a cambio de **indisponibilidad** durante el
+  despliegue. Ojo con la combinacion con `alb_deregistration_delay_seconds = 900`: ECS
+  espera el drenaje antes de parar la tarea vieja, asi que un despliegue 0/100 puede
+  dejar la API sin servicio hasta ~15 minutos (no verificado en vivo). Esa es una
+  decision operativa, no un detalle.
+
+**Decision de S8:** no se cambio ningun porcentaje: el repo declara 100/200, igual que el
+estado vivo. Para el E2E
+controlado el gate es operativo y suficiente: despliegue `COMPLETED`, `desiredCount = 1`,
+`runningCount = 1`, `pendingCount = 0`, una sola tarea y ningun despliegue ni emision
+concurrente durante la ventana de prueba. Antes de un uso productivo sostenido hay que
+decidir entre 0/100 con ventana de mantenimiento, reducir el drenaje del ALB, o una
+politica de recuperacion de `pending` sin tarea de por medio.
 
 Responsabilidad actual:
 

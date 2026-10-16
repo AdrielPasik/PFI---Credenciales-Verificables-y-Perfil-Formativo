@@ -9,10 +9,16 @@ This directory is the **single home of deployment evidence** for
 | `credential-registry-deployment.schema.json` | Documents the manifest contract. The authoritative validator is `services/api/src/blockchain/deployment/deployment-manifest.ts`. |
 | `<deploymentId>.json` | One **immutable manifest per deployment**. Created only by the deployment tool, only after the chain evidence was observed and verified. |
 
-There is **no deployment manifest here yet**. A manifest is never created by hand,
-never contains placeholder values, and is never produced before a real
-deployment. Until the real deployment (S8c10.2) happens, this directory contains
-no `base-sepolia-84532-*.json` file.
+The canonical deployment manifest is
+`base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json`
+(`CredentialRegistry` at `0xCb7401e268f61b1242B17fE141453471CFbdc6e1`, chainId
+84532). It is the ONLY manifest that may exist here, and a test pins that. A
+manifest is never created by hand, never contains placeholder values, and is
+never produced before a real deployment.
+
+The API image copies only `base-sepolia-*.json` from this directory: the
+reconciliation endpoint reads `deploymentBlockNumber` from it as the lower bound of
+its log search (never as target authority).
 
 ## Manifest rules
 

@@ -92,6 +92,55 @@ export interface ReconciliationChainReader {
     toBlock: number | 'latest';
   }): Promise<readonly CredentialRegistryLog[]>;
   getBlock(blockNumber: number): Promise<{ timestamp?: unknown } | null>;
+  /**
+   * OPCIONAL. Cuando el lector lo ofrece y el rango termina en `latest`, la
+   * busqueda se parte en ventanas acotadas (ver `collectRegistrationLogs`).
+   * Sin el, se hace UNA sola consulta, como antes.
+   */
+  getBlockNumber?(): Promise<number>;
+}
+
+/**
+ * Tamano maximo de la ventana de `eth_getLogs`. Muchos proveedores rechazan
+ * rangos grandes; una ventana acotada evita convertir "rango demasiado
+ * amplio" en un falso `CHAIN_UNAVAILABLE`. Es SOLO lectura.
+ */
+export const RECONCILIATION_LOG_WINDOW_BLOCKS = 10_000;
+
+/**
+ * Tope de ventanas por reconciliacion (10M de bloques). Si el deploy esta mas
+ * lejos, se busca solo lo reciente y se queda `pending`: nunca se escanea sin
+ * limite ni se asume que "no aparece" prueba ausencia.
+ */
+export const RECONCILIATION_MAX_LOG_WINDOWS = 1_000;
+
+/**
+ * Cota INFERIOR deterministica a partir de cuanto hace que el registro esta
+ * pendiente. Ninguna cadena EVM de este proyecto produce mas de un bloque por
+ * segundo (Base: 2 s), asi que `segundos transcurridos` es una cota SUPERIOR del
+ * numero de bloques desde la emision; la holgura cubre desfase de relojes. Asi el
+ * costo depende de la edad del pendiente y no de la edad de la cadena.
+ */
+export const RECONCILIATION_MIN_BLOCK_SECONDS = 1;
+export const RECONCILIATION_CLOCK_SLACK_BLOCKS = 3_600;
+
+export function boundedSearchStart(
+  floorBlock: number,
+  head: number,
+  pendingElapsedSeconds: number | undefined
+): number {
+  if (
+    typeof pendingElapsedSeconds !== 'number' ||
+    !Number.isFinite(pendingElapsedSeconds)
+  ) {
+    return floorBlock;
+  }
+
+  const blocksBack =
+    Math.ceil(Math.max(0, pendingElapsedSeconds) / RECONCILIATION_MIN_BLOCK_SECONDS) +
+    RECONCILIATION_CLOCK_SLACK_BLOCKS;
+
+  return Math.max(floorBlock, head - blocksBack);
 }
 
 export interface ReconciliationDependencies {
@@ -119,6 +168,12 @@ export class BlockchainRegistrationReconciliationService {
   async reconcilePendingRegistration(input: {
     recordId: string;
     searchRange: CredentialRegistryLogSearchRange;
+    /**
+     * OPCIONAL. Segundos que lleva pendiente (los calcula el llamador: este
+     * servicio no lee el reloj). Solo ESTRECHA la busqueda; nunca la amplia mas
+     * alla de `searchRange`.
+     */
+    pendingElapsedSeconds?: number;
   }): Promise<BlockchainReconciliationResult> {
     const record = await this.prisma.blockchainRecord.findUnique({
       where: { id: input.recordId },
@@ -173,12 +228,12 @@ export class BlockchainRegistrationReconciliationService {
 
     let logs: readonly CredentialRegistryLog[];
     try {
-      logs = await reader.getLogs(
-        buildCredentialRegisteredFilter(
-          target.contractAddress,
-          record.credentialHash,
-          input.searchRange
-        )
+      logs = await this.collectRegistrationLogs(
+        reader,
+        target.contractAddress,
+        record.credentialHash,
+        input.searchRange,
+        input.pendingElapsedSeconds
       );
     } catch {
       // El error crudo del provider no se propaga: puede llevar el endpoint.
@@ -251,6 +306,59 @@ export class BlockchainRegistrationReconciliationService {
     });
 
     return { outcome: 'FINALIZED', evidence };
+  }
+
+  /**
+   * Busca el log de registracion, en ventanas acotadas cuando se puede.
+   *
+   * Recorre desde la CABEZA hacia el limite inferior y se detiene en la primera
+   * ventana con logs: el contrato rechaza un hash ya registrado, asi que existe
+   * como maximo un `CredentialRegistered` por hash. Solo LEE; no envia nada.
+   */
+  private async collectRegistrationLogs(
+    reader: ReconciliationChainReader,
+    contractAddress: string,
+    credentialHash: string,
+    range: CredentialRegistryLogSearchRange,
+    pendingElapsedSeconds?: number
+  ): Promise<readonly CredentialRegistryLog[]> {
+    const filterFor = (window: CredentialRegistryLogSearchRange) =>
+      buildCredentialRegisteredFilter(contractAddress, credentialHash, window);
+
+    if (range.toBlock !== 'latest' || typeof reader.getBlockNumber !== 'function') {
+      return reader.getLogs(filterFor(range));
+    }
+
+    const head = await reader.getBlockNumber();
+    if (!Number.isSafeInteger(head) || head < range.fromBlock) {
+      return [];
+    }
+
+    // Ventanas ACOTADAS y precalculadas, de la cabeza hacia el limite inferior.
+    // Es paginacion de LECTURA, no un reintento: cada ventana se consulta una
+    // sola vez y el total esta acotado por la distancia al bloque de deploy.
+    const startBlock = boundedSearchStart(range.fromBlock, head, pendingElapsedSeconds);
+    const windowCount = Math.min(
+      Math.ceil((head - startBlock + 1) / RECONCILIATION_LOG_WINDOW_BLOCKS),
+      RECONCILIATION_MAX_LOG_WINDOWS
+    );
+
+    for (let index = 0; index < windowCount; index += 1) {
+      const windowEnd = head - index * RECONCILIATION_LOG_WINDOW_BLOCKS;
+      const windowStart = Math.max(
+        startBlock,
+        windowEnd - RECONCILIATION_LOG_WINDOW_BLOCKS + 1
+      );
+      const logs = await reader.getLogs(
+        filterFor({ fromBlock: windowStart, toBlock: windowEnd })
+      );
+
+      if (logs.length > 0) {
+        return logs;
+      }
+    }
+
+    return [];
   }
 
   /**
