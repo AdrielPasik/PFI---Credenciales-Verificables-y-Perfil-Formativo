@@ -5,6 +5,25 @@ import type { PublicCredentialVerificationVM } from '@/models/public-verificatio
 const credentialTypes = ['academic_subject', 'course', 'certification', 'degree'] as const;
 const statuses = ['issued', 'revoked'] as const;
 const results = ['valid_issued', 'revoked', 'not_verifiable'] as const;
+const headlines = [
+  'VERIFIED',
+  'VERIFIED_WITH_LIMITED_EVIDENCE',
+  'INVALID',
+  'REVOKED',
+  'INDETERMINATE'
+] as const;
+const authenticityResults = ['VERIFIED', 'INVALID', 'INDETERMINATE'] as const;
+const blockchainEvidenceResults = [
+  'REGISTERED',
+  'PENDING',
+  'REVOKED_ON_CHAIN',
+  'NOT_FOUND',
+  'UNAVAILABLE',
+  'NOT_APPLICABLE_MOCK',
+  'REGISTRANT_UNEXPECTED'
+] as const;
+const networks = ['anvil', 'base_sepolia'] as const;
+const evidenceModes = ['mock', 'credential_registry'] as const;
 
 export function adaptPublicCredentialVerification(payload: unknown): PublicCredentialVerificationVM {
   const value = record(payload);
@@ -13,6 +32,9 @@ export function adaptPublicCredentialVerification(payload: unknown): PublicCrede
   const integrity = record(value.integrity);
   const verification = record(value.verification);
   const latestRecord = nullableRecord(integrity.latestBlockchainRecord);
+  const proof = nullableRecord(value.proof);
+  const authenticity = record(verification.authenticity);
+  const blockchainEvidence = record(verification.blockchainEvidence);
 
   return {
     credentialReference: requiredString(value.credentialReference),
@@ -28,25 +50,52 @@ export function adaptPublicCredentialVerification(payload: unknown): PublicCrede
     issuedAtLabel: nullableDateLabel(value.issuedAt),
     revokedAtLabel: nullableDateLabel(value.revokedAt),
     revocationReason: nullableString(value.revocationReason),
+    canonicalHash: nullableString(value.canonicalHash),
     canonicalHashShort: nullableString(value.canonicalHashShort),
     canonicalizationVersion: nullableString(value.canonicalizationVersion),
+    proof: proof
+      ? {
+          cryptosuite: requiredString(proof.cryptosuite),
+          verificationMethod: requiredString(proof.verificationMethod),
+          proofValue: requiredString(proof.proofValue)
+        }
+      : null,
     integrity: {
       canonicalHashPresent: requiredBoolean(integrity.canonicalHashPresent),
       blockchainRecordsCount: nonNegativeInteger(integrity.blockchainRecordsCount),
       latestBlockchainRecord: latestRecord
         ? {
+            network: enumValue(latestRecord.network, networks),
             networkLabel: requiredString(latestRecord.networkLabel),
             chainId: nonNegativeInteger(latestRecord.chainId),
+            evidenceMode: nullableEnumValue(latestRecord.evidenceMode, evidenceModes),
+            txHash: nullablePresentString(latestRecord.txHash),
             txHashShort: nullableString(latestRecord.txHashShort),
             statusLabel: requiredString(latestRecord.statusLabel),
-            registeredAtLabel: nullableDateLabel(latestRecord.registeredAt)
+            registeredAtLabel: nullableDateLabel(latestRecord.registeredAt),
+            revokedAtLabel: nullableDateLabel(latestRecord.revokedAt),
+            contractAddress: nullablePresentString(latestRecord.contractAddress),
+            deploymentId: nullablePresentString(latestRecord.deploymentId),
+            blockNumber: nullableNonNegativeInteger(latestRecord.blockNumber),
+            registrantAddress: nullablePresentString(latestRecord.registrantAddress)
           }
         : null
     },
     verification: {
       result: enumValue(verification.result, results),
       summary: requiredString(verification.summary),
-      checkedAtLabel: dateLabel(verification.checkedAt)
+      checkedAtLabel: dateLabel(verification.checkedAt),
+      // El titular del servidor es AUTORITATIVO. Si falta o es desconocido, la
+      // respuesta se rechaza: nunca se adivina un veredicto a partir de `result`.
+      headline: enumValue(verification.headline, headlines),
+      authenticity: {
+        result: enumValue(authenticity.result, authenticityResults),
+        reason: requiredString(authenticity.reason)
+      },
+      blockchainEvidence: {
+        result: enumValue(blockchainEvidence.result, blockchainEvidenceResults),
+        reason: requiredString(blockchainEvidence.reason)
+      }
     }
   };
 }
@@ -77,6 +126,14 @@ function enumValue<T extends readonly string[]>(value: unknown, allowed: T): T[n
   const normalized = requiredString(value);
   if (!allowed.includes(normalized)) invalid();
   return normalized as T[number];
+}
+function nullableEnumValue<T extends readonly string[]>(value: unknown, allowed: T): T[number] | null {
+  if (value === undefined) invalid();
+  return value === null ? null : enumValue(value, allowed);
+}
+function nullableNonNegativeInteger(value: unknown): number | null {
+  if (value === undefined) invalid();
+  return value === null ? null : nonNegativeInteger(value);
 }
 function requiredBoolean(value: unknown): boolean {
   if (typeof value !== 'boolean') invalid();

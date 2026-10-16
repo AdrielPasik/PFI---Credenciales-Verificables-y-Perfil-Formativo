@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -730,52 +731,34 @@ export class CredentialsService {
     );
   }
 
-  async getCredential(credentialId: string): Promise<CredentialSummaryResponseDto> {
-    this.assertNonEmptyString(credentialId, 'credentialId');
-
-    const credential = await this.prisma.credential.findUnique({
-      where: {
-        id: credentialId
-      },
-      include: {
-        blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
-          },
-          take: 1
-        }
-      }
-    });
-
-    if (!credential) {
-      throw new NotFoundException(`Credential ${credentialId} no existe.`);
-    }
+  /**
+   * Lectura generica de una credencial -- S8 cierre de Base Sepolia.
+   *
+   * Antes era PUBLICA: cualquiera que conociera un UUID leia el contenido, el
+   * `subjectUserId` y la evidencia de cadena, borradores incluidos. Ahora exige
+   * sesion y pertenencia (ver `loadReadableCredential`). La verificacion publica
+   * de terceros es `GET /verify/credentials/:id`, que no pasa por aca.
+   */
+  async getCredential(
+    credentialId: string,
+    currentUser: AuthenticatedUser
+  ): Promise<CredentialSummaryResponseDto> {
+    const credential = await this.loadReadableCredential(
+      credentialId,
+      currentUser
+    );
 
     return this.toCredentialSummaryResponse(credential);
   }
 
   async getCredentialStatus(
-    credentialId: string
+    credentialId: string,
+    currentUser: AuthenticatedUser
   ): Promise<CredentialStatusResponseDto> {
-    this.assertNonEmptyString(credentialId, 'credentialId');
-
-    const credential = await this.prisma.credential.findUnique({
-      where: {
-        id: credentialId
-      },
-      include: {
-        blockchainRecords: {
-          orderBy: {
-            registeredAt: 'desc'
-          },
-          take: 1
-        }
-      }
-    });
-
-    if (!credential) {
-      throw new NotFoundException(`Credential ${credentialId} no existe.`);
-    }
+    const credential = await this.loadReadableCredential(
+      credentialId,
+      currentUser
+    );
 
     const latestBlockchainRecord = credential.blockchainRecords[0];
 
@@ -794,6 +777,79 @@ export class CredentialsService {
       network: latestBlockchainRecord?.network,
       registeredAt: latestBlockchainRecord?.registeredAt?.toISOString()
     };
+  }
+
+  /**
+   * Carga una credencial SOLO si quien pregunta tiene derecho a leerla.
+   *
+   *   - el TITULAR (`subjectUserId`), unicamente cuando ya no es borrador: un
+   *     borrador es trabajo interno del emisor;
+   *   - un miembro activo admin/operator del issuer DUENO de la credencial,
+   *     con el issuer autorizado (mismo criterio que la lectura issuer-scoped).
+   *
+   * Cualquier otro caso responde EXACTAMENTE igual que una credencial
+   * inexistente (404 con el mismo mensaje): una respuesta distinta permitiria
+   * enumerar que UUIDs existen. La existencia no se confirma a quien no tiene
+   * derecho a leer.
+   */
+  private async loadReadableCredential(
+    credentialId: string,
+    currentUser: AuthenticatedUser
+  ) {
+    this.assertNonEmptyString(credentialId, 'credentialId');
+    this.assertAuthenticatedUser(currentUser);
+
+    const credential = await this.prisma.credential.findUnique({
+      where: {
+        id: credentialId
+      },
+      include: {
+        blockchainRecords: {
+          orderBy: {
+            registeredAt: 'desc'
+          },
+          take: 1
+        }
+      }
+    });
+
+    if (
+      !credential ||
+      !(await this.canReadCredential(credential, currentUser))
+    ) {
+      throw new NotFoundException(`Credential ${credentialId} no existe.`);
+    }
+
+    return credential;
+  }
+
+  private async canReadCredential(
+    credential: { issuerId: string; subjectUserId: string; status: string },
+    currentUser: AuthenticatedUser
+  ): Promise<boolean> {
+    if (
+      credential.subjectUserId === currentUser.id &&
+      credential.status !== CredentialStatus.draft
+    ) {
+      return true;
+    }
+
+    try {
+      await this.issuersService.assertUserCanReadCredentialsForIssuer(
+        currentUser.id,
+        credential.issuerId
+      );
+      return true;
+    } catch (error) {
+      // Una denegacion de autorizacion (403/404 de membership o de issuer no
+      // autorizado) es "no puede leer". Un error de infraestructura NO se
+      // disfraza de denegacion: se propaga.
+      if (error instanceof HttpException) {
+        return false;
+      }
+
+      throw error;
+    }
   }
 
   private async getSubjectUserOrThrow(

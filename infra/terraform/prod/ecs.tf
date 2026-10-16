@@ -298,7 +298,18 @@ resource "aws_ecs_service" "api" {
     }
   }
 
-  depends_on = [aws_lb_listener.https]
+  # S8: ORDEN DE ARRANQUE DE SECRETOS. La task definition referencia parametros SSM
+  # por ARN (cadenas, no recursos), asi que Terraform no infiere dependencia alguna.
+  # Sin esto, un mismo apply puede lanzar tareas nuevas ANTES de que existan los
+  # parametros que referencian (p. ej. los CREDENTIAL_REGISTRY_* nuevos) o antes de
+  # que el rol de ejecucion tenga permiso de leerlos. El servicio espera a ambos.
+  # NO resuelve el RPC SecureString: lo crea el operador fuera de banda y Terraform
+  # no puede leerlo sin copiar el secreto al estado (ver el runbook de activacion).
+  depends_on = [
+    aws_lb_listener.https,
+    aws_ssm_parameter.managed_strings,
+    aws_iam_role_policy.execution,
+  ]
 }
 
 resource "aws_ecs_service" "ai" {

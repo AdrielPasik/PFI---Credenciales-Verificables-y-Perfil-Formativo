@@ -6,7 +6,9 @@ import {
   CredentialType
 } from '@prisma/client';
 
+import { isMockBlockchainRecord } from '../blockchain/credential-registry-deployment';
 import { PrismaService } from '../prisma/prisma.service';
+import { projectPublicProof } from './public-proof.projection';
 import { CredentialAuthenticityVerifier } from './credential-authenticity.verifier';
 import { CredentialBlockchainEvidenceReader } from './credential-blockchain-evidence.reader';
 import { type VerifyCredentialResponseDto } from './dto/verify-credential-response.dto';
@@ -111,7 +113,11 @@ const publicVerificationCredentialSelect = {
       txHash: true,
       status: true,
       registeredAt: true,
+      revokedAt: true,
       issuerAddress: true,
+      evidenceMode: true,
+      deploymentId: true,
+      blockNumber: true,
       anchorSignerProfileId: true,
       anchorSignerProfile: {
         select: {
@@ -224,6 +230,7 @@ export class VerificationService {
       canonicalHash: this.optionalText(credential.canonicalHash),
       canonicalHashShort: this.abbreviateReference(credential.canonicalHash),
       canonicalizationVersion: this.optionalText(credential.canonicalizationVersion),
+      proof: projectPublicProof(credential.proof),
       integrity: {
         canonicalHashPresent: Boolean(credential.canonicalHash),
         blockchainRecordsCount: credential._count.blockchainRecords,
@@ -240,7 +247,8 @@ export class VerificationService {
               ),
               registeredAt: this.serializeDateTime(
                 singleBlockchainRecord.registeredAt
-              )
+              ),
+              ...this.publicChainCoordinates(singleBlockchainRecord)
             }
           : null
       },
@@ -377,6 +385,51 @@ export class VerificationService {
     }
 
     return 'Registro técnico disponible';
+  }
+
+  /**
+   * Coordenadas publicas del registro, por allowlist. La evidencia MOCK no
+   * tiene red: no se publican contrato, deployment, bloque ni registrante
+   * simulados como si fueran de una cadena publica.
+   */
+  private publicChainCoordinates(record: {
+    network: BlockchainNetwork;
+    chainId: number;
+    contractAddress: string;
+    evidenceMode: string | null;
+    deploymentId: string | null;
+    blockNumber: number | null;
+    issuerAddress: string | null;
+    revokedAt: Date | null;
+  }) {
+    const mock =
+      record.evidenceMode === 'mock' ||
+      (record.evidenceMode === null && isMockBlockchainRecord(record));
+    const evidenceMode: 'mock' | 'credential_registry' | null = mock
+      ? 'mock'
+      : record.evidenceMode === 'credential_registry'
+        ? 'credential_registry'
+        : null;
+
+    if (mock) {
+      return {
+        evidenceMode,
+        contractAddress: null,
+        deploymentId: null,
+        blockNumber: null,
+        registrantAddress: null,
+        revokedAt: this.serializeDateTime(record.revokedAt)
+      };
+    }
+
+    return {
+      evidenceMode,
+      contractAddress: this.optionalText(record.contractAddress),
+      deploymentId: this.optionalText(record.deploymentId),
+      blockNumber: record.blockNumber,
+      registrantAddress: this.optionalText(record.issuerAddress),
+      revokedAt: this.serializeDateTime(record.revokedAt)
+    };
   }
 
   private networkLabel(network: BlockchainNetwork): string {

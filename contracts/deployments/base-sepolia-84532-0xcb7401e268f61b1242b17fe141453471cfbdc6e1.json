@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "credential_registry_deployment_v1",
+  "deploymentId": "base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1",
+  "contractName": "CredentialRegistry",
+  "network": "base_sepolia",
+  "chainId": 84532,
+  "contractAddress": "0xCb7401e268f61b1242B17fE141453471CFbdc6e1",
+  "deploymentTransactionHash": "0x8a1f893cc75e989044cc6b961a2e427b9bea195b4594a7c09a81fc543177713c",
+  "deploymentBlockNumber": 47934147,
+  "deploymentBlockHash": "0xb1cbbdd2fff1716eef9e50a5e416e6e80be7a022b7b7d454ecdacfbed3212615",
+  "deploymentTimestamp": "2026-10-10T12:49:42Z",
+  "deployerAddress": "0xBa5a1660b5b83D742C0C5117A73Ef5212f3d818a",
+  "deploymentSourceCommit": "5dc9d2ff3a6c83ea88f18a2cbef69eefd6d23a0c",
+  "foundryVersion": "1.2.3-stable",
+  "solidityVersion": "0.8.26",
+  "compilerSettings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "viaIR": false,
+    "evmVersion": "cancun",
+    "bytecodeHash": "ipfs"
+  },
+  "creationBytecodeHash": "0xfa18528625e8e50c534c833f40593172ca4a709db355be93c190795c931322c6",
+  "runtimeBytecodeHash": "0x69899c6edebeee4029d2e057d0125ece794217a14db7c33c805bed3b58d33c93",
+  "constructorArguments": []
+}

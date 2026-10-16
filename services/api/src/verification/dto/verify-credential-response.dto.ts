@@ -1,5 +1,6 @@
 import { BlockchainNetwork, BlockchainRecordStatus, CredentialType } from '@prisma/client';
 
+import { type PublicVerificationProofDto } from '../public-proof.projection';
 import {
   type BlockchainEvidence,
   type BlockchainEvidenceReason,
@@ -41,6 +42,22 @@ export interface PublicVerificationBlockchainRecordDto {
   status: BlockchainRecordStatus;
   statusLabel: string;
   registeredAt: string | null;
+  /**
+   * `mock` = evidencia local simulada (sin red publica); `credential_registry`
+   * = registro real en un contrato; `null` = fila anterior a la columna.
+   * Un cliente NO debe presentar como registro de red una fila `mock`.
+   */
+  evidenceMode: 'mock' | 'credential_registry' | null;
+  /**
+   * Coordenadas REALES del registro. Son `null` para evidencia mock: una
+   * direccion o un bloque inventados no se publican como si fueran de una red.
+   */
+  contractAddress: string | null;
+  deploymentId: string | null;
+  blockNumber: number | null;
+  /** Cuenta que registro el hash segun la CADENA (registrante observado). */
+  registrantAddress: string | null;
+  revokedAt: string | null;
 }
 
 /** Dimension de autenticidad: resultado + motivo con codigo cerrado. */
@@ -71,6 +88,13 @@ export interface VerifyCredentialResponseDto {
   canonicalHash: string | null;
   canonicalHashShort: string | null;
   canonicalizationVersion: string | null;
+  /**
+   * `scope-proof-v1` tal como esta persistido, por allowlist explicita. Es la
+   * firma sobre el compromiso canonico y se puede verificar contra el DID
+   * Document publico del emisor. NO es el contenido de la credencial: el
+   * contenido lo presenta el titular.
+   */
+  proof: PublicVerificationProofDto | null;
   integrity: {
     canonicalHashPresent: boolean;
     blockchainRecordsCount: number;
