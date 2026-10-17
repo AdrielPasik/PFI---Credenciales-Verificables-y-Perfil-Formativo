@@ -35,12 +35,13 @@
 #     no tag fallback.
 #   PROVISIONER_NETWORK_EGRESS_CONFINEMENT = PARTIAL
 #     See security_groups.tf: 443 to 0.0.0.0/0.
-#   ECS_SYNC_EXIT_CODE_PATH = HYPOTHESIS_NOT_LIVE_VERIFIED
-#   ECS_SYNC_NONZERO_EXIT_SEMANTICS = NOT_LIVE_VERIFIED
-#   ECS_SYNC_OUTPUT_LIVE_VERIFICATION_REQUIRED_BEFORE_CALLER = true
-#     $.Containers[0].ExitCode is NOT demonstrated by official documentation for
-#     ecs:runTask.sync. It is a deliberately fail-closed hypothesis: an output of a
-#     different shape can only produce a false INSPECT_FIRST, never a false success.
+#   ECS_SYNC_EXIT_CODE_PATH = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16
+#   ECS_SYNC_NONZERO_EXIT_SEMANTICS = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16
+#   ECS_SYNC_OUTPUT_LIVE_VERIFICATION = PASS_ISOLATED_FARGATE_2026-10-16
+#     Isolated Fargate evidence (2026-10-16): exit 0 produced TaskSucceeded with
+#     $.Containers[0].ExitCode=0; exit 23 produced States.TaskFailed whose parsed
+#     cause contained $.Containers[0].ExitCode=23. A different output shape still
+#     fails closed into INSPECT_FIRST.
 #   No TimeoutSeconds: there is no grounded runtime bound for provisioning today,
 #   and a timeout could interrupt an operation in an ambiguous state. Operational
 #   gap, not a decision that none is needed.
@@ -72,11 +73,11 @@ resource "aws_sfn_state_machine" "provisioner" {
   # attempt and has partial-failure states, so any error ends in INSPECT_FIRST and
   # never loops back to RunProvisioner.
   #
-  # ECS_SYNC_EXIT_CODE_PATH = HYPOTHESIS_NOT_LIVE_VERIFIED.
-  # ECS_SYNC_NONZERO_EXIT_SEMANTICS = NOT_LIVE_VERIFIED.
+  # ECS_SYNC_EXIT_CODE_PATH = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16.
+  # ECS_SYNC_NONZERO_EXIT_SEMANTICS = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16.
   definition = <<-EOT
     {
-      "Comment": "Issuer provisioner broker (S8c11.4c1). The ONLY dynamic request inputs are issuer_id and credential_types, used only to build the container command. There is NO Retry anywhere: any error ends in INSPECT_FIRST. ECS_SYNC_EXIT_CODE_PATH = HYPOTHESIS_NOT_LIVE_VERIFIED. ECS_SYNC_NONZERO_EXIT_SEMANTICS = NOT_LIVE_VERIFIED.",
+      "Comment": "Issuer provisioner broker (S8c11.4c1). The ONLY dynamic request inputs are issuer_id and credential_types, used only to build the container command. There is NO Retry anywhere: any error ends in INSPECT_FIRST. ECS_SYNC_EXIT_CODE_PATH = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16. ECS_SYNC_NONZERO_EXIT_SEMANTICS = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16.",
       "StartAt": "CheckIssuerPresent",
       "States": {
         "CheckIssuerPresent": {
@@ -163,7 +164,7 @@ resource "aws_sfn_state_machine" "provisioner" {
         },
         "CheckExitCodePresent": {
           "Type": "Choice",
-          "Comment": "$.Containers[0].ExitCode is NOT demonstrated by official documentation for ecs:runTask.sync. It is a deliberately fail-closed HYPOTHESIS: a different output shape can only produce a false INSPECT_FIRST, never a false success. ECS_SYNC_OUTPUT_LIVE_VERIFICATION_REQUIRED_BEFORE_CALLER = true.",
+          "Comment": "Live-isolated Fargate evidence (2026-10-16): exit 0 returned TaskSucceeded with $.Containers[0].ExitCode=0; exit 23 returned States.TaskFailed whose parsed cause had $.Containers[0].ExitCode=23. A different output shape still fails closed to INSPECT_FIRST.",
           "Choices": [
             {
               "Variable": "$.Containers[0].ExitCode",
