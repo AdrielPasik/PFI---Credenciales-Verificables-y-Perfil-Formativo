@@ -35,8 +35,12 @@ esta seccion, esta seccion es la correcta.
   es local al proceso (un solo escritor efectivo); y el migrator comparte tag con la API.
   (S8: la reconciliacion ya tiene invocacion de produccion --
   `POST /issuers/:issuerId/credentials/:credentialId/blockchain/reconcile` -- y busca
-  en ventanas de 10.000 bloques desde el bloque de deploy del manifest. Nunca
-  retransmite.)
+  con la estrategia de `reconciliation-log-scan.ts`: ubica por timestamp el bloque de la emision (el
+  bloque de deploy del manifest es solo el piso), barre hacia adelante en ventanas que
+  parten de 10.000 bloques y, si el proveedor rechaza el rango (HTTP 413 o equivalente),
+  las achica a la mitad y reutiliza el tamano aprendido, con un tope de 1.000 pedidos.
+  Un error de proveedor o un barrido incompleto nunca se informa como "no registrada":
+  queda `CHAIN_UNAVAILABLE` y la fila sigue `pending`. Nunca retransmite.)
 
 ## Escritor unico (S8)
 

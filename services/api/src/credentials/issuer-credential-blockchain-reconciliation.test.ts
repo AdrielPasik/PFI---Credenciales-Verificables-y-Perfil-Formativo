@@ -31,6 +31,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { BlockchainRegistrationReconciliationService } from '../blockchain/blockchain-registration-reconciliation.service';
 import { type BlockchainTargetEnvironment } from '../blockchain/blockchain-target';
 import { CREDENTIAL_REGISTERED_TOPIC } from '../blockchain/credential-registry-events';
+import { RECONCILIATION_MAX_LOG_REQUESTS } from '../blockchain/reconciliation-log-scan';
 import { PUBLIC_TEST_KEY_ONE, PUBLIC_TEST_KEY_TWO } from '../signing/__fixtures__/signer-test-keys';
 import { IssuerCredentialBlockchainReconciliationController } from './issuer-credential-blockchain-reconciliation.controller';
 import {
@@ -113,6 +114,9 @@ interface WorldOptions {
   manifest?: string | null;
   withBlockNumber?: boolean;
   issuedAt?: Date | null;
+  /** Rango maximo (en bloques) que el proveedor acepta; mas responde HTTP 413. */
+  maxLogRange?: number;
+  getBlockError?: Error;
 }
 
 function createWorld(options: WorldOptions = {}) {
@@ -186,14 +190,25 @@ function createWorld(options: WorldOptions = {}) {
         const logs = options.logs ?? [];
         const from = filter.fromBlock;
         const to = filter.toBlock === 'latest' ? Number.MAX_SAFE_INTEGER : (filter.toBlock as number);
+        if (options.maxLogRange !== undefined && to - from + 1 > options.maxLogRange) {
+          // Forma de los errores HTTP de ethers v6 (sin URL en lo que se inspecciona).
+          throw Object.assign(new Error('bad response (status=413, payload too large)'), {
+            code: 'SERVER_ERROR',
+            response: { statusCode: 413 }
+          });
+        }
         return logs.filter((log) => {
           const block = (log as { blockNumber: number }).blockNumber;
           return block >= from && block <= to;
         });
       },
-      async getBlock() {
+      async getBlock(blockNumber: number) {
         events.push('chain:getBlock');
-        return { timestamp: BigInt(BLOCK_TIME) };
+        if (options.getBlockError) {
+          throw options.getBlockError;
+        }
+        // Lineal en el numero de bloque (2 s por bloque); el bloque del evento da BLOCK_TIME.
+        return { timestamp: BigInt(BLOCK_TIME + (blockNumber - EVENT_BLOCK) * 2) };
       },
       async getBlockNumber() {
         events.push('chain:getBlockNumber');
@@ -558,4 +573,170 @@ test('estructural: el endpoint no acepta contrato, red, bloque ni rango del llam
 
   assert.equal(source.includes('@Body'), false);
   assert.equal(source.includes('@Query'), false);
+});
+
+// ---------------------------------------------------------------------------
+// INCIDENTE DE PRODUCCION: el RPC privado responde 413 a rangos grandes
+// ---------------------------------------------------------------------------
+
+/** Un pendiente de ~un dia de bloques de 2 s. */
+const ONE_DAY_BLOCKS = 43_200;
+const DAY_HEAD = EVENT_BLOCK + ONE_DAY_BLOCKS;
+// Emitida 4 s antes de que se minara el evento y pendiente desde entonces.
+const DAY_PENDING_SECONDS = ONE_DAY_BLOCKS * 2 + 4;
+const dayOldIssuedAt = () => new Date(Date.now() - DAY_PENDING_SECONDS * 1000);
+
+for (const maxLogRange of [5_000, 100, 1]) {
+  test(`HTTP 413 con proveedor de ${maxLogRange} bloque(s): se achica, encuentra el evento de hace un dia y finaliza`, async () => {
+    const world = createWorld({
+      head: DAY_HEAD,
+      logs: [registeredLog()],
+      issuedAt: dayOldIssuedAt(),
+      maxLogRange
+    });
+
+    const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+    assert.equal(response.result, 'registered');
+    assert.equal(response.outcome, 'FINALIZED');
+    assert.equal(response.blockchain.txHash, TX_HASH);
+    assert.equal(response.blockchain.blockNumber, EVENT_BLOCK);
+    assert.equal(world.stats().finalizeCalls, 1);
+
+    // NO se barrio el dia entero: se arranco cerca de la emision (no desde el deploy
+    // ni desde la cabeza) y el tamano aprendido se reutilizo.
+    const lowest = Math.min(...world.logFilters.map((filter) => filter.fromBlock));
+    assert.ok(lowest >= EVENT_BLOCK - 160 && lowest <= EVENT_BLOCK, `arranque ${lowest}`);
+    const accepted = world.logFilters.filter(
+      (filter) => (filter.toBlock as number) - filter.fromBlock + 1 <= maxLogRange
+    );
+    const scanned = accepted.reduce(
+      (total, filter) => total + ((filter.toBlock as number) - filter.fromBlock + 1),
+      0
+    );
+    // Un par de ventanas del tamano que acepta el proveedor, jamas el dia entero (43.200).
+    assert.ok(scanned <= Math.max(1_000, 2 * maxLogRange), `bloques consultados con exito: ${scanned}`);
+    assert.ok(world.logFilters.length < 300, `pedidos: ${world.logFilters.length}`);
+
+    // Recorre hacia ADELANTE (el evento esta pegado a la emision).
+    for (let index = 1; index < accepted.length; index += 1) {
+      assert.ok(accepted[index].fromBlock > accepted[index - 1].fromBlock);
+    }
+  });
+}
+
+test('un 413 que NO se puede achicar (ni a 1 bloque) falla cerrado: sin finalizar y sin decir "no registrada"', async () => {
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [registeredLog()],
+    issuedAt: dayOldIssuedAt(),
+    maxLogRange: 0
+  });
+
+  const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(response.result, 'still_pending');
+  assert.equal(response.outcome, 'CHAIN_UNAVAILABLE');
+  assert.notEqual(response.outcome, 'CHAIN_NOT_REGISTERED');
+  assert.equal(world.stats().finalizeCalls, 0);
+  assert.equal(response.blockchain.status, 'pending');
+});
+
+test('un error de proveedor que no es de rango no se achica: un solo intento y CHAIN_UNAVAILABLE', async () => {
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [registeredLog()],
+    issuedAt: dayOldIssuedAt(),
+    logsError: new Error('ECONNRESET https://provider.example/v2/SECRET_API_KEY')
+  });
+
+  const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(response.outcome, 'CHAIN_UNAVAILABLE');
+  assert.equal(world.logFilters.length, 1);
+  assert.equal(world.stats().finalizeCalls, 0);
+  assert.ok(!JSON.stringify(response).includes('SECRET_API_KEY'));
+});
+
+test('presupuesto agotado: un barrido que no alcanza NO es "no registrada" y se corta en el tope', async () => {
+  // Proveedor de 1 bloque y un pendiente tan viejo que habria que consultar mas de 1000 bloques.
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [],
+    issuedAt: new Date(Date.now() - 6_000 * 1000),
+    maxLogRange: 1
+  });
+
+  const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(response.result, 'still_pending');
+  assert.equal(response.outcome, 'CHAIN_UNAVAILABLE');
+  assert.equal(world.logFilters.length, RECONCILIATION_MAX_LOG_REQUESTS);
+  assert.equal(world.stats().finalizeCalls, 0);
+});
+
+test('solo una consulta COMPLETA y sin logs es CHAIN_NOT_REGISTERED (aun con 413 intermedios)', async () => {
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [],
+    issuedAt: new Date(Date.now() - 400 * 1000),
+    maxLogRange: 100
+  });
+
+  const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(response.outcome, 'CHAIN_NOT_REGISTERED');
+  assert.equal(response.result, 'still_pending');
+  assert.equal(world.stats().finalizeCalls, 0);
+});
+
+test('si getBlock falla no se finaliza sin fecha de cadena: queda pendiente y no se inventa nada', async () => {
+  const world = createWorld({
+    head: EVENT_BLOCK + 2_000,
+    logs: [registeredLog()],
+    issuedAt: new Date(Date.now() - 4_004 * 1000),
+    getBlockError: new Error('getBlock no disponible')
+  });
+
+  const response = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(response.outcome, 'CHAIN_UNAVAILABLE');
+  assert.equal(world.stats().finalizeCalls, 0);
+  // Se uso la cota conservadora por segundos y se llego a encontrar el log.
+  assert.ok(world.logFilters.length > 0);
+});
+
+test('un registrante inesperado sigue rechazado tras el barrido adaptativo (correlacion intacta)', async () => {
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [registeredLog(PUBLIC_TEST_KEY_TWO.address)],
+    issuedAt: dayOldIssuedAt(),
+    maxLogRange: 100
+  });
+
+  await assert.rejects(
+    () => world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR),
+    (error: unknown) =>
+      error instanceof IssuerCredentialReconciliationError &&
+      (error.getResponse() as { code: string }).code === 'REGISTRANT_UNEXPECTED'
+  );
+  assert.equal(world.stats().finalizeCalls, 0);
+});
+
+test('reconciliar dos veces la misma fila: una sola finalizacion y la segunda no toca la cadena', async () => {
+  const world = createWorld({
+    head: DAY_HEAD,
+    logs: [registeredLog()],
+    issuedAt: dayOldIssuedAt(),
+    maxLogRange: 100
+  });
+
+  const first = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+  const chainEventsAfterFirst = NO_CHAIN_EVENTS(world.events).length;
+  const second = await world.service.reconcileForIssuer(ISSUER_ID, CREDENTIAL_ID, OPERATOR);
+
+  assert.equal(first.outcome, 'FINALIZED');
+  assert.equal(second.outcome, 'ALREADY_REGISTERED');
+  assert.equal(world.stats().finalizeCalls, 1);
+  assert.equal(NO_CHAIN_EVENTS(world.events).length, chainEventsAfterFirst);
 });
