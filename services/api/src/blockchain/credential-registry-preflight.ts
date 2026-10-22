@@ -105,10 +105,19 @@ export function createCredentialRegistryProviderForRpcUrl(
   const request = new FetchRequest(rpcUrl);
   request.timeout = CREDENTIAL_REGISTRY_RPC_TIMEOUT_MS;
 
-  // Se pasa SOLO la request. Fijar `staticNetwork` haria que `getNetwork()`
+  // Se pasa la request y NUNCA `staticNetwork`: fijarlo haria que `getNetwork()`
   // devolviera la red configurada sin preguntarle al nodo, lo que vaciaria de
-  // sentido la comprobacion de cadena del preflight.
-  return new JsonRpcProvider(request);
+  // sentido la comprobacion de cadena del preflight. El segundo argumento queda
+  // `undefined` justamente para que la red se detecte con `eth_chainId`.
+  //
+  // `batchMaxCount: 1` DESACTIVA el agrupado de pedidos JSON-RPC (ethers v6 junta
+  // en un solo POST los pedidos que coinciden dentro de una ventana de ~10 ms).
+  // El RPC privado de produccion no soporta lotes: reproducido contra el proveedor
+  // real, la lectura historica y `getLogs` fallaban con errores -32007 / -32614 y la
+  // reconciliacion de la primera credencial real quedaba en `CHAIN_UNAVAILABLE`;
+  // sin lotes el mismo barrido funciona. Sigue siendo el mismo metodo JSON-RPC por
+  // pedido, solo que cada uno viaja en su propio POST.
+  return new JsonRpcProvider(request, undefined, { batchMaxCount: 1 });
 }
 
 @Injectable()
