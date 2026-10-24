@@ -6,6 +6,7 @@ import {
   formatIntegrityDate
 } from '@/lib/formatters/credential-integrity';
 import { formatDisplayValue } from '@/lib/formatters/display-value';
+import { buildTransactionExplorerUrl } from '@/lib/public-verification/explorer';
 import { formatHolderQualityFlags } from '@/lib/formatters/holder-quality-flags';
 import type {
   HolderCredentialDetailVM,
@@ -150,12 +151,27 @@ export function adaptMyCredential(payload: unknown): HolderCredentialDetailVM {
       records: blockchainRecords.map((value, index) => {
         const path = `credential.blockchainRecords[${index}]`;
         const item = record(value, path);
+        const network = requiredString(item.network, `${path}.network`);
+        const chainId = nonNegativeInteger(item.chainId, `${path}.chainId`);
+        const status = requiredString(item.status, `${path}.status`);
+        // Un registro `pending` legitimo todavia no tiene hechos de la cadena (el
+        // backend manda `null`, no un placeholder). Es la UNICA situacion en la que
+        // se aceptan nulos: con cualquier otro estado el hash y la fecha siguen
+        // siendo obligatorios y una respuesta mal formada sigue fallando.
+        const pending = status.toLowerCase() === 'pending';
+        const txHash = nullableHash(item.txHash, `${path}.txHash`);
+        if (txHash === null && !pending) invalid(`${path}.txHash`, '0x-prefixed 32-byte hash', item.txHash);
         return {
-          networkLabel: formatBlockchainNetwork(requiredString(item.network, `${path}.network`)),
-          chainId: nonNegativeInteger(item.chainId, `${path}.chainId`),
-          txHashShort: shortHash(item.txHash, `${path}.txHash`),
-          statusLabel: formatBlockchainEvidenceStatus(requiredString(item.status, `${path}.status`)),
-          registeredAtLabel: dateLabel(item.registeredAt, `${path}.registeredAt`)
+          networkLabel: formatBlockchainNetwork(network),
+          chainId,
+          status,
+          txHashShort: txHash === null ? null : abbreviateIntegrityReference(txHash),
+          transactionExplorerUrl: buildTransactionExplorerUrl({ network, chainId, txHash }),
+          statusLabel: formatBlockchainEvidenceStatus(status),
+          registeredAtLabel: pending
+            ? nullableDateLabel(item.registeredAt, `${path}.registeredAt`)
+            : dateLabel(item.registeredAt, `${path}.registeredAt`),
+          revokedAtLabel: nullableDateLabel(item.revokedAt, `${path}.revokedAt`)
         };
       })
     },
@@ -407,7 +423,6 @@ function nullableExternalUrl(value: unknown, path: string): string | null {
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') invalid(path, 'HTTP(S) URL or null', value);
   return url;
 }
-function shortHash(value: unknown, path: string): string { return abbreviateIntegrityReference(nullableHash(value, path) ?? requiredString(value, path)); }
 function shortDigest(value: unknown, path: string): string { const digest = requiredString(value, path); if (!/^[a-fA-F0-9]{64}$/.test(digest)) invalid(path, '64-character hexadecimal digest', value); return abbreviateIntegrityReference(digest); }
 function nullableConfidenceLabel(value: unknown, path: string): string | null { const confidence = nullableConfidence(value, path); return confidence === null ? null : `${Math.round(confidence * 100)}% de confianza`; }
 function formatBytes(value: number): string { return value < 1024 ? `${value} B` : `${(value / 1024).toFixed(1)} KB`; }

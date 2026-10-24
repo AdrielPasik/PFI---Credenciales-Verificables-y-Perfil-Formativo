@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { getPublicCredentialVerificationRequest } from '@/lib/api/public-verification-api';
 import { mapPublicVerificationError } from '@/lib/errors/public-verification-error-mapper';
 import { normalizePublicCredentialReference } from '@/lib/public-verification/reference-normalization';
-import { buildBaseSepoliaExplorerLinks } from '@/lib/public-verification/explorer';
+import { BASESCAN_TRANSACTION_LINK_LABEL, buildBaseSepoliaExplorerLinks } from '@/lib/public-verification/explorer';
 import { presentVerdict, type VerdictTone } from '@/lib/public-verification/verdict-presentation';
 import type {
   PublicAuthenticityResult,
@@ -203,7 +203,7 @@ export function PublicVerificationResult({ verification }: { verification: Publi
           <ReadField label="Chain ID" value={String(record.chainId)} />
           {simulated ? <p className="text-sm leading-6 text-status-warning sm:col-span-2" data-evidence="simulated">Evidencia local simulada: no es un registro en una red pública de blockchain.</p> : null}
           {record.contractAddress ? <CopyField label="Contrato" value={record.contractAddress} href={explorer?.contractUrl ?? null} linkLabel="Ver contrato en el explorador" /> : null}
-          {record.txHash ? <CopyField label="Transacción" value={record.txHash} href={explorer?.transactionUrl ?? null} linkLabel="Ver transacción en el explorador" /> : <ReadField label="Registro técnico" value={record.txHashShort ?? 'No disponible'} mono />}
+          {record.txHash ? <CopyField label="Transacción" value={record.txHash} href={explorer?.transactionUrl ?? null} linkLabel={BASESCAN_TRANSACTION_LINK_LABEL} /> : <ReadField label="Registro técnico" value={record.txHashShort ?? 'No disponible'} mono />}
           {record.blockNumber !== null ? <ReadField label="Bloque" value={String(record.blockNumber)} /> : null}
           {record.registrantAddress ? <ReadField label="Cuenta registrante" value={record.registrantAddress} mono /> : null}
           <ReadField label="Fecha de registro" value={record.registeredAtLabel ?? 'No disponible'} />

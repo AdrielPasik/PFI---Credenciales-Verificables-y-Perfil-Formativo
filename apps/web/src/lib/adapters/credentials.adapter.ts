@@ -15,6 +15,7 @@ import {
   formatBlockchainNetwork,
   formatIntegrityDate
 } from '@/lib/formatters/credential-integrity';
+import { buildTransactionExplorerUrl } from '@/lib/public-verification/explorer';
 import {
   credentialTypeLabels,
   credentialTypeOptions
@@ -142,11 +143,21 @@ function adaptBlockchainEvidence(
   const evidence = asRecord(value);
   const network = requiredString(evidence.network);
   const chainId = positiveInteger(evidence.chainId);
-  const txHash = requiredString(evidence.txHash);
   const status = requiredString(evidence.status);
-  const registeredAt = isoDateTime(evidence.registeredAt);
 
-  if (!blockchainHashPattern.test(txHash)) {
+  // Un registro `pending` legitimo todavia no tiene hechos de la cadena: el
+  // backend manda `null` (no un placeholder). Es la UNICA situacion en la que se
+  // aceptan nulos; en cualquier otro estado el hash y la fecha siguen siendo
+  // obligatorios, asi que una respuesta mal formada no se acepta en silencio.
+  const pending = status.toLowerCase() === 'pending';
+  const txHash =
+    pending && evidence.txHash === null ? null : requiredString(evidence.txHash);
+  const registeredAt =
+    pending && evidence.registeredAt === null
+      ? null
+      : isoDateTime(evidence.registeredAt);
+
+  if (txHash !== null && !blockchainHashPattern.test(txHash)) {
     throw new IncompatiblePayloadError();
   }
 
@@ -155,11 +166,12 @@ function adaptBlockchainEvidence(
     networkLabel: formatBlockchainNetwork(network),
     chainId,
     txHash,
-    txHashShort: abbreviateIntegrityReference(txHash),
+    txHashShort: txHash === null ? null : abbreviateIntegrityReference(txHash),
+    transactionExplorerUrl: buildTransactionExplorerUrl({ network, chainId, txHash }),
     status,
     statusLabel: formatBlockchainEvidenceStatus(status),
     registeredAt,
-    registeredAtLabel: formatIntegrityDate(registeredAt)
+    registeredAtLabel: registeredAt === null ? null : formatIntegrityDate(registeredAt)
   };
 }
 

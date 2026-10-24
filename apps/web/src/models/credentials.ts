@@ -209,12 +209,15 @@ export interface CredentialBlockchainEvidenceVM {
   network: string;
   networkLabel: string;
   chainId: number;
-  txHash: string;
-  txHashShort: string;
+  /** `null` mientras el registro esta `pending`: todavia no hay transaccion observada. */
+  txHash: string | null;
+  txHashShort: string | null;
+  /** Enlace publico al explorador; `null` sin hash real o en una red sin explorador. */
+  transactionExplorerUrl: string | null;
   status: string;
   statusLabel: string;
-  registeredAt: string;
-  registeredAtLabel: string;
+  registeredAt: string | null;
+  registeredAtLabel: string | null;
 }
 
 export interface IssuerCredentialDetailVM {

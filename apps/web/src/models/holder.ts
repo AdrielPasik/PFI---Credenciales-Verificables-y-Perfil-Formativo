@@ -13,9 +13,15 @@ export interface HolderCredentialIntegrityVM {
   records: Array<{
     networkLabel: string;
     chainId: number;
-    txHashShort: string;
+    /** Estado crudo del registro (`pending`, `registered`, `revoked`). */
+    status: string;
+    /** `null` mientras el registro esta `pending`: todavia no hay transaccion observada. */
+    txHashShort: string | null;
+    /** Enlace publico al explorador; `null` sin hash real o en una red sin explorador. */
+    transactionExplorerUrl: string | null;
     statusLabel: string;
-    registeredAtLabel: string;
+    registeredAtLabel: string | null;
+    revokedAtLabel: string | null;
   }>;
 }
 
