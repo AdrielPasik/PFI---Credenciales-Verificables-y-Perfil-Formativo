@@ -279,7 +279,7 @@ describe('CredentialIssuanceSection', () => {
     ).toBeNull();
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
     expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
-    expect(screen.getByText('Se ejecutará al emitir con datos declarados')).toBeTruthy();
+    expect(screen.getByText('Se intentará con el contenido declarado al emitir')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')
@@ -305,7 +305,7 @@ describe('CredentialIssuanceSection', () => {
 
     expect(screen.queryByText('Sin fuente de respaldo')).toBeNull();
     expect(screen.queryByText('Respaldo textual institucional')).toBeNull();
-    expect(screen.getByText('Se ejecutará al emitir con datos declarados')).toBeTruthy();
+    expect(screen.getByText('Se intentará con el contenido declarado al emitir')).toBeTruthy();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
         .getAttribute('disabled')
@@ -324,12 +324,20 @@ describe('CredentialIssuanceSection', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
 
-    expect(screen.getByText('Evidencia textual vigente')).toBeTruthy();
+    expect(screen.getByText('Fuente textual vigente')).toBeTruthy();
+    // La fuente textual registrada tiene precedencia sobre el contenido
+    // declarado: el panel y la confirmacion nombran la fuente REAL.
+    expect(
+      screen.getByText('Se intentará con la fuente textual al emitir')
+    ).toBeTruthy();
     expect(
       screen.queryByText(/análisis textual queda pendiente para una iteración posterior/i)
     ).toBeNull();
     expect(screen.queryByText(/requiere una evidencia documental PDF/i)).toBeNull();
-    expect(screen.getByText(/a partir de la información declarada disponible/i)).toBeTruthy();
+    expect(
+      screen.getByText(/a partir de la fuente de respaldo textual registrada/i)
+    ).toBeTruthy();
+    expect(screen.queryByText(/a partir de la información declarada/i)).toBeNull();
     expect(
       screen.getByRole('button', { name: 'Emitir credencial' })
       .getAttribute('disabled')
@@ -612,5 +620,136 @@ describe('CredentialIssuanceSection: registro blockchain pendiente, confirmado y
     const text = document.body.textContent ?? '';
     expect(text).toContain(`${realTx.slice(0, 12)}…${realTx.slice(-8)}`);
     expect(screen.getAllByRole('link', { name: /BaseScan/ })).toHaveLength(1);
+  });
+});
+
+describe('CredentialIssuanceSection: panel compacto y estados de respaldo', () => {
+  it('says "Sin fuentes cargadas" when nothing was loaded, never "Pendiente de confirmación"', () => {
+    for (const type of ['course', 'certification', 'academic_subject', 'degree'] as const) {
+      const { unmount } = render(
+        <CredentialIssuanceSection
+          detail={detailFixture({ type, typeLabel: 'Tipo de prueba' })}
+          onIssue={vi.fn()}
+        />
+      );
+
+      expect(screen.getByText('Sin fuentes cargadas')).toBeTruthy();
+      // "Pendiente de confirmacion" se reserva para un proceso real de
+      // confirmacion (el registro blockchain), nunca para "no hay nada".
+      expect(document.body.textContent).not.toMatch(/Pendiente de confirmación/);
+      unmount();
+    }
+  });
+
+  it('labels the support as "Fuentes de respaldo" and keeps the loaded-source labels truthful', () => {
+    const { rerender } = render(
+      <CredentialIssuanceSection detail={draftWithPdf()} onIssue={vi.fn()} />
+    );
+    expect(screen.getByText('Fuentes de respaldo')).toBeTruthy();
+    expect(screen.queryByText('Evidencia de respaldo')).toBeNull();
+    expect(screen.getByText('PDF vigente')).toBeTruthy();
+
+    rerender(
+      <CredentialIssuanceSection
+        detail={detailFixture({ textEvidence: { currentText: textEvidenceFixture() } })}
+        onIssue={vi.fn()}
+      />
+    );
+    expect(screen.getByText('Fuente textual vigente')).toBeTruthy();
+    expect(screen.queryByText('Evidencia textual vigente')).toBeNull();
+  });
+
+  it('announces which source the automatic analysis will try, following the real precedence, without promising results', () => {
+    const declared = {
+      description: 'Curso práctico de arquitectura de software con casos reales.'
+    };
+    const { rerender } = render(
+      <CredentialIssuanceSection
+        detail={detailFixture({ ...declared, documentEvidence: { currentDocument: pdfEvidenceFixture() }, textEvidence: { currentText: textEvidenceFixture() } })}
+        onIssue={vi.fn()}
+      />
+    );
+    // PDF vigente gana sobre texto y sobre contenido declarado.
+    expect(screen.getByText('Se intentará con el PDF al emitir')).toBeTruthy();
+
+    rerender(
+      <CredentialIssuanceSection
+        detail={detailFixture({ ...declared, textEvidence: { currentText: textEvidenceFixture() } })}
+        onIssue={vi.fn()}
+      />
+    );
+    // Sin PDF, la fuente textual registrada gana sobre el contenido declarado.
+    expect(screen.getByText('Se intentará con la fuente textual al emitir')).toBeTruthy();
+
+    rerender(
+      <CredentialIssuanceSection detail={detailFixture(declared)} onIssue={vi.fn()} />
+    );
+    expect(
+      screen.getByText('Se intentará con el contenido declarado al emitir')
+    ).toBeTruthy();
+
+    rerender(
+      <CredentialIssuanceSection detail={detailFixture()} onIssue={vi.fn()} />
+    );
+    expect(screen.getByText('Pendiente de información suficiente')).toBeTruthy();
+
+    // Nunca se promete un resultado.
+    expect(document.body.textContent).not.toMatch(
+      /se (analizará|generará|ejecutará) (el|la|con)|garantiza|certifica/i
+    );
+  });
+
+  it('keeps the draft panel short: the long explanation moved to the confirmation step', () => {
+    render(
+      <CredentialIssuanceSection detail={draftWithPdf()} onIssue={vi.fn()} />
+    );
+
+    const before = document.body.textContent ?? '';
+    expect(before).not.toMatch(/Preparación para emitir/);
+    expect(before).not.toMatch(/Revisá el estado actual antes de confirmar/);
+    expect(before).not.toMatch(/registra una huella de integridad/);
+    expect(before).not.toMatch(/La emisión genera una versión verificable/);
+    // Lo esencial sigue ahi.
+    for (const label of ['Estado', 'Tipo', 'Titular', 'Logro', 'Fuentes de respaldo', 'Análisis automático']) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
+    expect(screen.getByRole('button', { name: 'Emitir credencial' })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+
+    const confirmation = screen.getByRole('region', { name: 'Confirmar emisión' });
+    expect(confirmation.textContent).toMatch(/La emisión genera una versión verificable/);
+    expect(confirmation.textContent).toMatch(/modo lectura/);
+    expect(confirmation.textContent).toMatch(/huella de integridad/);
+  });
+
+  it('keeps the issuing protections exactly as they were', () => {
+    // Sin respaldo suficiente: el boton queda bloqueado hasta la confirmacion explicita.
+    const { unmount } = render(
+      <CredentialIssuanceSection detail={detailFixture()} onIssue={vi.fn()} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+    const blocked = screen.getByRole('button', { name: 'Emitir credencial' }) as HTMLButtonElement;
+    expect(blocked.disabled).toBe(true);
+    unmount();
+
+    // Con respaldo: no hace falta ninguna casilla.
+    render(<CredentialIssuanceSection detail={draftWithPdf()} onIssue={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Emitir credencial' }));
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(
+      (screen.getByRole('button', { name: 'Emitir credencial' }) as HTMLButtonElement).disabled
+    ).toBe(false);
+  });
+
+  it('keeps a shorter insufficient-information warning that does not promise or deny anything beyond the facts', () => {
+    render(<CredentialIssuanceSection detail={detailFixture()} onIssue={vi.fn()} />);
+
+    expect(
+      screen.getByText(
+        'Hay poca información declarada: la interpretación asistida será limitada. Podés completarla antes de emitir.'
+      )
+    ).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/IA certific|blockchain valida/i);
   });
 });

@@ -8,6 +8,7 @@ import {
   Upload
 } from 'lucide-react';
 import {
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -45,6 +46,11 @@ interface DocumentEvidenceSectionProps {
   onUpload(file: File): Promise<DocumentEvidenceVM>;
   showEmptyState?: boolean;
   showHeading?: boolean;
+  /**
+   * Avisa al contenedor cuando este composer conserva un archivo elegido sin
+   * subir o un error, para que un panel plegado no los esconda.
+   */
+  onAttentionChange?(needsAttention: boolean): void;
 }
 
 type UploadFeedback =
@@ -57,6 +63,7 @@ export function DocumentEvidenceSection({
   credentialType = 'academic_subject',
   currentDocument,
   display = 'all',
+  onAttentionChange,
   onUpload,
   showEmptyState = true,
   showHeading = true
@@ -77,6 +84,15 @@ export function DocumentEvidenceSection({
     isDraft && (currentDocument === null || replacementMode);
   const showCurrent = display !== 'composer';
   const showComposer = display !== 'current';
+  const needsAttention =
+    showComposer &&
+    (selectedFile !== null ||
+      validationError !== null ||
+      feedback?.kind === 'error');
+
+  useEffect(() => {
+    onAttentionChange?.(needsAttention);
+  }, [needsAttention, onAttentionChange]);
 
   function selectFile(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
@@ -274,6 +290,12 @@ function CurrentDocumentCard({
             {document.sha256Short}
           </code>
         </div>
+        {document.mimeType !== 'application/pdf' ? (
+          <p className="text-sm leading-6 text-text-muted sm:col-span-3">
+            Las imágenes se conservan como respaldo, pero no se analizan
+            automáticamente.
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   );
@@ -356,6 +378,11 @@ function DocumentUploadForm({
               className="text-sm leading-6 text-text-muted"
             >
               Formatos: PDF, PNG o JPEG · Tamaño máximo: 20 MB
+            </p>
+            <p className="text-sm leading-6 text-text-muted">
+              Los PDF pueden utilizarse para el análisis automático. Las
+              imágenes se conservan como respaldo, pero no se analizan
+              automáticamente.
             </p>
             {validationError ? (
               <p

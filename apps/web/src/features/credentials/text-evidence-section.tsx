@@ -9,6 +9,7 @@ import {
   TextQuote
 } from 'lucide-react';
 import {
+  useEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -48,6 +49,11 @@ interface TextEvidenceSectionProps {
   }): Promise<TextEvidenceVM>;
   showEmptyState?: boolean;
   showHeading?: boolean;
+  /**
+   * Avisa al contenedor cuando este composer conserva algo sin guardar o un
+   * error, para que un panel plegado no los esconda.
+   */
+  onAttentionChange?(needsAttention: boolean): void;
 }
 
 type SubmitFeedback =
@@ -62,6 +68,7 @@ export function TextEvidenceSection({
   currentText,
   display = 'all',
   onSubmit,
+  onAttentionChange,
   showEmptyState = true,
   showHeading = true
 }: TextEvidenceSectionProps) {
@@ -80,6 +87,15 @@ export function TextEvidenceSection({
     rawLabel.length > 0 && validation.labelError !== null;
   const showCurrent = display !== 'composer';
   const showComposer = display !== 'current';
+  const needsAttention =
+    showComposer &&
+    (rawContent.length > 0 ||
+      rawLabel.length > 0 ||
+      feedback?.kind === 'error');
+
+  useEffect(() => {
+    onAttentionChange?.(needsAttention);
+  }, [needsAttention, onAttentionChange]);
 
   function updateLabel(event: ChangeEvent<HTMLInputElement>) {
     setRawLabel(event.target.value);
@@ -126,8 +142,8 @@ export function TextEvidenceSection({
       setFeedback({
         kind: 'success',
         message: currentText
-          ? 'La evidencia textual se reemplazó correctamente.'
-          : 'La evidencia textual se guardó correctamente.'
+          ? 'La fuente textual se reemplazó correctamente.'
+          : 'La fuente textual se guardó correctamente.'
       });
     } catch (caught) {
       setFeedback({
@@ -142,7 +158,7 @@ export function TextEvidenceSection({
 
   return (
     <section
-      aria-label={showHeading ? undefined : 'Evidencia textual'}
+      aria-label={showHeading ? undefined : 'Fuente de respaldo textual'}
       aria-labelledby={showHeading ? 'text-evidence-title' : undefined}
       className={
         showHeading
@@ -173,7 +189,7 @@ export function TextEvidenceSection({
       ) : null}
 
       {showComposer && feedback?.kind === 'success' ? (
-        <FeedbackAlert variant="success" title="Evidencia textual actualizada">
+        <FeedbackAlert variant="success" title="Fuente textual actualizada">
           {feedback.message}
         </FeedbackAlert>
       ) : null}
@@ -181,7 +197,7 @@ export function TextEvidenceSection({
       {showComposer && feedback?.kind === 'error' ? (
         <FeedbackAlert
           variant="error"
-          title="No pudimos guardar la evidencia textual"
+          title="No pudimos guardar la fuente textual"
         >
           {feedback.feedback.message}
         </FeedbackAlert>
@@ -203,7 +219,7 @@ export function TextEvidenceSection({
         <div>
           <Button type="button" variant="secondary" onClick={startReplacement}>
             <RotateCcw aria-hidden="true" />
-            Reemplazar evidencia textual
+            Reemplazar fuente textual
           </Button>
         </div>
       ) : null}
@@ -216,8 +232,8 @@ export function TextEvidenceSection({
             </p>
             <h3 className="text-lg font-semibold text-text-strong">
               {currentText
-                ? 'Preparar nueva evidencia textual'
-                : 'Registrar evidencia textual'}
+                ? 'Preparar nueva fuente textual'
+                : 'Registrar fuente de respaldo textual'}
             </h3>
             <p className="text-sm leading-6 text-text-muted">
               {currentText
@@ -241,7 +257,7 @@ export function TextEvidenceSection({
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p aria-live="polite" className="text-sm text-text-muted">
                   {submitting
-                    ? 'Guardando evidencia textual…'
+                    ? 'Guardando fuente textual…'
                     : 'El texto se normalizará únicamente al enviarlo.'}
                 </p>
                 <div className="flex flex-wrap gap-3">
@@ -270,7 +286,7 @@ export function TextEvidenceSection({
                       ? 'Guardando evidencia'
                       : currentText
                         ? 'Confirmar reemplazo'
-                        : 'Guardar evidencia textual'}
+                        : 'Guardar fuente textual'}
                   </Button>
                 </div>
               </div>
@@ -282,9 +298,9 @@ export function TextEvidenceSection({
       {showCurrent && !isDraft ? (
         <FeedbackAlert
           variant="information"
-          title="Evidencia textual en modo lectura"
+          title="Fuente textual en modo lectura"
         >
-          La evidencia textual puede registrarse mientras la credencial está
+          La fuente textual puede registrarse mientras la credencial está
           en borrador. Esta credencial ya está en modo lectura.
         </FeedbackAlert>
       ) : null}

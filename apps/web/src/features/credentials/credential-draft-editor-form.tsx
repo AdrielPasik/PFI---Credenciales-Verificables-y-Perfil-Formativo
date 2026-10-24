@@ -13,7 +13,6 @@ import {
   type FormEvent,
   type RefObject
 } from 'react';
-import { createPortal } from 'react-dom';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
@@ -54,9 +53,6 @@ import {
 interface CredentialDraftEditorFormProps
   extends AcademicSubjectCatalogSearchHandlers {
   detail: IssuerCredentialDetailVM;
-  declaredCapabilitiesPlacement?: 'inline' | 'textual-evidence';
-  declaredCapabilitiesTarget?: HTMLElement | null;
-  showDraftSaveActionInCapabilitiesSlot?: boolean;
   issuerReference: string;
   onCurrentTypeChange?(type: CredentialType): void;
   onSave(
@@ -96,9 +92,6 @@ export const CredentialDraftEditorForm = forwardRef<
 >(function CredentialDraftEditorForm(
   {
     detail,
-    declaredCapabilitiesPlacement = 'inline',
-    declaredCapabilitiesTarget,
-    showDraftSaveActionInCapabilitiesSlot = false,
     issuerReference,
     onCurrentTypeChange,
     onReloadLatest,
@@ -181,20 +174,10 @@ export const CredentialDraftEditorForm = forwardRef<
         credentialType={state.type}
       />
     ) : null;
-  const isCapabilitiesSlotActive =
-    declaredCapabilitiesPlacement === 'textual-evidence' &&
-    declaredCapabilitiesTarget !== null &&
-    declaredCapabilities !== null &&
-    showDraftSaveActionInCapabilitiesSlot;
-  const isCapabilitiesSlotRequested =
-    declaredCapabilitiesPlacement === 'textual-evidence' &&
-    declaredCapabilities !== null &&
-    showDraftSaveActionInCapabilitiesSlot;
   const draftSaveAction = (
     <DraftSaveAction
       academicSelectionRequired={academicSelectionRequired}
       command={command}
-      form={isCapabilitiesSlotActive ? 'credential-draft-editor-form' : undefined}
       pendingType={pendingType}
       saving={saving}
     />
@@ -632,17 +615,7 @@ export const CredentialDraftEditorForm = forwardRef<
           />
         )}
 
-        {declaredCapabilitiesPlacement === 'textual-evidence'
-          ? declaredCapabilitiesTarget && declaredCapabilities
-            ? createPortal(
-                <>
-                  {declaredCapabilities}
-                  {isCapabilitiesSlotActive ? draftSaveAction : null}
-                </>,
-                declaredCapabilitiesTarget
-              )
-            : null
-          : declaredCapabilities}
+        {declaredCapabilities}
 
         {feedback?.kind === 'success' ? (
           <FeedbackAlert variant="success" title="Cambios guardados">
@@ -678,9 +651,7 @@ export const CredentialDraftEditorForm = forwardRef<
           </FeedbackAlert>
         ) : null}
 
-        {!isCapabilitiesSlotActive && !isCapabilitiesSlotRequested
-          ? draftSaveAction
-          : null}
+        {draftSaveAction}
       </form>
     </section>
   );
@@ -691,13 +662,11 @@ CredentialDraftEditorForm.displayName = 'CredentialDraftEditorForm';
 function DraftSaveAction({
   academicSelectionRequired,
   command,
-  form,
   pendingType,
   saving
 }: {
   academicSelectionRequired: boolean;
   command: UpdateIssuerCredentialDraftCommand | null;
-  form?: string;
   pendingType: CredentialType | null;
   saving: boolean;
 }) {
@@ -715,7 +684,6 @@ function DraftSaveAction({
       <Button
         type="submit"
         size="lg"
-        form={form}
         disabled={
           !command ||
           saving ||
@@ -814,13 +782,15 @@ function DeclaredInstitutionalContentFields({
     >
       <div>
         <p className="text-sm font-semibold text-teal-700">
-          {isAcademicSubject ? 'Declaración institucional' : 'Evidencia textual'}
+          {isAcademicSubject ? 'Declaración institucional' : 'Datos de la credencial'}
         </p>
         <h3
           id="declared-institutional-content-title"
           className="mt-1 text-lg font-semibold text-text-strong"
         >
-          Contenido declarado por la institución
+          {isAcademicSubject
+            ? 'Contenido declarado por la institución'
+            : 'Contenido formativo declarado'}
         </h3>
         <p className="mt-1 text-sm leading-6 text-text-muted">
           {isAcademicSubject
@@ -845,10 +815,19 @@ function DeclaredInstitutionalContentFields({
           />
         ))}
       </div>
-      <p className="text-sm leading-6 text-text-muted">
-        Este contenido se guarda como dato de la credencial mediante
-        <span className="font-semibold"> Guardar cambios</span>.
-      </p>
+      {isAcademicSubject ? (
+        <p className="text-sm leading-6 text-text-muted">
+          Este contenido se guarda como dato de la credencial mediante
+          <span className="font-semibold"> Guardar cambios</span>.
+        </p>
+      ) : (
+        <p className="text-sm leading-6 text-text-muted">
+          Este contenido forma parte de la credencial y se guarda con
+          <span className="font-semibold"> Guardar cambios</span>. Scope lo usa
+          para la interpretación asistida cuando no hay un PDF vigente ni una
+          fuente de respaldo textual, que tienen prioridad.
+        </p>
+      )}
     </section>
   );
 }
@@ -1079,19 +1058,18 @@ function arrayFieldDescription(
     return 'Una entrada por línea. Ejemplos: diseñar soluciones, resolver problemas, comunicar decisiones.';
   }
 
-  // C4x: para course/certification, aclarar que estos campos alimentan la
-  // interpretacion asistida como respaldo textual institucional -- ver
+  // C4x: para course/certification estos campos pueden alimentar la
+  // interpretacion asistida como respaldo textual institucional, pero solo
+  // cuando no hay un PDF vigente ni una fuente textual registrada (que
+  // tienen precedencia). Esa condicion se explica UNA vez, en la seccion
+  // "Contenido formativo declarado", no en cada campo -- ver
   // hasInstitutionalTextualBacking e institutional-textual-backing.ts.
   if (type === 'course' && field === 'learningOutcomes') {
     return 'Agregá contenidos, temario, herramientas, conocimientos abordados u otra información relevante del curso. Una entrada por línea.';
   }
 
   if (type === 'course' && field === 'competencies') {
-    return 'Una entrada por línea. Estas competencias alimentan la interpretación asistida del curso.';
-  }
-
-  if (type === 'certification' && (field === 'competencies' || field === 'skills')) {
-    return 'Una entrada por línea. Esta información alimenta la interpretación asistida de la certificación.';
+    return 'Una entrada por línea.';
   }
 
   return 'Una entrada por línea.';
@@ -1099,11 +1077,11 @@ function arrayFieldDescription(
 
 function descriptionFieldDescription(type: CredentialType) {
   if (type === 'course') {
-    return 'La descripción alimenta la interpretación asistida del curso, junto con las competencias y el contenido adicional.';
+    return 'Resumen del curso. Se conserva en la credencial y puede usarse en la interpretación asistida.';
   }
 
   if (type === 'certification') {
-    return 'La descripción alimenta la interpretación asistida de la certificación, junto con las competencias y habilidades.';
+    return 'Resumen de la certificación. Se conserva en la credencial y puede usarse en la interpretación asistida.';
   }
 
   return undefined;

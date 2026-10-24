@@ -289,11 +289,16 @@ describe('CredentialDetailController', () => {
       screen.getByText('holder@example.com · did:example:holder')
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
+      screen.getByRole('heading', { name: 'Fuentes de respaldo' })
     ).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+    expect(screen.getByText('Opcional')).toBeTruthy();
+    // Compacto por defecto: dos acciones para agregar, formularios plegados.
+    for (const name of ['Agregar documento', 'Agregar fuente textual']) {
+      expect(
+        screen.getByRole('button', { name }).getAttribute('aria-expanded')
+      ).toBe('false');
+    }
+    expect(screen.queryByRole('radio')).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
     expect(
       screen.getByRole('heading', {
@@ -422,7 +427,7 @@ describe('CredentialDetailController', () => {
       })
     ).toBeTruthy();
     expect(
-      screen.getByRole('heading', { name: 'Evidencia de respaldo' })
+      screen.getByRole('heading', { name: 'Fuentes de respaldo' })
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', { name: 'Contenido textual de respaldo' })
@@ -653,6 +658,10 @@ describe('CredentialDetailController', () => {
       />
     );
 
+    // Los formularios arrancan plegados: el emisor decide abrir el documental.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Agregar documento' })
+    );
     const input = (await screen.findByLabelText(
       'Seleccionar archivo de evidencia'
     )) as HTMLInputElement;
@@ -662,7 +671,7 @@ describe('CredentialDetailController', () => {
     fireEvent.change(input, { target: { files: [file] } });
     fireEvent.click(screen.getByRole('button', { name: 'Subir evidencia' }));
 
-    expect(await screen.findByText('Evidencia actual')).toBeTruthy();
+    expect(await screen.findByText('Fuentes cargadas')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
     // template reutilizable existente, ademas del upload de evidencia.
@@ -708,7 +717,7 @@ describe('CredentialDetailController', () => {
       />
     );
 
-    expect(await screen.findByText('Evidencia actual')).toBeTruthy();
+    expect(await screen.findByText('Fuentes cargadas')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     expect(screen.getByText('Documento PDF')).toBeTruthy();
     // +1 respecto a C3c: C4a.2 agrega la busqueda automatica de un
@@ -738,6 +747,9 @@ describe('CredentialDetailController', () => {
       />
     );
 
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Agregar fuente textual' })
+    );
     fireEvent.change(
       await screen.findByLabelText('Nombre de la fuente (opcional)'),
       { target: { value: '  Temario institucional  ' } }
@@ -746,7 +758,7 @@ describe('CredentialDetailController', () => {
       target: { value: '  Línea uno\r\nLínea dos  ' }
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+      screen.getByRole('button', { name: 'Guardar fuente textual' })
     );
 
     expect(await screen.findByText('Fuente textual actual')).toBeTruthy();
@@ -802,7 +814,7 @@ describe('CredentialDetailController', () => {
     expect(
       screen.getByLabelText('Contenido de la fuente textual').textContent
     ).toBe(textEvidenceContent);
-    expect(screen.getByText('Evidencia actual')).toBeTruthy();
+    expect(screen.getByText('Fuentes cargadas')).toBeTruthy();
     expect(screen.getByText('programa.pdf')).toBeTruthy();
     // Sin +1 de C4a.2 aca: la busqueda automatica de template reutilizable
     // solo se dispara para course/certification (este fixture es degree).
@@ -1493,7 +1505,7 @@ describe('CredentialDetailView C5 reusable semantic review', () => {
     const onLoadCredentialSemanticApprovalCandidate = vi.fn().mockResolvedValue(semanticApprovalCandidateFixture());
     render(<CredentialDetailView onUploadDocumentEvidence={unusedDocumentUpload} detail={detailFixture({ type: 'course', status: 'issued' })} documentAnalysis={documentAnalysis} onLoadCredentialSemanticApprovalCandidate={onLoadCredentialSemanticApprovalCandidate} />);
     const mainData = screen.getByRole('heading', { name: 'Registro del logro' });
-    const evidence = screen.getByRole('heading', { name: 'Evidencia de respaldo' });
+    const evidence = screen.getByRole('heading', { name: 'Fuentes de respaldo' });
     const issuance = screen.getByRole('heading', { name: 'Emisión de credencial' });
     // La evidencia sigue en el flujo principal, inmediatamente despues de
     // los datos principales -- nunca despues de toda la sidebar (acciones de
@@ -2072,7 +2084,7 @@ describe('CredentialDetailController C4b.2 reusable semantic interpretation wiri
 // C4x: dedicated coverage for the domain/UX hardening items.
 // ---------------------------------------------------------------------------
 describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
-  it('shows Documental, Textual and Ambas for a course draft, defaulting to both composers', () => {
+  it('shows compact optional sources for a course draft, with both composers folded until opened', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2080,15 +2092,24 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       />
     );
 
+    expect(screen.getByText('Opcional')).toBeTruthy();
+    expect(screen.queryByRole('radio')).toBeNull();
+    // Plegados: el formulario existe pero no se ve hasta que el emisor decide.
     expect(
-      (screen.getByRole('radio', { name: 'Ambas' }) as HTMLInputElement).checked
-    ).toBe(true);
-    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('button', { name: 'Guardar fuente textual' })
+    ).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Agregar fuente textual' })
+    );
+
     expect(screen.getByLabelText('Nombre de la fuente (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+      screen.getByRole('button', { name: 'Guardar fuente textual' })
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', {
@@ -2098,7 +2119,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('shows Documental, Textual and Ambas for a certification draft, defaulting to both composers', () => {
+  it('shows compact optional sources for a certification draft, with both composers folded until opened', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2106,15 +2127,24 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       />
     );
 
+    expect(screen.getByText('Opcional')).toBeTruthy();
+    expect(screen.queryByRole('radio')).toBeNull();
+    // Plegados: el formulario existe pero no se ve hasta que el emisor decide.
     expect(
-      (screen.getByRole('radio', { name: 'Ambas' }) as HTMLInputElement).checked
-    ).toBe(true);
-    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole('button', { name: 'Guardar fuente textual' })
+    ).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Agregar fuente textual' })
+    );
+
     expect(screen.getByLabelText('Nombre de la fuente (opcional)')).toBeTruthy();
     expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
     expect(
-      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+      screen.getByRole('button', { name: 'Guardar fuente textual' })
     ).toBeTruthy();
     expect(
       screen.queryByRole('heading', {
@@ -2124,7 +2154,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
-  it('keeps all three modes available for academic_subject', () => {
+  it('keeps both source types available for academic_subject', () => {
     render(
       <CredentialDetailView
         onUploadDocumentEvidence={unusedDocumentUpload}
@@ -2132,14 +2162,14 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       />
     );
 
-    expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Agregar documento' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Agregar fuente textual' })).toBeTruthy();
+    expect(screen.queryByRole('radio')).toBeNull();
     expect(screen.queryByText('Base textual para la interpretación asistida')).toBeNull();
   });
 
   it.each(['course', 'certification'] as const)(
-    'preserves the manual textual draft across mode changes for %s without submitting evidence',
+    'preserves the manual textual draft when folding and unfolding the composer for %s without submitting evidence',
     (type) => {
       const onSubmitTextEvidence = vi.fn(async () => textEvidenceView);
       const onUploadDocumentEvidence = vi.fn(async () => documentEvidenceView);
@@ -2151,14 +2181,21 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
         />
       );
 
+      const textToggle = screen.getByRole('button', {
+        name: 'Agregar fuente textual'
+      });
+      fireEvent.click(textToggle);
       fireEvent.change(screen.getByLabelText('Nombre de la fuente (opcional)'), {
         target: { value: 'Programa institucional' }
       });
       fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
         target: { value: 'Contenido preservado entre modos' }
       });
-      fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-      fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
+      // Abrir el documental y plegar el textual NO descarta lo escrito.
+      fireEvent.click(screen.getByRole('button', { name: 'Agregar documento' }));
+      fireEvent.click(textToggle);
+      expect(screen.getByText('Tenés cambios sin guardar')).toBeTruthy();
+      fireEvent.click(textToggle);
 
       expect(
         (screen.getByLabelText('Nombre de la fuente (opcional)') as HTMLInputElement)
@@ -2189,15 +2226,15 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
 
       expect(screen.getByText('Fuente textual actual')).toBeTruthy();
       expect(screen.getByLabelText('Contenido de la fuente textual')).toBeTruthy();
-      expect(screen.queryByRole('radio', { name: 'Textual' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Agregar fuente textual' })).toBeNull();
       expect(screen.queryByLabelText('Nombre de la fuente (opcional)')).toBeNull();
       expect(
-        screen.queryByRole('button', { name: 'Guardar evidencia textual' })
+        screen.queryByRole('button', { name: 'Guardar fuente textual' })
       ).toBeNull();
     }
   );
 
-  it('places academic capabilities only inside the textual evidence workspace without changing their draft save path', async () => {
+  it('keeps academic declared content in the draft form, with the same save path, regardless of the sources panels', async () => {
     const academicDraft = {
       ...draftResponse,
       type: 'academic_subject',
@@ -2216,13 +2253,21 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       />
     );
 
-    expect(
-      await screen.findByRole('heading', {
-        name: 'Contenido declarado por la institución'
-      })
-    ).toBeTruthy();
+    const declaredHeading = await screen.findByRole('heading', {
+      name: 'Contenido declarado por la institución'
+    });
     expect(screen.queryByText('Perfil formativo')).toBeNull();
-    const requestCountBeforeModeChange =
+    // Es parte de los datos de la credencial (el formulario del borrador), no
+    // de las fuentes de respaldo.
+    const form = document.getElementById('credential-draft-editor-form');
+    expect(form?.contains(declaredHeading)).toBe(true);
+    expect(
+      screen
+        .getByRole('heading', { name: 'Fuentes de respaldo' })
+        .closest('section')
+        ?.contains(declaredHeading)
+    ).toBe(false);
+    const requestCountBeforePanels =
       sessionMocks.requestAuthenticated.mock.calls.length;
 
     fireEvent.change(screen.getByLabelText('Habilidades técnicas (opcional)'), {
@@ -2231,17 +2276,14 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     fireEvent.change(screen.getByLabelText('Competencias formativas (opcional)'), {
       target: { value: 'Resolver problemas' }
     });
-    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-    expect(
-      screen
-        .getByRole('heading', {
-          hidden: true,
-          name: 'Contenido declarado por la institución'
-        })
-        .closest('[hidden]')
-    ).toBeTruthy();
+    // Abrir y plegar las fuentes no mueve ni borra nada de los datos.
+    const documentToggle = screen.getByRole('button', { name: 'Agregar documento' });
+    const textToggle = screen.getByRole('button', { name: 'Agregar fuente textual' });
+    fireEvent.click(documentToggle);
+    fireEvent.click(textToggle);
+    fireEvent.click(documentToggle);
+    fireEvent.click(textToggle);
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
     expect(
       (screen.getByLabelText(
         'Habilidades técnicas (opcional)'
@@ -2252,9 +2294,11 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
         'Competencias formativas (opcional)'
       ) as HTMLTextAreaElement).value
     ).toBe('Resolver problemas');
-    expect(
-      screen.getByRole('button', { name: 'Guardar cambios' }).getAttribute('form')
-    ).toBe('credential-draft-editor-form');
+    // "Guardar cambios" es el submit del propio formulario: ya no viaja a otra
+    // seccion ni necesita el atributo `form`.
+    const save = screen.getByRole('button', { name: 'Guardar cambios' });
+    expect(save.closest('form')?.id).toBe('credential-draft-editor-form');
+    expect(save.getAttribute('form')).toBeNull();
 
     expect(
       sessionMocks.requestAuthenticated.mock.calls.filter(([path]) =>
@@ -2262,7 +2306,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       )
     ).toHaveLength(0);
     expect(sessionMocks.requestAuthenticated).toHaveBeenCalledTimes(
-      requestCountBeforeModeChange
+      requestCountBeforePanels
     );
   });
 
@@ -2270,7 +2314,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     ['academic_subject', 'Asignatura académica'],
     ['degree', 'Título académico']
   ] as const)(
-    'keeps the persisted %s family locked while preserving every evidence mode',
+    'keeps the persisted %s family locked while preserving both source types',
     (type, label) => {
       const { onSave } = renderEditableDetail(editableDetailFixture(type));
 
@@ -2280,9 +2324,8 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       expect(screen.getByLabelText('Tipo de credencial').textContent).toBe(
         label
       );
-      expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-      expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-      expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Agregar documento' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Agregar fuente textual' })).toBeTruthy();
       expect(onSave).not.toHaveBeenCalled();
     }
   );
@@ -2301,9 +2344,8 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
 
       expect(screen.getByLabelText(expected)).toBeTruthy();
 
-      expect(screen.getByRole('radio', { name: 'Documental' })).toBeTruthy();
-      expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
-      expect(screen.getByRole('radio', { name: 'Ambas' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Agregar documento' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Agregar fuente textual' })).toBeTruthy();
 
       expect(screen.queryByLabelText(stale)).toBeNull();
       expect(onSave).not.toHaveBeenCalled();
@@ -2318,7 +2360,7 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
       />
     );
 
-    expect(screen.getByRole('radio', { name: 'Textual' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Agregar fuente textual' })).toBeTruthy();
   });
 
   it('does not add a separate technical backing card alongside manual textual evidence', () => {
@@ -2372,6 +2414,230 @@ describe('CredentialDetailView F2.4.1 manual textual evidence', () => {
     expect(text).not.toMatch(/verificado por|udemy|coursera|aws/i);
     expect(text).not.toMatch(/certificación de competencias por IA/i);
     expect(text).not.toMatch(/Base textual para la interpretación asistida/i);
+  });
+});
+
+describe('CredentialDetailView - fuentes de respaldo y contenido declarado', () => {
+  const A5_DESCRIPTION =
+    'Podés incorporar un programa, temario u otra fuente institucional. Si no hay un PDF vigente analizable, Scope prioriza esta fuente para el análisis en lugar del contenido declarado.';
+
+  it.each(['course', 'certification'] as const)(
+    'explains the source priority for a %s draft in the sources section',
+    (type) => {
+      render(
+        <CredentialDetailView
+          onUploadDocumentEvidence={unusedDocumentUpload}
+          detail={detailFixture({ type, status: 'draft' })}
+        />
+      );
+
+      expect(screen.getByText(A5_DESCRIPTION)).toBeTruthy();
+      const priority = screen
+        .getByText('Qué usa Scope para la interpretación asistida')
+        .parentElement as HTMLElement;
+      const items = Array.from(priority.querySelectorAll('li')).map(
+        (item) => item.textContent
+      );
+      // PDF > fuente textual registrada > contenido declarado (si alcanza).
+      expect(items).toEqual([
+        'Un PDF vigente.',
+        'Si no hay PDF, una fuente de respaldo textual.',
+        'Si no hay ninguna, el contenido formativo declarado, cuando tiene información suficiente.'
+      ]);
+      expect(priority.textContent).not.toMatch(/combin|se suman|todas las fuentes/i);
+      expect(priority.textContent).not.toMatch(/TextEvidence|AnalysisRun|SHA|DTO/);
+    }
+  );
+
+  it.each(['academic_subject', 'degree'] as const)(
+    'does not promise any text-source priority for a %s, which has no automatic text analysis',
+    (type) => {
+      render(
+        <CredentialDetailView
+          onUploadDocumentEvidence={unusedDocumentUpload}
+          detail={detailFixture({ type, status: 'draft' })}
+        />
+      );
+
+      expect(screen.queryByText(A5_DESCRIPTION)).toBeNull();
+      expect(
+        screen.queryByText('Qué usa Scope para la interpretación asistida')
+      ).toBeNull();
+      expect(document.body.textContent).not.toMatch(/prioriza esta fuente/);
+      // La bajada de la seccion y el texto de ayuda del formulario de subida.
+      expect(
+        screen.getAllByText(/Los PDF pueden utilizarse para el análisis automático\./)
+          .length
+      ).toBeGreaterThanOrEqual(1);
+    }
+  );
+
+  it.each(['course', 'certification', 'academic_subject', 'degree'] as const)(
+    'keeps "Guardar cambios" in the draft form for a %s while the sources panels are opened and folded',
+    (type) => {
+      const { onSave } = renderEditableDetail(editableDetailFixture(type));
+      const form = document.getElementById('credential-draft-editor-form');
+      const saveBefore = screen.getByRole('button', { name: 'Guardar cambios' });
+      expect(saveBefore.closest('form')).toBe(form);
+
+      for (const name of ['Agregar documento', 'Agregar fuente textual']) {
+        const toggle = screen.getByRole('button', { name });
+        fireEvent.click(toggle);
+        expect(screen.getByRole('button', { name: 'Guardar cambios' }).closest('form')).toBe(form);
+        fireEvent.click(toggle);
+      }
+
+      const saveAfter = screen.getByRole('button', { name: 'Guardar cambios' });
+      expect(saveAfter.closest('form')).toBe(form);
+      expect(saveAfter.getAttribute('form')).toBeNull();
+      expect(onSave).not.toHaveBeenCalled();
+    }
+  );
+
+  it('shows competencias and contenido adicional in "Datos de la credencial", not inside the sources section', () => {
+    renderEditableDetail(editableDetailFixture('course'));
+
+    const sources = screen
+      .getByRole('heading', { name: 'Fuentes de respaldo' })
+      .closest('section') as HTMLElement;
+    const declared = screen.getByRole('heading', {
+      name: 'Contenido formativo declarado'
+    });
+
+    expect(sources.contains(declared)).toBe(false);
+    expect(sources.contains(screen.getByLabelText('Competencias'))).toBe(false);
+    expect(
+      sources.contains(screen.getByLabelText('Contenido e información adicional'))
+    ).toBe(false);
+    // Las dos cosas distintas ya no comparten nombre.
+    expect(screen.queryByRole('heading', { name: 'Evidencia textual' })).toBeNull();
+    expect(screen.queryByText('Evidencia textual')).toBeNull();
+  });
+
+  it('keeps the declared content of an issued course read-only, with the new name and outside the sources', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'issued',
+          credentialSubject: { competencies: ['Programación en Python'] }
+        })}
+      />
+    );
+
+    const declared = screen.getByRole('heading', {
+      name: 'Contenido formativo declarado'
+    });
+    const sources = screen
+      .getByRole('heading', { name: 'Fuentes de respaldo' })
+      .closest('section') as HTMLElement;
+    expect(sources.contains(declared)).toBe(false);
+    expect(screen.getByText('Programación en Python')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Agregar fuente textual' })).toBeNull();
+  });
+
+  it('keeps documents and registered text identifiable as loaded sources while the composers are folded', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'draft',
+          documentEvidence: { currentDocument: documentEvidenceView },
+          textEvidence: { currentText: textEvidenceView }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Fuentes cargadas')).toBeTruthy();
+    expect(screen.getByText('Documento actual')).toBeTruthy();
+    expect(screen.getByText('Fuente textual actual')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cambiar documento' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cambiar fuente textual' })).toBeTruthy();
+    // El panel de cambio existe pero esta plegado hasta que se lo abre.
+    expect(
+      screen
+        .getByRole('button', { hidden: true, name: 'Reemplazar evidencia' })
+        .closest('[hidden]')
+    ).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Cambiar documento' }).getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('explains that only PDFs are analyzed automatically, as plain help text rather than a warning', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        'Los PDF pueden utilizarse para el análisis automático. Las imágenes se conservan como respaldo, pero no se analizan automáticamente.'
+      )
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/Los PDF pueden utilizarse/).closest('[role="alert"]')
+    ).toBeNull();
+  });
+
+  it('notes that a stored image is kept as support but not analyzed, and says nothing of the sort for a PDF', () => {
+    const { rerender } = render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'draft',
+          documentEvidence: {
+            currentDocument: {
+              ...documentEvidenceView,
+              kind: 'image' as never,
+              mimeType: 'image/png' as never,
+              originalFileName: 'programa.png'
+            }
+          }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Imagen PNG')).toBeTruthy();
+    // La tarjeta de la imagen vigente lo aclara en el momento en que se la ve.
+    expect(
+      screen.getAllByText(/Las imágenes se conservan como respaldo, pero no se analizan automáticamente\./)
+        .length
+    ).toBeGreaterThanOrEqual(1);
+
+    rerender(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({
+          type: 'course',
+          status: 'draft',
+          documentEvidence: { currentDocument: documentEvidenceView }
+        })}
+      />
+    );
+
+    expect(screen.getByText('Documento PDF')).toBeTruthy();
+    // La tarjeta de un PDF no dice nada sobre imagenes.
+    expect(
+      screen.queryAllByText(/Las imágenes se conservan como respaldo, pero no se analizan automáticamente\./)
+    ).toHaveLength(0);
+  });
+
+  it('never claims that images are analyzed', () => {
+    render(
+      <CredentialDetailView
+        onUploadDocumentEvidence={unusedDocumentUpload}
+        detail={detailFixture({ type: 'course', status: 'draft' })}
+      />
+    );
+
+    expect(document.body.textContent).not.toMatch(
+      /(analiza|analizan|procesa|procesan|lee|leen) (automáticamente )?(las )?(imágenes|PNG|JPEG)/i
+    );
+    expect(document.body.textContent).not.toMatch(/OCR/);
   });
 });
 
