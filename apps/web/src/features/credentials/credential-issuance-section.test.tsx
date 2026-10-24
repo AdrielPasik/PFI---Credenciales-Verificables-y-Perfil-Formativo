@@ -118,6 +118,7 @@ function issuedFixture(
       chainId: 31337,
       txHash,
       txHashShort: `${txHash.slice(0, 12)}…${txHash.slice(-8)}`,
+      transactionExplorerUrl: null,
       status: 'registered',
       statusLabel: 'Registrada',
       registeredAt: '2026-08-06T12:00:02.000Z',
@@ -501,5 +502,115 @@ describe('CredentialIssuanceSection', () => {
     expect(content).not.toMatch(/blockchain valida/i);
     expect(content).not.toMatch(/verificado por|udemy|coursera|aws/i);
     expect(content).not.toMatch(/certificación de competencias por IA/i);
+  });
+});
+
+describe('CredentialIssuanceSection: registro blockchain pendiente, confirmado y revocado', () => {
+  const realTx = `0x${'cd'.repeat(32)}`;
+  const registeredEvidence = (
+    overrides: Partial<NonNullable<IssuerCredentialDetailVM['blockchainEvidence']>> = {}
+  ): NonNullable<IssuerCredentialDetailVM['blockchainEvidence']> => ({
+    network: 'base_sepolia',
+    networkLabel: 'Testnet',
+    chainId: 84532,
+    txHash: realTx,
+    txHashShort: `${realTx.slice(0, 12)}…${realTx.slice(-8)}`,
+    transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`,
+    status: 'registered',
+    statusLabel: 'Registrada',
+    registeredAt: '2026-10-21T10:00:02.000Z',
+    registeredAtLabel: '21 oct 2026, 07:00',
+    ...overrides
+  });
+  const pendingEvidence = () =>
+    registeredEvidence({
+      txHash: null,
+      txHashShort: null,
+      transactionExplorerUrl: null,
+      status: 'pending',
+      statusLabel: 'Pendiente de confirmación',
+      registeredAt: null,
+      registeredAtLabel: null
+    });
+
+  it('A: an issued credential with a pending record is shown, says it is pending and offers no explorer link', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={issuedFixture({ blockchainEvidence: pendingEvidence() })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Registro blockchain pendiente de confirmación')).toBeTruthy();
+    expect(screen.getAllByText('Pendiente de confirmación').length).toBeGreaterThan(0);
+    // No se afirma una confirmacion ni se muestran datos de transaccion inexistentes.
+    expect(screen.queryByText('Registrada')).toBeNull();
+    expect(screen.queryByText('Transacción')).toBeNull();
+    expect(screen.queryByRole('link', { name: /BaseScan/ })).toBeNull();
+    // Y no se confunde con una credencial inexistente, invalida o sin evidencia.
+    expect(screen.queryByText('Evidencia no disponible')).toBeNull();
+    expect(screen.queryByText('Credencial revocada')).toBeNull();
+    expect(document.body.textContent ?? '').not.toMatch(/inválida|no existe|confirmad[ao] en la red/i);
+  });
+
+  it('B: a confirmed record shows its data and a safe BaseScan link', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={issuedFixture({ blockchainEvidence: registeredEvidence() })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    const link = screen.getByRole('link', { name: 'Ver transacción en BaseScan' }) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe(`https://sepolia.basescan.org/tx/${realTx}`);
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    // Etiqueta "Registrada" (fecha) y estado "Registrada".
+    expect(screen.getAllByText('Registrada')).toHaveLength(2);
+    expect(screen.getByText('Transacción')).toBeTruthy();
+    expect(screen.queryByText('Registro blockchain pendiente de confirmación')).toBeNull();
+  });
+
+  it('C: a revoked credential keeps the historical registration link and is not shown as current', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={issuedFixture({
+          status: 'revoked',
+          statusLabel: 'Revocada',
+          blockchainEvidence: registeredEvidence({ status: 'revoked', statusLabel: 'Revocada' })
+        })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('Credencial revocada')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver transacción en BaseScan' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Emitir credencial' })).toBeNull();
+  });
+
+  it('B: a demo/simulated record never produces an explorer link', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={issuedFixture({ blockchainEvidence: registeredEvidence({
+          network: 'anvil', networkLabel: 'Entorno técnico/demo', chainId: 31337, transactionExplorerUrl: null
+        }) })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('link', { name: /BaseScan/ })).toBeNull();
+  });
+
+  it('the canonical fingerprint and the transaction hash are different values and are never mixed', () => {
+    render(
+      <CredentialIssuanceSection
+        detail={issuedFixture({ blockchainEvidence: registeredEvidence() })}
+        onIssue={vi.fn()}
+      />
+    );
+
+    const text = document.body.textContent ?? '';
+    expect(text).toContain(`${realTx.slice(0, 12)}…${realTx.slice(-8)}`);
+    expect(screen.getAllByRole('link', { name: /BaseScan/ })).toHaveLength(1);
   });
 });

@@ -731,3 +731,94 @@ describe('holder adapters', () => {
       .toThrow(IncompatiblePayloadError);
   });
 });
+
+describe('adaptMyCredential: estados del registro blockchain', () => {
+  const realTx = `0x${'cd'.repeat(32)}`;
+  const record = (overrides: Record<string, unknown> = {}) => ({
+    network: 'base_sepolia',
+    chainId: 84532,
+    txHash: realTx,
+    status: 'registered',
+    registeredAt: '2026-10-21T10:00:02.000Z',
+    revokedAt: null,
+    ...overrides
+  });
+  const adapt = (records: unknown[]) => adaptMyCredential(issuedCoursePayload({ blockchainRecords: records }));
+
+  it('A: a pending record (null hash, date and block facts) no longer makes the whole credential incompatible', () => {
+    const result = adapt([record({ status: 'pending', txHash: null, registeredAt: null })]);
+
+    expect(result.title).toBe('Análisis de datos con Python para negocios');
+    expect(result.hasIntegrityEvidence).toBe(true);
+    expect(result.analysis).not.toBeNull();
+    expect(result.integrity.canonicalHash).toBe(`0x${'a'.repeat(64)}`);
+    expect(result.integrity.records).toEqual([
+      expect.objectContaining({
+        status: 'pending',
+        statusLabel: 'Pendiente de confirmación',
+        txHashShort: null,
+        transactionExplorerUrl: null,
+        registeredAtLabel: null,
+        revokedAtLabel: null
+      })
+    ]);
+  });
+
+  it('B: a registered record carries the real data and the BaseScan URL for the received hash', () => {
+    const [first] = adapt([record()]).integrity.records;
+
+    expect(first).toMatchObject({
+      status: 'registered',
+      statusLabel: 'Registrada',
+      txHashShort: `${realTx.slice(0, 12)}…${realTx.slice(-8)}`,
+      transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`
+    });
+    expect(first.registeredAtLabel).toEqual(expect.any(String));
+  });
+
+  it('C: a revoked record keeps the historical transaction link and shows the revocation date', () => {
+    const [first] = adapt([record({ status: 'revoked', revokedAt: '2026-10-22T09:00:00.000Z' })]).integrity.records;
+
+    expect(first).toMatchObject({
+      status: 'revoked',
+      statusLabel: 'Revocada',
+      transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`
+    });
+    expect(first.revokedAtLabel).toEqual(expect.any(String));
+  });
+
+  it.each([
+    ['anvil', 31337],
+    ['mock', 1],
+    ['future_network', 999999]
+  ])('B: no explorer link for network %s', (network, chainId) => {
+    expect(adapt([record({ network, chainId })]).integrity.records[0].transactionExplorerUrl).toBeNull();
+  });
+
+  it.each([
+    ['registered', { txHash: null }],
+    ['registered', { registeredAt: null }],
+    ['revoked', { txHash: null }]
+  ])('D: a %s record with null chain facts is rejected, not accepted silently (%j)', (status, overrides) => {
+    expect(() => adapt([record({ status, ...overrides })])).toThrow(IncompatiblePayloadError);
+  });
+
+  it.each([
+    [{ txHash: 'not-a-hash' }],
+    [{ status: 'pending', txHash: 'not-a-hash', registeredAt: null }],
+    [{ status: 'pending', registeredAt: 'yesterday' }],
+    [{ status: '' }],
+    [{ chainId: '84532' }]
+  ])('D: structurally invalid records are rejected (%j)', (overrides) => {
+    expect(() => adapt([record(overrides)])).toThrow(IncompatiblePayloadError);
+  });
+
+  it('E: the wallet list is unaffected by a pending record (it only reports whether evidence exists)', () => {
+    const [item] = adaptMyCredentials(listPayload());
+    expect(item.hasIntegrityEvidence).toBe(true);
+  });
+
+  it('E: a credential without records still adapts', () => {
+    expect(adapt([]).integrity.records).toEqual([]);
+  });
+});

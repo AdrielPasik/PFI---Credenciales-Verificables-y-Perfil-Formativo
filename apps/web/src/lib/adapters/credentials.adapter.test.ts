@@ -756,3 +756,122 @@ describe('credential adapters', () => {
     ).toThrow(IncompatiblePayloadError);
   });
 });
+
+describe('adaptIssuerCredentialDetail: estados del registro blockchain', () => {
+  const realTx = `0x${'cd'.repeat(32)}`;
+  const evidence = (overrides: Record<string, unknown> = {}) => ({
+    network: 'base_sepolia',
+    chainId: 84532,
+    txHash: realTx,
+    status: 'registered',
+    registeredAt: '2026-10-21T10:00:02.000Z',
+    ...overrides
+  });
+  const adapt = (blockchainEvidence: unknown) =>
+    adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        status: 'issued',
+        issuedAt: '2026-10-21T10:00:00.000Z',
+        canonicalHash: `0x${'a'.repeat(64)}`,
+        canonicalizationVersion: 'canon_v2',
+        blockchainEvidence
+      })
+    );
+
+  it('A: accepts an issued credential whose registry record is pending (null hash and date)', () => {
+    const result = adapt(evidence({ status: 'pending', txHash: null, registeredAt: null }));
+
+    expect(result.status).toBe('issued');
+    expect(result.canonicalHash).toBe(`0x${'a'.repeat(64)}`);
+    expect(result.blockchainEvidence).toMatchObject({
+      status: 'pending',
+      statusLabel: 'Pendiente de confirmación',
+      txHash: null,
+      txHashShort: null,
+      transactionExplorerUrl: null,
+      registeredAt: null,
+      registeredAtLabel: null
+    });
+  });
+
+  it('A: a pending record that already holds a real transaction hash keeps it and links to it', () => {
+    const result = adapt(evidence({ status: 'pending', registeredAt: null }));
+
+    expect(result.blockchainEvidence).toMatchObject({
+      status: 'pending',
+      txHash: realTx,
+      registeredAt: null,
+      transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`
+    });
+  });
+
+  it('B: a registered record exposes the real data and the BaseScan URL built from the received hash', () => {
+    const result = adapt(evidence());
+
+    expect(result.blockchainEvidence).toMatchObject({
+      status: 'registered',
+      statusLabel: 'Registrada',
+      txHash: realTx,
+      registeredAt: '2026-10-21T10:00:02.000Z',
+      transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`
+    });
+    expect(result.blockchainEvidence?.registeredAtLabel).toEqual(expect.any(String));
+  });
+
+  it('C: a revoked credential keeps its historical registration link without implying it is current', () => {
+    const result = adaptIssuerCredentialDetail(
+      issuerCredentialPayload({
+        status: 'revoked',
+        issuedAt: '2026-10-21T10:00:00.000Z',
+        revokedAt: '2026-10-22T10:00:00.000Z',
+        blockchainEvidence: evidence({ status: 'revoked' })
+      })
+    );
+
+    expect(result.status).toBe('revoked');
+    expect(result.blockchainEvidence).toMatchObject({
+      statusLabel: 'Revocada',
+      transactionExplorerUrl: `https://sepolia.basescan.org/tx/${realTx}`
+    });
+  });
+
+  it.each([
+    ['anvil', 31337],
+    ['mock', 1],
+    ['future_network', 999999],
+    ['base_sepolia', 1]
+  ])('B: no BaseScan link for network %s / chain %s', (network, chainId) => {
+    expect(adapt(evidence({ network, chainId })).blockchainEvidence?.transactionExplorerUrl).toBeNull();
+  });
+
+  it.each([
+    ['registered', { txHash: null }],
+    ['registered', { registeredAt: null }],
+    ['revoked', { txHash: null }],
+    ['revoked', { registeredAt: null }]
+  ])('D: a %s record with null chain facts is NOT accepted silently (%j)', (status, overrides) => {
+    expect(() => adapt(evidence({ status, ...overrides }))).toThrow(IncompatiblePayloadError);
+  });
+
+  it.each([
+    [{ txHash: 'not-a-hash' }],
+    [{ txHash: '0xabc' }],
+    [{ status: 'pending', txHash: 'not-a-hash', registeredAt: null }],
+    [{ status: 'pending', txHash: undefined, registeredAt: null }],
+    [{ status: 'pending', registeredAt: 'yesterday' }],
+    [{ status: '' }],
+    [{ chainId: '84532' }],
+    [{ network: null }]
+  ])('D: structurally invalid evidence is rejected (%j)', (overrides) => {
+    expect(() => adapt(evidence(overrides))).toThrow(IncompatiblePayloadError);
+  });
+
+  it('D: a non-object evidence block is rejected', () => {
+    expect(() => adapt('pending')).toThrow(IncompatiblePayloadError);
+    expect(() => adapt([])).toThrow(IncompatiblePayloadError);
+  });
+
+  it('E: keeps null evidence (issued without registry record) as before', () => {
+    expect(adapt(null).blockchainEvidence).toBeNull();
+  });
+});

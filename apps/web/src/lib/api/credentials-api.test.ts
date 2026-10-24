@@ -13,6 +13,7 @@ import {
   submitCredentialTextEvidenceRequest,
   uploadCredentialDocumentEvidenceRequest
 } from '@/lib/api/credentials-api';
+import { adaptIssuerCredentialDetail } from '@/lib/adapters/credentials.adapter';
 import { ApiError } from '@/lib/errors/api-error';
 import type {
   CreateAcademicSubjectCurricularDraftCommand,
@@ -411,6 +412,62 @@ describe('credentials API', () => {
     expect(requestAuthenticated.mock.calls[0][0]).not.toBe(
       '/credentials/credential-reference/issue'
     );
+  });
+
+  it('INCIDENT: an issuance response with a pending registry record is accepted and the credential is returned', async () => {
+    const pendingRecord = {
+      network: 'base_sepolia',
+      chainId: 84532,
+      txHash: null,
+      status: 'pending',
+      registeredAt: null
+    };
+    const issued = vi
+      .fn()
+      .mockResolvedValue(issuerCredentialResponse({ blockchainEvidence: pendingRecord }));
+    const read = vi
+      .fn()
+      .mockResolvedValue(issuerCredentialResponse({ blockchainEvidence: pendingRecord }));
+
+    const result = await issueIssuerCredentialRequest(issued, {
+      issuerReference: 'issuer-reference',
+      credentialReference: 'credential-reference'
+    });
+    // El GET devuelve el payload crudo; la ruta de detalle lo adapta.
+    const detail = adaptIssuerCredentialDetail(
+      await getIssuerCredentialRequest(read, 'issuer-reference', 'credential-reference')
+    );
+
+    for (const credential of [result, detail]) {
+      expect(credential.status).toBe('issued');
+      expect(credential.canonicalHash).toBe(`0x${'a'.repeat(64)}`);
+      expect(credential.blockchainEvidence).toMatchObject({
+        status: 'pending',
+        txHash: null,
+        transactionExplorerUrl: null
+      });
+    }
+  });
+
+  it('real errors are not disguised as a pending record: 404/403 stay errors and a registered record without a hash is rejected', async () => {
+    const notFound = vi.fn().mockRejectedValue(new ApiError('no existe', 'http', 404));
+    const forbidden = vi.fn().mockRejectedValue(new ApiError('sin permiso', 'http', 403));
+    const brokenRegistered = vi.fn().mockResolvedValue(
+      issuerCredentialResponse({
+        blockchainEvidence: {
+          network: 'base_sepolia', chainId: 84532, txHash: null, status: 'registered', registeredAt: null
+        }
+      })
+    );
+    const command = { issuerReference: 'issuer-reference', credentialReference: 'credential-reference' };
+
+    await expect(
+      getIssuerCredentialRequest(notFound, 'issuer-reference', 'credential-reference')
+    ).rejects.toMatchObject({ status: 404 });
+    await expect(issueIssuerCredentialRequest(forbidden, command)).rejects.toMatchObject({ status: 403 });
+    await expect(
+      issueIssuerCredentialRequest(brokenRegistered, command)
+    ).rejects.toThrow('La respuesta del servicio no es compatible.');
   });
 
   it('rejects a mismatched or incompatible issuance response', async () => {

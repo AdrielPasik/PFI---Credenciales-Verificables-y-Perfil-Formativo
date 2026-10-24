@@ -188,7 +188,7 @@ describe('PublicVerificationResult — public blockchain information', () => {
   it('adds Base Sepolia explorer links built only from public data, opened safely', () => {
     render(<PublicVerificationResult verification={viewModel(CASES.verified)} />);
 
-    const tx = screen.getByRole('link', { name: 'Ver transacción en el explorador' });
+    const tx = screen.getByRole('link', { name: 'Ver transacción en BaseScan' });
     const contract = screen.getByRole('link', { name: 'Ver contrato en el explorador' });
 
     expect(tx.getAttribute('href')).toBe(`https://sepolia.basescan.org/tx/${TX}`);
@@ -221,5 +221,35 @@ describe('PublicVerificationResult — public blockchain information', () => {
     render(<PublicVerificationResult verification={viewModel(CASES.verified)} />);
 
     expect(document.body.textContent).not.toMatch(/rpc|secret|privateKey|secretRef|api[_-]?key|100% verificada|IA certifica/i);
+  });
+});
+
+describe('PublicVerificationResult — pending registry record', () => {
+  it('shows a real but still pending record without transaction data or a BaseScan link', () => {
+    const base = viewModel(CASES.limited);
+    const verification = {
+      ...base,
+      integrity: {
+        ...base.integrity,
+        latestBlockchainRecord: {
+          ...base.integrity.latestBlockchainRecord!,
+          txHash: null,
+          txHashShort: null,
+          blockNumber: null,
+          registrantAddress: null,
+          registeredAtLabel: null,
+          statusLabel: 'Registro pendiente de confirmación'
+        }
+      }
+    };
+
+    render(<PublicVerificationResult verification={verification} />);
+
+    // La credencial sigue visible y el titular es el del servidor.
+    expect(screen.getByRole('heading', { name: 'Autoría verificada, con evidencia de red limitada' })).toBeTruthy();
+    expect(screen.getByText('Registro pendiente de confirmación')).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Ver transacción en BaseScan' })).toBeNull();
+    // El contrato canonico es un dato publico independiente de la transaccion.
+    expect(screen.getByRole('link', { name: 'Ver contrato en el explorador' })).toBeTruthy();
   });
 });

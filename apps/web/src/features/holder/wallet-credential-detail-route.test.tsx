@@ -405,3 +405,104 @@ it('shares an issued or revoked holder credential through the public verifier wi
   expect(screen.getByDisplayValue('credential-reference')).toBeTruthy();
   expect(screen.getByText(/No es la huella canónica/i)).toBeTruthy();
 });
+
+describe('WalletCredentialDetailView: registro blockchain pendiente, confirmado y revocado', () => {
+  const realTx = `0x${'cd'.repeat(32)}`;
+  const payloadWith = (blockchainRecords: unknown[], overrides: Record<string, unknown> = {}) => ({
+    id: 'credential-reference',
+    title: 'Análisis de datos con Python para negocios',
+    type: 'course',
+    status: 'issued',
+    description: 'Curso aplicado',
+    hours: 24,
+    issuedAt: '2026-10-21T10:00:00.000Z',
+    revokedAt: null,
+    revocationReason: null,
+    canonicalHash: `0x${'a'.repeat(64)}`,
+    canonicalizationVersion: 'canon_v2',
+    issuer: { name: 'Plataforma de Cursos Demo', did: 'did:example:course-issuer' },
+    subject: { displayLabel: 'Titular registrado', email: 'holder@example.com', did: 'did:example:holder' },
+    credentialSubject: {
+      achievementName: 'Análisis de datos con Python para negocios',
+      institutionName: 'Plataforma de Cursos Demo',
+      completionDate: '2026-10-21',
+      competencies: ['Aplicar análisis de datos'],
+      learningOutcomes: ['Interpretar resultados'],
+      skills: []
+    },
+    documentEvidence: null,
+    textEvidence: null,
+    blockchainRecords,
+    latestSemanticAnalysis: {
+      status: 'completed',
+      confidence: 0.87,
+      areas: [{ id: 'area-data', label: 'Datos', confidence: 0.9 }],
+      skills: [{ id: 'skill-python', skill: 'Python', confidence: 0.88 }],
+      concepts: [{ id: 'concept-business', concept: 'Analítica de negocios' }],
+      qualityFlags: [],
+      analyzedAt: '2026-10-21T10:10:00.000Z'
+    },
+    ...overrides
+  });
+  const record = (overrides: Record<string, unknown> = {}) => ({
+    network: 'base_sepolia',
+    chainId: 84532,
+    txHash: realTx,
+    status: 'registered',
+    registeredAt: '2026-10-21T10:00:02.000Z',
+    revokedAt: null,
+    ...overrides
+  });
+  const view = (records: unknown[], overrides: Record<string, unknown> = {}) =>
+    render(<WalletCredentialDetailView detail={adaptMyCredential(payloadWith(records, overrides))} />);
+
+  it('A: a credential with a pending record stays fully visible: data, AI analysis and fingerprint, plus a pending notice', () => {
+    view([record({ status: 'pending', txHash: null, registeredAt: null })]);
+
+    expect(screen.getAllByText('Análisis de datos con Python para negocios').length).toBeGreaterThan(0);
+    expect(screen.getByText('Interpretación asistida por IA')).toBeTruthy();
+    expect(screen.getByText('Python')).toBeTruthy();
+    expect(screen.getByText('Huella canónica')).toBeTruthy();
+    expect(screen.getByText(/Registro blockchain pendiente de confirmación/)).toBeTruthy();
+    expect(screen.getByText(/Pendiente de confirmación/, { selector: 'p' })).toBeTruthy();
+
+    // Sin datos de transaccion inexistentes ni afirmaciones de confirmacion.
+    expect(screen.queryByText(/Registro: /)).toBeNull();
+    expect(screen.queryByText(/Registrado el/)).toBeNull();
+    expect(screen.queryByRole('link', { name: /BaseScan/ })).toBeNull();
+    expect(document.body.textContent ?? '').not.toMatch(/inválida|no existe/i);
+  });
+
+  it('B: a confirmed record shows its data and a BaseScan link that opens safely in a new tab', () => {
+    view([record()]);
+
+    const link = screen.getByRole('link', { name: 'Ver transacción en BaseScan' }) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe(`https://sepolia.basescan.org/tx/${realTx}`);
+    expect(link.getAttribute('target')).toBe('_blank');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(screen.getByText(/Registrado el/)).toBeTruthy();
+    expect(screen.getByText(`Registro: ${realTx.slice(0, 12)}…${realTx.slice(-8)}`)).toBeTruthy();
+    expect(screen.queryByText(/Registro blockchain pendiente/)).toBeNull();
+  });
+
+  it('C: a revoked credential keeps the real representation, the revocation and the historical link', () => {
+    view(
+      [record({ status: 'revoked', revokedAt: '2026-10-22T09:00:00.000Z' })],
+      { status: 'revoked', revokedAt: '2026-10-22T09:00:00.000Z', revocationReason: 'Error administrativo' }
+    );
+
+    expect(screen.getByText('Esta credencial está revocada')).toBeTruthy();
+    expect(screen.getByText(/Revocado el/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver transacción en BaseScan' })).toBeTruthy();
+  });
+
+  it('B: a demo network never produces an explorer link', () => {
+    view([record({ network: 'anvil', chainId: 31337 })]);
+
+    expect(screen.queryByRole('link', { name: /BaseScan/ })).toBeNull();
+  });
+
+  it('D: a registered record without a hash is not rendered as success: the adapter rejects it', () => {
+    expect(() => adaptMyCredential(payloadWith([record({ txHash: null })]))).toThrow(IncompatiblePayloadError);
+  });
+});

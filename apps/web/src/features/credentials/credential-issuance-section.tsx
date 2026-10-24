@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { TransactionExplorerLink } from '@/components/blockchain/transaction-explorer-link';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -522,6 +523,10 @@ function BlockchainEvidence({ detail }: { detail: IssuerCredentialDetailVM }) {
     return null;
   }
 
+  // `pending`: la credencial EXISTE y esta emitida; solo falta observar su
+  // confirmacion en la red. No hay hash ni fecha todavia y no se inventan.
+  const pending = evidence.status.trim().toLowerCase() === 'pending';
+
   return (
     <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -535,9 +540,20 @@ function BlockchainEvidence({ detail }: { detail: IssuerCredentialDetailVM }) {
         <IntegrityValue label="Red" value={evidence.network} technical />
         <IntegrityValue label="Chain ID" value={String(evidence.chainId)} technical />
         <IntegrityValue label="Estado" value={evidence.statusLabel} />
-        <IntegrityValue label="Registrada" value={evidence.registeredAtLabel} />
-        <IntegrityValue label="Transacción" value={evidence.txHashShort} technical />
+        {evidence.registeredAtLabel ? (
+          <IntegrityValue label="Registrada" value={evidence.registeredAtLabel} />
+        ) : null}
+        {evidence.txHashShort ? (
+          <IntegrityValue label="Transacción" value={evidence.txHashShort} technical />
+        ) : null}
       </dl>
+      {pending ? (
+        <FeedbackAlert variant="information" title="Registro blockchain pendiente de confirmación">
+          La credencial fue emitida y su información está disponible. La
+          confirmación de su registro blockchain todavía está pendiente.
+        </FeedbackAlert>
+      ) : null}
+      <TransactionExplorerLink href={evidence.transactionExplorerUrl} />
       {(evidence.networkLabel === 'Entorno técnico/demo') ? (
         <p className="flex items-start gap-2 text-sm leading-6 text-text-muted">
           <ShieldAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />

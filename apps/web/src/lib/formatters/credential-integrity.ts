@@ -40,5 +40,11 @@ export function formatBlockchainEvidenceStatus(status: string) {
     return 'Revocada';
   }
 
+  // El registro existe en la base y todavia no se observo su confirmacion en la
+  // red. No es "registrada" ni "invalida": es un estado intermedio legitimo.
+  if (normalized === 'pending') {
+    return 'Pendiente de confirmación';
+  }
+
   return 'Estado técnico';
 }
