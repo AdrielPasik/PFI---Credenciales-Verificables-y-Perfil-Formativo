@@ -218,8 +218,10 @@ describe('CredentialDraftEditorForm', () => {
         name: 'Guardar cambios'
       }) as HTMLButtonElement).disabled
     ).toBe(true);
+    // El formulario no trae el panel de emision. La unica mencion de PDF es la
+    // nota de precedencia de la seccion "Contenido formativo declarado".
     expect(document.body.textContent).not.toMatch(
-      /readiness|emitir|pdf|blockchain|análisis ia/i
+      /readiness|emitir|blockchain|análisis ia/i
     );
     expect(document.body.textContent).not.toContain(
       'credential-internal-reference'
@@ -872,5 +874,105 @@ describe('CredentialDraftEditorForm', () => {
     );
     expect(screen.getByText('Ingresá el nombre del logro.')).toBeTruthy();
     expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+describe('CredentialDraftEditorForm - contenido formativo declarado', () => {
+  it.each(['course', 'certification'] as const)(
+    'keeps the declared content of a %s inside the draft form, under "Contenido formativo declarado"',
+    (type) => {
+      renderEditor({ detail: detailFixture(type) });
+
+      const heading = screen.getByRole('heading', {
+        name: 'Contenido formativo declarado'
+      });
+      const form = document.getElementById('credential-draft-editor-form');
+      expect(form?.contains(heading)).toBe(true);
+      // Ya no se llama "Evidencia textual": eso es otra cosa (una fuente
+      // independiente), y confundirlas fue el problema original.
+      expect(screen.queryByText('Evidencia textual')).toBeNull();
+      expect(screen.queryByRole('heading', { name: /evidencia textual/i })).toBeNull();
+      expect(screen.getByLabelText('Competencias')).toBeTruthy();
+    }
+  );
+
+  it('shows competencias and contenido adicional of a course in the draft data, saved by the same "Guardar cambios"', async () => {
+    const detail = detailFixture('course');
+    const { onSave } = renderEditor({ detail });
+
+    const form = document.getElementById('credential-draft-editor-form');
+    const competencies = screen.getByLabelText('Competencias');
+    const content = screen.getByLabelText('Contenido e información adicional');
+    expect(form?.contains(competencies)).toBe(true);
+    expect(form?.contains(content)).toBe(true);
+
+    fireEvent.change(competencies, { target: { value: 'Diseñar APIs' + String.fromCharCode(10) + 'Testear' } });
+    fireEvent.change(content, { target: { value: 'Temario de 8 semanas' } });
+    const save = screen.getByRole('button', { name: 'Guardar cambios' });
+    // El boton pertenece al formulario del borrador: ni viaja ni usa `form=`.
+    expect(save.closest('form')).toBe(form);
+    expect(save.getAttribute('form')).toBeNull();
+    fireEvent.click(save);
+
+    await waitFor(() => expect(onSave).toHaveBeenCalledOnce());
+    expect(onSave).toHaveBeenCalledWith({
+      issuerReference: 'issuer-internal-reference',
+      credentialReference: 'credential-internal-reference',
+      expectedUpdatedAt: detail.updatedAt,
+      competencies: ['Diseñar APIs', 'Testear'],
+      learningOutcomes: ['Temario de 8 semanas']
+    });
+  });
+
+  it.each(['course', 'certification'] as const)(
+    'explains the source priority for a %s without claiming that sources are combined',
+    (type) => {
+      renderEditor({ detail: detailFixture(type) });
+
+      const section = screen
+        .getByRole('heading', { name: 'Contenido formativo declarado' })
+        .closest('section') as HTMLElement;
+      const note = section.textContent ?? '';
+
+      expect(note).toMatch(/forma parte de la credencial/);
+      expect(note).toMatch(
+        /interpretación asistida cuando no hay un PDF vigente ni una fuente de respaldo textual, que tienen prioridad/
+      );
+      // Nada que sugiera que todo se suma, ni que esto certifica algo.
+      expect(note).not.toMatch(/combin|se suman|todas las fuentes|junto con/i);
+      expect(note).not.toMatch(/certific|verificad/i);
+      // No se exponen conceptos internos.
+      expect(note).not.toMatch(/TextEvidence|AnalysisRun|SHA|DTO/);
+    }
+  );
+
+  it('does not repeat an unconditional "alimenta la interpretación asistida" claim in each field', () => {
+    renderEditor({ detail: detailFixture('course') });
+
+    expect(
+      screen.queryByText(/competencias alimentan la interpretación asistida/i)
+    ).toBeNull();
+    expect(
+      screen.queryByText(/alimenta la interpretación asistida/i)
+    ).toBeNull();
+  });
+
+  it('keeps the original wording for an academic_subject, which has no automatic text analysis', () => {
+    renderEditor({ detail: detailFixture('academic_subject') });
+
+    expect(
+      screen.getByRole('heading', { name: 'Contenido declarado por la institución' })
+    ).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Contenido formativo declarado' })).toBeNull();
+    // Para este tipo no se afirma nada sobre precedencia de la IA.
+    expect(document.body.textContent).not.toMatch(/tienen prioridad/);
+  });
+
+  it('does not render a declared-content section for a degree', () => {
+    renderEditor({ detail: detailFixture('degree') });
+
+    expect(
+      screen.queryByRole('heading', { name: /contenido (formativo )?declarado/i })
+    ).toBeNull();
   });
 });

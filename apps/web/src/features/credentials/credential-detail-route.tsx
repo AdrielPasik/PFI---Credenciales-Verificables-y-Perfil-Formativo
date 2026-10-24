@@ -30,7 +30,6 @@ import { CredentialIssuanceSection } from '@/features/credentials/credential-iss
 import { DocumentAnalysisSection } from '@/features/credentials/document-analysis-section';
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
 import { EvidenceWorkspace } from '@/features/credentials/evidence-workspace';
-import type { EvidenceComposerMode } from '@/features/credentials/evidence-workspace';
 import { ReusableSemanticInterpretationSection } from '@/features/credentials/reusable-semantic-interpretation-section';
 import { SaveReusableTemplateSection } from '@/features/credentials/save-reusable-template-section';
 import { SemanticApprovalSection } from '@/features/credentials/semantic-approval-section';
@@ -651,10 +650,6 @@ export function CredentialDetailView({
         };
   const canComposeDocument = isDraft;
   const canComposeText = isDraft;
-  const hasTextualDeclaredContent =
-    renderedCredentialType === 'academic_subject' ||
-    renderedCredentialType === 'course' ||
-    renderedCredentialType === 'certification';
   const reusableTextualCredentialType =
     renderedCredentialType === 'course' ||
     renderedCredentialType === 'certification'
@@ -687,18 +682,10 @@ export function CredentialDetailView({
   // abajo) -- exactamente la misma condicion bajo la que
   // "Emitir credencial" es clickeable.
   const draftEditorRef = useRef<CredentialDraftEditorFormHandle>(null);
-  const [declaredCapabilitiesTarget, setDeclaredCapabilitiesTarget] =
-    useState<HTMLDivElement | null>(null);
-  const [evidenceComposerMode, setEvidenceComposerMode] =
-    useState<EvidenceComposerMode>('both');
-  const handleDeclaredCapabilitiesTargetChange = useCallback(
-    (target: HTMLDivElement | null) => {
-      setDeclaredCapabilitiesTarget((current) =>
-        current === target ? current : target
-      );
-    },
-    []
-  );
+  // Un composer plegado conserva su estado (texto o archivo sin guardar); estos
+  // dos avisos hacen que lo pendiente nunca quede escondido detras del pliegue.
+  const [documentNeedsAttention, setDocumentNeedsAttention] = useState(false);
+  const [textNeedsAttention, setTextNeedsAttention] = useState(false);
 
   useEffect(() => {
     if (detail.type !== 'course' && detail.type !== 'certification') {
@@ -931,12 +918,6 @@ export function CredentialDetailView({
                 <CredentialDraftEditorForm
                   ref={draftEditorRef}
                   detail={detail}
-                  declaredCapabilitiesPlacement="textual-evidence"
-                  declaredCapabilitiesTarget={declaredCapabilitiesTarget}
-                  showDraftSaveActionInCapabilitiesSlot={
-                    hasTextualDeclaredContent &&
-                    evidenceComposerMode !== 'document'
-                  }
                   issuerReference={draftEditor.issuerReference}
                   onCurrentTypeChange={setCurrentDraftType}
                   onSave={draftEditor.onSave}
@@ -953,90 +934,97 @@ export function CredentialDetailView({
                 <CourseDeclaredDataCard subject={detail.credentialSubject} />
               </div>
             ) : null}
+
+            {!isDraft && reusableTextualCredentialType ? (
+              <div className="px-5 pb-7 sm:px-7">
+                <DeclaredInstitutionalContentCard
+                  credentialType={reusableTextualCredentialType}
+                  subject={detail.credentialSubject}
+                />
+              </div>
+            ) : null}
           </section>
 
           <EvidenceWorkspace
-              canComposeDocument={canComposeDocument}
-              canComposeText={canComposeText}
-              onTextualCapabilitiesTargetChange={
-                hasTextualDeclaredContent && canComposeText
-                  ? handleDeclaredCapabilitiesTargetChange
-                  : undefined
-              }
-              onComposerModeChange={
-                hasTextualDeclaredContent && canComposeText
-                  ? setEvidenceComposerMode
-                  : undefined
-              }
-              textualComposerHeading={
-                reusableTextualCredentialType ? (
-                  <div className="border-t border-border-default pt-6">
-                    <p className="text-sm font-semibold text-teal-700">
-                      Fuente textual adicional
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-text-muted">
-                      Podés registrar además un temario, programa u otra fuente institucional.
-                    </p>
-                  </div>
-                ) : null
-              }
-              textualDeclaredCurrent={
-                !isDraft && reusableTextualCredentialType ? (
-                  <DeclaredInstitutionalContentCard
-                    credentialType={reusableTextualCredentialType}
-                    subject={detail.credentialSubject}
-                  />
-                ) : null
-              }
-              documentCurrent={
-                detail.documentEvidence.currentDocument || !isDraft ? (
-                  <DocumentEvidenceSection
-                    credentialStatus={detail.status}
-                    credentialType={renderedCredentialType}
-                    currentDocument={detail.documentEvidence.currentDocument}
-                    display="current"
-                    onUpload={onUploadDocumentEvidence}
-                    showHeading={false}
-                  />
-                ) : null
-              }
-              documentComposer={
+            canComposeDocument={canComposeDocument}
+            canComposeText={canComposeText}
+            description={
+              reusableTextualCredentialType
+                ? 'Podés incorporar un programa, temario u otra fuente institucional. Si no hay un PDF vigente analizable, Scope prioriza esta fuente para el análisis en lugar del contenido declarado.'
+                : 'Podés adjuntar un documento o registrar un texto institucional como respaldo de esta credencial. Los PDF pueden utilizarse para el análisis automático.'
+            }
+            sourcePriority={
+              reusableTextualCredentialType ? (
+                <>
+                  <p className="font-semibold text-text-strong">
+                    Qué usa Scope para la interpretación asistida
+                  </p>
+                  <ol className="mt-1 list-decimal pl-5">
+                    <li>Un PDF vigente.</li>
+                    <li>Si no hay PDF, una fuente de respaldo textual.</li>
+                    <li>
+                      Si no hay ninguna, el contenido formativo declarado,
+                      cuando tiene información suficiente.
+                    </li>
+                  </ol>
+                </>
+              ) : null
+            }
+            hasDocument={detail.documentEvidence.currentDocument !== null}
+            hasText={detail.textEvidence.currentText !== null}
+            documentNeedsAttention={documentNeedsAttention}
+            textNeedsAttention={textNeedsAttention}
+            documentCurrent={
+              detail.documentEvidence.currentDocument || !isDraft ? (
                 <DocumentEvidenceSection
                   credentialStatus={detail.status}
                   credentialType={renderedCredentialType}
                   currentDocument={detail.documentEvidence.currentDocument}
-                  display="composer"
+                  display="current"
                   onUpload={onUploadDocumentEvidence}
                   showHeading={false}
                 />
-              }
-              textCurrent={
-                detail.textEvidence.currentText ||
-                (!isDraft &&
-                  renderedCredentialType !== 'course' &&
-                  renderedCredentialType !== 'certification') ? (
-                  <TextEvidenceSection
-                    credentialStatus={detail.status}
-                    currentText={detail.textEvidence.currentText}
-                    display="current"
-                    onSubmit={onSubmitTextEvidence}
-                    showEmptyState={
-                      renderedCredentialType !== 'course' &&
-                      renderedCredentialType !== 'certification'
-                    }
-                    showHeading={false}
-                  />
-                ) : null
-              }
-              textComposer={
+              ) : null
+            }
+            documentComposer={
+              <DocumentEvidenceSection
+                credentialStatus={detail.status}
+                credentialType={renderedCredentialType}
+                currentDocument={detail.documentEvidence.currentDocument}
+                display="composer"
+                onAttentionChange={setDocumentNeedsAttention}
+                onUpload={onUploadDocumentEvidence}
+                showHeading={false}
+              />
+            }
+            textCurrent={
+              detail.textEvidence.currentText ||
+              (!isDraft &&
+                renderedCredentialType !== 'course' &&
+                renderedCredentialType !== 'certification') ? (
                 <TextEvidenceSection
                   credentialStatus={detail.status}
                   currentText={detail.textEvidence.currentText}
-                  display="composer"
+                  display="current"
                   onSubmit={onSubmitTextEvidence}
+                  showEmptyState={
+                    renderedCredentialType !== 'course' &&
+                    renderedCredentialType !== 'certification'
+                  }
                   showHeading={false}
                 />
-              }
+              ) : null
+            }
+            textComposer={
+              <TextEvidenceSection
+                credentialStatus={detail.status}
+                currentText={detail.textEvidence.currentText}
+                display="composer"
+                onAttentionChange={setTextNeedsAttention}
+                onSubmit={onSubmitTextEvidence}
+                showHeading={false}
+              />
+            }
           />
 
           {documentAnalysis ? (
@@ -1300,13 +1288,13 @@ function DeclaredInstitutionalContentCard({
     >
       <div>
         <p className="text-sm font-semibold text-teal-700">
-          Evidencia textual
+          Datos de la credencial
         </p>
         <h3
           id="declared-institutional-content-read-title"
           className="mt-1 text-lg font-semibold text-text-strong"
         >
-          Contenido declarado por la institución
+          Contenido formativo declarado
         </h3>
         <p className="mt-1 text-sm leading-6 text-text-muted">
           Información declarada por la institución emisora. Modo lectura.

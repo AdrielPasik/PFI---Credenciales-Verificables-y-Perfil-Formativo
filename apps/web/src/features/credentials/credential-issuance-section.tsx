@@ -127,15 +127,6 @@ function DraftIssuanceContent({
 
   return (
     <>
-      <div className="grid gap-1.5 text-sm leading-6 text-text-muted">
-        <p>La emisión genera una versión verificable de la credencial.</p>
-        <p>
-          Scope registra una huella de integridad para permitir verificaciones
-          posteriores.
-        </p>
-        <p>Después de emitir, la credencial queda en modo lectura.</p>
-      </div>
-
       <IssuancePreparation preparation={preparation} detail={detail} />
 
       {feedback ? (
@@ -159,8 +150,10 @@ function DraftIssuanceContent({
               Confirmar emisión
             </h3>
             <p className="mt-2 text-sm leading-6 text-text-default">
-              Después de emitir, la credencial quedará en modo lectura y se
-              registrará una huella de integridad.
+              La emisión genera una versión verificable de la credencial.
+              Después de emitir, la credencial quedará en modo lectura y Scope
+              registrará una huella de integridad para permitir verificaciones
+              posteriores.
             </p>
             {preparation.hasPdf ? (
               <p className="mt-2 text-sm leading-6 text-text-default">
@@ -170,8 +163,11 @@ function DraftIssuanceContent({
             ) : preparation.hasReusableTextSource ? (
               <p className="mt-2 text-sm leading-6 text-text-default">
                 Scope intentará generar automáticamente un análisis asistido
-                a partir de la información declarada disponible. La IA no
-                bloquea la emisión.
+                a partir de{' '}
+                {preparation.hasText
+                  ? 'la fuente de respaldo textual registrada'
+                  : 'la información declarada disponible'}
+                . La IA no bloquea la emisión.
               </p>
             ) : (
               <p className="mt-2 text-sm leading-6 text-text-default">
@@ -255,28 +251,28 @@ function IssuancePreparation({
     : detail.title;
 
   return (
-    <div className="grid gap-3 rounded-control border border-border-default bg-surface-muted/80 p-4">
-      <div>
-        <p className="text-sm font-semibold text-brand-700">Preparación para emitir</p>
-        <p className="mt-1 text-sm leading-6 text-text-muted">
-          Revisá el estado actual antes de confirmar la emisión.
-        </p>
-      </div>
-      <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
+    <div className="grid gap-3 text-sm">
+      <dl className="grid grid-cols-2 gap-x-3 gap-y-2.5">
         <PreparationItem label="Estado" value="Borrador listo para revisar" />
         <PreparationItem label="Tipo" value={detail.typeLabel} />
-        <PreparationItem label="Titular" value={detail.holder.displayLabel} />
         <PreparationItem
           className="col-span-2"
-          label="Logro o referencia académica"
+          label="Titular"
+          value={detail.holder.displayLabel}
+        />
+        <PreparationItem
+          className="col-span-2"
+          label="Logro"
           value={credentialReference}
         />
         <PreparationItem
-          label="Evidencia de respaldo"
+          className="col-span-2"
+          label="Fuentes de respaldo"
           value={preparation.evidenceLabel}
           tone={preparation.hasSupportEvidence ? 'complete' : 'warning'}
         />
         <PreparationItem
+          className="col-span-2"
           label="Análisis automático"
           value={preparation.analysisLabel}
           tone={preparation.canAttemptAutomaticAnalysis ? 'complete' : 'warning'}
@@ -301,7 +297,7 @@ function IssuancePreparation({
           }
         >
           {preparation.isReusableType
-            ? 'Esta credencial tiene poca información declarada para la interpretación asistida. Podés completarla antes de emitir.'
+            ? 'Hay poca información declarada: la interpretación asistida será limitada. Podés completarla antes de emitir.'
             : 'Podés emitir solo después de confirmar explícitamente que la credencial quedará sin fuente de respaldo cargada en Scope.'}
         </FeedbackAlert>
       ) : null}
@@ -368,6 +364,7 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
 
   return {
     hasPdf,
+    hasText,
     hasSupportEvidence,
     hasUploadedEvidence,
     hasDeclarativeBacking,
@@ -380,16 +377,18 @@ function buildIssuancePreparation(detail: IssuerCredentialDetailVM) {
       : document
         ? 'Evidencia documental vigente'
         : hasText
-          ? 'Evidencia textual vigente'
+          ? 'Fuente textual vigente'
           : hasDeclarativeBacking
             ? 'Contenido declarado suficiente'
-            : 'Pendiente de confirmación',
+            : 'Sin fuentes cargadas',
     analysisLabel: isReusableType
       ? hasPdf
-        ? 'Se analizará el PDF al emitir'
-        : hasReusableTextSource
-          ? 'Se ejecutará al emitir con datos declarados'
-          : 'Pendiente de información suficiente'
+        ? 'Se intentará con el PDF al emitir'
+        : hasText
+          ? 'Se intentará con la fuente textual al emitir'
+          : hasDeclarativeBacking
+            ? 'Se intentará con el contenido declarado al emitir'
+            : 'Pendiente de información suficiente'
       : hasPdf
         ? 'Se intentará al emitir'
         : 'No disponible automáticamente'

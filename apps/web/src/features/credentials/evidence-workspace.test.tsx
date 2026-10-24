@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { describe, expect, it } from 'vitest';
 
 import { DocumentEvidenceSection } from '@/features/credentials/document-evidence-section';
@@ -12,238 +11,284 @@ import type {
 } from '@/models/credentials';
 
 describe('EvidenceWorkspace', () => {
-  it('defaults to both composers when document and textual evidence are editable', () => {
+  it('starts compact: optional, nothing loaded and both composers folded', () => {
     renderWorkspace();
 
     expect(
-      (screen.getByRole('radio', { name: 'Ambas' }) as HTMLInputElement)
-        .checked
-    ).toBe(true);
-    expect(screen.getByLabelText('Seleccionar archivo de evidencia')).toBeTruthy();
-    expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
-  });
+      screen.getByRole('heading', { name: 'Fuentes de respaldo' })
+    ).toBeTruthy();
+    expect(screen.getByText('Opcional')).toBeTruthy();
+    expect(screen.getByText('Sin fuentes cargadas.')).toBeTruthy();
 
-  it('shows only the requested composer without hiding persisted evidence', () => {
-    renderWorkspace();
-
-    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-
-    expect(screen.getByLabelText('Seleccionar archivo de evidencia')).toBeTruthy();
+    for (const name of ['Agregar documento', 'Agregar fuente textual']) {
+      expect(
+        screen.getByRole('button', { name }).getAttribute('aria-expanded')
+      ).toBe('false');
+    }
+    expect(
+      screen.getByLabelText('Seleccionar archivo de evidencia').closest('[hidden]')
+    ).toBeTruthy();
     expect(
       screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
     ).toBeTruthy();
-    expect(screen.getByText('Documento vigente')).toBeTruthy();
-    expect(screen.getByText('Temario vigente')).toBeTruthy();
-
-    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
-
-    expect(
-      screen
-        .getByLabelText('Seleccionar archivo de evidencia')
-        .closest('[hidden]')
-    ).toBeTruthy();
-    expect(screen.getByLabelText('Contenido de respaldo')).toBeTruthy();
-    expect(screen.getByText('Documento vigente')).toBeTruthy();
-    expect(screen.getByText('Temario vigente')).toBeTruthy();
+    // El selector Documental / Textual / Ambas ya no existe.
+    expect(screen.queryByRole('radio')).toBeNull();
   });
 
-  it('preserves the textual draft while its composer is visually hidden', () => {
+  it('opens each composer independently and links the button to its panel', () => {
     renderWorkspace();
-    const content = screen.getByLabelText(
-      'Contenido de respaldo'
-    ) as HTMLTextAreaElement;
+    const documentToggle = screen.getByRole('button', {
+      name: 'Agregar documento'
+    });
+    const textToggle = screen.getByRole('button', {
+      name: 'Agregar fuente textual'
+    });
 
-    fireEvent.change(content, { target: { value: 'Temario institucional' } });
-    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
+    fireEvent.click(documentToggle);
 
+    expect(documentToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(textToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(
+      screen.getByLabelText('Seleccionar archivo de evidencia').closest('[hidden]')
+    ).toBeNull();
+    expect(
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeTruthy();
+    const panelId = documentToggle.getAttribute('aria-controls');
+    expect(panelId).toBeTruthy();
+    expect(document.getElementById(panelId as string)).toBeTruthy();
+
+    fireEvent.click(textToggle);
+    expect(
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeNull();
+
+    fireEvent.click(documentToggle);
+    expect(documentToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeNull();
+  });
+
+  it('keeps persisted sources visible and identifiable while the composers are folded', () => {
+    renderWorkspace({ withCurrent: true });
+
+    expect(screen.getByText('Fuentes cargadas')).toBeTruthy();
+    expect(screen.getByText('Documento vigente')).toBeTruthy();
+    expect(screen.getByText('Temario vigente')).toBeTruthy();
+    expect(screen.queryByText('Sin fuentes cargadas.')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Cambiar documento' })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Cambiar fuente textual' })
+    ).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Agregar documento' })).toBeNull();
+  });
+
+  it('preserves the unsaved textual draft across folding and unfolding, and says so when folded', () => {
+    renderWorkspace();
+    const toggle = screen.getByRole('button', { name: 'Agregar fuente textual' });
+
+    fireEvent.click(toggle);
+    fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
+      target: { value: 'Temario institucional' }
+    });
+    fireEvent.change(screen.getByLabelText('Nombre de la fuente (opcional)'), {
+      target: { value: 'Programa 2026' }
+    });
+
+    // Abierto: el propio formulario ya muestra el texto, sin aviso aparte.
+    expect(screen.queryByText('Tenés cambios sin guardar')).toBeNull();
+
+    fireEvent.click(toggle);
+
+    // Plegado: el texto sigue ahi, y el pliegue NO lo esconde en silencio.
+    expect(screen.getByRole('status').textContent).toBe(
+      'Tenés cambios sin guardar'
+    );
+    expect(
+      screen.getByLabelText('Contenido de respaldo').closest('[hidden]')
+    ).toBeTruthy();
+
+    fireEvent.click(toggle);
+
+    expect(screen.queryByText('Tenés cambios sin guardar')).toBeNull();
     expect(
       (screen.getByLabelText('Contenido de respaldo') as HTMLTextAreaElement)
         .value
     ).toBe('Temario institucional');
+    expect(
+      (screen.getByLabelText('Nombre de la fuente (opcional)') as HTMLInputElement)
+        .value
+    ).toBe('Programa 2026');
   });
 
-  it('changes only local presentation state and never calls evidence mutations', () => {
+  it('keeps a chosen file and flags it when the document composer is folded', () => {
+    renderWorkspace();
+    const toggle = screen.getByRole('button', { name: 'Agregar documento' });
+
+    fireEvent.click(toggle);
+    const file = new File(['%PDF-1.4'], 'programa.pdf', {
+      type: 'application/pdf'
+    });
+    fireEvent.change(screen.getByLabelText('Seleccionar archivo de evidencia'), {
+      target: { files: [file] }
+    });
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
+
+    fireEvent.click(toggle);
+
+    expect(screen.getByRole('status').textContent).toBe(
+      'Tenés cambios sin guardar'
+    );
+    fireEvent.click(toggle);
+    expect(screen.getByText('programa.pdf')).toBeTruthy();
+  });
+
+  it('only changes local presentation and never calls evidence mutations', () => {
     let uploadCalls = 0;
     let submitCalls = 0;
-    const onUpload = async (_file: File): Promise<DocumentEvidenceVM> => {
-      void _file;
-      uploadCalls += 1;
-      throw new Error('This test does not submit evidence.');
-    };
-    const onSubmit = async (_command: {
-      label: string | null;
-      content: string;
-    }): Promise<TextEvidenceVM> => {
-      void _command;
-      submitCalls += 1;
-      throw new Error('This test does not submit evidence.');
-    };
-    renderWorkspace({ onSubmit, onUpload });
+    renderWorkspace({
+      onSubmit: async () => {
+        submitCalls += 1;
+        throw new Error('This test does not submit evidence.');
+      },
+      onUpload: async () => {
+        uploadCalls += 1;
+        throw new Error('This test does not upload evidence.');
+      }
+    });
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'Ambas' }));
+    for (const name of ['Agregar documento', 'Agregar fuente textual']) {
+      const toggle = screen.getByRole('button', { name });
+      fireEvent.click(toggle);
+      fireEvent.click(toggle);
+    }
 
     expect(uploadCalls).toBe(0);
     expect(submitCalls).toBe(0);
   });
 
-  it('keeps declared capabilities with the textual composer and preserves all local values between modes', async () => {
-    render(<WorkspaceWithDeclaredCapabilities />);
-
-    expect(
-      await screen.findByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
-      })
-    ).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
-      target: { value: 'Programa institucional' }
-    });
-    fireEvent.change(screen.getByLabelText('Habilidades técnicas (opcional)'), {
-      target: { value: 'SQL' }
-    });
-    fireEvent.change(screen.getByLabelText('Competencias formativas (opcional)'), {
-      target: { value: 'Resolver problemas' }
+  it('offers no composer when the credential is not editable', () => {
+    renderWorkspace({
+      canCompose: false,
+      withCurrent: true
     });
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Documental' }));
-    expect(
-      screen
-        .getByRole('heading', {
-          hidden: true,
-          name: 'Capacidades declaradas por la institución'
-        })
-        .closest('[hidden]')
-    ).toBeTruthy();
+    expect(screen.getByText('Documento vigente')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /documento|fuente textual/i })).toBeNull();
+    expect(screen.queryByLabelText('Seleccionar archivo de evidencia')).toBeNull();
+    expect(screen.queryByText('Sin fuentes cargadas.')).toBeNull();
+  });
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Textual' }));
-    expect(
-      (screen.getByLabelText('Contenido de respaldo') as HTMLTextAreaElement)
-        .value
-    ).toBe('Programa institucional');
-    expect(
-      (screen.getByLabelText(
-        'Habilidades técnicas (opcional)'
-      ) as HTMLTextAreaElement).value
-    ).toBe('SQL');
-    expect(
-      (screen.getByLabelText(
-        'Competencias formativas (opcional)'
-      ) as HTMLTextAreaElement).value
-    ).toBe('Resolver problemas');
+  it('shows the source priority only when the caller provides it', () => {
+    const { unmount } = renderWorkspace({ withPriority: true });
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Ambas' }));
     expect(
-      screen.getByRole('heading', {
-        name: 'Capacidades declaradas por la institución'
-      })
+      screen.getByText('Qué usa Scope para la interpretación asistida')
     ).toBeTruthy();
+    expect(screen.getByText(/Si no hay PDF, una fuente de respaldo textual/)).toBeTruthy();
+
+    unmount();
+    renderWorkspace();
+    expect(
+      screen.queryByText('Qué usa Scope para la interpretación asistida')
+    ).toBeNull();
   });
 });
 
-function WorkspaceWithDeclaredCapabilities() {
-  const [target, setTarget] = useState<HTMLDivElement | null>(null);
-  const [skills, setSkills] = useState('');
-  const [competencies, setCompetencies] = useState('');
-
-  return (
-    <>
-      <EvidenceWorkspace
-        canComposeDocument
-        canComposeText
-        documentCurrent={null}
-        documentComposer={
-          <DocumentEvidenceSection
-            credentialStatus="draft"
-            currentDocument={null}
-            display="composer"
-            onUpload={async () => {
-              throw new Error('This test does not upload evidence.');
-            }}
-            showHeading={false}
-          />
-        }
-        onTextualCapabilitiesTargetChange={setTarget}
-        textCurrent={null}
-        textComposer={
-          <TextEvidenceSection
-            credentialStatus="draft"
-            currentText={null}
-            display="composer"
-            onSubmit={async () => {
-              throw new Error('This test does not submit evidence.');
-            }}
-            showHeading={false}
-          />
-        }
-      />
-      {target
-        ? createPortal(
-            <section aria-labelledby="declared-capabilities-title">
-              <h3 id="declared-capabilities-title">
-                Capacidades declaradas por la institución
-              </h3>
-              <label htmlFor="declared-skills">Habilidades técnicas (opcional)</label>
-              <textarea
-                id="declared-skills"
-                value={skills}
-                onChange={(event) => setSkills(event.target.value)}
-              />
-              <label htmlFor="declared-competencies">
-                Competencias formativas (opcional)
-              </label>
-              <textarea
-                id="declared-competencies"
-                value={competencies}
-                onChange={(event) => setCompetencies(event.target.value)}
-              />
-            </section>,
-            target
-          )
-        : null}
-    </>
-  );
-}
-
-function renderWorkspace({
-  onSubmit = async () => {
-    throw new Error('This test does not submit evidence.');
-  },
-  onUpload = async () => {
-    throw new Error('This test does not upload evidence.');
-  }
+function Harness({
+  canCompose = true,
+  onSubmit,
+  onUpload,
+  withCurrent = false,
+  withPriority = false
 }: {
-  onSubmit?: (command: {
+  canCompose?: boolean;
+  onSubmit: (command: {
     label: string | null;
     content: string;
   }) => Promise<TextEvidenceVM>;
-  onUpload?: (file: File) => Promise<DocumentEvidenceVM>;
-} = {}) {
-  render(
+  onUpload: (file: File) => Promise<DocumentEvidenceVM>;
+  withCurrent?: boolean;
+  withPriority?: boolean;
+}) {
+  const [documentAttention, setDocumentAttention] = useState(false);
+  const [textAttention, setTextAttention] = useState(false);
+
+  return (
     <EvidenceWorkspace
-      canComposeDocument
-      canComposeText
-      documentCurrent={<p>Documento vigente</p>}
+      canComposeDocument={canCompose}
+      canComposeText={canCompose}
+      description="Descripción de prueba."
+      documentCurrent={withCurrent ? <p>Documento vigente</p> : null}
       documentComposer={
         <DocumentEvidenceSection
           credentialStatus="draft"
           currentDocument={null}
           display="composer"
+          onAttentionChange={setDocumentAttention}
           onUpload={onUpload}
           showHeading={false}
         />
       }
-      textCurrent={<p>Temario vigente</p>}
+      documentNeedsAttention={documentAttention}
+      hasDocument={withCurrent}
+      hasText={withCurrent}
+      sourcePriority={
+        withPriority ? (
+          <>
+            <p>Qué usa Scope para la interpretación asistida</p>
+            <ol>
+              <li>Si no hay PDF, una fuente de respaldo textual.</li>
+            </ol>
+          </>
+        ) : null
+      }
       textComposer={
         <TextEvidenceSection
           credentialStatus="draft"
           currentText={null}
           display="composer"
+          onAttentionChange={setTextAttention}
           onSubmit={onSubmit}
           showHeading={false}
         />
       }
+      textCurrent={withCurrent ? <p>Temario vigente</p> : null}
+      textNeedsAttention={textAttention}
+    />
+  );
+}
+
+function renderWorkspace({
+  canCompose,
+  onSubmit = async () => {
+    throw new Error('This test does not submit evidence.');
+  },
+  onUpload = async () => {
+    throw new Error('This test does not upload evidence.');
+  },
+  withCurrent,
+  withPriority
+}: {
+  canCompose?: boolean;
+  onSubmit?: (command: {
+    label: string | null;
+    content: string;
+  }) => Promise<TextEvidenceVM>;
+  onUpload?: (file: File) => Promise<DocumentEvidenceVM>;
+  withCurrent?: boolean;
+  withPriority?: boolean;
+} = {}) {
+  return render(
+    <Harness
+      canCompose={canCompose}
+      onSubmit={onSubmit}
+      onUpload={onUpload}
+      withCurrent={withCurrent}
+      withPriority={withPriority}
     />
   );
 }

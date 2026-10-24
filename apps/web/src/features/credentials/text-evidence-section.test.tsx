@@ -56,7 +56,7 @@ describe('TextEvidenceSection', () => {
       'Contenido de respaldo'
     ) as HTMLTextAreaElement;
     const submit = screen.getByRole('button', {
-      name: 'Guardar evidencia textual'
+      name: 'Guardar fuente textual'
     });
     expect((submit as HTMLButtonElement).disabled).toBe(true);
 
@@ -86,7 +86,7 @@ describe('TextEvidenceSection', () => {
       target: { value: '  Línea uno\r\nLínea dos  ' }
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+      screen.getByRole('button', { name: 'Guardar fuente textual' })
     );
 
     await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
@@ -94,7 +94,7 @@ describe('TextEvidenceSection', () => {
       label: 'Temario institucional',
       content: 'Línea uno\nLínea dos'
     });
-    expect(await screen.findByText('Evidencia textual actualizada')).toBeTruthy();
+    expect(await screen.findByText('Fuente textual actualizada')).toBeTruthy();
   });
 
   it('blocks oversized Unicode content and associates the error', () => {
@@ -118,7 +118,7 @@ describe('TextEvidenceSection', () => {
     expect(
       (
         screen.getByRole('button', {
-          name: 'Guardar evidencia textual'
+          name: 'Guardar fuente textual'
         }) as HTMLButtonElement
       ).disabled
     ).toBe(true);
@@ -192,7 +192,7 @@ describe('TextEvidenceSection', () => {
     );
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Reemplazar evidencia textual' })
+      screen.getByRole('button', { name: 'Reemplazar fuente textual' })
     );
     expect(screen.getByText('Reemplazo pendiente')).toBeTruthy();
     expect(
@@ -229,7 +229,7 @@ describe('TextEvidenceSection', () => {
     );
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Reemplazar evidencia textual' })
+      screen.getByRole('button', { name: 'Reemplazar fuente textual' })
     );
     fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
       target: { value: 'Nueva fuente' }
@@ -239,9 +239,9 @@ describe('TextEvidenceSection', () => {
     fireEvent.click(submit);
 
     expect(onSubmit).toHaveBeenCalledOnce();
-    expect(screen.getByText('Guardando evidencia textual…')).toBeTruthy();
+    expect(screen.getByText('Guardando fuente textual…')).toBeTruthy();
     resolveSubmission?.(textEvidenceFixture({ content: 'Nueva fuente' }));
-    await screen.findByText('Evidencia textual actualizada');
+    await screen.findByText('Fuente textual actualizada');
   });
 
   it.each([
@@ -260,7 +260,7 @@ describe('TextEvidenceSection', () => {
     );
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Reemplazar evidencia textual' })
+      screen.getByRole('button', { name: 'Reemplazar fuente textual' })
     );
     fireEvent.change(screen.getByLabelText('Contenido de respaldo'), {
       target: { value: 'Texto para reintentar' }
@@ -295,7 +295,7 @@ describe('TextEvidenceSection', () => {
       target: { value: 'Texto conservado' }
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Guardar evidencia textual' })
+      screen.getByRole('button', { name: 'Guardar fuente textual' })
     );
 
     expect(
@@ -323,12 +323,12 @@ describe('TextEvidenceSection', () => {
       expect(screen.getByText('Fuente textual actual')).toBeTruthy();
       expect(
         screen.getByText(
-          'La evidencia textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
+          'La fuente textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
         )
       ).toBeTruthy();
       expect(screen.queryByLabelText('Contenido de respaldo')).toBeNull();
       expect(
-        screen.queryByRole('button', { name: 'Reemplazar evidencia textual' })
+        screen.queryByRole('button', { name: 'Reemplazar fuente textual' })
       ).toBeNull();
     }
   );
@@ -347,7 +347,7 @@ describe('TextEvidenceSection', () => {
       expect(screen.getByText('No hay evidencia textual registrada.')).toBeTruthy();
       expect(
         screen.getByText(
-          'La evidencia textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
+          'La fuente textual puede registrarse mientras la credencial está en borrador. Esta credencial ya está en modo lectura.'
         )
       ).toBeTruthy();
       expect(screen.queryByLabelText('Contenido de respaldo')).toBeNull();
