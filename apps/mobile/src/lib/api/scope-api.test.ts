@@ -1,5 +1,9 @@
 import {
   createProfileShareRequest,
+  getShareVerificationPolicyRequest,
+  listMyProfileSharesRequest,
+  recoverProfileShareLinkRequest,
+  revokeProfileShareRequest,
   currentUserRequest,
   getMyCredentialRequest,
   getMyCredentialsRequest,
@@ -33,6 +37,48 @@ function authenticatedRequestReturning(payload: unknown) {
 }
 
 describe('inventario de endpoints consumidos por la app', () => {
+  it('gestiona enlaces de perfil sin recuperar tokens al listar', async () => {
+    const { request, calls } = authenticatedRequestReturning([
+      {
+        shareId: 'share-1', scope: 'profile', status: 'ACTIVE', createdAt: '2026-10-25T10:00:00Z',
+        expiresAt: null, revokedAt: null, lastUsedAt: null,
+        contextualVerificationEnabled: false, authorizedCredentialCount: 0,
+        effectiveAuthorizedCredentialCount: 0
+      }
+    ]);
+
+    const shares = await listMyProfileSharesRequest(request);
+    expect(calls[0]).toEqual({ path: '/me/profile/shares', method: undefined });
+    expect(shares[0]?.status).toBe('ACTIVE');
+  });
+
+  it('recupera y revoca un enlace sólo por su endpoint autenticado específico', async () => {
+    const { request, calls } = authenticatedRequestReturning({
+      sharePath: `/share/profile/${'a'.repeat(43)}`, shareUrl: null
+    });
+
+    await recoverProfileShareLinkRequest(request, 'share/id');
+    expect(calls[0]).toEqual({ path: '/me/profile/shares/share%2Fid/link', method: 'POST' });
+
+    await revokeProfileShareRequest(request, 'share/id');
+    expect(calls[1]).toEqual({ path: '/me/profile/shares/share%2Fid/revoke', method: 'POST' });
+  });
+
+  it('lee la política persistida antes de reemplazarla y valida el contrato', async () => {
+    const { request, calls } = authenticatedRequestReturning({
+      configured: true, enabled: true, policyVersion: 2,
+      authorizedCredentialIds: ['cred-1'], effectiveAuthorizedCredentialIds: ['cred-1'],
+      updatedAt: '2026-10-25T10:00:00Z'
+    });
+
+    const policy = await getShareVerificationPolicyRequest(request, 'share/id');
+
+    expect(calls[0]).toEqual({
+      path: '/me/profile/shares/share%2Fid/verification-policy', method: undefined
+    });
+    expect(policy.authorizedCredentialIds).toEqual(['cred-1']);
+  });
+
   it('POST /auth/login devuelve token y usuario adaptados', async () => {
     const { client, calls } = createTestHttpClient({
       body: loginResponsePayload()

@@ -6,6 +6,8 @@ import { ShareVerificationPolicyError } from './share-verification-policy.error'
 import { isShareActive, supportsContextualVerification } from './share-lifecycle';
 
 export interface ShareVerificationPolicyStateDto {
+  /** `false` sólo cuando no existe una fila de política persistida. */
+  configured: boolean;
   enabled: boolean;
   policyVersion: number;
   /** Lo que el holder eligio, tal cual. Puede incluir credenciales que hoy ya no son elegibles. */
@@ -38,6 +40,61 @@ interface ReplaceRequest {
 @Injectable()
 export class ShareVerificationPolicyService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Proyección autenticada y de sólo lectura. Devuelve la selección realmente
+   * persistida para que un cliente no tenga que inventar un conjunto vacío antes
+   * de usar el PUT de reemplazo. El token del enlace nunca forma parte del select.
+   */
+  async getForShare(
+    userId: string,
+    shareId: string
+  ): Promise<ShareVerificationPolicyStateDto> {
+    const grant = await this.prisma.sharingGrant.findFirst({
+      // La pertenencia se filtra en la consulta: un grant ajeno luce como uno inexistente.
+      where: { id: shareId, userId },
+      select: {
+        scope: true,
+        expiresAt: true,
+        revokedAt: true,
+        verificationPolicy: {
+          select: {
+            enabled: true,
+            policyVersion: true,
+            updatedAt: true,
+            authorizedCredentials: { select: { credentialId: true } }
+          }
+        }
+      }
+    });
+    if (!grant) throw new ShareVerificationPolicyError('SHARE_NOT_FOUND');
+    if (!supportsContextualVerification(grant.scope)) {
+      throw new ShareVerificationPolicyError('SHARE_SCOPE_NOT_SUPPORTED');
+    }
+    if (!isShareActive(grant)) {
+      throw new ShareVerificationPolicyError('SHARE_NOT_ACTIVE');
+    }
+
+    const current = grant.verificationPolicy;
+    if (!current) {
+      return {
+        configured: false,
+        enabled: false,
+        policyVersion: 0,
+        authorizedCredentialIds: [],
+        effectiveAuthorizedCredentialIds: [],
+        updatedAt: null
+      };
+    }
+
+    return this.stateOf(
+      current.enabled,
+      current.policyVersion,
+      current.authorizedCredentials.map((row) => row.credentialId),
+      current.updatedAt,
+      userId
+    );
+  }
 
   async replaceForShare(
     userId: string,
@@ -208,6 +265,7 @@ export class ShareVerificationPolicyService {
     userId: string
   ): Promise<ShareVerificationPolicyStateDto> {
     return {
+      configured: true,
       enabled,
       policyVersion,
       authorizedCredentialIds,

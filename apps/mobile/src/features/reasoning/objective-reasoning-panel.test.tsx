@@ -401,4 +401,40 @@ describe('resultado completado', () => {
     expect(screen.getByTestId('reasoning-start-new')).toBeTruthy();
     expect(screen.getByText(/no borra este/i)).toBeTruthy();
   });
+
+  it('muestra el historial ya consultado sin leer detalles ni ejecutar otro análisis', async () => {
+    const summaries = reasoningRunSummariesPayload();
+    const current = summaries[1]!;
+    const previous = {
+      ...current,
+      reasoningRunReference: 'run_00',
+      createdAt: '2026-09-20T10:00:00.000Z',
+      startedAt: '2026-09-20T10:00:05.000Z',
+      completedAt: '2026-09-20T10:01:00.000Z',
+      requirementCount: 1
+    };
+    const { calls } = await renderPanel(
+      routes({
+        list: { body: [current, previous] },
+        detail: { body: reasoningRunDetailPayload() }
+      })
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('objective-synthesis')).toBeTruthy()
+    );
+    expect(screen.getByTestId('reasoning-history-toggle')).toBeTruthy();
+    expect(screen.queryByText(/Análisis del .*requisito/)).toBeNull();
+
+    await fireEvent.press(screen.getByTestId('reasoning-history-toggle'));
+
+    expect(screen.getByText(/Análisis del .*1 requisito/)).toBeTruthy();
+    expect(
+      calls.filter(
+        (call) =>
+          call.path === '/me/reasoning-runs/run_01' && call.method === 'GET'
+      )
+    ).toHaveLength(1);
+    expect(calls.some((call) => call.method === 'POST')).toBe(false);
+  });
 });

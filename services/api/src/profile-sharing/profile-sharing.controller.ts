@@ -69,6 +69,18 @@ export class MyProfileSharingController {
   }
 
   /**
+   * Lectura del consentimiento de ESTE holder. A diferencia de `link`, esta
+   * proyección nunca incluye el bearer opaco del enlace y puede ser GET.
+   */
+  @Get('shares/:shareId/verification-policy')
+  getVerificationPolicy(
+    @Param('shareId') shareId: string,
+    @CurrentUser() currentUser: AuthenticatedUser
+  ): Promise<ShareVerificationPolicyStateDto> {
+    return this.verificationPolicy.getForShare(currentUser.id, shareId);
+  }
+
+  /**
    * PUT porque el body describe el conjunto COMPLETO de autorizacion, no un
    * delta: reenviar el mismo estado es idempotente y no mueve `policyVersion`.
    */

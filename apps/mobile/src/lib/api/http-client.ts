@@ -11,7 +11,7 @@ import { ApiError } from '@/lib/errors/api-error';
  * servicio de IA, ni con blockchain, ni con storage, ni con terceros.
  */
 
-export type HttpMethod = 'GET' | 'POST';
+export type HttpMethod = 'GET' | 'POST' | 'PUT';
 
 export interface HttpRequestOptions {
   method?: HttpMethod;

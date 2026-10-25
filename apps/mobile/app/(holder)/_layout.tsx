@@ -60,6 +60,14 @@ export default function HolderLayout() {
           headerBackTitle: 'Credenciales'
         }}
       />
+      <Stack.Screen
+        name="profile-shares"
+        options={{ title: 'Enlaces compartidos', headerBackTitle: 'Perfil' }}
+      />
+      <Stack.Screen
+        name="profile-shares/[shareId]/verification-policy"
+        options={{ title: 'Análisis contextual', headerBackTitle: 'Enlaces' }}
+      />
     </Stack>
   );
 }

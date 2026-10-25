@@ -306,6 +306,20 @@ describe('actualizar perfil', () => {
     );
   });
 
+  it('actualiza la proyección visible con la respuesta autorizada de reconstrucción', async () => {
+    await renderProfile(
+      routes({
+        rebuild: { body: currentProfilePayload({ credentialsCount: 9 }) }
+      })
+    );
+
+    await fireEvent.press(screen.getByTestId('profile-rebuild-action'));
+
+    await waitFor(() =>
+      expect(screen.getByText(/Reúne información de 9 credenciales/)).toBeTruthy()
+    );
+  });
+
   it('un fallo al actualizar se comunica sin romper el perfil visible', async () => {
     await renderProfile(routes({ rebuild: { status: 500 } }));
 

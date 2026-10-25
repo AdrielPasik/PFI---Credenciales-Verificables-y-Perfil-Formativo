@@ -47,6 +47,10 @@ test('gestionar enlaces y politica pasa por AuthGuard y delega con el usuario ac
       }
     } as never,
     {
+      getForShare: async (userId: string, shareId: string) => {
+        seen.push(['policy-read', userId, shareId]);
+        return { configured: true, enabled: true, policyVersion: 2, authorizedCredentialIds: ['c1'], effectiveAuthorizedCredentialIds: ['c1'], updatedAt: null };
+      },
       replaceForShare: async (userId: string, shareId: string, body: unknown) => {
         seen.push(['policy', userId, [shareId, body]]);
         return { enabled: true, policyVersion: 2, authorizedCredentialIds: [], effectiveAuthorizedCredentialIds: [], updatedAt: null };
@@ -56,11 +60,13 @@ test('gestionar enlaces y politica pasa por AuthGuard y delega con el usuario ac
 
   await controller.listProfileShares(currentUser);
   await controller.revokeProfileShare('share-1', currentUser);
+  await controller.getVerificationPolicy('share-1', currentUser);
   await controller.replaceVerificationPolicy('share-1', currentUser, { enabled: true, credentialIds: ['c1'] });
 
   assert.deepEqual(seen, [
     ['list', 'holder-1', null],
     ['revoke', 'holder-1', 'share-1'],
+    ['policy-read', 'holder-1', 'share-1'],
     ['policy', 'holder-1', ['share-1', { enabled: true, credentialIds: ['c1'] }]]
   ]);
 });
@@ -69,7 +75,7 @@ test('el controller publico no expone ninguna operacion de gestion', () => {
   // Regresion de autoridad: si alguna de estas apareciera en el controller sin
   // guard, un tercero con el token podria administrar el permiso del holder.
   const publicMethods = Object.getOwnPropertyNames(PublicProfileSharingController.prototype);
-  for (const forbidden of ['listProfileShares', 'revokeProfileShare', 'replaceVerificationPolicy']) {
+  for (const forbidden of ['listProfileShares', 'revokeProfileShare', 'getVerificationPolicy', 'replaceVerificationPolicy']) {
     assert.equal(publicMethods.includes(forbidden), false, forbidden);
   }
 });

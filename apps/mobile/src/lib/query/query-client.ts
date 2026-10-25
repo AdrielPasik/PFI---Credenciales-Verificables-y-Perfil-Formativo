@@ -58,6 +58,9 @@ export function createQueryClient(overrides?: {
 
 export const queryKeys = {
   profile: ['holder', 'profile', 'current'] as const,
+  profileShares: ['holder', 'profile', 'shares'] as const,
+  profileSharePolicy: (shareId: string) =>
+    ['holder', 'profile', 'shares', shareId, 'verification-policy'] as const,
   credentials: ['holder', 'credentials'] as const,
   credential: (credentialReference: string) =>
     ['holder', 'credentials', credentialReference] as const,

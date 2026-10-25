@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeCard } from '@/components/ui/surfaces';
@@ -27,7 +27,7 @@ import {
   mapReasoningRunActionError,
   mapReasoningRunReadError
 } from '@/lib/errors/reasoning-run-error-mapper';
-import { colors, spacing } from '@/lib/theme/tokens';
+import { colors, radii, spacing } from '@/lib/theme/tokens';
 import type {
   ReasoningRunDetailVM,
   ReasoningRunSummaryVM
@@ -273,6 +273,7 @@ export function ObjectiveReasoningPanel({
       {state.phase === 'run' ? (
         <RunState
           run={state.run}
+          history={state.history}
           onContinue={(reference) => void continueAnalysis(reference)}
           onStartNew={() => void startAnalysis()}
           onOpenCredential={openCredential}
@@ -331,11 +332,13 @@ function ExecutingState() {
 
 function RunState({
   run,
+  history,
   onContinue,
   onStartNew,
   onOpenCredential
 }: {
   run: ReasoningRunDetailVM;
+  history: readonly ReasoningRunSummaryVM[];
   onContinue: (reasoningRunReference: string) => void;
   onStartNew: () => void;
   onOpenCredential: (credentialReference: string) => void;
@@ -435,6 +438,11 @@ function RunState({
         </View>
       ) : null}
 
+      <CompletedRunHistory
+        history={history}
+        currentRunReference={run.reasoningRunReference}
+      />
+
       <ScopeButton
         testID="reasoning-start-new"
         variant="secondary"
@@ -446,6 +454,67 @@ function RunState({
         Un análisis nuevo no borra este: cada uno es una observación fechada con
         la evidencia que existía en ese momento.
       </ScopeText>
+    </View>
+  );
+}
+
+/**
+ * Historial descriptivo de análisis terminados.
+ *
+ * Un run es una observación fechada sobre la evidencia congelada al iniciarlo.
+ * Se listan solamente metadatos ya entregados por el resumen: abrir el
+ * desplegable no lee detalles, no cambia el análisis visible y no dispara IA.
+ */
+function CompletedRunHistory({
+  history,
+  currentRunReference
+}: {
+  history: readonly ReasoningRunSummaryVM[];
+  currentRunReference: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const previous = history.filter(
+    (entry) => entry.reasoningRunReference !== currentRunReference
+  );
+
+  if (previous.length === 0) return null;
+
+  return (
+    <View style={styles.historyCard}>
+      <Pressable
+        testID="reasoning-history-toggle"
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`Análisis anteriores, ${previous.length}`}
+        accessibilityHint={
+          expanded
+            ? 'Oculta el historial de análisis anteriores'
+            : 'Muestra el historial de análisis anteriores'
+        }
+        onPress={() => setExpanded((value) => !value)}
+        style={styles.historyToggle}
+      >
+        <ScopeText variant="smallStrong" tone="strong">
+          Análisis anteriores ({previous.length})
+        </ScopeText>
+        <ScopeText variant="caption" tone="teal">
+          {expanded ? 'Ocultar' : 'Ver'}
+        </ScopeText>
+      </Pressable>
+      {expanded ? (
+        <View style={styles.historyList}>
+          {previous.map((entry) => (
+            <ScopeText
+              key={entry.reasoningRunReference}
+              variant="small"
+              tone="muted"
+            >
+              Análisis del {entry.createdAtLabel} · {entry.requirementCount}{' '}
+              {entry.requirementCount === 1 ? 'requisito' : 'requisitos'}
+            </ScopeText>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -464,6 +533,23 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: spacing.sm
+  },
+  historyCard: {
+    gap: spacing.sm,
+    borderRadius: radii.control,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    backgroundColor: colors.surface.card,
+    padding: spacing.md
+  },
+  historyToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md
+  },
+  historyList: {
+    gap: spacing.xs
   },
   warningText: {
     color: colors.status.warning

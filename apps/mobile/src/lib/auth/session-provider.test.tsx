@@ -14,7 +14,23 @@ import {
   createFetchStub,
   type StubResponse
 } from '@/test/http';
-import { currentUserPayload, loginResponsePayload } from '@/test/fixtures';
+import { currentProfilePayload, currentUserPayload, loginResponsePayload } from '@/test/fixtures';
+import { useProfileRebuild } from '@/features/profile/use-profile';
+import { queryKeys } from '@/lib/query/query-client';
+
+function response(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => JSON.stringify(body)
+  } as unknown as Response;
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((nextResolve) => { resolve = nextResolve; });
+  return { promise, resolve };
+}
 
 // En React Native Testing Library 14 `render` y `renderHook` son asíncronos:
 // siempre se los espera.
@@ -110,6 +126,22 @@ describe('restauración de sesión', () => {
     );
     // El token NO se destruye por un problema de red.
     await expect(storage.getAccessToken()).resolves.toBe('jwt-guardado');
+  });
+
+  it('ignora una restauración antigua que termina después de cerrar sesión', async () => {
+    const pending = deferred<Response>();
+    const fetchImplementation = jest.fn(() => pending.promise) as unknown as typeof fetch;
+    const { result, sessionStorage } = await renderSession({
+      fetchImplementation,
+      storage: new InMemorySessionStorage('jwt-anterior')
+    });
+
+    await waitFor(() => expect(fetchImplementation).toHaveBeenCalledTimes(1));
+    await act(async () => { await result.current.logout(); });
+    await act(async () => { pending.resolve(response(currentUserPayload())); });
+
+    await waitFor(() => expect(result.current.state.status).toBe('unauthenticated'));
+    await expect(sessionStorage.getAccessToken()).resolves.toBeNull();
   });
 });
 
@@ -214,6 +246,27 @@ describe('login', () => {
     });
 
     expect(feedback).toMatchObject({ code: 'service_unavailable' });
+  });
+
+  it('deduplica dos solicitudes de login antes de que el render deshabilite el botón', async () => {
+    const pending = deferred<Response>();
+    const fetchImplementation = jest.fn(() => pending.promise) as unknown as typeof fetch;
+    const { result } = await renderSession({ fetchImplementation });
+    await waitFor(() => expect(result.current.state.status).toBe('unauthenticated'));
+
+    let first: Promise<unknown> | null = null;
+    let second: Promise<unknown> | null = null;
+    await act(async () => {
+      first = result.current.login({ email: 'titular@example.com', password: 'secreto' });
+      second = result.current.login({ email: 'titular@example.com', password: 'secreto' });
+    });
+    expect(fetchImplementation).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      pending.resolve(response(loginResponsePayload()));
+      await Promise.all([first, second]);
+    });
+    expect(result.current.state.status).toBe('authenticated');
   });
 });
 
@@ -355,4 +408,69 @@ describe('requestAuthenticated', () => {
     expect(result.current.state.status).toBe('authenticated');
     await expect(storage.getAccessToken()).resolves.toBe('jwt-guardado');
   });
+
+  it.each([401, 403, 500])('una respuesta tardía %s de A no altera la sesión B', async (lateStatus) => {
+    const pending = deferred<Response>();
+    let calls = 0;
+    const fetchImplementation = jest.fn((input: RequestInfo | URL) => {
+      const path = new URL(String(input)).pathname;
+      calls += 1;
+      if (path === '/auth/me') return Promise.resolve(response(currentUserPayload({ id: 'user-a' })));
+      if (path === '/auth/login') {
+        return Promise.resolve(response(loginResponsePayload({
+          accessToken: 'token-b', user: { id: 'user-b', email: 'b@example.com', did: 'did:web:scope.test:b', displayLabel: 'B', status: 'active' }
+        })));
+      }
+      return pending.promise;
+    }) as unknown as typeof fetch;
+    const { result, sessionStorage } = await renderSession({
+      fetchImplementation,
+      storage: new InMemorySessionStorage('token-a')
+    });
+    await waitFor(() => expect(result.current.state.status).toBe('authenticated'));
+
+    const oldResult = result.current.requestAuthenticated('/me/credentials').then(
+      () => null,
+      (error: unknown) => error
+    );
+    await waitFor(() => expect(calls).toBe(2));
+    await act(async () => { await result.current.logout(); });
+    await act(async () => {
+      await result.current.login({ email: 'b@example.com', password: 'segura' });
+    });
+    await act(async () => { pending.resolve(response({}, lateStatus)); });
+    expect(await oldResult).toMatchObject({ status: lateStatus });
+
+    expect(result.current.state).toMatchObject({ status: 'authenticated', currentUser: { userReference: 'user-b' } });
+    await expect(sessionStorage.getAccessToken()).resolves.toBe('token-b');
+  });
+
+  it('bloquea el éxito tardío de una mutación de A antes de escribir la caché de B', async () => {
+    const pending = deferred<Response>();
+    const fetchImplementation = jest.fn((input: RequestInfo | URL) => {
+      const path = new URL(String(input)).pathname;
+      if (path === '/auth/me') return Promise.resolve(response(currentUserPayload({ id: 'user-a' })));
+      if (path === '/auth/login') return Promise.resolve(response(loginResponsePayload({
+        accessToken: 'token-b', user: { id: 'user-b', email: 'b@example.com', did: 'did:web:scope.test:b', displayLabel: 'B', status: 'active' }
+      })));
+      if (path === '/me/profile/rebuild') return pending.promise;
+      throw new Error(`unexpected path ${path}`);
+    }) as unknown as typeof fetch;
+    const client = new HttpClient('https://api.scope.test', fetchImplementation);
+    const queryClient = createQueryClient({ retry: false });
+    const storage = new InMemorySessionStorage('token-a');
+    function Wrapper({ children }: { children: ReactNode }) {
+      return <QueryClientProvider client={queryClient}><SessionProvider httpClient={client} storage={storage}>{children}</SessionProvider></QueryClientProvider>;
+    }
+    const view = await renderHook(() => ({ session: useSession(), profile: useProfileRebuild() }), { wrapper: Wrapper });
+    await waitFor(() => expect(view.result.current.session.state.status).toBe('authenticated'));
+    await act(async () => { void view.result.current.profile.rebuild(); });
+    await waitFor(() => expect(fetchImplementation).toHaveBeenCalledWith(expect.stringContaining('/me/profile/rebuild'), expect.anything()));
+    await act(async () => { await view.result.current.session.logout(); });
+    await act(async () => { await view.result.current.session.login({ email: 'b@example.com', password: 'segura' }); });
+    await act(async () => { pending.resolve(response(currentProfilePayload())); });
+    await waitFor(() => expect(queryClient.getQueryData(queryKeys.profile)).toBeUndefined());
+    expect(view.result.current.session.state).toMatchObject({ status: 'authenticated', currentUser: { userReference: 'user-b' } });
+  });
+
 });

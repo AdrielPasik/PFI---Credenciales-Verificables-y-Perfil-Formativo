@@ -9,6 +9,7 @@ import { InMemorySessionStorage } from '@/lib/auth/session-storage';
 import type { AppConfig } from '@/lib/config/app-config';
 import { AppConfigProvider } from '@/lib/config/app-config-provider';
 import { createQueryClient } from '@/lib/query/query-client';
+import { currentUserPayload } from '@/test/fixtures';
 import { createRoutedFetchStub, type RouteMap } from '@/test/http';
 
 export const TEST_CONFIG: AppConfig = {
@@ -41,7 +42,14 @@ export async function renderWithProviders(
     fetchImplementation?: typeof fetch;
   } = {}
 ) {
-  const stub = createRoutedFetchStub(routes);
+  // La sesión de prueba se monta con un token. La restauración real consulta
+  // `/auth/me`; sin esta ruta por defecto, una pantalla podía quedar esperando
+  // una autenticación imposible y ocultar un problema ajeno al flujo probado.
+  // Un test que necesite otra respuesta puede sobrescribirla explícitamente.
+  const stub = createRoutedFetchStub({
+    'GET /auth/me': { body: currentUserPayload() },
+    ...routes
+  });
   const httpClient = new HttpClient(
     TEST_CONFIG.apiBaseUrl,
     fetchImplementation ?? stub.fetchImplementation
