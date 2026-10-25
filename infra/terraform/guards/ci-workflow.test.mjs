@@ -32,14 +32,12 @@ test('migra la base descartable y ejecuta los tests PostgreSQL de recuperacion y
   assert.match(code, /npm run test:legacy-token-compat-pg --workspace services\/api/);
 });
 
-test('rechaza omisiones silenciosas: fail 0, skipped 0 y al menos un test, con pipefail', () => {
-  assert.equal((code.match(/set -o pipefail/g) ?? []).length, 2);
-  for (const log of ['pg-recovery.log', 'pg-t2.log']) {
-    assert.match(code, new RegExp(`grep -Eq '\\^ℹ fail 0\\$' ${log.replace('.', '\\.')}`));
-    assert.match(code, new RegExp(`grep -Eq '\\^ℹ skipped 0\\$' ${log.replace('.', '\\.')}`));
-    assert.match(code, new RegExp(`! grep -Eq '\\^ℹ tests 0\\$' ${log.replace('.', '\\.')}`));
-  }
-  assert.doesNotMatch(code, /continue-on-error|\|\|\s*true/);
+test('rechaza omisiones silenciosas: cada paso valida el resumen real (exit, tests>0, fail 0, skipped 0)', () => {
+  // La logica del validador se prueba en ci-summary-validator.test.mjs; aqui, que los dos pasos la usen.
+  assert.equal((code.match(/check_node_test_summary pg-(recovery|t2)\.log "\$status"/g) ?? []).length, 2);
+  assert.equal((code.match(/status="\$\{PIPESTATUS\[0\]\}"/g) ?? []).length, 2);
+  assert.doesNotMatch(code, /continue-on-error|\|\|\s*true\s*$/m);
+  assert.doesNotMatch(code, /--test-reporter/);
 });
 
 test('los scripts npm exigen TEST_DATABASE_URL (la ausencia es un fallo, no una omision)', () => {
