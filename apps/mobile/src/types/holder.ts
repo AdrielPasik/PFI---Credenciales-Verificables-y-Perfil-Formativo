@@ -32,10 +32,15 @@ export interface HolderCredentialListItemVM {
 export interface HolderCredentialIntegrityRecordVM {
   networkLabel: string;
   chainId: number;
-  txHash: string;
-  txHashShort: string;
+  /** Estado crudo provisto por el backend (`pending`, `registered`, `revoked`). */
+  status: string;
+  /** `null` es válido mientras un registro `pending` aún no observó transacción. */
+  txHash: string | null;
+  txHashShort: string | null;
   statusLabel: string;
-  registeredAtLabel: string;
+  /** `null` es válido mientras un registro `pending` aún no fue registrado en cadena. */
+  registeredAtLabel: string | null;
+  revokedAtLabel: string | null;
 }
 
 export interface HolderCredentialIntegrityVM {

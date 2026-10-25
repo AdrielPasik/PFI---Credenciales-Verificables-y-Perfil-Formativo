@@ -372,24 +372,32 @@ export function adaptMyCredential(
       records: blockchainRecords.map((value, index) => {
         const path = `credential.blockchainRecords[${index}]`;
         const item = record(value, path);
-        const txHash =
-          nullableHash(item.txHash, `${path}.txHash`) ??
-          requiredString(item.txHash, `${path}.txHash`);
+        const status = requiredString(item.status, `${path}.status`);
+        const pending = status.trim().toLowerCase() === 'pending';
+        const txHash = nullableHash(item.txHash, `${path}.txHash`);
+
+        // El backend conserva la credencial emitida aunque el anclaje todavía
+        // no haya producido hechos de cadena. Sólo `pending` admite estos
+        // campos nulos; para cualquier otro estado la respuesta sigue siendo
+        // inválida si faltan hash o fecha.
+        if (txHash === null && !pending) {
+          invalid(`${path}.txHash`, '0x-prefixed 32-byte hash', item.txHash);
+        }
 
         return {
           networkLabel: formatBlockchainNetwork(
             requiredString(item.network, `${path}.network`)
           ),
           chainId: nonNegativeInteger(item.chainId, `${path}.chainId`),
+          status,
           txHash,
-          txHashShort: abbreviateTechnicalReference(txHash),
-          statusLabel: formatBlockchainEvidenceStatus(
-            requiredString(item.status, `${path}.status`)
-          ),
-          registeredAtLabel: dateLabel(
-            item.registeredAt,
-            `${path}.registeredAt`
-          )
+          txHashShort:
+            txHash === null ? null : abbreviateTechnicalReference(txHash),
+          statusLabel: formatBlockchainEvidenceStatus(status),
+          registeredAtLabel: pending
+            ? nullableDateLabel(item.registeredAt, `${path}.registeredAt`)
+            : dateLabel(item.registeredAt, `${path}.registeredAt`),
+          revokedAtLabel: nullableDateLabel(item.revokedAt, `${path}.revokedAt`)
         };
       })
     },

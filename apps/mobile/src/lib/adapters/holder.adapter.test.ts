@@ -78,6 +78,117 @@ describe('adaptMyCredentials', () => {
 });
 
 describe('adaptMyCredential', () => {
+  it('distingue una credencial sin registro blockchain de un registro pending', () => {
+    const withoutRecord = adaptMyCredential(
+      credentialDetailPayload({ blockchainRecords: [] })
+    );
+    const pending = adaptMyCredential(
+      credentialDetailPayload({
+        blockchainRecords: [
+          {
+            network: 'base-sepolia',
+            chainId: 84_532,
+            txHash: null,
+            status: 'pending',
+            registeredAt: null,
+            revokedAt: null
+          }
+        ]
+      })
+    );
+
+    expect(withoutRecord.integrity.records).toEqual([]);
+    expect(pending.integrity.records[0]).toMatchObject({
+      status: 'pending',
+      statusLabel: 'Registro pendiente',
+      txHash: null,
+      txHashShort: null,
+      registeredAtLabel: null
+    });
+    // La ausencia de hechos de cadena no oculta el contenido emitido.
+    expect(pending.subject.achievementName).toBe('Sistemas Operativos');
+  });
+
+  it('acepta los datos parciales permitidos de un pending', () => {
+    const detail = adaptMyCredential(
+      credentialDetailPayload({
+        blockchainRecords: [
+          {
+            network: 'base-sepolia',
+            chainId: 84_532,
+            txHash: LONG_HASH,
+            status: 'pending',
+            registeredAt: null,
+            revokedAt: null
+          }
+        ]
+      })
+    );
+
+    expect(detail.integrity.records[0]?.txHash).toBe(LONG_HASH);
+    expect(detail.integrity.records[0]?.registeredAtLabel).toBeNull();
+  });
+
+  it('adapta registered, failed histórico y revoked cuando conservan los hechos obligatorios', () => {
+    const statuses = ['registered', 'failed', 'revoked'] as const;
+
+    for (const status of statuses) {
+      const detail = adaptMyCredential(
+        credentialDetailPayload({
+          blockchainRecords: [
+            {
+              network: 'base-sepolia',
+              chainId: 84_532,
+              txHash: LONG_HASH,
+              status,
+              registeredAt: '2026-03-14T10:05:00.000Z',
+              revokedAt: status === 'revoked' ? '2026-03-15T10:05:00.000Z' : null
+            }
+          ]
+        })
+      );
+
+      expect(detail.integrity.records[0]?.txHash).toBe(LONG_HASH);
+      expect(detail.integrity.records[0]?.registeredAtLabel).not.toBeNull();
+    }
+  });
+
+  it('mantiene estrictos los campos blockchain obligatorios fuera de pending', () => {
+    expect(() =>
+      adaptMyCredential(
+        credentialDetailPayload({
+          blockchainRecords: [
+            {
+              network: 'base-sepolia',
+              chainId: 84_532,
+              txHash: null,
+              status: 'registered',
+              registeredAt: null,
+              revokedAt: null
+            }
+          ]
+        })
+      )
+    ).toThrow(IncompatiblePayloadError);
+
+    expect(() =>
+      adaptMyCredential(
+        credentialDetailPayload({
+          blockchainRecords: [
+            {
+              network: null,
+              chainId: 84_532,
+              txHash: LONG_HASH,
+              status: 'registered',
+              registeredAt: '2026-03-14T10:05:00.000Z',
+              revokedAt: null
+            }
+          ]
+        })
+      )
+    ).toThrow(IncompatiblePayloadError);
+  });
+
   it('conserva contenido declarado de 500 caracteres sin truncarlo', () => {
     const detail = adaptMyCredential(credentialDetailPayload());
 
