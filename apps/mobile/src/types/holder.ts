@@ -31,6 +31,7 @@ export interface HolderCredentialListItemVM {
 
 export interface HolderCredentialIntegrityRecordVM {
   networkLabel: string;
+  transactionExplorerUrl: string | null;
   chainId: number;
   /** Estado crudo provisto por el backend (`pending`, `registered`, `revoked`). */
   status: string;

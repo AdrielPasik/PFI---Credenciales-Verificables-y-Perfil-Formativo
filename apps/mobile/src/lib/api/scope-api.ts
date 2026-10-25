@@ -13,7 +13,12 @@ import {
   adaptObjectiveProposal,
   adaptObjectiveSummaries
 } from '@/lib/adapters/objectives.adapter';
-import { adaptProfileShareLink } from '@/lib/adapters/profile-sharing.adapter';
+import {
+  adaptProfileShareLink,
+  adaptProfileShareSummaries,
+  adaptRecoveredProfileShareLink,
+  adaptShareVerificationPolicy
+} from '@/lib/adapters/profile-sharing.adapter';
 import {
   adaptReasoningRunDetail,
   adaptReasoningRunSummaries
@@ -41,7 +46,12 @@ import type {
   ReasoningRunDetailVM,
   ReasoningRunSummaryVM
 } from '@/types/reasoning-runs';
-import type { ProfileShareLinkVM } from '@/types/sharing';
+import type {
+  ProfileShareLinkVM,
+  ProfileShareSummaryVM,
+  RecoveredProfileShareLinkVM,
+  ShareVerificationPolicyVM
+} from '@/types/sharing';
 
 /**
  * Inventario completo de endpoints que consume la app móvil.
@@ -157,6 +167,58 @@ export async function createProfileShareRequest(
 ): Promise<ProfileShareLinkVM> {
   return adaptProfileShareLink(
     await request('/me/profile/share', { method: 'POST' })
+  );
+}
+
+/** GET /me/profile/shares. Deliberadamente no devuelve tokens. */
+export async function listMyProfileSharesRequest(
+  request: AuthenticatedRequest
+): Promise<ProfileShareSummaryVM[]> {
+  return adaptProfileShareSummaries(await request('/me/profile/shares'));
+}
+
+/** POST /me/profile/shares/:id/link. Sólo se llama por acción explícita. */
+export async function recoverProfileShareLinkRequest(
+  request: AuthenticatedRequest,
+  shareId: string
+): Promise<RecoveredProfileShareLinkVM> {
+  return adaptRecoveredProfileShareLink(
+    await request(`/me/profile/shares/${encodeURIComponent(shareId)}/link`, {
+      method: 'POST'
+    })
+  );
+}
+
+/** POST /me/profile/shares/:id/revoke. La autoridad de revocación es backend. */
+export async function revokeProfileShareRequest(
+  request: AuthenticatedRequest,
+  shareId: string
+): Promise<void> {
+  await request(`/me/profile/shares/${encodeURIComponent(shareId)}/revoke`, {
+    method: 'POST'
+  });
+}
+
+/** PUT reemplaza explícitamente el conjunto completo de consentimiento. */
+export async function replaceShareVerificationPolicyRequest(
+  request: AuthenticatedRequest,
+  shareId: string,
+  policy: { enabled: boolean; credentialIds: string[] }
+): Promise<ShareVerificationPolicyVM> {
+  return adaptShareVerificationPolicy(
+    await request(`/me/profile/shares/${encodeURIComponent(shareId)}/verification-policy`, {
+      method: 'PUT', body: policy
+    })
+  );
+}
+
+/** GET del conjunto autoritativo antes de editar un PUT de reemplazo. */
+export async function getShareVerificationPolicyRequest(
+  request: AuthenticatedRequest,
+  shareId: string
+): Promise<ShareVerificationPolicyVM> {
+  return adaptShareVerificationPolicy(
+    await request(`/me/profile/shares/${encodeURIComponent(shareId)}/verification-policy`)
   );
 }
 

@@ -132,6 +132,64 @@ async function codeOf(run: () => Promise<unknown>): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
+// Lectura owner-scoped para editar sin reemplazar una selección desconocida
+// ---------------------------------------------------------------------------
+
+test('la lectura devuelve la selección persistida sin exponer token ni escribir', async () => {
+  const current = {
+    id: 'policy-1', enabled: true, policyVersion: 3, updatedAt: new Date(0),
+    authorizedCredentials: [{ credentialId: 'cred-b' }, { credentialId: 'cred-a' }]
+  };
+  const { prisma, writes } = fakePrisma(grantWith(current), ISSUED);
+
+  const state = await new ShareVerificationPolicyService(prisma).getForShare(HOLDER, SHARE);
+
+  assert.deepEqual(state, {
+    configured: true,
+    enabled: true,
+    policyVersion: 3,
+    authorizedCredentialIds: ['cred-b', 'cred-a'],
+    effectiveAuthorizedCredentialIds: ['cred-b', 'cred-a'],
+    updatedAt: new Date(0).toISOString()
+  });
+  assert.equal(writes.transactions, 0);
+  assert.deepEqual(writes.created, []);
+  assert.deepEqual(writes.updated, []);
+});
+
+test('la lectura distingue una política no configurada de una selección vacía configurada', async () => {
+  const missing = await new ShareVerificationPolicyService(
+    fakePrisma(grantWith(null), ISSUED).prisma
+  ).getForShare(HOLDER, SHARE);
+  const configuredEmpty = await new ShareVerificationPolicyService(
+    fakePrisma(
+      grantWith({ id: 'policy-1', enabled: false, policyVersion: 1, updatedAt: new Date(0), authorizedCredentials: [] }),
+      ISSUED
+    ).prisma
+  ).getForShare(HOLDER, SHARE);
+
+  assert.equal(missing.configured, false);
+  assert.deepEqual(missing.authorizedCredentialIds, []);
+  assert.equal(configuredEmpty.configured, true);
+  assert.deepEqual(configuredEmpty.authorizedCredentialIds, []);
+});
+
+test('la lectura conserva las mismas fronteras de dueño y ciclo de vida que el PUT', async () => {
+  for (const [grant, expected] of [
+    [null, 'SHARE_NOT_FOUND'],
+    [grantWith(null, { userId: 'other-holder' }), 'SHARE_NOT_FOUND'],
+    [grantWith(null, { revokedAt: new Date() }), 'SHARE_NOT_ACTIVE'],
+    [grantWith(null, { expiresAt: new Date(0) }), 'SHARE_NOT_ACTIVE']
+  ] as const) {
+    const { prisma } = fakePrisma(grant, ISSUED);
+    assert.equal(
+      await codeOf(() => new ShareVerificationPolicyService(prisma).getForShare(HOLDER, SHARE)),
+      expected
+    );
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Default y habilitacion
 // ---------------------------------------------------------------------------
 
@@ -492,6 +550,7 @@ test('la respuesta no filtra estado interno de la politica', async () => {
 
   assert.deepEqual(Object.keys(state).sort(), [
     'authorizedCredentialIds',
+    'configured',
     'effectiveAuthorizedCredentialIds',
     'enabled',
     'policyVersion',

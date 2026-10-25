@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
+import { ScopeButton } from '@/components/ui/button';
 import {
   DeclaredTextList,
   TaxonomyList,
@@ -515,6 +516,14 @@ function IntegritySection({ detail }: { detail: HolderCredentialDetailVM }) {
                     Todavía no hay una transacción confirmada para este registro.
                   </ScopeText>
                 )}
+                {record.transactionExplorerUrl !== null ? (
+                  <ScopeButton
+                    label="Ver transacción"
+                    variant="ghost"
+                    onPress={() => void Linking.openURL(record.transactionExplorerUrl ?? '')}
+                    accessibilityHint="Abre la transacción en el explorador blockchain"
+                  />
+                ) : null}
                 {record.registeredAtLabel !== null ? (
                   <ScopeText variant="caption" tone="muted">
                     Registrado el {record.registeredAtLabel}

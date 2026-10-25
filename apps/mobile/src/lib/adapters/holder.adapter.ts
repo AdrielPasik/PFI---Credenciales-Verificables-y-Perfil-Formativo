@@ -31,6 +31,7 @@ import {
   formatQualityFlag,
   pluralCredential
 } from '@/lib/format/display';
+import { buildTransactionExplorerUrl } from '@/features/credentials/blockchain-explorer';
 import type {
   HolderCredentialDetailVM,
   HolderCredentialListItemVM,
@@ -384,11 +385,12 @@ export function adaptMyCredential(
           invalid(`${path}.txHash`, '0x-prefixed 32-byte hash', item.txHash);
         }
 
+        const network = requiredString(item.network, `${path}.network`);
+        const chainId = nonNegativeInteger(item.chainId, `${path}.chainId`);
         return {
-          networkLabel: formatBlockchainNetwork(
-            requiredString(item.network, `${path}.network`)
-          ),
-          chainId: nonNegativeInteger(item.chainId, `${path}.chainId`),
+          networkLabel: formatBlockchainNetwork(network),
+          transactionExplorerUrl: buildTransactionExplorerUrl({ network, chainId, txHash }),
+          chainId,
           status,
           txHash,
           txHashShort:

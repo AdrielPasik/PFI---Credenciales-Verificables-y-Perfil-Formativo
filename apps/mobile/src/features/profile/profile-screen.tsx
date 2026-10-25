@@ -116,6 +116,13 @@ export function ProfileScreen() {
                 onCopyLink={() => void share.copyLink()}
                 onOpenPublicView={() => void share.openPublicView()}
               />
+              <ScopeButton
+                testID="profile-share-management"
+                variant="ghost"
+                label="Gestionar enlaces compartidos"
+                onPress={() => router.push('/profile-shares')}
+                accessibilityHint="Consulta, recupera o revoca enlaces de tu perfil"
+              />
               <RebuildAction rebuild={rebuild} />
             </ScopeCard>
           </ScopeSection>
