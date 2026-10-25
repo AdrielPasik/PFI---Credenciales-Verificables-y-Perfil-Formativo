@@ -365,12 +365,19 @@ test('IssuersService sigue autorizando SOLO por membership y estado del issuer',
   assert.doesNotMatch(code, /platformAdmin/i);
 });
 
-test('el intent no viaja en el token: JwtPayload sigue siendo solo `sub`', () => {
+test('el intent no viaja en el token: JwtPayload es solo identidad y version de sesion (`sub`, `sv`)', () => {
   const relativePath = join('auth', 'auth.types.ts');
   const code = readFileSync(join(SRC, relativePath), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
     .replace(/^\s*\/\/.*$/gm, ' ');
 
-  assert.match(code, /interface JwtPayload \{\s*sub: string;\s*\}/);
+  // Forma EXACTA: cualquier claim adicional rompe este test. `sv` es la version
+  // de sesion (autenticacion, no autorizacion); el intent sigue sin entrar.
+  assert.match(
+    code,
+    /interface JwtPayload \{\s*sub: string;\s*sv\?: number;\s*\}/
+  );
+  const payloadBody = code.match(/interface JwtPayload \{([\s\S]*?)\}/)?.[1] ?? '';
+  assert.doesNotMatch(payloadBody, /onboarding|intent/i);
   assert.deepEqual(readsIn(relativePath), []);
 });

@@ -1,0 +1,42 @@
+{
+  "_comment": "Lecturas que el provider hashicorp/aws 6.66 hace al REFRESCAR cada tipo de recurso del root prod/. Es una PROPUESTA basada en el comportamiento conocido del provider: NO esta verificada contra una ejecucion real. Se contrasta con CloudTrail (eventos de lectura de rol de aplicacion anterior) y con el primer plan; un AccessDenied nombra la accion faltante. Un tipo de recurso nuevo en el codigo SIN entrada aqui hace fallar iam-plan-policy-check.mjs: obliga a revisar permisos.",
+  "_evidence_status": "PROPUESTA_SIN_PROBAR",
+  "_resource_level_authorization": "Segun la Service Reference oficial de AWS, logs:DescribeLogGroups y servicediscovery:ListTagsForResource NO admiten autorizacion a nivel de recurso: solo se autorizan con Resource \"*\" (acotado con aws:RequestedRegion = us-east-1). Un ARN en su Resource nunca las habilita. Las demas acciones de este inventario se autorizan sobre el tipo de recurso que la referencia lista (iam-plan-policy-check.mjs impide que una accion sin recurso lleve un ARN: WILDCARD_ONLY_ACTIONS).",
+  "types": {
+    "aws_vpc": ["ec2:DescribeVpcs", "ec2:DescribeVpcAttribute", "ec2:DescribeRouteTables", "ec2:DescribeNetworkAcls", "ec2:DescribeSecurityGroups", "ec2:DescribeTags"],
+    "aws_subnet": ["ec2:DescribeSubnets", "ec2:DescribeTags"],
+    "aws_internet_gateway": ["ec2:DescribeInternetGateways", "ec2:DescribeTags"],
+    "aws_route_table": ["ec2:DescribeRouteTables", "ec2:DescribeTags"],
+    "aws_route_table_association": ["ec2:DescribeRouteTables"],
+    "aws_vpc_endpoint": ["ec2:DescribeVpcEndpoints", "ec2:DescribePrefixLists", "ec2:DescribeTags"],
+    "aws_security_group": ["ec2:DescribeSecurityGroups", "ec2:DescribeSecurityGroupRules", "ec2:DescribeTags"],
+    "aws_vpc_security_group_ingress_rule": ["ec2:DescribeSecurityGroupRules", "ec2:DescribeTags"],
+    "aws_vpc_security_group_egress_rule": ["ec2:DescribeSecurityGroupRules", "ec2:DescribeTags"],
+    "aws_lb": ["elasticloadbalancing:DescribeLoadBalancers", "elasticloadbalancing:DescribeLoadBalancerAttributes", "elasticloadbalancing:DescribeTags"],
+    "aws_lb_target_group": ["elasticloadbalancing:DescribeTargetGroups", "elasticloadbalancing:DescribeTargetGroupAttributes", "elasticloadbalancing:DescribeTags"],
+    "aws_lb_listener": ["elasticloadbalancing:DescribeListeners", "elasticloadbalancing:DescribeListenerAttributes", "elasticloadbalancing:DescribeTags"],
+    "aws_acm_certificate": ["acm:DescribeCertificate", "acm:ListTagsForCertificate"],
+    "aws_ecs_cluster": ["ecs:DescribeClusters"],
+    "aws_ecs_service": ["ecs:DescribeServices"],
+    "aws_ecs_task_definition": ["ecs:DescribeTaskDefinition"],
+    "aws_ecr_repository": ["ecr:DescribeRepositories", "ecr:ListTagsForResource"],
+    "aws_ecr_lifecycle_policy": ["ecr:GetLifecyclePolicy"],
+    "aws_cloudwatch_log_group": ["logs:DescribeLogGroups", "logs:ListTagsForResource"],
+    "aws_iam_role": ["iam:GetRole", "iam:ListRolePolicies", "iam:ListAttachedRolePolicies", "iam:ListRoleTags"],
+    "aws_iam_role_policy": ["iam:GetRolePolicy"],
+    "aws_iam_openid_connect_provider": ["iam:GetOpenIDConnectProvider", "iam:ListOpenIDConnectProviderTags"],
+    "aws_db_instance": ["rds:DescribeDBInstances", "rds:ListTagsForResource"],
+    "aws_db_subnet_group": ["rds:DescribeDBSubnetGroups", "rds:ListTagsForResource"],
+    "aws_ssm_parameter": ["ssm:GetParameter", "ssm:DescribeParameters", "ssm:ListTagsForResource"],
+    "aws_service_discovery_private_dns_namespace": ["servicediscovery:GetNamespace", "servicediscovery:ListTagsForResource"],
+    "aws_service_discovery_service": ["servicediscovery:GetService", "servicediscovery:ListTagsForResource"],
+    "aws_sfn_state_machine": ["states:DescribeStateMachine", "states:ListStateMachineVersions", "states:ListTagsForResource"]
+  },
+  "gated_not_in_state_by_default": {
+    "_comment": "Recursos con count/for_each = 0 en la configuracion vigente. Si NO estan en el estado, el plan no los lee y no hacen falta permisos. Si alguno SI estuviera en el estado (p. ej. creado antes y luego deshabilitado), el refresh necesitaria la lectura y el plan propondria destruirlo: aparecera como AccessDenied nombrando la accion (y como destruccion rechazada por plan-acceptance).",
+    "aws_route53_record": ["route53:GetHostedZone", "route53:ListResourceRecordSets"],
+    "aws_cloudwatch_log_metric_filter": ["logs:DescribeMetricFilters"],
+    "aws_cloudwatch_metric_alarm": ["cloudwatch:DescribeAlarms", "cloudwatch:ListTagsForResource"]
+  },
+  "no_aws_api_call": ["data.aws_iam_policy_document", "data.aws_caller_identity (solo sts:GetCallerIdentity, que no requiere permiso IAM)"]
+}

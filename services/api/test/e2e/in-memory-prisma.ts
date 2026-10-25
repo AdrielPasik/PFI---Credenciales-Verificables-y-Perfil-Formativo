@@ -60,6 +60,8 @@ export interface AuthCredentialRow {
   id: string;
   userId: string;
   passwordHash: string;
+  /** Int NOT NULL DEFAULT 0. Sube cuando se invalidan las sesiones de la cuenta. */
+  sessionVersion: number;
 }
 
 export interface PlatformAdminRow {
@@ -262,13 +264,21 @@ export class InMemoryPrisma {
   };
 
   readonly authCredential = {
-    create: async (args: { data: { userId: string; passwordHash: string } }) => {
+    create: async (args: {
+      data: { userId: string; passwordHash: string };
+      select?: Select;
+    }) => {
       if (this.store.authCredentials.some((c) => c.userId === args.data.userId)) {
         throw uniqueViolation(['userId']);
       }
-      const row: AuthCredentialRow = { id: nextId('cred'), ...args.data };
+      // El DEFAULT de la columna lo completa la base, no el llamador.
+      const row: AuthCredentialRow = {
+        id: nextId('cred'),
+        ...args.data,
+        sessionVersion: 0
+      };
       this.store.authCredentials.push(row);
-      return { ...row };
+      return projectScalars({ ...row }, args.select);
     }
   };
 
@@ -510,6 +520,19 @@ export class InMemoryPrisma {
         (row) => row.userId === user.id
       );
       out.authCredential = credential ? { ...credential } : null;
+    }
+
+    // Guard de autenticacion: `authCredential: { select: { sessionVersion } }`.
+    const authCredentialSelect = select?.authCredential as
+      | { select?: Select }
+      | undefined;
+    if (authCredentialSelect && typeof authCredentialSelect === 'object') {
+      const credential = this.store.authCredentials.find(
+        (row) => row.userId === user.id
+      );
+      out.authCredential = credential
+        ? projectScalars({ ...credential }, authCredentialSelect.select)
+        : null;
     }
 
     // `/auth/me`: presencia/ausencia de la capacidad de plataforma.

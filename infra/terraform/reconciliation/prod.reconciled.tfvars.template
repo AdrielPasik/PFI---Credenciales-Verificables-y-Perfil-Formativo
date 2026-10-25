@@ -1,0 +1,94 @@
+# ===========================================================================
+# PLANTILLA de entradas reconciliadas para la raiz infra/terraform/prod/
+#
+#   *** NO ES terraform.tfvars Y NO SE CARGA SOLA ***  (la extension .template impide que
+#   Terraform la lea).  Los valores REALES de produccion NO se versionan: viven en el
+#   terraform.tfvars local del operador (ignorado por git), junto a backend.hcl.
+#
+# Esta plantilla conserva la ESTRUCTURA, los nombres de variable y los valores que son
+# decisiones de diseno (booleanos, region, modo de blockchain). Todo valor que describe el
+# ESTADO DESPLEGADO se reemplaza por un marcador <...> que hay que completar con evidencia.
+#
+# Como se completa cada marcador (SOLO LECTURA; nunca se copian de un tfvars viejo):
+#
+#   <API_IMAGE_TAG>           tag EXACTO (40 hex) de la imagen que corre la API:
+#                             aws ecs describe-task-definition --task-definition scope-prod-api
+#                               --query 'taskDefinition.containerDefinitions[?name==`api`].image'
+#   <AI_IMAGE_TAG>            idem para scope-prod-ai.
+#   <MIGRATOR_IMAGE_TAG>      tag de la ULTIMA revision ACTIVA de scope-prod-migrator (primer apply: el
+#                             mismo que corre hoy, para que su imagen NO cambie).
+#   <PROVISIONER_IMAGE_DIGEST> digest (sha256:...) de la revision viva scope-prod-provisioner.
+#   <WEB_ORIGIN>              origen de Scope Web que ya esta en WEB_ORIGIN de la task definition de la
+#                             API (un solo origen, sin "/" final).
+#   <GITHUB_OWNER>, <GITHUB_REPOSITORY>   propietario y repositorio cuyo Environment `production` puede
+#                             asumir el rol de despliegue (debe coincidir con la confianza del rol vivo).
+#
+# `node infra/terraform/guards/pre-plan-guard.mjs` compara estos valores con lo que ejecuta ECS y se
+# detiene (exit 1/2) si algun marcador quedo sin completar o no coincide. Que ECS muestre un valor NO
+# prueba que el estado remoto de Terraform lo contenga: el primer plan real es la comparacion valida.
+# ===========================================================================
+
+aws_region  = "us-east-1"
+environment = "prod"
+
+# --- Capacidad: Terraform la gobierna (sin ignore_changes) --------------------------------
+manage_ecs_services = true
+enable_services     = true   # con false, un apply apagaria API e IA
+api_desired_count   = 1      # solo 0 o 1 son validos
+ai_desired_count    = 1
+
+# --- Ingreso ---------------------------------------------------------------------------------
+enable_https_listener = true
+create_api_dns_record = false   # el CNAME de la API es DNS EXTERNO, no lo gestiona Terraform
+
+# --- Certificado ACM ---------------------------------------------------------------------------
+# El certificado en uso lo gestiona esta raiz (se infiere de sus etiquetas ManagedBy=terraform /
+# Root=infra/terraform/prod); lo confirma el plan de linea base (aws_acm_certificate.api[0] en el estado).
+request_acm_certificate = true
+# acm_certificate_arn: DEJAR VACIO (default ""). NO copiar el ARN observado: con request_acm_certificate
+# = false y el ARN puesto, el certificado en uso se planificaria para DESTRUCCION.
+
+# --- Imagenes (valores COMPLETOS, no prefijos) ------------------------------------------------
+api_image_tag            = "<API_IMAGE_TAG>"
+ai_image_tag             = "<AI_IMAGE_TAG>"
+# OBLIGATORIA, sin default y sin fallback a api_image_tag.
+migrator_image_tag       = "<MIGRATOR_IMAGE_TAG>"
+# OBLIGATORIA, sin default.
+provisioner_image_digest = "<PROVISIONER_IMAGE_DIGEST>"
+
+# --- Aplicacion ----------------------------------------------------------------------------------
+web_origin                 = "<WEB_ORIGIN>"
+profile_embeddings_enabled = true
+ai_area_embeddings_enabled = true
+blockchain_evidence_mode   = "credential_registry"
+# profile_embeddings_model_dir, ai_service_timeout_ms, ai_internal_jwt_*, jwt_expires_in, public_did_base_url:
+# si los valores vivos coinciden con los defaults del repo, no se repiten aqui.
+
+# --- Base de datos -------------------------------------------------------------------------------
+create_rds                = true
+rds_backup_retention_days = 1
+# rds_deletion_protection: default true. Los demas rds_* coinciden con sus defaults: no se repiten.
+# rds_final_snapshot_suffix: es un ARGUMENTO que se guarda en el estado; si el valor aplicado fuera otro
+# que el default del repo, el plan de linea base mostraria una actualizacion in-place de ese campo.
+rds_final_snapshot_suffix = "v1"
+
+# --- Federacion GitHub ---------------------------------------------------------------------------
+# La confianza del rol de despliegue es EXACTAMENTE:  aud = sts.amazonaws.com  y
+# sub = repo:<GITHUB_OWNER>/<GITHUB_REPOSITORY>:environment:production
+enable_github_oidc          = true
+create_github_oidc_provider = true
+github_owner                = "<GITHUB_OWNER>"
+github_repository           = "<GITHUB_REPOSITORY>"
+github_deploy_environments  = ["production"]
+# La restriccion es por GitHub Environment (no por rama): que `production` tenga sus reglas de
+# proteccion en GitHub NO es verificable desde AWS.
+
+# --- Sonda ECS / provisioner -----------------------------------------------------------------
+# ecs_sync_probe.auto.tfvars esta VERSIONADO y Terraform lo carga solo: no repetir. Con
+# enable_ecs_sync_probe_github_oidc_caller = false, github_oidc_repository_id y
+# github_oidc_repository_owner_id no se usan y se dejan en null.
+
+# --- Recuperacion de contrasena: NO forma parte de la linea base ---------------------------------
+# Adrede ausente: la primera comparacion debe hacerse SIN estas variables (defaults: mail_transport =
+# "disabled", sin alarmas). Los unicos cambios que deben aparecer despues son los de la recuperacion.
+# mail_transport = "disabled"; mail_from = <default>; web_public_base_url = ""; enable_recovery_alarms = false

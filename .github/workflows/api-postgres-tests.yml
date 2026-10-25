@@ -1,0 +1,104 @@
+name: API PostgreSQL tests
+
+# TEST ONLY. Runs the API tests that need a REAL PostgreSQL against a disposable database
+# started inside this job. It uses only throwaway test credentials and has no access to AWS,
+# RDS, production networks or any secret: no `id-token`, no `environment`, no secrets.
+#
+# What it enforces (a missing database, a failing migration or a silently skipped test FAILS the job):
+#   1. every Prisma migration applies on an empty PostgreSQL 16 (`prisma migrate deploy`);
+#   2. the Password Recovery tests that depend on real PostgreSQL guarantees
+#      (`test:password-recovery-pg`: advisory locks, conditional UPDATEs, rollbacks);
+#   3. T2, the JWT compatibility test: the recovery migration applied over pre-existing rows
+#      (`test:legacy-token-compat-pg`).
+#
+# It does not build or publish images, run migrations anywhere else, or touch the production
+# workflows (publish-production-images, run-production-migrator, ...).
+
+on:
+  pull_request:
+    paths:
+      - "services/api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-postgres-tests.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "services/api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-postgres-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-postgres-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: scope_recovery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d scope_recovery_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      # Throwaway credentials for a database that exists only inside this job.
+      DATABASE_URL: postgresql://postgres:test@127.0.0.1:5432/scope_recovery_test
+      TEST_DATABASE_URL: postgresql://postgres:test@127.0.0.1:5432/scope_recovery_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate the Prisma client
+        run: npm run prisma:generate --workspace services/api
+
+      # Fails the job if the database is unreachable or any migration (including the
+      # password-recovery one) does not apply on an empty PostgreSQL 16.
+      - name: Apply all migrations to the disposable database
+        run: npm exec --workspace services/api -- prisma migrate deploy --schema prisma/schema.prisma
+
+      # The npm scripts fail by themselves when TEST_DATABASE_URL is missing; the explicit
+      # summary check below additionally refuses "tests skipped" or "zero tests ran".
+      - name: Password Recovery tests on real PostgreSQL
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:password-recovery-pg --workspace services/api -- --test-reporter=spec 2>&1 | tee pg-recovery.log
+          grep -Eq '^ℹ fail 0$' pg-recovery.log
+          grep -Eq '^ℹ skipped 0$' pg-recovery.log
+          ! grep -Eq '^ℹ tests 0$' pg-recovery.log
+
+      - name: JWT compatibility T2 (migration over pre-existing data)
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:legacy-token-compat-pg --workspace services/api -- --test-reporter=spec 2>&1 | tee pg-t2.log
+          grep -Eq '^ℹ fail 0$' pg-t2.log
+          grep -Eq '^ℹ skipped 0$' pg-t2.log
+          ! grep -Eq '^ℹ tests 0$' pg-t2.log

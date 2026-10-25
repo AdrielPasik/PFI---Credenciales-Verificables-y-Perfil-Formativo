@@ -82,3 +82,27 @@ rds_final_snapshot_suffix = "v1"
 # the parameter itself must be created out of band first. Terraform never holds
 # its value in either mode.
 # blockchain_evidence_mode = "mock"
+
+# --- Password recovery (Stage 5) --------------------------------------------
+# NO SECRET HERE. RESEND_API_KEY is an SSM SecureString created out of band
+# (/scope/prod/api/RESEND_API_KEY) and Terraform only ever learns its NAME.
+#
+# Everything below is COMMENTED OUT on purpose: the defaults already encode the safe
+# starting state "RECOVERY DISABLED" (API starts without Resend, login/registration
+# unaffected, POST /auth/password-reset/request answers 503).
+#
+# Activation is a separate, explicit change - see
+# infra/terraform/runbooks/password-recovery.md, section 9:
+#   mail_transport      = "resend"      # "log" is rejected in this root
+#   web_public_base_url = "https://<real Scope Web origin>"   # NOT web_origin, NOT the API
+#   web_origin          = "https://<real Scope Web origin>"   # CORS; required for "resend"
+#   mail_from           = "Scope <no-responder@mail.scopeedu.technology>"  # proposed; domain must be verified at Resend first
+#
+# Shipping a database migration (runbook section 5): migrator_image_tag (REQUIRED, see above)
+# is selected independently of api_image_tag. Move ONLY migrator_image_tag to the new image
+# first, run the migration, and only then move api_image_tag. After migrating, migrator_image_tag
+# stays explicitly set to the image it ran: it has no default and is never emptied or derived.
+#
+# Alarms: create nothing until a notification target is decided.
+# enable_recovery_alarms     = false
+# recovery_alarm_action_arns = ["arn:aws:sns:us-east-1:<account-id>:<topic>"]

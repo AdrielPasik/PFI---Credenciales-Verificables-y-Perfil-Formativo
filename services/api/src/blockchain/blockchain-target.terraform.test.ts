@@ -660,10 +660,12 @@ function resolveApiSecretKeys(mode: 'mock' | 'credential_registry'): string[] {
 
   const rpcKeys = mode === 'credential_registry' ? ['CREDENTIAL_REGISTRY_RPC_URL'] : [];
 
-  // `merge(base, rpc)`, en ese orden.
+  // `merge(base, rpc[, mail])`, en ese orden. El tercer argumento, opcional, es el secreto de
+  // correo de la recuperacion de contrasena: `api_mail_secret_parameters` es {} salvo con
+  // `mail_transport = "resend"` (y por eso no cambia las claves de mock ni de credential_registry).
   assert.match(
     locals,
-    /api_secret_parameters = merge\(\s*local\.api_base_secret_parameters,\s*local\.api_rpc_secret_parameters\s*\)/
+    /api_secret_parameters = merge\(\s*local\.api_base_secret_parameters,\s*local\.api_rpc_secret_parameters(?:,\s*local\.api_mail_secret_parameters)?\s*\)/
   );
 
   return [...baseKeys, ...rpcKeys].sort();

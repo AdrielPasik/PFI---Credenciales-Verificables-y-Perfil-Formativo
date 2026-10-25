@@ -22,6 +22,18 @@ resource "aws_lb" "api" {
   idle_timeout               = var.alb_idle_timeout_seconds
   enable_deletion_protection = var.alb_deletion_protection
   drop_invalid_header_fields = true
+
+  # PINNED, not left to the provider default. The API runs with TRUST_PROXY_HOPS=1
+  # (locals.tf) and reads the right-most X-Forwarded-For entry:
+  #   append    the ALB ADDS the address it received the connection from to whatever
+  #             the client sent. The right-most entry is therefore ALB-written and
+  #             trustworthy; a forged left-hand value is ignored. REQUIRED.
+  #   preserve  the ALB forwards the client's header untouched: the right-most entry
+  #             would be client-controlled and the per-IP limiter forgeable. NEVER.
+  #   remove    no header at all: every client would share the ALB address.
+  # "append" is already the default, so this line should produce no plan difference;
+  # it exists so a future edit cannot silently change the throttler's identity model.
+  xff_header_processing_mode = "append"
   # Access logs stay disabled on purpose: the public share token is part of the
   # request path and must not be persisted to a log bucket.
   tags = {

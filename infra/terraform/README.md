@@ -336,6 +336,7 @@ Required before `enable_services = true` (exact list also exported by
 | `/scope/prod/ai/EVIDENCE_UNITS_OPENAI_API_KEY` | AI | Provider key |
 | `/scope/prod/ai/CONTEXTUAL_REASONING_OPENAI_API_KEY` | AI | Provider key |
 | `/scope/prod/ai/OBJECTIVE_UNDERSTANDING_OPENAI_API_KEY` | AI | Provider key |
+| `/scope/prod/api/RESEND_API_KEY` | API | **Conditional.** Referenced by the task definition (and granted to the API execution role) **only** when `mail_transport = "resend"`. In the default `"disabled"` mode it need not exist. Never a Terraform value. Procedure: [`runbooks/password-recovery.md`](runbooks/password-recovery.md) §8.5 |
 
 There is deliberately **no** `/scope/prod/migrator/DATABASE_URL`. The migrator reuses the existing `/scope/prod/api/DATABASE_URL` only to obtain and validate the `scope_app` credential during role bootstrap; the RDS master credential remains exclusively in the RDS-owned Secrets Manager secret. See section 3.
 
@@ -503,6 +504,21 @@ of the road, and none of it is executed by this code.
 10. Run the migrator task, then the seed, then `db:verify-demo`.
 
 Steps 6-10 are the next slice.
+
+**Password recovery** adds its own, ordered procedure (migrate before the new API, grants
+after the migration, recovery disabled by default, explicit activation, and a rollback
+policy that keeps revoked sessions revoked): see
+[`runbooks/password-recovery.md`](runbooks/password-recovery.md). Two points that change
+the order above: step 7 must not move `api_image_tag` and `migrator_image_tag` in the same
+apply (the migrator moves first, the API only after the migration ran; runbook §5); step 10
+must **not** run `seed` against production (it resets known demo passwords by upsert); and
+`02-grant-scope-app-on-existing-objects.sql` runs after every migration batch, before the new
+API code is live. The ECS API service rolls out with 0/100, so every API task-definition
+change is a planned outage window. Structural tests for
+this configuration: `cd prod && terraform test` (on a fresh checkout run
+`terraform init -backend=false` first; an already-initialised remote backend is ignored by
+`terraform test`), and `bash prod/tests/static-checks.sh`. They use a mocked provider and file inspection: they
+touch neither AWS nor Terraform state, and they are not evidence that an apply works.
 
 ## 6. Destroy runbook (read before, not during)
 

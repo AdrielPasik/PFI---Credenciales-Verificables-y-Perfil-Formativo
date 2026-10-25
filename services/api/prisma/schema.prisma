@@ -329,6 +329,7 @@ model User {
   sharingGrants                  SharingGrant[]                             @relation("SharingGrantOwner")
   createdSharingGrants           SharingGrant[]                             @relation("SharingGrantCreator")
   authCredential                 AuthCredential?
+  passwordResetTokens            PasswordResetToken[]
   platformAdmin                  PlatformAdmin?
   uploadedDocumentEvidences      DocumentEvidence[]                         @relation("DocumentEvidenceUploader")
   submittedTextEvidences         TextEvidence[]                             @relation("TextEvidenceSubmitter")
@@ -340,12 +341,60 @@ model User {
 }
 
 model AuthCredential {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  passwordHash   String
+  /// Generacion de sesiones de la cuenta. Todo access token lleva el claim `sv`
+  /// con el valor que esta columna tenia al emitirse, y
+  /// `AuthService.resolveAuthenticatedUser` lo compara contra la fila en CADA
+  /// request: si no coincide, el token se rechaza como invalido. Incrementarla
+  /// invalida de una vez todas las sesiones emitidas antes, en todos los
+  /// dispositivos, sin lista de revocacion y sin una consulta adicional (el
+  /// guard ya lee esta fila).
+  ///
+  /// 0 = nunca invalidada. Coincide con los tokens emitidos ANTES de que
+  /// existiera el claim, que se tratan como version 0 (claim ausente), asi que
+  /// agregar la columna no desloguea a nadie. Nada incrementa este valor todavia:
+  /// el flujo que lo hace (restablecer contrasena) llega en una etapa posterior.
+  ///
+  /// Vive aca y no en `User` porque `User` es identidad pura, sin campos de
+  /// autorizacion (ver `PlatformAdmin`), y esto es una propiedad de la credencial.
+  sessionVersion Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Autorizacion temporal de un solo uso para restablecer una contrasena. Una fila
+/// por solicitud. El valor crudo del token existe unicamente en el enlace que se
+/// le envia a la persona: aca vive su SHA-256 hex, nunca el token.
+///
+/// Vigente  <=>  consumedAt IS NULL AND invalidatedAt IS NULL AND expiresAt > now()
+///
+/// SHA-256 y no scrypt a proposito: el token es aleatorio de 256 bits, asi que
+/// no hay diccionario que frenar, y un hash determinista es lo que permite
+/// buscarlo por el indice unico de `tokenHash`.
+///
+/// Dos timestamps nulos en lugar de un enum de estado: expresan los estados
+/// terminales y conservan CUANDO ocurrieron. `consumedAt` = el restablecimiento
+/// se completo con este token; `invalidatedAt` = lo reemplazo una solicitud
+/// posterior, un restablecimiento exitoso con otro token, o un fallo de envio.
+///
+/// ESTA ETAPA SOLO CREA LA TABLA. Nada la escribe todavia.
+model PasswordResetToken {
+  id            String    @id @default(uuid())
+  userId        String
+  tokenHash     String    @unique
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime
+  consumedAt    DateTime?
+  invalidatedAt DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Cuota por cuenta e invalidacion de los tokens vigentes de un usuario.
+  @@index([userId, createdAt])
+  /// Tope global por ventana de tiempo.
+  @@index([createdAt])
 }
 
 /// S1: capacidad de ADMINISTRACION DE PLATAFORMA, deliberadamente separada de
