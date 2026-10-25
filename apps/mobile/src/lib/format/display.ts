@@ -88,6 +88,7 @@ export function formatBlockchainNetwork(value: string): string {
 }
 
 const BLOCKCHAIN_STATUS_LABELS: Record<string, string> = {
+  registered: 'Registro registrado',
   confirmed: 'Registro confirmado',
   pending: 'Registro pendiente',
   failed: 'Registro fallido',

@@ -490,27 +490,44 @@ function IntegritySection({ detail }: { detail: HolderCredentialDetailVM }) {
               />
             ) : null}
 
-            {detail.integrity.records.map((record, index) => (
-              <View
-                key={`${record.txHashShort}-${index}`}
-                style={styles.evidenceBlock}
-              >
+            {detail.integrity.records.map((record, index) => {
+              const txHash = record.txHash;
+
+              return (
+                <View
+                  key={`${record.status}-${record.txHashShort ?? 'sin-transacción'}-${index}`}
+                  style={styles.evidenceBlock}
+                >
                 <ScopeText variant="smallStrong" tone="strong">
                   {record.networkLabel}
                 </ScopeText>
                 <ScopeText variant="caption" tone="muted">
                   Red técnica {record.chainId} · {record.statusLabel}
                 </ScopeText>
-                <TechnicalValue
-                  label="Registro"
-                  value={record.txHash}
-                  onCopy={() => void copy(record.txHash, 'Registro')}
-                />
-                <ScopeText variant="caption" tone="muted">
-                  Registrado el {record.registeredAtLabel}
-                </ScopeText>
-              </View>
-            ))}
+                {txHash !== null ? (
+                  <TechnicalValue
+                    label="Registro"
+                    value={txHash}
+                    onCopy={() => void copy(txHash, 'Registro')}
+                  />
+                ) : (
+                  <ScopeText variant="caption" tone="muted">
+                    Todavía no hay una transacción confirmada para este registro.
+                  </ScopeText>
+                )}
+                {record.registeredAtLabel !== null ? (
+                  <ScopeText variant="caption" tone="muted">
+                    Registrado el {record.registeredAtLabel}
+                  </ScopeText>
+                ) : null}
+                {record.revokedAtLabel !== null ? (
+                  <ScopeText variant="caption" tone="muted">
+                    Revocado el {record.revokedAtLabel}
+                  </ScopeText>
+                ) : null}
+                </View>
+              );
+            })}
 
             {copied ? (
               <ScopeText

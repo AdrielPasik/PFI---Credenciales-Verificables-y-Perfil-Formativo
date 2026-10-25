@@ -244,6 +244,42 @@ describe('detalle de credencial', () => {
     );
   });
 
+  it('conserva el detalle académico cuando el registro blockchain está pendiente', async () => {
+    await renderDetail({
+      body: credentialDetailPayload({
+        blockchainRecords: [
+          {
+            network: 'base-sepolia',
+            chainId: 84_532,
+            txHash: null,
+            status: 'pending',
+            registeredAt: null,
+            revokedAt: null
+          }
+        ]
+      })
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText('Sistemas Operativos')).toBeTruthy()
+    );
+    expect(screen.getByText('Aporte formativo')).toBeTruthy();
+
+    await fireEvent.press(
+      screen.getByText('Registro técnico de la credencial emitida')
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/Registro pendiente/)).toBeTruthy()
+    );
+    expect(
+      screen.getByText(
+        'Todavía no hay una transacción confirmada para este registro.'
+      )
+    ).toBeTruthy();
+    expect(screen.queryByText(/Registrado el/)).toBeNull();
+  });
+
   it('comunica una credencial revocada sin ocultar su contenido', async () => {
     await renderDetail({
       body: credentialDetailPayload({

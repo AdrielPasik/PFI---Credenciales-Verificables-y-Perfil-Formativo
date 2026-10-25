@@ -127,7 +127,7 @@ export function credentialDetailPayload(
         network: 'sepolia',
         chainId: 11_155_111,
         txHash: LONG_HASH,
-        status: 'confirmed',
+        status: 'registered',
         registeredAt: '2026-03-14T10:05:00.000Z',
         revokedAt: null
       }

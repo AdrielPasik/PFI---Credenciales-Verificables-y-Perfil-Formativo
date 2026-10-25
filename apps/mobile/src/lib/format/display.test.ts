@@ -70,9 +70,13 @@ describe('etiquetas de dominio', () => {
   });
 
   it('humaniza el estado del registro y no inventa uno desconocido', () => {
-    expect(formatBlockchainEvidenceStatus('confirmed')).toBe(
-      'Registro confirmado'
+    expect(formatBlockchainEvidenceStatus('registered')).toBe(
+      'Registro registrado'
     );
+    // `failed` no es un estado del contrato Prisma actual, pero mantener su
+    // etiqueta conserva la presentación segura de datos históricos.
+    expect(formatBlockchainEvidenceStatus('failed')).toBe('Registro fallido');
+    expect(formatBlockchainEvidenceStatus('revoked')).toBe('Registro revocado');
     expect(formatBlockchainEvidenceStatus('vaya_a_saber')).toBe(
       'Estado de registro no disponible'
     );
