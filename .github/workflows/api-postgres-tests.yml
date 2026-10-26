@@ -1,0 +1,168 @@
+name: API PostgreSQL tests
+
+# TEST ONLY. Runs the API tests that need a REAL PostgreSQL against a disposable database
+# started inside this job. It uses only throwaway test credentials and has no access to AWS,
+# RDS, production networks or any secret: no `id-token`, no `environment`, no secrets.
+#
+# What it enforces (a missing database, a failing migration or a silently skipped test FAILS the job):
+#   1. every Prisma migration applies on an empty PostgreSQL 16 (`prisma migrate deploy`);
+#   2. the Password Recovery tests that depend on real PostgreSQL guarantees
+#      (`test:password-recovery-pg`: advisory locks, conditional UPDATEs, rollbacks);
+#   3. T2, the JWT compatibility test: the recovery migration applied over pre-existing rows
+#      (`test:legacy-token-compat-pg`).
+#
+# It does not build or publish images, run migrations anywhere else, or touch the production
+# workflows (publish-production-images, run-production-migrator, ...).
+
+on:
+  pull_request:
+    paths:
+      - "services/api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-postgres-tests.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "services/api/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/api-postgres-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-postgres-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  postgres-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: scope_recovery_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d scope_recovery_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      # Throwaway credentials for a database that exists only inside this job.
+      DATABASE_URL: postgresql://postgres:test@127.0.0.1:5432/scope_recovery_test
+      TEST_DATABASE_URL: postgresql://postgres:test@127.0.0.1:5432/scope_recovery_test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate the Prisma client
+        run: npm run prisma:generate --workspace services/api
+
+      # Fails the job if the database is unreachable or any migration (including the
+      # password-recovery one) does not apply on an empty PostgreSQL 16.
+      - name: Apply all migrations to the disposable database
+        run: npm exec --workspace services/api -- prisma migrate deploy --schema prisma/schema.prisma
+
+      # Both test steps validate the node:test summary strictly, whatever the reporter is:
+      # Node 22 prints TAP ("# tests 16") and Node 24 prints the spec summary ("ℹ tests 16"); both
+      # are accepted, nothing else is. The step FAILS when the test process exits non-zero, when
+      # any counter is missing, malformed or ambiguous (not exactly one line), when no test ran,
+      # or when anything failed, was skipped or was cancelled. The npm scripts additionally fail
+      # by themselves when TEST_DATABASE_URL is missing. The validator is duplicated verbatim in
+      # both steps (guarded by infra/terraform/guards/ci-summary-validator.test.mjs).
+      - name: Password Recovery tests on real PostgreSQL
+        shell: bash
+        run: |
+          # --- summary validator (begin) ---
+          node_test_summary_value() {
+            local lines
+            lines="$(grep -E "^(ℹ|#) $2 [0-9]+$" "$1" || true)"
+            [ -n "$lines" ] && [ "$(printf '%s\n' "$lines" | wc -l)" -eq 1 ] || return 1
+            printf '%s\n' "$lines" | sed -E 's/^[^ ]+ [a-z]+ //'
+          }
+          check_node_test_summary() {
+            local log="$1" status="$2" tests pass fail skipped cancelled
+            if [ "$status" != "0" ]; then
+              echo "::error::the test process exited with status $status"
+              return 1
+            fi
+            tests="$(node_test_summary_value "$log" tests)" &&
+              pass="$(node_test_summary_value "$log" pass)" &&
+              fail="$(node_test_summary_value "$log" fail)" &&
+              skipped="$(node_test_summary_value "$log" skipped)" &&
+              cancelled="$(node_test_summary_value "$log" cancelled)" || {
+              echo "::error::the test summary is missing, malformed or ambiguous"
+              return 1
+            }
+            if [ "$tests" -gt 0 ] && [ "$pass" -eq "$tests" ] && [ "$fail" -eq 0 ] && [ "$skipped" -eq 0 ] && [ "$cancelled" -eq 0 ]; then
+              echo "test summary OK: tests=$tests pass=$pass fail=$fail skipped=$skipped cancelled=$cancelled"
+            else
+              echo "::error::tests=$tests pass=$pass fail=$fail skipped=$skipped cancelled=$cancelled (required: tests>0, all passed, none failed, skipped or cancelled)"
+              return 1
+            fi
+          }
+          # --- summary validator (end) ---
+          node --version
+          set +e
+          npm run test:password-recovery-pg --workspace services/api 2>&1 | tee pg-recovery.log
+          status="${PIPESTATUS[0]}"
+          set -e
+          check_node_test_summary pg-recovery.log "$status"
+
+      - name: JWT compatibility T2 (migration over pre-existing data)
+        shell: bash
+        run: |
+          # --- summary validator (begin) ---
+          node_test_summary_value() {
+            local lines
+            lines="$(grep -E "^(ℹ|#) $2 [0-9]+$" "$1" || true)"
+            [ -n "$lines" ] && [ "$(printf '%s\n' "$lines" | wc -l)" -eq 1 ] || return 1
+            printf '%s\n' "$lines" | sed -E 's/^[^ ]+ [a-z]+ //'
+          }
+          check_node_test_summary() {
+            local log="$1" status="$2" tests pass fail skipped cancelled
+            if [ "$status" != "0" ]; then
+              echo "::error::the test process exited with status $status"
+              return 1
+            fi
+            tests="$(node_test_summary_value "$log" tests)" &&
+              pass="$(node_test_summary_value "$log" pass)" &&
+              fail="$(node_test_summary_value "$log" fail)" &&
+              skipped="$(node_test_summary_value "$log" skipped)" &&
+              cancelled="$(node_test_summary_value "$log" cancelled)" || {
+              echo "::error::the test summary is missing, malformed or ambiguous"
+              return 1
+            }
+            if [ "$tests" -gt 0 ] && [ "$pass" -eq "$tests" ] && [ "$fail" -eq 0 ] && [ "$skipped" -eq 0 ] && [ "$cancelled" -eq 0 ]; then
+              echo "test summary OK: tests=$tests pass=$pass fail=$fail skipped=$skipped cancelled=$cancelled"
+            else
+              echo "::error::tests=$tests pass=$pass fail=$fail skipped=$skipped cancelled=$cancelled (required: tests>0, all passed, none failed, skipped or cancelled)"
+              return 1
+            fi
+          }
+          # --- summary validator (end) ---
+          set +e
+          npm run test:legacy-token-compat-pg --workspace services/api 2>&1 | tee pg-t2.log
+          status="${PIPESTATUS[0]}"
+          set -e
+          check_node_test_summary pg-t2.log "$status"

@@ -600,3 +600,139 @@ variable "blockchain_evidence_mode" {
     error_message = "blockchain_evidence_mode must be exactly \"mock\" or \"credential_registry\". The network is a separate input: the mode never implies a chain."
   }
 }
+
+# ---------------------------------------------------------------------------
+# Password recovery (Stages 2-5)
+#
+# Everything here is NON-SECRET configuration. The only secret the feature needs,
+# RESEND_API_KEY, is never a variable: it is an SSM SecureString created out of
+# band and referenced by name only when mail_transport = "resend" (see
+# local.api_mail_secret_parameters).
+#
+# Safe starting point = RECOVERY DISABLED: mail_transport = "disabled". In that mode
+# the API starts without Resend, login and registration are untouched, and
+# POST /auth/password-reset/request (asking for a NEW link) answers 503. Links that
+# were already emailed keep working on /verify and /confirm until they expire (30
+# minutes): only /request is gated by availability. Activating the feature is a
+# separate, explicit change of mail_transport to "resend".
+# ---------------------------------------------------------------------------
+
+variable "mail_transport" {
+  description = <<-EOT
+    Mail transport selected for the API (MAIL_TRANSPORT).
+
+    "disabled" (default): no mail is ever sent, RESEND_API_KEY is NOT referenced by the
+    task definition and need not exist. Requests for a new recovery link answer 503.
+    "resend": the real transport. Requires, BEFORE applying: the SSM SecureString
+    /scope/prod/api/RESEND_API_KEY, a verified sender domain at Resend, a real
+    web_public_base_url and a web_origin (see the preconditions on the API task
+    definition and infra/terraform/runbooks/password-recovery.md).
+
+    "log" is deliberately NOT accepted in this root. The backend downgrades it to
+    "disabled" when NODE_ENV=production (the image sets it), but a value that
+    Terraform accepts and the app silently ignores is a trap: the operator would
+    believe recovery works. The log transport prints reset links and exists only for
+    local development.
+  EOT
+  type        = string
+  default     = "disabled"
+
+  validation {
+    condition     = contains(["disabled", "resend"], var.mail_transport)
+    error_message = "mail_transport must be exactly \"disabled\" or \"resend\". The development transport \"log\" prints password-reset links and is not allowed in the production root."
+  }
+}
+
+variable "mail_from" {
+  description = <<-EOT
+    Sender of the recovery email (MAIL_FROM), "Name <address@domain>" or a bare address.
+    NOT a secret and changeable without touching NestJS code.
+
+    Setting it does NOT mean the domain is verified. Resend rejects (and the API logs
+    resend.rejected) any message whose sender domain is not verified in the Resend
+    account. The default is the PROPOSED sender; verification is an external step.
+  EOT
+  type        = string
+  default     = "Scope <no-responder@mail.scopeedu.technology>"
+
+  validation {
+    condition     = length(var.mail_from) <= 200
+    error_message = "mail_from must be at most 200 characters."
+  }
+
+  validation {
+    # Mirrors services/api/src/mail/mail.config.ts (parseMailFrom): a single address,
+    # an optional display name made of letters, digits, space and . _ ' - , and no
+    # line breaks (header injection). Two alternatives: "Name <addr>" or a bare addr.
+    condition = (
+      can(regex("^[\\p{L}\\p{N} ._'-]{1,64} <[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+>$", var.mail_from)) ||
+      can(regex("^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$", var.mail_from))
+    )
+    error_message = "mail_from must be \"Name <user@domain>\" or \"user@domain\": one address, display name limited to letters, digits, space and . _ ' -, no line breaks."
+  }
+}
+
+variable "web_public_base_url" {
+  description = <<-EOT
+    PUBLIC ORIGIN OF SCOPE WEB from which the password-reset link opens
+    (WEB_PUBLIC_BASE_URL): https, host only, no path, no query, no fragment, no
+    trailing slash. The API builds <origin>/reset-password#token=<token> from it and
+    NEVER from the request (a forged Host header must not be able to point reset links
+    at another domain).
+
+    It is NOT web_origin (the CORS allow-list: which browser origin may call the API)
+    and it is NOT the API URL. They often hold the same value for a single-domain
+    deployment, but they mean different things and change for different reasons.
+
+    Empty = not configured: recovery stays unavailable (503) even if mail_transport is
+    "resend", and the API task definition refuses to be planned in that combination.
+    No default domain is invented: the real Vercel production origin is not confirmed.
+  EOT
+  type        = string
+  default     = ""
+
+  validation {
+    condition = var.web_public_base_url == "" || can(regex(
+      "^https://[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+(:[0-9]{1,5})?$",
+      var.web_public_base_url
+    ))
+    error_message = "web_public_base_url must be a lowercase https origin with a dotted host and no path, query, fragment, credentials or trailing slash (for example https://app.example.com), or empty."
+  }
+
+  validation {
+    condition = var.web_public_base_url == "" || !can(regex(
+      "^https://([0-9.]+|[^/:]*\\.(localhost|local|internal|test|example|invalid))(:[0-9]+)?$",
+      var.web_public_base_url
+    ))
+    error_message = "web_public_base_url must not be an IP address or a local/reserved host name: it is the public address recipients click."
+  }
+}
+
+# --- Recovery alarms (OFF by default; every resource is gated by this flag) --
+
+variable "enable_recovery_alarms" {
+  description = <<-EOT
+    FALSE by default: creates NOTHING. TRUE creates CloudWatch metric filters on the
+    API log group plus one alarm per recovery signal (global cap reached, per-account
+    quota reached, transport failures, jobs dropped on shutdown, and - only when
+    mail_transport = "resend" - recovery not configured).
+
+    Alarms DETECT and let a person react; they do not prevent abuse. Turn this on only
+    after deciding who receives the notifications (recovery_alarm_action_arns). Cost:
+    metrics and alarms are small fixed monthly charges outside the free allowance;
+    check the AWS Free Plan terms before enabling.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "recovery_alarm_action_arns" {
+  description = "SNS topic ARNs notified when a recovery alarm fires. Empty = alarms change state in the console but notify nobody. No topic is created here: the recipient is an open operational decision."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for arn in var.recovery_alarm_action_arns : can(regex("^arn:aws:sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_-]{1,256}$", arn))])
+    error_message = "recovery_alarm_action_arns must contain only SNS topic ARNs."
+  }
+}

@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -19,18 +20,18 @@ import { AuthLoginResponseDto } from './dto/auth-login-response.dto';
 import { AuthMeResponseDto } from './dto/auth-me-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import {
+  EMAIL_PATTERN,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH
+} from './credential-rules';
 import { getJwtExpiresIn, getJwtSecretOrThrow } from './jwt-config';
 import { type AuthenticatedUser, type JwtPayload } from './auth.types';
 import { hashPassword, verifyPasswordHash } from './password-hashing';
 
-// A1: mismo patron de regex ya usado en issuer-holder-resolution.service.ts
-// y analysis-run-backfill.service.ts (repo no centraliza esta constante).
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// A1: politica minima (seccion 10 del diseno) -- sin reglas de complejidad
-// inventadas (mayuscula/simbolo/numero). 8 es un piso razonable, 128 evita
-// inputs abusivos sin limitar casos de uso reales.
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 128;
+// El patron de email y la politica de contrasena (8 a 128, sin reglas de
+// complejidad) viven en `credential-rules.ts`: los comparte la recuperacion de
+// contrasena y no pueden divergir del registro.
 // A1.1: solo longitud maxima razonable -- nunca restriccion de charset
 // (nombres como "José", "María José", "O'Connor", "Jean-Pierre" deben
 // poder representarse tal cual).
@@ -41,6 +42,11 @@ const EMAIL_ALREADY_REGISTERED_MESSAGE =
 // User de este metodo, la unica constraint que puede dispararlo en la
 // carrera de dos registros concurrentes es User.email.
 const UNIQUE_CONSTRAINT_ERROR_CODE = 'P2002';
+
+// Mensaje UNICO para todo rechazo de un access token (firma, vencimiento, sub y
+// version de sesion). Un token con version desactualizada NO se distingue de uno
+// vencido: ni la version persistida ni la recibida se revelan al cliente.
+const INVALID_ACCESS_TOKEN_MESSAGE = 'Token invalido o expirado.';
 
 // O1: valores aceptados para la intencion de onboarding. Allowlist explicita
 // contra el enum real de Prisma -- nunca un cast ciego del string del cliente.
@@ -64,7 +70,9 @@ export class AuthService {
   async login(dto: LoginDto): Promise<AuthLoginResponseDto> {
     const email = this.normalizeEmail(dto.email);
     const password = this.assertPassword(dto.password);
-    const secret = getJwtSecretOrThrow();
+    // Falla ANTES de tocar la base si el secreto no esta configurado. La firma
+    // lo vuelve a leer en `signAccessToken`; esta lectura solo conserva el orden.
+    getJwtSecretOrThrow();
 
     const user = await this.prisma.user.findUnique({
       where: {
@@ -92,14 +100,12 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales invalidas.');
     }
 
-    const accessToken = await this.jwtService.signAsync(
-      {
-        sub: user.id
-      } satisfies JwtPayload,
-      {
-        secret,
-        expiresIn: getJwtExpiresIn() as never
-      }
+    // `user.authCredential` ya viene en este `findUnique` (se necesita para
+    // validar la contrasena): la version sale de ESA fila, sin otra consulta, y
+    // es la que esta persistida -- nunca un 0 fijo.
+    const accessToken = await this.signAccessToken(
+      user.id,
+      user.authCredential.sessionVersion
     );
 
     return {
@@ -142,7 +148,10 @@ export class AuthService {
     const onboardingIntent = this.assertValidOnboardingIntent(
       dto.onboardingIntent
     );
-    const secret = getJwtSecretOrThrow();
+    // Falla ANTES de crear nada si el secreto no esta configurado: sin esto el
+    // registro dejaria un User creado y devolveria 500. Ver el comentario del
+    // mismo nombre en `login`.
+    getJwtSecretOrThrow();
 
     const existing = await this.prisma.user.findUnique({
       where: { email },
@@ -164,9 +173,10 @@ export class AuthService {
       firstName: string | null;
       lastName: string | null;
     };
+    let sessionVersion: number;
 
     try {
-      user = await this.prisma.$transaction(async (transaction) => {
+      ({ user, sessionVersion } = await this.prisma.$transaction(async (transaction) => {
         const createdUser = await transaction.user.create({
           data: {
             email,
@@ -188,10 +198,16 @@ export class AuthService {
           }
         });
 
-        await transaction.authCredential.create({
+        // La cuenta nueva nace con la version por defecto de la columna (0). Se
+        // lee de lo que la base devolvio, no se asume: el token se firma con lo
+        // persistido.
+        const createdCredential = await transaction.authCredential.create({
           data: {
             userId: createdUser.id,
             passwordHash
+          },
+          select: {
+            sessionVersion: true
           }
         });
 
@@ -204,8 +220,11 @@ export class AuthService {
         // inventado. Ver ensure-did-for-user.ts.
         const did = await ensureDidForUser(transaction, createdUser.id);
 
-        return { ...createdUser, did };
-      });
+        return {
+          user: { ...createdUser, did },
+          sessionVersion: createdCredential.sessionVersion
+        };
+      }));
     } catch (error) {
       if (isUniqueConstraintViolation(error)) {
         throw new ConflictException(EMAIL_ALREADY_REGISTERED_MESSAGE);
@@ -214,15 +233,7 @@ export class AuthService {
       throw error;
     }
 
-    const accessToken = await this.jwtService.signAsync(
-      {
-        sub: user.id
-      } satisfies JwtPayload,
-      {
-        secret,
-        expiresIn: getJwtExpiresIn() as never
-      }
-    );
+    const accessToken = await this.signAccessToken(user.id, sessionVersion);
 
     return {
       accessToken,
@@ -349,12 +360,16 @@ export class AuthService {
         secret
       });
     } catch {
-      throw new UnauthorizedException('Token invalido o expirado.');
+      throw new UnauthorizedException(INVALID_ACCESS_TOKEN_MESSAGE);
     }
 
     if (!payload?.sub || typeof payload.sub !== 'string') {
-      throw new UnauthorizedException('Token invalido o expirado.');
+      throw new UnauthorizedException(INVALID_ACCESS_TOKEN_MESSAGE);
     }
+
+    // Se valida la FORMA del claim antes de ir a la base: es una propiedad del
+    // token, y un token malformado no merece una consulta.
+    const presentedSessionVersion = readSessionVersionClaim(payload);
 
     const user = await this.prisma.user.findUnique({
       where: {
@@ -364,7 +379,14 @@ export class AuthService {
         id: true,
         email: true,
         did: true,
-        status: true
+        status: true,
+        // Mismo findUnique de siempre, un campo mas: la version de sesion NO
+        // cuesta una consulta adicional por request.
+        authCredential: {
+          select: {
+            sessionVersion: true
+          }
+        }
       }
     });
 
@@ -376,12 +398,55 @@ export class AuthService {
       throw new UnauthorizedException('El usuario no esta activo.');
     }
 
+    // Se evalua DESPUES de todas las comprobaciones anteriores: no reemplaza
+    // ninguna, se suma. Una cuenta sin fila AuthCredential cuenta como version 0
+    // (no puede iniciar sesion, y esto conserva exactamente lo que ya aceptaba el
+    // guard antes de que existiera la version).
+    const currentSessionVersion = user.authCredential?.sessionVersion ?? 0;
+
+    // El token legado (claim ausente) vale 0: sigue andando mientras la cuenta
+    // este en 0 y deja de andar en cuanto se invalida. Mensaje identico al de un
+    // token vencido: no revela ninguna de las dos versiones.
+    if ((presentedSessionVersion ?? 0) !== currentSessionVersion) {
+      throw new UnauthorizedException(INVALID_ACCESS_TOKEN_MESSAGE);
+    }
+
     return {
       id: user.id,
       email: user.email,
       did: user.did,
       status: user.status
     };
+  }
+
+  // UNICO punto de emision de access tokens (login y registro). Cualquier camino
+  // futuro que cree una sesion tiene que pasar por aca: asi el claim `sv` no
+  // puede omitirse ni divergir entre emisores.
+  //
+  // Estricto a proposito: la version sale de una columna `Int NOT NULL`, asi que
+  // un valor que no sea entero no negativo es un bug del llamador o una base
+  // corrupta. Se falla en voz alta en vez de emitir un token con un claim que
+  // ninguna validacion posterior podria aceptar o interpretar bien.
+  private async signAccessToken(
+    userId: string,
+    sessionVersion: number
+  ): Promise<string> {
+    if (!isValidSessionVersion(sessionVersion)) {
+      throw new InternalServerErrorException(
+        'No se pudo emitir el token de acceso.'
+      );
+    }
+
+    return this.jwtService.signAsync(
+      {
+        sub: userId,
+        sv: sessionVersion
+      } satisfies JwtPayload,
+      {
+        secret: getJwtSecretOrThrow(),
+        expiresIn: getJwtExpiresIn() as never
+      }
+    );
   }
 
   private normalizeEmail(value: unknown) {
@@ -516,6 +581,31 @@ export class AuthService {
       )
     };
   }
+}
+
+function isValidSessionVersion(value: unknown): value is number {
+  return (
+    typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
+  );
+}
+
+// `undefined` = el claim NO esta (token legado, tratado como 0 por el llamador).
+// Si el claim esta, tiene que ser un entero no negativo; cualquier otra cosa
+// (string, null, decimal, negativo, objeto, booleano) se rechaza. La
+// compatibilidad con tokens viejos aplica solo a la AUSENCIA, nunca a un valor
+// invalido: "0" o null NO son "version 0".
+function readSessionVersionClaim(payload: JwtPayload): number | undefined {
+  if (!Object.prototype.hasOwnProperty.call(payload, 'sv')) {
+    return undefined;
+  }
+
+  const claim: unknown = payload.sv;
+
+  if (!isValidSessionVersion(claim)) {
+    throw new UnauthorizedException(INVALID_ACCESS_TOKEN_MESSAGE);
+  }
+
+  return claim;
 }
 
 function isUniqueConstraintViolation(error: unknown): boolean {

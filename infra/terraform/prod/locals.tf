@@ -46,9 +46,32 @@ locals {
     : {}
   )
 
+  # PASSWORD RECOVERY: CONDITIONAL, same pattern as the RPC secret above.
+  #
+  # RESEND_API_KEY is referenced by the task definition ONLY when mail_transport is
+  # "resend". In "disabled" the API needs no mail credential at all (the backend
+  # resolves to a no-op transport and POST /auth/password-reset/request answers 503), so
+  # listing the parameter would make the ECS agent try to resolve a SecureString that
+  # legitimately does not exist yet, and the container would fail to start - taking
+  # login and registration down because of an optional feature.
+  #
+  # Because api_execution's parameter ARNs are derived from api_container_secrets,
+  # adding the entry here is also what grants the API EXECUTION role GetParameters on
+  # exactly this one ARN. The TASK role is untouched: the key is injected by ECS as an
+  # environment variable at launch; application code never calls SSM for it.
+  #
+  # Terraform knows the NAME, never the value. The SecureString is created out of
+  # band (runbook), and no aws_ssm_parameter exists for it.
+  api_mail_secret_parameters = (
+    var.mail_transport == "resend"
+    ? { RESEND_API_KEY = "${local.ssm_prefix}/api/RESEND_API_KEY" }
+    : {}
+  )
+
   api_secret_parameters = merge(
     local.api_base_secret_parameters,
-    local.api_rpc_secret_parameters
+    local.api_rpc_secret_parameters,
+    local.api_mail_secret_parameters
   )
 
   ai_secret_parameters = {
@@ -150,6 +173,29 @@ locals {
     # limite AUTORITATIVO sigue siendo IAM (api_task_signers); esto no lo
     # reemplaza. Valor PUBLICO, no un secreto.
     SIGNER_SECRET_REF_PREFIX = "${local.ssm_prefix}/signers/"
+
+    # --- Password recovery (non-secret) ---------------------------------------
+    # Three different "web" values, three different meanings. Do not merge them:
+    #   WEB_ORIGIN           CORS allow-list: which browser origin may call the API.
+    #   WEB_PUBLIC_BASE_URL  where the link in the email opens (the Scope Web origin).
+    #   NEXT_PUBLIC_API_BASE_URL (Vercel, not here) where the browser finds the API.
+    WEB_PUBLIC_BASE_URL = var.web_public_base_url
+    MAIL_TRANSPORT      = var.mail_transport
+    MAIL_FROM           = var.mail_from
+
+    # Exactly ONE trusted proxy: the ALB. A hard-coded 1 and not a variable, on
+    # purpose - it is a property of the topology, not a tuning knob:
+    #   * tasks accept inbound traffic only from the ALB security group
+    #     (security_groups.tf: api_from_alb), so the socket peer is always the ALB;
+    #   * the ALB is the only proxy (no CloudFront/WAF in front) and appends the
+    #     address it received the connection from (xff_header_processing_mode =
+    #     "append", pinned in alb.tf), so the right-most X-Forwarded-For entry is
+    #     the one the ALB wrote and everything to its left is client-controlled and
+    #     ignored by Express.
+    # With 0 every client would share the ALB's address and the per-IP limiter would
+    # throttle everyone together; with 2+ a client could pick its own address.
+    # Applied to the API only: the AI service is not behind the ALB.
+    TRUST_PROXY_HOPS = "1"
   }
 
   ai_environment = {

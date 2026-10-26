@@ -1,0 +1,349 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TfBackendListStateBucket",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::__STATE_BUCKET__"
+    },
+    {
+      "Sid": "TfBackendReadStateObject",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::__STATE_BUCKET__/envs/prod/terraform.tfstate"
+    },
+    {
+      "Sid": "TfBackendStateLockObject",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::__STATE_BUCKET__/envs/prod/terraform.tfstate.tflock"
+    },
+    {
+      "Sid": "DenyAnyS3WriteExceptLockObject",
+      "Effect": "Deny",
+      "Action": [
+        "s3:PutObject",
+        "s3:PutObjectAcl",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:DeleteObject",
+        "s3:DeleteObjectVersion",
+        "s3:DeleteObjectTagging",
+        "s3:RestoreObject",
+        "s3:ReplicateObject"
+      ],
+      "NotResource": [
+        "arn:aws:s3:::__STATE_BUCKET__/envs/prod/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "ProviderReadEc2Vpc",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribePrefixLists",
+        "ec2:DescribeTags"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadElbv2",
+      "Effect": "Allow",
+      "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetGroupAttributes",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeListenerAttributes",
+        "elasticloadbalancing:DescribeTags"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadEcsCluster",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeClusters"
+      ],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:__ACCOUNT_ID__:cluster/scope-prod-cluster"
+      ]
+    },
+    {
+      "Sid": "ProviderReadEcsServices",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeServices"
+      ],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:__ACCOUNT_ID__:service/scope-prod-cluster/scope-prod-*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadEcsTaskDefinitions",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:DescribeTaskDefinition"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadEcsTags",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:ecs:us-east-1:__ACCOUNT_ID__:cluster/scope-prod-cluster",
+        "arn:aws:ecs:us-east-1:__ACCOUNT_ID__:service/scope-prod-cluster/scope-prod-*",
+        "arn:aws:ecs:us-east-1:__ACCOUNT_ID__:task-definition/scope-prod-*:*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadEcr",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:DescribeRepositories",
+        "ecr:ListTagsForResource",
+        "ecr:GetLifecyclePolicy"
+      ],
+      "Resource": [
+        "arn:aws:ecr:us-east-1:__ACCOUNT_ID__:repository/scope/*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadLogGroups",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogGroups"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadLogGroupTags",
+      "Effect": "Allow",
+      "Action": [
+        "logs:ListTagsForResource",
+        "logs:ListTagsLogGroup"
+      ],
+      "Resource": [
+        "arn:aws:logs:us-east-1:__ACCOUNT_ID__:log-group:/scope/prod/*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadIamRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListRoleTags"
+      ],
+      "Resource": [
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-api-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-ai-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-migrator-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-api-task",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-ai-task",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-migrator-task",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-provisioner-task",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-provisioner-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-provisioner-sfn-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-github-actions-deploy",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-ecs-sync-probe-task",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-ecs-sync-probe-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-ecs-sync-probe-sfn-execution",
+        "arn:aws:iam::__ACCOUNT_ID__:role/scope-prod-provisioner-operator"
+      ]
+    },
+    {
+      "Sid": "ProviderReadGithubOidcProvider",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetOpenIDConnectProvider",
+        "iam:ListOpenIDConnectProviderTags"
+      ],
+      "Resource": [
+        "arn:aws:iam::__ACCOUNT_ID__:oidc-provider/token.actions.githubusercontent.com"
+      ]
+    },
+    {
+      "Sid": "ProviderReadRdsInstances",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances"
+      ],
+      "Resource": [
+        "arn:aws:rds:us-east-1:__ACCOUNT_ID__:db:*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadRds",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBSubnetGroups",
+        "rds:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:rds:us-east-1:__ACCOUNT_ID__:db:scope-prod-db",
+        "arn:aws:rds:us-east-1:__ACCOUNT_ID__:subgrp:scope-prod-db"
+      ]
+    },
+    {
+      "Sid": "ProviderReadAcm",
+      "Effect": "Allow",
+      "Action": [
+        "acm:DescribeCertificate",
+        "acm:ListTagsForCertificate"
+      ],
+      "Resource": [
+        "arn:aws:acm:us-east-1:__ACCOUNT_ID__:certificate/*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadSsmManagedStringParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/BLOCKCHAIN_EVIDENCE_MODE",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_NETWORK",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_CHAIN_ID",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_CONTRACT_ADDRESS",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_DEPLOYMENT_ID",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/REASONING_EXECUTION_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/OBJECTIVE_ANALYSIS_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/EVIDENCE_UNITS_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/CONTEXTUAL_REASONING_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/OBJECTIVE_UNDERSTANDING_OPENAI_MODEL"
+      ]
+    },
+    {
+      "Sid": "ProviderReadSsmDescribe",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:DescribeParameters"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadCloudMap",
+      "Effect": "Allow",
+      "Action": [
+        "servicediscovery:GetNamespace",
+        "servicediscovery:GetService"
+      ],
+      "Resource": [
+        "arn:aws:servicediscovery:us-east-1:__ACCOUNT_ID__:namespace/*",
+        "arn:aws:servicediscovery:us-east-1:__ACCOUNT_ID__:service/*"
+      ]
+    },
+    {
+      "Sid": "ProviderReadCloudMapTags",
+      "Effect": "Allow",
+      "Action": [
+        "servicediscovery:ListTagsForResource"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "us-east-1"
+        }
+      }
+    },
+    {
+      "Sid": "ProviderReadStepFunctions",
+      "Effect": "Allow",
+      "Action": [
+        "states:DescribeStateMachine",
+        "states:ListStateMachineVersions",
+        "states:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:states:us-east-1:__ACCOUNT_ID__:stateMachine:scope-prod-ecs-sync-probe",
+        "arn:aws:states:us-east-1:__ACCOUNT_ID__:stateMachine:scope-prod-issuer-provisioner"
+      ]
+    },
+    {
+      "Sid": "DenyReadingAnySsmParameterValueExceptManagedStrings",
+      "Effect": "Deny",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath",
+        "ssm:GetParameterHistory"
+      ],
+      "NotResource": [
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/BLOCKCHAIN_EVIDENCE_MODE",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_NETWORK",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_CHAIN_ID",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_CONTRACT_ADDRESS",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/CREDENTIAL_REGISTRY_DEPLOYMENT_ID",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/api/REASONING_EXECUTION_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/OBJECTIVE_ANALYSIS_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/EVIDENCE_UNITS_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/CONTEXTUAL_REASONING_OPENAI_MODEL",
+        "arn:aws:ssm:us-east-1:__ACCOUNT_ID__:parameter/scope/prod/ai/OBJECTIVE_UNDERSTANDING_OPENAI_MODEL"
+      ]
+    },
+    {
+      "Sid": "DenySecretValuesAndKeyUse",
+      "Effect": "Deny",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+        "kms:GenerateDataKeyWithoutPlaintext",
+        "kms:Encrypt",
+        "kms:ReEncrypt*"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

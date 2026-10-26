@@ -143,6 +143,21 @@ output "ssm_parameters_required_out_of_band" {
   )))
 }
 
+output "password_recovery_configuration" {
+  description = "Non-secret password-recovery settings the API task definition receives, plus the NAME (never the value) of the Resend SecureString when it is referenced. Use it to confirm the activation state before and after an apply."
+  value = {
+    mail_transport         = var.mail_transport
+    mail_from              = var.mail_from
+    web_public_base_url    = var.web_public_base_url != "" ? var.web_public_base_url : null
+    web_origin_cors        = var.web_origin != "" ? var.web_origin : null
+    trust_proxy_hops       = local.api_environment.TRUST_PROXY_HOPS
+    resend_secret_name     = lookup(local.api_mail_secret_parameters, "RESEND_API_KEY", null)
+    migrator_image_tag     = var.migrator_image_tag
+    api_image_tag          = var.api_image_tag
+    recovery_alarms_active = var.enable_recovery_alarms
+  }
+}
+
 output "document_evidence_bucket" {
   description = "Pre-existing bucket referenced by IAM only. Not managed by Terraform."
   value = {

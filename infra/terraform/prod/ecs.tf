@@ -84,6 +84,21 @@ resource "aws_ecs_task_definition" "api" {
   tags = {
     Component = "api"
   }
+
+  lifecycle {
+    # Activation gate for password recovery. "disabled" (the default) needs none of
+    # this; "resend" is only coherent when every piece below is configured. These
+    # fail at PLAN time, before any task definition revision exists.
+    precondition {
+      condition     = var.mail_transport != "resend" || var.web_public_base_url != ""
+      error_message = "mail_transport = \"resend\" requires web_public_base_url (the Scope Web origin the reset link opens). Without it the API answers 503 while appearing configured."
+    }
+
+    precondition {
+      condition     = var.mail_transport != "resend" || var.web_origin != ""
+      error_message = "mail_transport = \"resend\" requires web_origin: without CORS the browser cannot call the recovery endpoints from the web app."
+    }
+  }
 }
 
 # --- AI task definition ----------------------------------------------------

@@ -918,6 +918,50 @@ Instalar dependencias desde la raiz del monorepo y ejecutar:
 - `npm run build --workspace @credential-intelligence/api`
 - `npm run prisma:validate --workspace @credential-intelligence/api`
 
+## Recuperacion de contrasena: configuracion y operacion
+
+Tres endpoints publicos bajo `/auth/password-reset/` (`request`, `verify`, `confirm`).
+Estan **apagados por defecto**: sin la configuracion de abajo, `request` responde `503
+PASSWORD_RECOVERY_UNAVAILABLE`, no se emite ningun token, y el login, el registro y
+`/auth/me` siguen funcionando igual. Una configuracion de correo invalida nunca tumba el
+arranque.
+
+| Variable | Tipo | Para que |
+| --- | --- | --- |
+| `MAIL_TRANSPORT` | configuracion | `disabled` (default), `log` (solo desarrollo) o `resend`. Cualquier otro valor equivale a `disabled`. |
+| `MAIL_FROM` | configuracion publica | Remitente de Resend, `Nombre <usuario@dominio>`. El dominio tiene que estar verificado en Resend. |
+| `RESEND_API_KEY` | **SECRETO** | Clave de la API de Resend. Solo en el entorno del servidor (en AWS: SSM SecureString creada fuera de banda). Nunca en el repo, en un `NEXT_PUBLIC_*`, en un log ni en un mensaje de error. |
+| `WEB_PUBLIC_BASE_URL` | configuracion | **Origen** publico de Scope Web (sin path, query, fragmento ni credenciales). HTTPS siempre; `http` solo para `localhost` y nunca con `NODE_ENV=production`. No es `WEB_ORIGIN` (CORS) ni la URL de la API. |
+| `TRUST_PROXY_HOPS` | configuracion | Cantidad exacta de proxies de confianza delante del API. `0` (default) no confia en ningun `X-Forwarded-For`; detras del ALB de AWS es `1`. Un valor mal puesto hace que todos los clientes compartan IP o que la IP sea falsificable. |
+
+Valores de ejemplo y comentarios completos en `.env.example`.
+
+- **`log` no envia nada**: imprime el enlace en la consola para recorrer el flujo en local.
+  Con `NODE_ENV=production` se ignora y la recuperacion queda deshabilitada.
+- **`resend` envia de verdad** por `POST https://api.resend.com/emails` con `fetch` nativo
+  (sin SDK) y un timeout de 10 s. Cada autorizacion lleva una `Idempotency-Key` estable
+  (`password-reset/<id de la autorizacion>`); un 200 de Resend significa "aceptado por
+  Resend", no "entregado".
+- **Sin seguimiento de enlaces.** El seguimiento de aperturas y clics de Resend se
+  configura **por dominio**, no por mensaje, y reescribiria el enlace. Esta apagado por
+  defecto y solo actua si el dominio tiene un `tracking_subdomain` verificado: no
+  configurarlo para `mail.scopeedu.technology`. Verificarlo a mano en el panel.
+- **Los limites por IP** (5 solicitudes / 15 min; 20 verificaciones+confirmaciones / 15
+  min) viven en la memoria de cada proceso: con varias tasks no son un limite
+  distribuido. El cooldown (60 s), la cuota por cuenta (3 / hora) y el cupo global
+  (80 / 24 h) viven en PostgreSQL.
+- **Cierre ordenado.** Ante `SIGTERM` el API deja de aceptar envios nuevos (`request`
+  responde 503) y espera hasta 10 s a los que estan en vuelo antes de desconectar la base.
+  Eso reduce la perdida de correos, **no** la elimina: ante `SIGKILL` u OOM un envio en
+  vuelo se pierde. La entrega es best-effort, no una cola duradera.
+- **Eventos operativos** (para una futura alarma): `request.dropped (global_cap|account_quota|cooldown|ineligible)`,
+  `email.failed:<not_sent|rejected>`, `email.ambiguous`, `recovery.unavailable (...)`,
+  `mail.config_invalid (...)`, `drain.timeout`. Ninguno lleva email, token ni enlace.
+
+Pruebas: `npm run test:password-recovery` (la parte de PostgreSQL se omite sin
+`TEST_DATABASE_URL`; ver el encabezado de `password-reset.pg.test.ts`) y `npm run test:mail`.
+Ninguna prueba envia correos reales ni toca la red.
+
 ## Deployment Render
 
 P4g deja preparada la API para un Render Web Service, sin crear ni desplegar el

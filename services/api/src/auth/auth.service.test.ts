@@ -41,7 +41,11 @@ function createRegisterPrismaDouble() {
     firstName: string | null;
     lastName: string | null;
   }> = [];
-  const authCredentials: Array<{ userId: string; passwordHash: string }> = [];
+  const authCredentials: Array<{
+    userId: string;
+    passwordHash: string;
+    sessionVersion: number;
+  }> = [];
   const issuerMembershipCreateCalls: unknown[] = [];
   // O1: el `data` CRUDO que recibe user.create -- es exactamente lo que Prisma
   // escribiria en la fila. `onboardingIntent: undefined` significa que la
@@ -106,8 +110,11 @@ function createRegisterPrismaDouble() {
     },
     authCredential: {
       async create(args: { data: { userId: string; passwordHash: string } }) {
-        authCredentials.push(args.data);
-        return { id: `auth-credential-${authCredentials.length}`, ...args.data };
+        // AuthCredential.sessionVersion es `Int NOT NULL DEFAULT 0`: una cuenta
+        // recien creada vuelve de la base con 0 aunque el INSERT no lo mande.
+        const row = { ...args.data, sessionVersion: 0 };
+        authCredentials.push(row);
+        return { id: `auth-credential-${authCredentials.length}`, ...row };
       }
     },
     // O1: register no debe crear capacidad de plataforma ni instituciones en
@@ -202,7 +209,8 @@ test('AuthService.login succeeds with valid credentials and does not expose pass
           firstName: 'Ada',
           lastName: 'Lovelace',
           authCredential: {
-            passwordHash: await hashPassword('DemoIssuer123!')
+            passwordHash: await hashPassword('DemoIssuer123!'),
+            sessionVersion: 0
           }
         };
       }
@@ -227,7 +235,8 @@ test('AuthService.login succeeds with valid credentials and does not expose pass
   assert.deepEqual(jwtService.signAsyncCalls, [
     {
       payload: {
-        sub: 'user-123'
+        sub: 'user-123',
+        sv: 0
       },
       options: {
         secret: 'demo-secret',
@@ -273,7 +282,8 @@ test('AuthService.login fails when password is incorrect', async () => {
             did: 'did:example:issuer-admin-demo',
             status: UserStatus.active,
             authCredential: {
-              passwordHash: await hashPassword('DemoIssuer123!')
+              passwordHash: await hashPassword('DemoIssuer123!'),
+              sessionVersion: 0
             }
           };
         }
@@ -304,7 +314,8 @@ test('AuthService.login fails when user is not active', async () => {
             did: 'did:example:issuer-admin-demo',
             status: UserStatus.suspended,
             authCredential: {
-              passwordHash: await hashPassword('DemoIssuer123!')
+              passwordHash: await hashPassword('DemoIssuer123!'),
+              sessionVersion: 0
             }
           };
         }
@@ -420,7 +431,7 @@ test('E: register signs the JWT with the exact same secret/expiration/claims mec
 
   assert.deepEqual(jwtService.signAsyncCalls, [
     {
-      payload: { sub: users[0].id },
+      payload: { sub: users[0].id, sv: 0 },
       options: { secret: 'demo-secret', expiresIn: '3h' }
     }
   ]);
@@ -682,7 +693,8 @@ test('A1.1/I: a legacy User with null firstName/lastName/displayName still authe
             firstName: null,
             lastName: null,
             authCredential: {
-              passwordHash: await hashPassword('DemoHolder123!')
+              passwordHash: await hashPassword('DemoHolder123!'),
+              sessionVersion: 0
             }
           };
         }
@@ -742,8 +754,9 @@ test('K: a User created via register can immediately log in with the same email/
           },
           authCredential: {
             async create(args: { data: { userId: string; passwordHash: string } }) {
-              authCredentials.push(args.data);
-              return args.data;
+              const row = { ...args.data, sessionVersion: 0 };
+              authCredentials.push(row);
+              return row;
             }
           }
         });
@@ -826,8 +839,9 @@ test('L: a User created via register fails to log in with an incorrect password'
           },
           authCredential: {
             async create(args: { data: { userId: string; passwordHash: string } }) {
-              authCredentials.push(args.data);
-              return args.data;
+              const row = { ...args.data, sessionVersion: 0 };
+              authCredentials.push(row);
+              return row;
             }
           }
         });
@@ -1471,7 +1485,7 @@ test('S3/4: login does not expose platformAdmin -- the flag lives only in /auth/
             displayName: null,
             firstName: 'Ada',
             lastName: 'Lovelace',
-            authCredential: { passwordHash }
+            authCredential: { passwordHash, sessionVersion: 0 }
           };
         }
       }
@@ -1698,7 +1712,7 @@ test('O1: login NO expone onboardingIntent -- vive solo en /auth/me', async () =
             firstName: 'Ada',
             lastName: 'Lovelace',
             onboardingIntent: UserOnboardingIntent.institutional,
-            authCredential: { passwordHash }
+            authCredential: { passwordHash, sessionVersion: 0 }
           };
         }
       }
@@ -1724,6 +1738,7 @@ test('O1: el intent NUNCA entra al JWT', async () => {
   await service.register({ ...O1_BASE, onboardingIntent: 'institutional' } as never);
 
   const payload = jwt.signAsyncCalls[0].payload as Record<string, unknown>;
-  assert.deepEqual(Object.keys(payload), ['sub']);
+  // El payload es EXACTAMENTE identidad + version de sesion; nada mas se cuela.
+  assert.deepEqual(Object.keys(payload), ['sub', 'sv']);
   assert.equal('onboardingIntent' in payload, false);
 });
