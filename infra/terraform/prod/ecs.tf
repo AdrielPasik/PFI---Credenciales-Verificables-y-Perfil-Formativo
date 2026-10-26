@@ -261,6 +261,10 @@ resource "aws_ecs_task_definition" "migrator" {
   tags = {
     Component = "migrator"
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # --- issuer provisioner task definition (S8c11.4b) ---------------------------
