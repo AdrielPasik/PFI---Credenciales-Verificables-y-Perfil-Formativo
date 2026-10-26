@@ -1,5 +1,14 @@
 name: Run production migrator
 
+# Steps 01, migrate, 02, seed and verify keep their commands. `status` and `precheck` are read-only:
+#   status   -> `prisma migrate status`. Prisma exits 1 when migrations are pending, so the exit code is
+#               NOT trusted on its own: the output is classified and anything not recognized fails closed.
+#   precheck -> one psql session forced to read-only that runs SELECT/SHOW only.
+# This repository is public, so the logs of this workflow are public. For status/precheck only an
+# allow-listed summary is printed (never the raw CloudWatch output, hosts or connection strings).
+#
+# The task definition is pinned. To migrate with a newer image, change MIGRATOR_TASK_DEFINITION and
+# MIGRATOR_IMAGE_TAG in a reviewed pull request.
 on:
   workflow_dispatch:
     inputs:
@@ -8,11 +17,18 @@ on:
         required: true
         type: choice
         options:
+          - "status"
+          - "precheck"
           - "01"
           - "migrate"
           - "02"
           - "seed"
           - "verify"
+
+env:
+  MIGRATOR_TASK_DEFINITION: scope-prod-migrator:9
+  MIGRATOR_IMAGE_TAG: 70b58be17e8b111c2631efe26da8954e2fa115fe
+  EXPECTED_PENDING_MIGRATION: 20261023120000_add_password_reset_token_and_session_version
 
 jobs:
   migrate:
@@ -24,11 +40,39 @@ jobs:
       id-token: write
 
     steps:
+      - name: Require dispatch from main
+        shell: bash
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "The production migrator can only be dispatched from main." >&2
+            exit 1
+          fi
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
           aws-region: us-east-1
+
+      - name: Verify pinned task definition
+        shell: bash
+        run: |
+          REVISION="${MIGRATOR_TASK_DEFINITION##*:}"
+          DEFINITION="$(aws ecs describe-task-definition \
+            --task-definition "$MIGRATOR_TASK_DEFINITION" \
+            --query 'taskDefinition.{status:status,family:family,revision:revision,image:containerDefinitions[?name==`migrator`].image|[0],entryPoint:containerDefinitions[?name==`migrator`].entryPoint|[0]}' \
+            --output json)"
+
+          echo "$DEFINITION" | jq -e \
+            --arg tag "$MIGRATOR_IMAGE_TAG" \
+            --argjson revision "$REVISION" \
+            '.status == "ACTIVE"
+             and .family == "scope-prod-migrator"
+             and .revision == $revision
+             and (.image | endswith("/scope/api:" + $tag))
+             and .entryPoint == ["/app/services/api/docker/migrator-entrypoint.sh"]' >/dev/null \
+            || { echo "$MIGRATOR_TASK_DEFINITION is not ACTIVE, or does not use image $MIGRATOR_IMAGE_TAG. Aborting." >&2; exit 1; }
+          echo "Verified $MIGRATOR_TASK_DEFINITION (ACTIVE, image tag $MIGRATOR_IMAGE_TAG)."
 
       - name: Resolve migrator command
         id: command
@@ -37,6 +81,25 @@ jobs:
           STEP: ${{ inputs.step }}
         run: |
           case "$STEP" in
+            status)
+              COMMAND='["npx","prisma","migrate","status","--schema","prisma/schema.prisma"]'
+              ;;
+            precheck)
+              COMMAND="$(jq -cn '[
+                "psql","-X","-q","-A","-t","-x","-v","ON_ERROR_STOP=1",
+                "-c","SET default_transaction_read_only = on",
+                "-c","SHOW default_transaction_read_only",
+                "-c","SELECT current_setting($$server_version$$) AS server_version, current_setting($$lock_timeout$$) AS lock_timeout, current_setting($$statement_timeout$$) AS statement_timeout",
+                "-c","SELECT EXISTS (SELECT 1 FROM pg_tables WHERE schemaname=$$public$$ AND tablename=$$AuthCredential$$) AS authcredential_table_exists, EXISTS (SELECT 1 FROM pg_tables WHERE schemaname=$$public$$ AND tablename=$$User$$) AS user_table_exists, EXISTS (SELECT 1 FROM pg_tables WHERE schemaname=$$public$$ AND tablename=$$_prisma_migrations$$) AS prisma_migrations_table_exists, (SELECT count(*) FROM pg_tables WHERE schemaname=$$public$$ AND tablename IN ($$AuthCredential$$,$$User$$,$$_prisma_migrations$$) AND tableowner=current_user) AS tables_owned_by_current_user",
+                "-c","SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema=$$public$$ AND table_name=$$AuthCredential$$ AND column_name=$$sessionVersion$$) AS session_version_column, to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AS password_reset_token_table",
+                "-c","SELECT count(*) AS migrations_total, count(*) FILTER (WHERE finished_at IS NULL AND rolled_back_at IS NULL) AS in_progress_or_failed, max(migration_name) AS last_migration FROM public._prisma_migrations",
+                "-c","SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) AS scope_app_exists, COALESCE((SELECT rolcanlogin FROM pg_roles WHERE rolname=$$scope_app$$), false) AS scope_app_can_login, COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname=$$scope_app$$), false) AS scope_app_superuser",
+                "-c","SELECT CASE WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, $$public.\"AuthCredential\"$$, $$SELECT$$) END AS cred_select, CASE WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, $$public.\"AuthCredential\"$$, $$UPDATE$$) END AS cred_update, CASE WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, $$public._prisma_migrations$$, $$SELECT$$) END AS migrations_readable",
+                "-c","SELECT CASE WHEN to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, to_regclass($$public.\"PasswordResetToken\"$$), $$SELECT$$) END AS prt_select, CASE WHEN to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, to_regclass($$public.\"PasswordResetToken\"$$), $$INSERT$$) END AS prt_insert, CASE WHEN to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, to_regclass($$public.\"PasswordResetToken\"$$), $$UPDATE$$) END AS prt_update, CASE WHEN to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, to_regclass($$public.\"PasswordResetToken\"$$), $$DELETE$$) END AS prt_delete, CASE WHEN to_regclass($$public.\"PasswordResetToken\"$$) IS NOT NULL AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname=$$scope_app$$) THEN has_table_privilege($$scope_app$$, to_regclass($$public.\"PasswordResetToken\"$$), $$TRUNCATE$$) END AS prt_truncate",
+                "-c","SELECT count(*) AS open_transactions, COALESCE(max(CAST(extract(epoch FROM now() - xact_start) AS integer)), 0) AS oldest_xact_seconds, count(*) FILTER (WHERE state=$$idle in transaction$$) AS idle_in_transaction, count(*) FILTER (WHERE wait_event_type=$$Lock$$) AS waiting_on_lock FROM pg_stat_activity WHERE datname=current_database() AND xact_start IS NOT NULL AND pid <> pg_backend_pid()",
+                "-c","SELECT count(*) AS prepared_xacts FROM pg_prepared_xacts"
+              ]')"
+              ;;
             01)
               COMMAND='["psql","-v","ON_ERROR_STOP=1","-f","/app/infra/terraform/sql/01-bootstrap-scope-app-role.sql"]'
               ;;
@@ -58,6 +121,48 @@ jobs:
               ;;
           esac
 
+          # The command must be a non-empty JSON array of strings.
+          echo "$COMMAND" | jq -e 'type == "array" and length > 0 and all(.[]; type == "string")' >/dev/null \
+            || { echo "The resolved command is not a non-empty array of strings." >&2; exit 1; }
+
+          # Only the migrate step may resolve to `prisma migrate deploy`.
+          if [ "$STEP" != "migrate" ] && echo "$COMMAND" | jq -e 'index("deploy") != null' >/dev/null; then
+            echo "Only the migrate step may run prisma migrate deploy." >&2
+            exit 1
+          fi
+
+          # Allow-list for the read-only steps.
+          if [ "$STEP" = "status" ]; then
+            [ "$COMMAND" = '["npx","prisma","migrate","status","--schema","prisma/schema.prisma"]' ] \
+              || { echo "Unexpected status command. Aborting." >&2; exit 1; }
+          fi
+
+          if [ "$STEP" = "precheck" ]; then
+            echo "$COMMAND" | jq -e '
+              .[0:8] == ["psql","-X","-q","-A","-t","-x","-v","ON_ERROR_STOP=1"]
+              and (.[8:] | length > 0 and length % 2 == 0)
+              and ([.[8:] | to_entries[] | select(.key % 2 == 0) | .value] | all(. == "-c"))' >/dev/null \
+              || { echo "Unexpected psql argument layout in precheck. Aborting." >&2; exit 1; }
+
+            while IFS= read -r SQL; do
+              case "$SQL" in
+                "SET default_transaction_read_only = on") ;;
+                "SELECT "*|"SHOW "*)
+                  case "$SQL" in
+                    *pg_terminate*|*pg_cancel*|*set_config*|*pg_read_*|*lo_*|*nextval*|*" INTO "*|*";"*)
+                      echo "Forbidden construct in a precheck statement. Aborting." >&2
+                      exit 1
+                      ;;
+                  esac
+                  ;;
+                *)
+                  echo "A precheck statement is not read-only. Aborting." >&2
+                  exit 1
+                  ;;
+              esac
+            done < <(echo "$COMMAND" | jq -r '.[8:] | to_entries[] | select(.key % 2 == 1) | .value')
+          fi
+
           echo "command=$COMMAND" >> "$GITHUB_OUTPUT"
 
       - name: Run migrator task
@@ -75,27 +180,62 @@ jobs:
             ]
           }')"
 
-          TASK_ARN="$(aws ecs run-task \
+          # The overrides must carry exactly one container override with only a name and a command.
+          echo "$OVERRIDES" | jq -e '
+            keys == ["containerOverrides"]
+            and (.containerOverrides | length == 1)
+            and (.containerOverrides[0] | keys == ["command", "name"])
+            and .containerOverrides[0].name == "migrator"
+            and (.containerOverrides[0].command | type == "array" and length > 0 and all(.[]; type == "string"))' >/dev/null \
+            || { echo "Invalid container overrides. Not launching." >&2; exit 1; }
+
+          RESPONSE="$(aws ecs run-task \
             --cluster scope-prod-cluster \
-            --task-definition scope-prod-migrator \
+            --task-definition "$MIGRATOR_TASK_DEFINITION" \
+            --count 1 \
             --launch-type FARGATE \
             --network-configuration 'awsvpcConfiguration={subnets=[subnet-075ecbc2b61716fef,subnet-0d58aa21130801c05],securityGroups=[sg-0b7284f9025ac2749],assignPublicIp=ENABLED}' \
             --overrides "$OVERRIDES" \
-            --query 'tasks[0].taskArn' \
-            --output text)"
+            --output json)"
 
-          if [ -z "$TASK_ARN" ] || [ "$TASK_ARN" = "None" ]; then
-            echo "ECS did not return a task ARN." >&2
+          TASK_ARN="$(echo "$RESPONSE" | jq -r '.tasks[0].taskArn // empty')"
+
+          if ! echo "$RESPONSE" | jq -e \
+            --arg definition "task-definition/$MIGRATOR_TASK_DEFINITION" \
+            '(.failures | length == 0)
+             and (.tasks | length == 1)
+             and (.tasks[0].taskArn | length > 0)
+             and (.tasks[0].taskDefinitionArn | endswith($definition))' >/dev/null; then
+            echo "ECS did not return exactly one task of $MIGRATOR_TASK_DEFINITION, or reported failures." >&2
+            if [ -n "$TASK_ARN" ]; then
+              aws ecs stop-task --cluster scope-prod-cluster --task "$TASK_ARN" --reason "unexpected run-task response" >/dev/null || true
+            fi
             exit 1
           fi
 
           echo "task_arn=$TASK_ARN" >> "$GITHUB_OUTPUT"
           echo "Started $TASK_ARN"
 
+          # DETECTION, not prevention: this runs after the task was requested. If the command that ECS
+          # recorded differs from the one that was asked for, the task is stopped immediately.
+          RECEIVED="$(aws ecs describe-tasks \
+            --cluster scope-prod-cluster \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].overrides.containerOverrides[?name==`migrator`]|[0].command' \
+            --output json)"
+          if [ "$(echo "$RECEIVED" | jq -c .)" != "$(echo "$COMMAND" | jq -c .)" ]; then
+            echo "ECS recorded a different command than requested. Stopping the task." >&2
+            aws ecs stop-task --cluster scope-prod-cluster --task "$TASK_ARN" --reason "command override mismatch" >/dev/null
+            exit 1
+          fi
+          echo "Command override verified."
+
       - name: Wait for migrator
+        id: wait
         shell: bash
         env:
           TASK_ARN: ${{ steps.run.outputs.task_arn }}
+          STEP: ${{ inputs.step }}
         run: |
           aws ecs wait tasks-stopped \
             --cluster scope-prod-cluster \
@@ -113,7 +253,169 @@ jobs:
             --query 'tasks[0].containers[0].exitCode' \
             --output text)"
 
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          # `prisma migrate status` exits 1 when migrations are pending. That exit code is classified by
+          # the next step, which fails closed. Any other exit code (or none) is a failure here.
+          if [ "$STEP" = "status" ] && { [ "$EXIT_CODE" = "0" ] || [ "$EXIT_CODE" = "1" ]; }; then
+            exit 0
+          fi
+
           if [ "$EXIT_CODE" != "0" ]; then
             echo "Migrator failed with exit code $EXIT_CODE." >&2
             exit 1
           fi
+
+      - name: Summarize read-only step
+        if: ${{ inputs.step == 'status' || inputs.step == 'precheck' }}
+        shell: bash
+        env:
+          TASK_ARN: ${{ steps.run.outputs.task_arn }}
+          EXIT_CODE: ${{ steps.wait.outputs.exit_code }}
+          STEP: ${{ inputs.step }}
+        run: |
+          set -euo pipefail
+
+          RAW="${RUNNER_TEMP:-/tmp}/migrator-output.txt"
+          trap 'rm -f "$RAW"' EXIT
+          WAIT="${LOG_WAIT_SECONDS:-10}"
+          TASK_ID="${TASK_ARN##*/}"
+
+          # The raw CloudWatch output is kept in a temporary file and NEVER printed.
+          for ATTEMPT in 1 2 3 4 5 6; do
+            sleep "$WAIT"
+            aws logs get-log-events \
+              --log-group-name /scope/prod/migrator \
+              --log-stream-name "ecs/migrator/${TASK_ID}" \
+              --start-from-head \
+              --query 'events[].message' \
+              --output json | jq -r '.[]' | tr -d '\r' > "$RAW" || : > "$RAW"
+            if [ "$STEP" = "precheck" ]; then
+              grep -q '^prepared_xacts|' "$RAW" && break
+            else
+              grep -q -i -E 'up to date|not yet been applied|error|failed|diverge|different' "$RAW" && break
+            fi
+          done
+
+          fail_closed() {
+            echo "result=FAILED_CLOSED"
+            echo "reason=$1"
+            echo "exit_code=${EXIT_CODE:-unknown}"
+            echo "raw_output_lines=$(wc -l < "$RAW" | tr -d ' ')"
+            echo "The raw output is not published. Inspect CloudWatch log group /scope/prod/migrator (stream ecs/migrator/${TASK_ID})." >&2
+            exit 1
+          }
+
+          if [ "$STEP" = "status" ]; then
+            TEXT="$(cat "$RAW")"
+            ERROR_CODES="$(printf '%s\n' "$TEXT" | grep -o -E '\bP[0-9]{4}\b' | sort -u | tr '\n' ' ' | sed 's/ $//' || true)"
+            FOUND="$(printf '%s\n' "$TEXT" | grep -o -E '^[0-9]+ migrations? found in prisma/migrations' | head -1 | grep -o -E '^[0-9]+' || true)"
+            PENDING=()
+            while IFS= read -r NAME; do
+              [ -n "$NAME" ] && PENDING+=("$NAME")
+            done < <(printf '%s\n' "$TEXT" | awk '/^Following migrations? (have|has) not yet been applied:/ {capture=1; next} capture && /^[[:space:]]*$/ {capture=0} capture {print}')
+
+            CLASSIFICATION="UNCLASSIFIED"
+            if printf '%s\n' "$TEXT" | grep -q -i -E "P10[0-9]{2}|can't reach|cannot reach|connection (refused|timed out)|timed out"; then
+              CLASSIFICATION="CONNECTION_ERROR"
+            elif printf '%s\n' "$TEXT" | grep -q -i -E 'have failed|has failed|failed migration|failed to apply'; then
+              CLASSIFICATION="FAILED_MIGRATION"
+            elif printf '%s\n' "$TEXT" | grep -q -i -E 'diverge|migration history and the migrations table|not found locally|last common migration|are different'; then
+              CLASSIFICATION="DIVERGED_HISTORY"
+            elif printf '%s\n' "$TEXT" | grep -q -i -E '(^|[^a-z])error([^a-z]|$)|\bP[0-9]{4}\b'; then
+              CLASSIFICATION="OTHER_ERROR"
+            elif [ "${#PENDING[@]}" -gt 0 ]; then
+              VALID_NAMES=true
+              for NAME in "${PENDING[@]}"; do
+                [[ "$NAME" =~ ^[0-9]{14}_[A-Za-z0-9_]+$ ]] || VALID_NAMES=false
+              done
+              if [ "$VALID_NAMES" = true ] && [ "${#PENDING[@]}" -eq 1 ] && [ "${PENDING[0]}" = "$EXPECTED_PENDING_MIGRATION" ]; then
+                # The expected migration is pending: Prisma must have exited 1, anything else is inconsistent.
+                if [ "$EXIT_CODE" = "1" ]; then
+                  CLASSIFICATION="PENDING_EXPECTED"
+                fi
+              elif [ "$VALID_NAMES" = true ]; then
+                CLASSIFICATION="UNEXPECTED_PENDING"
+              fi
+            elif [ "$EXIT_CODE" = "0" ] && printf '%s\n' "$TEXT" | grep -q 'Database schema is up to date!'; then
+              CLASSIFICATION="UP_TO_DATE"
+            fi
+
+            APPLIED="unknown"
+            if [[ "$FOUND" =~ ^[0-9]+$ ]] && [ "$FOUND" -ge "${#PENDING[@]}" ]; then
+              APPLIED=$((FOUND - ${#PENDING[@]}))
+            fi
+
+            echo "prisma_status=$CLASSIFICATION"
+            echo "prisma_exit_code=${EXIT_CODE}"
+            echo "migrations_found=${FOUND:-unknown}"
+            echo "migrations_applied=${APPLIED}"
+            echo "migrations_pending=${#PENDING[@]}"
+            if [ "${#PENDING[@]}" -eq 1 ] && [ "${PENDING[0]}" = "$EXPECTED_PENDING_MIGRATION" ]; then
+              echo "pending_migration=$EXPECTED_PENDING_MIGRATION"
+            fi
+            if [ -n "$ERROR_CODES" ] && [[ "$ERROR_CODES" =~ ^(P[0-9]{4}( |$))+$ ]]; then
+              echo "prisma_error_codes=$ERROR_CODES"
+            fi
+
+            case "$CLASSIFICATION" in
+              PENDING_EXPECTED|UP_TO_DATE) exit 0 ;;
+              *) fail_closed "$CLASSIFICATION" ;;
+            esac
+          fi
+
+          # precheck: print only allow-listed keys whose values match a strict pattern.
+          declare -A ALLOWED=(
+            [default_transaction_read_only]='^(on|off)$'
+            [server_version]='^[0-9]+(\.[0-9]+)?$'
+            [lock_timeout]='^[0-9]+(ms|s|min|h|d)?$'
+            [statement_timeout]='^[0-9]+(ms|s|min|h|d)?$'
+            [authcredential_table_exists]='^[tf]$'
+            [user_table_exists]='^[tf]$'
+            [prisma_migrations_table_exists]='^[tf]$'
+            [tables_owned_by_current_user]='^[0-9]+$'
+            [session_version_column]='^[tf]$'
+            [password_reset_token_table]='^[tf]$'
+            [migrations_total]='^[0-9]+$'
+            [in_progress_or_failed]='^[0-9]+$'
+            [last_migration]='^([0-9]{14}_[a-z0-9_]+)?$'
+            [scope_app_exists]='^[tf]$'
+            [scope_app_can_login]='^[tf]$'
+            [scope_app_superuser]='^[tf]$'
+            [cred_select]='^[tf]?$'
+            [cred_update]='^[tf]?$'
+            [migrations_readable]='^[tf]?$'
+            [prt_select]='^[tf]?$'
+            [prt_insert]='^[tf]?$'
+            [prt_update]='^[tf]?$'
+            [prt_delete]='^[tf]?$'
+            [prt_truncate]='^[tf]?$'
+            [open_transactions]='^[0-9]+$'
+            [oldest_xact_seconds]='^[0-9]+$'
+            [idle_in_transaction]='^[0-9]+$'
+            [waiting_on_lock]='^[0-9]+$'
+            [prepared_xacts]='^[0-9]+$'
+          )
+          declare -A SEEN=()
+          BAD=0
+          OUT=()
+          while IFS='|' read -r KEY VALUE; do
+            [ -n "$KEY" ] || continue
+            [[ -n "${ALLOWED[$KEY]:-}" ]] || continue
+            [ -z "${SEEN[$KEY]:-}" ] || { BAD=1; continue; }
+            SEEN[$KEY]=1
+            if [[ "$VALUE" =~ ${ALLOWED[$KEY]} ]]; then
+              OUT+=("$KEY=${VALUE:-null}")
+            else
+              OUT+=("$KEY=<unexpected>")
+              BAD=1
+            fi
+          done < "$RAW"
+
+          for KEY in "${!ALLOWED[@]}"; do
+            [ -n "${SEEN[$KEY]:-}" ] || BAD=1
+          done
+
+          [ "$BAD" -eq 0 ] || fail_closed "PRECHECK_OUTPUT_INCOMPLETE_OR_UNEXPECTED"
+          [ "$(printf '%s\n' "${OUT[@]}" | grep -c '^default_transaction_read_only=on$')" -eq 1 ] || fail_closed "SESSION_NOT_READ_ONLY"
+          printf '%s\n' "${OUT[@]}"

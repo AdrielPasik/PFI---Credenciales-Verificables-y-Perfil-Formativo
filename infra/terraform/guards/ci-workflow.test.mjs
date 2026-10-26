@@ -54,7 +54,8 @@ test('los workflows productivos no cambian respecto de la base (origin/main)', {
   const base = process.env.CI_BASE_REF || 'origin/main';
   const out = execFileSync('git', ['diff', '--name-only', base, '--', '.github/workflows'], { cwd: ROOT, encoding: 'utf8' })
     .split(/\r?\n/).filter(Boolean);
-  assert.deepEqual(out.filter((f) => !f.endsWith('api-postgres-tests.yml')), []);
+  // run-production-migrator.yml se cubre con run-production-migrator-workflow.test.mjs (pasos de solo lectura status/precheck).
+  assert.deepEqual(out.filter((f) => !f.endsWith('api-postgres-tests.yml') && !f.endsWith('run-production-migrator.yml')), []);
 });
 
 function gitHas(ref) {
