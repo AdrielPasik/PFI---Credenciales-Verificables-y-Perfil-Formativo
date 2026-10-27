@@ -36,7 +36,7 @@ type Row = Record<string, unknown>;
 
 function fakePrisma(options: { identity?: boolean; profiles?: Row[]; failOn?: string } = {}) {
   const state = {
-    issuers: [{ id: ISSUER_ID, allowedCredentialTypes: [] as string[] }],
+    issuers: [{ id: ISSUER_ID, authorizationStatus: 'authorized', allowedCredentialTypes: [] as string[] }],
     profiles: [...(options.profiles ?? [])] as Row[],
     identities: options.identity
       ? ([{ issuerId: ISSUER_ID, anchorSignerProfileId: 'existing' }] as Row[])
@@ -55,6 +55,12 @@ function fakePrisma(options: { identity?: boolean; profiles?: Row[]; failOn?: st
         if (!issuer) return null;
         const identity = state.identities.find((i) => i.issuerId === where.id);
         return { id: issuer.id, technicalIdentity: identity ? { id: 'ti' } : null };
+      },
+      updateMany: async ({ where }: { where: { id: string; authorizationStatus: string; allowedCredentialTypes: { equals: string[] } } }) => {
+        const issuer = state.issuers.find(i => i.id === where.id);
+        const identity = state.identities.find(i => i.issuerId === where.id);
+        return { count: issuer && !identity && issuer.authorizationStatus === where.authorizationStatus &&
+          JSON.stringify(issuer.allowedCredentialTypes) === JSON.stringify(where.allowedCredentialTypes.equals) ? 1 : 0 };
       },
       update: async ({ data }: { data: { allowedCredentialTypes: string[] } }) => {
         maybeFail('issuer.update');
@@ -405,4 +411,58 @@ test('G3 escritor SSM: PutParameter SecureString con Overwrite=false (cliente do
   assert.equal(sent[0].name, 'PutParameterCommand');
   assert.equal(sent[0].input.Type, 'SecureString');
   assert.equal(sent[0].input.Overwrite, false);
+});
+
+const UADE_ID = '14bcdb1c-f82a-4435-af45-4bc5c95e02a7';
+const uadeInput = { issuerId: UADE_ID, credentialTypes: ['academic_subject'], anchor: { kind: 'new' as const }, guardUade: true };
+function uadeDb() {
+  const db = fakePrisma();
+  db.state.issuers[0].id = UADE_ID;
+  db.state.issuers[0].allowedCredentialTypes = ['academic_subject'];
+  return db;
+}
+
+test('UADE guard succeeds without changing capabilities', async () => {
+  const db = uadeDb();
+  const { svc } = service({ prisma: db.prisma });
+  const result = await svc.provisionInitial(uadeInput);
+  assert.deepEqual(result.allowedCredentialTypes, ['academic_subject']);
+  assert.deepEqual(db.state.issuers[0].allowedCredentialTypes, ['academic_subject']);
+  assert.equal(db.state.identities.length, 1);
+});
+
+test('UADE guard rejects concurrent capability change before transaction', async () => {
+  const db = uadeDb();
+  const writer = recordingWriter();
+  const write = writer.createSecureString;
+  writer.createSecureString = async (ref, value) => {
+    await write(ref, value);
+    if (writer.writes.length === 2) db.state.issuers[0].allowedCredentialTypes = ['academic_subject', 'course'];
+  };
+  const { svc } = service({ prisma: db.prisma, secretWriter: writer });
+  await assert.rejects(svc.provisionInitial(uadeInput), (e: unknown) =>
+    e instanceof TechnicalProvisioningError && e.code === 'ORPHAN_SIGNER_SECRET_REQUIRES_CLEANUP' && e.causeCode === 'UADE_PRECONDITION_FAILED');
+  assert.deepEqual(db.state.issuers[0].allowedCredentialTypes, ['academic_subject', 'course']);
+  assert.equal(db.state.identities.length, 0);
+  assert.equal(db.state.profiles.length, 0);
+});
+
+test('UADE guard rejects unauthorized issuer and an existing identity', async () => {
+  const db = uadeDb();
+  db.state.issuers[0].authorizationStatus = 'suspended';
+  const { svc } = service({ prisma: db.prisma });
+  await assert.rejects(svc.provisionInitial(uadeInput), (e: unknown) =>
+    e instanceof TechnicalProvisioningError && e.causeCode === 'UADE_PRECONDITION_FAILED');
+  assert.equal(db.state.identities.length, 0);
+  const present = uadeDb();
+  present.state.identities.push({ issuerId: UADE_ID, anchorSignerProfileId: 'existing' });
+  await assert.rejects(service({ prisma: present.prisma }).svc.provisionInitial(uadeInput), (e: unknown) =>
+    e instanceof TechnicalProvisioningError && e.code === 'TECHNICAL_IDENTITY_ALREADY_EXISTS');
+});
+
+test('UADE guard rejects different issuer and types before key creation', async () => {
+  const { svc, writer } = service();
+  await assert.rejects(svc.provisionInitial({ ...uadeInput, issuerId: ISSUER_ID }));
+  await assert.rejects(svc.provisionInitial({ ...uadeInput, credentialTypes: ['course'] }));
+  assert.equal(writer.writes.length, 0);
 });

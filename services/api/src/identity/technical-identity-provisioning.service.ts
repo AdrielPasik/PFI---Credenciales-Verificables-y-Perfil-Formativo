@@ -82,6 +82,7 @@ export type TechnicalProvisioningErrorCode =
   | 'ISSUER_NOT_FOUND'
   | 'TECHNICAL_IDENTITY_ALREADY_EXISTS'
   | 'TECHNICAL_IDENTITY_MISSING'
+  | 'UADE_PRECONDITION_FAILED'
   | 'INVALID_CREDENTIAL_TYPE'
   | 'SHARED_ANCHOR_INVALID'
   | 'DID_CONFIGURATION_MISSING'
@@ -96,6 +97,7 @@ const SAFE_MESSAGES: Record<TechnicalProvisioningErrorCode, string> = {
   TECHNICAL_IDENTITY_ALREADY_EXISTS:
     'El emisor ya tiene identidad tecnica. Usar la rotacion, no el provisioning inicial.',
   TECHNICAL_IDENTITY_MISSING: 'El emisor no tiene identidad tecnica.',
+  UADE_PRECONDITION_FAILED: 'La precondicion de UADE no se cumple.',
   INVALID_CREDENTIAL_TYPE: 'La lista contiene un tipo de credencial desconocido.',
   SHARED_ANCHOR_INVALID:
     'La cuenta de anclaje compartida indicada no es utilizable.',
@@ -194,11 +196,16 @@ export class TechnicalIdentityProvisioningService {
     issuerId: string;
     credentialTypes: readonly unknown[];
     anchor: AnchorChoice;
+    guardUade?: boolean;
   }): Promise<InitialProvisioningResult> {
     const prefix = this.requirePrefix();
     // Misma validacion de politica que la primitiva de capacidades.
     const credentialTypes = this.normalizePolicy(input.credentialTypes);
     const { prisma } = this.deps;
+    if (input.guardUade && (input.issuerId !== '14bcdb1c-f82a-4435-af45-4bc5c95e02a7' ||
+      credentialTypes.length !== 1 || credentialTypes[0] !== 'academic_subject' || input.anchor.kind !== 'new')) {
+      throw new TechnicalProvisioningError('UADE_PRECONDITION_FAILED');
+    }
 
     // 1-2. Validacion previa (no autoritativa: se repite dentro de la TX).
     const issuer = await prisma.issuer.findUnique({
@@ -265,6 +272,20 @@ export class TechnicalIdentityProvisioningService {
           }
           if (current.technicalIdentity) {
             throw new TechnicalProvisioningError('TECHNICAL_IDENTITY_ALREADY_EXISTS');
+          }
+
+          // This conditional update locks the issuer until transaction commit.
+          if (input.guardUade) {
+            const guarded = await transaction.issuer.updateMany({
+              where: {
+                id: input.issuerId,
+                authorizationStatus: 'authorized',
+                allowedCredentialTypes: { equals: credentialTypes },
+                technicalIdentity: { is: null }
+              },
+              data: { allowedCredentialTypes: { set: credentialTypes } }
+            });
+            if (guarded.count !== 1) throw new TechnicalProvisioningError('UADE_PRECONDITION_FAILED');
           }
 
           let anchorProfileId: string;

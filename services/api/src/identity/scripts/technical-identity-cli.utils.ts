@@ -13,7 +13,7 @@ import {
 
 export type CliCommand =
   | { kind: 'set-capabilities'; issuerId: string; credentialTypes: string[] }
-  | { kind: 'provision'; issuerId: string; credentialTypes: string[]; anchor: AnchorChoice }
+  | { kind: 'provision'; issuerId: string; credentialTypes: string[]; anchor: AnchorChoice; guardUade?: boolean }
   | { kind: 'rotate-assertion'; issuerId: string }
   | { kind: 'rotate-anchor'; issuerId: string; anchor: AnchorChoice };
 
@@ -33,6 +33,7 @@ export class CliUsageError extends Error {
 
 export function parseCliArgs(kind: CliCommand['kind'], argv: readonly string[]): CliCommand {
   const allowed = ALLOWED_FLAGS[kind];
+  if (!allowed) throw new CliUsageError('Operacion no soportada.');
   const values = new Map<string, string>();
 
   for (let index = 0; index < argv.length; index += 1) {
