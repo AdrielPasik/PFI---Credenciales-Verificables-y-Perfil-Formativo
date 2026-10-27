@@ -11,6 +11,11 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
 import { Button } from '@/components/ui/button';
 import type { RegisterCommand } from '@/lib/api/auth-api';
+import {
+  EMAIL_PATTERN,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH
+} from '@/lib/auth/credential-rules';
 import type {
   AuthFeedback,
   UserOnboardingIntent
@@ -58,11 +63,9 @@ const ONBOARDING_OPTIONS: ReadonlyArray<{
   }
 ];
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-// A1: misma politica minima que el backend (services/api/src/auth/auth.service.ts)
-// -- feedback temprano en frontend, backend sigue siendo la autoridad real.
-const MIN_PASSWORD_LENGTH = 8;
-const MAX_PASSWORD_LENGTH = 128;
+// El patron de email y la politica de contrasena (8 a 128) viven en
+// `lib/auth/credential-rules.ts`: los comparte la recuperacion de contrasena. Son
+// feedback temprano; el backend sigue siendo la autoridad real.
 // A1.1: misma politica minima que el backend -- solo longitud maxima, sin
 // restriccion de charset (nombres con acentos, apostrofes o guiones deben
 // poder representarse tal cual).
@@ -115,7 +118,7 @@ export function RegisterForm({
 
     if (!normalizedEmail) {
       nextErrors.email = 'Ingresá tu correo electrónico.';
-    } else if (!emailPattern.test(normalizedEmail)) {
+    } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
       nextErrors.email = 'Ingresá un correo electrónico válido.';
     }
 

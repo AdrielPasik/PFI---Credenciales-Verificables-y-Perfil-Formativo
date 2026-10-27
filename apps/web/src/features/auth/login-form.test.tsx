@@ -4,11 +4,15 @@ import {
   screen,
   waitFor
 } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginForm } from '@/features/auth/login-form';
 
 describe('LoginForm', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('renders accessible credentials fields and toggles password visibility', () => {
     render(
       <LoginForm
@@ -60,6 +64,7 @@ describe('LoginForm', () => {
       <LoginForm
         isSubmitting
         onSubmit={vi.fn().mockResolvedValue(null)}
+        passwordRecoveryEnabled
       />
     );
 
@@ -97,5 +102,54 @@ describe('LoginForm', () => {
     expect((password as HTMLInputElement).value).toBe('');
     expect(document.body.textContent).not.toContain('not-a-real-password');
     expect(document.body.textContent).not.toContain('[REDACTED]');
+  });
+
+  it('hides the password recovery link while recovery is switched off (default)', () => {
+    render(<LoginForm isSubmitting={false} onSubmit={vi.fn().mockResolvedValue(null)} />);
+
+    expect(screen.queryByRole('link', { name: '¿Olvidaste tu contraseña?' })).toBeNull();
+    expect(document.body.innerHTML).not.toContain('/forgot-password');
+  });
+
+  it('links to password recovery after the password field', () => {
+    const onSubmit = vi.fn().mockResolvedValue(null);
+    render(<LoginForm isSubmitting={false} onSubmit={onSubmit} passwordRecoveryEnabled />);
+
+    const link = screen.getByRole('link', {
+      name: '¿Olvidaste tu contraseña?'
+    }) as HTMLAnchorElement;
+
+    expect(link.getAttribute('href')).toBe('/forgot-password');
+
+    const password = screen.getByLabelText('Contraseña');
+    expect(
+      password.compareDocumentPosition(link) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
+    // Es navegacion pura: un <a>, no un boton de envio, y no toca el login.
+    expect(link.tagName).toBe('A');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('shows the link when the build flag NEXT_PUBLIC_PASSWORD_RECOVERY_ENABLED is true', () => {
+    vi.stubEnv('NEXT_PUBLIC_PASSWORD_RECOVERY_ENABLED', 'true');
+    render(<LoginForm isSubmitting={false} onSubmit={vi.fn().mockResolvedValue(null)} />);
+
+    expect(screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' })).toBeTruthy();
+  });
+
+  it('keeps the recovery link available while a login is submitting', () => {
+    render(
+      <LoginForm
+        isSubmitting
+        onSubmit={vi.fn().mockResolvedValue(null)}
+        passwordRecoveryEnabled
+      />
+    );
+
+    expect(
+      screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' })
+    ).toBeTruthy();
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react';
+import Link from 'next/link';
 import {
   useRef,
   useState,
@@ -11,12 +12,19 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { TextField } from '@/components/forms/text-field';
 import { Button } from '@/components/ui/button';
 import type { LoginCommand } from '@/lib/api/auth-api';
+import { EMAIL_PATTERN } from '@/lib/auth/credential-rules';
+import { isPasswordRecoveryEnabled } from '@/lib/env/feature-flags';
 import type { AuthFeedback } from '@/models/auth-session';
 
 interface LoginFormProps {
   initialFeedback?: AuthFeedback | null;
   isSubmitting: boolean;
   onSubmit(command: LoginCommand): Promise<AuthFeedback | null>;
+  /**
+   * Muestra el enlace de recuperacion. Por defecto lo decide el interruptor de build
+   * `NEXT_PUBLIC_PASSWORD_RECOVERY_ENABLED` (apagado hasta que el correo funcione).
+   */
+  passwordRecoveryEnabled?: boolean;
 }
 
 interface FieldErrors {
@@ -24,12 +32,11 @@ interface FieldErrors {
   password?: string;
 }
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function LoginForm({
   initialFeedback = null,
   isSubmitting,
-  onSubmit
+  onSubmit,
+  passwordRecoveryEnabled = isPasswordRecoveryEnabled()
 }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +55,7 @@ export function LoginForm({
 
     if (!normalizedEmail) {
       nextErrors.email = 'Ingresá tu correo electrónico.';
-    } else if (!emailPattern.test(normalizedEmail)) {
+    } else if (!EMAIL_PATTERN.test(normalizedEmail)) {
       nextErrors.email = 'Ingresá un correo electrónico válido.';
     }
 
@@ -163,6 +170,17 @@ export function LoginForm({
           )}
         </Button>
       </div>
+
+      {passwordRecoveryEnabled ? (
+        <div className="-mt-3 flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-brand-700 underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/30"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+      ) : null}
 
       <Button type="submit" size="lg" disabled={isSubmitting}>
         {isSubmitting ? (

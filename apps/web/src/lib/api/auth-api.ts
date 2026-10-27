@@ -1,6 +1,7 @@
 import type { UserOnboardingIntent } from '@/models/auth-session';
 
 import { createApiClient } from '@/lib/api/api-client';
+import { ApiError } from '@/lib/errors/api-error';
 
 export interface LoginCommand {
   email: string;
@@ -32,6 +33,88 @@ export async function registerRequest(command: RegisterCommand) {
     method: 'POST',
     body: command
   });
+}
+
+// ---------------------------------------------------------------------------
+// Recuperacion de contrasena
+//
+// Los tres endpoints son PUBLICOS: se llaman SIN token, a proposito. Una sesion
+// abierta en este navegador no interviene (ni se envia su JWT, ni un 401 puede
+// disparar el "sesion vencida" del SessionProvider, que vive en
+// `requestAuthenticated`). La autoridad es el backend; aca solo se valida que la
+// respuesta sea exactamente el contrato.
+// ---------------------------------------------------------------------------
+
+export interface RequestPasswordResetCommand {
+  email: string;
+}
+
+export interface ConfirmPasswordResetCommand {
+  /** Secreto de un solo uso. Solo se manda a verify/confirm; nunca se guarda. */
+  token: string;
+  /** Tal cual la escribio la persona: sin trim, sin normalizar. */
+  password: string;
+}
+
+/**
+ * Una respuesta 2xx cuyo cuerpo NO es el contrato no se interpreta como exito. Se
+ * lanza `invalid-response`, sin copiar el cuerpo (que podria traer cualquier cosa).
+ */
+function expectStatus(payload: unknown, expected: string): void {
+  const status =
+    typeof payload === 'object' && payload !== null && !Array.isArray(payload)
+      ? (payload as { status?: unknown }).status
+      : undefined;
+
+  if (status !== expected) {
+    throw new ApiError(
+      'El servicio devolvió una respuesta inesperada.',
+      'invalid-response'
+    );
+  }
+}
+
+/** 202 `{ status: 'requested' }`. NO significa que el correo haya salido. */
+export async function requestPasswordReset(
+  command: RequestPasswordResetCommand
+): Promise<void> {
+  const payload = await createApiClient().request(
+    '/auth/password-reset/request',
+    { method: 'POST', body: { email: command.email } }
+  );
+
+  expectStatus(payload, 'requested');
+}
+
+/** 200 `{ status: 'valid' }`. Solo lectura: no consume el token. */
+export async function verifyPasswordResetToken(
+  command: Pick<ConfirmPasswordResetCommand, 'token'>
+): Promise<void> {
+  const payload = await createApiClient().request(
+    '/auth/password-reset/verify',
+    { method: 'POST', body: { token: command.token } }
+  );
+
+  expectStatus(payload, 'valid');
+}
+
+/**
+ * 200 `{ status: 'password_reset' }`. Consume el token. NO devuelve un JWT y la
+ * web NO inicia sesion. Se envian exactamente `token` y `password`: nunca un email,
+ * un id ni una version de sesion.
+ */
+export async function confirmPasswordReset(
+  command: ConfirmPasswordResetCommand
+): Promise<void> {
+  const payload = await createApiClient().request(
+    '/auth/password-reset/confirm',
+    {
+      method: 'POST',
+      body: { token: command.token, password: command.password }
+    }
+  );
+
+  expectStatus(payload, 'password_reset');
 }
 
 export async function currentUserRequest(accessToken: string) {
