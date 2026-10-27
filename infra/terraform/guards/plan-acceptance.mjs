@@ -10,6 +10,7 @@
  *   node infra/terraform/guards/plan-acceptance.mjs --mode baseline   --plan plan.json
  *   node infra/terraform/guards/plan-acceptance.mjs --mode integrated --plan plan.json [--allow-api-image-change]
  *   node infra/terraform/guards/plan-acceptance.mjs --mode migrator-only --expected-image-tag <sha40> --plan plan.json
+ *   node infra/terraform/guards/plan-acceptance.mjs --mode recovery-activation --plan plan.json
  *
  * Modos
  *   baseline    codigo `origin/main` SIN recuperacion. Aceptable unicamente: NINGUN cambio
@@ -23,6 +24,19 @@
  *                   --allow-api-image-change se admite el cambio de imagen del paso de despliegue);
  *                 - aws_ecs_service.api[0]: solo `task_definition`, con desired_count y 0/100 intactos.
  *               Todo lo demas es RECHAZO.
+ *
+ *   recovery-activation  ACTIVACION del correo de la recuperacion (Resend) sobre una API ya desplegada con la
+ *               recuperacion deshabilitada. Aceptable unicamente:
+ *                 - aws_ecs_task_definition.api: reemplazo con create antes que delete (create_before_destroy),
+ *                   misma imagen; solo cambian MAIL_TRANSPORT (disabled -> resend) y WEB_PUBLIC_BASE_URL
+ *                   (vacio -> el origen aprobado); MAIL_FROM es el aprobado; ninguna otra variable cambia;
+ *                   los secretos anteriores quedan identicos y se agrega UNICAMENTE RESEND_API_KEY como
+ *                   referencia al ARN SSM /scope/prod/api/RESEND_API_KEY (nunca como variable de entorno);
+ *                 - aws_ecs_service.api[0]: solo task_definition, con desired_count y 0/100 intactos;
+ *                 - aws_iam_role_policy.execution["api"]: la UNICA diferencia es que ssm:GetParameters gana
+ *                   exactamente el ARN del parametro de Resend (sin comodines, sin otras acciones);
+ *                 - outputs password_recovery_configuration y ssm_parameters_required_out_of_band.
+ *               Todo lo demas es RECHAZO. No debilita `integrated` (que sigue exigiendo mail deshabilitado).
  *
  *   migrator-only  publicacion de la imagen del MIGRADOR (paso previo a migrar, sin cortar la API).
  *               Aceptable unicamente: el reemplazo (delete+create, por `container_definitions`) de
@@ -178,11 +192,278 @@ function evaluateMigratorOnly({ plan, expectedImageTag }) {
   return { reasons: [...new Set(reasons)], notes, changes: changes.map((c) => `${c.address} [${actionsOf(c).join('+')}]`) };
 }
 
+// ---------------------------------------------------------------------------------------------
+// recovery-activation: el cambio de `mail_transport` de "disabled" a "resend" y nada mas.
+// Funciones independientes: no comparten reglas con integrated (que exige mail deshabilitado).
+// ---------------------------------------------------------------------------------------------
+export const RECOVERY_ACTIVATION = Object.freeze({
+  webPublicBaseUrl: 'https://scopeedu.technology',
+  mailFrom: 'Scope <no-responder@mail.scopeedu.technology>',
+  resendParameterName: '/scope/prod/api/RESEND_API_KEY'
+});
+export const API_EXECUTION_POLICY = 'aws_iam_role_policy.execution["api"]';
+export const OUTPUT_RECOVERY_CONFIGURATION = 'password_recovery_configuration';
+export const OUTPUT_PARAMETERS_OUT_OF_BAND = 'ssm_parameters_required_out_of_band';
+
+const RESEND_SECRET_ARN = /^arn:aws:ssm:us-east-1:([0-9]{12}):parameter\/scope\/prod\/api\/RESEND_API_KEY$/;
+const SSM_ARN_ACCOUNT = /^arn:aws:ssm:us-east-1:([0-9]{12}):parameter\/scope\/prod\//;
+const SSM_READ_ACTIONS = ['ssm:GetParameter', 'ssm:GetParameters'];
+
+const asArray = (v) => (v === undefined ? [] : Array.isArray(v) ? v : [v]);
+
+function parsePolicy(raw, side, reasons) {
+  try {
+    const doc = JSON.parse(raw);
+    if (!doc || !Array.isArray(doc.Statement)) throw new Error('sin Statement');
+    return doc;
+  } catch {
+    reasons.push(`${API_EXECUTION_POLICY}: la politica (${side}) no es un JSON de IAM legible`);
+    return null;
+  }
+}
+
+/** Forma canonica de una sentencia IAM: acciones y recursos ordenados, para compararlas sin depender del orden. */
+function canonicalStatement(st) {
+  const { Action, Resource, ...rest } = st;
+  return JSON.stringify({ ...canonical(rest), Action: asArray(Action).slice().sort(), Resource: asArray(Resource).slice().sort() });
+}
+
+function checkExecutionPolicy({ change, reasons }) {
+  if (change.actions?.join('+') !== 'update') {
+    reasons.push(`${API_EXECUTION_POLICY}: la accion debe ser update (es ${(change.actions ?? []).join('+')})`);
+  }
+  const before = change.before ?? {};
+  const after = change.after ?? {};
+  for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    if (key === 'policy') continue;
+    if (!same(before[key], after[key])) reasons.push(`${API_EXECUTION_POLICY}: cambia ${key} (solo se admite la politica)`);
+  }
+  if (!isEmptyValue(change.after_unknown)) reasons.push(`${API_EXECUTION_POLICY}: hay atributos desconocidos hasta el apply`);
+
+  const b = parsePolicy(before.policy, 'before', reasons);
+  const a = parsePolicy(after.policy, 'after', reasons);
+  if (!b || !a) return;
+
+  const left = b.Statement.map(canonicalStatement);
+  const right = a.Statement.map(canonicalStatement);
+  const onlyBefore = [...left];
+  const onlyAfter = [];
+  for (const st of right) {
+    const i = onlyBefore.indexOf(st);
+    if (i >= 0) onlyBefore.splice(i, 1);
+    else onlyAfter.push(st);
+  }
+  if (onlyBefore.length !== 1 || onlyAfter.length !== 1) {
+    reasons.push(`${API_EXECUTION_POLICY}: debe cambiar exactamente UNA sentencia (cambian ${onlyBefore.length} y aparecen ${onlyAfter.length})`);
+    return;
+  }
+
+  const sb = JSON.parse(onlyBefore[0]);
+  const sa = JSON.parse(onlyAfter[0]);
+  const where = `${API_EXECUTION_POLICY} (sentencia ${sa.Sid ?? 'sin Sid'})`;
+  if (sa.Effect !== 'Allow' || sb.Effect !== 'Allow') reasons.push(`${where}: el efecto debe seguir siendo Allow`);
+  if (sa.Sid !== sb.Sid) reasons.push(`${where}: cambia el Sid`);
+  if (sa.NotAction !== undefined || sa.NotResource !== undefined || sb.NotAction !== undefined || sb.NotResource !== undefined) {
+    reasons.push(`${where}: no se admiten NotAction/NotResource`);
+  }
+  if (!same(sa.Condition, sb.Condition)) reasons.push(`${where}: cambia la condicion`);
+  if (JSON.stringify(sa.Action) !== JSON.stringify(sb.Action)) reasons.push(`${where}: cambian las acciones`);
+  if (sa.Action.length === 0 || !sa.Action.every((x) => SSM_READ_ACTIONS.includes(x))) {
+    reasons.push(`${where}: la sentencia modificada debe ser de lectura de parametros SSM (${SSM_READ_ACTIONS.join(', ')}), no ${sa.Action.join(', ')}`);
+  }
+
+  const added = sa.Resource.filter((r) => !sb.Resource.includes(r));
+  const removed = sb.Resource.filter((r) => !sa.Resource.includes(r));
+  if (removed.length > 0) reasons.push(`${where}: se quitan ${removed.length} recurso(s)`);
+  if (added.length !== 1) {
+    reasons.push(`${where}: debe agregarse exactamente UN recurso (se agregan ${added.length})`);
+  } else if (!RESEND_SECRET_ARN.test(added[0])) {
+    reasons.push(`${where}: el recurso agregado no es el ARN exacto del parametro ${RECOVERY_ACTIVATION.resendParameterName}`);
+  }
+  if (sa.Resource.some((r) => typeof r !== 'string' || r.includes('*') || !SSM_ARN_ACCOUNT.test(r))) {
+    reasons.push(`${where}: todos los recursos deben ser ARN SSM exactos bajo /scope/prod/ (sin comodines)`);
+  }
+}
+
+function evaluateRecoveryActivation({ plan }) {
+  const reasons = [];
+  const notes = [];
+  const changes = plan.resource_changes.filter((rc) => !isNoop(rc));
+  const allowed = new Set([API_TASK_DEF, API_SERVICE, API_EXECUTION_POLICY]);
+
+  for (const rc of changes) {
+    if (!allowed.has(rc.address)) {
+      const destructive = actionsOf(rc).includes('delete') ? ' [DESTRUCTIVO]' : '';
+      reasons.push(`cambio NO permitido en ${rc.address} (${actionsOf(rc).join('+')})${destructive}`);
+    }
+  }
+
+  // ---- task definition de la API ------------------------------------------------------------
+  const td = changes.find((rc) => rc.address === API_TASK_DEF);
+  if (!td) {
+    reasons.push(`no aparece ${API_TASK_DEF}: se esperaba una nueva revision con el correo habilitado`);
+  } else {
+    const change = td.change ?? {};
+    if (JSON.stringify(actionsOf(td)) !== '["create","delete"]') {
+      reasons.push(`${API_TASK_DEF}: la accion debe ser create ANTES que delete (create_before_destroy), es ${actionsOf(td).join('+')}`);
+    }
+    if (JSON.stringify(change.replace_paths) !== '[["container_definitions"]]') {
+      reasons.push(`${API_TASK_DEF}: el reemplazo debe deberse solo a container_definitions (replace_paths = ${JSON.stringify(change.replace_paths ?? null)})`);
+    }
+    const before = change.before ?? {};
+    const after = change.after ?? {};
+    const unknown = change.after_unknown ?? {};
+    for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+      if (key === 'container_definitions' || MIGRATOR_COMPUTED.has(key)) continue;
+      const isUnknown = unknown[key] === true || (typeof unknown[key] === 'object' && unknown[key] !== null && !isEmptyValue(unknown[key]));
+      if (isUnknown) {
+        if (!MIGRATOR_UNKNOWN_OK.has(key)) reasons.push(`${API_TASK_DEF}: ${key} queda desconocido hasta el apply (no es un atributo calculado admitido)`);
+        continue;
+      }
+      if (!same(before[key], after[key])) reasons.push(`${API_TASK_DEF}: cambia ${key}`);
+    }
+
+    const b = containers(before, API_TASK_DEF, 'before');
+    const a = containers(after, API_TASK_DEF, 'after');
+    if (!Array.isArray(b) || !Array.isArray(a) || b.length !== 1 || a.length !== 1) {
+      reasons.push(`${API_TASK_DEF}: se espera exactamente un contenedor antes y despues`);
+    } else if (b[0].name !== 'api' || a[0].name !== 'api') {
+      reasons.push(`${API_TASK_DEF}: el contenedor debe llamarse "api"`);
+    } else {
+      const bc = b[0];
+      const ac = a[0];
+      if (bc.image !== ac.image) reasons.push(`${API_TASK_DEF}: cambia la imagen (la activacion no cambia la imagen)`);
+
+      const be = envMap(bc);
+      const ae = envMap(ac);
+      for (const name of new Set([...Object.keys(be), ...Object.keys(ae)])) {
+        if (!(name in be)) reasons.push(`API: variable de entorno nueva NO esperada: ${name}`);
+        else if (!(name in ae)) reasons.push(`API: desaparece la variable de entorno ${name}`);
+        else if (be[name] !== ae[name] && !['MAIL_TRANSPORT', 'WEB_PUBLIC_BASE_URL'].includes(name)) {
+          reasons.push(`API: cambia el valor de la variable ${name} (solo MAIL_TRANSPORT y WEB_PUBLIC_BASE_URL pueden cambiar)`);
+        }
+      }
+      if (be.MAIL_TRANSPORT !== 'disabled') reasons.push('API: antes de la activacion MAIL_TRANSPORT debe ser "disabled"');
+      if (ae.MAIL_TRANSPORT !== 'resend') reasons.push('API: MAIL_TRANSPORT debe quedar en "resend"');
+      if (ae.WEB_PUBLIC_BASE_URL !== RECOVERY_ACTIVATION.webPublicBaseUrl) reasons.push(`API: WEB_PUBLIC_BASE_URL debe ser ${RECOVERY_ACTIVATION.webPublicBaseUrl}`);
+      if (ae.MAIL_FROM !== RECOVERY_ACTIVATION.mailFrom) reasons.push(`API: MAIL_FROM debe ser el remitente aprobado (${RECOVERY_ACTIVATION.mailFrom})`);
+      if (ae.TRUST_PROXY_HOPS !== '1') reasons.push('API: TRUST_PROXY_HOPS debe seguir en "1"');
+      if ('RESEND_API_KEY' in ae) reasons.push('API: RESEND_API_KEY NO puede ser una variable de entorno en texto plano (solo un secret de ECS)');
+      for (const [name, value] of Object.entries(ae)) {
+        if (/^re_[A-Za-z0-9_]{8,}/.test(String(value))) reasons.push(`API: el valor de ${name} parece una API key de Resend en texto plano`);
+      }
+
+      const sbMap = new Map((bc.secrets ?? []).map((x) => [x.name, x.valueFrom]));
+      const saMap = new Map((ac.secrets ?? []).map((x) => [x.name, x.valueFrom]));
+      for (const [name, valueFrom] of sbMap) {
+        if (!saMap.has(name)) reasons.push(`API: DESAPARECE el secreto ${name}`);
+        else if (saMap.get(name) !== valueFrom) reasons.push(`API: cambia la referencia del secreto ${name}`);
+      }
+      const addedSecrets = [...saMap.keys()].filter((name) => !sbMap.has(name));
+      if (addedSecrets.length !== 1 || addedSecrets[0] !== 'RESEND_API_KEY') {
+        reasons.push(`API: debe agregarse exactamente el secreto RESEND_API_KEY (se agregan: ${addedSecrets.join(', ') || 'ninguno'})`);
+      }
+      const accounts = new Set([...sbMap.values()].map((v) => /^arn:aws:ssm:us-east-1:([0-9]{12}):/.exec(v)?.[1]).filter(Boolean));
+      const resendRef = saMap.get('RESEND_API_KEY');
+      if (resendRef !== undefined) {
+        const m = RESEND_SECRET_ARN.exec(resendRef);
+        if (!m) reasons.push(`API: RESEND_API_KEY debe referenciar el ARN exacto ${RECOVERY_ACTIVATION.resendParameterName} en us-east-1`);
+        else if (accounts.size === 1 && !accounts.has(m[1])) reasons.push('API: el ARN de RESEND_API_KEY pertenece a otra cuenta que los demas secretos');
+      }
+
+      const { image: _bi, environment: _be, secrets: _bs, ...restB } = bc;
+      const { image: _ai, environment: _ae, secrets: _as, ...restA } = ac;
+      for (const key of new Set([...Object.keys(restB), ...Object.keys(restA)])) {
+        if (!same(restB[key], restA[key])) reasons.push(`${API_TASK_DEF}: el contenedor cambia ${key}`);
+      }
+      if (bc.image === ac.image && ae.MAIL_TRANSPORT === 'resend') notes.push('API: MAIL_TRANSPORT disabled -> resend con la misma imagen; RESEND_API_KEY solo como secret de ECS (referencia SSM)');
+    }
+  }
+
+  // ---- servicio de la API ---------------------------------------------------------------------
+  const service = changes.find((rc) => rc.address === API_SERVICE);
+  if (!service) {
+    reasons.push(`no aparece ${API_SERVICE}: se esperaba la actualizacion de su task_definition`);
+  } else {
+    if (actionsOf(service).join('+') !== 'update') reasons.push(`${API_SERVICE}: la accion debe ser update (es ${actionsOf(service).join('+')})`);
+    const sb = service.change.before ?? {};
+    const sa = service.change.after ?? {};
+    for (const key of new Set([...Object.keys(sb), ...Object.keys(sa)])) {
+      if (key === 'task_definition' || key === 'id') continue;
+      if (JSON.stringify(sb[key]) !== JSON.stringify(sa[key]) && service.change.after_unknown?.[key] !== true) {
+        reasons.push(`${API_SERVICE}: cambia ${key} (solo se admite task_definition)`);
+      }
+    }
+    if (sa.desired_count !== 1) reasons.push(`${API_SERVICE}: desired_count debe quedar en 1 (es ${sa.desired_count})`);
+    if (sa.deployment_minimum_healthy_percent !== 0 || sa.deployment_maximum_percent !== 100) reasons.push(`${API_SERVICE}: el despliegue debe seguir 0/100`);
+  }
+
+  // ---- politica del rol de ejecucion ------------------------------------------------------------
+  const policy = changes.find((rc) => rc.address === API_EXECUTION_POLICY);
+  if (!policy) reasons.push(`no aparece ${API_EXECUTION_POLICY}: se esperaba que autorice el parametro de Resend`);
+  else checkExecutionPolicy({ change: policy.change ?? {}, reasons });
+
+  // ---- outputs ---------------------------------------------------------------------------------
+  const outputs = plan.output_changes ?? {};
+  for (const [name, oc] of Object.entries(outputs)) {
+    const noChange = (oc?.actions ?? []).every((x) => x === 'no-op');
+    if (!noChange && ![OUTPUT_RECOVERY_CONFIGURATION, OUTPUT_PARAMETERS_OUT_OF_BAND].includes(name)) reasons.push(`cambia el output ${name}`);
+  }
+  const rcOut = outputs[OUTPUT_RECOVERY_CONFIGURATION];
+  if (!rcOut || (rcOut.actions ?? []).join('+') !== 'update') {
+    reasons.push(`falta la actualizacion del output ${OUTPUT_RECOVERY_CONFIGURATION}`);
+  } else if (rcOut.after === undefined || rcOut.after === null || typeof rcOut.after !== 'object' || rcOut.after_unknown === true) {
+    reasons.push(`el output ${OUTPUT_RECOVERY_CONFIGURATION} no tiene un valor conocido en el plan`);
+  } else {
+    const ob = rcOut.before ?? {};
+    const oa = rcOut.after;
+    if (oa.mail_transport !== 'resend') reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: mail_transport debe ser "resend"`);
+    if (oa.web_public_base_url !== RECOVERY_ACTIVATION.webPublicBaseUrl) reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: web_public_base_url no es el aprobado`);
+    if (oa.mail_from !== RECOVERY_ACTIVATION.mailFrom) reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: mail_from no es el aprobado`);
+    if (oa.resend_secret_name !== RECOVERY_ACTIVATION.resendParameterName) reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: resend_secret_name no es el aprobado`);
+    if (oa.recovery_alarms_active !== false) reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: las alarmas de recuperacion deben seguir apagadas`);
+    for (const key of new Set([...Object.keys(ob), ...Object.keys(oa)])) {
+      if (['mail_transport', 'web_public_base_url', 'resend_secret_name'].includes(key)) continue;
+      if (JSON.stringify(ob[key]) !== JSON.stringify(oa[key])) reasons.push(`output ${OUTPUT_RECOVERY_CONFIGURATION}: cambia ${key}`);
+    }
+  }
+  const paramsOut = outputs[OUTPUT_PARAMETERS_OUT_OF_BAND];
+  if (!paramsOut || (paramsOut.actions ?? []).join('+') !== 'update') {
+    reasons.push(`falta la actualizacion del output ${OUTPUT_PARAMETERS_OUT_OF_BAND}`);
+  } else if (!Array.isArray(paramsOut.before) || !Array.isArray(paramsOut.after)) {
+    reasons.push(`el output ${OUTPUT_PARAMETERS_OUT_OF_BAND} no tiene un valor conocido en el plan`);
+  } else {
+    const gained = paramsOut.after.filter((x) => !paramsOut.before.includes(x));
+    const lost = paramsOut.before.filter((x) => !paramsOut.after.includes(x));
+    if (lost.length > 0) reasons.push(`output ${OUTPUT_PARAMETERS_OUT_OF_BAND}: desaparecen parametros`);
+    if (gained.length !== 1 || gained[0] !== RECOVERY_ACTIVATION.resendParameterName) {
+      reasons.push(`output ${OUTPUT_PARAMETERS_OUT_OF_BAND}: solo puede sumar ${RECOVERY_ACTIVATION.resendParameterName}`);
+    }
+  }
+
+  // ---- variables del plan ----------------------------------------------------------------------
+  const vars = plan.variables ?? {};
+  if (vars.mail_transport?.value !== 'resend') reasons.push('la variable mail_transport del plan debe ser "resend"');
+  if (vars.web_public_base_url?.value !== RECOVERY_ACTIVATION.webPublicBaseUrl) reasons.push('la variable web_public_base_url del plan no es la aprobada');
+  if (vars.mail_from?.value !== undefined && vars.mail_from.value !== RECOVERY_ACTIVATION.mailFrom) reasons.push('la variable mail_from del plan no es la aprobada');
+  if (vars.enable_recovery_alarms?.value !== undefined && vars.enable_recovery_alarms.value !== false) reasons.push('enable_recovery_alarms debe seguir en false');
+  for (const key of Object.keys(vars)) {
+    if (/resend_api_key|api_key|secret|password|token/i.test(key)) reasons.push(`el plan trae una variable sospechosa de contener un secreto: ${key}`);
+  }
+
+  return { reasons: [...new Set(reasons)], notes, changes: changes.map((c) => `${c.address} [${actionsOf(c).join('+')}]`) };
+}
+
 export function evaluate({ plan, mode, allowApiImageChange = false, expectedImageTag }) {
   if (!plan || typeof plan !== 'object' || !Array.isArray(plan.resource_changes)) {
     throw new Unevaluable('no parece la salida de `terraform show -json` (falta resource_changes)');
   }
-  if (!['baseline', 'integrated', 'migrator-only'].includes(mode)) throw new Unevaluable(`modo desconocido: ${mode}`);
+  if (!['baseline', 'integrated', 'migrator-only', 'recovery-activation'].includes(mode)) throw new Unevaluable(`modo desconocido: ${mode}`);
+  if (mode === 'recovery-activation') {
+    if (allowApiImageChange) throw new Unevaluable('--allow-api-image-change no es valido en el modo recovery-activation');
+    if (expectedImageTag !== undefined) throw new Unevaluable('--expected-image-tag solo es valido en el modo migrator-only');
+    return evaluateRecoveryActivation({ plan });
+  }
   if (mode === 'migrator-only') {
     if (allowApiImageChange) throw new Unevaluable('--allow-api-image-change no es valido en el modo migrator-only');
     return evaluateMigratorOnly({ plan, expectedImageTag });
@@ -311,7 +592,9 @@ export function main({ argv, readFile = (f) => fs.readFileSync(f, 'utf8'), out =
         ? 'ACEPTABLE: el plan de linea base no propone cambios.'
         : mode === 'migrator-only'
           ? 'ACEPTABLE: solo la nueva revision del migrador con la imagen autorizada.'
-          : 'ACEPTABLE: solo los cambios esperados de la recuperacion (deshabilitada).'
+          : mode === 'recovery-activation'
+            ? 'ACEPTABLE: solo la activacion de Resend (nueva revision de la API, su servicio, la lectura del parametro SSM y los outputs).'
+            : 'ACEPTABLE: solo los cambios esperados de la recuperacion (deshabilitada).'
     );
     out('AVISO: esto no sustituye la lectura humana del plan completo ni autoriza un apply.');
     return 0;
