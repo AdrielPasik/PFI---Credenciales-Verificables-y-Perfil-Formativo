@@ -26,7 +26,10 @@ import {
  */
 async function main() {
   const [kind, ...argv] = process.argv.slice(2);
-  const command = parseCliArgs(kind as CliCommand['kind'], argv);
+  const command = kind === 'provision-uade' && argv.length === 0
+    ? { kind: 'provision' as const, issuerId: '14bcdb1c-f82a-4435-af45-4bc5c95e02a7',
+        credentialTypes: ['academic_subject'], anchor: { kind: 'new' as const }, guardUade: true }
+    : parseCliArgs(kind as CliCommand['kind'], argv);
   const prisma = new PrismaClient();
 
   try {
