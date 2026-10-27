@@ -86,6 +86,10 @@ resource "aws_ecs_task_definition" "api" {
   }
 
   lifecycle {
+    # Register the new revision BEFORE deregistering the current one, so a failed
+    # registration leaves the live revision ACTIVE and tracked in state.
+    create_before_destroy = true
+
     # Activation gate for password recovery. "disabled" (the default) needs none of
     # this; "resend" is only coherent when every piece below is configured. These
     # fail at PLAN time, before any task definition revision exists.
