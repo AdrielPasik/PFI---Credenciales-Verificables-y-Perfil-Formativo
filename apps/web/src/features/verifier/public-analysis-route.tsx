@@ -20,7 +20,7 @@
  * reconstruir estados epistemicos, inventar evidencia o nombrar al proveedor.
  */
 
-import { LoaderCircle } from 'lucide-react';
+import { ArrowLeft, LoaderCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -361,7 +361,10 @@ export function PublicAnalysisRoute({ token }: { token: string }) {
         <header className="flex flex-wrap items-center justify-between gap-4">
           <BrandMark descriptor="Análisis de trayectoria" lightLogo />
           <Button asChild size="sm" variant="secondary">
-            <Link href={`/share/profile/${encodeURIComponent(token)}`}>Volver al perfil</Link>
+            <Link href={`/share/profile/${encodeURIComponent(token)}`}>
+              <ArrowLeft aria-hidden="true" />
+              Volver al perfil compartido
+            </Link>
           </Button>
         </header>
 

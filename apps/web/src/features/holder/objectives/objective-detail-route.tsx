@@ -22,13 +22,12 @@
  * medida de lectura para el contenido narrativo y las evidencias anidadas.
  */
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { Button } from '@/components/ui/button';
-import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { ObjectiveReasoningPanel } from '@/features/holder/objectives/objective-reasoning-panel';
 import { ObjectiveRequirementSubset } from '@/features/holder/objectives/objective-requirement-subset';
 import { MAX_OBJECTIVE_REQUIREMENTS } from '@/features/holder/objectives/review-draft';
@@ -144,13 +143,7 @@ export function ObjectiveDetailRoute() {
 
   return (
     <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-10 lg:gap-12">
-      <HolderBreadcrumbs
-        items={[
-          { label: 'Mi perfil formativo', href: '/wallet' },
-          { label: 'Objetivos', href: '/wallet/objectives' },
-          { label: state.status === 'ready' ? state.objective.title : 'Objetivo' }
-        ]}
-      />
+      <BackLink href="/wallet/objectives" label="Volver a objetivos" />
 
       {state.status === 'loading' ? (
         <p className="text-sm text-text-muted">Cargando el objetivo...</p>
@@ -164,9 +157,6 @@ export function ObjectiveDetailRoute() {
           <div className="flex flex-wrap gap-3">
             <Button type="button" variant="secondary" onClick={retry}>
               Reintentar
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/wallet/objectives">Ver mis objetivos</Link>
             </Button>
           </div>
         </div>

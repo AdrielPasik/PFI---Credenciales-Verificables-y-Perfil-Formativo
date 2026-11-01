@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { AdminEntry } from '@/features/admin/admin-entry';
 import { AdminRouteBoundary } from '@/features/admin/admin-route-boundary';
 import type { UserOnboardingIntent } from '@/models/auth-session';
 
@@ -77,9 +78,9 @@ function sessionWithStatus(status: string) {
   };
 }
 
-function renderBoundary() {
+function renderBoundary(entry: AdminEntry | null = null) {
   return render(
-    <AdminRouteBoundary>
+    <AdminRouteBoundary entry={entry}>
       <p>contenido administrativo</p>
     </AdminRouteBoundary>
   );
@@ -309,6 +310,20 @@ describe('AdminRouteBoundary', () => {
   // -------------------------------------------------------------------------
   // El shell
   // -------------------------------------------------------------------------
+
+  it('ofrece volver al espacio desde el que se entro', () => {
+    authenticated({ isPlatformAdmin: true });
+    renderBoundary('issuer');
+    const back = screen.getByRole('link', { name: 'Volver al panel del emisor' });
+    expect(back.getAttribute('href')).toBe('/issuer');
+  });
+
+  it('sin origen conocido ofrece ir al espacio personal, sin prometer un "volver"', () => {
+    authenticated({ isPlatformAdmin: true });
+    renderBoundary();
+    const back = screen.getByRole('link', { name: 'Ir a mi espacio personal' });
+    expect(back.getAttribute('href')).toBe('/wallet');
+  });
 
   it('el shell identifica el plano de plataforma y no muestra nada institucional', () => {
     authenticated({

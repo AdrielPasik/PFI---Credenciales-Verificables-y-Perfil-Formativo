@@ -20,7 +20,7 @@ it('renders an allowlisted shared profile without a session', async () => {
 
   expect(await screen.findByRole('heading', { name: 'Titular Demo' })).toBeTruthy();
   expect(screen.getByText('Scrum')).toBeTruthy();
-  expect((screen.getByRole('link', { name: 'Ver credencial' }) as HTMLAnchorElement).getAttribute('href')).toBe('/verify?credential=credential-1');
+  expect((screen.getByRole('link', { name: 'Ver credencial' }) as HTMLAnchorElement).getAttribute('href')).toBe('/verify?credential=credential-1&returnTo=%2Fshare%2Fprofile%2Faaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');
   expect(document.body.textContent).not.toMatch(/analysisJson|sourceRefs|evidenceMap|storageKey/i);
   expect(document.body.textContent).not.toMatch(/@/);
 

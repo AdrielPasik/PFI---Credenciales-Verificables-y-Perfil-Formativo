@@ -97,12 +97,12 @@ async function reachReview() {
 // ---------------------------------------------------------------------------
 
 describe('intake', () => {
-  it('keeps the objective flow inside the Holder breadcrumb hierarchy', () => {
+  it('ofrece un regreso explicito a objetivos, sin breadcrumbs', () => {
     render(<ObjectiveIntakeRoute />);
 
-    expect(screen.getByRole('navigation', { name: 'Ubicacion' })).toBeTruthy();
-    expect(screen.getAllByText('Mi perfil formativo').length).toBeGreaterThan(0);
-    expect(screen.getByText('Nuevo objetivo')).toBeTruthy();
+    const back = screen.getByRole('link', { name: 'Volver a objetivos' });
+    expect(back.getAttribute('href')).toBe('/wallet/objectives');
+    expect(screen.queryByRole('navigation', { name: 'Ubicacion' })).toBeNull();
   });
 
   it('exige tipo, nombre y texto antes de tocar la red', async () => {
@@ -713,5 +713,37 @@ describe('P0: requisitos que quedaron afuera', () => {
     await reachReview();
     expect(screen.queryByText(/seleccionó los/)).toBeNull();
     expect(screen.queryByText(/quedaron afuera/)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Navegacion: nunca perder el objetivo sin aviso
+// ---------------------------------------------------------------------------
+
+describe('regreso sin perder trabajo', () => {
+  it('sin nada escrito, "Volver a objetivos" no pregunta', () => {
+    render(<ObjectiveIntakeRoute />);
+    fireEvent.click(screen.getByRole('link', { name: 'Volver a objetivos' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('con texto escrito pregunta, y "Seguir editando" conserva lo escrito', () => {
+    render(<ObjectiveIntakeRoute />);
+    fillIntake();
+    fireEvent.click(screen.getByRole('link', { name: 'Volver a objetivos' }));
+
+    expect(screen.getByRole('dialog', { name: '¿Salir sin analizar el objetivo?' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Seguir editando' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByDisplayValue('Backend Engineer')).toBeTruthy();
+  });
+
+  it('durante la revision, salir por el enlace avisa que se pierde la revision', async () => {
+    await reachReview();
+    fireEvent.click(screen.getByRole('link', { name: 'Volver a objetivos' }));
+
+    expect(screen.getByRole('dialog', { name: '¿Salir y descartar la revisión?' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Seguir revisando' }));
+    expect(screen.getByRole('heading', { name: 'Revisa los requisitos' })).toBeTruthy();
   });
 });

@@ -88,13 +88,13 @@ beforeEach(() => {
 });
 
 describe('lista de objetivos', () => {
-  it('keeps objectives inside the Holder navigation hierarchy', async () => {
+  it('ofrece un regreso explicito al perfil, sin breadcrumbs', async () => {
     render(<ObjectivesListRoute />);
 
     await screen.findByText('Backend Engineer');
-    expect(screen.getByRole('navigation', { name: 'Ubicacion' })).toBeTruthy();
-    expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
-    expect(screen.getAllByText('Objetivos').length).toBeGreaterThan(0);
+    const back = screen.getByRole('link', { name: 'Volver a mi perfil' });
+    expect(back.getAttribute('href')).toBe('/wallet');
+    expect(screen.queryByRole('navigation', { name: 'Ubicacion' })).toBeNull();
   });
 
   it('muestra solo lo que trae el contrato de resumen', async () => {

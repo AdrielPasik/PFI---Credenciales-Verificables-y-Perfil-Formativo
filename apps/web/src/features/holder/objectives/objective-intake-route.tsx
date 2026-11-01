@@ -15,12 +15,13 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 
+import { DiscardChangesDialog } from '@/components/feedback/discard-changes-dialog';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { ObjectiveSourceDialog } from '@/features/holder/objectives/objective-source-dialog';
 import { RequirementReviewItem } from '@/features/holder/objectives/requirement-review-item';
 import {
@@ -47,6 +48,7 @@ import {
   mapObjectiveCreateError,
   mapObjectiveProposalError
 } from '@/lib/errors/objective-error-mapper';
+import { useLeaveGuard } from '@/lib/navigation/use-leave-guard';
 import { useSession } from '@/lib/session/session-provider';
 import {
   OBJECTIVE_TYPES,
@@ -104,19 +106,22 @@ export function ObjectiveIntakeRoute() {
     []
   );
 
-  // Recargar durante la revision pierde la propuesta: no hay borrador en
-  // servidor y persistirla en el navegador crearia una copia de datos privados
-  // que nadie pidio. El dialogo nativo cubre el caso real, que es el F5 sin
-  // querer.
-  useEffect(() => {
-    if (!reviewActive) return undefined;
-    function onBeforeUnload(event: BeforeUnloadEvent) {
-      event.preventDefault();
-      event.returnValue = '';
-    }
-    window.addEventListener('beforeunload', onBeforeUnload);
-    return () => window.removeEventListener('beforeunload', onBeforeUnload);
-  }, [reviewActive]);
+  // Salir pierde lo escrito: no hay borrador en servidor y persistirlo en el
+  // navegador crearia una copia de datos privados que nadie pidio. La guarda
+  // pregunta antes de cualquier salida -- enlaces, menu, marca, Atras, recarga --
+  // y solo si hay algo que perder: la revision, o un texto ya escrito.
+  const hasUnsavedWork =
+    reviewActive ||
+    state.intake.title.trim().length > 0 ||
+    state.intake.rawObjectiveText.trim().length > 0;
+  const leaveGuard = useLeaveGuard(hasUnsavedWork, {
+    title: reviewActive ? '¿Salir y descartar la revisión?' : '¿Salir sin analizar el objetivo?',
+    description: reviewActive
+      ? 'Vas a perder los requisitos que revisaste. Este objetivo todavía no se guardó.'
+      : 'Vas a perder el texto que escribiste.',
+    stayLabel: reviewActive ? 'Seguir revisando' : 'Seguir editando',
+    discardLabel: 'Salir y descartar'
+  });
 
   useEffect(() => {
     if (state.lastRemoved === null) return undefined;
@@ -197,6 +202,8 @@ export function ObjectiveIntakeRoute() {
         requestAuthenticated,
         buildCreateObjectiveBody(state.draft)
       );
+      // Guardado: ya no hay nada que perder al salir.
+      leaveGuard.release();
       router.push(`/wallet/objectives/${objective.objectiveReference}`);
     } catch (error) {
       // El borrador queda intacto y la propuesta NO se vuelve a pedir.
@@ -207,20 +214,14 @@ export function ObjectiveIntakeRoute() {
         retryable: mapped.retryable
       });
     }
-  }, [dispatch, requestAuthenticated, router, state.confirming, state.draft]);
+  }, [dispatch, leaveGuard, requestAuthenticated, router, state.confirming, state.draft]);
 
   const codePoints = countCodePoints(state.intake.rawObjectiveText);
   const nearLimit = codePoints > MAX_OBJECTIVE_CODE_POINTS * 0.8;
 
   return (
     <div className="mx-auto grid w-full min-w-0 max-w-5xl gap-8">
-      <HolderBreadcrumbs
-        items={[
-          { label: 'Mi perfil formativo', href: '/wallet' },
-          { label: 'Objetivos', href: '/wallet/objectives' },
-          { label: reviewActive ? 'Revisar requisitos' : 'Nuevo objetivo' }
-        ]}
-      />
+      <BackLink href="/wallet/objectives" label="Volver a objetivos" />
 
       <p aria-live="polite" className="sr-only">
         {liveMessage}
@@ -406,14 +407,20 @@ export function ObjectiveIntakeRoute() {
       ) : null}
 
       {discardOpen ? (
-        <DiscardDialog
-          onCancel={() => setDiscardOpen(false)}
-          onConfirm={() => {
+        <DiscardChangesDialog
+          title="¿Descartar la revisión?"
+          description="Vas a perder los requisitos que revisaste."
+          stayLabel="Seguir revisando"
+          discardLabel="Descartar"
+          onStay={() => setDiscardOpen(false)}
+          onDiscard={() => {
             setDiscardOpen(false);
             actions.discardReview();
           }}
         />
       ) : null}
+
+      {leaveGuard.dialog}
     </div>
   );
 }
@@ -656,50 +663,5 @@ function IntakeForm({
         </p>
       </div>
     </section>
-  );
-}
-
-function DiscardDialog({
-  onCancel,
-  onConfirm
-}: {
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  const cancelRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    cancelRef.current?.focus();
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onCancel();
-    }
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onCancel]);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-900/40 p-4">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="discard-review-title"
-        className="w-full max-w-md rounded-card border border-border-default bg-surface p-6 shadow-lg"
-      >
-        <h2 id="discard-review-title" className="text-lg font-semibold text-text-strong">
-          Descartar la revision?
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-text-muted">
-          Vas a perder los requisitos que revisaste.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button ref={cancelRef} type="button" variant="secondary" onClick={onCancel}>
-            Seguir revisando
-          </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
-            Descartar
-          </Button>
-        </div>
-      </div>
-    </div>
   );
 }

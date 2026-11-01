@@ -1,7 +1,13 @@
-import { LogOut, RefreshCw, Settings } from 'lucide-react';
+import { ArrowLeft, LogOut, RefreshCw, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
+import {
+  adminHrefFrom,
+  type AdminEntry,
+  type AdminReturnDestination
+} from '@/features/admin/admin-entry';
+import { requestLeave } from '@/lib/navigation/use-leave-guard';
 
 interface AccountMenuProps {
   // A1.1: displayLabel (nombre humano si esta disponible, con fallback a
@@ -26,15 +32,24 @@ interface AccountMenuProps {
    * Son capacidades distintas y pueden darse en cualquier combinacion.
    */
   isPlatformAdmin?: boolean;
+  /**
+   * Desde que espacio se ofrece el enlace a Administracion: viaja como
+   * `?from=` para que Administracion sepa a donde volver (ver `admin-entry`).
+   */
+  adminEntry?: AdminEntry;
+  /** Solo en Administracion: regreso al espacio de origen. */
+  returnDestination?: AdminReturnDestination;
   onChangeIssuer?: () => void;
   onLogout: () => void;
   inverse?: boolean;
 }
 
 export function AccountMenu({
+  adminEntry = 'wallet',
   canChangeIssuer = false,
   isPlatformAdmin = false,
   label,
+  returnDestination,
   inverse = false,
   onChangeIssuer,
   onLogout
@@ -50,6 +65,19 @@ export function AccountMenu({
       >
         {label}
       </span>
+      {returnDestination ? (
+        <Button
+          asChild
+          variant={inverse ? 'secondary' : 'ghost'}
+          size="sm"
+          className="shrink-0"
+        >
+          <Link href={returnDestination.href}>
+            <ArrowLeft aria-hidden="true" />
+            {returnDestination.label}
+          </Link>
+        </Button>
+      ) : null}
       {isPlatformAdmin ? (
         <Button
           asChild
@@ -57,7 +85,7 @@ export function AccountMenu({
           size="sm"
           className="shrink-0"
         >
-          <Link href="/admin">
+          <Link href={adminHrefFrom(adminEntry)}>
             <Settings aria-hidden="true" />
             Administración de plataforma
           </Link>
@@ -68,7 +96,9 @@ export function AccountMenu({
           variant={inverse ? 'secondary' : 'ghost'}
           size="sm"
           className="shrink-0"
-          onClick={onChangeIssuer}
+          // Cambiar de institucion abandona la pantalla: si hay un formulario
+          // con cambios sin guardar, primero se confirma.
+          onClick={() => onChangeIssuer && requestLeave(onChangeIssuer)}
         >
           <RefreshCw aria-hidden="true" />
           Cambiar institución
@@ -78,7 +108,7 @@ export function AccountMenu({
         variant={inverse ? 'secondary' : 'ghost'}
         size="sm"
         className="shrink-0"
-        onClick={onLogout}
+        onClick={() => requestLeave(onLogout)}
       >
         <LogOut aria-hidden="true" />
         Cerrar sesión

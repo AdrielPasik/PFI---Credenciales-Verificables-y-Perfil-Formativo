@@ -17,9 +17,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { listMyObjectivesRequest } from '@/lib/api/objectives-api';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
@@ -58,12 +58,7 @@ export function ObjectivesListRoute() {
 
   return (
     <div className="mx-auto grid w-full min-w-0 max-w-5xl gap-8">
-      <HolderBreadcrumbs
-        items={[
-          { label: 'Mi perfil formativo', href: '/wallet' },
-          { label: 'Objetivos' }
-        ]}
-      />
+      <BackLink href="/wallet" label="Volver a mi perfil" />
 
       <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
         <div className="min-w-0 max-w-2xl">

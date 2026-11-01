@@ -2,10 +2,13 @@ import type { ReactNode } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
 import { AccountMenu } from '@/components/navigation/account-menu';
+import type { AdminReturnDestination } from '@/features/admin/admin-entry';
 
 interface AdminShellProps {
   children: ReactNode;
   label: string;
+  /** A donde vuelve la persona: su espacio de origen (ver `admin-entry`). */
+  returnDestination: AdminReturnDestination;
   onLogout: () => void;
 }
 
@@ -27,7 +30,7 @@ interface AdminShellProps {
  * Ancho `max-w-[90rem]`, igual que `IssuerShell`: es una superficie de
  * tablas/listado, no de lectura narrativa.
  */
-export function AdminShell({ children, label, onLogout }: AdminShellProps) {
+export function AdminShell({ children, label, onLogout, returnDestination }: AdminShellProps) {
   return (
     <div className="flex min-h-svh flex-col bg-surface-muted/55">
       <a
@@ -39,12 +42,19 @@ export function AdminShell({ children, label, onLogout }: AdminShellProps) {
 
       <header className="border-b border-brand-700 bg-brand-900 text-white shadow-sm">
         <div className="mx-auto flex min-h-20 w-full min-w-0 max-w-[90rem] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          {/* Sin enlace en la marca: Administracion es una sola pantalla, ya
+              estamos en su raiz. El regreso al espacio de origen va en el menu. */}
           <BrandMark
             authenticatedDark
             tone="inverse"
             descriptor="Administración de plataforma"
           />
-          <AccountMenu label={label} onLogout={onLogout} inverse />
+          <AccountMenu
+            label={label}
+            returnDestination={returnDestination}
+            onLogout={onLogout}
+            inverse
+          />
         </div>
       </header>
 

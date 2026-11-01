@@ -1,18 +1,25 @@
 import type { ReactNode } from 'react';
 
+import { BrandHomeLink } from '@/components/brand/brand-home-link';
 import { BrandMark } from '@/components/brand/brand-mark';
 import { AccountMenu } from '@/components/navigation/account-menu';
+import type { AdminEntry } from '@/features/admin/admin-entry';
 
 interface WalletShellProps {
   children: ReactNode;
   label: string;
   /** S6a: ver `AccountMenuProps.isPlatformAdmin`. Solo se pasa a traves. */
   isPlatformAdmin?: boolean;
+  /** Raiz del espacio a la que lleva la marca; `null` si la pantalla ya es la raiz. */
+  homeHref?: string | null;
+  adminEntry?: AdminEntry;
   onLogout: () => void;
 }
 
 export function WalletShell({
+  adminEntry = 'wallet',
   children,
+  homeHref = '/wallet',
   isPlatformAdmin = false,
   label,
   onLogout
@@ -27,13 +34,16 @@ export function WalletShell({
       </a>
       <header className="border-b border-brand-700 bg-brand-900 text-white">
         <div className="mx-auto flex min-h-20 w-full min-w-0 max-w-[var(--traza-holder-canvas-width)] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <BrandMark
-            authenticatedDark
-            tone="inverse"
-            descriptor="Espacio personal"
-          />
+          <BrandHomeLink href={homeHref} label="Scope: ir a mi espacio personal">
+            <BrandMark
+              authenticatedDark
+              tone="inverse"
+              descriptor="Espacio personal"
+            />
+          </BrandHomeLink>
           <AccountMenu
             label={label}
+            adminEntry={adminEntry}
             isPlatformAdmin={isPlatformAdmin}
             onLogout={onLogout}
             inverse

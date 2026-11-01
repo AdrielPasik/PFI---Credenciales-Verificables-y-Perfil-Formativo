@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
+import { BackLink } from '@/components/navigation/back-link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { TechnicalConfigurationRouteBoundary } from '@/features/issuer-technical-identity/technical-configuration-route-boundary';
@@ -43,10 +44,13 @@ function IssuerTechnicalIdentityController({
 }) {
   const { requestAuthenticated } = useSession();
   return (
-    <IssuerTechnicalIdentityView
-      issuerReference={membership.issuerReference}
-      request={requestAuthenticated}
-    />
+    <div className="grid gap-5">
+      <BackLink href="/issuer" label="Volver al panel del emisor" />
+      <IssuerTechnicalIdentityView
+        issuerReference={membership.issuerReference}
+        request={requestAuthenticated}
+      />
+    </div>
   );
 }
 

@@ -688,3 +688,25 @@ it('limits a non-UADE issuer to course and certification', () => {
   expect(screen.queryByText('Asignatura académica')).toBeNull();
   expect(screen.queryByText('Título académico')).toBeNull();
 });
+
+describe('CredentialDraftForm: regreso sin perder datos', () => {
+  it('sin datos cargados, "Volver al panel del emisor" no pregunta', () => {
+    renderForm();
+    const back = screen.getByRole('link', { name: 'Volver al panel del emisor' });
+    expect(back.getAttribute('href')).toBe('/issuer');
+    fireEvent.click(back);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('con un dato cargado pregunta antes de salir y permite quedarse', () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText('Email del titular'), {
+      target: { value: 'titular@uade.edu.ar' }
+    });
+    fireEvent.click(screen.getByRole('link', { name: 'Volver al panel del emisor' }));
+
+    expect(screen.getByRole('dialog', { name: '¿Salir sin crear el borrador?' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Seguir editando' }));
+    expect(screen.getByDisplayValue('titular@uade.edu.ar')).toBeTruthy();
+  });
+});

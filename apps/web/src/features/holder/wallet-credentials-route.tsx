@@ -1,11 +1,9 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
-import { Button } from '@/components/ui/button';
+import { BackLink } from '@/components/navigation/back-link';
 import { HolderCredentialCard } from '@/features/holder/holder-credential-card';
 import { EmptyCredentials, LoadingState } from '@/features/holder/wallet-home-route';
 import { getMyCredentialsRequest } from '@/lib/api/holder-api';
@@ -30,7 +28,7 @@ function WalletCredentialsContent() {
   }, [requestAuthenticated]);
 
   return <section className="grid min-w-0 gap-8" aria-labelledby="holder-credentials-title">
-    <Button asChild variant="ghost" className="w-fit"><Link href="/wallet"><ArrowLeft aria-hidden="true" />Volver al perfil</Link></Button>
+    <BackLink href="/wallet" label="Volver a mi perfil" />
     <div className="min-w-0 max-w-[var(--traza-holder-narrative-width)] border-l-4 border-teal-700 pl-5 sm:pl-6">
       <p className="text-sm font-semibold text-teal-700">Credenciales de respaldo</p>
       <h1 id="holder-credentials-title" className="mt-1 text-3xl font-bold tracking-tight text-text-strong">Mis credenciales</h1>
