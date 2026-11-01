@@ -57,17 +57,11 @@ def _require_str(value: Any, code: str) -> str:
     return value
 
 
-def validate_provider_output(
-    output: Any,
-    max_proposed_requirements: int | None = None,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def validate_provider_output(output: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Devuelve `(proposals, unresolved)` normalizados o levanta un fallo tipado.
 
-    `max_proposed_requirements` acota cuantos candidatos puede traer la respuesta.
-    Excederlo NO se recorta: recortar aceptaria como autoritativa una seleccion
-    que nadie hizo --los 12 primeros de un orden de fuente no son los 12
-    materialmente relevantes-- y dejaria afuera, en silencio, el excluyente o el
-    titulo requerido. Se descarta la respuesta entera y el llamante decide.
+    La cantidad NO se valida aca: la extraccion no tiene cupo. El tope de los
+    consumidores lo aplica la etapa de seleccion (`selection.py`).
     """
     root = _require_object(output, "provider_output_not_an_object")
 
@@ -86,12 +80,6 @@ def validate_provider_output(
     raw_unresolved = _require_list(
         root["unresolvedPassages"], "provider_output_unresolved_passages_not_a_list"
     )
-
-    if (
-        max_proposed_requirements is not None
-        and len(raw_proposals) > max_proposed_requirements
-    ):
-        raise ProviderInvalidOutputError("provider_output_exceeds_requested_maximum")
 
     proposals: list[dict[str, Any]] = []
     for item in raw_proposals:

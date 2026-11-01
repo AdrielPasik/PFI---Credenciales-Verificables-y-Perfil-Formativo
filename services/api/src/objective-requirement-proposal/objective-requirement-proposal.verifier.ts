@@ -22,6 +22,9 @@
  *     coherencia entre el estado de anclaje y la presencia de referencia primaria
  *     que no aparezca NINGÚN campo prohibido, en ningún nivel
  *     que el tope de candidatos pedido se haya respetado, cuando se pidió uno
+ *     que la propuesta acotada declare las políticas de extracción y selección
+ *     que los candidatos omitidos por la selección pasen las MISMAS
+ *     comprobaciones que los elegidos, y que los conteos declarados cierren
  *
  * LO QUE NO PUEDE VERIFICAR, y por eso no lo afirma: fidelidad semántica del
  * claim, granularidad correcta, completitud, ni interpretación de
@@ -30,8 +33,10 @@
 
 import {
   MAX_OBJECTIVE_CHARACTERS,
+  OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION,
   OBJECTIVE_REQUIREMENT_PROPOSAL_ARTIFACT_SCHEMA_VERSION,
   OBJECTIVE_REQUIREMENT_PROPOSAL_RESPONSE_SCHEMA_VERSION,
+  OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION,
   OBJECTIVE_UNDERSTANDING_PROVIDER,
   OBJECTIVE_UNDERSTANDING_REASONING_EFFORT,
   OBJECTIVE_UNDERSTANDING_STAGE_IDENTITY,
@@ -79,6 +84,12 @@ export interface VerifiedUnresolvedPassage {
 
 export interface VerifiedProposalArtifact {
   readonly candidates: readonly VerifiedProposalCandidate[];
+  /**
+   * Requisitos que la extracción encontró y la selección dejó afuera por el
+   * tope. Vacío cuando no hubo selección o cuando no se pidió tope. Están
+   * verificados igual que los elegidos: el titular puede usarlos para sustituir.
+   */
+  readonly omittedCandidates: readonly VerifiedProposalCandidate[];
   readonly unresolvedPassages: readonly VerifiedUnresolvedPassage[];
 }
 
@@ -193,6 +204,153 @@ function verifyGrounding(value: unknown, detail: string): SourceGroundingStatus 
 }
 
 /**
+ * Verifica UN candidato. Se usa para los elegidos y para los omitidos: un
+ * candidato omitido que el titular puede recuperar tiene que estar tan anclado
+ * como uno elegido. `seenIds` es compartido para que ningún id se repita entre
+ * las dos listas; `order` es la posición dentro de la propia lista.
+ */
+function verifyCandidate(
+  value: unknown,
+  index: number,
+  sourceCodePoints: readonly string[],
+  seenIds: Set<string>
+): VerifiedProposalCandidate {
+  const record = asRecord(value, 'candidate_not_an_object');
+  const candidateId = asString(record.candidateId, 'candidate_id_not_a_string');
+  if (!CANDIDATE_ID_PATTERN.test(candidateId)) {
+    fail('candidate_id_format_invalid');
+  }
+  if (seenIds.has(candidateId)) {
+    fail('candidate_id_duplicated');
+  }
+  seenIds.add(candidateId);
+
+  const order = asInteger(record.order, 'candidate_order_not_an_integer');
+  if (order !== index + 1) {
+    // Orden estrictamente consecutivo desde 1. Un hueco significaría que el
+    // artefacto perdió un candidato en el camino.
+    fail('candidate_order_not_consecutive');
+  }
+
+  const proposedRequirementText = asString(
+    record.proposedRequirementText,
+    'candidate_text_not_a_string'
+  );
+  if (proposedRequirementText.trim().length === 0) {
+    fail('candidate_text_empty');
+  }
+
+  const grounding = verifyGrounding(record.primarySourceGrounding, 'candidate_grounding');
+  const primarySourceReference =
+    record.primarySourceReference === null
+      ? null
+      : verifyReference(record.primarySourceReference, sourceCodePoints, 'primary_reference');
+
+  if (grounding === 'UNIQUE' && primarySourceReference === null) {
+    fail('primary_reference_missing_for_unique_grounding');
+  }
+  if (grounding !== 'UNIQUE' && primarySourceReference !== null) {
+    // Una cita ambigua o no encontrada NUNCA puede presentarse como referencia
+    // primaria con offsets: sería anclaje inventado (P2.0 §15).
+    fail('primary_reference_present_without_unique_grounding');
+  }
+
+  const confirmableAsSourceDerived = asBoolean(
+    record.confirmableAsSourceDerived,
+    'candidate_confirmable_not_a_boolean'
+  );
+  if (confirmableAsSourceDerived !== (grounding === 'UNIQUE')) {
+    fail('confirmable_flag_inconsistent_with_grounding');
+  }
+
+  const auxiliarySourceReferences = asArray(
+    record.auxiliarySourceReferences,
+    'auxiliary_references_not_a_list'
+  ).map((item) => verifyReference(item, sourceCodePoints, 'auxiliary_reference'));
+
+  const ambiguousReferences = asArray(
+    record.ambiguousReferences,
+    'ambiguous_references_not_a_list'
+  ).map((item) => {
+    const entry = asRecord(item, 'ambiguous_reference_not_an_object');
+    const occurrences = asInteger(entry.occurrences, 'ambiguous_occurrences_not_an_integer');
+    if (occurrences < 2) {
+      fail('ambiguous_reference_occurrences_invalid');
+    }
+    return {
+      exactExcerpt: asString(entry.exactExcerpt, 'ambiguous_excerpt_not_a_string'),
+      occurrences
+    };
+  });
+
+  const unmatchedReferences = asArray(
+    record.unmatchedReferences,
+    'unmatched_references_not_a_list'
+  ).map((item) => asString(item, 'unmatched_reference_not_a_string'));
+
+  return {
+    candidateId,
+    order,
+    proposedRequirementText,
+    primarySourceReference,
+    primarySourceGrounding: grounding,
+    auxiliarySourceReferences,
+    ambiguousReferences,
+    unmatchedReferences,
+    sourceSectionLabel: asString(record.sourceSectionLabel, 'section_label_not_a_string'),
+    exactDuplicateOfEarlier: asBoolean(
+      record.exactDuplicateOfEarlier,
+      'exact_duplicate_flag_not_a_boolean'
+    ),
+    confirmableAsSourceDerived
+  };
+}
+
+/**
+ * Lista de omitidos y su coherencia con lo que el AI service declara haber hecho.
+ *
+ * Sin tope pedido no hay selección: la lista tiene que estar AUSENTE (la etapa
+ * evaluada en P2.1 no la produce). Con tope, tiene que estar presente --aunque
+ * sea vacía-- y los conteos declarados en `execution.selection` tienen que
+ * coincidir con lo que efectivamente llegó.
+ */
+function verifyOmittedCandidates(
+  artifact: Record<string, unknown>,
+  execution: Record<string, unknown>,
+  selectedCount: number,
+  maxCandidates: number | undefined,
+  verifyOne: (value: unknown, index: number) => VerifiedProposalCandidate
+): VerifiedProposalCandidate[] {
+  if (maxCandidates === undefined) {
+    if (artifact.omittedCandidates !== undefined) {
+      fail('omitted_candidates_without_requested_maximum');
+    }
+    return [];
+  }
+  const omitted = asArray(artifact.omittedCandidates, 'omitted_candidates_not_a_list').map(
+    verifyOne
+  );
+  const selection = asRecord(execution.selection, 'selection_not_an_object');
+  const applied = asBoolean(selection.applied, 'selection_applied_not_a_boolean');
+  if (applied !== omitted.length > 0) {
+    // Una selección aplicada siempre deja algo afuera (había más que el tope), y
+    // sin selección no puede haber omitidos.
+    fail('selection_applied_inconsistent_with_omitted');
+  }
+  if (
+    asInteger(selection.selectedCandidateCount, 'selection_selected_count_not_an_integer') !==
+      selectedCount ||
+    asInteger(selection.omittedCandidateCount, 'selection_omitted_count_not_an_integer') !==
+      omitted.length ||
+    asInteger(selection.extractedCandidateCount, 'selection_extracted_count_not_an_integer') !==
+      selectedCount + omitted.length
+  ) {
+    fail('selection_counts_mismatch');
+  }
+  return omitted;
+}
+
+/**
  * Lo que ESTE proceso pidió, para poder comprobar que se respetó.
  *
  * `maxCandidates` no se comprueba "por las dudas": es la única frontera entre un
@@ -273,10 +431,18 @@ export function verifyObjectiveProposalResponse(
     // DOS comprobaciones distintas, y ninguna reemplaza a la otra.
     //
     // La primera es sobre el PEDIDO: el AI service declara qué tope acotó esta
-    // ejecución. Si no declara el nuestro, el bloque de selección puede no haber
-    // llegado nunca al prompt y la propuesta vendría de una etapa sin presupuesto.
+    // ejecución. Si no declara el nuestro, el tope puede no haber llegado nunca y
+    // la propuesta vendría de una etapa sin política ni selección.
     if (execution.requestedMaxProposedRequirements !== maxCandidates) {
       fail('requested_maximum_not_honored');
+    }
+    // Y las políticas con las que se extrajo y se eligió: una propuesta producida
+    // con otra versión de cualquiera de las dos no se acepta en silencio.
+    if (execution.extractionPolicyVersion !== OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION) {
+      fail('extraction_policy_mismatch');
+    }
+    if (execution.selectionPolicyVersion !== OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION) {
+      fail('selection_policy_mismatch');
     }
     // La segunda es sobre el RESULTADO: contar. Que el servicio diga que acotó no
     // es lo mismo que haber acotado.
@@ -288,99 +454,17 @@ export function verifyObjectiveProposalResponse(
     }
   }
 
-  const rawCandidates = asArray(artifact.candidates, 'candidates_not_a_list');
   const seenIds = new Set<string>();
-  const candidates: VerifiedProposalCandidate[] = rawCandidates.map((value, index) => {
-    const record = asRecord(value, 'candidate_not_an_object');
-    const candidateId = asString(record.candidateId, 'candidate_id_not_a_string');
-    if (!CANDIDATE_ID_PATTERN.test(candidateId)) {
-      fail('candidate_id_format_invalid');
-    }
-    if (seenIds.has(candidateId)) {
-      fail('candidate_id_duplicated');
-    }
-    seenIds.add(candidateId);
-
-    const order = asInteger(record.order, 'candidate_order_not_an_integer');
-    if (order !== index + 1) {
-      // Orden estrictamente consecutivo desde 1. Un hueco significaría que el
-      // artefacto perdió un candidato en el camino.
-      fail('candidate_order_not_consecutive');
-    }
-
-    const proposedRequirementText = asString(
-      record.proposedRequirementText,
-      'candidate_text_not_a_string'
-    );
-    if (proposedRequirementText.trim().length === 0) {
-      fail('candidate_text_empty');
-    }
-
-    const grounding = verifyGrounding(record.primarySourceGrounding, 'candidate_grounding');
-    const primarySourceReference =
-      record.primarySourceReference === null
-        ? null
-        : verifyReference(record.primarySourceReference, sourceCodePoints, 'primary_reference');
-
-    if (grounding === 'UNIQUE' && primarySourceReference === null) {
-      fail('primary_reference_missing_for_unique_grounding');
-    }
-    if (grounding !== 'UNIQUE' && primarySourceReference !== null) {
-      // Una cita ambigua o no encontrada NUNCA puede presentarse como referencia
-      // primaria con offsets: sería anclaje inventado (P2.0 §15).
-      fail('primary_reference_present_without_unique_grounding');
-    }
-
-    const confirmableAsSourceDerived = asBoolean(
-      record.confirmableAsSourceDerived,
-      'candidate_confirmable_not_a_boolean'
-    );
-    if (confirmableAsSourceDerived !== (grounding === 'UNIQUE')) {
-      fail('confirmable_flag_inconsistent_with_grounding');
-    }
-
-    const auxiliarySourceReferences = asArray(
-      record.auxiliarySourceReferences,
-      'auxiliary_references_not_a_list'
-    ).map((item) => verifyReference(item, sourceCodePoints, 'auxiliary_reference'));
-
-    const ambiguousReferences = asArray(
-      record.ambiguousReferences,
-      'ambiguous_references_not_a_list'
-    ).map((item) => {
-      const entry = asRecord(item, 'ambiguous_reference_not_an_object');
-      const occurrences = asInteger(entry.occurrences, 'ambiguous_occurrences_not_an_integer');
-      if (occurrences < 2) {
-        fail('ambiguous_reference_occurrences_invalid');
-      }
-      return {
-        exactExcerpt: asString(entry.exactExcerpt, 'ambiguous_excerpt_not_a_string'),
-        occurrences
-      };
-    });
-
-    const unmatchedReferences = asArray(
-      record.unmatchedReferences,
-      'unmatched_references_not_a_list'
-    ).map((item) => asString(item, 'unmatched_reference_not_a_string'));
-
-    return {
-      candidateId,
-      order,
-      proposedRequirementText,
-      primarySourceReference,
-      primarySourceGrounding: grounding,
-      auxiliarySourceReferences,
-      ambiguousReferences,
-      unmatchedReferences,
-      sourceSectionLabel: asString(record.sourceSectionLabel, 'section_label_not_a_string'),
-      exactDuplicateOfEarlier: asBoolean(
-        record.exactDuplicateOfEarlier,
-        'exact_duplicate_flag_not_a_boolean'
-      ),
-      confirmableAsSourceDerived
-    };
-  });
+  const candidates = asArray(artifact.candidates, 'candidates_not_a_list').map((value, index) =>
+    verifyCandidate(value, index, sourceCodePoints, seenIds)
+  );
+  const omittedCandidates = verifyOmittedCandidates(
+    artifact,
+    execution,
+    candidates.length,
+    maxCandidates,
+    (value, index) => verifyCandidate(value, index, sourceCodePoints, seenIds)
+  );
 
   const unresolvedPassages: VerifiedUnresolvedPassage[] = asArray(
     artifact.unresolvedPassages,
@@ -414,5 +498,5 @@ export function verifyObjectiveProposalResponse(
     };
   });
 
-  return { candidates, unresolvedPassages };
+  return { candidates, omittedCandidates, unresolvedPassages };
 }

@@ -44,6 +44,18 @@ export const OBJECTIVE_UNDERSTANDING_STAGE_IDENTITY = {
 export const OBJECTIVE_UNDERSTANDING_PROVIDER = 'openai';
 export const OBJECTIVE_UNDERSTANDING_REASONING_EFFORT = 'medium';
 
+/**
+ * Políticas que gobiernan la propuesta cuando el consumidor pide un tope.
+ *
+ * Extracción: qué es un requisito evaluable (sin cupo). Selección: cuáles
+ * conservar por relevancia cuando sobran, devolviendo solo números de candidatos
+ * ya extraídos. El AI service declara las dos y NestJS exige estas versiones: una
+ * propuesta producida con otra política no se acepta en silencio.
+ */
+export const OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION =
+  'product_requirement_extraction_v1';
+export const OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION = 'product_requirement_selection_v1';
+
 /** Ancestro de investigación. Se cita para trazabilidad, nunca como versión. */
 export const OBJECTIVE_UNDERSTANDING_RESEARCH_ANCESTOR = 'OU_A2';
 

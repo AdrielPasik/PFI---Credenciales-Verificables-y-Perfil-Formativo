@@ -1,6 +1,8 @@
 import type {
   AnalyzedObjectiveSnapshot,
   CreateObjectiveRequestBody,
+  ObjectiveDetailVM,
+  ObjectiveProposalCandidateVM,
   ObjectiveProposalRequestBody,
   ObjectiveProposalVM,
   ObjectiveReviewDraft,
@@ -123,27 +125,117 @@ export function nextLocalKey(): string {
   return `item_${localKeyCounter}`;
 }
 
+function proposedItem(candidate: ObjectiveProposalCandidateVM): ReviewItem {
+  return {
+    localKey: nextLocalKey(),
+    candidateId: candidate.candidateId,
+    text: candidate.proposedRequirementText,
+    originalProposedText: candidate.proposedRequirementText,
+    origin: 'PROPOSED',
+    wasEverEdited: false,
+    primaryExcerpt: candidate.primaryExcerpt,
+    excerptRange: candidate.excerptRange,
+    grounding: candidate.grounding,
+    confirmableAsSourceDerived: candidate.confirmableAsSourceDerived,
+    sourceSectionLabel: candidate.sourceSectionLabel,
+    isExactDuplicate: candidate.isExactDuplicate
+  };
+}
+
 export function buildReviewDraft(
   snapshot: AnalyzedObjectiveSnapshot,
   proposal: ObjectiveProposalVM
 ): ObjectiveReviewDraft {
   return {
     snapshot,
-    items: proposal.candidates.map((candidate) => ({
-      localKey: nextLocalKey(),
-      candidateId: candidate.candidateId,
-      text: candidate.proposedRequirementText,
-      originalProposedText: candidate.proposedRequirementText,
-      origin: 'PROPOSED',
-      wasEverEdited: false,
-      primaryExcerpt: candidate.primaryExcerpt,
-      excerptRange: candidate.excerptRange,
-      grounding: candidate.grounding,
-      confirmableAsSourceDerived: candidate.confirmableAsSourceDerived,
-      sourceSectionLabel: candidate.sourceSectionLabel,
-      isExactDuplicate: candidate.isExactDuplicate
-    })),
+    items: proposal.candidates.map(proposedItem),
+    // Un omitido es un candidato de la MISMA propuesta, anclado igual: si se
+    // usa sin editar, conserva la procedencia derivada como cualquier otro.
+    omittedItems: proposal.omittedCandidates.map(proposedItem),
+    identifiedCount:
+      proposal.candidates.length + proposal.omittedCandidates.length,
+    originallyOmittedIds: proposal.omittedCandidates.map(
+      (candidate) => candidate.candidateId
+    ),
+    nonFormativeConditions: proposal.nonFormativeConditions,
     unresolvedPassageCount: proposal.unresolvedPassageCount
+  };
+}
+
+/** Igualdad de texto sin distinguir mayúsculas ni espacios. Solo compara. */
+function sameText(left: string, right: string): boolean {
+  const collapse = (text: string) => text.replace(/\s+/g, ' ').trim().toLowerCase();
+  return collapse(left) === collapse(right);
+}
+
+/**
+ * Si `candidate` ya está en `items`: mismo texto o misma cita en el original.
+ * Evita que un reemplazo deje dos veces el mismo requisito.
+ */
+export function isAlreadyInList(
+  items: readonly ReviewItem[],
+  candidate: ReviewItem
+): boolean {
+  return items.some(
+    (item) =>
+      sameText(item.text, candidate.text) ||
+      (item.excerptRange !== null &&
+        candidate.excerptRange !== null &&
+        item.excerptRange.start === candidate.excerptRange.start &&
+        item.excerptRange.end === candidate.excerptRange.end)
+  );
+}
+
+/**
+ * Reemplaza un requisito de la lista por uno omitido, en la MISMA posición.
+ *
+ * La cantidad no cambia, así que funciona con la lista llena. El que sale vuelve
+ * a los omitidos (salvo que esté en blanco), con sus ediciones.
+ */
+export function replaceWithOmittedItem(
+  draft: ObjectiveReviewDraft,
+  omittedKey: string,
+  targetKey: string
+): ObjectiveReviewDraft {
+  const incoming = draft.omittedItems.find(
+    (candidate) => candidate.localKey === omittedKey
+  );
+  const index = draft.items.findIndex((item) => item.localKey === targetKey);
+  const outgoing = draft.items[index];
+  if (incoming === undefined || outgoing === undefined) return draft;
+  const others = draft.items.filter((_, position) => position !== index);
+  if (isAlreadyInList(others, incoming)) return draft;
+
+  const items = [...draft.items];
+  items[index] = incoming;
+  const omittedItems = draft.omittedItems.filter(
+    (candidate) => candidate.localKey !== omittedKey
+  );
+  if (outgoing.text.trim().length > 0) omittedItems.push(outgoing);
+  return { ...draft, items, omittedItems };
+}
+
+/**
+ * Pasa un requisito omitido a la lista de revisión, al final.
+ *
+ * Respeta el tope: con la lista llena no hace nada —la persona tiene que
+ * eliminar uno primero—. Nunca reemplaza en silencio a otro requisito.
+ */
+export function takeOmittedItem(
+  draft: ObjectiveReviewDraft,
+  localKey: string
+): ObjectiveReviewDraft {
+  if (draft.items.length >= MAX_OBJECTIVE_REQUIREMENTS) return draft;
+  const item = draft.omittedItems.find(
+    (candidate) => candidate.localKey === localKey
+  );
+  if (item === undefined || isAlreadyInList(draft.items, item)) return draft;
+  return {
+    ...draft,
+    items: [...draft.items, item],
+    omittedItems: draft.omittedItems.filter(
+      (candidate) => candidate.localKey !== localKey
+    )
   };
 }
 
@@ -301,8 +393,50 @@ export function validateIntake(input: {
 
 export type ConfirmValidationCode =
   | 'NO_REQUIREMENTS'
+  | 'TOO_MANY_REQUIREMENTS'
   | 'BLANK_REQUIREMENT'
   | 'REQUEST_BODY_TOO_LARGE';
+
+/**
+ * Tope de requisitos de un objetivo. Es el MISMO que aplica el servidor
+ * (`MAX_OBJECTIVE_REQUIREMENTS` en la API): el razonamiento hace una llamada al
+ * modelo por requisito, en serie, y sin tope un aviso largo producia analisis de
+ * mas de 10 minutos. Es un tope, no una meta.
+ */
+export const MAX_OBJECTIVE_REQUIREMENTS = 15;
+
+/**
+ * Cuerpo de un objetivo NUEVO con un subconjunto de los requisitos de otro.
+ *
+ * Para objetivos guardados antes del tope de 15. Cada requisito viaja EXACTO
+ * (texto, procedencia y cita) en el orden del original, junto con el mismo
+ * texto original, así las citas siguen siendo subcadena literal.
+ */
+export function buildSubsetObjectiveBody(
+  objective: ObjectiveDetailVM,
+  selectedRequirementIds: readonly string[]
+): CreateObjectiveRequestBody {
+  const chosen = new Set(selectedRequirementIds);
+  return {
+    objectiveType: objective.objectiveType,
+    title: objective.title,
+    objectiveContext: objective.objectiveContext,
+    source: {
+      inputType:
+        objective.sourceInputType === 'DIRECT_STRUCTURED_INPUT'
+          ? 'DIRECT_STRUCTURED_INPUT'
+          : 'PASTED_TEXT',
+      originalText: objective.sourceOriginalText
+    },
+    requirements: objective.requirements
+      .filter((requirement) => chosen.has(requirement.requirementId))
+      .map((requirement) => ({
+        requirementText: requirement.requirementText,
+        provenanceKind: requirement.provenanceKind,
+        sourceQuote: requirement.sourceQuote
+      }))
+  };
+}
 
 export interface ConfirmValidationResult {
   code: ConfirmValidationCode;
@@ -314,6 +448,9 @@ export function validateConfirm(
   draft: ObjectiveReviewDraft
 ): ConfirmValidationResult | null {
   if (draft.items.length === 0) return { code: 'NO_REQUIREMENTS' };
+  if (draft.items.length > MAX_OBJECTIVE_REQUIREMENTS) {
+    return { code: 'TOO_MANY_REQUIREMENTS' };
+  }
 
   const blank = draft.items.find((item) => item.text.trim().length === 0);
   if (blank) return { code: 'BLANK_REQUIREMENT', localKey: blank.localKey };
@@ -353,10 +490,32 @@ export function summarizeReview(
 ): string {
   const remaining = draft.items.length;
   const manual = draft.items.filter((item) => item.origin === 'MANUAL').length;
-  const removed = proposedCount - (remaining - manual);
+  // Los omitidos que se usaron cuentan aparte: no son de los propuestos, y
+  // contarlos como tales escondería las eliminaciones.
+  const usedStillPresent = draft.items.filter(
+    (item) =>
+      item.candidateId !== null &&
+      draft.originallyOmittedIds.includes(item.candidateId)
+  ).length;
+  const removed = proposedCount - (remaining - manual - usedStillPresent);
 
   const parts = [`${proposedCount} propuestos`, `${remaining} quedan`];
   if (removed > 0) parts.push(`${removed} eliminados`);
+  if (usedStillPresent > 0) {
+    parts.push(`${usedStillPresent} sumados de los omitidos`);
+  }
   if (manual > 0) parts.push(`${manual} agregados`);
   return parts.join(' · ');
+}
+
+/**
+ * Aviso de selección, o `null` si no hubo. Sin puntajes ni ranking: la
+ * selección es una propuesta más, que la persona puede cambiar.
+ */
+export function describeSelection(
+  draft: ObjectiveReviewDraft,
+  proposedCount: number
+): string | null {
+  if (draft.identifiedCount <= proposedCount) return null;
+  return `Scope identificó ${draft.identifiedCount} requisitos y seleccionó los ${proposedCount} más relevantes para el análisis, que admite hasta ${MAX_OBJECTIVE_REQUIREMENTS}. Podés cambiar cualquiera por uno de los que quedaron afuera.`;
 }

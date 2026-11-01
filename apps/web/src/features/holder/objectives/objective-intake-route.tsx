@@ -27,7 +27,11 @@ import {
   buildCreateObjectiveBody,
   buildProposalRequestBody,
   countCodePoints,
+  describeSelection,
+  formatSectionLabel,
+  isAlreadyInList,
   MAX_OBJECTIVE_CODE_POINTS,
+  MAX_OBJECTIVE_REQUIREMENTS,
   summarizeReview,
   validateConfirm,
   validateIntake,
@@ -48,7 +52,8 @@ import {
   OBJECTIVE_TYPES,
   OBJECTIVE_TYPE_LABELS,
   type ObjectiveSourceRangeVM,
-  type ObjectiveTypeToken
+  type ObjectiveTypeToken,
+  type ReviewItem
 } from '@/models/objectives';
 
 const INTAKE_MESSAGES: Record<IntakeValidationCode, string> = {
@@ -64,6 +69,7 @@ const INTAKE_MESSAGES: Record<IntakeValidationCode, string> = {
 
 const CONFIRM_MESSAGES: Record<ConfirmValidationCode, string> = {
   NO_REQUIREMENTS: 'Agrega al menos un requisito para confirmar el objetivo.',
+  TOO_MANY_REQUIREMENTS: `Un objetivo puede tener hasta ${MAX_OBJECTIVE_REQUIREMENTS} requisitos. Elimina los que no sean centrales para confirmarlo.`,
   BLANK_REQUIREMENT: 'Hay un requisito sin texto. Completalo o eliminalo.',
   REQUEST_BODY_TOO_LARGE:
     'El objetivo revisado quedo demasiado grande para confirmarlo. Volve a editar el objetivo y acorta el texto original antes de analizarlo nuevamente.'
@@ -156,7 +162,9 @@ export function ObjectiveIntakeRoute() {
       if (requestId !== requestIdRef.current) return;
       dispatch({ type: 'analyzeSucceeded', snapshot, proposal });
       setLiveMessage(
-        `Se identificaron ${proposal.candidates.length} requisitos para revisar.`
+        proposal.omittedCandidates.length > 0
+          ? `Se seleccionaron ${proposal.candidates.length} de ${proposal.candidates.length + proposal.omittedCandidates.length} requisitos identificados.`
+          : `Se identificaron ${proposal.candidates.length} requisitos para revisar.`
       );
     } catch (error) {
       if (requestId !== requestIdRef.current) return;
@@ -289,6 +297,12 @@ export function ObjectiveIntakeRoute() {
             </FeedbackAlert>
           ) : null}
 
+          {describeSelection(state.draft, state.proposedCount) !== null ? (
+            <FeedbackAlert variant="information" title="Hubo una selección">
+              {describeSelection(state.draft, state.proposedCount)}
+            </FeedbackAlert>
+          ) : null}
+
           <p className="rounded-control border border-border-default bg-surface-muted px-4 py-3 text-sm text-text-muted">
             {summarizeReview(state.draft, state.proposedCount)}
           </p>
@@ -340,11 +354,39 @@ export function ObjectiveIntakeRoute() {
             </div>
           ) : null}
 
-          <div>
-            <Button type="button" variant="secondary" onClick={actions.addManualItem}>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={actions.addManualItem}
+              disabled={state.draft.items.length >= MAX_OBJECTIVE_REQUIREMENTS}
+            >
               + Agregar requisito
             </Button>
+            <p className="text-xs text-text-muted">
+              {state.draft.items.length} de hasta {MAX_OBJECTIVE_REQUIREMENTS} requisitos
+            </p>
           </div>
+
+          {state.draft.omittedItems.length > 0 ? (
+            <OmittedRequirements
+              items={state.draft.omittedItems}
+              selected={state.draft.items}
+              full={state.draft.items.length >= MAX_OBJECTIVE_REQUIREMENTS}
+              onUse={(localKey) => {
+                actions.useOmittedItem(localKey);
+                setLiveMessage('Requisito agregado al final de la lista.');
+              }}
+              onReplace={(omittedKey, targetKey) => {
+                actions.replaceWithOmittedItem(omittedKey, targetKey);
+                setLiveMessage('Requisito reemplazado. El anterior quedó entre los omitidos.');
+              }}
+            />
+          ) : null}
+
+          {state.draft.nonFormativeConditions.length > 0 ? (
+            <NonFormativeConditions conditions={state.draft.nonFormativeConditions} />
+          ) : null}
 
           <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border-default pt-6">
             <p className="text-sm text-text-muted">Confirmá únicamente los requisitos que quieras conservar.</p>
@@ -373,6 +415,125 @@ export function ObjectiveIntakeRoute() {
         />
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Los requisitos que la seleccion dejo afuera. Plegado por defecto: lo principal
+ * es revisar los elegidos, pero nada queda escondido.
+ */
+function OmittedRequirements({
+  items,
+  selected,
+  full,
+  onUse,
+  onReplace
+}: {
+  items: readonly ReviewItem[];
+  selected: readonly ReviewItem[];
+  full: boolean;
+  onUse: (localKey: string) => void;
+  onReplace: (omittedKey: string, targetKey: string) => void;
+}) {
+  const [replacing, setReplacing] = useState<string | null>(null);
+  return (
+    <details className="rounded-card border border-border-default bg-surface p-4">
+      <summary className="cursor-pointer text-sm font-semibold text-text-strong">
+        Requisitos que quedaron afuera ({items.length})
+      </summary>
+      <p className="mt-3 text-sm text-text-muted">
+        {full
+          ? `La lista ya tiene ${MAX_OBJECTIVE_REQUIREMENTS} requisitos: podés reemplazar uno por cualquiera de estos.`
+          : 'Podés sumar cualquiera de estos a la lista de arriba.'}
+      </p>
+      <ul className="mt-3 grid list-none gap-2">
+        {items.map((item) => {
+          const section = formatSectionLabel(item.sourceSectionLabel);
+          const duplicate = isAlreadyInList(selected, item);
+          return (
+            <li
+              key={item.localKey}
+              className="grid gap-2 rounded-control border border-border-default px-3 py-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm text-text-strong">{item.text}</p>
+                  {section ? <p className="text-xs text-text-muted">{section}</p> : null}
+                  {duplicate ? (
+                    <p className="text-xs text-text-muted">Ya está en la lista.</p>
+                  ) : null}
+                </div>
+                {full ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={duplicate}
+                    aria-expanded={replacing === item.localKey}
+                    onClick={() =>
+                      setReplacing(replacing === item.localKey ? null : item.localKey)
+                    }
+                    aria-label={`Reemplazar un requisito por: ${item.text}`}
+                  >
+                    Reemplazar uno…
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={duplicate}
+                    onClick={() => onUse(item.localKey)}
+                    aria-label={`Usar este requisito: ${item.text}`}
+                  >
+                    Usar este requisito
+                  </Button>
+                )}
+              </div>
+              {full && replacing === item.localKey ? (
+                <div className="grid gap-1">
+                  <p className="text-xs text-text-muted">¿Cuál sale de la lista?</p>
+                  {selected.map((target, index) => (
+                    <button
+                      key={target.localKey}
+                      type="button"
+                      onClick={() => {
+                        onReplace(item.localKey, target.localKey);
+                        setReplacing(null);
+                      }}
+                      className="rounded-control px-2 py-1 text-left text-sm text-brand-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                    >
+                      {`Reemplazar ${index + 1}. ${target.text || '(sin texto)'}`}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </details>
+  );
+}
+
+/** Condiciones legitimas del aviso que no entran al analisis formativo. */
+function NonFormativeConditions({ conditions }: { conditions: readonly string[] }) {
+  return (
+    <section
+      aria-labelledby="non-formative-conditions-title"
+      className="rounded-card border border-border-default bg-surface p-4"
+    >
+      <h2 id="non-formative-conditions-title" className="text-sm font-semibold text-text-strong">
+        Condiciones del aviso que no se analizan con tu formación
+      </h2>
+      <p className="mt-1 text-sm text-text-muted">
+        Siguen siendo parte de la oportunidad, pero ninguna credencial las acredita. Si querés
+        analizar alguna igual, agregala como requisito.
+      </p>
+      <ul className="mt-3 grid list-disc gap-1 pl-5 text-sm text-text-default">
+        {conditions.map((condition, index) => (
+          <li key={`${index}-${condition}`}>{condition}</li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

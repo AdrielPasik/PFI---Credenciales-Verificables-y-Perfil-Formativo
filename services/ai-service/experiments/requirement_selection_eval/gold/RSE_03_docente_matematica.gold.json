@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "requirement_selection_gold_v1",
+  "authorship": "Referencia redactada por Claude (Opus) a partir de la politica acordada; PENDIENTE de adjudicacion humana por el autor del PFI antes de usarse como gold definitivo.",
+  "postingId": "RSE_03",
+  "file": "postings/RSE_03_docente_matematica.md",
+  "title": "Docente de Matemática",
+  "objectiveType": "EMPLOYMENT",
+  "purpose": "Dominio no tecnico (educacion): capacidades profesionales cualitativas sin metricas, actitudes y rutina docente.",
+  "items": [
+    {
+      "id": "ctx",
+      "quote": "Colegio privado de la zona norte busca docente para 3° y 4° año.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "titulo",
+      "quote": "Título de Profesor/a de Matemática (excluyente).",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "MANDATORY",
+      "group": "titulo",
+      "reason": ""
+    },
+    {
+      "id": "experiencia",
+      "quote": "Experiencia mínima de 2 años frente a curso en nivel secundario.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "REQUIRED",
+      "group": "experiencia",
+      "reason": ""
+    },
+    {
+      "id": "planificacion",
+      "quote": "Planificación de clases y diseño de evaluaciones por competencias.",
+      "label": "KEEP",
+      "category": "PROFESSIONAL_CAPABILITY",
+      "priority": "REQUIRED",
+      "group": "planificacion",
+      "reason": "Capacidad cualitativa evaluable sin numeros."
+    },
+    {
+      "id": "plataformas",
+      "quote": "Manejo de plataformas educativas (Google Classroom o Moodle).",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "plataformas",
+      "reason": ""
+    },
+    {
+      "id": "geogebra",
+      "quote": "Uso de GeoGebra para la enseñanza de geometría y funciones.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "geogebra",
+      "reason": ""
+    },
+    {
+      "id": "vocacion",
+      "quote": "Vocación docente.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "empatia",
+      "quote": "Paciencia y empatía con adolescentes.",
+      "label": "BORDERLINE",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": "Soft skill con destinatario pero sin criterio contrastable con evidencia formativa: ni acierto ni error."
+    },
+    {
+      "id": "reuniones",
+      "quote": "Participar en reuniones de departamento.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "",
+      "observedFailureText": "Capacidad de liderazgo y coordinacion departamental"
+    },
+    {
+      "id": "planillas",
+      "quote": "Completar planillas y libros de temas.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "turno",
+      "quote": "Disponibilidad en el turno mañana.",
+      "label": "DISCARD",
+      "category": "NON_FORMATIVE_CONDITION",
+      "priority": null,
+      "group": null,
+      "reason": "Condicion legitima pero no formativa: debe quedar visible, no consumir un lugar de analisis."
+    },
+    {
+      "id": "esi",
+      "quote": "Formación en Educación Sexual Integral (ESI).",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "DESIRABLE",
+      "group": "esi",
+      "reason": ""
+    },
+    {
+      "id": "olimpiadas",
+      "quote": "Experiencia en preparación de alumnos para olimpíadas de matemática.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "olimpiadas",
+      "reason": ""
+    }
+  ],
+  "forbiddenInflations": [
+    "liderazgo",
+    "competencias avanzadas",
+    "proactiv",
+    "excelente",
+    "solido",
+    "experto",
+    "certificad"
+  ]
+}

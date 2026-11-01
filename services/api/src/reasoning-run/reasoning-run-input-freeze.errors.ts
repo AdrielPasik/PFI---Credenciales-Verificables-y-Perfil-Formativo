@@ -32,7 +32,14 @@ export const REASONING_RUN_INPUT_FREEZE_CODES = [
    * El artifact `objective_definition_v1` persistido no supera el verificador de
    * F2. No se congela un run contra una definición que no se puede leer.
    */
-  'OBJECTIVE_DEFINITION_CORRUPT'
+  'OBJECTIVE_DEFINITION_CORRUPT',
+  /**
+   * El Objective es legible pero tiene más Requirements de los que el análisis
+   * admite (`MAX_OBJECTIVE_REQUIREMENTS`). Sólo puede pasar con definiciones
+   * persistidas antes del tope: se conservan intactas y legibles, pero no se
+   * congela un run nuevo sobre ellas. La salida es crear una revisión acotada.
+   */
+  'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT'
 ] as const;
 
 export type ReasoningRunInputFreezeCode =
@@ -40,7 +47,8 @@ export type ReasoningRunInputFreezeCode =
 
 const FREEZE_STATUS: Record<ReasoningRunInputFreezeCode, HttpStatus> = {
   OBJECTIVE_NOT_FOUND: HttpStatus.NOT_FOUND,
-  OBJECTIVE_DEFINITION_CORRUPT: HttpStatus.INTERNAL_SERVER_ERROR
+  OBJECTIVE_DEFINITION_CORRUPT: HttpStatus.INTERNAL_SERVER_ERROR,
+  OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT: HttpStatus.UNPROCESSABLE_ENTITY
 };
 
 export interface ReasoningRunInputFreezeDetail {

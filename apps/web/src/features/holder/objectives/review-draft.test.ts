@@ -15,13 +15,18 @@ import {
   buildReviewDraft,
   countCodePoints,
   createManualItem,
+  describeSelection,
   formatSectionLabel,
   mapReviewItemToRequirement,
   MAX_OBJECTIVE_CODE_POINTS,
   MAX_REQUEST_BODY_BYTES,
   serializedByteLength,
   splitAroundRange,
+  isAlreadyInList,
+  replaceWithOmittedItem,
   summarizeReview,
+  takeOmittedItem,
+  MAX_OBJECTIVE_REQUIREMENTS,
   validateConfirm,
   validateIntake
 } from '@/features/holder/objectives/review-draft';
@@ -56,6 +61,8 @@ function proposal(
         ...overrides
       }
     ],
+    nonFormativeConditions: [],
+    omittedCandidates: [],
     unresolvedPassageCount: 0
   };
 }
@@ -257,6 +264,8 @@ describe('cuerpo de creacion del Objective', () => {
         { ...proposal().candidates[0], candidateId: 'cand_01', proposedRequirementText: 'A' },
         { ...proposal().candidates[0], candidateId: 'cand_02', proposedRequirementText: 'B' }
       ],
+      nonFormativeConditions: [],
+      omittedCandidates: [],
       unresolvedPassageCount: 0
     });
     const swapped = { ...many, items: [many.items[1], many.items[0]] };
@@ -345,6 +354,23 @@ describe('validacion de la confirmacion', () => {
     expect(validateConfirm({ ...draft, items: [] })?.code).toBe('NO_REQUIREMENTS');
   });
 
+  it('P0: acepta hasta 15 requisitos y bloquea el 16', () => {
+    const [item] = draft.items;
+    const withCount = (count: number) => ({
+      ...draft,
+      items: Array.from({ length: count }, (_unused, index) => ({
+        ...item,
+        localKey: `item_${index}`,
+        text: `Requisito ${index + 1}`
+      }))
+    });
+
+    expect(MAX_OBJECTIVE_REQUIREMENTS).toBe(15);
+    expect(validateConfirm(withCount(15))).toBeNull();
+    expect(validateConfirm(withCount(16))?.code).toBe('TOO_MANY_REQUIREMENTS');
+    expect(validateConfirm(withCount(50))?.code).toBe('TOO_MANY_REQUIREMENTS');
+  });
+
   it('bloquea con un requisito en blanco y dice cual', () => {
     const withBlank = {
       ...draft,
@@ -362,11 +388,13 @@ describe('validacion de la confirmacion', () => {
     const heavy = {
       ...draft,
       snapshot: { ...snapshot, rawObjectiveText: big },
-      items: Array.from({ length: 20 }, (_, index) =>
+      // 15 = el tope de requisitos: el cuerpo se pasa por el TAMANO de cada uno,
+      // no por la cantidad (ese otro limite lo cubre TOO_MANY_REQUIREMENTS).
+      items: Array.from({ length: 15 }, (_, index) =>
         item({
           localKey: `item_${index}`,
-          text: 'b'.repeat(2_000),
-          primaryExcerpt: 'c'.repeat(2_000)
+          text: 'b'.repeat(3_000),
+          primaryExcerpt: 'c'.repeat(3_000)
         })
       )
     };
@@ -403,5 +431,147 @@ describe('presentacion', () => {
     expect(summary).toContain('2 quedan');
     expect(summary).toContain('1 agregados');
     expect(summary).not.toMatch(/%|score|punta/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P0: seleccion y requisitos omitidos
+// ---------------------------------------------------------------------------
+
+function selectedProposal(selected: number, omitted: number): ObjectiveProposalVM {
+  const [template] = proposal().candidates;
+  const numbered = (number: number) => ({
+    ...template,
+    candidateId: `cand_${String(number).padStart(2, '0')}`,
+    proposedRequirementText: `Requisito ${number}`,
+    excerptRange: { start: number * 10, end: number * 10 + 5 }
+  });
+  return {
+    candidates: Array.from({ length: selected }, (_unused, index) => numbered(index + 1)),
+    nonFormativeConditions: [],
+    omittedCandidates: Array.from({ length: omitted }, (_unused, index) =>
+      numbered(selected + index + 1)
+    ),
+    unresolvedPassageCount: 0
+  };
+}
+
+describe('P0: requisitos omitidos por la seleccion', () => {
+  it('sin seleccion no hay aviso ni omitidos', () => {
+    const draft = buildReviewDraft(snapshot, selectedProposal(4, 0));
+    expect(draft.omittedItems).toEqual([]);
+    expect(describeSelection(draft, 4)).toBeNull();
+  });
+
+  it('con seleccion avisa cuantos se identificaron y cuantos se eligieron', () => {
+    const draft = buildReviewDraft(snapshot, selectedProposal(15, 35));
+    expect(draft.items).toHaveLength(15);
+    expect(draft.omittedItems).toHaveLength(35);
+    const notice = describeSelection(draft, 15);
+    expect(notice).toContain('identificó 50 requisitos');
+    expect(notice).toContain('seleccionó los 15 más relevantes');
+    expect(notice).not.toMatch(/%|score|punta|ranking/i);
+  });
+
+  it('los omitidos NUNCA viajan al confirmar', () => {
+    const draft = buildReviewDraft(snapshot, selectedProposal(3, 2));
+    const body = buildCreateObjectiveBody(draft);
+    expect(body.requirements.map((r) => r.requirementText)).toEqual([
+      'Requisito 1',
+      'Requisito 2',
+      'Requisito 3'
+    ]);
+  });
+
+  it('con la lista llena, usar un omitido no reemplaza nada en silencio', () => {
+    const draft = buildReviewDraft(snapshot, selectedProposal(15, 2));
+    const next = takeOmittedItem(draft, draft.omittedItems[0].localKey);
+    expect(next).toBe(draft);
+  });
+
+  it('sustituir: eliminar uno y usar un omitido lo suma al final, anclado', () => {
+    const draft = buildReviewDraft(snapshot, selectedProposal(15, 2));
+    const removed = { ...draft, items: draft.items.slice(1) };
+    const omitted = removed.omittedItems[1];
+    const next = takeOmittedItem(removed, omitted.localKey);
+
+    expect(next.items).toHaveLength(15);
+    expect(next.items[14].text).toBe('Requisito 17');
+    expect(next.omittedItems.map((entry) => entry.text)).toEqual(['Requisito 16']);
+    // Un omitido intacto conserva la procedencia derivada, como cualquier propuesto.
+    expect(mapReviewItemToRequirement(next.items[14]).provenanceKind).toBe(
+      'DERIVED_FROM_SOURCE_TEXT'
+    );
+    expect(validateConfirm(next)).toBeNull();
+
+    const summary = summarizeReview(next, 15);
+    expect(summary).toContain('1 eliminados');
+    expect(summary).toContain('1 sumados de los omitidos');
+  });
+});
+
+describe('P0: reemplazo con la lista llena', () => {
+  function full(omitted: number) {
+    const [template] = proposal().candidates;
+    const numbered = (number: number) => ({
+      ...template,
+      candidateId: `cand_${String(number).padStart(2, '0')}`,
+      proposedRequirementText: `Requisito ${number}`,
+      excerptRange: { start: number * 10, end: number * 10 + 5 }
+    });
+    return buildReviewDraft(snapshot, {
+      candidates: Array.from({ length: 15 }, (_unused, index) => numbered(index + 1)),
+      omittedCandidates: Array.from({ length: omitted }, (_unused, index) => numbered(16 + index)),
+      nonFormativeConditions: [],
+      unresolvedPassageCount: 0
+    });
+  }
+
+  it('entra en la MISMA posicion, sale a los omitidos y la cantidad no cambia', () => {
+    const draft = full(2);
+    const incoming = draft.omittedItems[0];
+    const target = draft.items[4];
+    const next = replaceWithOmittedItem(draft, incoming.localKey, target.localKey);
+
+    expect(next.items).toHaveLength(15);
+    expect(next.items[4]).toBe(incoming);
+    expect(next.omittedItems.map((item) => item.text)).toEqual(['Requisito 17', 'Requisito 5']);
+    expect(validateConfirm(next)).toBeNull();
+    expect(mapReviewItemToRequirement(next.items[4]).provenanceKind).toBe('DERIVED_FROM_SOURCE_TEXT');
+
+    const summary = summarizeReview(next, 15);
+    expect(summary).toContain('1 eliminados');
+    expect(summary).toContain('1 sumados de los omitidos');
+  });
+
+  it('se puede deshacer reemplazando de vuelta', () => {
+    const draft = full(1);
+    const first = replaceWithOmittedItem(draft, draft.omittedItems[0].localKey, draft.items[0].localKey);
+    const back = replaceWithOmittedItem(first, first.omittedItems[0].localKey, first.items[0].localKey);
+    expect(back.items.map((item) => item.text)).toEqual(draft.items.map((item) => item.text));
+  });
+
+  it('nunca deja un duplicado: mismo texto o misma cita', () => {
+    const draft = full(1);
+    const duplicate = { ...draft.omittedItems[0], text: '  requisito 2 ' };
+    const withDuplicate = { ...draft, omittedItems: [duplicate] };
+    expect(isAlreadyInList(withDuplicate.items, duplicate)).toBe(true);
+    expect(
+      replaceWithOmittedItem(withDuplicate, duplicate.localKey, withDuplicate.items[5].localKey)
+    ).toBe(withDuplicate);
+
+    const sameQuote = { ...draft.omittedItems[0], excerptRange: draft.items[7].excerptRange };
+    const withSameQuote = { ...draft, omittedItems: [sameQuote] };
+    expect(
+      replaceWithOmittedItem(withSameQuote, sameQuote.localKey, withSameQuote.items[0].localKey)
+    ).toBe(withSameQuote);
+  });
+
+  it('reemplazar justo el requisito que duplica si esta permitido', () => {
+    const draft = full(1);
+    const duplicateOfFirst = { ...draft.omittedItems[0], text: 'Requisito 1' };
+    const state = { ...draft, omittedItems: [duplicateOfFirst] };
+    const next = replaceWithOmittedItem(state, duplicateOfFirst.localKey, state.items[0].localKey);
+    expect(next.items[0]).toBe(duplicateOfFirst);
   });
 });

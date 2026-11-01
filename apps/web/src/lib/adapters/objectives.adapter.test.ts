@@ -104,6 +104,42 @@ describe('adapter de propuesta', () => {
     });
     expect(proposal.candidates).toEqual([]);
   });
+
+  it('P0: separa las condiciones no formativas de los fragmentos no resueltos', () => {
+    const proposal = adaptObjectiveProposal({
+      ...proposalPayload,
+      unresolvedPassages: [
+        {
+          exactExcerpt: 'Disponibilidad para turnos rotativos',
+          reason: 'Condición no formativa: horario.',
+          grounding: 'UNIQUE'
+        },
+        { exactExcerpt: 'texto ambiguo', reason: 'no se puede decidir', grounding: 'UNIQUE' }
+      ]
+    });
+    expect(proposal.nonFormativeConditions).toEqual(['Disponibilidad para turnos rotativos']);
+    expect(proposal.unresolvedPassageCount).toBe(1);
+    expect(JSON.stringify(proposal)).not.toContain('horario');
+  });
+
+  it('P0: sin `omittedCandidates` (API anterior) no hubo seleccion', () => {
+    expect(adaptObjectiveProposal(proposalPayload).omittedCandidates).toEqual([]);
+  });
+
+  it('P0: los omitidos se adaptan con las mismas reglas que los elegidos', () => {
+    const proposal = adaptObjectiveProposal({
+      ...proposalPayload,
+      omittedCandidates: [
+        { ...proposalPayload.candidates[0], candidateId: 'cand_02', proposedRequirementText: 'SQL' }
+      ]
+    });
+    expect(proposal.omittedCandidates).toHaveLength(1);
+    expect(proposal.omittedCandidates[0].candidateId).toBe('cand_02');
+    expect(proposal.omittedCandidates[0].primaryExcerpt).toBe('- Experiencia  con   Python.');
+    expect(() =>
+      adaptObjectiveProposal({ ...proposalPayload, omittedCandidates: 'no es lista' })
+    ).toThrow(IncompatiblePayloadError);
+  });
 });
 
 describe('adapter de resumen', () => {

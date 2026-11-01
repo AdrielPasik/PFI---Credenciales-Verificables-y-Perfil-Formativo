@@ -11,6 +11,9 @@ import test from 'node:test';
 
 import { BadRequestException } from '@nestjs/common';
 
+import { buildObjectiveDefinitionV1 } from './objective-definition.builder';
+import { verifyObjectiveDefinitionArtifact } from './objective-definition.validator';
+import { MAX_OBJECTIVE_REQUIREMENTS } from './objective-limits';
 import { mapCreateObjectiveRequest } from './objective-request.validator';
 
 const ORIGINAL_TEXT = 'Buscamos backend. Requisitos: APIs REST y testing automatizado.';
@@ -270,4 +273,50 @@ test('an empty requirements array passes the boundary and is rejected by F2.1', 
   // Mismo criterio: "al menos un Requirement" es semántica del artifact.
   const mapped = mapCreateObjectiveRequest({ ...validPastedBody(), requirements: [] });
   assert.deepEqual(mapped.definition.requirements, []);
+});
+
+// ---------------------------------------------------------------------------
+// P0: tope de Requirements en la confirmacion
+// ---------------------------------------------------------------------------
+
+function directBodyWith(count: number): Record<string, any> {
+  const body = validDirectBody();
+  body.requirements = Array.from({ length: count }, (_unused, index) => ({
+    requirementText: `Requisito confirmado ${index + 1}`,
+    provenanceKind: 'DIRECT_STRUCTURED_INPUT'
+  }));
+  return body;
+}
+
+test('P0: el tope de Requirements de un objetivo es 15', () => {
+  assert.equal(MAX_OBJECTIVE_REQUIREMENTS, 15);
+});
+
+test('P0: confirmar 15 Requirements se acepta', () => {
+  const mapped = mapCreateObjectiveRequest(directBodyWith(15));
+  assert.equal(mapped.definition.requirements.length, 15);
+});
+
+test('P0: confirmar 16 o mas se rechaza en el servidor, sin depender del modelo ni del cliente', () => {
+  expectRejection(directBodyWith(16), /hasta 15 requisitos/);
+  expectRejection(directBodyWith(50), /hasta 15 requisitos/);
+});
+
+test('P0: un objetivo historico con mas de 15 Requirements sigue siendo legible tal cual se confirmo', () => {
+  // El tope se aplica al CREAR, no al verificar lo ya persistido: si se aplicara
+  // al leer, la historia de un usuario dejaria de poder mostrarse.
+  const historical = buildObjectiveDefinitionV1({
+    objectiveType: 'ADMISSION',
+    objectiveContext: '',
+    sourceInputType: 'DIRECT_STRUCTURED_INPUT',
+    sourceOriginalText: null,
+    requirements: Array.from({ length: 40 }, (_unused, index) => ({
+      requirementText: `Requisito historico ${index + 1}`,
+      provenanceKind: 'DIRECT_STRUCTURED_INPUT' as const,
+      sourceQuote: null
+    }))
+  });
+
+  const verified = verifyObjectiveDefinitionArtifact(historical);
+  assert.equal(verified.requirements.length, 40);
 });

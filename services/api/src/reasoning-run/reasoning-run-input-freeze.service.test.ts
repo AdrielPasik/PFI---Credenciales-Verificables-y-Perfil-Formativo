@@ -147,6 +147,46 @@ test('una definición de Objective corrupta aborta el freeze', async () => {
   assert.equal(created.length, 0, 'no debe quedar un run a medias');
 });
 
+test('P0: un Objective historico de mas de 15 requisitos no se congela, y no queda run', async () => {
+  const definition = objectiveDefinition();
+  const [template] = definition.requirements;
+  definition.requirements = Array.from({ length: 16 }, (_unused, index) => ({
+    ...template,
+    requirementId: `req_${String(index + 1).padStart(2, '0')}`,
+    order: index + 1,
+    requirementText: `Requisito historico ${index + 1}`
+  }));
+  const { prisma, created } = fakePrisma({
+    objective: { id: OBJECTIVE_ID, ownerUserId: OWNER_ID, definition, title: 'x' }
+  });
+
+  await assert.rejects(
+    () => service(prisma).createFrozenReasoningRunForUser(OWNER_ID, OBJECTIVE_ID),
+    (error: unknown) => {
+      assert.ok(error instanceof ReasoningRunInputFreezeError);
+      assert.equal(error.code, 'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT');
+      assert.equal(error.getStatus(), 422);
+      return true;
+    }
+  );
+  assert.equal(created.length, 0, 'no debe quedar un run a medias');
+});
+
+test('P0: exactamente 15 requisitos se congelan normalmente', async () => {
+  const definition = objectiveDefinition();
+  const [template] = definition.requirements;
+  definition.requirements = Array.from({ length: 15 }, (_unused, index) => ({
+    ...template,
+    requirementId: `req_${String(index + 1).padStart(2, '0')}`,
+    order: index + 1,
+    requirementText: `Requisito ${index + 1}`
+  }));
+  const { result } = await freeze({
+    objective: { id: OBJECTIVE_ID, ownerUserId: OWNER_ID, definition, title: 'x' }
+  });
+  assert.equal(result.status, 'pending');
+});
+
 // ---------------------------------------------------------------------------
 // Inventario enraizado en la credencial
 // ---------------------------------------------------------------------------

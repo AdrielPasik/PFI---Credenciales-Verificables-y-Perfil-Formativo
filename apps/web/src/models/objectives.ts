@@ -66,6 +66,18 @@ export interface ObjectiveProposalCandidateVM {
 
 export interface ObjectiveProposalVM {
   candidates: ObjectiveProposalCandidateVM[];
+  /**
+   * Requisitos que Scope identifico pero dejo afuera porque superaban el maximo
+   * del analisis. Vacio si no hubo seleccion. Se pueden usar para sustituir.
+   */
+  omittedCandidates: ObjectiveProposalCandidateVM[];
+  /**
+   * Condiciones legitimas del aviso que ninguna formacion acredita
+   * (disponibilidad, lugar, edad, documentacion). Existen, pero no se analizan:
+   * se muestran como cita literal para que no desaparezcan.
+   */
+  nonFormativeConditions: string[];
+  /** Fragmentos que no se pudieron convertir en requisito (sin las condiciones). */
   unresolvedPassageCount: number;
 }
 
@@ -119,6 +131,16 @@ export interface ObjectiveReviewDraft {
   snapshot: AnalyzedObjectiveSnapshot;
   /** El ORDEN del array es el orden final. El servidor deriva `order` de el. */
   items: ReviewItem[];
+  /**
+   * Los que la seleccion dejo afuera y todavia no se usaron. Se muestran aparte;
+   * NUNCA viajan al confirmar.
+   */
+  omittedItems: ReviewItem[];
+  /** Cuantos requisitos identifico Scope antes de seleccionar. Fijo. */
+  identifiedCount: number;
+  /** `candidateId` de los que la seleccion dejo afuera. Fijo: solo para el resumen. */
+  originallyOmittedIds: string[];
+  nonFormativeConditions: string[];
   unresolvedPassageCount: number;
 }
 
@@ -157,6 +179,8 @@ export interface ObjectiveDetailVM {
    */
   sourceInputType: string;
   sourceOriginalText: string | null;
+  /** Contexto declarado al crear. Se conserva tal cual al derivar otro objetivo. */
+  objectiveContext: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -180,8 +204,8 @@ export interface CreateObjectiveRequestBody {
   title: string;
   objectiveContext: string;
   source: {
-    inputType: 'PASTED_TEXT';
-    originalText: string;
+    inputType: 'PASTED_TEXT' | 'DIRECT_STRUCTURED_INPUT';
+    originalText: string | null;
   };
   requirements: CreateObjectiveRequirementBody[];
 }

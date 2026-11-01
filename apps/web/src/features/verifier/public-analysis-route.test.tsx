@@ -71,6 +71,8 @@ function session(
           isExactDuplicate: false
         }
       ],
+      nonFormativeConditions: [],
+      omittedCandidates: [],
       unresolvedPassageCount: 0
     },
     proposalInProgress: false,
@@ -571,6 +573,8 @@ function proposalWith(count: number) {
       sourceSectionLabel: null,
       isExactDuplicate: false
     })),
+    nonFormativeConditions: [],
+    omittedCandidates: [],
     unresolvedPassageCount: 0
   };
 }
