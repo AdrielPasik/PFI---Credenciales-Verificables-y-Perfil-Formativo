@@ -11,6 +11,8 @@ import {
   ScopeSkeletonBlock
 } from '@/components/ui/states';
 import { ScopeText } from '@/components/ui/text';
+import { ObjectiveRequirementSubset } from '@/features/objectives/objective-requirement-subset';
+import { MAX_OBJECTIVE_REQUIREMENTS } from '@/features/objectives/review-draft';
 import { useObjectiveDetail } from '@/features/objectives/use-objectives';
 import { ObjectiveReasoningPanel } from '@/features/reasoning/objective-reasoning-panel';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
@@ -88,6 +90,10 @@ export function ObjectiveDetailView({
           {objective.requirements.length === 1 ? 'requisito' : 'requisitos'}
         </ScopeText>
       </View>
+
+      {objective.requirements.length > MAX_OBJECTIVE_REQUIREMENTS ? (
+        <ObjectiveRequirementSubset objective={objective} />
+      ) : null}
 
       {/* El análisis es lo primero: es la capacidad que la persona vino a usar. */}
       <ObjectiveReasoningPanel

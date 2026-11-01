@@ -37,6 +37,7 @@ import { Prisma, ReasoningRunInventoryDisposition, ReasoningRunStatus } from '@p
 
 import { PrismaService } from '../prisma/prisma.service';
 import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-definition.validator';
+import { MAX_OBJECTIVE_REQUIREMENTS } from '../objectives/objective-limits';
 import { SourceExtractionSlotService } from '../source-extraction/source-extraction-slot.service';
 import {
   classifyCredentialInventory,
@@ -155,11 +156,23 @@ export class ReasoningRunInputFreezeService {
     // Se re-verifica con el verificador productivo de F2 en vez de copiar la
     // columna a ciegas: un run congelado contra una definición ilegible no
     // podría validarse después contra nada.
+    let definition;
     try {
-      verifyObjectiveDefinitionArtifact(objective.definition);
+      definition = verifyObjectiveDefinitionArtifact(objective.definition);
     } catch {
       failFreeze('OBJECTIVE_DEFINITION_CORRUPT', {
         invariant: 'persisted_objective_definition_must_verify',
+        objectiveId
+      });
+    }
+
+    // Un Objective persistido antes del tope sigue siendo legible, pero no se
+    // congela un run nuevo sobre él: cada Requirement es una llamada al modelo en
+    // serie, y uno de 40 no termina dentro del tiempo de la petición. Se aborta
+    // ANTES de crear la fila, sin run a medias.
+    if (definition.requirements.length > MAX_OBJECTIVE_REQUIREMENTS) {
+      failFreeze('OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT', {
+        invariant: 'objective_requirement_count_exceeds_analysis_limit',
         objectiveId
       });
     }

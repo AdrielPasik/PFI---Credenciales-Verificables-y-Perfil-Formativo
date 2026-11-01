@@ -41,6 +41,7 @@ import {
   type ObjectiveRequirementRequestDto
 } from './dto/objective.dto';
 import { type ObjectiveDefinitionInput } from './objective-definition.builder';
+import { MAX_OBJECTIVE_REQUIREMENTS } from './objective-limits';
 
 const ROOT_KEYS = new Set([
   'objectiveType',
@@ -192,6 +193,13 @@ export function mapCreateObjectiveRequest(
 
   if (!Array.isArray(dto.requirements)) {
     fail('body.requirements debe ser un array.');
+  }
+  // Tope de PRODUCTO, aplicado en el servidor: no depende de que el modelo haya
+  // respetado el presupuesto ni de que el cliente lo controle.
+  if (dto.requirements.length > MAX_OBJECTIVE_REQUIREMENTS) {
+    fail(
+      `Un objetivo puede tener hasta ${MAX_OBJECTIVE_REQUIREMENTS} requisitos.`
+    );
   }
 
   const requirements = dto.requirements.map((item, index) => {

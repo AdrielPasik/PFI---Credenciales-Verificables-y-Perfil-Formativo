@@ -24,7 +24,11 @@ import {
   buildCreateObjectiveBody,
   buildProposalRequestBody,
   countCodePoints,
+  describeSelection,
+  formatSectionLabel,
+  isAlreadyInList,
   MAX_OBJECTIVE_CODE_POINTS,
+  MAX_OBJECTIVE_REQUIREMENTS,
   summarizeReview,
   validateConfirm,
   validateIntake,
@@ -72,6 +76,7 @@ const INTAKE_MESSAGES: Record<IntakeValidationCode, string> = {
 
 const CONFIRM_MESSAGES: Record<ConfirmValidationCode, string> = {
   NO_REQUIREMENTS: 'Agregá al menos un requisito para confirmar el objetivo.',
+  TOO_MANY_REQUIREMENTS: `Un objetivo puede tener hasta ${MAX_OBJECTIVE_REQUIREMENTS} requisitos. Eliminá los que no sean centrales para confirmarlo.`,
   BLANK_REQUIREMENT: 'Hay un requisito sin texto. Completalo o eliminalo.',
   REQUEST_BODY_TOO_LARGE:
     'El objetivo revisado quedó demasiado grande para confirmarlo. Volvé a editar el objetivo y acortá el texto original antes de analizarlo nuevamente.'
@@ -278,6 +283,11 @@ export function ObjectiveIntakeScreen() {
               onShowSource={showSource}
               items={state.draft?.items ?? []}
               summary={summarizeReview(state.draft!, state.proposedCount)}
+              selectionNotice={describeSelection(state.draft!, state.proposedCount)}
+              omittedItems={state.draft?.omittedItems ?? []}
+              onUseOmitted={actions.useOmittedItem}
+              onReplaceWithOmitted={actions.replaceWithOmittedItem}
+              nonFormativeConditions={state.draft?.nonFormativeConditions ?? []}
               unresolvedPassageCount={state.draft?.unresolvedPassageCount ?? 0}
               confirming={state.confirming}
               canUndo={state.lastRemoved !== null}
@@ -427,6 +437,11 @@ function IntakeForm({
 function ReviewList({
   items,
   summary,
+  selectionNotice,
+  omittedItems,
+  onUseOmitted,
+  onReplaceWithOmitted,
+  nonFormativeConditions,
   unresolvedPassageCount,
   confirming,
   canUndo,
@@ -441,6 +456,11 @@ function ReviewList({
 }: {
   items: ReviewItem[];
   summary: string;
+  selectionNotice: string | null;
+  omittedItems: ReviewItem[];
+  onUseOmitted: (localKey: string) => void;
+  onReplaceWithOmitted: (omittedKey: string, targetKey: string) => void;
+  nonFormativeConditions: string[];
   unresolvedPassageCount: number;
   confirming: boolean;
   canUndo: boolean;
@@ -453,6 +473,8 @@ function ReviewList({
   onDiscard: () => void;
   onConfirm: () => void;
 }) {
+  const [replacing, setReplacing] = useState<string | null>(null);
+  const full = items.length >= MAX_OBJECTIVE_REQUIREMENTS;
   return (
     <View style={styles.form}>
       <ScopeCard tone="muted" style={styles.summaryCard}>
@@ -468,6 +490,14 @@ function ReviewList({
           </ScopeText>
         ) : null}
       </ScopeCard>
+
+      {selectionNotice !== null ? (
+        <ScopeNotice tone="info" title="Hubo una selección">
+          <ScopeText variant="small" testID="review-selection-notice">
+            {selectionNotice}
+          </ScopeText>
+        </ScopeNotice>
+      ) : null}
 
       {canUndo ? (
         <ScopeNotice tone="info" title="Requisito eliminado">
@@ -501,7 +531,90 @@ function ReviewList({
         fullWidth
         label="Agregar un requisito"
         onPress={onAdd}
+        disabled={items.length >= MAX_OBJECTIVE_REQUIREMENTS}
       />
+
+      {omittedItems.length > 0 ? (
+        <ScopeCard tone="muted" style={styles.summaryCard}>
+          <ScopeText variant="small" tone="muted">
+            Requisitos que quedaron afuera ({omittedItems.length}).{' '}
+            {full
+              ? `La lista ya tiene ${MAX_OBJECTIVE_REQUIREMENTS}: podés reemplazar uno por cualquiera de estos.`
+              : 'Podés sumar cualquiera a la lista.'}
+          </ScopeText>
+          {omittedItems.map((item) => {
+            const section = formatSectionLabel(item.sourceSectionLabel);
+            const duplicate = isAlreadyInList(items, item);
+            return (
+              <View key={item.localKey}>
+                <ScopeText variant="small">{item.text}</ScopeText>
+                {section ? (
+                  <ScopeText variant="caption" tone="subtle">
+                    {section}
+                  </ScopeText>
+                ) : null}
+                {duplicate ? (
+                  <ScopeText variant="caption" tone="subtle">
+                    Ya está en la lista.
+                  </ScopeText>
+                ) : null}
+                {full ? (
+                  <ScopeButton
+                    testID={`review-replace-omitted-${item.localKey}`}
+                    variant="ghost"
+                    label="Reemplazar uno…"
+                    accessibilityHint={`Elegí qué requisito sale para sumar: ${item.text}`}
+                    disabled={duplicate}
+                    onPress={() =>
+                      setReplacing(replacing === item.localKey ? null : item.localKey)
+                    }
+                  />
+                ) : (
+                  <ScopeButton
+                    testID={`review-use-omitted-${item.localKey}`}
+                    variant="ghost"
+                    label="Usar este requisito"
+                    accessibilityHint={`Agrega al final: ${item.text}`}
+                    disabled={duplicate}
+                    onPress={() => onUseOmitted(item.localKey)}
+                  />
+                )}
+                {full && replacing === item.localKey
+                  ? items.map((target, index) => (
+                      <ScopeButton
+                        key={target.localKey}
+                        testID={`review-replace-target-${target.localKey}`}
+                        variant="ghost"
+                        label={`Reemplazar ${index + 1}. ${target.text || '(sin texto)'}`}
+                        onPress={() => {
+                          onReplaceWithOmitted(item.localKey, target.localKey);
+                          setReplacing(null);
+                        }}
+                      />
+                    ))
+                  : null}
+              </View>
+            );
+          })}
+        </ScopeCard>
+      ) : null}
+
+      {nonFormativeConditions.length > 0 ? (
+        <ScopeCard tone="muted" style={styles.summaryCard}>
+          <ScopeText variant="small" testID="review-non-formative-title">
+            Condiciones del aviso que no se analizan con tu formación
+          </ScopeText>
+          <ScopeText variant="caption" tone="subtle">
+            Siguen siendo parte de la oportunidad, pero ninguna credencial las
+            acredita. Si querés analizar alguna igual, agregala como requisito.
+          </ScopeText>
+          {nonFormativeConditions.map((condition, index) => (
+            <ScopeText key={`${index}-${condition}`} variant="small">
+              • {condition}
+            </ScopeText>
+          ))}
+        </ScopeCard>
+      ) : null}
 
       <ScopeButton
         testID="review-confirm"

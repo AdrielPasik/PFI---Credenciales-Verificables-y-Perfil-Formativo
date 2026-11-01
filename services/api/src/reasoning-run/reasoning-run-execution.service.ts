@@ -34,7 +34,7 @@
  * rationale ni la explicación final.
  */
 
-import { Inject, Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ReasoningRunStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -44,6 +44,7 @@ import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-defin
 import { applyDeterministicReasoningPolicy, DeterministicPolicyInputError } from './deterministic-epistemic-policy';
 import { PRODUCT_DETERMINISTIC_POLICY_VERSION } from './product-stage-identity';
 import { ReasoningRunArtifactSlotService } from './reasoning-run-artifact-slot.service';
+import { logReasoningRunTiming } from './reasoning-run-diagnostics';
 import { ReasoningRunContextualReasoningService } from './reasoning-run-contextual-reasoning.service';
 import { ReasoningRunEvidenceUnitsService } from './reasoning-run-evidence-units.service';
 import { ReasoningRunObjectiveAnalysisService } from './reasoning-run-objective-analysis.service';
@@ -111,6 +112,7 @@ export interface ReasoningRunExecutionOutcome {
 
 @Injectable()
 export class ReasoningRunExecutionService {
+  private readonly logger = new Logger(ReasoningRunExecutionService.name);
   private readonly table: ReasoningRunTable;
 
   public constructor(
@@ -297,6 +299,16 @@ export class ReasoningRunExecutionService {
   ): Promise<ReasoningRunExecutionOutcome> {
     const reasoningRunId = claim.reasoningRunId;
     let providerLogicalCalls = 0;
+    // Duracion por etapa (P0 de latencia). Efecto lateral puro: no participa de
+    // ninguna decision del run y una etapa que no corrio queda en `null`.
+    const startedAt = Date.now();
+    const timing = {
+      objectiveAnalysisMs: null as number | null,
+      evidenceUnitsMs: null as number | null,
+      contextualReasoningMs: null as number | null
+    };
+    let outcome: 'completed' | 'failed' = 'failed';
+    let requirementCount: number | null = null;
 
     try {
       // --- etapas semánticas, en el orden de dependencia congelado ----------
@@ -305,26 +317,32 @@ export class ReasoningRunExecutionService {
       // porque es el de los slots y el de las etapas 1 y 2 del contrato. Ninguna
       // se re-compra si su artifact fill-once ya existe.
       await options.beforeProviderStage?.('OBJECTIVE_ANALYSIS');
+      let stageStartedAt = Date.now();
       const analysis = await this.objectiveAnalysis.ensureObjectiveAnalysisForRun(
         reasoningRunId,
         claim
       );
+      timing.objectiveAnalysisMs = Date.now() - stageStartedAt;
       if (analysis.providerCalled) providerLogicalCalls += 1;
 
       await options.beforeProviderStage?.('EVIDENCE_UNITS');
+      stageStartedAt = Date.now();
       const evidence = await this.evidenceUnits.ensureEvidenceUnitsForRun(
         reasoningRunId,
         claim
       );
+      timing.evidenceUnitsMs = Date.now() - stageStartedAt;
       if (evidence.providerCalled) providerLogicalCalls += 1;
 
       // FAIL_FAST intacto: si un Requirement corta, F3.5 lanza y acá NO se
       // construye un agregado parcial.
       await options.beforeProviderStage?.('CONTEXTUAL_REASONING');
+      stageStartedAt = Date.now();
       const contextual = await this.contextual.generateContextualReasoningForRun(
         reasoningRunId,
         claim
       );
+      timing.contextualReasoningMs = Date.now() - stageStartedAt;
       providerLogicalCalls += contextual.providerCallsMade;
 
       // --- policy determinista: CERO llamadas ------------------------------
@@ -366,16 +384,27 @@ export class ReasoningRunExecutionService {
       }
 
       const result = await this.finalize(claim, candidate);
+      outcome = 'completed';
+      requirementCount = result.requirementResults.length;
       return {
         reasoningRunId,
         result,
         executed: true,
         providerLogicalCalls,
-        requirementCount: result.requirementResults.length
+        requirementCount
       };
     } catch (error: unknown) {
       await this.resolveLifecycleFor(claim, error);
       throw error;
+    } finally {
+      logReasoningRunTiming(this.logger, {
+        reasoningRunReference: reasoningRunId,
+        outcome,
+        requirementCount,
+        providerLogicalCalls,
+        ...timing,
+        totalMs: Date.now() - startedAt
+      });
     }
   }
 

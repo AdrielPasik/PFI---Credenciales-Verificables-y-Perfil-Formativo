@@ -149,7 +149,7 @@ def build_objective_understanding_prompt(
     objective_type: str,
     title: str,
     raw_objective_text: str,
-    max_proposed_requirements: int | None = None,
+    extraction_policy: bool = False,
 ) -> str:
     """Arma el prompt exactamente como lo armaba el candidato evaluado.
 
@@ -160,10 +160,11 @@ def build_objective_understanding_prompt(
     propio prompt. La autoridad sobre que Requirements existen es unicamente
     `raw_objective_text`.
 
-    `max_proposed_requirements` es ADITIVO y opcional. Sin el --el camino del
-    holder-- el prompt sale caracter por caracter como salia antes: el cuerpo
-    congelado no se toca y el sobre tampoco. Con el, se agrega al FINAL un bloque
-    de seleccion, ya leida la fuente, donde el modelo puede elegir con criterio.
+    `extraction_policy` es ADITIVO. Sin el, el prompt sale caracter por caracter
+    como lo evaluo P2.1. Con el, se agrega AL FINAL --ya leida la fuente-- la
+    politica de extraccion de los consumidores productivos. El cuerpo congelado y
+    el sobre no se tocan. El tope de cantidad NO va en este prompt: lo aplica una
+    etapa de seleccion separada (`selection.py`).
     """
     prompt = (
         INSTRUCTIONS
@@ -174,56 +175,101 @@ def build_objective_understanding_prompt(
         + raw_objective_text
         + "\n--- fin del texto crudo ---\n"
     )
-    if max_proposed_requirements is None:
+    if not extraction_policy:
         return prompt
-    return prompt + build_selection_budget_block(max_proposed_requirements)
+    return prompt + EXTRACTION_POLICY_BLOCK
 
 
 # ---------------------------------------------------------------------------
-# Presupuesto de seleccion — additive, y SOLO para llamantes acotados
+# Politica de extraccion de los consumidores productivos
 # ---------------------------------------------------------------------------
 
-#: Bloque de seleccion. Vive FUERA de `INSTRUCTIONS` a proposito: el cuerpo
-#: congelado sigue siendo byte-identico a OU_A2 y su hash no se mueve. Un
-#: llamante sin presupuesto (el holder) arma exactamente el mismo prompt que
-#: antes, caracter por caracter.
+#: Version de la politica. Viaja en la respuesta y NestJS la verifica, para que
+#: una propuesta producida con otra politica no se acepte en silencio.
+EXTRACTION_POLICY_VERSION = "product_requirement_extraction_v1"
+
+#: Bloque ADITIVO, fuera de `INSTRUCTIONS`: el cuerpo congelado sigue siendo
+#: byte-identico a OU_A2 y su hash no se mueve.
 #:
-#: POR QUE VA EN EL PROMPT Y NO EN UN `slice(0, N)`. Recortar despues de un orden
-#: arbitrario deja que el primer parrafo de responsabilidades desplace al titulo
-#: requerido, al idioma y al excluyente. Lo unico que puede elegir QUE 12 son
-#: materialmente relevantes es la etapa que lee la fuente.
-SELECTION_BUDGET_TEMPLATE = """
+#: POR QUE HACE FALTA. OU_A2 fue evaluado para extraer TODO criterio presentado,
+#: y dice literalmente "No filtres por lo que sea o no demostrable ... soft skills
+#: son todos Requirements validos". Para un analisis frente a evidencia formativa
+#: eso produce actitudes ("buena predisposicion") y tareas ("participar en
+#: reuniones") como si fueran requisitos. Este bloque PRECISA esa regla para los
+#: casos genericos -- no la borra --, y lo dice explicitamente para que el modelo
+#: no reciba dos ordenes contradictorias sin precedencia.
+#:
+#: SIN CUPO. Este bloque no menciona ninguna cantidad. Un cupo dentro de la
+#: extraccion hace que el modelo descarte en silencio; la seleccion por relevancia
+#: es otra etapa, y lo que deja afuera se le muestra al titular.
+EXTRACTION_POLICY_BLOCK = """
 
-=== PRESUPUESTO DE SELECCION ===
-Este consumidor solo puede trabajar con un maximo de {maximum} Candidate Requirements.
-Emiti como mucho {maximum}. Emitir mas invalida la respuesta entera: no se recorta, se descarta.
+=== POLITICA DE EXTRACCION DE REQUISITOS ===
+Cada Requirement se va a contrastar despues con la evidencia formativa de una persona.
+Esta politica se aplica DESPUES de las reglas de arriba y las precisa; no las reemplaza.
 
-Las reglas de granularidad, qualifiers, negacion, citas y orden de arriba NO cambian.
-Lo unico que cambia es que tenes que ELEGIR, y elegir tiene reglas:
+QUE SE EMITE
+Una condicion o capacidad que la oportunidad pide a la persona y que puede contrastarse con
+evidencia: un conocimiento tecnico, una formacion o acreditacion, una experiencia profesional,
+un idioma con su nivel, o una capacidad profesional concreta con objeto o dominio.
+No hace falta que tenga numeros, porcentajes ni fechas: "redaccion de informes tecnicos" o
+"diseno de APIs REST" son evaluables.
 
-1. PRIORIZA las secciones que el Objective presenta como criterios: requisitos, requerimientos,
-   "se requiere", conocimientos, calificaciones, perfil buscado, excluyentes, deseables.
-2. Una seccion de responsabilidades o tareas NO se convierte en un Requirement por cada oracion.
-   De ahi solo sale un claim cuando la oracion expresa una capacidad materialmente exigida a la
-   persona, y no la descripcion del puesto o del entorno.
-3. NUNCA descartes, si estan en la fuente: un requisito marcado como excluyente u obligatorio;
-   un titulo, carrera o certificacion requerida; una exigencia explicita de anos de experiencia;
-   un requisito de idioma cuando la fuente lo pide de verdad; las tecnologias nombradas.
-4. Cuando la fuente presenta varios elementos como UN criterio, quedan en UN claim con sus
-   elementos nombrados. "MariaDB, MongoDB y KeyDB" es un requisito de bases de datos, no tres.
-   "Kafka y RabbitMQ" es un requisito de mensajeria. "Docker y Kubernetes" puede ser uno solo si
-   la fuente los presenta juntos y ningun qualifier los distingue.
-5. NO fusiones condiciones independientes para que entren en el presupuesto. Un titulo requerido,
-   un nivel de ingles y experiencia en Unix son TRES claims distintos y no pueden empaquetarse en
-   uno. Un "excluyente" queda pegado al requisito exacto que califica, nunca a un cajon.
-6. Si tenes que dejar algo afuera, dejalo afuera del todo: no lo escondas dentro de otro claim.
-7. No ordenes por importancia, no puntues, no midas ajuste. El orden sigue siendo el de la fuente.
+LA RELEVANCIA NO DEPENDE DE LA EVIDENCIA
+Emiti un requisito de la oportunidad aunque nadie sepa si la persona lo cumple: "Experiencia con
+Python", "Conocimiento de SQL", "Ingles avanzado" o "Titulo universitario en informatica" se
+emiten siempre que la fuente los pida. Vos no ves el perfil de nadie; si la persona tiene o no
+respaldo se decide despues, no aca.
 
-El objetivo son hasta {maximum} unidades de evaluacion utiles y coherentes, no {maximum} cajones.
-=== FIN DEL PRESUPUESTO DE SELECCION ===
+QUE NO SE EMITE, aunque aparezca en la fuente
+- actitudes o rasgos personales sin objeto ni criterio: "buena actitud", "buena predisposicion",
+  "proactividad", "compromiso", "responsabilidad", "ganas de aprender";
+- conductas deseables genericas que no dicen sobre que, con quien ni con que resultado:
+  "trabajo en equipo", "colaborar con el equipo", "orientacion a resultados";
+- actividades rutinarias u operativas sin una capacidad exigida detras: "participar en
+  reuniones", "revisar documentos", "realizar tareas asignadas", "reportar avances";
+- contexto del aviso: la empresa, el equipo, lo que la oportunidad ofrece (beneficios,
+  modalidad ofrecida), encabezados sin contenido evaluable.
+Para ESTOS casos, esta politica prevalece sobre "No filtres por lo que sea o no demostrable".
+Esa regla sigue vigente para todo lo demas: titulos, anos, idiomas y certificaciones se emiten,
+y una soft skill CON objeto o criterio ("comunicar decisiones tecnicas a clientes en ingles",
+"liderar equipos de 5 o mas personas", "negociar con proveedores") tambien.
+
+CONDICIONES NO FORMATIVAS: visibles, pero no como Requirement
+Una condicion LEGITIMA que la oportunidad exige pero que ninguna formacion ni experiencia
+acredita -disponibilidad horaria o de turnos, lugar de trabajo o residencia, movilidad, edad,
+documentacion a presentar- existe y no se borra, pero no se emite como Requirement: no se
+contrasta con evidencia formativa y ocuparia un lugar del analisis. Va a unresolvedPassages con
+su cita literal y un motivo que empiece exactamente con "Condicion no formativa:". Ejemplo:
+{"quote": "Disponibilidad para turnos rotativos", "reason": "Condicion no formativa: disponibilidad horaria."}
+Esto precisa, solo para estas condiciones, la mencion de "disponibilidad" de la regla de arriba.
+Una certificacion, una matricula o una licencia habilitante NO son condiciones no formativas:
+son acreditaciones y se emiten como Requirement.
+
+NO CONVIERTAS UNA FRASE EN UN REQUISITO MAS FUERTE
+Una tarea o una actitud nunca se transforma en una capacidad que la fuente no pide:
+"Participar en reuniones de equipo" NO es "capacidad de liderazgo y coordinacion".
+"Buena predisposicion" NO es "competencias avanzadas de trabajo colaborativo".
+No agregues anos, niveles, certificaciones ni metricas que el texto no dice. Una
+responsabilidad solo genera un Requirement cuando expresa algo que la persona tiene que poder
+hacer (regla de arriba), y entonces se redacta con el alcance exacto de la fuente.
+Una seccion de responsabilidades o tareas NO se convierte en un Requirement por cada oracion.
+
+AGRUPACION Y QUALIFIERS
+Cuando la fuente presenta varios elementos como UN criterio, quedan en UN claim con sus elementos
+nombrados: "MariaDB, MongoDB y KeyDB" es un requisito de bases de datos, no tres; "Kafka y
+RabbitMQ" es un requisito de mensajeria. NO fusiones condiciones independientes: un titulo
+requerido, un nivel de ingles y experiencia en Unix son TRES claims distintos y no pueden
+empaquetarse en uno. Un "excluyente" queda pegado al requisito exacto que califica.
+
+UN REQUISITO, UNA VEZ
+Dos frases que piden la misma condicion son UN Requirement aunque esten redactadas distinto o
+aparezcan en secciones distintas: la segunda va como cita auxiliar, no como otro candidato. Si
+difieren materialmente en fuerza, siguen siendo dos (regla DUPLICADOS de arriba).
+
+NO RECORTES
+Emiti todos los Requirements que cumplan esta politica, en el orden de la fuente. No te limites a
+una cantidad: si hacen falta, una etapa posterior elige los mas relevantes y le muestra a la
+persona los que quedaron afuera. Si no hay ninguno, emiti una lista vacia.
+=== FIN DE LA POLITICA DE EXTRACCION ===
 """
-
-
-def build_selection_budget_block(maximum: int) -> str:
-    """Bloque aditivo que acota cuantos candidatos puede emitir la etapa."""
-    return SELECTION_BUDGET_TEMPLATE.format(maximum=maximum)

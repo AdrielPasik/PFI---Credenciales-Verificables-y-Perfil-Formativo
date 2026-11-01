@@ -17,8 +17,10 @@
  *                                                      seleccion pudo no llegar
  *   el artefacto se CUENTA                          -> decirlo no es haberlo hecho
  *
- * El holder no manda presupuesto y su camino queda intacto: es parte del contrato
- * y se prueba explicitamente.
+ * Con presupuesto, el AI service extrae sin cupo y, si sobran, elige en una
+ * etapa de seleccion; lo que queda afuera viaja en `omittedCandidates` y se
+ * verifica igual que lo elegido. Sin presupuesto (la etapa evaluada en P2.1) no
+ * hay politica, ni seleccion, ni omitidos.
  */
 
 import assert from 'node:assert/strict';
@@ -26,7 +28,9 @@ import test from 'node:test';
 
 import { AiServiceClient } from '../ai/ai-service.client';
 import {
+  OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION,
   OBJECTIVE_REQUIREMENT_PROPOSAL_RESPONSE_SCHEMA_VERSION,
+  OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION,
   OBJECTIVE_UNDERSTANDING_STAGE_IDENTITY
 } from './objective-requirement-proposal.contract';
 import { ObjectiveProposalArtifactInvariantError } from './objective-requirement-proposal.errors';
@@ -49,11 +53,11 @@ function reference() {
   };
 }
 
-function candidate(order: number) {
+function candidate(order: number, number: number = order) {
   return {
-    candidateId: `cand_${String(order).padStart(2, '0')}`,
+    candidateId: `cand_${String(number).padStart(2, '0')}`,
     order,
-    proposedRequirementText: `Requisito ${order}`,
+    proposedRequirementText: `Requisito ${number}`,
     primarySourceReference: reference(),
     primarySourceGrounding: 'UNIQUE',
     auxiliarySourceReferences: [],
@@ -65,7 +69,16 @@ function candidate(order: number) {
   };
 }
 
-function response(count: number, executionOverrides: Record<string, unknown> = {}) {
+/**
+ * Respuesta ACOTADA, como la produce el AI service cuando recibe un tope:
+ * `count` elegidos y `omitted` que la seleccion dejo afuera.
+ */
+function response(
+  count: number,
+  executionOverrides: Record<string, unknown> = {},
+  omitted = 0,
+  artifactOverrides: Record<string, unknown> = {}
+) {
   return {
     schemaVersion: OBJECTIVE_REQUIREMENT_PROPOSAL_RESPONSE_SCHEMA_VERSION,
     execution: {
@@ -77,6 +90,15 @@ function response(count: number, executionOverrides: Record<string, unknown> = {
       provider: 'openai',
       reasoningEffort: 'medium',
       requestedMaxProposedRequirements: PUBLIC_MAXIMUM,
+      extractionPolicyVersion: OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION,
+      selectionPolicyVersion: OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION,
+      selection: {
+        applied: omitted > 0,
+        extractedCandidateCount: count + omitted,
+        selectedCandidateCount: count,
+        omittedCandidateCount: omitted,
+        providerLogicalCalls: omitted > 0 ? 2 : 1
+      },
       ...executionOverrides
     },
     artifact: {
@@ -85,9 +107,25 @@ function response(count: number, executionOverrides: Record<string, unknown> = {
       offsetUnit: 'UNICODE_CODE_POINT',
       sourceCharacterCount: Array.from(RAW).length,
       candidates: Array.from({ length: count }, (_unused, index) => candidate(index + 1)),
-      unresolvedPassages: []
+      omittedCandidates: Array.from({ length: omitted }, (_unused, index) =>
+        candidate(index + 1, count + index + 1)
+      ),
+      unresolvedPassages: [],
+      ...artifactOverrides
     }
   };
+}
+
+/** Respuesta SIN tope: la etapa evaluada en P2.1, sin politica ni seleccion. */
+function unbounded(count: number) {
+  const base = response(count, {
+    requestedMaxProposedRequirements: undefined,
+    extractionPolicyVersion: undefined,
+    selectionPolicyVersion: undefined,
+    selection: undefined
+  });
+  const { omittedCandidates: _omitted, ...artifact } = base.artifact;
+  return { ...base, artifact };
 }
 
 function expectInvariant(input: unknown, fragment: string, maxCandidates?: number): void {
@@ -138,10 +176,86 @@ test('un tope distinto del pedido tampoco sirve', () => {
   );
 });
 
-test('sin presupuesto no hay tope: el camino del holder queda intacto', () => {
-  const unbounded = response(34, { requestedMaxProposedRequirements: undefined });
-  const verified = verifyObjectiveProposalResponse(unbounded, RAW);
+test('sin presupuesto no hay tope ni omitidos: la etapa P2.1 queda intacta', () => {
+  const verified = verifyObjectiveProposalResponse(unbounded(34), RAW);
   assert.equal(verified.candidates.length, 34);
+  assert.deepEqual(verified.omittedCandidates, []);
+});
+
+test('sin presupuesto, una lista de omitidos no tiene de donde salir', () => {
+  const forged = { ...unbounded(3) };
+  forged.artifact = { ...forged.artifact, omittedCandidates: [] } as typeof forged.artifact;
+  expectInvariant(forged, 'omitted_candidates_without_requested_maximum');
+});
+
+// ---------------------------------------------------------------------------
+// Politicas y seleccion
+// ---------------------------------------------------------------------------
+
+test('una propuesta sin la politica de extraccion vigente se rechaza', () => {
+  expectInvariant(
+    response(3, { extractionPolicyVersion: undefined }),
+    'extraction_policy_mismatch',
+    PUBLIC_MAXIMUM
+  );
+  expectInvariant(
+    response(3, { extractionPolicyVersion: 'product_requirement_extraction_v0' }),
+    'extraction_policy_mismatch',
+    PUBLIC_MAXIMUM
+  );
+});
+
+test('una propuesta con otra politica de seleccion se rechaza', () => {
+  expectInvariant(
+    response(3, { selectionPolicyVersion: 'otra' }),
+    'selection_policy_mismatch',
+    PUBLIC_MAXIMUM
+  );
+});
+
+test('con seleccion, los omitidos se verifican y se devuelven', () => {
+  const verified = verifyObjectiveProposalResponse(response(PUBLIC_MAXIMUM, {}, 22), RAW, {
+    maxCandidates: PUBLIC_MAXIMUM
+  });
+  assert.equal(verified.candidates.length, PUBLIC_MAXIMUM);
+  assert.equal(verified.omittedCandidates.length, 22);
+  assert.equal(verified.omittedCandidates[0].candidateId, 'cand_13');
+  assert.equal(verified.omittedCandidates[0].order, 1);
+});
+
+test('un omitido con la cita corrida invalida la propuesta entera', () => {
+  const tampered = response(PUBLIC_MAXIMUM, {}, 2);
+  const omitted = tampered.artifact.omittedCandidates[1];
+  omitted.primarySourceReference = { ...omitted.primarySourceReference, charStart: 1 };
+  expectInvariant(tampered, 'primary_reference_excerpt_does_not_match_source', PUBLIC_MAXIMUM);
+});
+
+test('un id omitido no puede repetir uno elegido', () => {
+  const tampered = response(PUBLIC_MAXIMUM, {}, 1);
+  tampered.artifact.omittedCandidates[0].candidateId = 'cand_01';
+  expectInvariant(tampered, 'candidate_id_duplicated', PUBLIC_MAXIMUM);
+});
+
+test('los conteos declarados tienen que cerrar con lo que llego', () => {
+  const declared = response(PUBLIC_MAXIMUM, {}, 3);
+  expectInvariant(
+    { ...declared, execution: { ...declared.execution, selection: { ...declared.execution.selection, omittedCandidateCount: 2 } } },
+    'selection_counts_mismatch',
+    PUBLIC_MAXIMUM
+  );
+  expectInvariant(
+    { ...declared, execution: { ...declared.execution, selection: { ...declared.execution.selection, applied: false } } },
+    'selection_applied_inconsistent_with_omitted',
+    PUBLIC_MAXIMUM
+  );
+});
+
+test('con tope, la lista de omitidos es obligatoria aunque este vacia', () => {
+  expectInvariant(
+    response(3, {}, 0, { omittedCandidates: undefined }),
+    'omitted_candidates_not_a_list',
+    PUBLIC_MAXIMUM
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -176,14 +290,13 @@ const INPUT = {
   rawObjectiveText: RAW
 };
 
-test('el holder no manda presupuesto', async () => {
-  const { service, client } = serviceWith(
-    response(20, { requestedMaxProposedRequirements: undefined })
-  );
+test('sin presupuesto el servicio no lo inventa', async () => {
+  const { service, client } = serviceWith(unbounded(20));
   const proposal = await service.propose(INPUT);
 
   assert.equal(client.bodies[0].maxProposedRequirements, null);
   assert.equal(proposal.candidates.length, 20);
+  assert.deepEqual(proposal.omittedCandidates, []);
 });
 
 test('el verificador publico manda su tope y lo obtiene', async () => {
@@ -193,6 +306,21 @@ test('el verificador publico manda su tope y lo obtiene', async () => {
   assert.equal(client.bodies[0].maxProposedRequirements, PUBLIC_MAXIMUM);
   assert.ok(proposal.candidates.length >= 1);
   assert.ok(proposal.candidates.length <= PUBLIC_MAXIMUM);
+});
+
+test('los omitidos llegan al DTO por allowlist, sin campos de ejecucion', async () => {
+  const { service } = serviceWith(response(PUBLIC_MAXIMUM, {}, 5));
+  const proposal = await service.propose(INPUT, PUBLIC_MAXIMUM);
+
+  assert.equal(proposal.omittedCandidates.length, 5);
+  assert.deepEqual(
+    Object.keys(proposal.omittedCandidates[0]).sort(),
+    Object.keys(proposal.candidates[0]).sort()
+  );
+  const serialized = JSON.stringify(proposal);
+  for (const internal of ['selectionPolicyVersion', 'extractionPolicyVersion', 'providerLogicalCalls']) {
+    assert.ok(!serialized.includes(internal), `no debe exponerse ${internal}`);
+  }
 });
 
 test('una propuesta excedida sale por el camino de salida inutilizable', async () => {
@@ -219,7 +347,7 @@ test('no se acepta parcialmente: ningun candidato sobrevive al rechazo', async (
 // ---------------------------------------------------------------------------
 
 test('la propuesta acotada no trae lenguaje de puntaje ni de ajuste', async () => {
-  const { service } = serviceWith(response(PUBLIC_MAXIMUM));
+  const { service } = serviceWith(response(PUBLIC_MAXIMUM, {}, 4));
   const proposal = await service.propose(INPUT, PUBLIC_MAXIMUM);
   const serialized = JSON.stringify(proposal).toLowerCase();
 

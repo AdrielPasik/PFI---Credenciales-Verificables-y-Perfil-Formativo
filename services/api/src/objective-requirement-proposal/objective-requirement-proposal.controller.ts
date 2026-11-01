@@ -34,6 +34,7 @@ import {
 } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
+import { MAX_OBJECTIVE_REQUIREMENTS } from '../objectives/objective-limits';
 import {
   type ObjectiveRequirementProposalResponseDto
 } from './dto/objective-requirement-proposal.dto';
@@ -64,7 +65,11 @@ export class ObjectiveRequirementProposalController {
     // comprobó. Quien lo comprueba es el validador.
     try {
       const input = mapObjectiveRequirementProposalRequest(body);
-      return await this.proposalService.propose(input);
+      // El titular tambien tiene presupuesto de seleccion. Sin el, un aviso
+      // largo producia decenas de Requirements -- actividades y actitudes
+      // incluidas -- y despues un razonamiento de una llamada por Requirement.
+      // La SELECCION la hace la etapa que lee la fuente; aca no se recorta.
+      return await this.proposalService.propose(input, MAX_OBJECTIVE_REQUIREMENTS);
     } catch (error: unknown) {
       throw this.toHttpException(error);
     }

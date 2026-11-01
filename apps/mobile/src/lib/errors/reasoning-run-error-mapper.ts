@@ -67,6 +67,13 @@ export function mapReasoningRunActionError(
             'Este análisis ya no puede continuar. Podés iniciar un análisis nuevo cuando quieras.',
           retryable: false
         };
+      // Único 422 de esta API: un objetivo guardado antes del tope de 15.
+      case 422:
+        return {
+          message:
+            'Este objetivo tiene más de 15 requisitos. Creá una nueva versión con los 15 más relevantes para analizarlo.',
+          retryable: false
+        };
       case 503:
         return {
           message:

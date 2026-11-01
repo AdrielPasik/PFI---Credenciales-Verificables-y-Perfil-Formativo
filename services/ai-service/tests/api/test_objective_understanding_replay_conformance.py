@@ -165,6 +165,13 @@ def _project_product(candidate: dict) -> dict:
 
 RUNS = _load_runs()
 
+#: Los textos crudos del pool son avisos REALES de terceros, capturados de fuentes
+#: publicas: el repositorio solo versiona `README.md` y `manifest.jsonl`, y los
+#: directorios por dominio quedan fuera del arbol (ver el README del pool). En un
+#: checkout limpio no existen, y el replay no tiene contra que reconstruir.
+#: Si el pool SI esta, un Objective faltante sigue siendo un fallo (abajo).
+POOL_TEXTS_AVAILABLE = any(path.parent != POOL_ROOT for path in POOL_ROOT.rglob("*.md"))
+
 pytestmark = pytest.mark.skipif(
     not RUNS,
     reason="artefactos congelados de P2.1 no disponibles en este arbol",
@@ -178,6 +185,13 @@ def test_replay_subset_covers_the_required_phenomena() -> None:
         assert objective_id in replayed, f"falta el fenomeno: {phenomenon}"
 
 
+@pytest.mark.skipif(
+    not POOL_TEXTS_AVAILABLE,
+    reason=(
+        "textos crudos del raw_pool ausentes: son avisos de terceros que no se "
+        "versionan; el replay corre en un arbol que los tenga localmente"
+    ),
+)
 @pytest.mark.parametrize(
     "partition,run",
     RUNS,

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "requirement_selection_gold_v1",
+  "authorship": "Referencia redactada por Claude (Opus) a partir de la politica acordada; PENDIENTE de adjudicacion humana por el autor del PFI antes de usarse como gold definitivo.",
+  "postingId": "RSE_05",
+  "file": "postings/RSE_05_beca_doctoral.md",
+  "title": "Beca doctoral IA y Salud",
+  "objectiveType": "SCHOLARSHIP",
+  "purpose": "Beca: criterios academicos explicitos, una condicion de elegibilidad no formativa (edad) y documentacion a presentar.",
+  "items": [
+    {
+      "id": "ctx",
+      "quote": "El grupo, con sede en la Facultad de Ingeniería, ofrece una beca doctoral de 5 años.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "titulo",
+      "quote": "Título de grado en Ingeniería, Ciencias de la Computación, Física, Matemática o Bioingeniería.",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "REQUIRED",
+      "group": "titulo",
+      "reason": ""
+    },
+    {
+      "id": "promedio",
+      "quote": "Promedio de la carrera igual o superior a 8 (ocho), incluidos aplazos.",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "REQUIRED",
+      "group": "promedio",
+      "reason": ""
+    },
+    {
+      "id": "edad",
+      "quote": "Edad máxima de 32 años al cierre de la convocatoria.",
+      "label": "DISCARD",
+      "category": "NON_FORMATIVE_CONDITION",
+      "priority": null,
+      "group": null,
+      "reason": "Elegibilidad legitima pero no formativa: no se contrasta con evidencia."
+    },
+    {
+      "id": "ingles",
+      "quote": "Inglés con nivel B2 o superior, acreditado mediante certificado.",
+      "label": "KEEP",
+      "category": "LANGUAGE_LEVEL",
+      "priority": "REQUIRED",
+      "group": "ingles",
+      "reason": ""
+    },
+    {
+      "id": "ml",
+      "quote": "Conocimientos de aprendizaje automático (cursos, proyectos o trabajo final).",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "ml",
+      "reason": ""
+    },
+    {
+      "id": "python",
+      "quote": "Programación en Python.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "python",
+      "reason": ""
+    },
+    {
+      "id": "publicaciones",
+      "quote": "Publicaciones o presentaciones en congresos.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "publicaciones",
+      "reason": ""
+    },
+    {
+      "id": "investigacion",
+      "quote": "Experiencia previa en proyectos de investigación.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "investigacion",
+      "reason": ""
+    },
+    {
+      "id": "imagenes",
+      "quote": "Conocimientos de procesamiento de imágenes médicas.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "imagenes",
+      "reason": ""
+    },
+    {
+      "id": "motivacion",
+      "quote": "Motivación por la investigación.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "documentacion",
+      "quote": "CV, certificado analítico y dos cartas de recomendación.",
+      "label": "DISCARD",
+      "category": "NON_FORMATIVE_CONDITION",
+      "priority": null,
+      "group": null,
+      "reason": "Documentacion de la postulacion: condicion legitima, no formativa."
+    }
+  ],
+  "forbiddenInflations": [
+    "liderazgo",
+    "competencias avanzadas",
+    "proactiv",
+    "excelente",
+    "solido",
+    "experto",
+    "certificad"
+  ]
+}

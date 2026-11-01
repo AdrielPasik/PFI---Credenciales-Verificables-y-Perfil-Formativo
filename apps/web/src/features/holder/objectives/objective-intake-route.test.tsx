@@ -50,8 +50,17 @@ function candidate(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function proposalWith(candidates: ReturnType<typeof candidate>[], unresolved = 0) {
-  return { candidates, unresolvedPassageCount: unresolved };
+function proposalWith(
+  candidates: ReturnType<typeof candidate>[],
+  unresolved = 0,
+  omittedCandidates: ReturnType<typeof candidate>[] = []
+) {
+  return {
+    candidates,
+    omittedCandidates,
+    nonFormativeConditions: [] as string[],
+    unresolvedPassageCount: unresolved
+  };
 }
 
 beforeEach(() => {
@@ -639,5 +648,70 @@ describe('confirmacion', () => {
     for (const call of mocks.requestAuthenticated.mock.calls) {
       expect(String(call[0])).not.toContain('reasoning');
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// P0: seleccion visible y sustitucion
+// ---------------------------------------------------------------------------
+
+describe('P0: requisitos que quedaron afuera', () => {
+  function numbered(count: number, offset = 0) {
+    return Array.from({ length: count }, (_unused, index) =>
+      candidate({
+        candidateId: `cand_${String(offset + index + 1).padStart(2, '0')}`,
+        proposedRequirementText: `Requisito ${offset + index + 1}`,
+        excerptRange: { start: (offset + index + 1) * 10, end: (offset + index + 1) * 10 + 5 }
+      })
+    );
+  }
+
+  it('con 15 elegidos, REEMPLAZA uno por un omitido en su lugar, sin pasar el tope', async () => {
+    mocks.propose.mockResolvedValue(proposalWith(numbered(15), 0, numbered(3, 15)));
+    await reachReview();
+
+    expect(screen.getByText(/identificó 18 requisitos y seleccionó los 15/)).toBeTruthy();
+    // Con la lista llena no hay "usar": hay "reemplazar", que no cambia la cantidad.
+    expect(screen.queryByRole('button', { name: 'Usar este requisito: Requisito 17' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Reemplazar un requisito por: Requisito 17' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Reemplazar 3. Requisito 3' }));
+
+    await screen.findByDisplayValue('Requisito 17');
+    // El que salio queda entre los omitidos, recuperable.
+    expect(
+      screen.getByRole('button', { name: 'Reemplazar un requisito por: Requisito 3' })
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar objetivo' }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
+    const body = mocks.create.mock.calls[0][1];
+    const texts = body.requirements.map((r: { requirementText: string }) => r.requirementText);
+    expect(texts).toHaveLength(15);
+    expect(texts[2]).toBe('Requisito 17');
+    expect(texts).not.toContain('Requisito 3');
+    expect(new Set(texts).size).toBe(15);
+    // Conserva la referencia al texto original.
+    expect(body.requirements[2].provenanceKind).toBe('DERIVED_FROM_SOURCE_TEXT');
+    expect(body.requirements[2].sourceQuote).toBe('- Experiencia con Python.');
+  });
+
+  it('las condiciones no formativas se muestran y no se envian como requisito', async () => {
+    mocks.propose.mockResolvedValue({
+      ...proposalWith([candidate()]),
+      nonFormativeConditions: ['Disponibilidad en el turno mañana.']
+    });
+    await reachReview();
+    expect(screen.getByText('Condiciones del aviso que no se analizan con tu formación')).toBeTruthy();
+    expect(screen.getByText('Disponibilidad en el turno mañana.')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar objetivo' }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
+    expect(mocks.create.mock.calls[0][1].requirements).toHaveLength(1);
+  });
+
+  it('sin seleccion no aparece ni el aviso ni la lista de omitidos', async () => {
+    await reachReview();
+    expect(screen.queryByText(/seleccionó los/)).toBeNull();
+    expect(screen.queryByText(/quedaron afuera/)).toBeNull();
   });
 });

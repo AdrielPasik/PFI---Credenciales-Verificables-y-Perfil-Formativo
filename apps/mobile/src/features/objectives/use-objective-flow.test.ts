@@ -38,6 +38,8 @@ const PROPOSAL: ObjectiveProposalVM = {
       isExactDuplicate: false
     }
   ],
+  nonFormativeConditions: [],
+  omittedCandidates: [],
   unresolvedPassageCount: 1
 };
 

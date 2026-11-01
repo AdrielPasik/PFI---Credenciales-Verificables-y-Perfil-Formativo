@@ -971,3 +971,60 @@ test('el perdedor de la carrera ve 409 y el ganador su resultado', async () => {
   assert.equal(error.getStatus(), HttpStatus.CONFLICT);
   assert.equal((error.getResponse() as any).code, 'EXECUTION_ALREADY_RUNNING');
 });
+
+// ---------------------------------------------------------------------------
+// P0: Objectives historicos con mas de 15 requisitos
+// ---------------------------------------------------------------------------
+
+const SIXTEEN = Array.from({ length: 16 }, (_unused, index) => `req_${String(index + 1).padStart(2, '0')}`);
+
+test('P0: crear sobre un Objective historico de mas de 15 da 422 accionable y no crea nada', async () => {
+  const freeze = fakeFreeze({
+    error: new ReasoningRunInputFreezeError('OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT', {
+      invariant: 'objective_requirement_count_exceeds_analysis_limit'
+    })
+  });
+  const { controller, execution } = controllerFor({ rows: [], freeze });
+
+  const body = await bodyOf(() => controller.create(OWNER, { objectiveId: 'obj-1' }));
+  assert.equal(body.statusCode, HttpStatus.UNPROCESSABLE_ENTITY);
+  assert.equal(body.code, 'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT');
+  assert.match(body.message, /nueva version/);
+  assert.equal(execution.calls.length, 0);
+});
+
+test('P0: un run pending congelado sobre mas de 15 no se ejecuta: CERO llamadas', async () => {
+  const { controller, execution } = controllerFor({
+    rows: [runRow({ status: 'pending', objectiveDefinitionSnapshot: snapshot(SIXTEEN) })]
+  });
+
+  const body = await bodyOf(() => controller.execute(OWNER, 'run-1'));
+  assert.equal(body.code, 'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT');
+  assert.equal(execution.calls.length, 0);
+});
+
+test('P0: un run COMPLETADO de mas de 15 se sigue leyendo y re-pidiendo intacto', async () => {
+  const row = completedRunRow({
+    objectiveDefinitionSnapshot: snapshot(SIXTEEN),
+    resultArtifact: resultArtifact(SIXTEEN),
+    objectiveAnalysisArtifact: analysisArtifact(SIXTEEN)
+  });
+  const { controller, execution } = controllerFor({ rows: [row] });
+
+  const read = await controller.get(OWNER, 'run-1');
+  assert.equal(read.status, 'completed');
+  const again = await controller.execute(OWNER, 'run-1');
+  assert.equal(again.status, 'completed');
+  // El orquestador devuelve lo persistido: el guard no se interpone.
+  assert.deepEqual(execution.calls, ['run-1']);
+});
+
+test('P0: un run pending de 15 requisitos se ejecuta normalmente', async () => {
+  const fifteen = SIXTEEN.slice(0, 15);
+  const { controller, execution } = controllerFor({
+    rows: [runRow({ status: 'pending', objectiveDefinitionSnapshot: snapshot(fifteen) })]
+  });
+
+  await controller.execute(OWNER, 'run-1');
+  assert.deepEqual(execution.calls, ['run-1']);
+});

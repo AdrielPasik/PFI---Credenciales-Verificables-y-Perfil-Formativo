@@ -164,6 +164,19 @@ function candidate(value: unknown, path: string): ObjectiveProposalCandidateVM {
   };
 }
 
+/**
+ * Prefijo con el que la politica de extraccion marca una condicion no formativa
+ * dentro de `unresolvedPassages`. Si el modelo no lo respeta, el fragmento igual
+ * se cuenta como no resuelto: nunca desaparece.
+ */
+const NON_FORMATIVE_REASON_PREFIX = 'condicion no formativa:';
+
+function isNonFormativeReason(reason: string): boolean {
+  // Sin distinguir mayusculas ni acentos, y sin transformar el texto.
+  const head = reason.trimStart().slice(0, NON_FORMATIVE_REASON_PREFIX.length);
+  return head.localeCompare(NON_FORMATIVE_REASON_PREFIX, 'es', { sensitivity: 'base' }) === 0;
+}
+
 export function adaptObjectiveProposal(payload: unknown): ObjectiveProposalVM {
   const raw = record(payload, 'proposal');
 
@@ -176,13 +189,35 @@ export function adaptObjectiveProposal(payload: unknown): ObjectiveProposalVM {
     invalid('proposal.humanConfirmationRequired', 'true', raw.humanConfirmationRequired);
   }
 
+  const passages = array(raw.unresolvedPassages, 'proposal.unresolvedPassages').map(
+    (value, index) => {
+      const path = `proposal.unresolvedPassages[${index}]`;
+      const passage = record(value, path);
+      return {
+        excerpt: verbatimString(passage.exactExcerpt, `${path}.exactExcerpt`),
+        // El motivo solo se usa para clasificar; nunca se muestra.
+        reason: typeof passage.reason === 'string' ? passage.reason : ''
+      };
+    }
+  );
+
   return {
     candidates: array(raw.candidates, 'proposal.candidates').map((value, index) =>
       candidate(value, `proposal.candidates[${index}]`)
     ),
-    unresolvedPassageCount: array(
-      raw.unresolvedPassages,
-      'proposal.unresolvedPassages'
+    // Opcional: una API anterior a la seleccion no lo manda, y eso equivale a
+    // "no hubo seleccion".
+    omittedCandidates:
+      raw.omittedCandidates === undefined
+        ? []
+        : array(raw.omittedCandidates, 'proposal.omittedCandidates').map((value, index) =>
+            candidate(value, `proposal.omittedCandidates[${index}]`)
+          ),
+    nonFormativeConditions: passages
+      .filter((passage) => isNonFormativeReason(passage.reason))
+      .map((passage) => passage.excerpt),
+    unresolvedPassageCount: passages.filter(
+      (passage) => !isNonFormativeReason(passage.reason)
     ).length
   };
 }
@@ -273,6 +308,8 @@ export function adaptObjectiveDetail(payload: unknown): ObjectiveDetailVM {
     sourceOriginalText: nullableVerbatimString(
       definition.sourceOriginalText,
       'objective.definition.sourceOriginalText'
-    )
+    ),
+    objectiveContext:
+      typeof definition.objectiveContext === 'string' ? definition.objectiveContext : ''
   };
 }

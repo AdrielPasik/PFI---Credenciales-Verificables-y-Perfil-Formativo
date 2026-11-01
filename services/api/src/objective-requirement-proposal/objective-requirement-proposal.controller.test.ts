@@ -16,6 +16,8 @@ import test from 'node:test';
 import { ObjectiveProposalTransportError } from '../ai/ai-service.types';
 import { ObjectiveRequirementProposalController } from './objective-requirement-proposal.controller';
 import {
+  OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION,
+  OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION,
   OBJECTIVE_UNDERSTANDING_STAGE_IDENTITY,
   OBJECTIVE_REQUIREMENT_PROPOSAL_RESPONSE_SCHEMA_VERSION
 } from './objective-requirement-proposal.contract';
@@ -38,7 +40,20 @@ function aiResponse(): unknown {
       requestedModel: 'modelo-secreto-de-despliegue',
       reasoningEffort: 'medium',
       promptBodySha256: 'abc123',
-      effectiveModelVerification: 'MATCH'
+      effectiveModelVerification: 'MATCH',
+      // El ai-service declara el presupuesto que acoto esta ejecucion y las
+      // politicas con que extrajo y eligio; NestJS lo verifica contra lo que pidio
+      // (15 para el titular).
+      requestedMaxProposedRequirements: 15,
+      extractionPolicyVersion: OBJECTIVE_REQUIREMENT_EXTRACTION_POLICY_VERSION,
+      selectionPolicyVersion: OBJECTIVE_REQUIREMENT_SELECTION_POLICY_VERSION,
+      selection: {
+        applied: false,
+        extractedCandidateCount: 1,
+        selectedCandidateCount: 1,
+        omittedCandidateCount: 0,
+        providerLogicalCalls: 1
+      }
     },
     artifact: {
       schemaVersion: OBJECTIVE_UNDERSTANDING_STAGE_IDENTITY.artifactSchemaVersion,
@@ -65,6 +80,7 @@ function aiResponse(): unknown {
           confirmableAsSourceDerived: true
         }
       ],
+      omittedCandidates: [],
       unresolvedPassages: []
     }
   };
@@ -310,11 +326,164 @@ test('el servicio no tiene por dónde escribir en la base', () => {
 
 test('cero candidatos es una respuesta exitosa', async () => {
   const { controller, ai } = build();
-  const vacio = aiResponse() as { artifact: Record<string, unknown> };
-  vacio.artifact.candidates = [];
-  ai.response = vacio;
+  ai.response = responseWithCandidates(0);
 
   const result = await controller.propose(body());
   assert.deepEqual(result.candidates, []);
+  assert.deepEqual(result.omittedCandidates, []);
   assert.equal(result.authority, 'PROPOSAL_ONLY');
+});
+
+// ---------------------------------------------------------------------------
+// P0: presupuesto de seleccion del titular (tope 15)
+// ---------------------------------------------------------------------------
+
+/**
+ * `count` elegidos y `omitted` que la seleccion del ai-service dejo afuera, con
+ * los conteos de `execution.selection` coherentes con ambas listas.
+ */
+function responseWithCandidates(count: number, omitted = 0): unknown {
+  const stubbed = aiResponse() as {
+    execution: Record<string, unknown>;
+    artifact: Record<string, unknown>;
+  };
+  const [template] = stubbed.artifact.candidates as Array<Record<string, unknown>>;
+  const numbered = (order: number, number: number) => ({
+    ...template,
+    candidateId: `cand_${String(number).padStart(2, '0')}`,
+    order,
+    proposedRequirementText: `Requisito ${number}`
+  });
+  stubbed.artifact.candidates = Array.from({ length: count }, (_unused, index) =>
+    numbered(index + 1, index + 1)
+  );
+  stubbed.artifact.omittedCandidates = Array.from({ length: omitted }, (_unused, index) =>
+    numbered(index + 1, count + index + 1)
+  );
+  stubbed.execution.selection = {
+    applied: omitted > 0,
+    extractedCandidateCount: count + omitted,
+    selectedCandidateCount: count,
+    omittedCandidateCount: omitted,
+    providerLogicalCalls: omitted > 0 ? 2 : 1
+  };
+  return stubbed;
+}
+
+test('P0: el titular pide la propuesta con un presupuesto de 15', async () => {
+  const { controller, ai } = build();
+  await controller.propose(body());
+
+  const sent = ai.calls[0] as { maxProposedRequirements: unknown };
+  assert.equal(sent.maxProposedRequirements, 15);
+  assert.equal(ai.calls.length, 1);
+});
+
+test('P0: 15 es un tope, no una meta -- una propuesta de 4 se acepta tal cual', async () => {
+  const { controller, ai } = build();
+  ai.response = responseWithCandidates(4);
+
+  const result = await controller.propose(body());
+  assert.equal(result.candidates.length, 4);
+});
+
+test('P0: exactamente 15 candidatos se aceptan', async () => {
+  const { controller, ai } = build();
+  ai.response = responseWithCandidates(15);
+
+  const result = await controller.propose(body());
+  assert.equal(result.candidates.length, 15);
+});
+
+test('P0: 50 extraidos -> 15 elegidos por seleccion y 35 visibles como omitidos', async () => {
+  const { controller, ai } = build();
+  ai.response = responseWithCandidates(15, 35);
+
+  const result = await controller.propose(body());
+  assert.equal(result.candidates.length, 15);
+  assert.equal(result.omittedCandidates.length, 35);
+  // Los omitidos tienen exactamente la forma de un candidato: el cliente puede
+  // usarlos para sustituir sin otro pedido.
+  assert.deepEqual(
+    Object.keys(result.omittedCandidates[0]).sort(),
+    Object.keys(result.candidates[0]).sort()
+  );
+  assert.equal(ai.calls.length, 1);
+});
+
+test('P0: si el ai-service igual devolviera 50 elegidos, NO se recortan -- falla cerrada', async () => {
+  const { controller, ai } = build();
+  ai.response = responseWithCandidates(50);
+
+  const payload = await expectRejection(
+    () => controller.propose(body()),
+    422,
+    'UNABLE_TO_PRODUCE_PROPOSAL'
+  );
+  // El cuerpo seguro no filtra el detalle interno ni ningun candidato.
+  assert.equal(JSON.stringify(payload).includes('Requisito'), false);
+  assert.equal(ai.calls.length, 1);
+});
+
+test('P0: el DTO no expone el presupuesto ni las politicas declaradas por el ai-service', async () => {
+  const { controller, ai } = build();
+  ai.response = responseWithCandidates(15, 3);
+  const serialized = JSON.stringify(await controller.propose(body()));
+  for (const internal of [
+    'requestedMaxProposedRequirements',
+    'extractionPolicyVersion',
+    'selectionPolicyVersion',
+    'providerLogicalCalls'
+  ]) {
+    assert.equal(serialized.includes(internal), false, internal);
+  }
+});
+
+test('P0: la propuesta registra duracion y volumen, sin ningun texto del titular', async () => {
+  const ai = new StubAiClient();
+  ai.response = responseWithCandidates(6, 2);
+  const service = new ObjectiveRequirementProposalService(ai as never);
+  const events: unknown[] = [];
+  (service as unknown as { logger: unknown }).logger = {
+    log: (event: unknown) => events.push(event),
+    error: (event: unknown) => events.push(event)
+  };
+  const controller = new ObjectiveRequirementProposalController(service);
+
+  await controller.propose(body());
+
+  assert.equal(events.length, 1);
+  const event = events[0] as Record<string, unknown>;
+  assert.equal(event.event, 'objective_requirement_proposal_timing');
+  assert.equal(event.outcome, 'proposed');
+  assert.equal(event.candidateCount, 6);
+  assert.equal(event.omittedCandidateCount, 2);
+  assert.equal(event.maxRequirements, 15);
+  assert.equal(typeof event.durationMs, 'number');
+  const serialized = JSON.stringify(event);
+  for (const sensitive of [RAW, QUOTE, 'Titulo de contexto', 'Requisito 1', 'Requisito 7']) {
+    assert.equal(serialized.includes(sensitive), false, sensitive);
+  }
+});
+
+test('P0: un fallo de la propuesta tambien queda medido, con su codigo cerrado', async () => {
+  const ai = new StubAiClient();
+  ai.response = responseWithCandidates(16);
+  const service = new ObjectiveRequirementProposalService(ai as never);
+  const events: Array<Record<string, unknown>> = [];
+  (service as unknown as { logger: unknown }).logger = {
+    log: (event: Record<string, unknown>) => events.push(event),
+    error: (event: Record<string, unknown>) => events.push(event)
+  };
+
+  await assert.rejects(() => service.propose({
+    objectiveType: 'EMPLOYMENT',
+    title: 'Titulo de contexto',
+    rawObjectiveText: RAW
+  } as never, 15));
+
+  assert.equal(events.length, 1);
+  assert.equal(events[0].outcome, 'failed');
+  assert.equal(events[0].errorCode, 'UNABLE_TO_PRODUCE_PROPOSAL');
+  assert.equal(events[0].candidateCount, null);
 });

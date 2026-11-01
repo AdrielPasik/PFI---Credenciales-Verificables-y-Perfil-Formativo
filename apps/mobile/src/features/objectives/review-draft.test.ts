@@ -3,16 +3,22 @@ import {
   buildCreateObjectiveBody,
   buildProposalRequestBody,
   buildReviewDraft,
+  buildSubsetObjectiveBody,
   countCodePoints,
   createManualItem,
+  describeSelection,
   formatSectionLabel,
   mapReviewItemToRequirement,
   MAX_OBJECTIVE_CODE_POINTS,
+  MAX_OBJECTIVE_REQUIREMENTS,
   MAX_REQUEST_BODY_BYTES,
   serializedByteLength,
   sliceByCodePoints,
   splitAroundRange,
+  isAlreadyInList,
+  replaceWithOmittedItem,
   summarizeReview,
+  takeOmittedItem,
   utf8ByteLength,
   validateConfirm,
   validateIntake
@@ -46,6 +52,8 @@ function proposal(
         ...overrides
       }
     ],
+    nonFormativeConditions: [],
+    omittedCandidates: [],
     unresolvedPassageCount: 0
   };
 }
@@ -362,6 +370,8 @@ describe('guard de bytes al confirmar', () => {
   it('exige al menos un requisito', () => {
     const draft = buildReviewDraft(SNAPSHOT, {
       candidates: [],
+      nonFormativeConditions: [],
+      omittedCandidates: [],
       unresolvedPassageCount: 0
     });
     expect(validateConfirm(draft)).toEqual({ code: 'NO_REQUIREMENTS' });
@@ -398,5 +408,146 @@ describe('presentación', () => {
     expect(summarizeReview(draft, 1)).toBe(
       '1 propuestos · 2 quedan · 1 agregados'
     );
+  });
+});
+
+describe('P0: tope de requisitos al confirmar', () => {
+  const draft = buildReviewDraft(SNAPSHOT, proposal());
+  const withCount = (count: number) => ({
+    ...draft,
+    items: Array.from({ length: count }, (_unused, index) =>
+      proposedItem({ localKey: `item_${index}`, text: `Requisito ${index + 1}` })
+    )
+  });
+
+  it('el tope es el mismo que aplica el servidor', () => {
+    expect(MAX_OBJECTIVE_REQUIREMENTS).toBe(15);
+  });
+
+  it('acepta 15 y bloquea 16 o mas', () => {
+    expect(validateConfirm(withCount(15))).toBeNull();
+    expect(validateConfirm(withCount(16))?.code).toBe('TOO_MANY_REQUIREMENTS');
+  });
+});
+
+describe('P0: requisitos omitidos por la selección', () => {
+  function selectedProposal(selected: number, omitted: number): ObjectiveProposalVM {
+    const [template] = proposal().candidates;
+    const numbered = (number: number) => ({
+      ...template!,
+      candidateId: `cand_${String(number).padStart(2, '0')}`,
+      proposedRequirementText: `Requisito ${number}`,
+      excerptRange: { start: number * 10, end: number * 10 + 5 }
+    });
+    return {
+      candidates: Array.from({ length: selected }, (_unused, index) =>
+        numbered(index + 1)
+      ),
+      nonFormativeConditions: [],
+      omittedCandidates: Array.from({ length: omitted }, (_unused, index) =>
+        numbered(selected + index + 1)
+      ),
+      unresolvedPassageCount: 0
+    };
+  }
+
+  it('sin selección no hay aviso', () => {
+    const draft = buildReviewDraft(SNAPSHOT, selectedProposal(4, 0));
+    expect(describeSelection(draft, 4)).toBeNull();
+  });
+
+  it('con selección avisa y los omitidos no viajan al confirmar', () => {
+    const draft = buildReviewDraft(SNAPSHOT, selectedProposal(15, 35));
+    expect(describeSelection(draft, 15)).toContain('identificó 50 requisitos');
+    expect(buildCreateObjectiveBody(draft).requirements).toHaveLength(15);
+  });
+
+  it('con la lista llena no reemplaza nada; tras eliminar uno, suma al final', () => {
+    const draft = buildReviewDraft(SNAPSHOT, selectedProposal(15, 2));
+    const omitted = draft.omittedItems[0]!;
+    expect(takeOmittedItem(draft, omitted.localKey)).toBe(draft);
+
+    const next = takeOmittedItem({ ...draft, items: draft.items.slice(1) }, omitted.localKey);
+    expect(next.items).toHaveLength(15);
+    expect(next.items[14]!.text).toBe('Requisito 16');
+    expect(mapReviewItemToRequirement(next.items[14]!).provenanceKind).toBe(
+      'DERIVED_FROM_SOURCE_TEXT'
+    );
+    expect(summarizeReview(next, 15)).toContain('1 sumados de los omitidos');
+  });
+});
+
+describe('P0: reemplazo con la lista llena', () => {
+  function full(omitted: number) {
+    const [template] = proposal().candidates;
+    const numbered = (number: number) => ({
+      ...template!,
+      candidateId: `cand_${String(number).padStart(2, '0')}`,
+      proposedRequirementText: `Requisito ${number}`,
+      excerptRange: { start: number * 10, end: number * 10 + 5 }
+    });
+    return buildReviewDraft(SNAPSHOT, {
+      candidates: Array.from({ length: 15 }, (_unused, index) => numbered(index + 1)),
+      omittedCandidates: Array.from({ length: omitted }, (_unused, index) =>
+        numbered(16 + index)
+      ),
+      nonFormativeConditions: ['Disponibilidad en el turno mañana.'],
+      unresolvedPassageCount: 0
+    });
+  }
+
+  it('entra en la misma posición, sale a los omitidos y la cantidad no cambia', () => {
+    const draft = full(2);
+    const incoming = draft.omittedItems[0]!;
+    const next = replaceWithOmittedItem(draft, incoming.localKey, draft.items[4]!.localKey);
+
+    expect(next.items).toHaveLength(15);
+    expect(next.items[4]).toBe(incoming);
+    expect(next.omittedItems.map((item) => item.text)).toEqual([
+      'Requisito 17',
+      'Requisito 5'
+    ]);
+    expect(validateConfirm(next)).toBeNull();
+    expect(summarizeReview(next, 15)).toContain('1 sumados de los omitidos');
+    // Las condiciones no formativas no viajan como requisitos.
+    expect(buildCreateObjectiveBody(next).requirements).toHaveLength(15);
+    expect(next.nonFormativeConditions).toEqual(['Disponibilidad en el turno mañana.']);
+  });
+
+  it('nunca deja un duplicado', () => {
+    const draft = full(1);
+    const duplicate = { ...draft.omittedItems[0]!, text: ' requisito 2 ' };
+    const state = { ...draft, omittedItems: [duplicate] };
+    expect(isAlreadyInList(state.items, duplicate)).toBe(true);
+    expect(replaceWithOmittedItem(state, duplicate.localKey, state.items[5]!.localKey)).toBe(
+      state
+    );
+  });
+});
+
+describe('P0: objetivo histórico de más de 15', () => {
+  it('el objetivo nuevo lleva los elegidos exactos, en orden, con el mismo texto original', () => {
+    const original = ['- Python.', '- SQL.', '- Inglés.'].join(String.fromCharCode(10));
+    const body = buildSubsetObjectiveBody(
+      {
+        objectiveReference: 'obj-1',
+        objectiveType: 'EMPLOYMENT',
+        objectiveTypeLabel: 'Búsqueda laboral',
+        title: 'Analista',
+        createdAtLabel: 'hoy',
+        requirements: [
+          { requirementId: 'req_01', requirementText: 'Python', provenanceKind: 'DERIVED_FROM_SOURCE_TEXT', originLabel: '', sourceQuote: '- Python.' },
+          { requirementId: 'req_02', requirementText: 'SQL', provenanceKind: 'DIRECT_STRUCTURED_INPUT', originLabel: '', sourceQuote: null },
+          { requirementId: 'req_03', requirementText: 'Inglés', provenanceKind: 'DERIVED_FROM_SOURCE_TEXT', originLabel: '', sourceQuote: '- Inglés.' }
+        ],
+        sourceInputType: 'PASTED_TEXT',
+        sourceOriginalText: original,
+        objectiveContext: ''
+      },
+      ['req_03', 'req_01']
+    );
+    expect(body.source).toEqual({ inputType: 'PASTED_TEXT', originalText: original });
+    expect(body.requirements.map((r) => r.requirementText)).toEqual(['Python', 'Inglés']);
+    expect(body.requirements[1]!.sourceQuote).toBe('- Inglés.');
   });
 });

@@ -57,3 +57,50 @@ export function logReasoningAiServiceFailure(
       : { requirementReference: event.requirementReference })
   });
 }
+
+// ---------------------------------------------------------------------------
+// Duracion por etapa de una ejecucion
+// ---------------------------------------------------------------------------
+
+/** Nombre estable del evento de duracion de una ejecucion. */
+export const REASONING_RUN_TIMING_EVENT = 'reasoning_run_execution_timing';
+
+/**
+ * Cuanto tardo cada etapa y cuantas llamadas costo.
+ *
+ * Existe para poder responder, con datos y sin reproducir nada, "¿por que este
+ * analisis tardo 10 minutos?": cuanto fue Objective Analysis, cuanto
+ * EvidenceUnits y cuanto el razonamiento contextual, que crece con la cantidad de
+ * Requirements. Una etapa que no llego a correr queda en `null`, no en 0.
+ *
+ * Mismas reglas que el evento de fallo: solo numeros, tokens cerrados y una
+ * referencia opaca. Nada de texto del holder, del Objective ni del proveedor.
+ */
+export interface ReasoningRunTimingEvent {
+  readonly reasoningRunReference: string;
+  /** `completed` o `failed`. */
+  readonly outcome: 'completed' | 'failed';
+  readonly requirementCount: number | null;
+  readonly providerLogicalCalls: number;
+  readonly objectiveAnalysisMs: number | null;
+  readonly evidenceUnitsMs: number | null;
+  readonly contextualReasoningMs: number | null;
+  readonly totalMs: number;
+}
+
+export function logReasoningRunTiming(
+  logger: Logger,
+  event: ReasoningRunTimingEvent
+): void {
+  logger.log({
+    event: REASONING_RUN_TIMING_EVENT,
+    reasoningRunReference: event.reasoningRunReference,
+    outcome: event.outcome,
+    requirementCount: event.requirementCount,
+    providerLogicalCalls: event.providerLogicalCalls,
+    objectiveAnalysisMs: event.objectiveAnalysisMs,
+    evidenceUnitsMs: event.evidenceUnitsMs,
+    contextualReasoningMs: event.contextualReasoningMs,
+    totalMs: event.totalMs
+  });
+}

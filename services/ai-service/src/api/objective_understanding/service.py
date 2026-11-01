@@ -33,6 +33,7 @@ from typing import Any
 
 from src.api.objective_understanding.builder import build_proposal_artifact
 from src.api.objective_understanding.contracts import (
+    ProviderInvalidOutputError,
     ARTIFACT_SCHEMA_VERSION,
     MAX_OBJECTIVE_CHARACTERS,
     PRODUCT_ADAPTER_VERSION,
@@ -47,6 +48,7 @@ from src.api.objective_understanding.contracts import (
     ObjectiveTooLargeError,
 )
 from src.api.objective_understanding.prompt import (
+    EXTRACTION_POLICY_VERSION,
     OU_A2_INSTRUCTIONS_SHA256,
     build_objective_understanding_prompt,
 )
@@ -55,12 +57,25 @@ from src.api.objective_understanding.provider import (
     configured_model,
 )
 from src.api.objective_understanding.schema import (
+    OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA,
     PROVIDER_SCHEMA_NAME,
-    objective_understanding_output_schema,
+)
+from src.api.objective_understanding.selection import (
+    SELECTION_OUTPUT_SCHEMA,
+    SELECTION_POLICY_VERSION,
+    SELECTION_SCHEMA_NAME,
+    build_selection_prompt,
+    validate_selection_output,
 )
 from src.api.objective_understanding.validation import validate_provider_output
 
 EFFECTIVE_MODEL_MATCH = "MATCH"
+
+#: Techo de candidatos que puede devolver la EXTRACCION. No es el tope del
+#: producto (ese lo aplica la seleccion): es un limite de cordura. Una extraccion
+#: con mas candidatos que esto no respeto la politica, y elegir sobre ella seria
+#: elegir sobre basura. Falla cerrado como salida invalida.
+MAX_EXTRACTED_CANDIDATES = 60
 EFFECTIVE_MODEL_UNAVAILABLE = "UNAVAILABLE"
 
 
@@ -103,13 +118,19 @@ def run_objective_understanding(
     `provider` se inyecta en tests. En produccion se construye aca, DESPUES de los
     guards: construirlo antes leeria configuracion que quiza no vamos a usar.
 
-    `max_proposed_requirements` es el presupuesto de seleccion del llamante, y
-    atraviesa las TRES capas: el prompt pide elegir, el json_schema lo restringe
-    estructuralmente y la validacion vuelve a contar. Que el proveedor diga que
-    respeto un maximo no es lo mismo que haberlo respetado.
+    SIN `max_proposed_requirements` el comportamiento es exactamente el evaluado
+    en P2.1: un prompt, un schema, una llamada, sin politica ni seleccion.
 
-    Sin presupuesto --el camino del holder-- no cambia absolutamente nada: mismo
-    prompt, mismo schema, misma validacion.
+    CON `max_proposed_requirements` (los dos consumidores productivos):
+
+        1. EXTRACCION   prompt congelado + politica de extraccion, SIN cupo.
+        2. SELECCION    solo si la extraccion supera el maximo: una segunda
+                        llamada que devuelve NUMEROS de candidatos ya extraidos.
+        3. el resto queda en `omittedCandidates`, anclado igual que los elegidos,
+           para que el titular vea que hubo seleccion y pueda sustituir.
+
+    Nunca se recorta por orden y nunca hay reintentos: una seleccion invalida es
+    un fallo explicito de la propuesta.
     """
     assert_objective_fits(raw_objective_text)
     if max_proposed_requirements is not None and max_proposed_requirements < 1:
@@ -119,26 +140,51 @@ def run_objective_understanding(
     requested_model = configured_model()
 
     client = provider if provider is not None else OpenAIObjectiveUnderstandingProvider()
+    governed = max_proposed_requirements is not None
 
     prompt = build_objective_understanding_prompt(
         objective_type=objective_type,
         title=title,
         raw_objective_text=raw_objective_text,
-        max_proposed_requirements=max_proposed_requirements,
+        extraction_policy=governed,
     )
 
     observation = client.complete(
         prompt=prompt,
         schema_name=PROVIDER_SCHEMA_NAME,
-        schema=objective_understanding_output_schema(max_proposed_requirements),
+        schema=OBJECTIVE_UNDERSTANDING_OUTPUT_SCHEMA,
         model=requested_model,
         reasoning_effort=SUPPORTED_REASONING_EFFORT,
     )
 
-    proposals, unresolved = validate_provider_output(
-        observation.output, max_proposed_requirements
-    )
-    artifact = build_proposal_artifact(raw_objective_text, proposals, unresolved)
+    proposals, unresolved = validate_provider_output(observation.output)
+
+    selected = proposals
+    omitted: list[dict[str, Any]] = []
+    selection_applied = False
+    if governed:
+        if len(proposals) > MAX_EXTRACTED_CANDIDATES:
+            raise ProviderInvalidOutputError("extraction_exceeds_candidate_ceiling")
+        if len(proposals) > max_proposed_requirements:
+            selected_indexes = _select(
+                client,
+                requested_model,
+                objective_type=objective_type,
+                title=title,
+                raw_objective_text=raw_objective_text,
+                proposals=proposals,
+                maximum=max_proposed_requirements,
+            )
+            chosen = set(selected_indexes)
+            selected = [proposals[index] for index in selected_indexes]
+            omitted = [p for index, p in enumerate(proposals) if index not in chosen]
+            selection_applied = True
+
+    artifact = build_proposal_artifact(raw_objective_text, selected, unresolved)
+    if governed:
+        artifact["omittedCandidates"] = _omitted_candidates(
+            raw_objective_text, omitted, first_number=len(selected) + 1
+        )
 
     execution: dict[str, Any] = {
         "artifactSchemaVersion": ARTIFACT_SCHEMA_VERSION,
@@ -159,10 +205,19 @@ def run_objective_understanding(
     }
     if observation.reported_model is not None:
         execution["reportedEffectiveModel"] = observation.reported_model
-    if max_proposed_requirements is not None:
-        # Se declara lo que ESTA ejecucion acoto, para que NestJS pueda verificar
-        # contra su propio tope en vez de confiar en que el pedido llego.
+    if governed:
+        # Se declara lo que ESTA ejecucion aplico, para que NestJS lo verifique
+        # contra lo que pidio en vez de confiar en que el pedido llego.
         execution["requestedMaxProposedRequirements"] = max_proposed_requirements
+        execution["extractionPolicyVersion"] = EXTRACTION_POLICY_VERSION
+        execution["selectionPolicyVersion"] = SELECTION_POLICY_VERSION
+        execution["selection"] = {
+            "applied": selection_applied,
+            "extractedCandidateCount": len(proposals),
+            "selectedCandidateCount": len(selected),
+            "omittedCandidateCount": len(omitted),
+            "providerLogicalCalls": 2 if selection_applied else 1,
+        }
 
     # Sin respuesta cruda, sin prompt, sin tokens, sin razonamiento interno. El
     # artifact estructurado construido por codigo confiable ES la salida.
@@ -171,3 +226,47 @@ def run_objective_understanding(
         "execution": execution,
         "artifact": artifact,
     }
+
+
+def _select(
+    client: Any,
+    requested_model: str,
+    *,
+    objective_type: str,
+    title: str,
+    raw_objective_text: str,
+    proposals: list[dict[str, Any]],
+    maximum: int,
+) -> list[int]:
+    """UNA llamada de seleccion. Devuelve indices base 0 en orden de fuente."""
+    observation = client.complete(
+        prompt=build_selection_prompt(
+            objective_type=objective_type,
+            title=title,
+            raw_objective_text=raw_objective_text,
+            proposals=proposals,
+            maximum=maximum,
+        ),
+        schema_name=SELECTION_SCHEMA_NAME,
+        schema=SELECTION_OUTPUT_SCHEMA,
+        model=requested_model,
+        reasoning_effort=SUPPORTED_REASONING_EFFORT,
+    )
+    return validate_selection_output(observation.output, len(proposals), maximum)
+
+
+def _omitted_candidates(
+    raw_objective_text: str,
+    omitted: list[dict[str, Any]],
+    *,
+    first_number: int,
+) -> list[dict[str, Any]]:
+    """Ancla los candidatos que quedaron afuera con el MISMO builder confiable.
+
+    Ids que siguen la numeracion de los elegidos, para que ningun id se repita
+    entre las dos listas; `order` es la posicion dentro de esta lista.
+    """
+    built = build_proposal_artifact(raw_objective_text, omitted, [])["candidates"]
+    for offset, candidate in enumerate(built):
+        candidate["candidateId"] = "cand_%02d" % (first_number + offset)
+    return built

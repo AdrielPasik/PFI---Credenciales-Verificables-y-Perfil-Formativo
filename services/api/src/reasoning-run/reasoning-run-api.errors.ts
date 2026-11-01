@@ -37,6 +37,12 @@ export const REASONING_RUN_API_CODES = [
    * verifica. Es CORRUPCIÓN nuestra, no un error del cliente: cuerpo genérico.
    */
   'OBJECTIVE_UNREADABLE',
+  /**
+   * El Objective tiene más Requirements de los que un análisis admite. Sólo
+   * ocurre con Objectives guardados antes del tope de 15. Es accionable: la
+   * persona crea una versión nueva con los más relevantes.
+   */
+  'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT',
   /** Otra ejecución tiene la claim de este run. */
   'EXECUTION_ALREADY_RUNNING',
   /**
@@ -77,6 +83,7 @@ const API_STATUS: Record<ReasoningRunApiCode, HttpStatus> = {
   REASONING_RUN_NOT_FOUND: HttpStatus.NOT_FOUND,
   OBJECTIVE_NOT_FOUND: HttpStatus.NOT_FOUND,
   OBJECTIVE_UNREADABLE: HttpStatus.INTERNAL_SERVER_ERROR,
+  OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT: HttpStatus.UNPROCESSABLE_ENTITY,
   EXECUTION_ALREADY_RUNNING: HttpStatus.CONFLICT,
   RUN_TERMINALLY_FAILED: HttpStatus.CONFLICT,
   EXECUTION_TEMPORARILY_UNAVAILABLE: HttpStatus.SERVICE_UNAVAILABLE,
@@ -93,6 +100,8 @@ const API_MESSAGE: Record<ReasoningRunApiCode, string> = {
   REASONING_RUN_NOT_FOUND: 'No se encontro el analisis solicitado.',
   OBJECTIVE_NOT_FOUND: 'No se encontro el objetivo solicitado.',
   OBJECTIVE_UNREADABLE: 'No se pudo leer el objetivo solicitado.',
+  OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT:
+    'Este objetivo tiene mas de 15 requisitos. Crea una nueva version con los 15 mas relevantes para analizarlo.',
   EXECUTION_ALREADY_RUNNING: 'El analisis ya se esta ejecutando.',
   RUN_TERMINALLY_FAILED:
     'El analisis termino con un fallo y no puede volver a ejecutarse. Crea uno nuevo.',

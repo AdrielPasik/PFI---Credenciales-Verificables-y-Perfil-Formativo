@@ -17,6 +17,7 @@ import {
 } from './dto/objective-requirement-proposal.dto';
 import {
   type VerifiedProposalArtifact,
+  type VerifiedProposalCandidate,
   type VerifiedSourceReference
 } from './objective-requirement-proposal.verifier';
 
@@ -31,10 +32,8 @@ function mapReference(
   };
 }
 
-export function mapObjectiveRequirementProposal(
-  artifact: VerifiedProposalArtifact
-): ObjectiveRequirementProposalResponseDto {
-  const candidates: ObjectiveProposalCandidateDto[] = artifact.candidates.map((candidate) => ({
+function mapCandidate(candidate: VerifiedProposalCandidate): ObjectiveProposalCandidateDto {
+  return {
     candidateId: candidate.candidateId,
     order: candidate.order,
     proposedRequirementText: candidate.proposedRequirementText,
@@ -52,7 +51,15 @@ export function mapObjectiveRequirementProposal(
     sourceSectionLabel: candidate.sourceSectionLabel,
     exactDuplicateOfEarlier: candidate.exactDuplicateOfEarlier,
     confirmableAsSourceDerived: candidate.confirmableAsSourceDerived
-  }));
+  };
+}
+
+export function mapObjectiveRequirementProposal(
+  artifact: VerifiedProposalArtifact
+): ObjectiveRequirementProposalResponseDto {
+  const candidates: ObjectiveProposalCandidateDto[] = artifact.candidates.map(mapCandidate);
+  const omittedCandidates: ObjectiveProposalCandidateDto[] =
+    artifact.omittedCandidates.map(mapCandidate);
 
   const unresolvedPassages: ObjectiveProposalUnresolvedPassageDto[] =
     artifact.unresolvedPassages.map((passage) => ({
@@ -68,6 +75,7 @@ export function mapObjectiveRequirementProposal(
     authority: 'PROPOSAL_ONLY',
     humanConfirmationRequired: true,
     candidates,
+    omittedCandidates,
     unresolvedPassages
   };
 }

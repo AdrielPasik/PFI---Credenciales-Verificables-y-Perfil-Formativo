@@ -30,6 +30,8 @@ import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import { HolderBreadcrumbs } from '@/features/holder/holder-breadcrumbs';
 import { ObjectiveReasoningPanel } from '@/features/holder/objectives/objective-reasoning-panel';
+import { ObjectiveRequirementSubset } from '@/features/holder/objectives/objective-requirement-subset';
+import { MAX_OBJECTIVE_REQUIREMENTS } from '@/features/holder/objectives/review-draft';
 import { getMyObjectiveRequest } from '@/lib/api/objectives-api';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
 import { useSession } from '@/lib/session/session-provider';
@@ -189,6 +191,10 @@ export function ObjectiveDetailRoute() {
                   } ${state.objective.requirements.length === 1 ? 'requisito' : 'requisitos'}`}
             </p>
           </header>
+
+          {state.objective.requirements.length > MAX_OBJECTIVE_REQUIREMENTS ? (
+            <ObjectiveRequirementSubset objective={state.objective} />
+          ) : null}
 
           {/*
             EL ANALISIS VA PRIMERO. Es la capacidad de esta pantalla; los

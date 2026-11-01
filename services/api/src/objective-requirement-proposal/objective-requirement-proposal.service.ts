@@ -28,7 +28,7 @@
  * continuar: no hay `ProposalRun` en V1 y esa diferencia es deliberada.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { AiServiceClient } from '../ai/ai-service.client';
 import { ObjectiveProposalTransportError } from '../ai/ai-service.types';
@@ -48,25 +48,76 @@ import {
 } from './objective-requirement-proposal.request.validator';
 import { verifyObjectiveProposalResponse } from './objective-requirement-proposal.verifier';
 
+/** Nombre estable del evento de duracion de una propuesta. */
+export const OBJECTIVE_PROPOSAL_TIMING_EVENT = 'objective_requirement_proposal_timing';
+
 @Injectable()
 export class ObjectiveRequirementProposalService {
+  private readonly logger = new Logger(ObjectiveRequirementProposalService.name);
+
   public constructor(private readonly aiServiceClient: AiServiceClient) {}
 
   /**
    * `maxRequirements` es el presupuesto de selección del llamante.
    *
-   * El holder NO manda ninguno: su revisión no tiene tope de producto y acotarlo
-   * cambiaría una semántica que P2.1 evaluó sin cota. El verificador público sí,
-   * porque su confirmación rechaza más de 12 y exponer 34 candidatos que jamás
-   * podrían confirmarse no es una propuesta: es un estado imposible.
+   * Los dos llamantes lo mandan: el titular (15, `MAX_OBJECTIVE_REQUIREMENTS`) y
+   * el verificador público (12). Sin presupuesto, un aviso largo producía decenas
+   * de candidatos —actividades y actitudes incluidas— y después un razonamiento
+   * de una llamada al modelo por Requirement. El parámetro sigue siendo opcional
+   * para no cambiar el contrato del servicio.
    *
-   * Cuando hay presupuesto, la SELECCIÓN la hace la etapa que lee la fuente. Acá
-   * no se recorta nada: una propuesta que excede el tope se trata como salida
-   * inutilizable, igual que cualquier otra violación del contrato.
+   * Cuando hay presupuesto, el AI service extrae sin cupo y, si sobran, una etapa
+   * de selección elige por relevancia; lo que queda afuera vuelve como
+   * `omittedCandidates`. Acá no se recorta nada: una propuesta que igual excede
+   * el tope se trata como salida inutilizable, como cualquier otra violación del
+   * contrato.
    */
   public async propose(
     input: ObjectiveRequirementProposalInput,
     maxRequirements?: number
+  ): Promise<ObjectiveRequirementProposalResponseDto> {
+    const startedAt = Date.now();
+    try {
+      const proposal = await this.proposeOnce(input, maxRequirements);
+      this.logTiming(startedAt, maxRequirements, 'proposed', null, proposal);
+      return proposal;
+    } catch (error: unknown) {
+      const code =
+        error instanceof ObjectiveRequirementProposalError ? error.code : 'UNEXPECTED';
+      this.logTiming(startedAt, maxRequirements, 'failed', code, null);
+      throw error;
+    }
+  }
+
+  /**
+   * Duracion y volumen de una propuesta, sin texto: solo numeros y un codigo
+   * cerrado. Sirve para separar, con datos, cuanto de la latencia de un analisis
+   * es la propuesta y cuanto el razonamiento posterior.
+   */
+  private logTiming(
+    startedAt: number,
+    maxRequirements: number | undefined,
+    outcome: 'proposed' | 'failed',
+    errorCode: string | null,
+    proposal: ObjectiveRequirementProposalResponseDto | null
+  ): void {
+    this.logger.log({
+      event: OBJECTIVE_PROPOSAL_TIMING_EVENT,
+      outcome,
+      errorCode,
+      maxRequirements: maxRequirements ?? null,
+      candidateCount: proposal === null ? null : proposal.candidates.length,
+      // > 0 solo cuando hubo seleccion: la propuesta costo dos llamadas al modelo.
+      omittedCandidateCount: proposal === null ? null : proposal.omittedCandidates.length,
+      unresolvedPassageCount:
+        proposal === null ? null : proposal.unresolvedPassages.length,
+      durationMs: Date.now() - startedAt
+    });
+  }
+
+  private async proposeOnce(
+    input: ObjectiveRequirementProposalInput,
+    maxRequirements: number | undefined
   ): Promise<ObjectiveRequirementProposalResponseDto> {
     let response: unknown;
     try {

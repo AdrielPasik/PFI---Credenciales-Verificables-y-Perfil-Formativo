@@ -796,3 +796,97 @@ test('los errores no llevan texto del Objective ni de la evidencia', async () =>
     }
   }
 });
+
+// ---------------------------------------------------------------------------
+// P0: costo por Requirement y medicion por etapa
+// ---------------------------------------------------------------------------
+
+function reqIds(count: number): string[] {
+  return Array.from({ length: count }, (_unused, index) =>
+    `req_${String(index + 1).padStart(2, '0')}`
+  );
+}
+
+function captureLogs(executor: ReasoningRunExecutionService): Array<Record<string, any>> {
+  const events: Array<Record<string, any>> = [];
+  (executor as unknown as { logger: unknown }).logger = {
+    log: (event: Record<string, any>) => events.push(event),
+    error: (event: Record<string, any>) => events.push(event)
+  };
+  return events;
+}
+
+test('P0: las llamadas costosas por Requirement son EXACTAMENTE tantas como los Requirements confirmados', async () => {
+  // 15 es el tope del titular. Con el tope, el peor caso de un run es 2 + 15 =
+  // 17 llamadas logicas, contra 2 + 50 = 52 de una propuesta sin tope.
+  for (const count of [1, 4, 15]) {
+    const ids = reqIds(count);
+    const { prisma } = fakePrisma({ ids });
+    const stages = fakeStages({ ids });
+
+    const outcome = await service(prisma, stages).executeReasoningRun(RUN_ID);
+
+    assert.equal(stages.calls.contextualRequirements.length, count);
+    assert.equal(stages.calls.objectiveAnalysis, 1);
+    assert.equal(stages.calls.evidenceUnits, 1);
+    assert.equal(outcome.providerLogicalCalls, 2 + count);
+  }
+});
+
+test('P0: cada ejecucion completa registra la duracion por etapa, sin texto', async () => {
+  const ids = reqIds(3);
+  const { prisma } = fakePrisma({ ids });
+  const executor = service(prisma, fakeStages({ ids }));
+  const events = captureLogs(executor);
+
+  await executor.executeReasoningRun(RUN_ID);
+
+  const timing = events.filter((event) => event.event === 'reasoning_run_execution_timing');
+  assert.equal(timing.length, 1);
+  const [event] = timing;
+  assert.equal(event.outcome, 'completed');
+  assert.equal(event.requirementCount, 3);
+  assert.equal(event.providerLogicalCalls, 5);
+  for (const key of ['objectiveAnalysisMs', 'evidenceUnitsMs', 'contextualReasoningMs', 'totalMs']) {
+    assert.equal(typeof event[key], 'number', key);
+    assert.ok(event[key] >= 0, key);
+  }
+  // Solo numeros, tokens cerrados y una referencia opaca.
+  assert.deepEqual(Object.keys(event).sort(), [
+    'contextualReasoningMs',
+    'event',
+    'evidenceUnitsMs',
+    'objectiveAnalysisMs',
+    'outcome',
+    'providerLogicalCalls',
+    'reasoningRunReference',
+    'requirementCount',
+    'totalMs'
+  ]);
+});
+
+test('P0: un fallo tambien queda medido, con las etapas no corridas en null y sin fabricar exito', async () => {
+  const { prisma, state } = fakePrisma();
+  const executor = service(
+    prisma,
+    fakeStages({
+      contextualError: new ContextualReasoningStageError('PROVIDER_INVALID_OUTPUT', {
+        invariant: 'contextual_result_must_satisfy_the_contract',
+        reasoningRunId: RUN_ID
+      })
+    })
+  );
+  const events = captureLogs(executor);
+
+  await assert.rejects(() => executor.executeReasoningRun(RUN_ID));
+
+  const [event] = events.filter((item) => item.event === 'reasoning_run_execution_timing');
+  assert.equal(event.outcome, 'failed');
+  assert.equal(event.requirementCount, null);
+  assert.equal(typeof event.objectiveAnalysisMs, 'number');
+  assert.equal(typeof event.evidenceUnitsMs, 'number');
+  assert.equal(event.contextualReasoningMs, null);
+  // El desenlace del run no cambia por la medicion.
+  assert.equal(state.run!.status, 'failed');
+  assert.equal(state.run!.resultArtifact, null);
+});

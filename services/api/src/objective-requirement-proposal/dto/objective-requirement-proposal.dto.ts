@@ -84,5 +84,12 @@ export interface ObjectiveRequirementProposalResponseDto {
   /** Siempre `true`: la confirmación humana es obligatoria y no es negociable. */
   readonly humanConfirmationRequired: true;
   readonly candidates: readonly ObjectiveProposalCandidateDto[];
+  /**
+   * Requisitos que Scope identificó pero dejó afuera porque superaban el máximo
+   * que el análisis admite. Se muestran para que la persona sepa que hubo una
+   * selección y pueda cambiar uno elegido por uno de estos. Vacío si no hubo
+   * selección.
+   */
+  readonly omittedCandidates: readonly ObjectiveProposalCandidateDto[];
   readonly unresolvedPassages: readonly ObjectiveProposalUnresolvedPassageDto[];
 }

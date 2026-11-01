@@ -58,7 +58,7 @@ export function mapObjectiveProposalError(error: unknown): ObjectiveErrorMessage
       case 422:
         return {
           message:
-            'No pudimos generar una propuesta confiable para este objetivo. Revisa el texto e intenta nuevamente.',
+            'No pudimos generar una propuesta confiable para este objetivo. Revisa el texto e intenta nuevamente. Si el aviso es muy extenso, proba pegar solo la parte que describe los requisitos.',
           retryable: false
         };
       case 503:

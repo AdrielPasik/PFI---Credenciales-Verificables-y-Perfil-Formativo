@@ -31,6 +31,7 @@ import {
 
 import { PrismaService } from '../prisma/prisma.service';
 import { verifyObjectiveDefinitionArtifact } from '../objectives/objective-definition.validator';
+import { MAX_OBJECTIVE_REQUIREMENTS } from '../objectives/objective-limits';
 import {
   type ReasoningRunDetailResponseDto,
   type ReasoningRunSummaryResponseDto
@@ -291,7 +292,8 @@ export class ReasoningRunPrivateService {
   ): Promise<ReasoningRunDetailResponseDto> {
     // AUTORIZACIÓN PRIMERO. Si no es suyo, el orquestador no llega a ejecutarse
     // y no se intenta ninguna claim.
-    await this.requireOwnedRun(ownerUserId, reasoningRunId);
+    const row = await this.requireOwnedRun(ownerUserId, reasoningRunId);
+    this.assertPendingRunWithinRequirementLimit(row);
 
     try {
       await this.execution.executeReasoningRun(reasoningRunId);
@@ -302,6 +304,31 @@ export class ReasoningRunPrivateService {
     // Se relee la fila autoritativa en vez de proyectar el outcome en memoria:
     // el estado del recurso lo dice la base, no el valor de retorno.
     return this.getForUser(ownerUserId, reasoningRunId);
+  }
+
+  /**
+   * Un run `pending` congelado antes del tope, sobre un Objective de más de 15
+   * Requirements, no se ejecuta: no terminaría dentro del tiempo de la petición.
+   *
+   * Sólo `pending`. Un run completado se sigue leyendo y re-pidiendo sin costo, y
+   * los demás estados conservan su respuesta de siempre. La fila no se toca. Si
+   * el snapshot no verifica, decide el orquestador como antes.
+   */
+  private assertPendingRunWithinRequirementLimit(row: {
+    status: ReasoningRunStatus;
+    objectiveDefinitionSnapshot: unknown;
+  }): void {
+    if (row.status !== ReasoningRunStatus.pending) return;
+    let requirementCount: number;
+    try {
+      requirementCount = verifyObjectiveDefinitionArtifact(row.objectiveDefinitionSnapshot)
+        .requirements.length;
+    } catch {
+      return;
+    }
+    if (requirementCount > MAX_OBJECTIVE_REQUIREMENTS) {
+      failReasoningRunApi('OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT');
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -439,9 +466,14 @@ export class ReasoningRunPrivateService {
   private toCreationApiError(error: unknown): unknown {
     if (error instanceof ReasoningRunApiError) return error;
     if (error instanceof ReasoningRunInputFreezeError) {
-      return error.code === 'OBJECTIVE_NOT_FOUND'
-        ? new ReasoningRunApiError('OBJECTIVE_NOT_FOUND')
-        : new ReasoningRunApiError('OBJECTIVE_UNREADABLE');
+      switch (error.code) {
+        case 'OBJECTIVE_NOT_FOUND':
+          return new ReasoningRunApiError('OBJECTIVE_NOT_FOUND');
+        case 'OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT':
+          return new ReasoningRunApiError('OBJECTIVE_EXCEEDS_REQUIREMENT_LIMIT');
+        default:
+          return new ReasoningRunApiError('OBJECTIVE_UNREADABLE');
+      }
     }
     // Desconocido: genérico. No se deduce nada de un error que no declaramos.
     return new ReasoningRunApiError('EXECUTION_FAILED');

@@ -1,0 +1,466 @@
+{
+  "schemaVersion": "requirement_selection_gold_v1",
+  "authorship": "Referencia redactada por Claude (Opus) a partir de la politica acordada; PENDIENTE de adjudicacion humana por el autor del PFI antes de usarse como gold definitivo.",
+  "postingId": "RSE_06",
+  "file": "postings/RSE_06_plataforma_largo.md",
+  "title": "Ingeniero/a de Plataforma Senior",
+  "objectiveType": "EMPLOYMENT",
+  "purpose": "Aviso LARGO (46 lineas candidatas, 24 requisitos legitimos): obliga a seleccionar. La referencia humana elige 15 sin jerarquia rigida.",
+  "items": [
+    {
+      "id": "ctx_empresa",
+      "quote": "Nubeterra es una empresa de logística con operaciones en cinco países.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "ctx_equipo",
+      "quote": "Nuestro equipo de plataforma da soporte a más de 40 equipos de producto.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "t_plataforma",
+      "quote": "Diseñar y operar la plataforma interna de despliegue sobre Kubernetes.",
+      "label": "BORDERLINE",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Tarea que solapa con el requisito de Kubernetes: emitirla es aceptable si no duplica."
+    },
+    {
+      "id": "t_terraform",
+      "quote": "Automatizar la infraestructura con Terraform.",
+      "label": "BORDERLINE",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": "terraform",
+      "reason": "Misma condicion que el requisito de Terraform."
+    },
+    {
+      "id": "t_reuniones",
+      "quote": "Participar en reuniones de planificación con los equipos de producto.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "",
+      "observedFailureText": "Capacidad de liderazgo y coordinacion entre equipos"
+    },
+    {
+      "id": "t_guardias",
+      "quote": "Atender guardias pasivas una semana por mes.",
+      "label": "DISCARD",
+      "category": "NON_FORMATIVE_CONDITION",
+      "priority": null,
+      "group": null,
+      "reason": "Condicion laboral legitima, no formativa."
+    },
+    {
+      "id": "t_revisar",
+      "quote": "Revisar documentación técnica de otros equipos.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "t_junior",
+      "quote": "Acompañar a perfiles junior del equipo.",
+      "label": "BORDERLINE",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Tarea de mentoria; la fuente no la pide como requisito."
+    },
+    {
+      "id": "t_slo",
+      "quote": "Definir y mantener los SLO de los servicios críticos.",
+      "label": "BORDERLINE",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Tarea con capacidad tecnica concreta."
+    },
+    {
+      "id": "t_tareas",
+      "quote": "Realizar las tareas que te asigne tu líder.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "t_avances",
+      "quote": "Reportar avances semanalmente.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "titulo",
+      "quote": "Título de grado en Ingeniería en Sistemas, Informática o carrera afín.",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "MANDATORY",
+      "group": "titulo",
+      "reason": ""
+    },
+    {
+      "id": "exp_infra",
+      "quote": "Al menos 5 años de experiencia en roles de infraestructura, SRE o plataforma.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "MANDATORY",
+      "group": "exp_infra",
+      "reason": ""
+    },
+    {
+      "id": "k8s",
+      "quote": "Experiencia administrando clústeres de Kubernetes en producción.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "MANDATORY",
+      "group": "kubernetes",
+      "reason": ""
+    },
+    {
+      "id": "terraform",
+      "quote": "Infraestructura como código con Terraform.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "MANDATORY",
+      "group": "terraform",
+      "reason": ""
+    },
+    {
+      "id": "nube",
+      "quote": "Experiencia con al menos un proveedor de nube pública (AWS, GCP o Azure).",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "MANDATORY",
+      "group": "nube",
+      "reason": ""
+    },
+    {
+      "id": "go_python",
+      "quote": "Programación en Go o Python para herramientas internas.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "MANDATORY",
+      "group": "go_python",
+      "reason": ""
+    },
+    {
+      "id": "observabilidad",
+      "quote": "Manejo de sistemas de observabilidad como Prometheus y Grafana.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "MANDATORY",
+      "group": "observabilidad",
+      "reason": ""
+    },
+    {
+      "id": "ingles",
+      "quote": "Inglés intermedio-avanzado (B2) para comunicación escrita con equipos de otros países.",
+      "label": "KEEP",
+      "category": "LANGUAGE_LEVEL",
+      "priority": "MANDATORY",
+      "group": "ingles",
+      "reason": ""
+    },
+    {
+      "id": "redes",
+      "quote": "Conocimientos de redes: DNS, balanceo de carga y TLS.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "MANDATORY",
+      "group": "redes",
+      "reason": ""
+    },
+    {
+      "id": "cicd",
+      "quote": "Diseño de pipelines de CI/CD con GitHub Actions o GitLab CI.",
+      "label": "KEEP",
+      "category": "PROFESSIONAL_CAPABILITY",
+      "priority": "REQUIRED",
+      "group": "cicd",
+      "reason": ""
+    },
+    {
+      "id": "k8s_dup",
+      "quote": "Experiencia con Kubernetes en producción.",
+      "label": "BORDERLINE",
+      "category": "EXPERIENCE",
+      "priority": null,
+      "group": null,
+      "reason": "Version mas debil del excluyente de Kubernetes: el contrato congelado admite emitirla como claim aparte; la seleccion deberia descartarla por redundante. Neutral."
+    },
+    {
+      "id": "vault",
+      "quote": "Gestión de secretos con Vault o similar.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "vault",
+      "reason": ""
+    },
+    {
+      "id": "postgres",
+      "quote": "Administración de bases de datos PostgreSQL a nivel operativo.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "postgres",
+      "reason": ""
+    },
+    {
+      "id": "iam",
+      "quote": "Prácticas de seguridad en la nube (IAM, principio de mínimo privilegio).",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "iam",
+      "reason": ""
+    },
+    {
+      "id": "incidentes",
+      "quote": "Experiencia respondiendo incidentes y escribiendo postmortems.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "REQUIRED",
+      "group": "incidentes",
+      "reason": ""
+    },
+    {
+      "id": "linux",
+      "quote": "Manejo de Linux a nivel administrador.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "linux",
+      "reason": ""
+    },
+    {
+      "id": "cka",
+      "quote": "Certificación CKA (Certified Kubernetes Administrator).",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "DESIRABLE",
+      "group": "cka",
+      "reason": ""
+    },
+    {
+      "id": "mesh",
+      "quote": "Experiencia con service mesh (Istio o Linkerd).",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "mesh",
+      "reason": ""
+    },
+    {
+      "id": "helm_argo",
+      "quote": "Conocimiento de Helm y Argo CD.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "helm_argo",
+      "reason": ""
+    },
+    {
+      "id": "logistica",
+      "quote": "Experiencia en empresas de logística o e-commerce.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "logistica",
+      "reason": ""
+    },
+    {
+      "id": "charlas",
+      "quote": "Haber dado charlas técnicas o escrito artículos técnicos.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "charlas",
+      "reason": ""
+    },
+    {
+      "id": "finops",
+      "quote": "Conocimientos de FinOps y optimización de costos en la nube.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "finops",
+      "reason": ""
+    },
+    {
+      "id": "kafka",
+      "quote": "Familiaridad con Kafka.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "kafka",
+      "reason": ""
+    },
+    {
+      "id": "portugues",
+      "quote": "Portugués básico.",
+      "label": "KEEP",
+      "category": "LANGUAGE_LEVEL",
+      "priority": "DESIRABLE",
+      "group": "portugues",
+      "reason": ""
+    },
+    {
+      "id": "a_predisposicion",
+      "quote": "Buena predisposición y ganas de aprender.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": "",
+      "observedFailureText": "Competencias avanzadas de aprendizaje continuo"
+    },
+    {
+      "id": "a_proactividad",
+      "quote": "Proactividad.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "a_equipo",
+      "quote": "Capacidad de trabajo en equipo.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "a_resultados",
+      "quote": "Orientación a resultados.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "a_compromiso",
+      "quote": "Compromiso y responsabilidad.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "a_actitud",
+      "quote": "Excelente actitud ante los desafíos.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "comunicar",
+      "quote": "Capacidad para comunicar decisiones técnicas a equipos no técnicos.",
+      "label": "KEEP",
+      "category": "PROFESSIONAL_CAPABILITY",
+      "priority": "REQUIRED",
+      "group": "comunicar",
+      "reason": "Soft skill CON objeto: se emite."
+    },
+    {
+      "id": "o_hibrida",
+      "quote": "Modalidad híbrida, dos días por semana en oficina.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "o_prepaga",
+      "quote": "Prepaga para vos y tu grupo familiar.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "o_capacitacion",
+      "quote": "Presupuesto anual de capacitación.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "o_bono",
+      "quote": "Bono anual por desempeño.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    },
+    {
+      "id": "o_horario",
+      "quote": "Horario flexible.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": ""
+    }
+  ],
+  "humanSelection": {
+    "maximum": 15,
+    "groups": [
+      "titulo",
+      "exp_infra",
+      "kubernetes",
+      "terraform",
+      "nube",
+      "go_python",
+      "observabilidad",
+      "ingles",
+      "redes",
+      "cicd",
+      "vault",
+      "iam",
+      "incidentes",
+      "linux",
+      "helm_argo"
+    ],
+    "rationale": "Los nueve excluyentes entran todos. De los requeridos quedan afuera PostgreSQL operativo (accesorio para un rol de plataforma) y 'comunicar decisiones tecnicas' (legitimo, menos diferenciador aca); entra Helm y Argo CD, que es DESEABLE pero central para 'operar la plataforma de despliegue sobre Kubernetes'. Es decir: no hay una jerarquia rigida seccion > seccion. Otra eleccion razonable de los ultimos 2-3 lugares no es un error; por eso la aceptacion exige cobertura de excluyentes y precision, y el acuerdo con esta lista se reporta como informativo."
+  },
+  "forbiddenInflations": [
+    "liderazgo",
+    "competencias avanzadas",
+    "proactiv",
+    "excelente",
+    "solido",
+    "experto",
+    "certificad"
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "requirement_selection_gold_v1",
+  "authorship": "Referencia redactada por Claude (Opus) a partir de la politica acordada; PENDIENTE de adjudicacion humana por el autor del PFI antes de usarse como gold definitivo.",
+  "postingId": "RSE_01",
+  "file": "postings/RSE_01_backend_fintech.md",
+  "title": "Desarrollador/a Backend Semi Senior",
+  "objectiveType": "EMPLOYMENT",
+  "purpose": "Mezcla tipica: tareas, actitudes, contexto, una linea con tres condiciones independientes, agrupaciones legitimas y duplicados entre secciones.",
+  "items": [
+    {
+      "id": "ctx_empresa",
+      "quote": "Somos una fintech con 8 años en el mercado y más de 2 millones de usuarios.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": "Contexto de la empresa."
+    },
+    {
+      "id": "ctx_equipo",
+      "quote": "Nos encanta trabajar en equipo y celebrar los logros.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": "Cultura; no se pide nada contrastable.",
+      "observedFailureText": "Competencias avanzadas de trabajo en equipo"
+    },
+    {
+      "id": "apis_tarea",
+      "quote": "Diseñar e implementar APIs REST para el procesamiento de pagos.",
+      "label": "KEEP",
+      "category": "PROFESSIONAL_CAPABILITY",
+      "priority": "REQUIRED",
+      "group": "apis_rest",
+      "reason": "Tarea que expresa una capacidad concreta; misma condicion que 'Experiencia diseñando APIs REST'."
+    },
+    {
+      "id": "reuniones",
+      "quote": "Participar en reuniones diarias del equipo.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Rutina sin capacidad exigida.",
+      "observedFailureText": "Capacidad de liderazgo y coordinacion de reuniones"
+    },
+    {
+      "id": "revisar_docs",
+      "quote": "Revisar documentos funcionales del área de producto.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Rutina."
+    },
+    {
+      "id": "colaborar_qa",
+      "quote": "Colaborar con el equipo de QA.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Conducta generica sin objeto evaluable."
+    },
+    {
+      "id": "tareas_asignadas",
+      "quote": "Realizar tareas asignadas por el líder técnico.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Rutina."
+    },
+    {
+      "id": "documentacion",
+      "quote": "Mantener la documentación técnica actualizada.",
+      "label": "DISCARD",
+      "category": "RESPONSIBILITY_ACTIVITY",
+      "priority": null,
+      "group": null,
+      "reason": "Tarea operativa; no se pide como requisito."
+    },
+    {
+      "id": "titulo",
+      "quote": "Título universitario en Sistemas",
+      "label": "KEEP",
+      "category": "EDUCATION_ACCREDITATION",
+      "priority": "REQUIRED",
+      "group": "titulo",
+      "reason": "Condicion independiente 1 de 3 en la misma linea."
+    },
+    {
+      "id": "ingles",
+      "quote": "inglés avanzado",
+      "label": "KEEP",
+      "category": "LANGUAGE_LEVEL",
+      "priority": "REQUIRED",
+      "group": "ingles",
+      "reason": "Condicion independiente 2 de 3; no se fusiona con el titulo."
+    },
+    {
+      "id": "unix",
+      "quote": "experiencia en Unix",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "REQUIRED",
+      "group": "unix",
+      "reason": "Condicion independiente 3 de 3."
+    },
+    {
+      "id": "exp_backend",
+      "quote": "Experiencia mínima de 3 años en desarrollo backend.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "REQUIRED",
+      "group": "exp_backend",
+      "reason": "Experiencia explicita con cantidad."
+    },
+    {
+      "id": "python_dominio",
+      "quote": "Dominio de Python.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "python",
+      "reason": "Conocimiento tecnico central."
+    },
+    {
+      "id": "bases_datos",
+      "quote": "Conocimiento de bases de datos como MariaDB, MongoDB y KeyDB.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "bases_datos",
+      "reason": "UN criterio con tres elementos nombrados: no se parte."
+    },
+    {
+      "id": "mensajeria",
+      "quote": "Mensajería asincrónica con Kafka y RabbitMQ.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "mensajeria",
+      "reason": "UN criterio de mensajeria."
+    },
+    {
+      "id": "docker",
+      "quote": "Experiencia con Docker en entornos productivos.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "REQUIRED",
+      "group": "docker",
+      "reason": ""
+    },
+    {
+      "id": "testing",
+      "quote": "Testing automatizado (unitario y de integración).",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "testing",
+      "reason": ""
+    },
+    {
+      "id": "seguridad",
+      "quote": "Conocimientos de seguridad en aplicaciones web (OWASP Top 10).",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "REQUIRED",
+      "group": "seguridad",
+      "reason": ""
+    },
+    {
+      "id": "actitud",
+      "quote": "Buena actitud y predisposición.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": "Actitud sin objeto.",
+      "observedFailureText": "Actitud profesional proactiva"
+    },
+    {
+      "id": "proactivo",
+      "quote": "Ser proactivo y comprometido.",
+      "label": "DISCARD",
+      "category": "ATTITUDE_GENERIC",
+      "priority": null,
+      "group": null,
+      "reason": "Actitud sin objeto."
+    },
+    {
+      "id": "apis_valorado",
+      "quote": "Experiencia diseñando APIs REST.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "apis_rest",
+      "reason": "Misma condicion que la tarea de APIs: un solo requisito."
+    },
+    {
+      "id": "python_asyncio",
+      "quote": "Python avanzado con asyncio.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "python_asyncio",
+      "reason": "Solapa con 'Dominio de Python' pero difiere en fuerza (avanzado, asyncio): por la regla DUPLICADOS del contrato congelado son dos claims."
+    },
+    {
+      "id": "kubernetes",
+      "quote": "Conocimientos de Kubernetes.",
+      "label": "KEEP",
+      "category": "TECHNICAL_KNOWLEDGE",
+      "priority": "DESIRABLE",
+      "group": "kubernetes",
+      "reason": ""
+    },
+    {
+      "id": "sector",
+      "quote": "Experiencia en el sector financiero.",
+      "label": "KEEP",
+      "category": "EXPERIENCE",
+      "priority": "DESIRABLE",
+      "group": "sector",
+      "reason": ""
+    },
+    {
+      "id": "remoto",
+      "quote": "Trabajo remoto.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": "Beneficio."
+    },
+    {
+      "id": "clases_ingles",
+      "quote": "Clases de inglés.",
+      "label": "DISCARD",
+      "category": "CONTEXT",
+      "priority": null,
+      "group": null,
+      "reason": "Beneficio; no es un requisito de ingles."
+    }
+  ],
+  "forbiddenInflations": [
+    "liderazgo",
+    "competencias avanzadas",
+    "proactiv",
+    "excelente",
+    "solido",
+    "experto",
+    "certificad"
+  ]
+}

@@ -106,6 +106,23 @@ function candidate(
   };
 }
 
+/**
+ * Prefijo con el que la política de extracción marca una condición no
+ * formativa dentro de `unresolvedPassages`. Si el modelo no lo respeta, el
+ * fragmento igual se cuenta como no resuelto: nunca desaparece.
+ */
+const NON_FORMATIVE_REASON_PREFIX = 'condicion no formativa:';
+
+function isNonFormativeReason(reason: string): boolean {
+  // Solo compara: el único acento posible del prefijo es el de "condición".
+  const head = reason
+    .trimStart()
+    .slice(0, NON_FORMATIVE_REASON_PREFIX.length)
+    .toLowerCase()
+    .replace('ó', 'o');
+  return head === NON_FORMATIVE_REASON_PREFIX;
+}
+
 export function adaptObjectiveProposal(payload: unknown): ObjectiveProposalVM {
   const raw = record(payload, 'proposal');
 
@@ -122,13 +139,37 @@ export function adaptObjectiveProposal(payload: unknown): ObjectiveProposalVM {
     );
   }
 
+  const passages = array(
+    raw.unresolvedPassages,
+    'proposal.unresolvedPassages'
+  ).map((value, index) => {
+    const path = `proposal.unresolvedPassages[${index}]`;
+    const passage = record(value, path);
+    return {
+      excerpt: verbatimString(passage.exactExcerpt, `${path}.exactExcerpt`),
+      // El motivo solo se usa para clasificar; nunca se muestra.
+      reason: typeof passage.reason === 'string' ? passage.reason : ''
+    };
+  });
+
   return {
     candidates: array(raw.candidates, 'proposal.candidates').map(
       (value, index) => candidate(value, `proposal.candidates[${index}]`)
     ),
-    unresolvedPassageCount: array(
-      raw.unresolvedPassages,
-      'proposal.unresolvedPassages'
+    // Opcional: una API anterior a la selección no lo manda, y eso equivale a
+    // "no hubo selección".
+    omittedCandidates:
+      raw.omittedCandidates === undefined
+        ? []
+        : array(raw.omittedCandidates, 'proposal.omittedCandidates').map(
+            (value, index) =>
+              candidate(value, `proposal.omittedCandidates[${index}]`)
+          ),
+    nonFormativeConditions: passages
+      .filter((passage) => isNonFormativeReason(passage.reason))
+      .map((passage) => passage.excerpt),
+    unresolvedPassageCount: passages.filter(
+      (passage) => !isNonFormativeReason(passage.reason)
     ).length
   };
 }
@@ -217,6 +258,10 @@ export function adaptObjectiveDetail(payload: unknown): ObjectiveDetailVM {
     sourceOriginalText: nullableVerbatimString(
       definition.sourceOriginalText,
       'objective.definition.sourceOriginalText'
-    )
+    ),
+    objectiveContext:
+      typeof definition.objectiveContext === 'string'
+        ? definition.objectiveContext
+        : ''
   };
 }

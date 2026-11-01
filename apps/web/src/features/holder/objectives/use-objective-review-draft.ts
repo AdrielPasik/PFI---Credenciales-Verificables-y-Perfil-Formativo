@@ -19,7 +19,9 @@ import {
   applyTextEdit,
   buildReviewDraft,
   createManualItem,
-  nextLocalKey
+  nextLocalKey,
+  replaceWithOmittedItem,
+  takeOmittedItem
 } from '@/features/holder/objectives/review-draft';
 import type {
   AnalyzedObjectiveSnapshot,
@@ -85,6 +87,8 @@ type Action =
   | { type: 'undoRemove' }
   | { type: 'clearUndo' }
   | { type: 'addManualItem' }
+  | { type: 'useOmittedItem'; localKey: string }
+  | { type: 'replaceWithOmittedItem'; omittedKey: string; targetKey: string }
   | { type: 'moveItem'; localKey: string; direction: -1 | 1 }
   | { type: 'focusHandled' };
 
@@ -228,6 +232,20 @@ export function objectiveFlowReducer(
       };
     }
 
+    case 'useOmittedItem': {
+      if (state.draft === null) return state;
+      const draft = takeOmittedItem(state.draft, action.localKey);
+      if (draft === state.draft) return state;
+      return { ...state, draft, focusRequestKey: action.localKey, error: null };
+    }
+
+    case 'replaceWithOmittedItem': {
+      if (state.draft === null) return state;
+      const draft = replaceWithOmittedItem(state.draft, action.omittedKey, action.targetKey);
+      if (draft === state.draft) return state;
+      return { ...state, draft, focusRequestKey: action.omittedKey, error: null, lastRemoved: null };
+    }
+
     case 'moveItem': {
       if (state.draft === null) return state;
       const index = state.draft.items.findIndex(
@@ -273,6 +291,9 @@ export function useObjectiveFlow() {
       undoRemove: () => dispatch({ type: 'undoRemove' }),
       clearUndo: () => dispatch({ type: 'clearUndo' }),
       addManualItem: () => dispatch({ type: 'addManualItem' }),
+      useOmittedItem: (localKey: string) => dispatch({ type: 'useOmittedItem', localKey }),
+      replaceWithOmittedItem: (omittedKey: string, targetKey: string) =>
+        dispatch({ type: 'replaceWithOmittedItem', omittedKey, targetKey }),
       moveItem: (localKey: string, direction: -1 | 1) =>
         dispatch({ type: 'moveItem', localKey, direction }),
       discardReview: () => dispatch({ type: 'discardReview' }),
