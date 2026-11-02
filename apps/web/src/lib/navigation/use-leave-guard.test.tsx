@@ -9,7 +9,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useEffect, useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { requestLeave, useLeaveGuard } from '@/lib/navigation/use-leave-guard';
+import {
+  HISTORY_FALLBACK_DELAY_MS,
+  leaveGuardNavigation,
+  requestLeave,
+  useLeaveGuard
+} from '@/lib/navigation/use-leave-guard';
 
 const COPY = {
   title: '¿Salir sin guardar?',
@@ -19,7 +24,7 @@ const COPY = {
 };
 
 function Harness({ dirty, onNavigate }: { dirty: boolean; onNavigate: (href: string) => void }) {
-  const guard = useLeaveGuard(dirty, COPY);
+  const guard = useLeaveGuard(dirty, COPY, { fallbackHref: '/wallet/objectives' });
   const internalRef = useRef<HTMLAnchorElement>(null);
   const hashRef = useRef<HTMLAnchorElement>(null);
   const externalRef = useRef<HTMLAnchorElement>(null);
@@ -156,12 +161,114 @@ describe('useLeaveGuard', () => {
     expect(go).toHaveBeenCalledWith(-2);
   });
 
-  it('al quedar sin cambios retira el centinela para que Atras no quede inerte', () => {
+  it('quedar sin cambios NO toca el historial por si solo (no compite con la app)', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    const push = vi.spyOn(window.history, 'pushState');
+    const { rerender } = render(<Harness dirty onNavigate={onNavigate} />);
+    rerender(<Harness dirty={false} onNavigate={onNavigate} />);
+    rerender(<Harness dirty onNavigate={onNavigate} />);
+
+    expect(back).not.toHaveBeenCalled();
+    // Un solo centinela por montaje, aunque los cambios vayan y vuelvan.
+    expect(push).toHaveBeenCalledTimes(1);
+  });
+
+  it('Atras sin cambios (ya guardado): completa el paso pedido, sin dialogo', () => {
     const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
     const { rerender } = render(<Harness dirty onNavigate={onNavigate} />);
     rerender(<Harness dirty={false} onNavigate={onNavigate} />);
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { __NA: true } }));
+    });
 
     expect(back).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('Adelante hacia el centinela no abandona nada', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    render(<Harness dirty onNavigate={onNavigate} />);
+    act(() => {
+      window.dispatchEvent(
+        new PopStateEvent('popstate', { state: { __NA: true, __scopeLeaveGuard: true } })
+      );
+    });
+
+    expect(back).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('adopta un centinela de una visita anterior: Atras sin cambios no queda inerte', () => {
+    window.history.replaceState({ __NA: true, __scopeLeaveGuard: true }, '', '/wallet/objectives/new');
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    render(<Harness dirty={false} onNavigate={onNavigate} />);
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { __NA: true } }));
+    });
+
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+
+  it('entrada directa por URL: si Atras no tiene a donde ir, va al padre jerarquico', () => {
+    vi.useFakeTimers();
+    vi.spyOn(window.history, 'go').mockImplementation(() => undefined);
+    const assign = vi.spyOn(leaveGuardNavigation, 'assign').mockImplementation(() => undefined);
+    render(<Harness dirty onNavigate={onNavigate} />);
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { __NA: true } }));
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salir y descartar' }));
+
+    expect(assign).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(HISTORY_FALLBACK_DELAY_MS);
+    });
+    expect(assign).toHaveBeenCalledWith('/wallet/objectives');
+    vi.useRealTimers();
+  });
+
+  it('si Atras si salio de la pagina, no hay navegacion de respaldo', () => {
+    vi.useFakeTimers();
+    vi.spyOn(window.history, 'go').mockImplementation(() => undefined);
+    const assign = vi.spyOn(leaveGuardNavigation, 'assign').mockImplementation(() => undefined);
+    const { unmount } = render(<Harness dirty onNavigate={onNavigate} />);
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { __NA: true } }));
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Salir y descartar' }));
+    unmount();
+    act(() => {
+      vi.advanceTimersByTime(HISTORY_FALLBACK_DELAY_MS);
+    });
+
+    expect(assign).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('despues de liberar (guardado con exito) no pregunta ni toca el historial', () => {
+    const back = vi.spyOn(window.history, 'back').mockImplementation(() => undefined);
+    function Released() {
+      const guard = useLeaveGuard(true, COPY);
+      return (
+        <div>
+          <button type="button" onClick={guard.release}>
+            guardado
+          </button>
+          {guard.dialog}
+        </div>
+      );
+    }
+    render(<Released />);
+    fireEvent.click(screen.getByRole('button', { name: 'guardado' }));
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { __NA: true } }));
+    });
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(back).not.toHaveBeenCalled();
+    const unload = new Event('beforeunload', { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(false);
   });
 });
 

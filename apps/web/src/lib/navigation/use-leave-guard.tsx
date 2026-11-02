@@ -10,14 +10,20 @@
  *                         Se intercepta en CAPTURA, antes de que Next navegue.
  *   botones de salida     cerrar sesion / cambiar institucion llaman a
  *                         `requestLeave(accion)`.
- *   Atras / Adelante      una entrada "centinela" duplicada en el historial: al
- *                         retroceder se sale del centinela, se lo repone y se
- *                         pregunta. El centinela copia el estado de Next para no
- *                         romper su router.
+ *   Atras / Adelante      una entrada "centinela" duplicada en el historial, que
+ *                         se agrega con el PRIMER cambio y copia el estado de Next
+ *                         para no romper su router. Al retroceder se sale del
+ *                         centinela: con cambios, se lo repone y se pregunta; sin
+ *                         cambios, se completa el paso pedido.
  *   recarga / cerrar      `beforeunload` (dialogo nativo del navegador).
  *
  * QUE NO HACE: preguntar cuando no hay cambios, ni interceptar la navegacion que
- * el propio formulario dispara al guardar con exito (para eso esta `release`).
+ * el propio formulario dispara al guardar con exito (para eso esta `release`), ni
+ * la redireccion por sesion vencida (no hay como guardar, y la pide la app).
+ *
+ * EL HISTORIAL SOLO SE TOCA COMO RESPUESTA A UNA ACCION DEL USUARIO (un Atras o
+ * una confirmacion), nunca desde un efecto: asi no compite con la navegacion que
+ * la propia app hace, por ejemplo despues de guardar.
  *
  * A lo sumo hay UN formulario protegido por vez en pantalla; `requestLeave` le
  * habla al que este activo y, si no hay ninguno, ejecuta la accion directamente.
@@ -89,14 +95,48 @@ export interface LeaveGuardCopy {
   discardLabel: string;
 }
 
+/** Espera antes de concluir que "Atras" no tenia a donde ir (entrada directa). */
+export const HISTORY_FALLBACK_DELAY_MS = 400;
+
+/** Navegacion de respaldo; separada para poder observarla en tests. */
+export const leaveGuardNavigation = {
+  assign(href: string): void {
+    window.location.assign(href);
+  }
+};
+
 export function useLeaveGuard(
   dirty: boolean,
-  copy: LeaveGuardCopy
+  copy: LeaveGuardCopy,
+  options: {
+    /**
+     * Padre jerarquico. Si la persona confirma salir con "Atras" pero llego por
+     * URL directa y no hay pagina anterior, se va aca en vez de quedar varada.
+     */
+    fallbackHref?: string;
+  } = {}
 ): { dialog: ReactNode; release: () => void } {
   const [pending, setPending] = useState<PendingLeave | null>(null);
   const dirtyRef = useRef(dirty);
   const releasedRef = useRef(false);
   const sentinelRef = useRef(false);
+  const mountedRef = useRef(false);
+  const fallbackHrefRef = useRef(options.fallbackHref);
+
+  useEffect(() => {
+    fallbackHrefRef.current = options.fallbackHref;
+  }, [options.fallbackHref]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    // Un centinela que quedo de una visita anterior a esta misma pagina (por
+    // ejemplo, se guardo y se navego hacia adelante, y despues se volvio) se
+    // adopta: el proximo Atras sin cambios lo completa en vez de quedar inerte.
+    if (isGuardEntry(window.history.state)) sentinelRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     dirtyRef.current = dirty;
@@ -136,28 +176,31 @@ export function useLeaveGuard(
     };
   }, [dirty]);
 
-  // Atras / Adelante del navegador.
+  // Atras / Adelante: el centinela se agrega con el primer cambio, una vez.
   useEffect(() => {
-    if (!dirty) return undefined;
+    if (!dirty || sentinelRef.current) return;
     if (!isGuardEntry(window.history.state)) pushGuardEntry();
     sentinelRef.current = true;
-    function onPopState() {
-      if (releasedRef.current || !dirtyRef.current) return;
-      pushGuardEntry();
-      setPending({ kind: 'history' });
+  }, [dirty]);
+
+  useEffect(() => {
+    function onPopState(event: PopStateEvent) {
+      if (!sentinelRef.current || releasedRef.current) return;
+      // Avanzar HACIA el centinela no abandona nada.
+      if (isGuardEntry(event.state)) return;
+      if (dirtyRef.current) {
+        pushGuardEntry();
+        setPending({ kind: 'history' });
+        return;
+      }
+      // Sin cambios: el Atras pedido solo salio del centinela, no de la pagina.
+      // Se completa una vez; si no hay pagina anterior, no pasa nada.
+      sentinelRef.current = false;
+      window.history.back();
     }
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [dirty]);
-
-  // Sin cambios pendientes, el centinela sobra: se retira para que "Atras" no
-  // quede inerte un paso. El listener de arriba ya no esta montado, asi que este
-  // retroceso no abre el dialogo; Next lo resuelve como la misma ruta.
-  useEffect(() => {
-    if (dirty || !sentinelRef.current || releasedRef.current) return;
-    sentinelRef.current = false;
-    if (isGuardEntry(window.history.state)) window.history.back();
-  }, [dirty]);
+  }, []);
 
   const release = useCallback(() => {
     releasedRef.current = true;
@@ -174,9 +217,20 @@ export function useLeaveGuard(
     // como siempre (Next Link si lo es, navegacion nativa si no).
     if (next.kind === 'link') next.anchor.click();
     // Desde el centinela repuesto: uno para salir de el, otro para la pagina
-    // anterior real.
-    else if (next.kind === 'history') window.history.go(-2);
-    else next.run();
+    // anterior real. Si se llego por URL directa no hay pagina anterior: se va al
+    // padre jerarquico en lugar de dejar a la persona en el mismo lugar.
+    else if (next.kind === 'history') {
+      const startHref = window.location.href;
+      window.history.go(-2);
+      const fallbackHref = fallbackHrefRef.current;
+      if (fallbackHref) {
+        window.setTimeout(() => {
+          if (mountedRef.current && window.location.href === startHref) {
+            leaveGuardNavigation.assign(fallbackHref);
+          }
+        }, HISTORY_FALLBACK_DELAY_MS);
+      }
+    } else next.run();
   }, [pending]);
 
   const dialog =

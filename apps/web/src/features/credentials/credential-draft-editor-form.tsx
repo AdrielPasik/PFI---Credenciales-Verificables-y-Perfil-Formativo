@@ -151,7 +151,7 @@ export const CredentialDraftEditorForm = forwardRef<
     description: 'Los cambios que hiciste en este borrador todavía no se guardaron.',
     stayLabel: 'Seguir editando',
     discardLabel: 'Salir sin guardar'
-  });
+  }, { fallbackHref: '/issuer' });
   const visibleFields = credentialDraftFieldsByType[state.type];
   const academicApprovalFields = visibleFields.filter(
     (field) => field !== 'skills' && field !== 'competencies'

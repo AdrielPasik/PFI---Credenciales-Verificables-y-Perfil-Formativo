@@ -121,7 +121,8 @@ export function ObjectiveIntakeRoute() {
       : 'Vas a perder el texto que escribiste.',
     stayLabel: reviewActive ? 'Seguir revisando' : 'Seguir editando',
     discardLabel: 'Salir y descartar'
-  });
+  }, { fallbackHref: '/wallet/objectives' });
+  const releaseLeaveGuard = leaveGuard.release;
 
   useEffect(() => {
     if (state.lastRemoved === null) return undefined;
@@ -203,7 +204,7 @@ export function ObjectiveIntakeRoute() {
         buildCreateObjectiveBody(state.draft)
       );
       // Guardado: ya no hay nada que perder al salir.
-      leaveGuard.release();
+      releaseLeaveGuard();
       router.push(`/wallet/objectives/${objective.objectiveReference}`);
     } catch (error) {
       // El borrador queda intacto y la propuesta NO se vuelve a pedir.
@@ -214,7 +215,7 @@ export function ObjectiveIntakeRoute() {
         retryable: mapped.retryable
       });
     }
-  }, [dispatch, leaveGuard, requestAuthenticated, router, state.confirming, state.draft]);
+  }, [dispatch, releaseLeaveGuard, requestAuthenticated, router, state.confirming, state.draft]);
 
   const codePoints = countCodePoints(state.intake.rawObjectiveText);
   const nearLimit = codePoints > MAX_OBJECTIVE_CODE_POINTS * 0.8;

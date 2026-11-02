@@ -116,7 +116,8 @@ export function CredentialDraftForm({
       description: 'Vas a perder los datos que cargaste en esta credencial.',
       stayLabel: 'Seguir editando',
       discardLabel: 'Salir y descartar'
-    }
+    },
+    { fallbackHref: '/issuer' }
   );
   const credentialTypeRef = useRef<HTMLSelectElement>(null);
   const achievementRef = useRef<HTMLInputElement>(null);
