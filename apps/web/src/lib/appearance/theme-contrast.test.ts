@@ -83,7 +83,12 @@ const PAIRS: Pair[] = [
   ['border-control', 'surface', 3],
   ['focus-ring', 'canvas', 3],
   ['focus-ring', 'surface', 3],
-  ['primary', 'surface', 3]
+  ['primary', 'surface', 3],
+  // Accion principal sobre las bandas invertidas.
+  ['on-inverse-action', 'inverse-action', 4.5],
+  ['on-inverse-action', 'inverse-action-hover', 4.5],
+  ['inverse-action-border', 'inverse', 3],
+  ['inverse-action-border', 'inverse-deep', 3]
 ];
 
 describe.each(Object.entries(themes))('tema %s', (_name, tokens) => {
@@ -97,6 +102,64 @@ describe.each(Object.entries(themes))('tema %s', (_name, tokens) => {
 
   it('white text on the inverse surface', () => {
     expect(contrast('#ffffff', tokens.inverse)).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+/**
+ * Peor punto de la ambientacion: los tres halos y la trama superpuestos con su
+ * opacidad maxima sobre el extremo mas claro del degradado (`inverse-deep`).
+ * El texto de las bandas y del login tiene que seguir siendo legible ahi.
+ */
+function rgbaTokensIn(selector: string): Record<string, [number, number, number, number]> {
+  const start = css.indexOf(`${selector} {`);
+  const body = css.slice(start, css.indexOf('}', start));
+  const tokens: Record<string, [number, number, number, number]> = {};
+  for (const [, name, r, g, b, a] of body.matchAll(
+    /--traza-([\w-]+):\s*rgb\((\d+) (\d+) (\d+) \/ (\d+)%\)\s*;/g
+  )) {
+    tokens[name] = [Number(r), Number(g), Number(b), Number(a) / 100];
+  }
+  return tokens;
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+}
+
+function blend(base: string, [r, g, b, alpha]: [number, number, number, number]) {
+  const mixed = hexToRgb(base).map((channel, index) =>
+    Math.round(channel * (1 - alpha) + [r, g, b][index] * alpha)
+  );
+  return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
+const ambient = {
+  light: rgbaTokensIn(':root'),
+  dark: { ...rgbaTokensIn(':root'), ...rgbaTokensIn(':root[data-theme="dark"]') }
+};
+
+describe.each(Object.entries(themes))('ambientacion, tema %s', (name, tokens) => {
+  const layers = ambient[name as keyof typeof ambient];
+  const worst = ['ambient-halo', 'ambient-halo-2', 'ambient-halo-3', 'ambient-grid'].reduce(
+    (background, layer) => {
+      expect(layers[layer], `--traza-${layer}`).toBeDefined();
+      return blend(background, layers[layer]);
+    },
+    tokens['inverse-deep']
+  );
+
+  it.each([
+    ['blanco', '#ffffff'],
+    ['brand-100', tokens['brand-100']],
+    ['teal-100', tokens['teal-100']],
+    // Texto secundario de las bandas: nunca por debajo del 90 % de opacidad.
+    ['brand-100 al 90 %', blend(worst, [...hexToRgb(tokens['brand-100']), 0.9])]
+  ])('texto %s sobre el peor punto de los halos >= 4.5:1', (_label, color) => {
+    expect(contrast(color, worst)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('el borde de la accion principal se distingue sobre el peor punto', () => {
+    expect(contrast(tokens['inverse-action-border'], worst)).toBeGreaterThanOrEqual(3);
   });
 });
 

@@ -284,7 +284,7 @@ export function CredentialDraftForm({
 
   return (
     <div className="grid gap-8 lg:gap-10">
-      <header className="max-w-4xl border-b border-border-default pb-7 sm:pb-8">
+      <header className="rule-accent max-w-4xl border-b border-border-default pb-7 sm:pb-8">
         <BackLink href="/issuer" label="Volver al panel del emisor" />
         <p className="mt-5 text-sm font-semibold text-accent">
           Nueva credencial
@@ -300,7 +300,7 @@ export function CredentialDraftForm({
 
       <section
         aria-labelledby="issuer-context-title"
-        className="grid gap-4 rounded-card border border-inverse-border bg-inverse p-5 text-white sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center lg:gap-8"
+        className="ambient-surface grid gap-4 rounded-card border border-inverse-border bg-inverse p-5 text-white sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center lg:gap-8"
       >
         <div className="flex min-w-0 items-start gap-4">
           <span

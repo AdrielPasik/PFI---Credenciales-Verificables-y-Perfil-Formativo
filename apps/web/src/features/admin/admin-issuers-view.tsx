@@ -96,7 +96,7 @@ export function AdminIssuersView({
 
   return (
     <div className="grid min-w-0 gap-8">
-      <header className="grid min-w-0 gap-2 border-b border-border-default pb-6">
+      <header className="rule-accent grid min-w-0 gap-2 border-b border-border-default pb-6">
         <p className="text-sm font-semibold text-accent">
           Plano de plataforma
         </p>

@@ -224,6 +224,7 @@ export function adaptMyCurrentProfile(payload: unknown): HolderProfileVM | null 
     totalOfficialHoursLabel: totalOfficialHours === null
       ? null
       : `${formatDisplayValue(totalOfficialHours)} horas oficiales declaradas`,
+    totalOfficialHoursValue: totalOfficialHours === null ? null : formatDisplayValue(totalOfficialHours),
     hoursCoverageNoticeLabel: credentialsWithoutHours !== null && credentialsWithoutHours > 0
       ? `${credentialsWithoutHours} ${pluralCredencial(credentialsWithoutHours)} no ${credentialsWithoutHours === 1 ? 'informa' : 'informan'} horas.`
       : null,

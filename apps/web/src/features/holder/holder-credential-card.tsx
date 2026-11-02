@@ -7,7 +7,7 @@ import type { HolderCredentialListItemVM } from '@/models/holder';
 
 export function HolderCredentialCard({ credential }: { credential: HolderCredentialListItemVM }) {
   return (
-    <Card className="group min-w-0 overflow-hidden transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-interactive hover:shadow-md motion-reduce:transform-none">
+    <Card className="group min-w-0 overflow-hidden transition-colors duration-200 hover:border-interactive">
       <div className={credential.status === 'revoked' ? 'h-1 bg-status-error' : 'h-1 bg-accent-solid'} />
       <CardHeader className="gap-3 sm:p-6 sm:pb-4">
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">

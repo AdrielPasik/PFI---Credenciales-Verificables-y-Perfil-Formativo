@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
+import { AmbientLight } from '@/components/layout/shell-band';
 import { AppearanceControl } from '@/components/navigation/appearance-control';
 import { buildCredentialVerifyHref, buildProfileReturnPath } from '@/features/verifier/analysis-return';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
@@ -35,7 +36,8 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
   ];
 
   return <section className="grid gap-8" aria-labelledby="shared-profile-title">
-    <Card className="min-w-0 border-inverse-border bg-inverse text-white">
+    <Card className="ambient-surface min-w-0 border-inverse-border bg-inverse text-white">
+      <AmbientLight />
       <CardHeader className="gap-4 sm:p-8">
         <div className="flex items-center gap-3"><UserRound aria-hidden="true" className="size-5 text-teal-100" /><p className="text-sm font-semibold text-teal-100">Perfil formativo compartido</p></div>
         <h1 id="shared-profile-title" className="break-words text-3xl font-bold tracking-tight sm:text-4xl">{profile.holderLabel ?? 'Perfil formativo'}</h1>

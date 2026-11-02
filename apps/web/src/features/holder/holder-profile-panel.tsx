@@ -9,51 +9,43 @@ import type { HolderProfileProvenanceVM, HolderProfileVM } from '@/models/holder
 const PRIMARY_AREAS_LIMIT = 6;
 const PRIMARY_SKILLS_LIMIT = 12;
 
-/** Kept for focused consumers; the wallet composes summary and detail separately. */
-export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
+/**
+ * Resumen del perfil para la banda de bienvenida del titular (superficie
+ * invertida): narrativa, aclaraciones prudentes y metricas principales.
+ */
+export function HolderProfileIntro({ profile }: { profile: HolderProfileVM }) {
   return (
-    <section aria-labelledby="holder-profile-summary-title" className="grid min-w-0 gap-8">
-      <HolderProfileSummary profile={profile} />
-      <HolderProfileDetails profile={profile} />
-    </section>
+    <div className="grid gap-2">
+      {profile.narrative ? <p className="max-w-[var(--traza-holder-narrative-width)] leading-7 text-brand-100">{profile.narrative}</p> : null}
+      <p className="max-w-[var(--traza-holder-narrative-width)] text-sm leading-6 text-brand-100/90">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
+    </div>
   );
 }
 
-export function HolderProfileSummary({ profile }: { profile: HolderProfileVM }) {
+export function HolderProfileMetrics({ profile }: { profile: HolderProfileVM }) {
   return (
-    <section aria-labelledby="holder-profile-summary-title" className="grid min-w-0 gap-6">
-      <Card className="min-w-0 overflow-hidden border-inverse-border bg-inverse text-white shadow-sm">
-        <div aria-hidden="true" className="h-1 bg-accent-solid" />
-        <CardHeader className="grid min-w-0 gap-8 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.42fr)] lg:items-end">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center justify-between gap-4 lg:justify-start">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-control border border-white/15 bg-white/5 text-teal-100"><Sparkles aria-hidden="true" className="size-5" /></span>
-              <Badge variant="secondary">Perfil disponible</Badge>
-            </div>
-            <h2 id="holder-profile-summary-title" className="mt-5 text-xl font-semibold">Resumen del perfil</h2>
-            <p className="mt-3 max-w-[var(--traza-holder-narrative-width)] text-sm leading-6 text-brand-100/85">Reúne información de {profile.credentialsCount} credenciales{profile.totalOfficialHoursLabel ? ` y ${profile.totalOfficialHoursLabel}` : ''}. La confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.</p>
-            {profile.narrative ? <p className="mt-4 max-w-[var(--traza-holder-narrative-width)] text-sm leading-6 text-brand-100">{profile.narrative}</p> : null}
-            {profile.totalOfficialHoursLabel ? <p className="mt-2 max-w-[var(--traza-holder-narrative-width)] text-xs leading-5 text-brand-100/70">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
-          </div>
-          <dl className="grid min-w-0 gap-4 border-t border-white/15 pt-5 text-sm lg:border-t-0 lg:border-l lg:pl-7 lg:pt-0">
-            <Metric label="Credenciales" value={String(profile.credentialsCount)} />
-            {profile.totalOfficialHoursLabel ? <Metric label="Horas oficiales declaradas" value={profile.totalOfficialHoursLabel} /> : null}
-            {profile.confidenceLabel ? <Metric label="Contexto del análisis" value={profile.confidenceLabel} /> : null}
-          </dl>
-        </CardHeader>
-      </Card>
+    <div className="grid gap-3">
+      <dl className="flex flex-wrap gap-x-10 gap-y-4">
+        <Metric label="Credenciales" value={String(profile.credentialsCount)} />
+        {profile.totalOfficialHoursLabel ? <Metric label="Horas oficiales declaradas" value={profile.totalOfficialHoursValue ? `${profile.totalOfficialHoursValue} h` : profile.totalOfficialHoursLabel} /> : null}
+        {profile.areas.length > 0 ? <Metric label="Áreas del perfil" value={String(profile.areas.length)} /> : null}
+      </dl>
+      {profile.totalOfficialHoursLabel ? <p className="text-xs leading-5 text-brand-100/90">Suma de horas informadas por las credenciales emitidas. No representa una distribución por área.</p> : null}
+    </div>
+  );
+}
 
-      {profile.hoursCoverageNoticeLabel || profile.semanticCoverageNoticeLabel ? (
-        <aside className="grid min-w-0 gap-2 rounded-control border border-status-warning/40 bg-status-warning-soft px-4 py-3.5 text-sm leading-6 text-status-warning sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4">
-          <p className="font-semibold">Cobertura del perfil</p>
-          <div className="min-w-0">
-            {profile.semanticCoverageNoticeLabel ? <p>{profile.semanticCoverageNoticeLabel}</p> : null}
-            {profile.hoursCoverageNoticeLabel ? <p className={profile.semanticCoverageNoticeLabel ? 'mt-1' : ''}>{profile.hoursCoverageNoticeLabel}</p> : null}
-            <p className="mt-1 text-status-warning">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
-          </div>
-        </aside>
-      ) : null}
-    </section>
+export function HolderProfileCoverageNotice({ profile }: { profile: HolderProfileVM }) {
+  if (!profile.hoursCoverageNoticeLabel && !profile.semanticCoverageNoticeLabel) return null;
+  return (
+    <aside className="grid min-w-0 gap-2 rounded-control border border-status-warning/40 bg-status-warning-soft px-4 py-3.5 text-sm leading-6 text-status-warning shadow-card sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4">
+      <p className="font-semibold">Cobertura del perfil</p>
+      <div className="min-w-0">
+        {profile.semanticCoverageNoticeLabel ? <p>{profile.semanticCoverageNoticeLabel}</p> : null}
+        {profile.hoursCoverageNoticeLabel ? <p className={profile.semanticCoverageNoticeLabel ? 'mt-1' : ''}>{profile.hoursCoverageNoticeLabel}</p> : null}
+        <p className="mt-1 text-status-warning">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
+      </div>
+    </aside>
   );
 }
 
@@ -65,7 +57,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
   const concepts = profile.concepts.map((concept) => ({ key: concept, label: concept, provenance: null }));
 
   return (
-    <section aria-labelledby="holder-profile-detail-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
+    <section aria-labelledby="holder-profile-detail-title" className="rule-accent grid min-w-0 gap-6 border-t border-border-default pt-8">
       <div className="max-w-2xl">
         <p className="text-sm font-semibold text-accent">Tu trayectoria en detalle</p>
         <h2 id="holder-profile-detail-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Áreas y habilidades</h2>
@@ -120,7 +112,7 @@ export function HolderProfileEmptyPanel({ action }: { action?: ReactNode }) {
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
-  return <div><dt className="text-xs font-semibold tracking-wide text-brand-100/70 uppercase">{label}</dt><dd className="mt-1 break-words text-2xl font-bold text-white">{value}</dd></div>;
+  return <div className="flex flex-col-reverse"><dt className="text-xs font-semibold tracking-wide text-brand-100/90 uppercase">{label}</dt><dd className="break-words text-2xl font-bold text-white sm:text-3xl">{value}</dd></div>;
 }
 
 interface ProfileListItem { key: string; label: string; metadata?: string | null; provenance: HolderProfileProvenanceVM | null; }
@@ -128,7 +120,7 @@ interface ProfileListItem { key: string; label: string; metadata?: string | null
 function ProfileList({ title, icon, items, limit, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; limit?: number; empty: string }) {
   const visibleItems = limit === undefined ? items : items.slice(0, limit);
   const remaining = items.length - visibleItems.length;
-  return <Card className="min-w-0 shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="shrink-0 text-accent">{icon}</span><h3 className="min-w-0 text-lg font-semibold text-text-strong">{title}</h3></CardHeader><CardContent className="min-w-0 pt-5">{visibleItems.length > 0 ? <><ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3">{visibleItems.map((item) => <li key={item.key} className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><Badge variant="outline" className="max-w-full whitespace-normal break-words px-3 py-1.5 text-left">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="min-w-0 break-words text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul>{remaining > 0 ? <p className="mt-4 text-xs text-text-muted">+ {remaining} más en el detalle del perfil.</p> : null}</> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+  return <Card className="min-w-0"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="shrink-0 text-accent">{icon}</span><h3 className="min-w-0 text-lg font-semibold text-text-strong">{title}</h3></CardHeader><CardContent className="min-w-0 pt-5">{visibleItems.length > 0 ? <><ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3">{visibleItems.map((item) => <li key={item.key} className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><Badge variant="outline" className="max-w-full whitespace-normal break-words px-3 py-1.5 text-left">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="min-w-0 break-words text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul>{remaining > 0 ? <p className="mt-4 text-xs text-text-muted">+ {remaining} más en el detalle del perfil.</p> : null}</> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
 }
 
 function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenanceVM }) {

@@ -164,7 +164,7 @@ export function ObjectiveDetailRoute() {
 
       {state.status === 'ready' ? (
         <>
-          <header className="grid min-w-0 gap-3 border-b border-border-default pb-7">
+          <header className="rule-accent grid min-w-0 gap-3 border-b border-border-default pb-7">
             <p className="text-sm font-semibold text-accent">
               {state.objective.objectiveTypeLabel}
             </p>

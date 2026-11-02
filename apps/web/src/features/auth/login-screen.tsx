@@ -33,7 +33,10 @@ export function LoginScreen() {
   ) {
     return (
       <AuthShell>
-        <SessionLoadingState label="Validando tu acceso" />
+        {/* Sobre el fondo ambiental, los estados tambien van en una tarjeta opaca. */}
+        <Card className="p-6 sm:p-8">
+          <SessionLoadingState label="Validando tu acceso" />
+        </Card>
       </AuthShell>
     );
   }
@@ -41,11 +44,13 @@ export function LoginScreen() {
   if (state.status === 'recoverable-error') {
     return (
       <AuthShell>
-        <SessionErrorState
-          feedback={state.error}
-          onRetry={() => void retry()}
-          onLogout={logout}
-        />
+        <Card className="p-6 sm:p-8">
+          <SessionErrorState
+            feedback={state.error}
+            onRetry={() => void retry()}
+            onLogout={logout}
+          />
+        </Card>
       </AuthShell>
     );
   }

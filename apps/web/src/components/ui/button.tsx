@@ -25,6 +25,10 @@ const buttonVariants = cva(
           'border-transparent bg-transparent text-link hover:bg-highlight active:text-link-hover',
         destructive:
           'border-status-error bg-status-error text-on-destructive shadow-xs hover:opacity-90 active:opacity-80',
+        // Accion principal sobre una banda invertida: clara en el tema claro,
+        // petroleo en el oscuro.
+        inverseAction:
+          'border-inverse-action-border bg-inverse-action text-on-inverse-action shadow-xs hover:bg-inverse-action-hover focus-visible:ring-white/60',
         // Sobre el header y los paneles invertidos, oscuros en ambos temas.
         inverse:
           'border-white/25 bg-transparent text-white hover:border-white/40 hover:bg-white/10 active:bg-white/15 focus-visible:ring-white/60'

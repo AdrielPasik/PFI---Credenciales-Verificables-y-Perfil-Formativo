@@ -34,30 +34,30 @@ export function BrandMark({
           <Image
             alt=""
             className="size-11 object-contain sm:size-12 dark:hidden"
-            height={1254}
+            height={48}
             priority
             src={logoSource ?? ''}
-            width={1254}
+            width={48}
           />
           <Image
             alt=""
             className="hidden size-11 object-contain sm:size-12 dark:block"
-            height={1254}
+            height={48}
             // Sin carga diferida: si el tema es oscuro desde el inicio, el logo
             // no debe aparecer tarde.
             loading="eager"
             src="/brand/Logo%20Scope%20Invertido.png"
-            width={1254}
+            width={48}
           />
         </span>
       ) : logoSource ? (
         <Image
           alt="Scope"
           className="size-11 shrink-0 object-contain sm:size-12"
-          height={1254}
+          height={48}
           priority
           src={logoSource}
-          width={1254}
+          width={48}
         />
       ) : (
         <span

@@ -3,12 +3,15 @@
 import { useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { Button } from '@/components/ui/button';
 import { rebuildMyProfileRequest } from '@/lib/api/holder-api';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderProfileVM } from '@/models/holder';
 
 interface ProfileRebuildActionProps {
   label?: string;
+  /** `inverse`: sobre la banda de bienvenida, oscura en ambos temas. */
+  tone?: 'default' | 'inverse';
   onRebuilt: (profile: HolderProfileVM | null) => void;
 }
 
@@ -22,6 +25,7 @@ interface ProfileRebuildActionProps {
 // pagina).
 export function ProfileRebuildAction({
   label = 'Actualizar perfil',
+  tone = 'default',
   onRebuilt
 }: ProfileRebuildActionProps) {
   const { requestAuthenticated } = useSession();
@@ -44,14 +48,15 @@ export function ProfileRebuildAction({
 
   return (
     <div className="grid gap-3">
-      <button
+      <Button
         type="button"
-        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        variant={tone === 'inverse' ? 'inverse' : 'secondary'}
+        className="w-fit"
         disabled={loading}
         onClick={() => void rebuild()}
       >
         {loading ? 'Actualizando…' : label}
-      </button>
+      </Button>
       {error ? (
         <FeedbackAlert variant="warning" title="No pudimos actualizar tu perfil">
           {error}
