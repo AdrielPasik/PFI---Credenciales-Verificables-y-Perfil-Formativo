@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
+import { buildCredentialVerifyHref, buildProfileReturnPath } from '@/features/verifier/analysis-return';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ export function PublicProfileShareRoute({ token }: { token: string }) {
     return () => { active = false; };
   }, [token]);
 
-  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Volver a iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} token={token} /> : null}</div></main>;
+  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} token={token} /> : null}</div></main>;
 }
 
 function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; token: string }) {
@@ -68,7 +69,7 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
               <p className="break-words font-semibold text-text-strong">{credential.title}</p>
               <p className="mt-1 break-words text-sm text-text-muted">{credential.typeLabel} · {credential.issuerName}{credential.issuedAtLabel ? ` · ${credential.issuedAtLabel}` : ''}</p>
             </div>
-            <Button asChild size="sm" variant="secondary" className="w-fit"><Link href={`/verify?credential=${encodeURIComponent(credential.credentialReference)}`}>Ver credencial</Link></Button>
+            <Button asChild size="sm" variant="secondary" className="w-fit"><Link href={buildCredentialVerifyHref(credential.credentialReference, buildProfileReturnPath(token))}>Ver credencial</Link></Button>
           </div>)}
         </div> : <p className="text-sm text-text-muted">No hay credenciales emitidas disponibles para mostrar.</p>}
       </CardContent>

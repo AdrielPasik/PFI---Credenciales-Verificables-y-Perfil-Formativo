@@ -19,6 +19,7 @@ import {
 } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { SessionLoadingState } from '@/components/feedback/session-loading-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -351,6 +352,7 @@ export function CredentialDetailController({
   if (error || !detail) {
     return (
       <div className="mx-auto grid w-full max-w-2xl gap-5">
+        <BackLink href="/issuer" label="Volver al panel del emisor" />
         <FeedbackAlert
           variant="error"
           title="No pudimos abrir la credencial"
@@ -358,20 +360,15 @@ export function CredentialDetailController({
           {error?.message ??
             'No pudimos interpretar la credencial solicitada.'}
         </FeedbackAlert>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild variant="secondary">
-            <Link href="/issuer">Volver al portal</Link>
+        {error?.code !== 'forbidden' && error?.code !== 'session_expired' ? (
+          <Button
+            type="button"
+            className="w-fit"
+            onClick={() => setReloadKey((current) => current + 1)}
+          >
+            Intentar nuevamente
           </Button>
-          {error?.code !== 'forbidden' &&
-          error?.code !== 'session_expired' ? (
-            <Button
-              type="button"
-              onClick={() => setReloadKey((current) => current + 1)}
-            >
-              Intentar nuevamente
-            </Button>
-          ) : null}
-        </div>
+        ) : null}
       </div>
     );
   }
@@ -781,13 +778,8 @@ export function CredentialDetailView({
   return (
     <div className="grid gap-8 lg:gap-10">
       <header className="border-b border-border-default pb-7 sm:pb-8">
-        <Link
-          href="/issuer"
-          className="text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
-        >
-          Volver al portal
-        </Link>
-        <div className="mt-7 flex flex-wrap items-center gap-3">
+        <BackLink href="/issuer" label="Volver al panel del emisor" />
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <Badge
             variant="outline"
             className={
@@ -1066,7 +1058,7 @@ export function CredentialDetailView({
             className="grid gap-3 border-t border-border-default pt-4"
           >
               <h2 id="draft-actions-title" className="text-sm font-semibold text-text-strong">
-                Continuar en el portal
+                Otras acciones
               </h2>
               <div className="grid gap-2">
               <Button asChild variant="secondary">
@@ -1074,9 +1066,6 @@ export function CredentialDetailView({
                   <FilePlus2 aria-hidden="true" />
                   Crear otra credencial
                 </Link>
-              </Button>
-              <Button asChild variant="ghost">
-                <Link href="/issuer">Volver al portal</Link>
               </Button>
               </div>
           </nav>

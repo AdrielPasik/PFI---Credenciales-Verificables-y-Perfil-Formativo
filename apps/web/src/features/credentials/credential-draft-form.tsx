@@ -9,7 +9,6 @@ import {
   Search,
   UserRoundCheck
 } from 'lucide-react';
-import Link from 'next/link';
 import {
   useRef,
   useState,
@@ -17,6 +16,7 @@ import {
 } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { TextField } from '@/components/forms/text-field';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { AcademicSubjectCreationCatalogSection } from '@/features/credentials/ac
 import type { AcademicSubjectCatalogSearchHandlers } from '@/features/credentials/academic-subject-catalog-section';
 import { ReusableTemplateSearchSection } from '@/features/credentials/reusable-template-search-section';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
+import { useLeaveGuard } from '@/lib/navigation/use-leave-guard';
 import {
   credentialTypeLabels,
   credentialTypesForIssuer
@@ -98,6 +99,26 @@ export function CredentialDraftForm({
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const emailRef = useRef<HTMLInputElement>(null);
+
+  // El borrador todavia no existe en el servidor: salir pierde lo cargado. Se
+  // pregunta solo si hay algo cargado. Crear el borrador navega con
+  // `router.replace`, que la guarda no intercepta.
+  const leaveGuard = useLeaveGuard(
+    email.trim().length > 0 ||
+      holder !== null ||
+      achievementName.trim().length > 0 ||
+      credentialType !== '' ||
+      selectedProgram !== null ||
+      selectedSubject !== null ||
+      appliedTemplate !== null,
+    {
+      title: '¿Salir sin crear el borrador?',
+      description: 'Vas a perder los datos que cargaste en esta credencial.',
+      stayLabel: 'Seguir editando',
+      discardLabel: 'Salir y descartar'
+    },
+    { fallbackHref: '/issuer' }
+  );
   const credentialTypeRef = useRef<HTMLSelectElement>(null);
   const achievementRef = useRef<HTMLInputElement>(null);
 
@@ -264,13 +285,8 @@ export function CredentialDraftForm({
   return (
     <div className="grid gap-8 lg:gap-10">
       <header className="max-w-4xl border-b border-border-default pb-7 sm:pb-8">
-        <Link
-          href="/issuer"
-          className="text-sm font-semibold text-brand-700 underline-offset-4 hover:underline"
-        >
-          Volver al portal
-        </Link>
-        <p className="mt-7 text-sm font-semibold text-teal-700">
+        <BackLink href="/issuer" label="Volver al panel del emisor" />
+        <p className="mt-5 text-sm font-semibold text-teal-700">
           Nueva credencial
         </p>
         <h1 className="mt-3 text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-5xl">
@@ -746,6 +762,7 @@ export function CredentialDraftForm({
             </div>
           </section>
       </div>
+      {leaveGuard.dialog}
     </div>
   );
 }

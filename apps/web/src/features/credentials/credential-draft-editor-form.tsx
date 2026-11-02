@@ -41,6 +41,7 @@ import {
   type CredentialDraftSpecificField
 } from '@/features/credentials/credential-draft-editor';
 import { mapCredentialError } from '@/lib/errors/credential-error-mapper';
+import { useLeaveGuard } from '@/lib/navigation/use-leave-guard';
 import {
   credentialTypeLabels,
   type CredentialFeedback,
@@ -143,6 +144,14 @@ export const CredentialDraftEditorForm = forwardRef<
     state,
     pendingAcademicSelection
   });
+  // `command` es exactamente "hay cambios sin guardar respecto del borrador
+  // guardado": tras un guardado exitoso vuelve a null y la guarda se apaga sola.
+  const leaveGuard = useLeaveGuard(command !== null, {
+    title: '¿Salir sin guardar los cambios?',
+    description: 'Los cambios que hiciste en este borrador todavía no se guardaron.',
+    stayLabel: 'Seguir editando',
+    discardLabel: 'Salir sin guardar'
+  }, { fallbackHref: '/issuer' });
   const visibleFields = credentialDraftFieldsByType[state.type];
   const academicApprovalFields = visibleFields.filter(
     (field) => field !== 'skills' && field !== 'competencies'
@@ -653,6 +662,7 @@ export const CredentialDraftEditorForm = forwardRef<
 
         {draftSaveAction}
       </form>
+      {leaveGuard.dialog}
     </section>
   );
 });

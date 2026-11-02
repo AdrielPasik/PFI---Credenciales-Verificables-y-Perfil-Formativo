@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { AdminAddMemberFlow } from '@/features/admin/admin-add-member-flow';
 import { AdminCreateIssuerFlow } from '@/features/admin/admin-create-issuer-flow';
+import type { AdminEntry } from '@/features/admin/admin-entry';
 import { AdminRouteBoundary } from '@/features/admin/admin-route-boundary';
 import {
   AdminIssuersView,
@@ -59,9 +60,9 @@ import { useSession } from '@/lib/session/session-provider';
  */
 
 /** La seleccion vive en estado local: S6a no necesita una ruta por issuer. */
-export function AdminRoute() {
+export function AdminRoute({ entry = null }: { entry?: AdminEntry | null }) {
   return (
-    <AdminRouteBoundary>
+    <AdminRouteBoundary entry={entry}>
       <AdminContent />
     </AdminRouteBoundary>
   );

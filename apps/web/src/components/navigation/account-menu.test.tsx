@@ -67,10 +67,10 @@ describe('AccountMenu: entry point a /admin', () => {
     ).toBeTruthy();
   });
 
-  it('4: el enlace apunta a /admin', () => {
+  it('4: el enlace apunta a /admin, con el espacio personal como origen por defecto', () => {
     render(<AccountMenu label="Adriel Pasik" isPlatformAdmin onLogout={noop} />);
 
-    expect(adminLink()?.getAttribute('href')).toBe('/admin');
+    expect(adminLink()?.getAttribute('href')).toBe('/admin?from=wallet');
   });
 
   it('es un enlace real, no un div con onClick', () => {
@@ -131,14 +131,15 @@ describe('shells: propagación del entry point', () => {
     });
   }
 
-  it('WalletShell lo muestra para un PlatformAdmin', () => {
+  it('WalletShell lo muestra para un PlatformAdmin, con su origen', () => {
     render(
       <WalletShell label="Adriel Pasik" isPlatformAdmin onLogout={noop}>
         <p>contenido</p>
       </WalletShell>
     );
 
-    expect(adminLink()?.getAttribute('href')).toBe('/admin');
+    // El origen viaja como enum para que Administracion sepa a donde volver.
+    expect(adminLink()?.getAttribute('href')).toBe('/admin?from=wallet');
   });
 
   it('WalletShell NO lo muestra para un User normal', () => {
@@ -165,7 +166,7 @@ describe('shells: propagación del entry point', () => {
       </IssuerShell>
     );
 
-    expect(adminLink()?.getAttribute('href')).toBe('/admin');
+    expect(adminLink()?.getAttribute('href')).toBe('/admin?from=issuer');
     // Y lo institucional sigue intacto.
     expect(screen.getByText('UADE')).toBeTruthy();
     expect(screen.getByText('Institución activa')).toBeTruthy();

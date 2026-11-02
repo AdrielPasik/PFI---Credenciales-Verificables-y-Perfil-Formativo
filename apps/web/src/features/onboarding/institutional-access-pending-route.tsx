@@ -147,6 +147,9 @@ export function InstitutionalAccessPendingBoundary({
   return (
     <WalletShell
       label={state.currentUser.displayLabel}
+      // Esta pantalla ya es la raiz de este espacio: la marca no navega.
+      homeHref={null}
+      adminEntry="pending"
       // S6a: sin esto, un PlatformAdmin con intencion institucional y CERO
       // memberships aterriza aca y no tendria ningun camino visible a /admin.
       // Es el unico cambio de S6a en esta ruta: no se toca su routing ni su

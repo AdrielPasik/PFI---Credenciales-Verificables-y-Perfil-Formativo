@@ -1,12 +1,12 @@
 'use client';
 
-import { ArrowLeft, BookOpenCheck, BrainCircuit, FileText, Fingerprint, Landmark } from 'lucide-react';
-import Link from 'next/link';
+import { BookOpenCheck, BrainCircuit, FileText, Fingerprint, Landmark } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { TransactionExplorerLink } from '@/components/blockchain/transaction-explorer-link';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { BackLink } from '@/components/navigation/back-link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -48,7 +48,7 @@ export function WalletCredentialDetailContent() {
   }, [params.credentialId, requestAuthenticated, requestVersion]);
 
   if (error) {
-    return <section className="grid gap-5"><BackLink /><FeedbackAlert variant="error" title={error.title}>{error.message}{contractDebug && error.diagnostic ? <ContractDiagnostic diagnostic={error.diagnostic} /> : null}</FeedbackAlert>{error.retryable ? <Button type="button" className="w-fit" onClick={() => { setDetail(null); setError(null); setRequestVersion((version) => version + 1); }}>Reintentar</Button> : null}</section>;
+    return <section className="grid gap-5"><BackLink href="/wallet/credentials" label="Volver a mis credenciales" /><FeedbackAlert variant="error" title={error.title}>{error.message}{contractDebug && error.diagnostic ? <ContractDiagnostic diagnostic={error.diagnostic} /> : null}</FeedbackAlert>{error.retryable ? <Button type="button" className="w-fit" onClick={() => { setDetail(null); setError(null); setRequestVersion((version) => version + 1); }}>Reintentar</Button> : null}</section>;
   }
   if (!detail) return <LoadingState label="Cargando credencial" />;
 
@@ -113,7 +113,7 @@ export function mapCredentialDetailError(error: unknown): HolderCredentialDetail
 
 export function WalletCredentialDetailView({ detail }: { detail: HolderCredentialDetailVM }) {
   return <section className="grid min-w-0 gap-8 lg:gap-10" aria-labelledby="holder-credential-title">
-    <BackLink />
+    <BackLink href="/wallet/credentials" label="Volver a mis credenciales" />
     <PublicSharePanel title="Compartir credencial" sharePath={`/verify?credential=${encodeURIComponent(detail.credentialReference)}`} credentialReference={detail.credentialReference} description="Cualquier persona con este enlace podrá consultar la información pública verificable de esta credencial." />
     <Card className="min-w-0 overflow-hidden border-brand-700 shadow-sm"><div className={detail.status === 'revoked' ? 'h-1 bg-status-error' : 'h-1 bg-teal-700'} /><CardHeader className="gap-4 sm:p-8"><div className="flex flex-wrap items-center gap-2"><Badge variant={detail.status === 'revoked' ? 'outline' : 'secondary'}>{detail.statusLabel}</Badge><Badge variant="outline">{detail.typeLabel}</Badge></div><div className="min-w-0"><p className="text-sm font-semibold text-teal-700">Credencial formativa</p><h1 id="holder-credential-title" className="mt-1 break-words text-3xl font-bold tracking-tight text-text-strong">{detail.title}</h1><p className="mt-4 max-w-[var(--traza-holder-narrative-width)] leading-7 text-text-muted">Esta credencial fue emitida por la institución indicada. Scope permite consultar su integridad y su aporte formativo.</p></div></CardHeader></Card>
     {detail.status === 'revoked' ? <FeedbackAlert variant="warning" title="Esta credencial está revocada">{detail.revocationReason ?? 'La institución emisora registró esta credencial como revocada.'}</FeedbackAlert> : null}
@@ -165,4 +165,3 @@ function CourseDeclaredDataSection({ subject }: { subject: HolderCredentialDetai
 
 function ReadField({ label, value, mono = false }: { label: string; value: string | null; mono?: boolean }) { if (!value) return null; return <div className="min-w-0"><p className="text-xs font-semibold tracking-wide text-text-muted uppercase">{label}</p><p className={`mt-1 min-w-0 text-text-strong ${mono ? 'break-all font-mono text-xs' : 'break-words font-medium'}`}>{value}</p></div>; }
 function EmptyReadOnly({ title, text }: { title: string; text: string }) { return <div className="rounded-control border border-dashed border-border-strong p-4 text-sm"><p className="font-semibold text-text-strong">{title}</p><p className="mt-2 leading-6 text-text-muted">{text}</p></div>; }
-function BackLink() { return <Button asChild variant="ghost" className="w-fit"><Link href="/wallet/credentials"><ArrowLeft aria-hidden="true" />Volver a mis credenciales</Link></Button>; }

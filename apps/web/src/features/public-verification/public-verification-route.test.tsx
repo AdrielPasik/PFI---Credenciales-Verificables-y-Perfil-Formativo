@@ -34,7 +34,7 @@ describe('PublicVerificationRoute', () => {
     expect(screen.getByText('Revisá el código o enlace ingresado.')).toBeTruthy();
     expect(apiMocks.getPublicCredentialVerificationRequest).not.toHaveBeenCalled();
     expect(
-      (screen.getByRole('link', { name: 'Volver a iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
+      (screen.getByRole('link', { name: 'Iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
     ).toBe('/login');
   });
 
@@ -135,7 +135,7 @@ describe('PublicVerificationRoute', () => {
 
       const back = screen.getByRole('link', { name: 'Volver al análisis' }) as HTMLAnchorElement;
       expect(back.getAttribute('href')).toBe(analysisPath);
-      expect(screen.queryByRole('link', { name: 'Volver a iniciar sesión' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'Iniciar sesión' })).toBeNull();
       await screen.findByRole('heading', { name: 'Autoría verificada, con evidencia de red limitada' });
     });
 
@@ -159,7 +159,7 @@ describe('PublicVerificationRoute', () => {
 
       expect(screen.queryByRole('link', { name: 'Volver al análisis' })).toBeNull();
       expect(
-        (screen.getByRole('link', { name: 'Volver a iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
+        (screen.getByRole('link', { name: 'Iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
       ).toBe('/login');
     });
 
@@ -175,7 +175,7 @@ describe('PublicVerificationRoute', () => {
       expect(screen.queryByRole('link', { name: 'Volver al análisis' })).toBeNull();
       expect(document.body.innerHTML).not.toContain('evil.example');
       expect(
-        (screen.getByRole('link', { name: 'Volver a iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
+        (screen.getByRole('link', { name: 'Iniciar sesión' }) as HTMLAnchorElement).getAttribute('href')
       ).toBe('/login');
     });
   });

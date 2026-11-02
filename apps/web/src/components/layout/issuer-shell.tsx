@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { BrandHomeLink } from '@/components/brand/brand-home-link';
 import { BrandMark } from '@/components/brand/brand-mark';
 import { AccountMenu } from '@/components/navigation/account-menu';
 import { Badge } from '@/components/ui/badge';
@@ -45,13 +46,16 @@ export function IssuerShell({
       <header className="border-b border-brand-700 bg-brand-900 text-white shadow-sm">
         <div className="mx-auto w-full max-w-[90rem] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <BrandMark
-              authenticatedDark
-              tone="inverse"
-              descriptor="Portal del emisor"
-            />
+            <BrandHomeLink href="/issuer" label="Scope: ir al panel del emisor">
+              <BrandMark
+                authenticatedDark
+                tone="inverse"
+                descriptor="Portal del emisor"
+              />
+            </BrandHomeLink>
             <AccountMenu
               label={label}
+              adminEntry="issuer"
               canChangeIssuer={canChangeIssuer}
               isPlatformAdmin={isPlatformAdmin}
               onChangeIssuer={onChangeIssuer}

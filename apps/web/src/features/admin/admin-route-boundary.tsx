@@ -6,6 +6,7 @@ import { useEffect, type ReactNode } from 'react';
 import { SessionErrorState } from '@/components/feedback/session-error-state';
 import { SessionLoadingState } from '@/components/feedback/session-loading-state';
 import { AdminShell } from '@/components/layout/admin-shell';
+import { adminReturnDestination, type AdminEntry } from '@/features/admin/admin-entry';
 import { useSession } from '@/lib/session/session-provider';
 
 /**
@@ -41,7 +42,13 @@ import { useSession } from '@/lib/session/session-provider';
  * leer el payload crudo, y no infiere la capacidad por email, por memberships,
  * por rol admin ni por intencion de onboarding.
  */
-export function AdminRouteBoundary({ children }: { children: ReactNode }) {
+export function AdminRouteBoundary({
+  children,
+  entry = null
+}: {
+  children: ReactNode;
+  entry?: AdminEntry | null;
+}) {
   const router = useRouter();
   const { logout, retry, state } = useSession();
 
@@ -101,6 +108,7 @@ export function AdminRouteBoundary({ children }: { children: ReactNode }) {
   return (
     <AdminShell
       label={state.currentUser.displayLabel}
+      returnDestination={adminReturnDestination(entry)}
       onLogout={handleLogout}
     >
       {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { Fingerprint, Landmark } from 'lucide-react';
+import { ArrowLeft, Fingerprint, Landmark } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
@@ -9,7 +9,7 @@ import { BrandMark } from '@/components/brand/brand-mark';
 import {
   ANALYSIS_RETURN_PARAM,
   buildCredentialVerifyHref,
-  parseAnalysisReturnPath
+  parsePublicReturn
 } from '@/features/verifier/analysis-return';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
@@ -39,10 +39,10 @@ export function PublicVerificationRoute() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryReference = searchParams.get('credential') ?? '';
-  // Solo se ofrece volver si la pagina se abrio DESDE un analisis publico y la
-  // ruta tiene exactamente esa forma. Una visita directa, o un valor ajeno,
-  // queda en `null` y la pagina se comporta como siempre.
-  const analysisReturnPath = parseAnalysisReturnPath(searchParams.get(ANALYSIS_RETURN_PARAM));
+  // Solo se ofrece volver si la pagina se abrio DESDE un perfil compartido o su
+  // analisis y la ruta tiene exactamente esa forma. Una visita directa, o un
+  // valor ajeno, queda en `null` y la pagina se comporta como siempre.
+  const publicReturn = parsePublicReturn(searchParams.get(ANALYSIS_RETURN_PARAM));
   const [input, setInput] = useState(queryReference);
   const [state, setState] = useState<VerificationState>({ kind: 'idle' });
   const loadedReference = useRef<string | null>(null);
@@ -73,7 +73,7 @@ export function PublicVerificationRoute() {
     }
     loadedReference.current = reference;
     setInput(reference);
-    router.replace(buildCredentialVerifyHref(reference, analysisReturnPath));
+    router.replace(buildCredentialVerifyHref(reference, publicReturn?.path ?? null));
     void verify(reference);
   }
 
@@ -83,10 +83,15 @@ export function PublicVerificationRoute() {
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border-default pb-5 sm:pb-6">
           <BrandMark lightLogo descriptor="Verificación pública" />
           <Button asChild size="sm" variant="secondary">
-            {analysisReturnPath !== null ? (
-              <Link href={analysisReturnPath}>Volver al análisis</Link>
+            {publicReturn !== null ? (
+              <Link href={publicReturn.path}>
+                <ArrowLeft aria-hidden="true" />
+                {publicReturn.label}
+              </Link>
             ) : (
-              <Link href="/login">Volver a iniciar sesión</Link>
+              // Quien verifica una credencial casi nunca tiene cuenta: no se le
+              // ofrece "volver" a un lugar donde nunca estuvo.
+              <Link href="/login">Iniciar sesión</Link>
             )}
           </Button>
         </header>
