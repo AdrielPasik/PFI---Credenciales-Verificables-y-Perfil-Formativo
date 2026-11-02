@@ -123,10 +123,14 @@ jobs:
           # Comandos FIJOS. La lectura usa el mismo esquema de solo lectura que
           # el paso `precheck` del migrador.
           READ_SQL="SELECT count(*) AS uade_rows, bool_and(name LIKE \$\$${UADE_NAME_PREFIX}%\$\$) AS uade_name_ok, COALESCE(string_agg(array_to_string(\"allowedCredentialTypes\", \$\$,\$\$), \$\$;\$\$), \$\$<none>\$\$) AS uade_types FROM \"Issuer\" WHERE id = \$\$${UADE_ISSUER_ID}\$\$"
-          jq -cn --arg sql "$READ_SQL" '[
+          # Huella de los tipos de las DEMAS instituciones: tiene que ser igual
+          # antes y despues (solo cambia UADE).
+          OTHERS_SQL="SELECT count(*) AS others_rows, md5(COALESCE(string_agg(id || \$\$:\$\$ || array_to_string(\"allowedCredentialTypes\", \$\$,\$\$), \$\$;\$\$ ORDER BY id), \$\$\$\$)) AS others_fingerprint FROM \"Issuer\" WHERE id <> \$\$${UADE_ISSUER_ID}\$\$"
+          jq -cn --arg sql "$READ_SQL" --arg others "$OTHERS_SQL" '[
             "psql","-X","-q","-A","-t","-x","-v","ON_ERROR_STOP=1",
             "-c","SET default_transaction_read_only = on",
             "-c",$sql,
+            "-c",$others,
             "-c","SELECT 1 AS read_done"
           ]' > "$RUNNER_TEMP/read-command.json"
 
@@ -242,9 +246,17 @@ jobs:
           TYPES="$(read_value read-after uade_types)"
           echo "UADE credential types after: $TYPES"
           if [ "$ROWS" != "1" ] || [ "$TYPES" != "$TARGET_TYPES" ]; then
-            echo "UADE does not have exactly $TARGET_TYPES after the change." >&2
+            echo "UADE does not have exactly $TARGET_TYPES after the change. The write is NOT retried." >&2
             exit 1
           fi
+          OTHERS_BEFORE="$(read_value read-before others_fingerprint)"
+          OTHERS_AFTER="$(read_value read-after others_fingerprint)"
+          echo "Other institutions: $(read_value read-after others_rows) rows."
+          if [ -z "$OTHERS_BEFORE" ] || [ "$OTHERS_BEFORE" != "$OTHERS_AFTER" ]; then
+            echo "The credential types of other institutions changed or could not be compared." >&2
+            exit 1
+          fi
+          echo "Other institutions unchanged (fingerprint matches)."
           echo "UADE now has exactly: $TARGET_TYPES"
 
       - name: Remove temporary outputs
