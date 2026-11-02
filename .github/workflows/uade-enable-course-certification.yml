@@ -1,0 +1,265 @@
+# OPERACION PUNTUAL -- habilitar Curso y Certificacion para UADE.
+#
+# Contexto: UADE no puede crear borradores de Curso ni de Certificacion porque su
+# politica de plataforma (`Issuer.allowedCredentialTypes`) solo habilita
+# `academic_subject`. La API responde 400 `CREDENTIAL_TYPE_NOT_ENABLED`.
+#
+# Que hace, en este orden y sin entradas libres:
+#   1. Verifica identidad AWS, task definition e imagen del migrador fijadas.
+#   2. LEE (psql, transaccion de solo lectura) los tipos de UADE. Si no son
+#      EXACTAMENTE `academic_subject`, aborta sin escribir.
+#   3. Corre UNA vez `set-capabilities` (CLI de operacion existente, sin SSM ni
+#      claves) con `academic_subject,course,certification`.
+#   4. LEE de nuevo y falla si el resultado no es exactamente esos tres tipos.
+#
+# El emisor, los tipos, la task definition, la imagen y la red estan fijados
+# aca. Reutiliza el rol, la task definition y la red del migrador; no cambia
+# IAM, Terraform, DID, firmantes ni blockchain, y no toca otras instituciones.
+# La salida cruda de CloudWatch nunca se imprime.
+#
+# Retirar este workflow una vez usado: no es una via operativa permanente.
+
+name: "Operacion puntual: habilitar Curso y Certificacion para UADE"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Confirmar la operacion puntual sobre UADE"
+        required: true
+        type: choice
+        options:
+          - "habilitar-course-certification-uade"
+
+concurrency:
+  group: uade-enable-course-certification
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: scope-prod-cluster
+  MIGRATOR_TASK_DEFINITION: scope-prod-migrator:9
+  MIGRATOR_IMAGE_TAG: 70b58be17e8b111c2631efe26da8954e2fa115fe
+  NETWORK_CONFIGURATION: "awsvpcConfiguration={subnets=[subnet-075ecbc2b61716fef,subnet-0d58aa21130801c05],securityGroups=[sg-0b7284f9025ac2749],assignPublicIp=ENABLED}"
+  UADE_ISSUER_ID: 14bcdb1c-f82a-4435-af45-4bc5c95e02a7
+  UADE_NAME_PREFIX: "Universidad Argentina de la Empresa"
+  EXPECTED_BEFORE: "academic_subject"
+  TARGET_TYPES: "academic_subject,course,certification"
+
+jobs:
+  enable-types:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Require dispatch from main and explicit confirmation
+        shell: bash
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "This operation can only be dispatched from main." >&2
+            exit 1
+          fi
+          if [ "$CONFIRM" != "habilitar-course-certification-uade" ]; then
+            echo "Missing confirmation. Aborting." >&2
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::309490997821:role/scope-prod-github-actions-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify AWS identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARN="$(aws sts get-caller-identity --query Arn --output text)"
+          case "$ARN" in
+            arn:aws:sts::309490997821:assumed-role/scope-prod-github-actions-deploy/*) ;;
+            *)
+              echo "Unexpected AWS identity. Aborting." >&2
+              exit 1
+              ;;
+          esac
+          echo "AWS identity verified: scope-prod-github-actions-deploy."
+
+      - name: Verify pinned migrator task definition and image
+        shell: bash
+        run: |
+          set -euo pipefail
+          REVISION="${MIGRATOR_TASK_DEFINITION##*:}"
+          DEFINITION="$(aws ecs describe-task-definition \
+            --task-definition "$MIGRATOR_TASK_DEFINITION" \
+            --query 'taskDefinition.{status:status,family:family,revision:revision,image:containerDefinitions[?name==`migrator`].image|[0],entryPoint:containerDefinitions[?name==`migrator`].entryPoint|[0],taskRole:taskRoleArn,executionRole:executionRoleArn}' \
+            --output json)"
+
+          echo "$DEFINITION" | jq -e \
+            --arg tag "$MIGRATOR_IMAGE_TAG" \
+            --argjson revision "$REVISION" \
+            '.status == "ACTIVE"
+             and .family == "scope-prod-migrator"
+             and .revision == $revision
+             and (.image | endswith("/scope/api:" + $tag))
+             and .entryPoint == ["/app/services/api/docker/migrator-entrypoint.sh"]
+             and (.taskRole | endswith(":role/scope-prod-migrator-task"))
+             and (.executionRole | endswith(":role/scope-prod-migrator-execution"))' >/dev/null \
+            || { echo "$MIGRATOR_TASK_DEFINITION does not match the pinned image, entrypoint or roles. Aborting." >&2; exit 1; }
+          echo "Verified $MIGRATOR_TASK_DEFINITION (ACTIVE, image $MIGRATOR_IMAGE_TAG, migrator roles)."
+
+      - name: Prepare task helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Comandos FIJOS. La lectura usa el mismo esquema de solo lectura que
+          # el paso `precheck` del migrador.
+          READ_SQL="SELECT count(*) AS uade_rows, bool_and(name LIKE \$\$${UADE_NAME_PREFIX}%\$\$) AS uade_name_ok, COALESCE(string_agg(array_to_string(\"allowedCredentialTypes\", \$\$,\$\$), \$\$;\$\$), \$\$<none>\$\$) AS uade_types FROM \"Issuer\" WHERE id = \$\$${UADE_ISSUER_ID}\$\$"
+          # Huella de los tipos de las DEMAS instituciones: tiene que ser igual
+          # antes y despues (solo cambia UADE).
+          OTHERS_SQL="SELECT count(*) AS others_rows, md5(COALESCE(string_agg(id || \$\$:\$\$ || array_to_string(\"allowedCredentialTypes\", \$\$,\$\$), \$\$;\$\$ ORDER BY id), \$\$\$\$)) AS others_fingerprint FROM \"Issuer\" WHERE id <> \$\$${UADE_ISSUER_ID}\$\$"
+          jq -cn --arg sql "$READ_SQL" --arg others "$OTHERS_SQL" '[
+            "psql","-X","-q","-A","-t","-x","-v","ON_ERROR_STOP=1",
+            "-c","SET default_transaction_read_only = on",
+            "-c",$sql,
+            "-c",$others,
+            "-c","SELECT 1 AS read_done"
+          ]' > "$RUNNER_TEMP/read-command.json"
+
+          jq -cn --arg issuer "$UADE_ISSUER_ID" --arg types "$TARGET_TYPES" '[
+            "node","-r","ts-node/register/transpile-only","-r","reflect-metadata",
+            "src/identity/scripts/technical-identity-cli.ts","set-capabilities",
+            "--issuer",$issuer,"--types",$types
+          ]' > "$RUNNER_TEMP/write-command.json"
+
+          cat > "$RUNNER_TEMP/ops.sh" <<'SH'
+          # Lanza UNA tarea del migrador con el comando dado, verifica que ECS
+          # registro ese mismo comando, espera a que termine y exige exit 0.
+          # Deja la salida en $RUNNER_TEMP/<label>.txt (nunca se imprime).
+          run_migrator_task() {
+            local label="$1" command_file="$2"
+            local command overrides response task_arn received exit_code task_id raw
+            command="$(cat "$command_file")"
+            overrides="$(jq -cn --argjson command "$command" '{containerOverrides:[{name:"migrator",command:$command}]}')"
+
+            response="$(aws ecs run-task \
+              --cluster "$ECS_CLUSTER" \
+              --task-definition "$MIGRATOR_TASK_DEFINITION" \
+              --count 1 \
+              --launch-type FARGATE \
+              --network-configuration "$NETWORK_CONFIGURATION" \
+              --overrides "$overrides" \
+              --output json)"
+            task_arn="$(echo "$response" | jq -r '.tasks[0].taskArn // empty')"
+            if ! echo "$response" | jq -e --arg definition "task-definition/$MIGRATOR_TASK_DEFINITION" \
+              '(.failures | length == 0) and (.tasks | length == 1) and (.tasks[0].taskDefinitionArn | endswith($definition))' >/dev/null; then
+              echo "[$label] ECS did not start exactly one migrator task." >&2
+              [ -n "$task_arn" ] && aws ecs stop-task --cluster "$ECS_CLUSTER" --task "$task_arn" --reason "unexpected run-task response" >/dev/null || true
+              return 1
+            fi
+
+            received="$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$task_arn" \
+              --query 'tasks[0].overrides.containerOverrides[?name==`migrator`]|[0].command' --output json)"
+            if [ "$(echo "$received" | jq -c .)" != "$(echo "$command" | jq -c .)" ]; then
+              echo "[$label] ECS recorded a different command. Stopping the task." >&2
+              aws ecs stop-task --cluster "$ECS_CLUSTER" --task "$task_arn" --reason "command override mismatch" >/dev/null
+              return 1
+            fi
+
+            aws ecs wait tasks-stopped --cluster "$ECS_CLUSTER" --tasks "$task_arn"
+            exit_code="$(aws ecs describe-tasks --cluster "$ECS_CLUSTER" --tasks "$task_arn" \
+              --query 'tasks[0].containers[0].exitCode' --output text)"
+            if [ "$exit_code" != "0" ]; then
+              echo "[$label] Migrator task failed with exit code $exit_code." >&2
+              return 1
+            fi
+
+            task_id="${task_arn##*/}"
+            raw="$RUNNER_TEMP/$label.txt"
+            for attempt in 1 2 3 4 5 6; do
+              sleep 10
+              aws logs get-log-events \
+                --log-group-name /scope/prod/migrator \
+                --log-stream-name "ecs/migrator/${task_id}" \
+                --start-from-head \
+                --query 'events[].message' \
+                --output json | jq -r '.[]' | tr -d '\r' > "$raw" || : > "$raw"
+              grep -q -E '^read_done\|1$|"ok": true' "$raw" && break
+            done
+            echo "[$label] Task finished with exit code 0."
+          }
+
+          # Valor de una clave `clave|valor` de la salida de psql -x -A -t.
+          read_value() {
+            grep -E "^$2\|" "$RUNNER_TEMP/$1.txt" | head -n 1 | cut -d '|' -f 2-
+          }
+          SH
+
+      - name: Read UADE credential types (before)
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/ops.sh"
+          run_migrator_task read-before "$RUNNER_TEMP/read-command.json"
+
+          ROWS="$(read_value read-before uade_rows)"
+          NAME_OK="$(read_value read-before uade_name_ok)"
+          TYPES="$(read_value read-before uade_types)"
+          if [ "$ROWS" != "1" ] || [ "$NAME_OK" != "t" ]; then
+            echo "UADE was not found exactly once by its pinned id and name. Aborting without writing." >&2
+            exit 1
+          fi
+          echo "UADE credential types before: $TYPES"
+          if [ "$TYPES" != "$EXPECTED_BEFORE" ]; then
+            echo "Unexpected types before the change (expected exactly $EXPECTED_BEFORE). Aborting without writing." >&2
+            exit 1
+          fi
+
+      - name: Set UADE credential types (single write)
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/ops.sh"
+          run_migrator_task write "$RUNNER_TEMP/write-command.json"
+          if ! grep -q '"ok": true' "$RUNNER_TEMP/write.txt"; then
+            echo "set-capabilities did not report success." >&2
+            exit 1
+          fi
+          echo "set-capabilities reported success for UADE."
+
+      - name: Read UADE credential types (after)
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/ops.sh"
+          run_migrator_task read-after "$RUNNER_TEMP/read-command.json"
+
+          ROWS="$(read_value read-after uade_rows)"
+          TYPES="$(read_value read-after uade_types)"
+          echo "UADE credential types after: $TYPES"
+          if [ "$ROWS" != "1" ] || [ "$TYPES" != "$TARGET_TYPES" ]; then
+            echo "UADE does not have exactly $TARGET_TYPES after the change. The write is NOT retried." >&2
+            exit 1
+          fi
+          OTHERS_BEFORE="$(read_value read-before others_fingerprint)"
+          OTHERS_AFTER="$(read_value read-after others_fingerprint)"
+          echo "Other institutions: $(read_value read-after others_rows) rows."
+          if [ -z "$OTHERS_BEFORE" ] || [ "$OTHERS_BEFORE" != "$OTHERS_AFTER" ]; then
+            echo "The credential types of other institutions changed or could not be compared." >&2
+            exit 1
+          fi
+          echo "Other institutions unchanged (fingerprint matches)."
+          echo "UADE now has exactly: $TARGET_TYPES"
+
+      - name: Remove temporary outputs
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP"/read-before.txt "$RUNNER_TEMP"/write.txt "$RUNNER_TEMP"/read-after.txt
