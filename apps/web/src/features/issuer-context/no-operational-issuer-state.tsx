@@ -25,12 +25,12 @@ export function NoOperationalIssuerState({
         <CardHeader className="gap-4 sm:p-8">
           <span
             aria-hidden="true"
-            className="flex size-12 items-center justify-center rounded-control bg-brand-100 text-brand-700"
+            className="flex size-12 items-center justify-center rounded-control bg-highlight text-link"
           >
             <UserRoundCheck className="size-6" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-teal-700">
+            <p className="text-sm font-semibold text-accent">
               Cuenta autenticada
             </p>
             <h1
@@ -68,7 +68,7 @@ export function NoOperationalIssuerState({
                       <div className="flex flex-wrap items-center gap-2">
                         <Building2
                           aria-hidden="true"
-                          className="size-4 text-brand-700"
+                          className="size-4 text-link"
                         />
                         <span className="font-semibold text-text-strong">
                           {membership.issuerName}

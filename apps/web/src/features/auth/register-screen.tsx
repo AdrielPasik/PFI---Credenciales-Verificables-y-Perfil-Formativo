@@ -57,7 +57,7 @@ export function RegisterScreen() {
       <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/8">
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-5 sm:p-9 sm:pb-6">
-          <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">
+          <p className="text-xs font-semibold tracking-[0.16em] text-accent uppercase">
             Creá tu cuenta en Scope
           </p>
           <h2 className="text-3xl leading-tight font-bold tracking-[-0.035em] text-text-strong sm:text-[2rem]">
@@ -71,7 +71,7 @@ export function RegisterScreen() {
           <RegisterForm isSubmitting={isSubmitting} onSubmit={register} />
           <p className="mt-7 border-t border-border-default pt-5 text-center text-sm text-text-muted">
             ¿Ya tenés una cuenta?{' '}
-            <Link href="/login" className="font-semibold text-brand-700 underline underline-offset-4">
+            <Link href="/login" className="font-semibold text-link underline underline-offset-4">
               Ingresar
             </Link>
           </p>

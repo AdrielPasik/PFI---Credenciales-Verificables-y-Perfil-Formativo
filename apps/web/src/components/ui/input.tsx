@@ -12,9 +12,9 @@ export const Input = forwardRef<
     data-slot="input"
     className={cn(
       [
-        'flex min-h-11 w-full rounded-control border border-border-default bg-surface px-3.5 py-2 text-base text-text-strong shadow-xs outline-none transition-colors sm:text-sm',
-        'placeholder:text-text-subtle hover:border-brand-600 hover:shadow-sm',
-        'focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25',
+        'flex min-h-11 w-full rounded-control border border-border-control bg-surface px-3.5 py-2 text-base text-text-strong shadow-xs outline-none transition-colors sm:text-sm',
+        'placeholder:text-text-subtle hover:border-interactive hover:shadow-sm',
+        'focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/40',
         'disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted disabled:opacity-70',
         'aria-invalid:border-status-error aria-invalid:ring-status-error/20'
       ],

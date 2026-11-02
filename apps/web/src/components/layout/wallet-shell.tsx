@@ -28,11 +28,11 @@ export function WalletShell({
     <div className="flex min-h-svh flex-col bg-canvas">
       <a
         href="#wallet-main-content"
-        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-white px-4 py-3 font-semibold text-brand-900 shadow-sm transition-transform focus:translate-y-0"
+        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-surface px-4 py-3 font-semibold text-text-strong shadow-sm transition-transform focus:translate-y-0"
       >
         Saltar al contenido
       </a>
-      <header className="border-b border-brand-700 bg-brand-900 text-white">
+      <header className="border-b border-inverse-border bg-inverse text-white">
         <div className="mx-auto flex min-h-20 w-full min-w-0 max-w-[var(--traza-holder-canvas-width)] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <BrandHomeLink href={homeHref} label="Scope: ir a mi espacio personal">
             <BrandMark

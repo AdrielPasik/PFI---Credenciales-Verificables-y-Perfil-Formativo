@@ -62,7 +62,7 @@ export function RequirementReviewItem({
             onClick={() => onMove(-1)}
             disabled={position === 1}
             aria-label={`Subir requisito ${position}`}
-            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <ArrowUp aria-hidden="true" className="size-4" />
           </button>
@@ -71,7 +71,7 @@ export function RequirementReviewItem({
             onClick={() => onMove(1)}
             disabled={position === total}
             aria-label={`Bajar requisito ${position}`}
-            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted disabled:opacity-30 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <ArrowDown aria-hidden="true" className="size-4" />
           </button>
@@ -79,7 +79,7 @@ export function RequirementReviewItem({
             type="button"
             onClick={onRemove}
             aria-label={`Eliminar requisito ${position}`}
-            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="rounded-control p-2 text-text-muted transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <X aria-hidden="true" className="size-4" />
           </button>
@@ -110,10 +110,10 @@ export function RequirementReviewItem({
 
       {item.grounding === 'UNIQUE' && item.primaryExcerpt !== null ? (
         <details>
-          <summary className="w-fit cursor-pointer list-none text-xs font-medium text-brand-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+          <summary className="w-fit cursor-pointer list-none text-xs font-medium text-link underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
             Ver fragmento del objetivo
           </summary>
-          <div className="mt-2 rounded-control border-l-2 border-teal-700 bg-surface-muted px-3 py-2">
+          <div className="mt-2 rounded-control border-l-2 border-accent bg-surface-muted px-3 py-2">
             {sectionLabel ? (
               <p className="text-xs font-medium text-text-muted">
                 En el objetivo, seccion &ldquo;{sectionLabel}&rdquo;
@@ -125,7 +125,7 @@ export function RequirementReviewItem({
             <button
               type="button"
               onClick={onShowInSource}
-              className="mt-2 text-xs font-medium text-brand-700 underline underline-offset-2 transition hover:text-brand-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="mt-2 text-xs font-medium text-link underline underline-offset-2 transition hover:text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
             >
               Ver en el objetivo completo
             </button>
@@ -134,12 +134,12 @@ export function RequirementReviewItem({
       ) : null}
 
       {item.grounding === 'AMBIGUOUS' ? (
-        <p className="text-xs text-amber-800">
+        <p className="text-xs text-status-warning">
           Esta frase aparece varias veces en el objetivo.
         </p>
       ) : null}
       {item.grounding === 'NOT_FOUND' ? (
-        <p className="text-xs text-amber-800">
+        <p className="text-xs text-status-warning">
           No pudimos ubicar la frase exacta en el objetivo. Revisalo con atencion.
         </p>
       ) : null}

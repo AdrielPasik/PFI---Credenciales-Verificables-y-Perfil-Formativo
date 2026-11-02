@@ -19,7 +19,7 @@ export function BrandHomeLink({
     <Link
       href={href}
       aria-label={label}
-      className="min-w-0 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-brand-900"
+      className="min-w-0 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-inverse"
     >
       {children}
     </Link>

@@ -286,7 +286,7 @@ export function CredentialDraftForm({
     <div className="grid gap-8 lg:gap-10">
       <header className="max-w-4xl border-b border-border-default pb-7 sm:pb-8">
         <BackLink href="/issuer" label="Volver al panel del emisor" />
-        <p className="mt-5 text-sm font-semibold text-teal-700">
+        <p className="mt-5 text-sm font-semibold text-accent">
           Nueva credencial
         </p>
         <h1 className="mt-3 text-3xl leading-tight font-bold tracking-tight text-text-strong sm:text-5xl">
@@ -300,7 +300,7 @@ export function CredentialDraftForm({
 
       <section
         aria-labelledby="issuer-context-title"
-        className="grid gap-4 rounded-card border border-brand-700 bg-brand-900 p-5 text-white sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center lg:gap-8"
+        className="grid gap-4 rounded-card border border-inverse-border bg-inverse p-5 text-white sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center lg:gap-8"
       >
         <div className="flex min-w-0 items-start gap-4">
           <span
@@ -343,11 +343,11 @@ export function CredentialDraftForm({
           >
             <div className="border-b border-border-default pb-5 sm:pb-6">
               <div className="flex items-center gap-3">
-                <span className="flex size-9 items-center justify-center rounded-pill bg-teal-100 text-sm font-bold text-teal-700">
+                <span className="flex size-9 items-center justify-center rounded-pill bg-accent-tint text-sm font-bold text-accent">
                   1
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-teal-700">
+                  <p className="text-sm font-semibold text-accent">
                     Resolver titular
                   </p>
                   <h2
@@ -375,11 +375,11 @@ export function CredentialDraftForm({
                 <div
                   role="status"
                   aria-live="polite"
-                  className="rounded-card border border-teal-700/20 bg-teal-100/75 p-5 sm:p-6"
+                  className="rounded-card border border-accent/20 bg-accent-tint/75 p-5 sm:p-6"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <p className="flex items-center gap-2 font-semibold text-teal-700">
+                      <p className="flex items-center gap-2 font-semibold text-accent">
                         <UserRoundCheck aria-hidden="true" className="size-5" />
                         Titular confirmado
                       </p>
@@ -461,14 +461,14 @@ export function CredentialDraftForm({
                 <span
                   className={
                     holder
-                      ? 'flex size-9 items-center justify-center rounded-pill bg-brand-100 text-sm font-bold text-brand-700'
+                      ? 'flex size-9 items-center justify-center rounded-pill bg-highlight text-sm font-bold text-link'
                       : 'flex size-9 items-center justify-center rounded-pill bg-surface text-sm font-bold text-text-muted'
                   }
                 >
                   2
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-brand-700">
+                  <p className="text-sm font-semibold text-link">
                     Siguiente paso
                   </p>
                   <h2
@@ -499,7 +499,7 @@ export function CredentialDraftForm({
                     className="grid gap-5"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-teal-700">
+                      <p className="text-sm font-semibold text-accent">
                         Categoría institucional
                       </p>
                       <h3
@@ -533,7 +533,7 @@ export function CredentialDraftForm({
                         aria-invalid={
                           credentialTypeError ? true : undefined
                         }
-                        className="min-h-11 w-full appearance-none rounded-control border border-border-strong bg-surface px-3 py-2 pr-10 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted disabled:opacity-70 aria-invalid:border-status-error aria-invalid:ring-status-error/20 sm:text-sm"
+                        className="min-h-11 w-full appearance-none rounded-control border border-border-strong bg-surface px-3 py-2 pr-10 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted disabled:opacity-70 aria-invalid:border-status-error aria-invalid:ring-status-error/20 sm:text-sm"
                       >
                         <option value="">Seleccioná un tipo</option>
                         {availableCredentialTypes.map((type) => (
@@ -611,7 +611,7 @@ export function CredentialDraftForm({
                       className="grid gap-5 border-t border-border-default pt-6"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-teal-700">
+                        <p className="text-sm font-semibold text-accent">
                           Información principal
                         </p>
                         <h3
@@ -665,7 +665,7 @@ export function CredentialDraftForm({
                       className="grid gap-4 border-y border-border-default bg-surface-muted/55 py-5 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-5 sm:py-6"
                     >
                       <div className="sm:col-span-2">
-                        <p className="text-sm font-semibold text-teal-700">
+                        <p className="text-sm font-semibold text-accent">
                           Paso 4
                         </p>
                         <h3

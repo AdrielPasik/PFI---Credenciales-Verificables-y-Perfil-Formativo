@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
+import { AppearanceControl } from '@/components/navigation/appearance-control';
 import {
   ANALYSIS_RETURN_PARAM,
   buildCredentialVerifyHref,
@@ -82,23 +83,26 @@ export function PublicVerificationRoute() {
       <div className="mx-auto grid w-full max-w-6xl gap-10 lg:gap-14">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border-default pb-5 sm:pb-6">
           <BrandMark lightLogo descriptor="Verificación pública" />
-          <Button asChild size="sm" variant="secondary">
-            {publicReturn !== null ? (
-              <Link href={publicReturn.path}>
-                <ArrowLeft aria-hidden="true" />
-                {publicReturn.label}
-              </Link>
-            ) : (
-              // Quien verifica una credencial casi nunca tiene cuenta: no se le
-              // ofrece "volver" a un lugar donde nunca estuvo.
-              <Link href="/login">Iniciar sesión</Link>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <AppearanceControl />
+            <Button asChild size="sm" variant="secondary">
+              {publicReturn !== null ? (
+                <Link href={publicReturn.path}>
+                  <ArrowLeft aria-hidden="true" />
+                  {publicReturn.label}
+                </Link>
+              ) : (
+                // Quien verifica una credencial casi nunca tiene cuenta: no se le
+                // ofrece "volver" a un lugar donde nunca estuvo.
+                <Link href="/login">Iniciar sesión</Link>
+              )}
+            </Button>
+          </div>
         </header>
 
         <section className="grid gap-8 lg:grid-cols-[minmax(15rem,0.72fr)_minmax(0,1.28fr)] lg:items-start lg:gap-12" aria-labelledby="verify-title">
           <div className="border-l-2 border-brand-accent py-1 pl-5 sm:pl-6">
-            <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">Consulta pública</p>
+            <p className="text-xs font-semibold tracking-[0.16em] text-accent uppercase">Consulta pública</p>
             <h1 id="verify-title" className="mt-3 text-3xl leading-[1.1] font-bold tracking-[-0.04em] text-text-strong sm:text-4xl">
               Verificar una credencial
             </h1>
@@ -156,7 +160,7 @@ export function PublicVerificationResult({ verification }: { verification: Publi
     <Card className={`overflow-hidden shadow-sm ${style.card}`}>
       <CardHeader className="gap-4 sm:p-7">
         <div className="flex flex-wrap items-center gap-2"><Badge variant={style.badge}>{verdict.badge}</Badge><Badge variant="outline">{verification.statusLabel}</Badge><Badge variant="outline">{verification.typeLabel}</Badge></div>
-        <div><p className="text-sm font-semibold text-teal-700">Resultado de verificación</p><h2 id="verification-result-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">{verdict.title}</h2><p className="mt-3 max-w-3xl leading-7 text-text-muted">{verification.verification.summary}</p></div>
+        <div><p className="text-sm font-semibold text-accent">Resultado de verificación</p><h2 id="verification-result-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">{verdict.title}</h2><p className="mt-3 max-w-3xl leading-7 text-text-muted">{verification.verification.summary}</p></div>
       </CardHeader>
     </Card>
 
@@ -166,7 +170,7 @@ export function PublicVerificationResult({ verification }: { verification: Publi
     {verdict.tone === 'limited' ? <FeedbackAlert variant="information" title="Evidencia de red limitada">La autoría se verificó criptográficamente, pero la evidencia de registro en la red no está confirmada. Mirá el detalle técnico más abajo.</FeedbackAlert> : null}
 
     <Card className="min-w-0">
-      <CardHeader className="flex-row items-center gap-3"><Landmark aria-hidden="true" className="size-5 text-teal-700" /><h3 className="text-lg font-semibold text-text-strong">Datos de la credencial</h3></CardHeader>
+      <CardHeader className="flex-row items-center gap-3"><Landmark aria-hidden="true" className="size-5 text-accent" /><h3 className="text-lg font-semibold text-text-strong">Datos de la credencial</h3></CardHeader>
       <CardContent className="grid gap-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <ReadField label="Credencial" value={verification.title} />
         <ReadField label="Tipo" value={verification.typeLabel} />
@@ -181,7 +185,7 @@ export function PublicVerificationResult({ verification }: { verification: Publi
 
     <Card className="min-w-0 border-border-default bg-surface-muted shadow-none">
       <CardHeader className="flex-row items-start gap-3">
-        <Fingerprint aria-hidden="true" className="size-5 shrink-0 text-teal-700" />
+        <Fingerprint aria-hidden="true" className="size-5 shrink-0 text-accent" />
         <div className="min-w-0">
           <h3 className="text-lg font-semibold text-text-strong">Evidencia técnica de integridad</h3>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-text-muted">La huella canónica es un identificador criptográfico calculado por Scope a partir de la versión emitida de la credencial. Si los datos emitidos cambian, la huella resultante también cambia.</p>
@@ -221,7 +225,7 @@ export function PublicVerificationResult({ verification }: { verification: Publi
 }
 
 const VERDICT_STYLES: Record<VerdictTone, { card: string; badge: 'default' | 'secondary' | 'outline' }> = {
-  verified: { card: 'border-teal-700', badge: 'secondary' },
+  verified: { card: 'border-accent', badge: 'secondary' },
   limited: { card: 'border-status-warning', badge: 'outline' },
   indeterminate: { card: 'border-status-warning', badge: 'outline' },
   invalid: { card: 'border-status-error', badge: 'outline' },
@@ -273,7 +277,7 @@ function CopyField({ label, value, href = null, linkLabel }: { label: string; va
     <p className="mt-1 break-all font-mono text-xs text-text-strong">{value}</p>
     <div className="mt-2 flex flex-wrap items-center gap-3">
       <Button type="button" size="sm" variant="secondary" onClick={() => void copy()}>{copied ? 'Copiado' : `Copiar ${label.toLowerCase()}`}</Button>
-      {href ? <a className="text-sm font-semibold text-teal-700 underline underline-offset-2" href={href} target="_blank" rel="noopener noreferrer">{linkLabel ?? 'Ver en el explorador'}</a> : null}
+      {href ? <a className="text-sm font-semibold text-accent underline underline-offset-2" href={href} target="_blank" rel="noopener noreferrer">{linkLabel ?? 'Ver en el explorador'}</a> : null}
     </div>
   </div>;
 }

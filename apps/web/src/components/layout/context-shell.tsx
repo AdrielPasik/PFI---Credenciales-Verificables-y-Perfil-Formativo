@@ -18,11 +18,11 @@ export function ContextShell({
     <div className="flex min-h-svh flex-col bg-canvas">
       <a
         href="#main-content"
-        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-brand-900 px-4 py-3 font-semibold text-white shadow-sm transition-transform focus:translate-y-0"
+        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-inverse px-4 py-3 font-semibold text-white shadow-sm transition-transform focus:translate-y-0"
       >
         Saltar al contenido
       </a>
-      <header className="border-b border-brand-700 bg-brand-900 text-white">
+      <header className="border-b border-inverse-border bg-inverse text-white">
         <div className="mx-auto flex min-h-20 w-full max-w-[var(--traza-reading-width)] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <BrandMark
             authenticatedDark

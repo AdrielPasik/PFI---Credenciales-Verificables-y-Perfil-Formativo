@@ -92,7 +92,7 @@ function CompactRequirementCard({
       aria-labelledby={`${cardId}-title`}
       className={`scroll-mt-6 grid min-w-0 gap-3 rounded-card border p-4 transition-colors sm:p-5 ${
         expanded
-          ? 'border-teal-700/50 bg-teal-50/30 shadow-sm'
+          ? 'border-accent/50 bg-accent-soft/30 shadow-sm'
           : 'border-border-default bg-surface shadow-xs'
       }`}
     >
@@ -102,7 +102,7 @@ function CompactRequirementCard({
         aria-expanded={expanded}
         aria-controls={detailId}
         onClick={onToggle}
-        className="grid min-h-11 min-w-0 gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-5"
+        className="grid min-h-11 min-w-0 gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-x-5"
       >
         <div className="grid min-w-0 gap-2">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
@@ -123,7 +123,7 @@ function CompactRequirementCard({
             </p>
           ) : null}
         </div>
-        <span className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-teal-700 underline underline-offset-2">
+        <span className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-accent underline underline-offset-2">
           {expanded ? 'Ocultar detalle' : 'Ver detalle'}
           <ChevronDown
             aria-hidden="true"
@@ -152,7 +152,7 @@ function CompactRequirementCard({
                 aria-expanded={evidenceOpen}
                 aria-controls={evidenceId}
                 onClick={() => setEvidenceOpen((current) => !current)}
-                className="text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="text-sm font-semibold text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               >
                 {evidenceOpen ? 'Ocultar evidencia' : evidenceLabel}
               </button>
@@ -193,9 +193,9 @@ export function CompactRequirementList({
     .map((result, index) => ({ result, order: index + 1 }))
     .filter(({ result }) => requirementMatchesFilter(result, activeFilter));
   const filterClassName = (isActive: boolean) =>
-    `rounded-control border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 ${
+    `rounded-control border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring ${
       isActive
-        ? 'border-teal-700 bg-teal-50 text-teal-800 shadow-xs'
+        ? 'border-accent bg-accent-soft text-accent shadow-xs'
         : 'border-border-default bg-surface text-text-default hover:border-border-strong hover:bg-surface-muted'
     }`;
 

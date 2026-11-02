@@ -168,7 +168,7 @@ export function TextEvidenceSection({
     >
       {showHeading ? (
         <div className="max-w-5xl">
-          <p className="text-sm font-semibold text-teal-700">
+          <p className="text-sm font-semibold text-accent">
             Fuente institucional
           </p>
           <h2
@@ -227,7 +227,7 @@ export function TextEvidenceSection({
       {showComposer && formVisible ? (
         <Card className="rounded-card border-border-default bg-surface-muted/40 shadow-none">
           <CardHeader>
-            <p className="text-sm font-semibold text-brand-700">
+            <p className="text-sm font-semibold text-link">
               {currentText ? 'Reemplazo pendiente' : 'Nueva fuente'}
             </p>
             <h3 className="text-lg font-semibold text-text-strong">

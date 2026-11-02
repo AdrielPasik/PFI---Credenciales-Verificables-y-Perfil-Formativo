@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 const buttonVariants = cva(
   [
     'inline-flex min-h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-control border px-4 text-sm font-semibold tracking-[-0.01em]',
-    'transition-colors duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/30',
+    'transition-colors duration-200 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/50',
     'disabled:pointer-events-none disabled:opacity-50',
     '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*="size-"])]:size-4'
   ],
@@ -18,13 +18,16 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'border-brand-900 bg-brand-900 text-white shadow-xs hover:border-brand-700 hover:bg-brand-700 hover:shadow-sm active:bg-brand-600',
+          'border-primary bg-primary text-on-primary shadow-xs hover:border-primary-hover hover:bg-primary-hover hover:shadow-sm active:border-primary-active active:bg-primary-active',
         secondary:
-          'border-border-default bg-surface text-brand-900 shadow-xs hover:border-brand-600 hover:bg-surface-muted hover:shadow-sm active:border-brand-600',
+          'border-border-strong bg-surface text-text-strong shadow-xs hover:border-interactive hover:bg-surface-muted hover:shadow-sm active:border-interactive',
         ghost:
-          'border-transparent bg-transparent text-brand-700 hover:bg-brand-100 active:text-brand-900',
+          'border-transparent bg-transparent text-link hover:bg-highlight active:text-link-hover',
         destructive:
-          'border-status-error bg-status-error text-white shadow-xs hover:opacity-90 active:opacity-80'
+          'border-status-error bg-status-error text-on-destructive shadow-xs hover:opacity-90 active:opacity-80',
+        // Sobre el header y los paneles invertidos, oscuros en ambos temas.
+        inverse:
+          'border-white/25 bg-transparent text-white hover:border-white/40 hover:bg-white/10 active:bg-white/15 focus-visible:ring-white/60'
       },
       size: {
         sm: 'min-h-9 px-3 text-xs',

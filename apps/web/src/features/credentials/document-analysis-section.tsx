@@ -241,7 +241,7 @@ function AnalysisRunSummary({
             <p className="text-sm font-semibold text-text-strong">
               Confianza del análisis
             </p>
-            <p className="mt-1 text-2xl font-bold text-brand-900">
+            <p className="mt-1 text-2xl font-bold text-text-strong">
               {semantic.confidenceLabel}
             </p>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-text-muted">
@@ -292,7 +292,7 @@ function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-card border border-border-default bg-surface p-4 shadow-none">
       <p className="text-sm font-semibold text-text-muted">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-brand-900">{value}</p>
+      <p className="mt-2 text-3xl font-bold text-text-strong">{value}</p>
     </div>
   );
 }
@@ -375,7 +375,7 @@ function RunBadge({ run }: { run: IssuerAnalysisRunVM }) {
 
 function AnalysisLoading({ label }: { label: string }) {
   return (
-    <p className="flex items-center gap-2 text-sm font-semibold text-teal-700">
+    <p className="flex items-center gap-2 text-sm font-semibold text-accent">
       <RefreshCw aria-hidden="true" className="size-4 animate-spin" />
       {label}…
     </p>

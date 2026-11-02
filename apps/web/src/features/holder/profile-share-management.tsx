@@ -327,7 +327,7 @@ function ShareCard({
       ) : null}
 
       {confirmingRevoke ? (
-        <div className="grid gap-3 rounded-control border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+        <div className="grid gap-3 rounded-control border border-status-warning/40 bg-status-warning-soft p-4 text-sm leading-6 text-status-warning">
           <p className="font-semibold">¿Revocar este enlace?</p>
           <ul className="list-disc pl-5">
             <li>El enlace público va a dejar de funcionar para cualquiera que lo tenga.</li>
@@ -527,7 +527,7 @@ function ContextualVerificationForm({
 function StatusBadge({ status, label }: { status: HolderProfileShareVM['status']; label: string }) {
   const tone =
     status === 'ACTIVE'
-      ? 'border-teal-700 bg-teal-50 text-teal-800'
+      ? 'border-accent bg-accent-soft text-accent'
       : 'border-border-strong bg-surface-muted text-text-muted';
   return (
     <span className={`rounded-pill border px-2.5 py-0.5 text-xs font-semibold ${tone}`}>

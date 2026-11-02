@@ -869,7 +869,7 @@ export function CredentialDetailView({
             className="overflow-hidden rounded-card border border-border-default bg-surface shadow-xs"
           >
             <div className="border-b border-border-default bg-surface-muted/65 px-5 py-6 sm:px-7">
-              <p className="text-sm font-semibold text-brand-700">
+              <p className="text-sm font-semibold text-link">
                 Información de la credencial
               </p>
               <h2
@@ -1199,7 +1199,7 @@ function CourseDeclaredDataCard({
       className="grid gap-5 border-t border-border-default pt-8 sm:pt-10"
     >
       <div className="flex flex-row items-center gap-3">
-        <Link2 aria-hidden="true" className="size-5 text-teal-700" />
+        <Link2 aria-hidden="true" className="size-5 text-accent" />
         <div>
           <h2
             id="course-declared-data-title"
@@ -1231,7 +1231,7 @@ function CourseDeclaredDataCard({
               href={subject.externalUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="mt-1 inline-block break-words font-semibold text-brand-700 underline underline-offset-4"
+              className="mt-1 inline-block break-words font-semibold text-link underline underline-offset-4"
             >
               {subject.externalUrl}
             </a>
@@ -1276,7 +1276,7 @@ function DeclaredInstitutionalContentCard({
       className="grid gap-4 rounded-card border border-border-default bg-surface-muted/40 p-5 sm:p-6"
     >
       <div>
-        <p className="text-sm font-semibold text-teal-700">
+        <p className="text-sm font-semibold text-accent">
           Datos de la credencial
         </p>
         <h3

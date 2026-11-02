@@ -1,9 +1,29 @@
 @import "tailwindcss";
 
+/*
+ * Apariencia: el tema resuelto vive en `<html data-theme="light|dark">`, que fija
+ * el script inicial de `lib/appearance` antes del primer pintado. Los componentes
+ * consumen SOLO tokens semanticos; el modo oscuro redefine esos tokens y no
+ * agrega clases `dark:` (la variante existe para excepciones como el logo).
+ * El bloque oscuro esta dentro de `@media screen`: al imprimir rige siempre el
+ * tema claro.
+ */
+@custom-variant dark {
+  @media screen {
+    &:where([data-theme="dark"], [data-theme="dark"] *) {
+      @slot;
+    }
+  }
+}
+
 :root {
   color-scheme: light;
 
-  /* Legacy token names remain stable while their visual values follow Scope. */
+  /*
+   * Paleta de marca: valores fijos en ambos temas. Solo se usan como texto o
+   * decoracion SOBRE superficies invertidas (header, paneles destacados), que
+   * son oscuras en los dos temas. Para todo lo demas hay un token semantico.
+   */
   --traza-brand-900: #0b1d3a;
   --traza-brand-700: #12315c;
   --traza-brand-600: #174671;
@@ -11,21 +31,50 @@
   --traza-teal-700: #167f89;
   --traza-teal-600: #2097a1;
   --traza-teal-100: #bfe6ea;
-  --traza-brand-accent: #2097a1;
   --traza-amber-800: #7a4d08;
   --traza-amber-600: #c68a2d;
   --traza-amber-100: #fff3d9;
 
+  /* Superficies */
   --traza-canvas: #eef2f5;
+  --traza-canvas-glow: rgb(191 230 234 / 22%);
   --traza-surface: #ffffff;
   --traza-surface-muted: #f7fafb;
+  --traza-highlight: #e5f2f4;
+  --traza-inverse: #0b1d3a;
+  --traza-inverse-border: #12315c;
+  --traza-scrim: rgb(11 29 58 / 40%);
+
+  /* Texto */
   --traza-text-strong: #0b1d3a;
   --traza-text-default: #31445f;
-  --traza-text-muted: #5f7084;
-  --traza-text-subtle: #7b8998;
+  --traza-text-muted: #5a6b7f;
+  --traza-text-subtle: #66778a;
+
+  /* Bordes */
   --traza-border-default: #d9e3e8;
   --traza-border-strong: #bdccd5;
+  --traza-border-control: #7d8fa0;
+  --traza-border-interactive: #174671;
+  --traza-border-emphasis: #12315c;
 
+  /* Acciones, enlaces y acento */
+  --traza-primary: #0b1d3a;
+  --traza-primary-hover: #12315c;
+  --traza-primary-active: #174671;
+  --traza-on-primary: #ffffff;
+  --traza-link: #12315c;
+  --traza-link-hover: #0b1d3a;
+  --traza-accent: #13727b;
+  --traza-accent-solid: #167f89;
+  --traza-accent-soft: #f0fdfa;
+  --traza-accent-tint: #d3eef0;
+  --traza-brand-accent: #2097a1;
+  --traza-focus-ring: #256087;
+  --traza-selection: #bfe6ea;
+  --traza-selection-text: #0b1d3a;
+
+  /* Estados */
   --traza-status-issued: #2563a6;
   --traza-status-issued-soft: #eaf2fb;
   --traza-status-analysis: #197278;
@@ -46,9 +95,10 @@
   --traza-status-analysis-partial-soft: #fff3d9;
   --traza-status-unknown: #56636c;
   --traza-status-unknown-soft: #eff2f3;
+  --traza-on-destructive: #ffffff;
 
-  --traza-feedback-information: var(--traza-brand-700);
-  --traza-feedback-information-soft: var(--traza-brand-100);
+  --traza-feedback-information: #12315c;
+  --traza-feedback-information-soft: #e5f2f4;
   --traza-feedback-success: var(--traza-status-valid);
   --traza-feedback-success-soft: var(--traza-status-valid-soft);
 
@@ -72,8 +122,9 @@
   --traza-shadow-xs: 0 1px 2px rgb(11 29 58 / 5%);
   --traza-shadow-sm: 0 6px 18px rgb(11 29 58 / 7%);
   --traza-shadow-md: 0 18px 42px rgb(11 29 58 / 11%);
+  --traza-shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
 
-  --traza-focus-ring: #256087;
   --traza-input-height: 2.75rem;
   --traza-reading-width: 75rem;
   --traza-holder-reading-width: 88rem;
@@ -87,6 +138,82 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
+/*
+ * Tema oscuro: base azul tinta y acento azul petroleo. Contrastes verificados en
+ * `theme-contrast.test.ts`.
+ */
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --traza-canvas: #0a1424;
+    --traza-canvas-glow: rgb(36 114 126 / 9%);
+    --traza-surface: #101d33;
+    --traza-surface-muted: #0c182b;
+    --traza-highlight: #172b45;
+    --traza-inverse: #0e223f;
+    --traza-inverse-border: #1d3a5f;
+    --traza-scrim: rgb(2 6 14 / 68%);
+
+    --traza-text-strong: #eef3f8;
+    --traza-text-default: #c6d2df;
+    --traza-text-muted: #97a8bb;
+    --traza-text-subtle: #8394a8;
+
+    --traza-border-default: #24364f;
+    --traza-border-strong: #314a6a;
+    --traza-border-control: #5f7899;
+    --traza-border-interactive: #7f9cbf;
+    --traza-border-emphasis: #6f93b8;
+
+    --traza-primary: #24727e;
+    --traza-primary-hover: #2a7884;
+    --traza-primary-active: #1f6b77;
+    --traza-on-primary: #ffffff;
+    --traza-link: #82bcc4;
+    --traza-link-hover: #a9d2d8;
+    --traza-accent: #82bcc4;
+    --traza-accent-solid: #2f7f8a;
+    --traza-accent-soft: #11272f;
+    --traza-accent-tint: #173842;
+    --traza-brand-accent: #2f7f8a;
+    --traza-focus-ring: #8fb8d8;
+    --traza-selection: #24546a;
+    --traza-selection-text: #eef3f8;
+
+    --traza-status-issued: #93b6e0;
+    --traza-status-issued-soft: #142840;
+    --traza-status-analysis: #80c0bc;
+    --traza-status-analysis-soft: #0f2a2d;
+    --traza-status-valid: #7cc7a2;
+    --traza-status-valid-soft: #112b22;
+    --traza-status-evidence: #aab1e6;
+    --traza-status-evidence-soft: #1d2142;
+    --traza-status-warning: #e3b56e;
+    --traza-status-warning-soft: #30240f;
+    --traza-status-error: #f0999d;
+    --traza-status-error-soft: #3a181c;
+    --traza-status-revoked: #f09aa8;
+    --traza-status-revoked-soft: #3a1822;
+    --traza-status-draft: #a9b6c1;
+    --traza-status-draft-soft: #1a2431;
+    --traza-status-analysis-partial: #e3b56e;
+    --traza-status-analysis-partial-soft: #30240f;
+    --traza-status-unknown: #a9b6c1;
+    --traza-status-unknown-soft: #1a2431;
+    --traza-on-destructive: #2a0b0e;
+
+    --traza-feedback-information: #93b6e0;
+    --traza-feedback-information-soft: #142840;
+
+    --traza-shadow-xs: 0 1px 2px rgb(0 0 0 / 35%);
+    --traza-shadow-sm: 0 6px 18px rgb(0 0 0 / 32%);
+    --traza-shadow-md: 0 18px 42px rgb(0 0 0 / 42%);
+    --traza-shadow-lg:
+      0 10px 24px -3px rgb(0 0 0 / 50%), 0 4px 8px -4px rgb(0 0 0 / 40%);
+  }
+}
+
 @theme inline {
   --color-brand-900: var(--traza-brand-900);
   --color-brand-700: var(--traza-brand-700);
@@ -95,19 +222,36 @@
   --color-teal-700: var(--traza-teal-700);
   --color-teal-600: var(--traza-teal-600);
   --color-teal-100: var(--traza-teal-100);
-  --color-brand-accent: var(--traza-brand-accent);
   --color-amber-800: var(--traza-amber-800);
   --color-amber-600: var(--traza-amber-600);
   --color-amber-100: var(--traza-amber-100);
   --color-canvas: var(--traza-canvas);
   --color-surface: var(--traza-surface);
   --color-surface-muted: var(--traza-surface-muted);
+  --color-highlight: var(--traza-highlight);
+  --color-inverse: var(--traza-inverse);
+  --color-inverse-border: var(--traza-inverse-border);
+  --color-scrim: var(--traza-scrim);
   --color-text-strong: var(--traza-text-strong);
   --color-text-default: var(--traza-text-default);
   --color-text-muted: var(--traza-text-muted);
   --color-text-subtle: var(--traza-text-subtle);
   --color-border-default: var(--traza-border-default);
   --color-border-strong: var(--traza-border-strong);
+  --color-border-control: var(--traza-border-control);
+  --color-interactive: var(--traza-border-interactive);
+  --color-emphasis: var(--traza-border-emphasis);
+  --color-primary: var(--traza-primary);
+  --color-primary-hover: var(--traza-primary-hover);
+  --color-primary-active: var(--traza-primary-active);
+  --color-on-primary: var(--traza-on-primary);
+  --color-link: var(--traza-link);
+  --color-link-hover: var(--traza-link-hover);
+  --color-accent: var(--traza-accent);
+  --color-accent-solid: var(--traza-accent-solid);
+  --color-accent-soft: var(--traza-accent-soft);
+  --color-accent-tint: var(--traza-accent-tint);
+  --color-brand-accent: var(--traza-brand-accent);
   --color-status-issued: var(--traza-status-issued);
   --color-status-issued-soft: var(--traza-status-issued-soft);
   --color-status-analysis: var(--traza-status-analysis);
@@ -130,6 +274,7 @@
   );
   --color-status-unknown: var(--traza-status-unknown);
   --color-status-unknown-soft: var(--traza-status-unknown-soft);
+  --color-on-destructive: var(--traza-on-destructive);
   --color-feedback-information: var(--traza-feedback-information);
   --color-feedback-information-soft: var(--traza-feedback-information-soft);
   --color-feedback-success: var(--traza-feedback-success);
@@ -145,6 +290,7 @@
   --shadow-xs: var(--traza-shadow-xs);
   --shadow-sm: var(--traza-shadow-sm);
   --shadow-md: var(--traza-shadow-md);
+  --shadow-lg: var(--traza-shadow-lg);
   --spacing-1: var(--traza-space-1);
   --spacing-2: var(--traza-space-2);
   --spacing-3: var(--traza-space-3);
@@ -177,7 +323,7 @@
     text-rendering: optimizeLegibility;
     background-image: linear-gradient(
       135deg,
-      rgb(191 230 234 / 22%),
+      var(--traza-canvas-glow),
       transparent 38rem
     );
   }
@@ -195,8 +341,8 @@
   }
 
   ::selection {
-    background: var(--traza-teal-100);
-    color: var(--traza-brand-900);
+    background: var(--traza-selection);
+    color: var(--traza-selection-text);
   }
 
   button,
@@ -205,6 +351,14 @@
   select {
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Al cambiar de tema no se animan colores: el cambio es inmediato y parejo. */
+.appearance-switching,
+.appearance-switching *,
+.appearance-switching *::before,
+.appearance-switching *::after {
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

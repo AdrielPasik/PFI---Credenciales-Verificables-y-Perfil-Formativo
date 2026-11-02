@@ -16,7 +16,7 @@ export function TransactionExplorerLink({ href }: { href: string | null }) {
 
   return (
     <a
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 underline underline-offset-2"
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent underline underline-offset-2"
       href={href}
       target="_blank"
       rel="noopener noreferrer"

@@ -97,7 +97,7 @@ export function AdminIssuersView({
   return (
     <div className="grid min-w-0 gap-8">
       <header className="grid min-w-0 gap-2 border-b border-border-default pb-6">
-        <p className="text-sm font-semibold text-teal-700">
+        <p className="text-sm font-semibold text-accent">
           Plano de plataforma
         </p>
         <h1 className="text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
@@ -211,12 +211,12 @@ function IssuerList({
                 onClick={() => onSelectIssuer(issuer.issuerReference)}
                 className={
                   selected
-                    ? 'w-full min-w-0 rounded-card border border-brand-900 bg-surface p-4 text-left shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700'
-                    : 'w-full min-w-0 rounded-card border border-border-default bg-surface p-4 text-left transition hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700'
+                    ? 'w-full min-w-0 rounded-card border border-emphasis bg-surface p-4 text-left shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring'
+                    : 'w-full min-w-0 rounded-card border border-border-default bg-surface p-4 text-left transition hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring'
                 }
               >
                 <span className="flex min-w-0 items-start gap-3">
-                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-control bg-surface-muted text-teal-700">
+                  <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-control bg-surface-muted text-accent">
                     <Building2 aria-hidden="true" className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -599,7 +599,7 @@ function EmptyIssuersPanel() {
   return (
     <Card>
       <CardContent className="grid gap-3 pt-5 sm:pt-6">
-        <span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-teal-700">
+        <span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-accent">
           <Building2 aria-hidden="true" className="size-5" />
         </span>
         <h2 className="text-xl font-semibold text-text-strong">
@@ -623,7 +623,7 @@ function LoadingPanel({ label }: { label: string }) {
     >
       <LoaderCircle
         aria-hidden="true"
-        className="mr-2 size-5 animate-spin text-teal-700"
+        className="mr-2 size-5 animate-spin text-accent"
       />
       {label}
     </div>

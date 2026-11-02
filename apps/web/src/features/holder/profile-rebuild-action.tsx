@@ -46,7 +46,7 @@ export function ProfileRebuildAction({
     <div className="grid gap-3">
       <button
         type="button"
-        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         disabled={loading}
         onClick={() => void rebuild()}
       >

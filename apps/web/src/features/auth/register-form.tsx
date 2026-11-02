@@ -343,7 +343,7 @@ export function RegisterForm({
               className={[
                 'flex cursor-pointer items-start gap-3 rounded-control border p-4 transition-colors',
                 selected
-                  ? 'border-brand-700 bg-brand-100/50'
+                  ? 'border-emphasis bg-highlight/50'
                   : 'border-border-default bg-surface hover:border-border-strong'
               ].join(' ')}
             >
@@ -362,7 +362,7 @@ export function RegisterForm({
                   }));
                 }}
                 disabled={isSubmitting}
-                className="mt-1 size-4 shrink-0 accent-brand-700"
+                className="mt-1 size-4 shrink-0 accent-primary"
               />
               <span className="grid gap-1">
                 <span className="font-semibold text-text-strong">
@@ -379,7 +379,7 @@ export function RegisterForm({
           <p
             id="register-onboarding-intent-error"
             role="alert"
-            className="text-sm font-medium text-red-700"
+            className="text-sm font-medium text-status-error"
           >
             {fieldErrors.onboardingIntent}
           </p>

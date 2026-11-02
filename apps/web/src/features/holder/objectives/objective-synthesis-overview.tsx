@@ -100,7 +100,7 @@ function PositiveConclusion({
   return (
     <article className="grid min-w-0 gap-4 rounded-card border border-border-default bg-surface p-5">
       <div className="grid min-w-0 gap-2">
-        <p className="text-sm font-semibold text-teal-800">
+        <p className="text-sm font-semibold text-accent">
           {FINAL_STATE_LABELS[conclusion.finalState as RequirementFinalState]}
         </p>
         <h4 className="min-w-0 break-words text-base font-semibold leading-7 text-text-strong">
@@ -140,7 +140,7 @@ function PositiveConclusion({
         <button
           type="button"
           onClick={() => onRequirementDetail?.(conclusion.requirementId)}
-          className="text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+          className="text-sm font-semibold text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           aria-label={`Ver el detalle del requisito: ${conclusion.requirementText}`}
         >
           Ver detalle del requisito
@@ -220,7 +220,7 @@ export function ObjectiveSynthesisOverview({
               aria-expanded={showRemaining}
               aria-controls="remaining-positive-conclusions"
               onClick={() => setShowRemaining((current) => !current)}
-              className="justify-self-start text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="justify-self-start text-sm font-semibold text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
             >
               {showRemaining ? 'Ocultar conclusiones restantes' : 'Ver conclusiones restantes'}
             </button>

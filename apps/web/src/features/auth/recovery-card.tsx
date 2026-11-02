@@ -29,7 +29,7 @@ export function RecoveryCard({
       <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/8">
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-5 sm:p-9 sm:pb-6">
-          <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">
+          <p className="text-xs font-semibold tracking-[0.16em] text-accent uppercase">
             {kicker}
           </p>
           <h2

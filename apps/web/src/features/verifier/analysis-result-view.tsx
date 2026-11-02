@@ -37,8 +37,8 @@ import {
  * Sin verde/rojo de "aprobado/rechazado".
  */
 const STATE_TONE: Record<PublicFinalStateToken, string> = {
-  SUPPORTED: 'border-teal-700 bg-teal-50 text-teal-900',
-  PARTIALLY_SUPPORTED: 'border-amber-700 bg-amber-50 text-amber-900',
+  SUPPORTED: 'border-accent bg-accent-soft text-accent',
+  PARTIALLY_SUPPORTED: 'border-status-warning bg-status-warning-soft text-status-warning',
   INSUFFICIENT_EVIDENCE: 'border-border-strong bg-surface-muted text-text-default',
   NOT_ASSESSABLE: 'border-border-strong bg-surface-muted text-text-default',
   ABSTAIN: 'border-border-strong bg-surface-muted text-text-default'
@@ -53,7 +53,7 @@ export function AnalysisResultView({ result }: { result: PublicAnalysisResultVM 
     <div className="grid gap-6">
       <Card className="min-w-0">
         <CardHeader className="gap-2">
-          <p className="text-sm font-semibold text-teal-800">Objetivo analizado</p>
+          <p className="text-sm font-semibold text-accent">Objetivo analizado</p>
           <h2 className="break-words text-2xl font-bold tracking-tight text-text-strong">
             {objective.title ?? 'Análisis de trayectoria'}
           </h2>
@@ -122,7 +122,7 @@ export function AnalysisResultView({ result }: { result: PublicAnalysisResultVM 
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="break-words font-semibold text-text-strong">{credential.title}</p>
                   {credential.currentStatus === 'revoked' ? (
-                    <Badge variant="outline" className="border-amber-700 text-amber-900">
+                    <Badge variant="outline" className="border-status-warning text-status-warning">
                       Hoy: {credential.currentStatusLabel}
                     </Badge>
                   ) : null}
@@ -177,7 +177,7 @@ function RequirementResultCard({ requirement }: { requirement: PublicRequirement
       </CardHeader>
       <CardContent className="grid gap-4">
         {requirement.supportedWeakerClaim ? (
-          <div className="rounded-control border-l-2 border-amber-700 bg-surface-muted px-3 py-2">
+          <div className="rounded-control border-l-2 border-status-warning bg-surface-muted px-3 py-2">
             <p className="text-xs font-semibold text-text-muted">Lo que sí queda respaldado</p>
             <p className="mt-1 break-words text-sm leading-6 text-text-default">
               {requirement.supportedWeakerClaim}
@@ -213,12 +213,12 @@ function SupportingCredentialItem({ credential }: { credential: PublicSupporting
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href={`/verify?credential=${encodeURIComponent(credential.credentialReference)}`}
-          className="break-words text-sm font-semibold text-brand-700 underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none"
+          className="break-words text-sm font-semibold text-link underline underline-offset-2 focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
         >
           {credential.title}
         </Link>
         {credential.currentStatus === 'revoked' ? (
-          <Badge variant="outline" className="border-amber-700 text-amber-900">
+          <Badge variant="outline" className="border-status-warning text-status-warning">
             Hoy: {credential.currentStatusLabel}
           </Badge>
         ) : null}

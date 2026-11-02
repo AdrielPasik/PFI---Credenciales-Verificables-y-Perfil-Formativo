@@ -148,7 +148,7 @@ export function ReusableTemplateSearchSection({
             disabled={disabled}
             onClick={() => setExpanded((current) => !current)}
           >
-            <BookmarkPlus aria-hidden="true" className="size-5 text-teal-700" />
+            <BookmarkPlus aria-hidden="true" className="size-5 text-accent" />
             <span>
               <span
                 id="reusable-content-title"
@@ -174,8 +174,8 @@ export function ReusableTemplateSearchSection({
           >
             {previewTemplate ? (
               <div className="grid gap-3">
-                <div className="rounded-control border border-teal-600/25 bg-teal-100 p-4">
-                  <p className="text-xs font-bold tracking-wide text-teal-700 uppercase">
+                <div className="rounded-control border border-accent/25 bg-accent-tint p-4">
+                  <p className="text-xs font-bold tracking-wide text-accent uppercase">
                     Vista previa
                   </p>
                   <p className="mt-2 font-semibold text-text-strong">
@@ -215,7 +215,7 @@ export function ReusableTemplateSearchSection({
                       value={query}
                       disabled={disabled}
                       placeholder={`Título o plataforma del ${noun}`}
-                      className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
+                      className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
                       onChange={(event) => {
                         setQuery(event.target.value);
                         setFeedback(null);
@@ -256,7 +256,7 @@ export function ReusableTemplateSearchSection({
                         <button
                           type="button"
                           disabled={disabled}
-                          className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-teal-600 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-accent hover:bg-accent-tint focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
                           onClick={() => setPreviewTemplate(template)}
                         >
                           <span className="font-semibold text-text-strong">

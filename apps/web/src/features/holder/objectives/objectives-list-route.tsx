@@ -62,7 +62,7 @@ export function ObjectivesListRoute() {
 
       <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
         <div className="min-w-0 max-w-2xl">
-          <p className="text-sm font-semibold text-teal-700">Objetivos</p>
+          <p className="text-sm font-semibold text-accent">Objetivos</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
             Mis objetivos
           </h1>
@@ -111,7 +111,7 @@ export function ObjectivesListRoute() {
             <li key={objective.objectiveReference}>
               <Link
                 href={`/wallet/objectives/${objective.objectiveReference}`}
-                className="flex items-center justify-between gap-4 rounded-card border border-border-default bg-surface p-5 transition hover:border-brand-600 hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="flex items-center justify-between gap-4 rounded-card border border-border-default bg-surface p-5 transition hover:border-interactive hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               >
                 <div className="min-w-0">
                   <p className="truncate font-semibold text-text-strong">

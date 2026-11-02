@@ -38,12 +38,12 @@ export function IssuerShell({
     <div className="flex min-h-svh flex-col bg-surface-muted/55">
       <a
         href="#issuer-main-content"
-        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-white px-4 py-3 font-semibold text-brand-900 shadow-sm transition-transform focus:translate-y-0"
+        className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-surface px-4 py-3 font-semibold text-text-strong shadow-sm transition-transform focus:translate-y-0"
       >
         Saltar al contenido
       </a>
 
-      <header className="border-b border-brand-700 bg-brand-900 text-white shadow-sm">
+      <header className="border-b border-inverse-border bg-inverse text-white shadow-sm">
         <div className="mx-auto w-full max-w-[90rem] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <BrandHomeLink href="/issuer" label="Scope: ir al panel del emisor">
