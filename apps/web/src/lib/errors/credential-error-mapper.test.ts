@@ -34,6 +34,41 @@ describe('mapCredentialError', () => {
     ).toBe(code);
   });
 
+  it.each(['draft-create', 'draft-update', 'issue'] as const)(
+    'distingue un tipo de credencial no habilitado de un problema de datos (%s)',
+    (operation) => {
+      const result = mapCredentialError(
+        new ApiError('Este emisor no tiene habilitado este tipo de credencial.', 'http', 400, 'CREDENTIAL_TYPE_NOT_ENABLED'),
+        operation
+      );
+
+      expect(result).toEqual({
+        code: 'forbidden',
+        message:
+          'Tu institución no tiene habilitado este tipo de credencial. Elegí otro tipo o consultá con la administración de Scope.'
+      });
+      expect(result.message).not.toMatch(/Revisá los datos/);
+    }
+  );
+
+  it('distingue un emisor que no esta listo para emitir', () => {
+    expect(
+      mapCredentialError(new ApiError('detalle', 'http', 400, 'ISSUER_NOT_READY'), 'issue')
+    ).toEqual({
+      code: 'forbidden',
+      message: 'Tu institución todavía no está lista para emitir credenciales. Consultá con la administración de Scope.'
+    });
+  });
+
+  it('un 400 sin codigo institucional sigue siendo un problema de datos', () => {
+    expect(
+      mapCredentialError(new ApiError('detalle', 'http', 400, 'SOMETHING_ELSE'), 'draft-create')
+    ).toEqual({
+      code: 'invalid_input',
+      message: 'Revisá los datos del borrador e intentá nuevamente.'
+    });
+  });
+
   it('maps network and incompatible payloads without exposing details', () => {
     expect(
       mapCredentialError(
