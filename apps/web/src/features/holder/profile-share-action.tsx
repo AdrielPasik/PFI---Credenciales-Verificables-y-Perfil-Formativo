@@ -12,9 +12,11 @@
  * tiene y, si de verdad quiere otro, existe una accion explicita para crearlo.
  */
 
+import { Button } from '@/components/ui/button';
 import { SHARE_MANAGEMENT_SECTION_ID } from '@/features/holder/profile-share-management';
 
-export function ProfileShareAction() {
+/** `inverse`: sobre la banda de bienvenida, oscura en ambos temas. */
+export function ProfileShareAction({ tone = 'default' }: { tone?: 'default' | 'inverse' }) {
   function openShareManagement() {
     const section = document.getElementById(SHARE_MANAGEMENT_SECTION_ID);
     if (!(section instanceof HTMLDetailsElement)) return;
@@ -24,14 +26,14 @@ export function ProfileShareAction() {
   }
 
   return (
-    <div data-testid="profile-share-action" className="order-1 min-w-0 lg:col-start-2 lg:row-start-1">
-      <button
+    <div data-testid="profile-share-action" className="min-w-0">
+      <Button
         type="button"
-        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+        variant={tone === 'inverse' ? 'inverse' : 'secondary'}
         onClick={openShareManagement}
       >
         Compartir perfil
-      </button>
+      </Button>
     </div>
   );
 }

@@ -60,7 +60,7 @@ export function ObjectivesListRoute() {
     <div className="mx-auto grid w-full min-w-0 max-w-5xl gap-8">
       <BackLink href="/wallet" label="Volver a mi perfil" />
 
-      <header className="flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
+      <header className="rule-accent flex flex-wrap items-end justify-between gap-5 border-b border-border-default pb-7">
         <div className="min-w-0 max-w-2xl">
           <p className="text-sm font-semibold text-accent">Objetivos</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">

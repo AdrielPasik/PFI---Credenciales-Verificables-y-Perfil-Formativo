@@ -777,7 +777,7 @@ export function CredentialDetailView({
 
   return (
     <div className="grid gap-8 lg:gap-10">
-      <header className="border-b border-border-default pb-7 sm:pb-8">
+      <header className="rule-accent border-b border-border-default pb-7 sm:pb-8">
         <BackLink href="/issuer" label="Volver al panel del emisor" />
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <Badge

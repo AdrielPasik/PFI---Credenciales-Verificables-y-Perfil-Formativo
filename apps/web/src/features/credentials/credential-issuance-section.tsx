@@ -59,7 +59,7 @@ export function CredentialIssuanceSection({
 
   return (
     <section aria-labelledby="credential-issuance-title">
-      <Card className="overflow-hidden rounded-card border-border-strong bg-surface shadow-xs">
+      <Card className="overflow-hidden rounded-card border-border-strong bg-surface">
         <div aria-hidden="true" className="h-1 bg-accent-solid" />
         <CardHeader className="gap-1.5 border-b border-border-default bg-surface-muted/70 sm:p-5 sm:pb-4">
           <p className="text-sm font-semibold text-accent">

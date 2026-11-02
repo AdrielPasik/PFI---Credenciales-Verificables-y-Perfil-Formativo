@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { useState } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,6 +6,7 @@ import { WalletHomeContent, WalletHomeView, type HolderCredentialsLoadState, typ
 import { adaptMyCurrentProfile } from '@/lib/adapters/holder.adapter';
 import { ApiError, IncompatiblePayloadError } from '@/lib/errors/api-error';
 import type { HolderProfileVM } from '@/models/holder';
+import type { ObjectiveSummaryVM } from '@/models/objectives';
 
 // P1.1: ProfileRebuildAction (montado solo cuando showProfileShare +
 // onProfileRebuilt) usa useSession() y rebuildMyProfileRequest -- se
@@ -15,7 +16,9 @@ const holderApiMocks = vi.hoisted(() => ({
   getMyCredentialsRequest: vi.fn(),
   getMyCurrentProfileRequest: vi.fn(),
   rebuildMyProfileRequest: vi.fn(),
-  requestAuthenticated: vi.fn()
+  requestAuthenticated: vi.fn(),
+  listMyObjectivesRequest: vi.fn(async (): Promise<ObjectiveSummaryVM[]> => []),
+  displayLabel: vi.fn(() => 'titular@example.com')
 }));
 
 const profileSharingMocks = vi.hoisted(() => ({
@@ -29,7 +32,16 @@ const profileSharingMocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/session/session-provider', () => ({
-  useSession: () => ({ requestAuthenticated: holderApiMocks.requestAuthenticated })
+  useSession: () => ({
+    requestAuthenticated: holderApiMocks.requestAuthenticated,
+    state: { status: 'authenticated', currentUser: { displayLabel: holderApiMocks.displayLabel() } }
+  })
+}));
+
+// El objetivo mas reciente de la tarjeta de objetivos: la misma lista que usa
+// /wallet/objectives. Estas vistas no lo ejercitan salvo donde se indica.
+vi.mock('@/lib/api/objectives-api', () => ({
+  listMyObjectivesRequest: holderApiMocks.listMyObjectivesRequest
 }));
 
 vi.mock('@/lib/api/holder-api', () => ({
@@ -571,16 +583,18 @@ describe('WalletHomeContent profile error recovery', () => {
     expect(screen.getByRole('button', { name: 'Actualizar perfil' })).toBeTruthy();
   });
 
-  it('mantiene las acciones de cabecera en su fila y abre la gestion de enlaces sin crear ninguno', async () => {
+  it('reune las acciones principales en la banda y abre la gestion de enlaces sin crear ninguno', async () => {
     // Contrato NUEVO: "Compartir perfil" ya no crea un SharingGrant. Ese era el
     // defecto encontrado en QA manual -- cada click dejaba un enlace mas, y
     // ninguno se podia volver a copiar.
     render(<WalletHomeView profileState={{ status: 'ready', profile }} credentialsState={credentialsReady} showProfileShare onProfileRebuilt={() => {}} />);
 
-    const header = screen.getByRole('heading', { level: 1, name: 'Mi perfil formativo' }).closest('header');
-    expect(header?.className).toMatch(/lg:grid-cols/);
-    const rebuildAction = screen.getByTestId('profile-rebuild-header-action');
-    expect(rebuildAction.className).toMatch(/order-2/);
+    // Banda de bienvenida: titulo, analisis de objetivos, compartir y actualizar.
+    const band = screen.getByRole('heading', { level: 1, name: 'Mi perfil formativo' }).closest('section');
+    expect(band?.className).toMatch(/ambient-surface/);
+    expect(within(band as HTMLElement).getByRole('link', { name: 'Analizar un objetivo' }).getAttribute('href')).toBe('/wallet/objectives/new');
+    const rebuildAction = within(band as HTMLElement).getByTestId('profile-rebuild-header-action');
+    expect(within(band as HTMLElement).getByRole('button', { name: 'Compartir perfil' })).toBeTruthy();
 
     const shareSection = document.getElementById('enlaces-compartidos') as HTMLDetailsElement;
     expect(shareSection).toBeTruthy();
@@ -592,8 +606,25 @@ describe('WalletHomeContent profile error recovery', () => {
 
     expect(shareSection.open).toBe(true);
     expect(profileSharingMocks.createProfileShareRequest).not.toHaveBeenCalled();
-    // La seccion de gestion va DEBAJO de las acciones de cabecera.
+    // La seccion de gestion va DEBAJO de las acciones de la banda.
     expect(rebuildAction.compareDocumentPosition(shareSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('saluda al titular por su nombre y no repite la accion principal en la tarjeta de objetivos', async () => {
+    holderApiMocks.displayLabel.mockReturnValueOnce('Ana Pérez');
+    holderApiMocks.getMyCurrentProfileRequest.mockResolvedValue(profile);
+    holderApiMocks.listMyObjectivesRequest.mockResolvedValueOnce([
+      { objectiveReference: 'obj-1', objectiveType: 'EMPLOYMENT' as const, objectiveTypeLabel: 'Búsqueda laboral', title: 'Backend Engineer', createdAtLabel: '2 nov 2026' }
+    ]);
+
+    render(<WalletHomeContent />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Hola, Ana' })).toBeTruthy();
+    expect(await screen.findByText('Backend Engineer')).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Backend Engineer/ }).getAttribute('href')).toBe('/wallet/objectives/obj-1');
+    expect(screen.getAllByRole('link', { name: 'Analizar un objetivo' })).toHaveLength(1);
+    // Las metricas del perfil viven en la banda, una sola vez.
+    expect(screen.getAllByText('Credenciales')).toHaveLength(1);
   });
 
   it('retries GET /me/profile/current and renders the recovered profile', async () => {

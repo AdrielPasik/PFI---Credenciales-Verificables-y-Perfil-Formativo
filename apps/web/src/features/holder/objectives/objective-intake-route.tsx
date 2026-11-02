@@ -246,7 +246,7 @@ export function ObjectiveIntakeRoute() {
 
       {reviewActive && state.draft ? (
         <section aria-labelledby="requirement-review-title" className="mx-auto grid w-full max-w-5xl gap-6">
-          <header className="grid gap-4 border-b border-border-default pb-7">
+          <header className="rule-accent grid gap-4 border-b border-border-default pb-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 max-w-2xl">
                 <p className="text-sm font-semibold text-accent">

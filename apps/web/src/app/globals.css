@@ -36,14 +36,27 @@
   --traza-amber-100: #fff3d9;
 
   /* Superficies */
-  --traza-canvas: #eef2f5;
-  --traza-canvas-glow: rgb(191 230 234 / 22%);
+  --traza-canvas: #f3f6f9;
+  --traza-canvas-glow: rgb(47 143 153 / 13%);
+  --traza-canvas-glow-2: rgb(37 96 135 / 9%);
   --traza-surface: #ffffff;
   --traza-surface-muted: #f7fafb;
   --traza-highlight: #e5f2f4;
   --traza-inverse: #0b1d3a;
+  --traza-inverse-deep: #11304f;
   --traza-inverse-border: #12315c;
   --traza-scrim: rgb(11 29 58 / 40%);
+
+  /*
+   * Ambientacion de las superficies invertidas (header, bandas, login): halos
+   * petroleo y trama de puntos. El peor punto de contraste (halos superpuestos)
+   * se verifica en `theme-contrast.test.ts`.
+   */
+  --traza-ambient-halo: rgb(47 143 153 / 34%);
+  --traza-ambient-halo-2: rgb(37 96 135 / 14%);
+  --traza-ambient-halo-3: rgb(95 180 190 / 8%);
+  --traza-ambient-grid: rgb(255 255 255 / 7%);
+  --traza-ambient-line: rgb(95 180 190 / 55%);
 
   /* Texto */
   --traza-text-strong: #0b1d3a;
@@ -52,7 +65,7 @@
   --traza-text-subtle: #66778a;
 
   /* Bordes */
-  --traza-border-default: #d9e3e8;
+  --traza-border-default: #dbe4ec;
   --traza-border-strong: #bdccd5;
   --traza-border-control: #7d8fa0;
   --traza-border-interactive: #174671;
@@ -63,6 +76,10 @@
   --traza-primary-hover: #12315c;
   --traza-primary-active: #174671;
   --traza-on-primary: #ffffff;
+  --traza-inverse-action: #ffffff;
+  --traza-inverse-action-hover: #e5f2f4;
+  --traza-inverse-action-border: #ffffff;
+  --traza-on-inverse-action: #0b1d3a;
   --traza-link: #12315c;
   --traza-link-hover: #0b1d3a;
   --traza-accent: #13727b;
@@ -124,6 +141,9 @@
   --traza-shadow-md: 0 18px 42px rgb(11 29 58 / 11%);
   --traza-shadow-lg:
     0 10px 15px -3px rgb(0 0 0 / 10%), 0 4px 6px -4px rgb(0 0 0 / 10%);
+  /* Tarjetas: contacto nitido + sombra difusa corta. Sin elevacion al hover. */
+  --traza-shadow-card:
+    0 1px 2px rgb(11 29 58 / 4%), 0 12px 28px -16px rgb(11 29 58 / 24%);
 
   --traza-input-height: 2.75rem;
   --traza-reading-width: 75rem;
@@ -148,11 +168,18 @@
 
     --traza-canvas: #0a1424;
     --traza-canvas-glow: rgb(36 114 126 / 9%);
+    --traza-canvas-glow-2: rgb(37 96 135 / 6%);
     --traza-surface: #101d33;
     --traza-surface-muted: #0c182b;
     --traza-highlight: #172b45;
     --traza-inverse: #0e223f;
+    --traza-inverse-deep: #12304f;
     --traza-inverse-border: #1d3a5f;
+    --traza-ambient-halo: rgb(47 143 153 / 22%);
+    --traza-ambient-halo-2: rgb(37 96 135 / 14%);
+    --traza-ambient-halo-3: rgb(95 180 190 / 9%);
+    --traza-ambient-grid: rgb(255 255 255 / 6%);
+    --traza-ambient-line: rgb(95 180 190 / 35%);
     --traza-scrim: rgb(2 6 14 / 68%);
 
     --traza-text-strong: #eef3f8;
@@ -170,6 +197,11 @@
     --traza-primary-hover: #2a7884;
     --traza-primary-active: #1f6b77;
     --traza-on-primary: #ffffff;
+    --traza-inverse-action: #24727e;
+    --traza-inverse-action-hover: #2a7884;
+    /* El relleno petroleo no llega a 3:1 contra la banda: lo delimita el borde. */
+    --traza-inverse-action-border: #9fd0d6;
+    --traza-on-inverse-action: #ffffff;
     --traza-link: #82bcc4;
     --traza-link-hover: #a9d2d8;
     --traza-accent: #82bcc4;
@@ -211,6 +243,8 @@
     --traza-shadow-md: 0 18px 42px rgb(0 0 0 / 42%);
     --traza-shadow-lg:
       0 10px 24px -3px rgb(0 0 0 / 50%), 0 4px 8px -4px rgb(0 0 0 / 40%);
+    --traza-shadow-card:
+      0 1px 2px rgb(0 0 0 / 35%), 0 12px 28px -16px rgb(0 0 0 / 70%);
   }
 }
 
@@ -231,6 +265,7 @@
   --color-highlight: var(--traza-highlight);
   --color-inverse: var(--traza-inverse);
   --color-inverse-border: var(--traza-inverse-border);
+  --color-inverse-deep: var(--traza-inverse-deep);
   --color-scrim: var(--traza-scrim);
   --color-text-strong: var(--traza-text-strong);
   --color-text-default: var(--traza-text-default);
@@ -245,6 +280,10 @@
   --color-primary-hover: var(--traza-primary-hover);
   --color-primary-active: var(--traza-primary-active);
   --color-on-primary: var(--traza-on-primary);
+  --color-inverse-action: var(--traza-inverse-action);
+  --color-inverse-action-hover: var(--traza-inverse-action-hover);
+  --color-on-inverse-action: var(--traza-on-inverse-action);
+  --color-inverse-action-border: var(--traza-inverse-action-border);
   --color-link: var(--traza-link);
   --color-link-hover: var(--traza-link-hover);
   --color-accent: var(--traza-accent);
@@ -291,6 +330,7 @@
   --shadow-sm: var(--traza-shadow-sm);
   --shadow-md: var(--traza-shadow-md);
   --shadow-lg: var(--traza-shadow-lg);
+  --shadow-card: var(--traza-shadow-card);
   --spacing-1: var(--traza-space-1);
   --spacing-2: var(--traza-space-2);
   --spacing-3: var(--traza-space-3);
@@ -321,11 +361,19 @@
     font-size: 1rem;
     line-height: 1.5;
     text-rendering: optimizeLegibility;
-    background-image: linear-gradient(
-      135deg,
-      var(--traza-canvas-glow),
-      transparent 38rem
-    );
+    /* Luz ambiental estatica en la parte superior del documento. */
+    background-image:
+      radial-gradient(
+        70rem 26rem at 8% -5rem,
+        var(--traza-canvas-glow),
+        transparent 70%
+      ),
+      radial-gradient(
+        56rem 22rem at 100% -4rem,
+        var(--traza-canvas-glow-2),
+        transparent 70%
+      );
+    background-repeat: no-repeat;
   }
 
   button,
@@ -350,6 +398,167 @@
   textarea,
   select {
     -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* Header de los shells: degradado azul marino y una linea de luz inferior. */
+  .ambient-header {
+    position: relative;
+    background-image: linear-gradient(
+      100deg,
+      var(--traza-inverse) 0%,
+      var(--traza-inverse) 45%,
+      var(--traza-inverse-deep) 100%
+    );
+  }
+
+  .ambient-header::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--traza-ambient-line) 30%,
+      transparent 80%
+    );
+  }
+
+  /*
+   * Superficie ambiental (bandas, login, paneles destacados): el mismo
+   * degradado del header, una trama de puntos ESTATICA que se desvanece hacia
+   * el contenido y, con `AmbientLight`, dos halos que se desplazan muy lento.
+   * Solo se animan `transform` y `opacity` de capas decorativas: el layout no
+   * cambia. Nunca se usa detras de formularios ni de resultados.
+   */
+  .ambient-surface {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--traza-inverse);
+    background-image: linear-gradient(
+      100deg,
+      var(--traza-inverse) 0%,
+      var(--traza-inverse) 45%,
+      var(--traza-inverse-deep) 100%
+    );
+  }
+
+  .ambient-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(
+      var(--traza-ambient-grid) 1px,
+      transparent 1px
+    );
+    background-size: 16px 16px;
+    mask-image: linear-gradient(to left, #000, transparent 60%);
+  }
+
+  .ambient-light {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ambient-light::before,
+  .ambient-light::after {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    will-change: transform;
+  }
+
+  .ambient-light::before {
+    background:
+      radial-gradient(
+        closest-side at 72% 28%,
+        var(--traza-ambient-halo),
+        transparent
+      ),
+      radial-gradient(
+        closest-side at 22% 80%,
+        var(--traza-ambient-halo-2),
+        transparent
+      );
+    animation: ambient-drift 44s ease-in-out infinite alternate;
+  }
+
+  .ambient-light::after {
+    background: radial-gradient(
+      closest-side at 40% 20%,
+      var(--traza-ambient-halo-3),
+      transparent
+    );
+    animation: ambient-drift-reverse 61s ease-in-out infinite alternate;
+  }
+
+  /* Contenido que se monta sobre el borde inferior de una banda. */
+  .band-overlap {
+    position: relative;
+    z-index: 1;
+    margin-top: calc(-1 * (var(--shell-pt, 0px) + 1.75rem));
+  }
+
+  /* Separador: nace en petroleo y se apaga hacia la derecha. */
+  .rule-accent {
+    border-image: linear-gradient(
+        90deg,
+        var(--traza-accent) 0,
+        var(--traza-border-default) 10rem
+      )
+      1;
+  }
+}
+
+/*
+ * En la pantalla con banda, el contexto institucional ya esta en la banda.
+ * Fuera de las capas a proposito: tiene que ganarle a la utilidad `flex`.
+ */
+.shell-root:has([data-shell-band] > *) .shell-context-row {
+  display: none;
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(-6%, -2%, 0);
+    opacity: 0.7;
+  }
+  to {
+    transform: translate3d(6%, 3%, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes ambient-drift-reverse {
+  from {
+    transform: translate3d(5%, 2%, 0);
+  }
+  to {
+    transform: translate3d(-6%, -3%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-light::before,
+  .ambient-light::after {
+    animation: none;
+  }
+}
+
+@media print {
+  .ambient-light,
+  .ambient-surface::after {
+    display: none;
   }
 }
 

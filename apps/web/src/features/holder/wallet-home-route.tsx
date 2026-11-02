@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
+import { ShellBand } from '@/components/layout/shell-band';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { HolderCredentialCard } from '@/features/holder/holder-credential-card';
 import { ContractDiagnostic, useContractDebugEnabled } from '@/features/holder/contract-diagnostic';
-import { HolderProfileDetails, HolderProfileEmptyPanel, HolderProfileSummary } from '@/features/holder/holder-profile-panel';
-import { ObjectiveEntryCard } from '@/features/holder/objectives/objective-entry-card';
+import { HolderProfileCoverageNotice, HolderProfileDetails, HolderProfileEmptyPanel, HolderProfileIntro, HolderProfileMetrics } from '@/features/holder/holder-profile-panel';
+import { ObjectiveEntryCard, type LatestObjectiveState } from '@/features/holder/objectives/objective-entry-card';
 import { ProfileRebuildAction } from '@/features/holder/profile-rebuild-action';
 import { ProfileShareAction } from '@/features/holder/profile-share-action';
 import {
@@ -18,6 +19,7 @@ import {
   SHARE_MANAGEMENT_SECTION_ID
 } from '@/features/holder/profile-share-management';
 import { getMyCredentialsRequest, getMyCurrentProfileRequest } from '@/lib/api/holder-api';
+import { listMyObjectivesRequest } from '@/lib/api/objectives-api';
 import { ApiError, IncompatiblePayloadError, type IncompatiblePayloadDiagnostic } from '@/lib/errors/api-error';
 import { useSession } from '@/lib/session/session-provider';
 import type { HolderCredentialListItemVM, HolderProfileVM } from '@/models/holder';
@@ -38,11 +40,13 @@ export function WalletHomeRoute() {
 }
 
 export function WalletHomeContent() {
-  const { requestAuthenticated } = useSession();
+  const { requestAuthenticated, state: sessionState } = useSession();
   const contractDebug = useContractDebugEnabled();
   const [profileState, setProfileState] = useState<HolderProfileLoadState>({ status: 'loading' });
   const [credentialsState, setCredentialsState] = useState<HolderCredentialsLoadState>({ status: 'loading' });
+  const [latestObjective, setLatestObjective] = useState<LatestObjectiveState>({ status: 'loading' });
   const [profileRequestVersion, setProfileRequestVersion] = useState(0);
+  const holderName = sessionState.status === 'authenticated' ? sessionState.currentUser.displayLabel : null;
 
   useEffect(() => {
     let active = true;
@@ -60,6 +64,16 @@ export function WalletHomeContent() {
     return () => { active = false; };
   }, [profileRequestVersion, requestAuthenticated]);
 
+  // El objetivo mas reciente sale de la misma lista que /wallet/objectives
+  // (orden descendente). Si falla, la tarjeta de objetivos sigue sin ese dato.
+  useEffect(() => {
+    let active = true;
+    void listMyObjectivesRequest(requestAuthenticated)
+      .then((objectives) => active && setLatestObjective({ status: 'ready', objective: objectives[0] ?? null }))
+      .catch(() => active && setLatestObjective({ status: 'unavailable' }));
+    return () => { active = false; };
+  }, [requestAuthenticated]);
+
   function refreshCurrentProfile() {
     setProfileState({ status: 'loading' });
     setProfileRequestVersion((version) => version + 1);
@@ -69,6 +83,8 @@ export function WalletHomeContent() {
     <WalletHomeView
       profileState={profileState}
       credentialsState={credentialsState}
+      latestObjective={latestObjective}
+      holderName={holderName}
       showProfileShare
       onRetryProfile={refreshCurrentProfile}
       onProfileRebuilt={refreshCurrentProfile}
@@ -77,7 +93,17 @@ export function WalletHomeContent() {
   );
 }
 
-export function WalletHomeView({ profileState, credentialsState, showProfileShare = false, contractDebug = false, onRetryProfile, onProfileRebuilt }: { profileState: HolderProfileLoadState; credentialsState: HolderCredentialsLoadState; showProfileShare?: boolean; contractDebug?: boolean; onRetryProfile?: () => void; onProfileRebuilt?: (profile: HolderProfileVM | null) => void }) {
+/**
+ * Inicio del titular.
+ *
+ * - Banda de bienvenida (en el shell, debajo del header): saludo, resumen del
+ *   perfil, metricas y acciones principales.
+ * - Debajo, montado sobre el borde de la banda: en escritorio, credenciales y
+ *   trayectoria a la izquierda; objetivos y perfil publico a la derecha. En el
+ *   DOM la columna de seguimiento va primero: en movil (una sola columna) el
+ *   objetivo queda antes que el detalle extenso del perfil.
+ */
+export function WalletHomeView({ profileState, credentialsState, latestObjective, holderName = null, showProfileShare = false, contractDebug = false, onRetryProfile, onProfileRebuilt }: { profileState: HolderProfileLoadState; credentialsState: HolderCredentialsLoadState; latestObjective?: LatestObjectiveState; holderName?: string | null; showProfileShare?: boolean; contractDebug?: boolean; onRetryProfile?: () => void; onProfileRebuilt?: (profile: HolderProfileVM | null) => void }) {
   const credentials = credentialsState.status === 'ready' ? credentialsState.credentials : [];
   const issued = credentials.filter((credential) => credential.status === 'issued');
   const revoked = credentials.filter((credential) => credential.status === 'revoked');
@@ -91,53 +117,106 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
   const rebuildAction = onProfileRebuilt ? (
     <ProfileRebuildAction onRebuilt={onProfileRebuilt} />
   ) : null;
+  const firstName = greetingName(holderName);
+  const profile = profileState.status === 'ready' ? profileState.profile : null;
+
   return (
-    <div className="grid min-w-0 gap-10 lg:gap-12">
-      <header className="grid min-w-0 gap-5 border-b border-border-default pb-7 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
-        <div className="order-0 min-w-0 max-w-[var(--traza-holder-narrative-width)] lg:col-start-1 lg:row-start-1">
-          <p className="text-sm font-semibold text-accent">Espacio personal</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">Mi perfil formativo</h1>
-          <p className="mt-3 leading-7 text-text-muted">Una vista de tu trayectoria construida a partir de tus credenciales formativas y de los análisis disponibles en Scope.</p>
-        </div>
-        {profileState.status === 'ready' && showProfileShare ? <>{rebuildAction ? <div data-testid="profile-rebuild-header-action" className="order-2 min-w-0 lg:col-start-3 lg:row-start-1">{rebuildAction}</div> : null}<ProfileShareAction /></> : null}
-      </header>
-      {profileState.status === 'loading' ? <LoadingState label="Cargando tu perfil formativo" /> : null}
-      {profileState.status === 'ready' ? <HolderProfileSummary profile={profileState.profile} /> : null}
-      {/* Administracion de enlaces: cerrado por defecto para no competir con el
-          perfil, pero presente. Hasta esta version no habia NINGUNA forma de
-          ver los enlaces abiertos ni de darlos de baja. */}
-      {profileState.status === 'ready' && showProfileShare ? (
-        <details id={SHARE_MANAGEMENT_SECTION_ID} className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:px-6">
-            Enlaces compartidos y permisos
-            <ChevronDown aria-hidden="true" className="size-4 text-text-muted transition group-open:rotate-180" />
-          </summary>
-          <div className="border-t border-border-default px-5 py-5 sm:px-6">
-            <ProfileShareManagement />
+    <>
+      <ShellBand labelledBy="wallet-home-title">
+        <div className="grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-12">
+          <div className="grid min-w-0 gap-5">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold tracking-[0.16em] text-teal-100 uppercase">{firstName ? 'Mi perfil formativo' : 'Espacio personal'}</p>
+              <h1 id="wallet-home-title" className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">{firstName ? `Hola, ${firstName}` : 'Mi perfil formativo'}</h1>
+            </div>
+            {profile ? <HolderProfileIntro profile={profile} /> : <p className="max-w-[var(--traza-holder-narrative-width)] leading-7 text-brand-100/90">Una vista de tu trayectoria construida a partir de tus credenciales formativas y de los análisis disponibles en Scope.</p>}
+            {profile ? <HolderProfileMetrics profile={profile} /> : null}
           </div>
-        </details>
-      ) : null}
-      {profileState.status === 'empty' ? <HolderProfileEmptyPanel action={canOfferManualRebuild ? rebuildAction : null} /> : null}
-      {profileState.status === 'error' ? <div className="grid gap-4"><FeedbackAlert variant="warning" title="No pudimos cargar tu perfil formativo">Tus credenciales siguen disponibles. Podés volver a intentar ahora.{contractDebug && profileState.diagnostic ? <ContractDiagnostic diagnostic={profileState.diagnostic} /> : null}</FeedbackAlert><div className="flex flex-wrap gap-3">{onRetryProfile ? <Button type="button" variant="secondary" onClick={onRetryProfile}>Reintentar</Button> : null}{canOfferManualRebuild ? rebuildAction : null}</div></div> : null}
-      <ObjectiveEntryCard />
-      <section aria-labelledby="wallet-credentials-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
-        <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 max-w-2xl"><p className="text-sm font-semibold text-accent">Base de evidencia</p><h2 id="wallet-credentials-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Tus credenciales</h2><p className="mt-2 text-sm leading-6 text-text-muted">Estas credenciales forman la base de evidencia de tu trayectoria.</p></div>
-          <Button asChild variant="secondary"><Link href="/wallet/credentials">Ver todas <ArrowRight aria-hidden="true" /></Link></Button>
+          <div className="flex min-w-0 flex-wrap items-start gap-3 lg:justify-end">
+            <Button asChild variant="inverseAction"><Link href="/wallet/objectives/new">Analizar un objetivo</Link></Button>
+            {profile && showProfileShare ? <ProfileShareAction tone="inverse" /> : null}
+            {profile && showProfileShare && onProfileRebuilt ? <div data-testid="profile-rebuild-header-action" className="min-w-0"><ProfileRebuildAction tone="inverse" onRebuilt={onProfileRebuilt} /></div> : null}
+          </div>
         </div>
-        {credentialsState.status === 'loading' ? <LoadingState label="Cargando credenciales" /> : null}
-        {credentialsState.status === 'error' ? <FeedbackAlert variant="error" title="No pudimos cargar tus credenciales">{credentialsState.message}</FeedbackAlert> : null}
-        {credentialsState.status === 'ready' && credentials.length === 0 ? <EmptyCredentials /> : null}
-        {credentialsState.status === 'ready' && credentials.length > 0 ? <><div className="grid min-w-0 gap-3 sm:grid-cols-3"><SummaryCard label="Emitidas" value={issued.length} /><SummaryCard label="Revocadas" value={revoked.length} /><SummaryCard label="Con análisis disponible" value={credentials.filter((credential) => credential.hasAnalysis).length} /></div><div className="grid min-w-0 gap-5 md:grid-cols-2">{credentials.slice(0, 2).map((credential) => <HolderCredentialCard key={credential.credentialReference} credential={credential} />)}</div></> : null}
-      </section>
-      {profileState.status === 'ready' ? <HolderProfileDetails profile={profileState.profile} /> : null}
-    </div>
+      </ShellBand>
+
+      <div className="band-overlap grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(19rem,23rem)] lg:gap-8">
+        <aside aria-label="Objetivos y perfil público" className="grid min-w-0 gap-6 lg:col-start-2 lg:row-start-1">
+          <ObjectiveEntryCard latest={latestObjective} />
+          {/* Administracion de enlaces: cerrado por defecto para no competir con el
+              perfil, pero presente. Hasta esta version no habia NINGUNA forma de
+              ver los enlaces abiertos ni de darlos de baja. */}
+          {profile && showProfileShare ? (
+            <details id={SHARE_MANAGEMENT_SECTION_ID} className="group min-w-0 rounded-card border border-border-default bg-surface shadow-card">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:px-6">
+                <span className="grid gap-0.5"><span className="text-xs font-semibold tracking-wider text-accent uppercase">Perfil público</span>Enlaces compartidos y permisos</span>
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-text-muted transition group-open:rotate-180" />
+              </summary>
+              <div className="border-t border-border-default px-5 py-5 sm:px-6">
+                <ProfileShareManagement />
+              </div>
+            </details>
+          ) : null}
+        </aside>
+
+        <div className="grid min-w-0 gap-8 lg:col-start-1 lg:row-start-1">
+          {profileState.status === 'loading' ? <LoadingState label="Cargando tu perfil formativo" /> : null}
+          {profile ? <HolderProfileCoverageNotice profile={profile} /> : null}
+          {profileState.status === 'empty' ? <HolderProfileEmptyPanel action={canOfferManualRebuild ? rebuildAction : null} /> : null}
+          {profileState.status === 'error' ? <div className="grid gap-4"><FeedbackAlert variant="warning" title="No pudimos cargar tu perfil formativo">Tus credenciales siguen disponibles. Podés volver a intentar ahora.{contractDebug && profileState.diagnostic ? <ContractDiagnostic diagnostic={profileState.diagnostic} /> : null}</FeedbackAlert><div className="flex flex-wrap gap-3">{onRetryProfile ? <Button type="button" variant="secondary" onClick={onRetryProfile}>Reintentar</Button> : null}{canOfferManualRebuild ? rebuildAction : null}</div></div> : null}
+
+          <section aria-labelledby="wallet-credentials-title" className="min-w-0 rounded-card border border-border-default bg-surface p-5 shadow-card sm:p-6">
+            <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
+              <div className="min-w-0 max-w-2xl"><p className="text-xs font-semibold tracking-wider text-accent uppercase">Base de evidencia</p><h2 id="wallet-credentials-title" className="mt-1 text-xl font-semibold tracking-tight text-text-strong">Tus credenciales</h2>{credentialsState.status === 'ready' && credentials.length > 0 ? <p className="mt-1 text-sm text-text-muted">{issued.length} emitidas · {revoked.length} revocadas · {credentials.filter((credential) => credential.hasAnalysis).length} con análisis disponible</p> : null}</div>
+              <Button asChild variant="secondary" size="sm"><Link href="/wallet/credentials">Ver todas <ArrowRight aria-hidden="true" /></Link></Button>
+            </div>
+            <div className="mt-4">
+              {credentialsState.status === 'loading' ? <LoadingState label="Cargando credenciales" /> : null}
+              {credentialsState.status === 'error' ? <FeedbackAlert variant="error" title="No pudimos cargar tus credenciales">{credentialsState.message}</FeedbackAlert> : null}
+              {credentialsState.status === 'ready' && credentials.length === 0 ? <EmptyCredentials /> : null}
+              {credentialsState.status === 'ready' && credentials.length > 0 ? <ul className="divide-y divide-border-default border-t border-border-default">{credentials.slice(0, RECENT_CREDENTIALS_LIMIT).map((credential) => <RecentCredentialRow key={credential.credentialReference} credential={credential} />)}</ul> : null}
+            </div>
+          </section>
+
+          {profile ? <HolderProfileDetails profile={profile} /> : null}
+        </div>
+      </div>
+    </>
   );
 }
 
-export function EmptyCredentials() { return <Card><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-accent"><FileCheck2 aria-hidden="true" className="size-5" /></span><h2 className="text-xl font-semibold text-text-strong">Todavía no tenés credenciales formativas</h2></CardHeader><CardContent><p className="text-sm leading-6 text-text-muted">Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio.</p></CardContent></Card>; }
+const RECENT_CREDENTIALS_LIMIT = 3;
+
+function RecentCredentialRow({ credential }: { credential: HolderCredentialListItemVM }) {
+  const revokedCredential = credential.status === 'revoked';
+  return (
+    <li>
+      <Link
+        href={`/wallet/credentials/${encodeURIComponent(credential.credentialReference)}`}
+        className="flex min-w-0 items-center justify-between gap-3 rounded-control px-1 py-3 transition-colors hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+      >
+        <span className="min-w-0">
+          <span className="block truncate font-semibold text-text-strong">{credential.title}</span>
+          <span className="block truncate text-sm text-text-muted">{credential.issuerName}{credential.issuedAtLabel ? ` · ${credential.issuedAtLabel}` : ''}</span>
+        </span>
+        <span className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          <Badge variant="outline" className={revokedCredential ? 'border-transparent bg-status-revoked-soft text-status-revoked' : 'border-transparent bg-status-issued-soft text-status-issued'}>{credential.statusLabel}</Badge>
+          {credential.hasAnalysis ? <Badge variant="outline" className="hidden border-transparent bg-status-analysis-soft text-status-analysis sm:inline-flex">Con análisis</Badge> : null}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/** Primer nombre para el saludo; sin nombre (la etiqueta cae al email) no hay saludo. */
+function greetingName(label: string | null) {
+  if (!label || label.includes('@')) return null;
+  const first = label.trim().split(/\s+/)[0];
+  return first || null;
+}
+
+export function EmptyCredentials() { return <Card className="shadow-none"><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-accent"><FileCheck2 aria-hidden="true" className="size-5" /></span><h2 className="text-xl font-semibold text-text-strong">Todavía no tenés credenciales formativas</h2></CardHeader><CardContent><p className="text-sm leading-6 text-text-muted">Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio.</p></CardContent></Card>; }
 export function LoadingState({ label }: { label: string }) { return <div className="flex min-h-32 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin text-accent" />{label}</div>; }
-function SummaryCard({ label, value }: { label: string; value: number }) { return <Card className="border-border-strong"><CardContent className="pt-5 sm:pt-6"><p className="text-2xl font-bold text-text-strong">{value}</p><p className="mt-1 text-sm text-text-muted">{label}</p></CardContent></Card>; }
 function messageFor(error: unknown) { if (error instanceof IncompatiblePayloadError) return 'La información disponible no tiene el formato esperado. Intentá nuevamente más tarde.'; if (error instanceof ApiError && error.status === 404) return 'No encontramos información disponible para mostrar.'; return 'No pudimos completar la consulta. Intentá nuevamente más tarde.'; }
 function profileErrorState(error: unknown): HolderProfileLoadState {
   return {

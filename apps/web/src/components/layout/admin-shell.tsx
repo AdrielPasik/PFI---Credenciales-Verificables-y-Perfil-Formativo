@@ -32,7 +32,7 @@ interface AdminShellProps {
  */
 export function AdminShell({ children, label, onLogout, returnDestination }: AdminShellProps) {
   return (
-    <div className="flex min-h-svh flex-col bg-surface-muted/55">
+    <div className="flex min-h-svh flex-col">
       <a
         href="#admin-main-content"
         className="fixed top-3 left-3 z-50 -translate-y-20 rounded-control bg-surface px-4 py-3 font-semibold text-text-strong shadow-sm transition-transform focus:translate-y-0"
@@ -40,7 +40,7 @@ export function AdminShell({ children, label, onLogout, returnDestination }: Adm
         Saltar al contenido
       </a>
 
-      <header className="border-b border-inverse-border bg-inverse text-white shadow-sm">
+      <header className="ambient-header border-b border-inverse-border bg-inverse text-white shadow-sm">
         <div className="mx-auto flex min-h-20 w-full min-w-0 max-w-[90rem] flex-col justify-center gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           {/* Sin enlace en la marca: Administracion es una sola pantalla, ya
               estamos en su raiz. El regreso al espacio de origen va en el menu. */}

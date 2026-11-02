@@ -111,6 +111,8 @@ export interface HolderProfileVM {
   // distribucion por area. Renombrado desde totalHoursLabel para que el
   // nombre nunca se preste a confundirse con una estimacion de IA.
   totalOfficialHoursLabel: string | null;
+  /** Solo el numero de horas oficiales ("420"), para metricas compactas. */
+  totalOfficialHoursValue?: string | null;
   /** "N credenciales no informan horas." Null cuando no hay ninguna (o el
    * contador no esta disponible en un perfil generado antes de C2c). */
   hoursCoverageNoticeLabel: string | null;

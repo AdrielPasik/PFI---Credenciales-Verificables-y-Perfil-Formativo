@@ -10,7 +10,7 @@ export const Card = forwardRef<
     ref={ref}
     data-slot="card"
     className={cn(
-      'rounded-card border border-border-default/90 bg-surface text-text-default shadow-xs',
+      'rounded-card border border-border-default bg-surface text-text-default shadow-card',
       className
     )}
     {...props}
