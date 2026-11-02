@@ -78,6 +78,23 @@ export function mapCredentialError(
     );
   }
 
+  // Restricciones INSTITUCIONALES, no problemas de datos: el backend las
+  // distingue con un codigo estable. Revisar el formulario no las resuelve,
+  // asi que no se presentan como "revisá los datos".
+  if (error.code === 'CREDENTIAL_TYPE_NOT_ENABLED') {
+    return feedback(
+      'forbidden',
+      'Tu institución no tiene habilitado este tipo de credencial. Elegí otro tipo o consultá con la administración de Scope.'
+    );
+  }
+
+  if (error.code === 'ISSUER_NOT_READY') {
+    return feedback(
+      'forbidden',
+      'Tu institución todavía no está lista para emitir credenciales. Consultá con la administración de Scope.'
+    );
+  }
+
   if (error.status === 401) {
     return feedback(
       'session_expired',
