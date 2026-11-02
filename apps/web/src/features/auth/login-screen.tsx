@@ -59,7 +59,7 @@ export function LoginScreen() {
       <Card className="overflow-hidden border-border-strong bg-surface shadow-lg shadow-brand-900/8">
         <div aria-hidden="true" className="h-1 bg-brand-accent" />
         <CardHeader className="gap-3 pb-5 sm:p-9 sm:pb-6">
-          <p className="text-xs font-semibold tracking-[0.16em] text-teal-700 uppercase">
+          <p className="text-xs font-semibold tracking-[0.16em] text-accent uppercase">
             Acceso a Scope
           </p>
           <h2 className="text-3xl leading-tight font-bold tracking-[-0.035em] text-text-strong sm:text-[2rem]">
@@ -79,13 +79,13 @@ export function LoginScreen() {
           <div className="mt-7 grid gap-3 border-t border-border-default pt-5 text-center text-sm text-text-muted">
             <p>
               ¿Necesitás consultar una credencial?{' '}
-              <Link href="/verify" className="font-semibold text-brand-700 underline underline-offset-4">
+              <Link href="/verify" className="font-semibold text-link underline underline-offset-4">
                 Verificar una credencial
               </Link>
             </p>
             <p>
               ¿Sos nuevo en Scope?{' '}
-              <Link href="/register" className="font-semibold text-brand-700 underline underline-offset-4">
+              <Link href="/register" className="font-semibold text-link underline underline-offset-4">
                 Crear una cuenta
               </Link>
             </p>

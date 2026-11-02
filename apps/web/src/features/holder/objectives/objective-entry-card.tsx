@@ -22,10 +22,10 @@ export function ObjectiveEntryCard() {
   return (
     <section
       aria-labelledby="wallet-objectives-title"
-      className="grid min-w-0 gap-5 rounded-card border border-brand-700/20 bg-surface p-5 shadow-xs sm:p-7"
+      className="grid min-w-0 gap-5 rounded-card border border-emphasis/20 bg-surface p-5 shadow-xs sm:p-7"
     >
       <div className="min-w-0 max-w-2xl">
-        <p className="text-sm font-semibold text-teal-700">Objetivos</p>
+        <p className="text-sm font-semibold text-accent">Objetivos</p>
         <h2
           id="wallet-objectives-title"
           className="mt-1 text-2xl font-bold tracking-tight text-text-strong"

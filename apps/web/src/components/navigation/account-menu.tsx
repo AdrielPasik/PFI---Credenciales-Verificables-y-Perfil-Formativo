@@ -1,6 +1,7 @@
 import { ArrowLeft, LogOut, RefreshCw, Settings } from 'lucide-react';
 import Link from 'next/link';
 
+import { AppearanceControl } from '@/components/navigation/appearance-control';
 import { Button } from '@/components/ui/button';
 import {
   adminHrefFrom,
@@ -55,12 +56,14 @@ export function AccountMenu({
   onLogout
 }: AccountMenuProps) {
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
+    // En pantallas angostas el nombre ocupa su propia fila y las acciones van
+    // debajo, alineadas al inicio, sin recortar el nombre ni desbordar.
+    <div className="flex w-full min-w-0 flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
       <span
         className={
           inverse
-            ? 'min-w-0 flex-1 truncate text-sm text-brand-100 sm:max-w-64 sm:flex-none'
-            : 'min-w-0 flex-1 truncate text-sm text-text-muted sm:max-w-64 sm:flex-none'
+            ? 'min-w-0 basis-full truncate text-sm text-brand-100 sm:max-w-64 sm:basis-auto'
+            : 'min-w-0 basis-full truncate text-sm text-text-muted sm:max-w-64 sm:basis-auto'
         }
       >
         {label}
@@ -68,7 +71,7 @@ export function AccountMenu({
       {returnDestination ? (
         <Button
           asChild
-          variant={inverse ? 'secondary' : 'ghost'}
+          variant={inverse ? 'inverse' : 'ghost'}
           size="sm"
           className="shrink-0"
         >
@@ -81,7 +84,7 @@ export function AccountMenu({
       {isPlatformAdmin ? (
         <Button
           asChild
-          variant={inverse ? 'secondary' : 'ghost'}
+          variant={inverse ? 'inverse' : 'ghost'}
           size="sm"
           className="shrink-0"
         >
@@ -93,7 +96,7 @@ export function AccountMenu({
       ) : null}
       {canChangeIssuer ? (
         <Button
-          variant={inverse ? 'secondary' : 'ghost'}
+          variant={inverse ? 'inverse' : 'ghost'}
           size="sm"
           className="shrink-0"
           // Cambiar de institucion abandona la pantalla: si hay un formulario
@@ -104,14 +107,18 @@ export function AccountMenu({
           Cambiar institución
         </Button>
       ) : null}
+      <AppearanceControl tone={inverse ? 'inverse' : 'default'} />
+      {/* En pantallas angostas queda como icono (44 px) con el mismo nombre
+          accesible, para que el header no desborde. */}
       <Button
-        variant={inverse ? 'secondary' : 'ghost'}
+        variant={inverse ? 'inverse' : 'ghost'}
         size="sm"
-        className="shrink-0"
+        className="shrink-0 max-sm:size-11 max-sm:px-0"
+        title="Cerrar sesión"
         onClick={() => requestLeave(onLogout)}
       >
         <LogOut aria-hidden="true" />
-        Cerrar sesión
+        <span className="max-sm:sr-only">Cerrar sesión</span>
       </Button>
     </div>
   );

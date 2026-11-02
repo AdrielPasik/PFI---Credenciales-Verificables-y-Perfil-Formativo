@@ -29,8 +29,8 @@ function WalletCredentialsContent() {
 
   return <section className="grid min-w-0 gap-8" aria-labelledby="holder-credentials-title">
     <BackLink href="/wallet" label="Volver a mi perfil" />
-    <div className="min-w-0 max-w-[var(--traza-holder-narrative-width)] border-l-4 border-teal-700 pl-5 sm:pl-6">
-      <p className="text-sm font-semibold text-teal-700">Credenciales de respaldo</p>
+    <div className="min-w-0 max-w-[var(--traza-holder-narrative-width)] border-l-4 border-accent pl-5 sm:pl-6">
+      <p className="text-sm font-semibold text-accent">Credenciales de respaldo</p>
       <h1 id="holder-credentials-title" className="mt-1 text-3xl font-bold tracking-tight text-text-strong">Mis credenciales</h1>
       <p className="mt-3 max-w-2xl leading-7 text-text-muted">{'Consult\u00e1 las credenciales que respaldan tu trayectoria formativa.'}</p>
     </div>

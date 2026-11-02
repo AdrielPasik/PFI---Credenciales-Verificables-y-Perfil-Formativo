@@ -27,7 +27,7 @@ export function ProfileShareAction() {
     <div data-testid="profile-share-action" className="order-1 min-w-0 lg:col-start-2 lg:row-start-1">
       <button
         type="button"
-        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+        className="w-fit rounded-control border border-border-strong px-4 py-2 text-sm font-semibold text-text-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
         onClick={openShareManagement}
       >
         Compartir perfil

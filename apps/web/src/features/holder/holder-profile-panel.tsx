@@ -22,8 +22,8 @@ export function HolderProfilePanel({ profile }: { profile: HolderProfileVM }) {
 export function HolderProfileSummary({ profile }: { profile: HolderProfileVM }) {
   return (
     <section aria-labelledby="holder-profile-summary-title" className="grid min-w-0 gap-6">
-      <Card className="min-w-0 overflow-hidden border-brand-700 bg-brand-900 text-white shadow-sm">
-        <div aria-hidden="true" className="h-1 bg-teal-600" />
+      <Card className="min-w-0 overflow-hidden border-inverse-border bg-inverse text-white shadow-sm">
+        <div aria-hidden="true" className="h-1 bg-accent-solid" />
         <CardHeader className="grid min-w-0 gap-8 sm:p-8 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,0.42fr)] lg:items-end">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center justify-between gap-4 lg:justify-start">
@@ -44,12 +44,12 @@ export function HolderProfileSummary({ profile }: { profile: HolderProfileVM }) 
       </Card>
 
       {profile.hoursCoverageNoticeLabel || profile.semanticCoverageNoticeLabel ? (
-        <aside className="grid min-w-0 gap-2 rounded-control border border-amber-300 bg-amber-50 px-4 py-3.5 text-sm leading-6 text-amber-900 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4">
+        <aside className="grid min-w-0 gap-2 rounded-control border border-status-warning/40 bg-status-warning-soft px-4 py-3.5 text-sm leading-6 text-status-warning sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-4">
           <p className="font-semibold">Cobertura del perfil</p>
           <div className="min-w-0">
             {profile.semanticCoverageNoticeLabel ? <p>{profile.semanticCoverageNoticeLabel}</p> : null}
             {profile.hoursCoverageNoticeLabel ? <p className={profile.semanticCoverageNoticeLabel ? 'mt-1' : ''}>{profile.hoursCoverageNoticeLabel}</p> : null}
-            <p className="mt-1 text-amber-800">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
+            <p className="mt-1 text-status-warning">La distribución por áreas se muestra solo cuando existe evidencia suficiente.</p>
           </div>
         </aside>
       ) : null}
@@ -67,7 +67,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
   return (
     <section aria-labelledby="holder-profile-detail-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
       <div className="max-w-2xl">
-        <p className="text-sm font-semibold text-teal-700">Tu trayectoria en detalle</p>
+        <p className="text-sm font-semibold text-accent">Tu trayectoria en detalle</p>
         <h2 id="holder-profile-detail-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Áreas y habilidades</h2>
         <p className="mt-2 text-sm leading-6 text-text-muted">Una vista resumida de los contenidos que aparecen en las credenciales y análisis disponibles.</p>
       </div>
@@ -78,7 +78,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
       {hasVisibleProvenance ? <p className="-mt-2 text-xs leading-5 text-text-muted">En las áreas y habilidades, <strong className="font-semibold text-text-strong">Emisor</strong> indica una interpretación revisada por el emisor, e <strong className="font-semibold text-text-strong">IA</strong> indica una interpretación realizada con inteligencia artificial.</p> : null}
 
       <details className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:px-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:px-6">
           Explorar el detalle del perfil
           <ChevronDown aria-hidden="true" className="size-4 text-text-muted transition group-open:rotate-180" />
         </summary>
@@ -89,7 +89,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
 
           {hasDeclaredInstitutionalInfo ? (
             <details className="min-w-0 rounded-control border border-border-default bg-surface-muted">
-              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">Información declarada por instituciones</summary>
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">Información declarada por instituciones</summary>
               <div className="grid min-w-0 gap-5 border-t border-border-default px-4 py-4">
                 <p className="text-sm leading-6 text-text-muted">Estos datos provienen de credenciales emitidas. No son una certificación de la IA ni reemplazan la interpretación asistida.</p>
                 <HolderDeclaredTextList title="Habilidades declaradas" items={profile.emittedSkills} />
@@ -100,7 +100,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
           ) : null}
 
           <details className="min-w-0 rounded-control border border-border-default bg-surface-muted">
-            <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">Acerca de este perfil</summary>
+            <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">Acerca de este perfil</summary>
             <div className="grid gap-3 border-t border-border-default px-4 py-4 text-sm leading-6 text-text-muted">
               <p>Resume áreas, habilidades y conceptos presentes en la información utilizada para construir el perfil.</p>
               {profile.reviewedInterpretationNoticeLabel ? <p>{profile.reviewedInterpretationNoticeLabel}</p> : null}
@@ -116,7 +116,7 @@ export function HolderProfileDetails({ profile }: { profile: HolderProfileVM }) 
 }
 
 export function HolderProfileEmptyPanel({ action }: { action?: ReactNode }) {
-  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-amber-100 text-amber-600"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">Scope construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible.</p>{action ? <div className="mt-4">{action}</div> : null}</div></CardHeader></Card>;
+  return <Card className="overflow-hidden border-border-strong"><div className="h-1 bg-amber-600" /><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-status-warning-soft text-status-warning"><BrainCircuit aria-hidden="true" className="size-5" /></span><div><h2 className="mt-2 text-xl font-semibold text-text-strong">Tu perfil todavía no está disponible</h2><p className="mt-2 text-sm leading-6 text-text-muted">Scope construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible.</p>{action ? <div className="mt-4">{action}</div> : null}</div></CardHeader></Card>;
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -128,9 +128,9 @@ interface ProfileListItem { key: string; label: string; metadata?: string | null
 function ProfileList({ title, icon, items, limit, empty }: { title: string; icon: ReactNode; items: ProfileListItem[]; limit?: number; empty: string }) {
   const visibleItems = limit === undefined ? items : items.slice(0, limit);
   const remaining = items.length - visibleItems.length;
-  return <Card className="min-w-0 shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="shrink-0 text-teal-700">{icon}</span><h3 className="min-w-0 text-lg font-semibold text-text-strong">{title}</h3></CardHeader><CardContent className="min-w-0 pt-5">{visibleItems.length > 0 ? <><ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3">{visibleItems.map((item) => <li key={item.key} className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><Badge variant="outline" className="max-w-full whitespace-normal break-words px-3 py-1.5 text-left">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="min-w-0 break-words text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul>{remaining > 0 ? <p className="mt-4 text-xs text-text-muted">+ {remaining} más en el detalle del perfil.</p> : null}</> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
+  return <Card className="min-w-0 shadow-xs"><CardHeader className="flex-row items-center gap-3 border-b border-border-default pb-4"><span className="shrink-0 text-accent">{icon}</span><h3 className="min-w-0 text-lg font-semibold text-text-strong">{title}</h3></CardHeader><CardContent className="min-w-0 pt-5">{visibleItems.length > 0 ? <><ul className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-3">{visibleItems.map((item) => <li key={item.key} className="flex min-w-0 max-w-full flex-wrap items-center gap-2"><Badge variant="outline" className="max-w-full whitespace-normal break-words px-3 py-1.5 text-left">{item.label}{item.provenance ? <ProvenanceIndicator provenance={item.provenance} /> : null}</Badge>{item.metadata ? <span className="min-w-0 break-words text-xs leading-5 text-text-muted">{item.metadata}</span> : null}</li>)}</ul>{remaining > 0 ? <p className="mt-4 text-xs text-text-muted">+ {remaining} más en el detalle del perfil.</p> : null}</> : <p className="text-sm text-text-muted">{empty}</p>}</CardContent></Card>;
 }
 
 function ProvenanceIndicator({ provenance }: { provenance: HolderProfileProvenanceVM }) {
-  return <>{provenance.issuerReviewedLabel ? <span className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-brand-700/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700" title={provenance.issuerReviewedLabel}><Landmark aria-hidden="true" className="size-2.5" />Emisor</span> : null}{provenance.aiInferredLabel ? <span className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-teal-700/10 px-1.5 py-0.5 text-[10px] font-semibold text-teal-700" title={provenance.aiInferredLabel}><BrainCircuit aria-hidden="true" className="size-2.5" />IA</span> : null}</>;
+  return <>{provenance.issuerReviewedLabel ? <span className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-link/10 px-1.5 py-0.5 text-[10px] font-semibold text-link" title={provenance.issuerReviewedLabel}><Landmark aria-hidden="true" className="size-2.5" />Emisor</span> : null}{provenance.aiInferredLabel ? <span className="ml-1 inline-flex items-center gap-0.5 rounded-pill bg-accent/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent" title={provenance.aiInferredLabel}><BrainCircuit aria-hidden="true" className="size-2.5" />IA</span> : null}</>;
 }

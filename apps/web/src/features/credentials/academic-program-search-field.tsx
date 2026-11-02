@@ -40,7 +40,7 @@ export function AcademicProgramSearchField({
             value={query}
             disabled={disabled}
             placeholder="Nombre o código de carrera"
-            className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
+            className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
             onChange={(event) => onQueryChange(event.target.value)}
           />
         </div>
@@ -73,7 +73,7 @@ export function AcademicProgramSearchField({
               <button
                 type="button"
                 disabled={disabled}
-                className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-teal-600 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-accent hover:bg-accent-tint focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => onSelect(program)}
               >
                 <span className="font-semibold text-text-strong">{program.programName}</span>

@@ -191,9 +191,9 @@ export function AcademicSubjectCatalogSection({
 
   return (
     <Card className="overflow-hidden border-border-strong shadow-none">
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
+      <div aria-hidden="true" className="h-1 bg-accent-solid" />
       <CardHeader className="border-b border-border-default">
-        <p className="text-sm font-semibold text-teal-700">Catálogo institucional</p>
+        <p className="text-sm font-semibold text-accent">Catálogo institucional</p>
         <h3 className="text-lg font-semibold text-text-strong">Referencia académica oficial</h3>
         <p className="max-w-3xl text-sm leading-6 text-text-muted">
           La carrera y la asignatura provienen del catálogo académico institucional.
@@ -203,7 +203,7 @@ export function AcademicSubjectCatalogSection({
         {persistedSelection ? (
           <div className="grid gap-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-text-strong">
-              <BookOpenCheck aria-hidden="true" className="size-4 text-teal-700" />
+              <BookOpenCheck aria-hidden="true" className="size-4 text-accent" />
               Asignatura seleccionada
             </div>
             {persistedSelection.program === null ? (
@@ -270,7 +270,7 @@ export function AcademicSubjectCatalogSection({
           <div className="grid gap-5 rounded-card border border-border-default bg-surface-muted p-4 sm:p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-bold tracking-wide text-brand-700 uppercase">
+                <p className="text-xs font-bold tracking-wide text-link uppercase">
                   {changeMode === 'program' ? 'Seleccionar carrera' : 'Seleccionar asignatura'}
                 </p>
                 <p className="mt-1 text-sm text-text-muted">
@@ -287,7 +287,7 @@ export function AcademicSubjectCatalogSection({
 
           {changeMode === 'program' ? (
             <div>
-            <p className="text-xs font-bold tracking-wide text-brand-700 uppercase">Paso 1</p>
+            <p className="text-xs font-bold tracking-wide text-link uppercase">Paso 1</p>
             <AcademicProgramSearchField
               disabled={disabled}
               error={programError}
@@ -312,9 +312,9 @@ export function AcademicSubjectCatalogSection({
 
           {changeMode === 'subject' && selectedProgram ? (
             <div className="grid gap-4 border-t border-border-default pt-5">
-              <div className="flex flex-col gap-3 rounded-control border border-teal-600/25 bg-teal-100 p-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-control border border-accent/25 bg-accent-tint p-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-bold tracking-wide text-teal-700 uppercase">Carrera elegida para buscar</p>
+                  <p className="text-xs font-bold tracking-wide text-accent uppercase">Carrera elegida para buscar</p>
                   <p className="mt-1 font-semibold text-text-strong">{selectedProgram.programName}</p>
                   <p className="mt-1 text-sm text-text-muted">Código {selectedProgram.programCode}</p>
                 </div>
@@ -330,7 +330,7 @@ export function AcademicSubjectCatalogSection({
                 </Button>
               </div>
               <div>
-                <p className="mb-3 text-xs font-bold tracking-wide text-brand-700 uppercase">Paso 2</p>
+                <p className="mb-3 text-xs font-bold tracking-wide text-link uppercase">Paso 2</p>
                 <CurriculumSubjectSearchField
                   disabled={disabled}
                   error={subjectError}

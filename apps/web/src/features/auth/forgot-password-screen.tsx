@@ -99,7 +99,7 @@ export function ForgotPasswordScreen() {
       <div className="mt-7 border-t border-border-default pt-5 text-center text-sm text-text-muted">
         <Link
           href="/login"
-          className="font-semibold text-brand-700 underline underline-offset-4"
+          className="font-semibold text-link underline underline-offset-4"
         >
           Volver a iniciar sesión
         </Link>

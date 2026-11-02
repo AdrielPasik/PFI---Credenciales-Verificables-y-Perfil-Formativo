@@ -440,7 +440,7 @@ export const CredentialDraftEditorForm = forwardRef<
   return (
     <section aria-labelledby="draft-editor-title" className="grid gap-6 border-t border-border-default pt-8 sm:pt-10">
       <div className="max-w-3xl">
-        <p className="text-sm font-semibold text-teal-700">
+        <p className="text-sm font-semibold text-accent">
           Completar borrador
         </p>
         <h2
@@ -466,7 +466,7 @@ export const CredentialDraftEditorForm = forwardRef<
           className="grid gap-5 border-y border-border-default bg-surface px-4 py-6 sm:px-6"
         >
           <header>
-            <p className="text-sm font-semibold text-brand-700">
+            <p className="text-sm font-semibold text-link">
               Información común
             </p>
             <h3
@@ -745,7 +745,7 @@ function DraftFieldsCard({
   return (
     <section className="grid gap-5 border-t border-border-default pt-6 sm:pt-8">
       <div>
-        <p className="text-sm font-semibold text-teal-700">{eyebrow}</p>
+        <p className="text-sm font-semibold text-accent">{eyebrow}</p>
         <h3 className="mt-1 text-lg font-semibold text-text-strong">{title}</h3>
         <p className="mt-1 text-sm leading-6 text-text-muted">{description}</p>
       </div>
@@ -791,7 +791,7 @@ function DeclaredInstitutionalContentFields({
       className="grid gap-5 border-t border-border-default pt-6"
     >
       <div>
-        <p className="text-sm font-semibold text-teal-700">
+        <p className="text-sm font-semibold text-accent">
           {isAcademicSubject ? 'Declaración institucional' : 'Datos de la credencial'}
         </p>
         <h3
@@ -972,7 +972,7 @@ function SpecificField({
           id="credential-modality"
           value={state.modality}
           disabled={disabled}
-          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
+          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
           onChange={(event) => onChange('modality', event.target.value)}
         >
           <option value="">Seleccioná una modalidad</option>
@@ -1179,7 +1179,7 @@ function AcademicPeriodField({
           value={term}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
-          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
+          className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
           onChange={(event) =>
             onTermChange(event.target.value as '' | '1' | '2')
           }
@@ -1224,7 +1224,7 @@ function SelectField({
         id={id}
         value={value}
         disabled={disabled}
-        className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
+        className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-text-muted sm:text-sm"
         onChange={(event) =>
           onChange(event.target.value as CredentialType)
         }

@@ -1,14 +1,17 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
+import { AppearanceControl } from '@/components/navigation/appearance-control';
+
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-svh bg-canvas lg:grid lg:grid-cols-[minmax(26rem,0.9fr)_minmax(34rem,1.1fr)]">
-      <main className="order-1 flex min-h-svh items-center justify-center bg-surface-muted px-4 py-8 sm:px-8 sm:py-12 lg:order-2 lg:px-12 lg:py-16">
+      <main className="relative order-1 flex min-h-svh items-center justify-center bg-surface-muted px-4 pt-20 pb-8 sm:px-8 sm:py-20 lg:order-2 lg:px-12 lg:py-16">
+        <AppearanceControl className="absolute top-4 right-4 sm:top-6 sm:right-8" />
         <div className="w-full max-w-xl">{children}</div>
       </main>
 
-      <aside className="order-2 border-t border-white/10 bg-brand-900 text-white lg:order-1 lg:border-t-0 lg:border-r lg:border-white/10">
+      <aside className="order-2 border-t border-white/10 bg-inverse text-white lg:order-1 lg:border-t-0 lg:border-r lg:border-white/10">
         <div className="mx-auto flex min-h-[23rem] max-w-xl flex-col justify-between px-5 py-8 sm:min-h-[25rem] sm:px-8 sm:py-10 lg:min-h-svh lg:px-12 lg:py-12">
           <Image
             alt="Scope"

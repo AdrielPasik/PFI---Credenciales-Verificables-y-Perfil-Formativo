@@ -27,7 +27,30 @@ export function BrandMark({
 
   return (
     <div className={cn('flex min-w-0 items-center gap-2.5', className)}>
-      {logoSource ? (
+      {usesLightAsset ? (
+        // Logo a color pensado para fondo claro: en el tema oscuro se muestra la
+        // version invertida. Un solo nombre accesible para las dos imagenes.
+        <span role="img" aria-label="Scope" className="shrink-0">
+          <Image
+            alt=""
+            className="size-11 object-contain sm:size-12 dark:hidden"
+            height={1254}
+            priority
+            src={logoSource ?? ''}
+            width={1254}
+          />
+          <Image
+            alt=""
+            className="hidden size-11 object-contain sm:size-12 dark:block"
+            height={1254}
+            // Sin carga diferida: si el tema es oscuro desde el inicio, el logo
+            // no debe aparecer tarde.
+            loading="eager"
+            src="/brand/Logo%20Scope%20Invertido.png"
+            width={1254}
+          />
+        </span>
+      ) : logoSource ? (
         <Image
           alt="Scope"
           className="size-11 shrink-0 object-contain sm:size-12"
@@ -40,7 +63,7 @@ export function BrandMark({
         <span
           className={cn(
             'text-xl font-bold tracking-[-0.035em]',
-            tone === 'inverse' ? 'text-white' : 'text-brand-900'
+            tone === 'inverse' ? 'text-white' : 'text-text-strong'
           )}
         >
           Scope

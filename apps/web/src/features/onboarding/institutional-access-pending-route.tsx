@@ -185,12 +185,12 @@ export function InstitutionalAccessPendingView({
         <CardHeader className="gap-4 sm:p-8">
           <span
             aria-hidden="true"
-            className="flex size-12 items-center justify-center rounded-control bg-brand-100 text-brand-700"
+            className="flex size-12 items-center justify-center rounded-control bg-highlight text-link"
           >
             <Building2 className="size-6" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-teal-700">
+            <p className="text-sm font-semibold text-accent">
               Tu cuenta ya está creada
             </p>
             <h1

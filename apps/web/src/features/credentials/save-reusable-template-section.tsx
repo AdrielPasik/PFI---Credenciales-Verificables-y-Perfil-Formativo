@@ -84,7 +84,7 @@ export function SaveReusableTemplateSection({
       className="flex flex-wrap items-center gap-3 rounded-card border border-border-default bg-surface-muted p-4"
       data-testid="save-reusable-template-section"
     >
-      <BookmarkPlus aria-hidden="true" className="size-5 shrink-0 text-teal-700" />
+      <BookmarkPlus aria-hidden="true" className="size-5 shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-text-strong">Reutilizable</p>
         <p className="mt-1 text-sm text-text-muted">

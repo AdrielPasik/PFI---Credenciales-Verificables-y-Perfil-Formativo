@@ -60,9 +60,9 @@ export function CredentialIssuanceSection({
   return (
     <section aria-labelledby="credential-issuance-title">
       <Card className="overflow-hidden rounded-card border-border-strong bg-surface shadow-xs">
-        <div aria-hidden="true" className="h-1 bg-teal-700" />
+        <div aria-hidden="true" className="h-1 bg-accent-solid" />
         <CardHeader className="gap-1.5 border-b border-border-default bg-surface-muted/70 sm:p-5 sm:pb-4">
-          <p className="text-sm font-semibold text-teal-700">
+          <p className="text-sm font-semibold text-accent">
             Registro verificable
           </p>
           <h2
@@ -199,7 +199,7 @@ function DraftIssuanceContent({
                   onChange={(event) =>
                     onWithoutEvidenceConfirmed(event.target.checked)
                   }
-                  className="mt-0.5 size-4 rounded border-border-strong text-brand-900 focus-visible:ring-3 focus-visible:ring-focus-ring/25"
+                  className="mt-0.5 size-4 rounded border-border-strong text-text-strong focus-visible:ring-3 focus-visible:ring-focus-ring/25"
                 />
                 <Label
                   htmlFor="confirm-issuance-without-evidence"
@@ -490,7 +490,7 @@ function IssuedCredentialContent({
 
       <div className="grid gap-4">
         <div className="flex items-start gap-3">
-          <Fingerprint aria-hidden="true" className="mt-0.5 size-5 text-teal-700" />
+          <Fingerprint aria-hidden="true" className="mt-0.5 size-5 text-accent" />
           <div>
             <h3 className="font-semibold text-text-strong">
               Evidencia de integridad
@@ -530,7 +530,7 @@ function BlockchainEvidence({ detail }: { detail: IssuerCredentialDetailVM }) {
     <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 font-semibold text-text-strong">
-          <Network aria-hidden="true" className="size-4 text-brand-700" />
+          <Network aria-hidden="true" className="size-4 text-link" />
           Registro técnico
         </div>
         <Badge variant="secondary">{evidence.networkLabel}</Badge>

@@ -313,8 +313,12 @@ it('no deja confirmar más de 12 requisitos', async () => {
   renderRoute();
   await screen.findByRole('heading', { name: 'Revisá qué se va a evaluar' });
 
+  // El boton se resuelve una sola vez: `getByRole` recorre todo el arbol
+  // accesible y repetirlo en cada vuelta duplicaba la duracion del test. Es el
+  // mismo nodo durante todo el agregado; la asercion final lo vuelve a buscar.
+  const addRequirement = screen.getByRole('button', { name: 'Agregar requisito' });
   for (let index = 0; index < 11; index += 1) {
-    fireEvent.click(screen.getByRole('button', { name: 'Agregar requisito' }));
+    fireEvent.click(addRequirement);
     fireEvent.change(screen.getByLabelText(`Requisito ${index + 2}`), {
       target: { value: `Requisito manual ${index + 2}` }
     });

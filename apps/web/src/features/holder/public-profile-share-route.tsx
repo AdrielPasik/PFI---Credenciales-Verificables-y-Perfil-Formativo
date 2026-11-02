@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
+import { AppearanceControl } from '@/components/navigation/appearance-control';
 import { buildCredentialVerifyHref, buildProfileReturnPath } from '@/features/verifier/analysis-return';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ export function PublicProfileShareRoute({ token }: { token: string }) {
     return () => { active = false; };
   }, [token]);
 
-  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><Button asChild size="sm" variant="secondary"><Link href="/login">Iniciar sesión</Link></Button></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} token={token} /> : null}</div></main>;
+  return <main className="min-h-svh bg-canvas px-4 py-6 sm:px-8 sm:py-10"><div className="mx-auto grid w-full max-w-7xl gap-8"><header className="flex flex-wrap items-center justify-between gap-4"><BrandMark descriptor="Perfil compartido" lightLogo /><div className="flex items-center gap-2"><AppearanceControl /><Button asChild size="sm" variant="secondary"><Link href="/login">Iniciar sesión</Link></Button></div></header>{state.kind === 'loading' ? <div className="flex min-h-40 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin" />Cargando perfil compartido</div> : null}{state.kind === 'error' ? <FeedbackAlert variant="error" title="Perfil no disponible">No encontramos un perfil compartido disponible.</FeedbackAlert> : null}{state.kind === 'ready' ? <PublicProfileView profile={state.profile} token={token} /> : null}</div></main>;
 }
 
 function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; token: string }) {
@@ -34,7 +35,7 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
   ];
 
   return <section className="grid gap-8" aria-labelledby="shared-profile-title">
-    <Card className="min-w-0 border-brand-700 bg-brand-900 text-white">
+    <Card className="min-w-0 border-inverse-border bg-inverse text-white">
       <CardHeader className="gap-4 sm:p-8">
         <div className="flex items-center gap-3"><UserRound aria-hidden="true" className="size-5 text-teal-100" /><p className="text-sm font-semibold text-teal-100">Perfil formativo compartido</p></div>
         <h1 id="shared-profile-title" className="break-words text-3xl font-bold tracking-tight sm:text-4xl">{profile.holderLabel ?? 'Perfil formativo'}</h1>
@@ -45,9 +46,9 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
     </Card>
 
     {profile.contextualVerificationEnabled ? (
-      <Card className="min-w-0 border-teal-700">
+      <Card className="min-w-0 border-accent">
         <CardHeader className="gap-2">
-          <div className="flex items-center gap-3"><Sparkles aria-hidden="true" className="size-5 text-teal-700" /><h2 className="text-lg font-semibold text-text-strong">Analizar esta trayectoria frente a un objetivo</h2></div>
+          <div className="flex items-center gap-3"><Sparkles aria-hidden="true" className="size-5 text-accent" /><h2 className="text-lg font-semibold text-text-strong">Analizar esta trayectoria frente a un objetivo</h2></div>
           <p className="max-w-3xl text-sm leading-6 text-text-muted">Scope analizará únicamente las credenciales que la persona autorizó para esta función, frente al objetivo que definas. Es distinto de verificar una credencial: no certifica aptitud ni puntúa personas.</p>
         </CardHeader>
         <CardContent><Button asChild><Link href={`/share/profile/${encodeURIComponent(token)}/analysis`}>Analizar esta trayectoria frente a un objetivo</Link></Button></CardContent>
@@ -61,7 +62,7 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
     </div>
 
     <Card className="min-w-0">
-      <CardHeader className="flex-row items-center gap-3"><Landmark aria-hidden="true" className="size-5 text-teal-700" /><div><h2 className="text-lg font-semibold text-text-strong">Credenciales que respaldan este perfil</h2><p className="mt-1 text-sm text-text-muted">Se muestran hasta 10 credenciales emitidas vinculadas con este perfil.</p></div></CardHeader>
+      <CardHeader className="flex-row items-center gap-3"><Landmark aria-hidden="true" className="size-5 text-accent" /><div><h2 className="text-lg font-semibold text-text-strong">Credenciales que respaldan este perfil</h2><p className="mt-1 text-sm text-text-muted">Se muestran hasta 10 credenciales emitidas vinculadas con este perfil.</p></div></CardHeader>
       <CardContent className="min-w-0">
         {profile.credentials.length > 0 ? <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {profile.credentials.map((credential) => <div key={credential.credentialReference} className="grid min-w-0 gap-3 rounded-control border border-border-default p-4">
@@ -79,7 +80,7 @@ function PublicProfileView({ profile, token }: { profile: PublicProfileShareVM; 
 
 function LabelList({ title, items }: { title: string; items: string[] }) {
   return <Card className="min-w-0">
-    <CardHeader className="flex-row items-center gap-3 pb-4"><BookOpenCheck aria-hidden="true" className="size-5 text-teal-700" /><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader>
+    <CardHeader className="flex-row items-center gap-3 pb-4"><BookOpenCheck aria-hidden="true" className="size-5 text-accent" /><h2 className="text-lg font-semibold text-text-strong">{title}</h2></CardHeader>
     <CardContent className="min-w-0">{items.length > 0 ? <ul className="flex flex-wrap gap-2">{items.map((item) => <li key={item} className="max-w-full"><Badge variant="outline" className="max-w-full whitespace-normal break-words text-left">{item}</Badge></li>)}</ul> : <p className="text-sm text-text-muted">No hay información disponible.</p>}</CardContent>
   </Card>;
 }

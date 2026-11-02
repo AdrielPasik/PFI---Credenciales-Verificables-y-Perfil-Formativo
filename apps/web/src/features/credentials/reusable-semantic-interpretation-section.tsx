@@ -239,9 +239,9 @@ export function ReusableSemanticInterpretationSection({
       className="overflow-hidden rounded-[1.25rem] border-border-strong shadow-xs"
       data-testid="reusable-semantic-interpretation-section"
     >
-      <div aria-hidden="true" className="h-1 bg-teal-700" />
+      <div aria-hidden="true" className="h-1 bg-accent-solid" />
       <CardHeader className="gap-2 border-b border-border-default bg-surface-muted/70 sm:p-8 sm:pb-6">
-        <p className="flex items-center gap-2 text-sm font-semibold text-teal-700">
+        <p className="flex items-center gap-2 text-sm font-semibold text-accent">
           <Layers aria-hidden="true" className="size-4" />
           Interpretación reutilizable
         </p>
@@ -331,10 +331,10 @@ function ActiveApplicationSummary({ state }: { state: ActiveState }) {
 
   return (
     <div
-      className="rounded-card border border-teal-600/25 bg-teal-100 p-5"
+      className="rounded-card border border-accent/25 bg-accent-tint p-5"
       data-testid="reusable-interpretation-current-application"
     >
-      <p className="text-xs font-bold tracking-wide text-teal-700 uppercase">
+      <p className="text-xs font-bold tracking-wide text-accent uppercase">
         Actualmente aplicada
       </p>
       <p className="mt-2 font-semibold text-text-strong">
@@ -490,7 +490,7 @@ function TemplatePicker({
             value={query}
             disabled={disabled}
             placeholder={`Título del ${noun}`}
-            className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-brand-600 focus-visible:border-brand-600 focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
+            className="min-h-11 w-full rounded-control border border-border-strong bg-surface px-3 py-2 text-base text-text-strong shadow-xs outline-none transition-colors placeholder:text-text-subtle hover:border-interactive focus-visible:border-interactive focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:bg-surface-muted sm:text-sm"
             onChange={(event) => {
               setQuery(event.target.value);
               setFeedback(null);
@@ -536,7 +536,7 @@ function TemplatePicker({
               <button
                 type="button"
                 disabled={disabled}
-                className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-teal-600 hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex w-full items-start justify-between gap-4 rounded-control border border-border-default bg-surface p-3 text-left transition-colors hover:border-accent hover:bg-accent-tint focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/25 disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => onSelect(template)}
               >
                 <span className="font-semibold text-text-strong">
@@ -570,7 +570,7 @@ function CandidatePreview({
 }) {
   if (state.kind === 'loading') {
     return (
-      <p aria-live="polite" className="text-sm font-semibold text-teal-700">
+      <p aria-live="polite" className="text-sm font-semibold text-accent">
         Consultando interpretación disponible…
       </p>
     );
@@ -601,7 +601,7 @@ function CandidatePreview({
   return (
     <div className="grid gap-4 rounded-card border border-border-default bg-surface-muted p-5">
       <div>
-        <p className="text-xs font-bold tracking-wide text-brand-700 uppercase">
+        <p className="text-xs font-bold tracking-wide text-link uppercase">
           Interpretación disponible para aplicar
         </p>
         <p className="mt-2 font-semibold text-text-strong">
@@ -720,7 +720,7 @@ function DestinationCompatibilityNotice({
           checked={acknowledgeDrift}
           disabled={disabled}
           onChange={(event) => onAcknowledgeDriftChange(event.target.checked)}
-          className="mt-0.5 size-4 rounded border-border-strong text-brand-900 focus-visible:ring-3 focus-visible:ring-focus-ring/25"
+          className="mt-0.5 size-4 rounded border-border-strong text-text-strong focus-visible:ring-3 focus-visible:ring-focus-ring/25"
         />
         <Label htmlFor={checkboxId} className="leading-6">
           Entiendo que esta credencial tiene diferencias respecto del

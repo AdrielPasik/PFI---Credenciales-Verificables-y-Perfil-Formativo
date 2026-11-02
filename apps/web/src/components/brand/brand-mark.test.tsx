@@ -39,16 +39,21 @@ describe('BrandMark', () => {
     expect(logo?.className).toContain('object-contain');
   });
 
-  it('uses the approved Scope logo when requested on a light surface', () => {
+  it('uses the approved Scope logo on a light surface and the inverted one in dark theme', () => {
     render(<BrandMark lightLogo descriptor="Public verification" />);
 
-    const logo = document.querySelector('img');
+    const [lightAsset, darkAsset] = Array.from(document.querySelectorAll('img'));
 
-    expect(screen.getByRole('img', { name: 'Scope' })).toBe(logo);
+    // Un unico nombre accesible para el par de imagenes.
+    expect(screen.getByRole('img', { name: 'Scope' }).tagName).toBe('SPAN');
     expect(screen.queryByText('Scope')).toBeNull();
     expect(
-      decodeURIComponent(decodeURIComponent(logo?.getAttribute('src') ?? ''))
+      decodeURIComponent(decodeURIComponent(lightAsset?.getAttribute('src') ?? ''))
     ).toContain('Logo Scope 2.png');
-    expect(logo?.className).toContain('object-contain');
+    expect(lightAsset?.className).toContain('dark:hidden');
+    expect(
+      decodeURIComponent(decodeURIComponent(darkAsset?.getAttribute('src') ?? ''))
+    ).toContain('Logo Scope Invertido.png');
+    expect(darkAsset?.className).toContain('dark:block');
   });
 });

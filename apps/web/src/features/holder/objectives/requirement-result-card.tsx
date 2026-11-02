@@ -27,16 +27,16 @@ import { ReasoningEvidenceList } from '@/features/holder/objectives/reasoning-ev
  * etiqueta; nunca un fondo de alarma ni un semaforo.
  */
 const STATE_ACCENT: Record<RequirementFinalState, string> = {
-  SUPPORTED: 'border-l-teal-700',
-  PARTIALLY_SUPPORTED: 'border-l-teal-600',
+  SUPPORTED: 'border-l-accent',
+  PARTIALLY_SUPPORTED: 'border-l-accent',
   INSUFFICIENT_EVIDENCE: 'border-l-border-strong',
   NOT_ASSESSABLE: 'border-l-border-strong',
   ABSTAIN: 'border-l-border-strong'
 };
 
 const STATE_TEXT: Record<RequirementFinalState, string> = {
-  SUPPORTED: 'text-teal-800',
-  PARTIALLY_SUPPORTED: 'text-teal-800',
+  SUPPORTED: 'text-accent',
+  PARTIALLY_SUPPORTED: 'text-accent',
   INSUFFICIENT_EVIDENCE: 'text-text-muted',
   NOT_ASSESSABLE: 'text-text-muted',
   ABSTAIN: 'text-text-muted'

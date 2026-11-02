@@ -78,7 +78,7 @@ export function ReasoningEvidenceList({
                   // estado al momento del run, asi que decir "se revoco despues
                   // del analisis" seria inventar historia. El resultado sigue
                   // siendo una observacion fechada y valida.
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-status-warning">
                     Estado actual de la credencial:{' '}
                     {group.credential.currentStatusLabel}
                   </p>
@@ -98,7 +98,7 @@ export function ReasoningEvidenceList({
               <p>
                 <Link
                   href={`/wallet/credentials/${encodeURIComponent(group.credential.credentialReference)}`}
-                  className="text-sm font-semibold text-teal-700 underline underline-offset-2"
+                  className="text-sm font-semibold text-accent underline underline-offset-2"
                 >
                   Ver credencial: {group.credential.title}
                 </Link>
@@ -122,7 +122,7 @@ function EvidenceExcerpt({ evidence }: { evidence: ReasoningEvidenceVM }) {
         el backend preserva exacta, y `break-words` para que un fragmento largo
         no desborde la tarjeta en pantallas angostas.
       */}
-      <blockquote className="min-w-0 max-w-2xl border-l-2 border-teal-700 pl-3 text-sm leading-6 text-text-default">
+      <blockquote className="min-w-0 max-w-2xl border-l-2 border-accent pl-3 text-sm leading-6 text-text-default">
         <p className="min-w-0 whitespace-pre-wrap break-words">
           &ldquo;{evidence.excerpt}&rdquo;
         </p>
@@ -159,12 +159,12 @@ function EvidenceExcerpt({ evidence }: { evidence: ReasoningEvidenceVM }) {
 
       {hasContext ? (
         <details className="min-w-0">
-          <summary className="cursor-pointer text-xs font-semibold text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+          <summary className="cursor-pointer text-xs font-semibold text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
             Ver el fragmento en contexto
           </summary>
           <p className="mt-2 min-w-0 max-w-2xl whitespace-pre-wrap break-words text-xs leading-6 text-text-muted">
             {evidence.contextBefore}
-            <mark className="bg-teal-50 font-semibold text-text-strong">
+            <mark className="bg-accent-soft font-semibold text-text-strong">
               {evidence.excerpt}
             </mark>
             {evidence.contextAfter}

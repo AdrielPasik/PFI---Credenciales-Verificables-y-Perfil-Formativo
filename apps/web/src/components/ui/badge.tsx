@@ -12,11 +12,11 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-brand-900 bg-brand-900 text-white shadow-xs',
+        default: 'border-primary bg-primary text-on-primary shadow-xs',
         secondary:
-          'border-teal-700/20 bg-teal-100 text-teal-700',
+          'border-accent/20 bg-accent-tint text-accent',
         outline:
-          'border-border-strong bg-surface text-brand-700'
+          'border-border-strong bg-surface text-link'
       }
     },
     defaultVariants: {

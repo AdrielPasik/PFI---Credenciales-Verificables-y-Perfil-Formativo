@@ -342,7 +342,7 @@ function DocumentUploadForm({
   return (
     <Card className="overflow-hidden rounded-card border-border-default bg-surface-muted/40 shadow-none">
       <CardHeader className="border-b border-border-default bg-surface-muted/50">
-        <p className="text-sm font-semibold text-brand-700">
+        <p className="text-sm font-semibold text-link">
           {isReplacement ? 'Selección pendiente' : 'Nuevo respaldo'}
         </p>
         <h3 className="text-lg font-semibold text-text-strong">
@@ -370,7 +370,7 @@ function DocumentUploadForm({
               disabled={uploading}
               aria-invalid={validationError ? true : undefined}
               aria-describedby={describedBy}
-              className="cursor-pointer file:mr-3 file:rounded-sm file:border-0 file:bg-brand-100 file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-900"
+              className="cursor-pointer file:mr-3 file:rounded-sm file:border-0 file:bg-highlight file:px-3 file:py-1 file:text-sm file:font-semibold file:text-text-strong"
               onChange={onFileChange}
             />
             <p

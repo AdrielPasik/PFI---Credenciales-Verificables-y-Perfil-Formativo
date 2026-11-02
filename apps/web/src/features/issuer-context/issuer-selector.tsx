@@ -30,7 +30,7 @@ export function IssuerSelector({
 
   return (
     <section className="mx-auto w-full max-w-3xl" aria-labelledby="context-title">
-      <p className="text-sm font-semibold text-teal-700">
+      <p className="text-sm font-semibold text-accent">
         Contexto institucional
       </p>
       <h1
@@ -56,9 +56,9 @@ export function IssuerSelector({
                 key={membership.issuerReference}
                 className={cn(
                   'group grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] gap-4 rounded-card border bg-surface p-5 shadow-xs transition-colors',
-                  'hover:border-brand-600 focus-within:border-brand-600 focus-within:ring-3 focus-within:ring-focus-ring/20',
+                  'hover:border-interactive focus-within:border-interactive focus-within:ring-3 focus-within:ring-focus-ring/20',
                   checked
-                    ? 'border-brand-700'
+                    ? 'border-emphasis'
                     : 'border-border-default'
                 )}
               >
@@ -78,7 +78,7 @@ export function IssuerSelector({
                   <span className="flex flex-wrap items-center gap-2">
                     <Building2
                       aria-hidden="true"
-                      className="size-5 text-brand-700"
+                      className="size-5 text-link"
                     />
                     <span className="font-semibold text-text-strong">
                       {membership.issuerName}

@@ -523,7 +523,7 @@ function RunState({
 
       {history.length > 1 ? (
         <details className="rounded-card border border-border-default bg-surface p-5">
-          <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+          <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
             Analisis anteriores ({history.length - 1})
           </summary>
           <ul className="mt-4 grid list-none gap-2 text-sm text-text-muted">
@@ -657,7 +657,7 @@ function CompletedSynthesisState({
 
         {history.length > 1 ? (
           <details className="rounded-card border border-border-default bg-surface p-5">
-            <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+            <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               Analisis anteriores ({history.length - 1})
             </summary>
             <ul className="mt-4 grid list-none gap-2 text-sm text-text-muted">

@@ -183,7 +183,7 @@ export function AcademicSubjectCreationCatalogSection({
       className="grid gap-5 border-t border-border-default pt-6"
     >
       <div>
-        <p className="text-sm font-semibold text-teal-700">Paso 3</p>
+        <p className="text-sm font-semibold text-accent">Paso 3</p>
         <h3
           id="academic-subject-creation-title"
           className="mt-1 text-lg font-semibold text-text-strong"
@@ -218,9 +218,9 @@ export function AcademicSubjectCreationCatalogSection({
             />
           ) : (
             <div className="grid gap-5">
-              <div className="flex flex-col gap-3 rounded-control border border-teal-600/25 bg-teal-100 p-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-3 rounded-control border border-accent/25 bg-accent-tint p-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-bold tracking-wide text-teal-700 uppercase">
+                  <p className="text-xs font-bold tracking-wide text-accent uppercase">
                     Carrera seleccionada
                   </p>
                   <p className="mt-1 font-semibold text-text-strong">

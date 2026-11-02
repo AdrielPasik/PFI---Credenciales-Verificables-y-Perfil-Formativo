@@ -95,7 +95,7 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
     <div className="grid min-w-0 gap-10 lg:gap-12">
       <header className="grid min-w-0 gap-5 border-b border-border-default pb-7 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end">
         <div className="order-0 min-w-0 max-w-[var(--traza-holder-narrative-width)] lg:col-start-1 lg:row-start-1">
-          <p className="text-sm font-semibold text-teal-700">Espacio personal</p>
+          <p className="text-sm font-semibold text-accent">Espacio personal</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">Mi perfil formativo</h1>
           <p className="mt-3 leading-7 text-text-muted">Una vista de tu trayectoria construida a partir de tus credenciales formativas y de los análisis disponibles en Scope.</p>
         </div>
@@ -108,7 +108,7 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
           ver los enlaces abiertos ni de darlos de baja. */}
       {profileState.status === 'ready' && showProfileShare ? (
         <details id={SHARE_MANAGEMENT_SECTION_ID} className="group min-w-0 rounded-card border border-border-default bg-surface shadow-xs">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 sm:px-6">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring sm:px-6">
             Enlaces compartidos y permisos
             <ChevronDown aria-hidden="true" className="size-4 text-text-muted transition group-open:rotate-180" />
           </summary>
@@ -122,7 +122,7 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
       <ObjectiveEntryCard />
       <section aria-labelledby="wallet-credentials-title" className="grid min-w-0 gap-6 border-t border-border-default pt-8">
         <div className="flex min-w-0 flex-wrap items-end justify-between gap-4">
-          <div className="min-w-0 max-w-2xl"><p className="text-sm font-semibold text-teal-700">Base de evidencia</p><h2 id="wallet-credentials-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Tus credenciales</h2><p className="mt-2 text-sm leading-6 text-text-muted">Estas credenciales forman la base de evidencia de tu trayectoria.</p></div>
+          <div className="min-w-0 max-w-2xl"><p className="text-sm font-semibold text-accent">Base de evidencia</p><h2 id="wallet-credentials-title" className="mt-1 text-2xl font-bold tracking-tight text-text-strong">Tus credenciales</h2><p className="mt-2 text-sm leading-6 text-text-muted">Estas credenciales forman la base de evidencia de tu trayectoria.</p></div>
           <Button asChild variant="secondary"><Link href="/wallet/credentials">Ver todas <ArrowRight aria-hidden="true" /></Link></Button>
         </div>
         {credentialsState.status === 'loading' ? <LoadingState label="Cargando credenciales" /> : null}
@@ -135,8 +135,8 @@ export function WalletHomeView({ profileState, credentialsState, showProfileShar
   );
 }
 
-export function EmptyCredentials() { return <Card><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-teal-700"><FileCheck2 aria-hidden="true" className="size-5" /></span><h2 className="text-xl font-semibold text-text-strong">Todavía no tenés credenciales formativas</h2></CardHeader><CardContent><p className="text-sm leading-6 text-text-muted">Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio.</p></CardContent></Card>; }
-export function LoadingState({ label }: { label: string }) { return <div className="flex min-h-32 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin text-teal-700" />{label}</div>; }
+export function EmptyCredentials() { return <Card><CardHeader><span className="flex size-11 items-center justify-center rounded-control bg-surface-muted text-accent"><FileCheck2 aria-hidden="true" className="size-5" /></span><h2 className="text-xl font-semibold text-text-strong">Todavía no tenés credenciales formativas</h2></CardHeader><CardContent><p className="text-sm leading-6 text-text-muted">Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio.</p></CardContent></Card>; }
+export function LoadingState({ label }: { label: string }) { return <div className="flex min-h-32 items-center justify-center rounded-card border border-border-default bg-surface p-6 text-sm text-text-muted"><LoaderCircle aria-hidden="true" className="mr-2 size-5 animate-spin text-accent" />{label}</div>; }
 function SummaryCard({ label, value }: { label: string; value: number }) { return <Card className="border-border-strong"><CardContent className="pt-5 sm:pt-6"><p className="text-2xl font-bold text-text-strong">{value}</p><p className="mt-1 text-sm text-text-muted">{label}</p></CardContent></Card>; }
 function messageFor(error: unknown) { if (error instanceof IncompatiblePayloadError) return 'La información disponible no tiene el formato esperado. Intentá nuevamente más tarde.'; if (error instanceof ApiError && error.status === 404) return 'No encontramos información disponible para mostrar.'; return 'No pudimos completar la consulta. Intentá nuevamente más tarde.'; }
 function profileErrorState(error: unknown): HolderProfileLoadState {

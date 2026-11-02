@@ -22,7 +22,7 @@ export function IssuerHome({
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)] xl:gap-7">
       <section
         aria-labelledby="issuer-home-title"
-        className="rounded-[1.25rem] border border-brand-700 bg-brand-900 p-6 text-white shadow-sm sm:p-7 lg:p-8"
+        className="rounded-[1.25rem] border border-inverse-border bg-inverse p-6 text-white shadow-sm sm:p-7 lg:p-8"
       >
         <p className="text-sm font-semibold text-teal-100">Portal del emisor</p>
         <h1
@@ -69,10 +69,10 @@ export function IssuerHome({
 
       <aside aria-labelledby="next-capability-title">
         <Card className="overflow-hidden rounded-[1.25rem] border-border-strong bg-surface shadow-sm">
-          <div aria-hidden="true" className="h-1 bg-teal-600" />
+          <div aria-hidden="true" className="h-1 bg-accent-solid" />
           <CardHeader className="gap-3 sm:p-7">
             <div>
-              <p className="text-xs font-semibold tracking-wider text-teal-700 uppercase">
+              <p className="text-xs font-semibold tracking-wider text-accent uppercase">
                 Flujo operativo
               </p>
               <h2

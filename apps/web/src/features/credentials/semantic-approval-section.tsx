@@ -115,7 +115,7 @@ export function SemanticApprovalSection({
   return (
     <Card className="border-border-strong shadow-none" data-testid="semantic-approval-section">
       <CardHeader className="flex-row items-center gap-3 border-b border-border-default">
-        <ShieldCheck aria-hidden="true" className="size-5 text-teal-700" />
+        <ShieldCheck aria-hidden="true" className="size-5 text-accent" />
         <div>
           <h2 className="text-lg font-semibold text-text-strong">Interpretación propuesta</h2>
           <p className="mt-1 text-sm text-text-muted">Revisá y ajustá este resumen antes de aprobarlo para reutilización.</p>
@@ -149,5 +149,5 @@ function EditableLabels({ title, labels, onChange, limit }: { title: string; lab
     if (labels.length >= limit) { setError(`Podés incluir hasta ${limit} etiquetas.`); return; }
     onChange([...labels, label]); setValue(''); setError(null);
   }
-  return <section className="grid gap-3"><div><h3 className="text-sm font-semibold text-text-strong">{title}</h3><p className="mt-1 text-sm text-text-muted">Podés quitar o agregar etiquetas antes de aprobar.</p></div><div className="flex flex-wrap gap-2">{labels.map((label) => <Badge key={label} variant="outline" className="gap-1 border-teal-700/30 bg-teal-50 text-teal-900">{label}<button type="button" aria-label={`Quitar ${label}`} onClick={() => onChange(labels.filter((item) => item !== label))}><X aria-hidden="true" className="size-3" /></button></Badge>)}</div><div className="flex flex-wrap items-end gap-2"><TextField label={`Agregar ${title.toLocaleLowerCase('es-AR')}`} value={value} onChange={(event) => setValue(event.target.value)} error={error ?? undefined} className="min-w-56 flex-1" /><Button type="button" variant="secondary" onClick={add}>Agregar</Button></div></section>;
+  return <section className="grid gap-3"><div><h3 className="text-sm font-semibold text-text-strong">{title}</h3><p className="mt-1 text-sm text-text-muted">Podés quitar o agregar etiquetas antes de aprobar.</p></div><div className="flex flex-wrap gap-2">{labels.map((label) => <Badge key={label} variant="outline" className="gap-1 border-accent/30 bg-accent-soft text-accent">{label}<button type="button" aria-label={`Quitar ${label}`} onClick={() => onChange(labels.filter((item) => item !== label))}><X aria-hidden="true" className="size-3" /></button></Badge>)}</div><div className="flex flex-wrap items-end gap-2"><TextField label={`Agregar ${title.toLocaleLowerCase('es-AR')}`} value={value} onChange={(event) => setValue(event.target.value)} error={error ?? undefined} className="min-w-56 flex-1" /><Button type="button" variant="secondary" onClick={add}>Agregar</Button></div></section>;
 }

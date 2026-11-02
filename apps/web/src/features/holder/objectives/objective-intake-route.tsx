@@ -249,7 +249,7 @@ export function ObjectiveIntakeRoute() {
           <header className="grid gap-4 border-b border-border-default pb-7">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0 max-w-2xl">
-                <p className="text-sm font-semibold text-teal-700">
+                <p className="text-sm font-semibold text-accent">
                   {OBJECTIVE_TYPE_LABELS[state.draft.snapshot.objectiveType]}
                 </p>
                 <h1
@@ -349,7 +349,7 @@ export function ObjectiveIntakeRoute() {
               <button
                 type="button"
                 onClick={() => actions.undoRemove()}
-                className="font-semibold text-brand-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                className="font-semibold text-link underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               >
                 Deshacer
               </button>
@@ -507,7 +507,7 @@ function OmittedRequirements({
                         onReplace(item.localKey, target.localKey);
                         setReplacing(null);
                       }}
-                      className="rounded-control px-2 py-1 text-left text-sm text-brand-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+                      className="rounded-control px-2 py-1 text-left text-sm text-link underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     >
                       {`Reemplazar ${index + 1}. ${target.text || '(sin texto)'}`}
                     </button>
@@ -563,7 +563,7 @@ function IntakeForm({
   return (
     <section aria-labelledby="objective-intake-title" className="mx-auto grid w-full max-w-4xl gap-7">
       <header className="grid gap-3 border-b border-border-default pb-6">
-        <p className="text-sm font-semibold text-teal-700">Objetivos</p>
+        <p className="text-sm font-semibold text-accent">Objetivos</p>
         <h1
           id="objective-intake-title"
           className="text-3xl font-bold tracking-tight text-text-strong sm:text-4xl"
@@ -584,7 +584,7 @@ function IntakeForm({
           {OBJECTIVE_TYPES.map((type) => (
             <label
               key={type}
-              className="flex cursor-pointer items-center gap-3 rounded-control border border-border-default bg-surface px-4 py-3 text-sm transition hover:border-brand-600 has-[:checked]:border-brand-600 has-[:checked]:bg-surface-muted"
+              className="flex cursor-pointer items-center gap-3 rounded-control border border-border-default bg-surface px-4 py-3 text-sm transition hover:border-interactive has-[:checked]:border-interactive has-[:checked]:bg-surface-muted"
             >
               <input
                 type="radio"
@@ -592,7 +592,7 @@ function IntakeForm({
                 value={type}
                 checked={state.intake.objectiveType === type}
                 onChange={() => onFieldChange('objectiveType', type)}
-                className="size-4 accent-brand-900"
+                className="size-4 accent-primary"
               />
               <span className="text-text-strong">{OBJECTIVE_TYPE_LABELS[type]}</span>
             </label>
@@ -640,7 +640,7 @@ function IntakeForm({
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-card border border-brand-700/15 bg-surface-muted p-5 sm:p-6">
+      <div className="grid gap-3 rounded-card border border-emphasis/15 bg-surface-muted p-5 sm:p-6">
         <div>
           <Button type="button" onClick={onAnalyze} disabled={disabled}>
             {disabled ? (

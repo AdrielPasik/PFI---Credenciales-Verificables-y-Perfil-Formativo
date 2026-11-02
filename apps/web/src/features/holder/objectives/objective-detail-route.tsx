@@ -54,7 +54,7 @@ function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailV
         aria-expanded={isOpen}
         aria-controls={contentId}
         onClick={() => setIsOpen((current) => !current)}
-        className="text-left text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+        className="text-left text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
       >
         {isOpen ? 'Ocultar contexto del objetivo' : 'Ver contexto del objetivo'}
       </button>
@@ -81,7 +81,7 @@ function ObjectiveContextDisclosure({ objective }: { objective: ObjectiveDetailV
               aria-expanded={isRequirementsOpen}
               aria-controls={requirementsId}
               onClick={() => setIsRequirementsOpen((current) => !current)}
-              className="text-left text-sm font-semibold text-teal-700 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+              className="text-left text-sm font-semibold text-accent underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
             >
               {isRequirementsOpen
                 ? 'Ocultar requisitos confirmados originalmente'
@@ -165,7 +165,7 @@ export function ObjectiveDetailRoute() {
       {state.status === 'ready' ? (
         <>
           <header className="grid min-w-0 gap-3 border-b border-border-default pb-7">
-            <p className="text-sm font-semibold text-teal-700">
+            <p className="text-sm font-semibold text-accent">
               {state.objective.objectiveTypeLabel}
             </p>
             <h1 className="min-w-0 break-words text-3xl font-bold tracking-tight text-text-strong sm:text-4xl">
@@ -240,7 +240,7 @@ export function ObjectiveDetailRoute() {
 
               {state.objective.sourceOriginalText !== null ? (
                 <details className="rounded-card border border-border-default bg-surface p-5">
-                  <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                  <summary className="cursor-pointer text-sm font-semibold text-text-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
                     Texto original del objetivo
                   </summary>
                   <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-6 text-text-muted">

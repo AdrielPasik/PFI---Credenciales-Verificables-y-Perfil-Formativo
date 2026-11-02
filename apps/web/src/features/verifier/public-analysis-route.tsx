@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { BrandMark } from '@/components/brand/brand-mark';
+import { AppearanceControl } from '@/components/navigation/appearance-control';
 import { FeedbackAlert } from '@/components/feedback/feedback-alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -360,12 +361,15 @@ export function PublicAnalysisRoute({ token }: { token: string }) {
       <div className="mx-auto grid w-full max-w-5xl gap-8">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <BrandMark descriptor="Análisis de trayectoria" lightLogo />
-          <Button asChild size="sm" variant="secondary">
-            <Link href={`/share/profile/${encodeURIComponent(token)}`}>
-              <ArrowLeft aria-hidden="true" />
-              Volver al perfil compartido
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <AppearanceControl />
+            <Button asChild size="sm" variant="secondary">
+              <Link href={`/share/profile/${encodeURIComponent(token)}`}>
+                <ArrowLeft aria-hidden="true" />
+                Volver al perfil compartido
+              </Link>
+            </Button>
+          </div>
         </header>
 
         <div>
@@ -515,7 +519,7 @@ function ObjectiveStep(props: {
               id="objective-type"
               value={props.objectiveType}
               onChange={(event) => props.onObjectiveType(event.target.value as ObjectiveTypeToken)}
-              className="h-11 w-full rounded-control border border-border-default bg-surface px-3 text-sm text-text-default focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none"
+              className="h-11 w-full rounded-control border border-border-default bg-surface px-3 text-sm text-text-default focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:outline-none"
             >
               {OBJECTIVE_TYPES.map((type) => (
                 <option key={type} value={type}>
@@ -635,7 +639,7 @@ function RequirementsStep(props: {
           * llegara, aca se nombra el exceso en vez de maquillarlo de contador.
           */}
         {filled > MAX_REQUIREMENTS ? (
-          <p role="status" className="text-xs font-semibold text-amber-900">
+          <p role="status" className="text-xs font-semibold text-status-warning">
             Hay {filled} requisitos y el máximo es {MAX_REQUIREMENTS}. Eliminá{' '}
             {filled - MAX_REQUIREMENTS} para poder confirmar.
           </p>

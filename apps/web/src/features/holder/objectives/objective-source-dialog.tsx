@@ -86,7 +86,7 @@ export function ObjectiveSourceDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-brand-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -110,7 +110,7 @@ export function ObjectiveSourceDialog({
             type="button"
             onClick={onClose}
             aria-label="Cerrar el objetivo original"
-            className="rounded-control p-1 text-text-muted transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700"
+            className="rounded-control p-1 text-text-muted transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             <X aria-hidden="true" className="size-5" />
           </button>
@@ -125,7 +125,7 @@ export function ObjectiveSourceDialog({
                 {segments.before}
                 <mark
                   ref={highlightRef}
-                  className="rounded-sm bg-amber-100 px-0.5 font-medium text-text-strong"
+                  className="rounded-sm bg-status-warning-soft px-0.5 font-medium text-text-strong"
                 >
                   {segments.highlighted}
                 </mark>

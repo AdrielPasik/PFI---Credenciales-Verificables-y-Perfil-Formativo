@@ -175,7 +175,7 @@ export function LoginForm({
         <div className="-mt-3 flex justify-end">
           <Link
             href="/forgot-password"
-            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-brand-700 underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/30"
+            className="inline-flex min-h-11 items-center rounded-md px-1 text-sm font-semibold text-link underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-focus-ring/30"
           >
             ¿Olvidaste tu contraseña?
           </Link>
