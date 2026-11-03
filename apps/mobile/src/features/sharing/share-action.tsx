@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeNotice } from '@/components/ui/states';
 import { ScopeText } from '@/components/ui/text';
 import type { ShareFeedback } from '@/features/sharing/use-share';
-import { colors, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { spacing } from '@/lib/theme/tokens';
 
 /**
  * Acción de compartir.
@@ -37,6 +38,8 @@ export function ShareAction({
   onOpenPublicView: () => void;
   testID?: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.root} testID={testID}>
       <ScopeButton
@@ -93,7 +96,7 @@ export function ShareAction({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   root: {
     gap: spacing.sm
   },
@@ -104,4 +107,4 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginLeft: -spacing.lg
   }
-});
+}));

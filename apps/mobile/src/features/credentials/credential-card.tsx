@@ -1,15 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
 import { ScopeText } from '@/components/ui/text';
-import {
-  colors,
-  elevation,
-  layout,
-  radii,
-  spacing
-} from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import type { HolderCredentialListItemVM } from '@/types/holder';
 
 /**
@@ -30,6 +25,8 @@ export function CredentialCard({
   credential: HolderCredentialListItemVM;
   onPress: (credentialReference: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const revoked = credential.status === 'revoked';
   const accessibilityLabel = [
     credential.title,
@@ -109,6 +106,8 @@ function MetaTag({
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.metaTag}>
       <Ionicons
@@ -125,7 +124,7 @@ function MetaTag({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors, elevation) => ({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -177,4 +176,4 @@ const styles = StyleSheet.create({
   chevron: {
     marginRight: spacing.md
   }
-});
+}));

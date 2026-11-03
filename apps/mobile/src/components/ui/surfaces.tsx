@@ -1,19 +1,13 @@
 import type { ReactNode } from 'react';
 import {
-  StyleSheet,
   View,
   type StyleProp,
   type ViewStyle
 } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
-import {
-  colors,
-  elevation,
-  layout,
-  radii,
-  spacing
-} from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 
 /** Tarjeta base. Radio moderado y elevación discreta, nunca sombras web. */
 export function ScopeCard({
@@ -27,6 +21,7 @@ export function ScopeCard({
   tone?: 'surface' | 'inverse' | 'muted';
   testID?: string;
 }) {
+  const styles = useStyles();
   return (
     <View
       testID={testID}
@@ -60,6 +55,7 @@ export function ScopeSection({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.section, style]}>
       <View style={styles.sectionHeader}>
@@ -81,6 +77,7 @@ export function ScopeSection({
 }
 
 export function ScopeDivider({ style }: { style?: StyleProp<ViewStyle> }) {
+  const styles = useStyles();
   return <View style={[styles.divider, style]} />;
 }
 
@@ -97,6 +94,7 @@ export function ScopeDefinitionRow({
   value: string | null;
   technical?: boolean;
 }) {
+  const styles = useStyles();
   if (!value) return null;
 
   return (
@@ -115,7 +113,7 @@ export function ScopeDefinitionRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors, elevation) => ({
   card: {
     backgroundColor: colors.surface.card,
     borderRadius: radii.card,
@@ -126,7 +124,7 @@ const styles = StyleSheet.create({
   },
   cardInverse: {
     backgroundColor: colors.surface.inverse,
-    borderColor: colors.brand.navyStrong
+    borderColor: colors.border.inverse
   },
   cardMuted: {
     backgroundColor: colors.surface.muted,
@@ -160,4 +158,4 @@ const styles = StyleSheet.create({
     // Los valores técnicos largos (DID, hash) deben envolver, nunca recortarse.
     flexShrink: 1
   }
-});
+}));

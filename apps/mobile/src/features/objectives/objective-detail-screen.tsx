@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
 import { ScopeScreen } from '@/components/ui/screen';
@@ -16,7 +16,8 @@ import { MAX_OBJECTIVE_REQUIREMENTS } from '@/features/objectives/review-draft';
 import { useObjectiveDetail } from '@/features/objectives/use-objectives';
 import { ObjectiveReasoningPanel } from '@/features/reasoning/objective-reasoning-panel';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import type { ObjectiveDetailVM } from '@/types/objectives';
 
 /**
@@ -73,6 +74,7 @@ export function ObjectiveDetailView({
 }: {
   objective: ObjectiveDetailVM;
 }) {
+  const styles = useStyles();
   return (
     <ScopeScreen>
       <View style={styles.identity}>
@@ -158,6 +160,8 @@ function Disclosure({
   children: React.ReactNode;
   testID: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -189,7 +193,7 @@ function Disclosure({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   identity: {
     gap: spacing.sm
   },
@@ -222,4 +226,4 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.sm,
     marginTop: spacing.xs
   }
-});
+}));

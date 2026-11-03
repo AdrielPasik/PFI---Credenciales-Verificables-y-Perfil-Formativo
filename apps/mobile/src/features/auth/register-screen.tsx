@@ -3,7 +3,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   View,
   type TextInput
 } from 'react-native';
@@ -14,7 +13,8 @@ import { ScopeNotice } from '@/components/ui/states';
 import { ScopeText } from '@/components/ui/text';
 import { ScopeTextField } from '@/components/ui/text-field';
 import type { RegisterCommand } from '@/lib/api/scope-api';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 import type { AuthFeedback } from '@/types/auth';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,6 +40,7 @@ export function RegisterScreen({
   onBack: () => void;
   submitting: boolean;
 }) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -265,7 +266,7 @@ export function RegisterScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: { flex: 1, backgroundColor: colors.surface.background },
   content: {
     flexGrow: 1,
@@ -277,4 +278,4 @@ const styles = StyleSheet.create({
   form: { gap: spacing.lg },
   loginPrompt: { alignItems: 'center', gap: spacing.xs },
   errorText: { color: colors.status.error }
-});
+}));

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Alert, Pressable, Switch, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -15,7 +15,8 @@ import {
 } from '@/lib/api/scope-api';
 import { useAuthenticatedRequest } from '@/lib/auth/session-provider';
 import { queryKeys } from '@/lib/query/query-client';
-import { colors, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { radii, spacing } from '@/lib/theme/tokens';
 import type { ShareVerificationPolicyVM } from '@/types/sharing';
 
 interface PolicyDraft {
@@ -39,6 +40,7 @@ function sameDraft(left: PolicyDraft, right: PolicyDraft): boolean {
  * leer la selección autoritativa: el PUT reemplaza el conjunto completo.
  */
 export function ProfileSharePolicyScreen() {
+  const styles = useStyles();
   const rawShareId = useLocalSearchParams<{ shareId?: string | string[] }>().shareId;
   const shareId = typeof rawShareId === 'string' ? rawShareId.trim() : '';
   const request = useAuthenticatedRequest();
@@ -225,7 +227,7 @@ export function ProfileSharePolicyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   stack: { gap: spacing.md },
   actions: { gap: spacing.sm },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -234,4 +236,4 @@ const styles = StyleSheet.create({
   checkbox: { width: 18, height: 18, borderWidth: 2, borderColor: colors.border.strong, borderRadius: 4 },
   checkboxSelected: { backgroundColor: colors.brand.teal, borderColor: colors.brand.teal },
   disabled: { opacity: 0.55 }
-});
+}));

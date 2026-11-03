@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeBadge } from '@/components/ui/badge';
@@ -15,13 +15,8 @@ import {
 import { ScopeText } from '@/components/ui/text';
 import { useObjectives } from '@/features/objectives/use-objectives';
 import { mapObjectiveReadError } from '@/lib/errors/objective-error-mapper';
-import {
-  colors,
-  elevation,
-  layout,
-  radii,
-  spacing
-} from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import type { ObjectiveSummaryVM } from '@/types/objectives';
 
 /**
@@ -33,6 +28,8 @@ import type { ObjectiveSummaryVM } from '@/types/objectives';
  * fabricarlo sería inventar.
  */
 export function ObjectivesListScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const objectivesQuery = useObjectives();
@@ -112,6 +109,8 @@ function ObjectiveCard({
   objective: ObjectiveSummaryVM;
   onPress: (objectiveReference: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       testID={`objective-card-${objective.objectiveReference}`}
@@ -143,10 +142,11 @@ function ObjectiveCard({
 }
 
 function Separator() {
+  const styles = useStyles();
   return <View style={styles.separator} />;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors, elevation) => ({
   root: {
     flex: 1,
     backgroundColor: colors.surface.background
@@ -188,4 +188,4 @@ const styles = StyleSheet.create({
   separator: {
     height: spacing.md
   }
-});
+}));

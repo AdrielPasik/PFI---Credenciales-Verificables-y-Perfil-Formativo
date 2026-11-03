@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
 import { AccountMenuButton } from '@/features/auth/account-menu-button';
-import { colors, typography } from '@/lib/theme/tokens';
+import { useTheme } from '@/lib/theme/theme-provider';
+import { typography } from '@/lib/theme/tokens';
 
 /**
  * Dos destinos, y sólo dos.
@@ -13,6 +14,7 @@ import { colors, typography } from '@/lib/theme/tokens';
  * cuenta del encabezado.
  */
 export default function HolderTabsLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{

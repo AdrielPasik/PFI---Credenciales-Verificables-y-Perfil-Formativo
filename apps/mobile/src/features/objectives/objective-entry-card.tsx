@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeCard } from '@/components/ui/surfaces';
 import { ScopeText } from '@/components/ui/text';
-import { colors, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { radii, spacing } from '@/lib/theme/tokens';
 
 /**
  * Entrada a Objetivos desde el perfil.
@@ -22,6 +23,8 @@ import { colors, radii, spacing } from '@/lib/theme/tokens';
  * Ninguna de las dos acciones gasta una llamada al proveedor: sólo navegan.
  */
 export function ObjectiveEntryCard() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const router = useRouter();
 
   return (
@@ -68,7 +71,7 @@ export function ObjectiveEntryCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     gap: spacing.sm,
     borderColor: colors.brand.cyan
@@ -92,4 +95,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm
   }
-});
+}));

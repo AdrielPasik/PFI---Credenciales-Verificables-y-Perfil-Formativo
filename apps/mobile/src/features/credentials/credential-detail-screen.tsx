@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useState } from 'react';
-import { Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
 import { ScopeButton } from '@/components/ui/button';
@@ -29,7 +29,8 @@ import { useCredentialDetail } from '@/features/credentials/use-credentials';
 import { ShareAction } from '@/features/sharing/share-action';
 import { isSafeExternalUrl } from '@/features/sharing/share-links';
 import { useCredentialShare } from '@/features/sharing/use-share';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import type { HolderCredentialDetailVM } from '@/types/holder';
 
 /**
@@ -88,6 +89,7 @@ export function CredentialDetailView({
 }: {
   detail: HolderCredentialDetailVM;
 }) {
+  const styles = useStyles();
   const revoked = detail.status === 'revoked';
   const share = useCredentialShare(detail.credentialReference, detail.title);
 
@@ -175,6 +177,7 @@ function HolderIdentityRow({
   displayLabel: string | null;
   email: string | null;
 }) {
+  const styles = useStyles();
   const primary = displayLabel ?? email;
   const showEmail =
     displayLabel !== null &&
@@ -205,6 +208,7 @@ function FormativeContribution({
 }: {
   detail: HolderCredentialDetailVM;
 }) {
+  const styles = useStyles();
   const hasCourseDeclaredData =
     detail.type === 'course' &&
     (detail.subject.platformName !== null ||
@@ -304,6 +308,7 @@ function AssistedInterpretation({
 }: {
   detail: HolderCredentialDetailVM;
 }) {
+  const styles = useStyles();
   return (
     <ScopeSection
       title="Interpretación asistida por IA"
@@ -362,6 +367,7 @@ function AssistedInterpretation({
 }
 
 function SupportingEvidence({ detail }: { detail: HolderCredentialDetailVM }) {
+  const styles = useStyles();
   return (
     <ScopeSection
       title="Fuentes de respaldo"
@@ -419,6 +425,8 @@ function SupportingEvidence({ detail }: { detail: HolderCredentialDetailVM }) {
  * secundaria frente al significado formativo de la credencial (sección 82).
  */
 function IntegritySection({ detail }: { detail: HolderCredentialDetailVM }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -560,6 +568,7 @@ function IntegritySection({ detail }: { detail: HolderCredentialDetailVM }) {
 }
 
 function ExternalLinkRow({ url }: { url: string }) {
+  const styles = useStyles();
   const [error, setError] = useState<string | null>(null);
 
   const open = useCallback(async () => {
@@ -605,6 +614,7 @@ function ExternalLinkRow({ url }: { url: string }) {
 }
 
 function EmptyEvidence({ text }: { text: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.emptyEvidence}>
       <ScopeText variant="small" tone="muted">
@@ -614,7 +624,7 @@ function EmptyEvidence({ text }: { text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   identity: {
     gap: spacing.sm
   },
@@ -658,4 +668,4 @@ const styles = StyleSheet.create({
   warningText: {
     color: colors.status.warning
   }
-});
+}));

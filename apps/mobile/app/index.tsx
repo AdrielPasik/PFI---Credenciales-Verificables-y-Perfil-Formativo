@@ -1,10 +1,11 @@
 import { Redirect } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeErrorState, ScopeLoadingState } from '@/components/ui/states';
 import { useSession } from '@/lib/auth/session-provider';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 
 /**
  * Punto de entrada: decide el destino según el estado de la sesión.
@@ -16,6 +17,7 @@ import { colors, layout, spacing } from '@/lib/theme/tokens';
  * la persona: se ofrece reintentar o cerrar sesión (sección 138).
  */
 export default function BootRoute() {
+  const styles = useStyles();
   const { state, retry, logout } = useSession();
 
   if (state.status === 'authenticated') {
@@ -50,7 +52,7 @@ export default function BootRoute() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -58,4 +60,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPaddingHorizontal,
     backgroundColor: colors.surface.background
   }
-});
+}));

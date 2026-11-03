@@ -1,7 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
-import { colors, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { type ScopeColors, radii, spacing } from '@/lib/theme/tokens';
 
 export type ScopeBadgeTone =
   | 'issued'
@@ -11,32 +12,34 @@ export type ScopeBadgeTone =
   | 'warning'
   | 'inverse';
 
-const TONES: Record<ScopeBadgeTone, { background: string; text: string }> = {
-  issued: {
-    background: colors.status.issuedSoft,
-    text: colors.status.issued
-  },
-  revoked: {
-    background: colors.status.revokedSoft,
-    text: colors.status.revoked
-  },
-  analysis: {
-    background: colors.status.analysisSoft,
-    text: colors.status.analysis
-  },
-  neutral: {
-    background: colors.status.neutralSoft,
-    text: colors.status.neutral
-  },
-  warning: {
-    background: colors.status.warningSoft,
-    text: colors.status.warning
-  },
-  inverse: {
-    background: 'rgba(255, 255, 255, 0.14)',
-    text: colors.text.onInverse
-  }
-};
+function badgeTones(colors: ScopeColors): Record<ScopeBadgeTone, { background: string; text: string }> {
+  return {
+    issued: {
+      background: colors.status.issuedSoft,
+      text: colors.status.issued
+    },
+    revoked: {
+      background: colors.status.revokedSoft,
+      text: colors.status.revoked
+    },
+    analysis: {
+      background: colors.status.analysisSoft,
+      text: colors.status.analysis
+    },
+    neutral: {
+      background: colors.status.neutralSoft,
+      text: colors.status.neutral
+    },
+    warning: {
+      background: colors.status.warningSoft,
+      text: colors.status.warning
+    },
+    inverse: {
+      background: 'rgba(255, 255, 255, 0.14)',
+      text: colors.text.onInverse
+    }
+  };
+}
 
 /**
  * Estado como texto, no sólo como color: nunca se comunica un estado
@@ -49,7 +52,9 @@ export function ScopeBadge({
   label: string;
   tone?: ScopeBadgeTone;
 }) {
-  const palette = TONES[tone];
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const palette = badgeTones(colors)[tone];
 
   return (
     <View style={[styles.badge, { backgroundColor: palette.background }]}>
@@ -77,6 +82,7 @@ export function ScopeChip({
   metadata?: string | null;
   provenance?: React.ReactNode;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.chipRow}>
       <View style={styles.chip}>
@@ -94,7 +100,7 @@ export function ScopeChip({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   badge: {
     alignSelf: 'flex-start',
     borderRadius: radii.pill,
@@ -126,4 +132,4 @@ const styles = StyleSheet.create({
   chipMetadata: {
     flexShrink: 1
   }
-});
+}));

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import {
   COVERAGE_NOTICES,
   groupEvidenceByCredential,
@@ -34,6 +35,8 @@ export function ReasoningEvidenceList({
   evidence: readonly ReasoningEvidenceVM[];
   onOpenCredential: (credentialReference: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const groups = groupEvidenceByCredential(evidence);
 
   return (
@@ -105,6 +108,7 @@ export function ReasoningEvidenceList({
 }
 
 function EvidenceItem({ evidence }: { evidence: ReasoningEvidenceVM }) {
+  const styles = useStyles();
   const location = [
     evidence.sectionLabel,
     // `pageNumber` null es legítimo y frecuente: toda fuente de texto lo tiene
@@ -140,7 +144,7 @@ function EvidenceItem({ evidence }: { evidence: ReasoningEvidenceVM }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   list: {
     gap: spacing.md
   },
@@ -186,4 +190,4 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.6
   }
-});
+}));

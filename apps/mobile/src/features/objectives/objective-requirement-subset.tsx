@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeCard } from '@/components/ui/surfaces';
@@ -15,6 +15,7 @@ import { createObjectiveRequest } from '@/lib/api/scope-api';
 import { useAuthenticatedRequest } from '@/lib/auth/session-provider';
 import { mapObjectiveCreateError } from '@/lib/errors/objective-error-mapper';
 import { queryKeys } from '@/lib/query/query-client';
+import { makeStyles } from '@/lib/theme/theme-provider';
 import { spacing } from '@/lib/theme/tokens';
 import type { ObjectiveDetailVM } from '@/types/objectives';
 
@@ -30,6 +31,7 @@ export function ObjectiveRequirementSubset({
 }: {
   objective: ObjectiveDetailVM;
 }) {
+  const styles = useStyles();
   const router = useRouter();
   const request = useAuthenticatedRequest();
   const queryClient = useQueryClient();
@@ -143,8 +145,8 @@ export function ObjectiveRequirementSubset({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   container: { gap: spacing.md },
   card: { gap: spacing.sm },
   row: { paddingVertical: spacing.xs }
-});
+}));

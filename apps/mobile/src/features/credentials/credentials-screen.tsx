@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeScreenHeading } from '@/components/ui/screen';
@@ -12,7 +12,8 @@ import {
 import { CredentialCard } from '@/features/credentials/credential-card';
 import { mapHolderError } from '@/features/credentials/holder-error-mapper';
 import { useCredentials } from '@/features/credentials/use-credentials';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 import type { HolderCredentialListItemVM } from '@/types/holder';
 
 /**
@@ -24,6 +25,8 @@ import type { HolderCredentialListItemVM } from '@/types/holder';
  * nadie pidió (sección 24 del encargo).
  */
 export function CredentialsScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const credentialsQuery = useCredentials();
@@ -102,10 +105,11 @@ export function CredentialsScreen() {
 }
 
 function Separator() {
+  const styles = useStyles();
   return <View style={styles.separator} />;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     backgroundColor: colors.surface.background
@@ -125,4 +129,4 @@ const styles = StyleSheet.create({
   separator: {
     height: spacing.md
   }
-});
+}));

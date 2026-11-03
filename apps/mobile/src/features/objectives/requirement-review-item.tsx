@@ -1,15 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
 import { formatSectionLabel } from '@/features/objectives/review-draft';
-import {
-  colors,
-  layout,
-  radii,
-  spacing,
-  typography
-} from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing, typography } from '@/lib/theme/tokens';
 import type { ReviewItem } from '@/types/objectives';
 
 /**
@@ -43,6 +38,8 @@ export function RequirementReviewItem({
   onMove: (localKey: string, direction: -1 | 1) => void;
   onShowSource: (item: ReviewItem) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const sectionLabel = formatSectionLabel(item.sourceSectionLabel);
   const position = `${index + 1} de ${total}`;
 
@@ -163,6 +160,8 @@ function Tag({
   label: string;
   tone: 'neutral' | 'warning';
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View
       style={[
@@ -195,6 +194,8 @@ function ActionButton({
   label: string;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       testID={testID}
@@ -232,6 +233,8 @@ function IconAction({
   disabled?: boolean;
   tone?: 'default' | 'error';
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       testID={testID}
@@ -257,7 +260,7 @@ function IconAction({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     gap: spacing.sm,
     borderRadius: radii.card,
@@ -330,4 +333,4 @@ const styles = StyleSheet.create({
   tagWarning: {
     backgroundColor: colors.status.warningSoft
   }
-});
+}));

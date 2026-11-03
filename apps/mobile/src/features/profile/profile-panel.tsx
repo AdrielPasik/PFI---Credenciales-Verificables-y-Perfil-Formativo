@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeBadge } from '@/components/ui/badge';
 import {
@@ -15,7 +15,8 @@ import {
 } from '@/components/ui/surfaces';
 import { ScopeNotice } from '@/components/ui/states';
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 import type { HolderProfileVM } from '@/types/holder';
 
 /**
@@ -46,6 +47,7 @@ const PRIMARY_AREAS_LIMIT = 6;
 const PRIMARY_SKILLS_LIMIT = 12;
 
 export function ProfilePanel({ profile }: { profile: HolderProfileVM }) {
+  const styles = useStyles();
   const hasDeclaredInstitutionalInfo =
     profile.emittedSkills.length > 0 ||
     profile.emittedCompetencies.length > 0 ||
@@ -174,6 +176,8 @@ function ProfileDetailDisclosure({
   profile: HolderProfileVM;
   hasDeclaredInstitutionalInfo: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -292,6 +296,8 @@ function ProfileDetailDisclosure({
  * escalado (secciones 21 y 147 del encargo).
  */
 function SummaryCard({ profile }: { profile: HolderProfileVM }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <ScopeCard tone="inverse" style={styles.summaryCard}>
       <View style={styles.summaryTop}>
@@ -359,6 +365,7 @@ function SummaryStat({
   value: string;
   hint?: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.summaryStat}>
       <ScopeText variant="overline" tone="onInverseMuted">
@@ -376,7 +383,7 @@ function SummaryStat({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     gap: spacing.xxl
   },
@@ -439,4 +446,4 @@ const styles = StyleSheet.create({
   coverageText: {
     color: colors.status.warning
   }
-});
+}));

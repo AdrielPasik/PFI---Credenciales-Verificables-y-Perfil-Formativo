@@ -2,20 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { forwardRef, useId, useState } from 'react';
 import {
   Pressable,
-  StyleSheet,
   TextInput,
   View,
   type TextInputProps
 } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
-import {
-  colors,
-  layout,
-  radii,
-  spacing,
-  typography
-} from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing, typography } from '@/lib/theme/tokens';
 
 export interface ScopeTextFieldProps extends TextInputProps {
   label: string;
@@ -36,6 +30,8 @@ export const ScopeTextField = forwardRef<TextInput, ScopeTextFieldProps>(
     { label, error, secureToggle = false, style, ...props },
     ref
   ) {
+    const { colors } = useTheme();
+    const styles = useStyles();
     const [secureVisible, setSecureVisible] = useState(false);
     const errorId = useId();
     const invalid = Boolean(error);
@@ -95,7 +91,7 @@ export const ScopeTextField = forwardRef<TextInput, ScopeTextFieldProps>(
   }
 );
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   field: {
     gap: spacing.sm
   },
@@ -128,4 +124,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   }
-});
+}));
