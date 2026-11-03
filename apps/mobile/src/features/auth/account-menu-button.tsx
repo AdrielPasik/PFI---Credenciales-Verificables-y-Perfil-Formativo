@@ -20,8 +20,14 @@ import { layout, radii, spacing } from '@/lib/theme/tokens';
  *
  * Se muestra sólo lo que el API realmente devuelve (`displayLabel`, `email`,
  * `did`): no se infiere un nombre a partir del correo (sección 196).
+ *
+ * `tone="inverse"` lo dibuja sobre la banda de bienvenida del inicio.
  */
-export function AccountMenuButton() {
+export function AccountMenuButton({
+  tone = 'default'
+}: {
+  tone?: 'default' | 'inverse';
+} = {}) {
   const { colors } = useTheme();
   const styles = useStyles();
   const { state, logout } = useSession();
@@ -48,7 +54,7 @@ export function AccountMenuButton() {
         <Ionicons
           name="person-circle-outline"
           size={26}
-          color={colors.brand.navy}
+          color={tone === 'inverse' ? colors.band.text : colors.brand.navy}
           accessibilityElementsHidden
           importantForAccessibility="no"
         />

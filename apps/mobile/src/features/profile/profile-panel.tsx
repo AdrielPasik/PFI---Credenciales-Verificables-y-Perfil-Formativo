@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { ScopeBadge } from '@/components/ui/badge';
 import {
   DeclaredTextList,
   TaxonomyList,
@@ -20,10 +19,11 @@ import { layout, spacing } from '@/lib/theme/tokens';
 import type { HolderProfileVM } from '@/types/holder';
 
 /**
- * Panel del perfil formativo.
+ * Piezas del perfil formativo en el inicio.
  *
- * Jerarquía: resumen -> cobertura -> áreas -> habilidades -> conceptos ->
- * información declarada -> cómo se construye.
+ * Jerarquía (el resumen numérico está en la banda de bienvenida): cobertura ->
+ * áreas -> habilidades -> conceptos -> información declarada -> cómo se
+ * construye.
  *
  * Reglas epistemológicas que este panel preserva:
  *
@@ -46,7 +46,50 @@ import type { HolderProfileVM } from '@/types/holder';
 const PRIMARY_AREAS_LIMIT = 6;
 const PRIMARY_SKILLS_LIMIT = 12;
 
-export function ProfilePanel({ profile }: { profile: HolderProfileVM }) {
+/**
+ * Aviso de cobertura. Es una limitación de la evidencia disponible, nunca una
+ * carencia del titular. Sin limitaciones que informar, no se dibuja.
+ */
+export function ProfileCoverageNotice({ profile }: { profile: HolderProfileVM }) {
+  const styles = useStyles();
+  if (!profile.hoursCoverageNoticeLabel && !profile.semanticCoverageNoticeLabel) {
+    return null;
+  }
+
+  return (
+    <ScopeNotice tone="warning" title="Cobertura del perfil">
+      {profile.semanticCoverageNoticeLabel ? (
+        <ScopeText variant="small" style={styles.coverageText}>
+          {profile.semanticCoverageNoticeLabel}
+        </ScopeText>
+      ) : null}
+      {profile.hoursCoverageNoticeLabel ? (
+        <ScopeText variant="small" style={styles.coverageText}>
+          {profile.hoursCoverageNoticeLabel}
+        </ScopeText>
+      ) : null}
+      <ScopeText variant="caption" style={styles.coverageText}>
+        La distribución por áreas se muestra sólo cuando hay evidencia
+        suficiente.
+      </ScopeText>
+    </ScopeNotice>
+  );
+}
+
+/**
+ * Trayectoria: áreas y habilidades de entrada, y el resto bajo demanda.
+ *
+ * El resumen numérico (credenciales, horas, áreas) vive en la banda de
+ * bienvenida; acá queda lo que explica de qué está hecho el perfil, con la
+ * aclaración de que la confianza describe el análisis y no a la persona.
+ */
+export function ProfileTrajectory({
+  profile,
+  footer
+}: {
+  profile: HolderProfileVM;
+  footer?: React.ReactNode;
+}) {
   const styles = useStyles();
   const hasDeclaredInstitutionalInfo =
     profile.emittedSkills.length > 0 ||
@@ -76,37 +119,16 @@ export function ProfilePanel({ profile }: { profile: HolderProfileVM }) {
   const remainingAreas = Math.max(0, areaItems.length - PRIMARY_AREAS_LIMIT);
   const remainingSkills = Math.max(0, skillItems.length - PRIMARY_SKILLS_LIMIT);
 
-  const hasCoverageNotice = Boolean(
-    profile.hoursCoverageNoticeLabel || profile.semanticCoverageNoticeLabel
-  );
-
   return (
-    <View style={styles.root}>
-      <SummaryCard profile={profile} />
-
-      {hasCoverageNotice ? (
-        <ScopeNotice tone="warning" title="Cobertura del perfil">
-          {profile.semanticCoverageNoticeLabel ? (
-            <ScopeText variant="small" style={styles.coverageText}>
-              {profile.semanticCoverageNoticeLabel}
-            </ScopeText>
-          ) : null}
-          {profile.hoursCoverageNoticeLabel ? (
-            <ScopeText variant="small" style={styles.coverageText}>
-              {profile.hoursCoverageNoticeLabel}
-            </ScopeText>
-          ) : null}
-          <ScopeText variant="caption" style={styles.coverageText}>
-            La distribución por áreas se muestra sólo cuando hay evidencia
-            suficiente.
-          </ScopeText>
-        </ScopeNotice>
-      ) : null}
-
-      <ScopeSection
-        title="Áreas y habilidades"
-        description="Una vista resumida de los contenidos que aparecen en tus credenciales y análisis."
-      >
+    <ScopeSection
+      title="Áreas y habilidades"
+      description={
+        profile.confidenceLabel
+          ? `Contenidos de tus credenciales y análisis. ${profile.confidenceLabel}: la confianza describe la fiabilidad del análisis disponible, no tu nivel de conocimiento.`
+          : 'Contenidos que aparecen en tus credenciales y análisis.'
+      }
+    >
+      <View style={styles.root}>
         <ScopeCard style={styles.listCard}>
           <TaxonomyList
             testID="profile-areas"
@@ -139,27 +161,28 @@ export function ProfilePanel({ profile }: { profile: HolderProfileVM }) {
             </ScopeText>
           ) : null}
         </ScopeCard>
-      </ScopeSection>
 
-      {/*
-        DETALLE BAJO DEMANDA.
+        {/*
+          DETALLE BAJO DEMANDA.
 
-        El perfil completo puede traer decenas de áreas, habilidades y
-        conceptos. Mostrarlos todos de entrada convierte la pantalla principal
-        en un muro de taxonomía y empuja las credenciales —y los objetivos—
-        fuera de vista.
+          El perfil completo puede traer decenas de áreas, habilidades y
+          conceptos. Mostrarlos todos de entrada convierte la pantalla principal
+          en un muro de taxonomía y empuja las credenciales —y los objetivos—
+          fuera de vista.
 
-        No hay filtrado semántico, ni ranking, ni deduplicación: se muestran
-        TODOS, en el orden autoritativo del backend, sólo que en dos niveles.
-      */}
-      <ProfileDetailDisclosure
-        areaItems={areaItems}
-        skillItems={skillItems}
-        conceptItems={conceptItems}
-        profile={profile}
-        hasDeclaredInstitutionalInfo={hasDeclaredInstitutionalInfo}
-      />
-    </View>
+          No hay filtrado semántico, ni ranking, ni deduplicación: se muestran
+          TODOS, en el orden autoritativo del backend, sólo que en dos niveles.
+        */}
+        <ProfileDetailDisclosure
+          areaItems={areaItems}
+          skillItems={skillItems}
+          conceptItems={conceptItems}
+          profile={profile}
+          hasDeclaredInstitutionalInfo={hasDeclaredInstitutionalInfo}
+        />
+        {footer}
+      </View>
+    </ScopeSection>
   );
 }
 
@@ -290,134 +313,9 @@ function ProfileDetailDisclosure({
   );
 }
 
-/**
- * Resumen de marca. Usa la superficie navy de Scope, pero acotada a una sola
- * tarjeta: el resto de la pantalla es clara. No es un "hero" de escritorio
- * escalado (secciones 21 y 147 del encargo).
- */
-function SummaryCard({ profile }: { profile: HolderProfileVM }) {
-  const { colors } = useTheme();
-  const styles = useStyles();
-  return (
-    <ScopeCard tone="inverse" style={styles.summaryCard}>
-      <View style={styles.summaryTop}>
-        <View style={styles.summaryIcon}>
-          <Ionicons
-            name="sparkles-outline"
-            size={20}
-            color={colors.brand.cyan}
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-          />
-        </View>
-        <ScopeBadge label="Perfil disponible" tone="inverse" />
-      </View>
-
-      <ScopeText variant="sectionTitle" tone="onInverse" accessibilityRole="header">
-        Resumen del perfil
-      </ScopeText>
-
-      <ScopeText variant="small" tone="onInverseMuted">
-        Reúne información de {profile.credentialsCount}{' '}
-        {profile.credentialsCount === 1 ? 'credencial' : 'credenciales'}
-        {profile.totalOfficialHoursLabel
-          ? ` y ${profile.totalOfficialHoursLabel}`
-          : ''}
-        . La confianza describe la fiabilidad del análisis disponible, no tu
-        nivel de conocimiento.
-      </ScopeText>
-
-      {profile.narrative ? (
-        <ScopeText variant="body" tone="onInverse" style={styles.narrative}>
-          {profile.narrative}
-        </ScopeText>
-      ) : null}
-
-      <View style={styles.summaryStats}>
-        <SummaryStat
-          label="Credenciales"
-          value={String(profile.credentialsCount)}
-        />
-        {profile.totalOfficialHoursLabel ? (
-          <SummaryStat
-            label="Horas oficiales declaradas"
-            value={profile.totalOfficialHoursLabel}
-            hint="Suma de horas informadas por las credenciales emitidas. No es una distribución por área."
-          />
-        ) : null}
-        {profile.confidenceLabel ? (
-          <SummaryStat
-            label="Contexto del análisis"
-            value={profile.confidenceLabel}
-          />
-        ) : null}
-      </View>
-    </ScopeCard>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  hint
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-}) {
-  const styles = useStyles();
-  return (
-    <View style={styles.summaryStat}>
-      <ScopeText variant="overline" tone="onInverseMuted">
-        {label}
-      </ScopeText>
-      <ScopeText variant="bodyStrong" tone="onInverse">
-        {value}
-      </ScopeText>
-      {hint ? (
-        <ScopeText variant="caption" tone="onInverseMuted">
-          {hint}
-        </ScopeText>
-      ) : null}
-    </View>
-  );
-}
-
 const useStyles = makeStyles((colors) => ({
   root: {
-    gap: spacing.xxl
-  },
-  summaryCard: {
     gap: spacing.md
-  },
-  summaryTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md
-  },
-  summaryIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border.onInverse,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)'
-  },
-  narrative: {
-    marginTop: spacing.xs
-  },
-  summaryStats: {
-    gap: spacing.md,
-    marginTop: spacing.sm,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.onInverse
-  },
-  summaryStat: {
-    gap: 2
   },
   listCard: {
     gap: spacing.lg
@@ -439,9 +337,6 @@ const useStyles = makeStyles((colors) => ({
   },
   flexOne: {
     flex: 1
-  },
-  footerCard: {
-    gap: spacing.sm
   },
   coverageText: {
     color: colors.status.warning

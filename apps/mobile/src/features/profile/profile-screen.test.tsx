@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
 import { Share } from 'react-native';
 
 import { ProfileScreen } from '@/features/profile/profile-screen';
@@ -9,6 +9,11 @@ import {
   LONG_TEXT_500,
   profileSharePayload
 } from '@/test/fixtures';
+import {
+  objectiveSummariesPayload,
+  reasoningRunDetailPayload,
+  reasoningRunSummariesPayload
+} from '@/test/objective-fixtures';
 import type { RouteMap, StubResponse } from '@/test/http';
 import { renderWithProviders } from '@/test/render';
 
@@ -16,21 +21,32 @@ const PROFILE_ROUTE = 'GET /me/profile/current';
 const CREDENTIALS_ROUTE = 'GET /me/credentials';
 const REBUILD_ROUTE = 'POST /me/profile/rebuild';
 const SHARE_ROUTE = 'POST /me/profile/share';
+const OBJECTIVES_ROUTE = 'GET /me/objectives';
+const RUNS_ROUTE = 'GET /me/reasoning-runs';
 
 function routes({
   profile = { body: currentProfilePayload() },
   credentials = { body: credentialListPayload() },
   rebuild,
-  share
+  share,
+  objectives = { body: [] },
+  runs = { body: [] },
+  extra = {}
 }: {
   profile?: StubResponse;
   credentials?: StubResponse;
   rebuild?: StubResponse;
   share?: StubResponse;
+  objectives?: StubResponse;
+  runs?: StubResponse;
+  extra?: RouteMap;
 } = {}): RouteMap {
   const map: RouteMap = {
     [PROFILE_ROUTE]: profile,
-    [CREDENTIALS_ROUTE]: credentials
+    [CREDENTIALS_ROUTE]: credentials,
+    [OBJECTIVES_ROUTE]: objectives,
+    [RUNS_ROUTE]: runs,
+    ...extra
   };
 
   if (rebuild) map[REBUILD_ROUTE] = rebuild;
@@ -43,18 +59,37 @@ async function renderProfile(routeMap: RouteMap = routes()) {
   const rendered = await renderWithProviders(<ProfileScreen />, {
     routes: routeMap
   });
-  await waitFor(() =>
-    expect(screen.getByText('Resumen del perfil')).toBeTruthy()
-  );
+  await waitFor(() => expect(screen.getByTestId('profile-metrics')).toBeTruthy());
   return rendered;
 }
 
 describe('pantalla de perfil formativo', () => {
-  it('presenta el perfil como el inicio del titular, no una lista de tarjetas', async () => {
+  it('presenta el perfil como el inicio del titular, con saludo y métricas', async () => {
     await renderProfile();
 
+    expect(screen.getByTestId('profile-welcome-band')).toBeTruthy();
     expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
+    expect(screen.getByText('Hola, Ada')).toBeTruthy();
+    expect(screen.getByLabelText('4 credenciales')).toBeTruthy();
+    expect(screen.getByLabelText('240 horas oficiales declaradas')).toBeTruthy();
+    expect(screen.getByLabelText('2 áreas principales')).toBeTruthy();
+  });
+
+  it('sin un nombre legible no saluda con el correo', async () => {
+    await renderWithProviders(<ProfileScreen />, {
+      routes: {
+        ...routes(),
+        'GET /auth/me': {
+          body: currentUserPayload({ displayLabel: 'titular@example.com' })
+        }
+      }
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('profile-greeting')).toHaveTextContent('Mi perfil formativo')
+    );
     expect(screen.getByText('Espacio personal')).toBeTruthy();
+    expect(screen.queryByText(/Hola,/)).toBeNull();
   });
 
   it('presenta la identidad humana canónica de la sesión sin convertir el perfil en una cuenta', async () => {
@@ -66,16 +101,16 @@ describe('pantalla de perfil formativo', () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByTestId('profile-current-user-label')).toBeTruthy()
+      expect(screen.getByTestId('profile-greeting')).toHaveTextContent('Hola, Ada')
     );
 
-    expect(screen.getByText('Ada Lovelace')).toBeTruthy();
     expect(screen.getByText('Mi perfil formativo')).toBeTruthy();
     expect(screen.queryByText('titular@example.com')).toBeNull();
   });
 
-  it('permite que una identidad humana larga crezca sin truncarla', async () => {
-    const longDisplayLabel = `Gabriel ${'Pacífico '.repeat(14).trim()}`;
+  it('saluda por el primer nombre y deja crecer un nombre largo sin truncarlo', async () => {
+    const longFirstName = 'Maximiliano-Bartolomé-Fernández';
+    const longDisplayLabel = `${longFirstName} ${'Pacífico '.repeat(14).trim()}`;
 
     await renderWithProviders(<ProfileScreen />, {
       routes: {
@@ -87,9 +122,11 @@ describe('pantalla de perfil formativo', () => {
     });
 
     await waitFor(() =>
-      expect(screen.getByText(longDisplayLabel)).toBeTruthy()
+      expect(screen.getByText(`Hola, ${longFirstName}`)).toBeTruthy()
     );
-    expect(screen.getByText(longDisplayLabel).props.numberOfLines).toBeUndefined();
+    expect(
+      screen.getByText(`Hola, ${longFirstName}`).props.numberOfLines
+    ).toBeUndefined();
   });
 
   it('muestra la narrativa y las horas sin inventar puntajes', async () => {
@@ -100,8 +137,9 @@ describe('pantalla de perfil formativo', () => {
         'Tu trayectoria combina fundamentos de infraestructura con práctica en redes.'
       )
     ).toBeTruthy();
-    expect(screen.getByText('240 horas oficiales declaradas')).toBeTruthy();
+    expect(screen.getByLabelText('240 horas oficiales declaradas')).toBeTruthy();
     expect(screen.queryByText(/puntaje/i)).toBeNull();
+    expect(screen.queryByText(/%\s*(respaldado|compatib)/i)).toBeNull();
     expect(screen.queryByText(/nivel experto/i)).toBeNull();
     expect(screen.queryByText(/empleabilidad/i)).toBeNull();
   });
@@ -316,7 +354,7 @@ describe('actualizar perfil', () => {
     await fireEvent.press(screen.getByTestId('profile-rebuild-action'));
 
     await waitFor(() =>
-      expect(screen.getByText(/Reúne información de 9 credenciales/)).toBeTruthy()
+      expect(screen.getByLabelText('9 credenciales')).toBeTruthy()
     );
   });
 
@@ -328,7 +366,7 @@ describe('actualizar perfil', () => {
     await waitFor(() =>
       expect(screen.getByText('No pudimos actualizar tu perfil')).toBeTruthy()
     );
-    expect(screen.getByText('Resumen del perfil')).toBeTruthy();
+    expect(screen.getByTestId('profile-metrics')).toBeTruthy();
   });
 
   it('NO se dispara sola al montar la pantalla', async () => {
@@ -371,7 +409,7 @@ describe('compartir perfil', () => {
       routes({ share: { body: profileSharePayload() } })
     );
 
-    await fireEvent.press(screen.getByText('Compartir perfil'));
+    await fireEvent.press(screen.getByTestId('profile-share-action'));
 
     await waitFor(() => expect(shareSpy).toHaveBeenCalled());
 
@@ -399,7 +437,7 @@ describe('compartir perfil', () => {
       routes({ share: { body: profileSharePayload() } })
     );
 
-    await fireEvent.press(screen.getByText('Compartir perfil'));
+    await fireEvent.press(screen.getByTestId('profile-share-action'));
     await waitFor(() => expect(shareSpy).toHaveBeenCalledTimes(1));
 
     await fireEvent.press(screen.getByText('Copiar enlace'));
@@ -417,7 +455,7 @@ describe('compartir perfil', () => {
   it('comunica el fallo de generación del enlace', async () => {
     await renderProfile(routes({ share: { status: 500 } }));
 
-    await fireEvent.press(screen.getByText('Compartir perfil'));
+    await fireEvent.press(screen.getByTestId('profile-share-action'));
 
     await waitFor(() =>
       expect(screen.getByText('No pudimos compartir')).toBeTruthy()
@@ -425,32 +463,85 @@ describe('compartir perfil', () => {
   });
 });
 
-describe('entrada a Objetivos desde el perfil', () => {
-  it('ofrece analizar un objetivo entre el perfil y las credenciales', async () => {
+describe('objetivo reciente en el inicio', () => {
+  it('sin objetivos invita a preparar el primero', async () => {
     await renderProfile();
 
-    expect(screen.getByTestId('objective-entry-card')).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByTestId('latest-objective-first')).toBeTruthy()
+    );
     expect(screen.getByText('Analizá tu trayectoria en contexto')).toBeTruthy();
-    expect(screen.getByTestId('objective-entry-analyze')).toBeTruthy();
-    expect(screen.getByTestId('objective-entry-list')).toBeTruthy();
+    expect(screen.getByTestId('profile-analyze-objective')).toBeTruthy();
   });
 
-  it('la entrada a Objetivos NO dispara ninguna petición al montar', async () => {
-    const { calls } = await renderProfile();
+  it('muestra el objetivo más reciente con los recuentos de su último análisis', async () => {
+    const objectives = objectiveSummariesPayload();
+    const runs = reasoningRunSummariesPayload().filter(
+      (summary) => summary.status === 'completed'
+    );
+    const run = runs[0] as { reasoningRunReference: string; objectiveReference: string };
+    const latest = objectives.find(
+      (objective) => objective.objectiveReference === run.objectiveReference
+    ) as { objectiveReference: string; title: string };
 
-    // Ver mis objetivos está siempre visible: condicionarlo a que exista al
-    // menos uno obligaría a pedir la lista sólo para decidir si se dibuja.
-    expect(calls.some((call) => call.path === '/me/objectives')).toBe(false);
-    expect(calls.some((call) => call.path === '/me/reasoning-runs')).toBe(false);
+    await renderProfile(
+      routes({
+        objectives: { body: [latest] },
+        runs: { body: runs },
+        extra: {
+          [`GET /me/reasoning-runs/${run.reasoningRunReference}`]: {
+            body: reasoningRunDetailPayload()
+          }
+        }
+      })
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('latest-objective-counts')).toBeTruthy()
+    );
+    expect(screen.getByText('Objetivo reciente')).toBeTruthy();
+    expect(screen.getByText(latest.title)).toBeTruthy();
+    const card = within(screen.getByTestId('latest-objective-card'));
+    expect(card.getByText(/respaldado/)).toBeTruthy();
+    // Recuentos descriptivos: nunca una proporción.
+    expect(card.queryByText(/%/)).toBeNull();
+  });
+
+  it('un objetivo sin análisis lo dice sin inventar recuentos', async () => {
+    const [latest] = objectiveSummariesPayload() as { title: string }[];
+    await renderProfile(routes({ objectives: { body: [latest] } }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Todavía no analizaste tu trayectoria frente a este objetivo.')
+      ).toBeTruthy()
+    );
+    expect(screen.queryByTestId('latest-objective-counts')).toBeNull();
+  });
+
+  it('lee los objetivos sin crear ni ejecutar nada', async () => {
+    const { calls } = await renderProfile(
+      routes({ objectives: { body: objectiveSummariesPayload() } })
+    );
+
+    await waitFor(() =>
+      expect(calls.some((call) => call.path === '/me/objectives')).toBe(true)
+    );
+    expect(calls.every((call) => call.method === 'GET')).toBe(true);
+  });
+
+  it('si la lista de objetivos falla, el inicio sigue y ofrece la lista', async () => {
+    await renderProfile(routes({ objectives: { status: 500 } }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('latest-objective-list')).toBeTruthy()
+    );
+    expect(screen.getByText('Sistemas Operativos')).toBeTruthy();
   });
 
   it('presenta las credenciales como base de evidencia', async () => {
     await renderProfile();
 
-    expect(
-      screen.getByText(
-        'Estas credenciales forman la base de evidencia de tu trayectoria.'
-      )
-    ).toBeTruthy();
+    expect(screen.getByText(/base de evidencia de tu trayectoria/)).toBeTruthy();
   });
 });

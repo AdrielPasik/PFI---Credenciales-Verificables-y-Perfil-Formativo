@@ -1,6 +1,9 @@
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeScreen } from '@/components/ui/screen';
@@ -16,36 +19,51 @@ import { ScopeText } from '@/components/ui/text';
 import { CredentialCard } from '@/features/credentials/credential-card';
 import { mapHolderError } from '@/features/credentials/holder-error-mapper';
 import { useCredentials } from '@/features/credentials/use-credentials';
-import { ObjectiveEntryCard } from '@/features/objectives/objective-entry-card';
-import { ProfilePanel } from '@/features/profile/profile-panel';
+import { LatestObjectiveCard } from '@/features/profile/latest-objective-card';
+import {
+  ProfileCoverageNotice,
+  ProfileTrajectory
+} from '@/features/profile/profile-panel';
+import {
+  ProfileWelcomeBand,
+  WELCOME_BAND_OVERLAP
+} from '@/features/profile/profile-welcome-band';
+import { useLatestObjective } from '@/features/profile/use-latest-objective';
 import {
   useCurrentProfile,
   useProfileRebuild
 } from '@/features/profile/use-profile';
-import { ShareAction } from '@/features/sharing/share-action';
 import { useSession } from '@/lib/auth/session-provider';
 import { useProfileShare } from '@/features/sharing/use-share';
 import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
-import { spacing } from '@/lib/theme/tokens';
+import { radii, spacing } from '@/lib/theme/tokens';
 
 /** Cuántas credenciales se anticipan en el perfil antes de "Ver todas". */
 const CREDENTIAL_PREVIEW_COUNT = 2;
 
 /**
- * Pantalla principal del titular: "Mi perfil formativo".
+ * Pantalla principal del titular: el inicio.
  *
  * Es el destino por defecto tras iniciar sesión. La promesa del producto es
  * entender la trayectoria, no almacenar tarjetas (sección 115 del encargo).
+ *
+ * Orden: banda de bienvenida (saludo, métricas, acciones) -> objetivo
+ * reciente, montado sobre el borde de la banda -> cobertura -> trayectoria ->
+ * credenciales -> perfil público.
  *
  * Pull-to-refresh = RE-CONSULTAR el estado del servidor. Nunca reconstruye el
  * perfil: eso es una mutación aparte y explícita (sección 23).
  */
 export function ProfileScreen() {
+  const { colors } = useTheme();
   const styles = useStyles();
   const router = useRouter();
+  const focused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const { state: sessionState } = useSession();
   const profileQuery = useCurrentProfile();
   const credentialsQuery = useCredentials();
+  const latestObjective = useLatestObjective();
   const rebuild = useProfileRebuild();
   const share = useProfileShare();
 
@@ -57,7 +75,8 @@ export function ProfileScreen() {
   const onRefresh = useCallback(() => {
     void profileQuery.refetch();
     void credentialsQuery.refetch();
-  }, [credentialsQuery, profileQuery]);
+    latestObjective.refetch();
+  }, [credentialsQuery, latestObjective, profileQuery]);
 
   const openCredential = useCallback(
     (credentialReference: string) => {
@@ -70,6 +89,8 @@ export function ProfileScreen() {
   const issuedCount = credentials.filter(
     (credential) => credential.status === 'issued'
   ).length;
+  const revokedCount = credentials.length - issuedCount;
+  const analyzedCount = credentials.filter((credential) => credential.hasAnalysis).length;
   // El fallback manual sólo se ofrece cuando ya sabemos que hay credenciales
   // emitidas: sin ellas no hay nada que recomponer, y el estado vacío de
   // "todavía no recibiste credenciales" explica mejor la situación.
@@ -78,146 +99,200 @@ export function ProfileScreen() {
     sessionState.status === 'authenticated'
       ? sessionState.currentUser.displayLabel
       : null;
+  const profile = profileQuery.isSuccess ? profileQuery.data : null;
 
   return (
-    <ScopeScreen refreshing={refreshing} onRefresh={onRefresh}>
-      <ProfileHeading displayLabel={displayLabel} />
-
-      {profileQuery.isLoading ? (
-        <View style={styles.skeletonGroup}>
-          <ScopeSkeletonBlock height={190} />
-          <ScopeSkeletonBlock height={120} />
-        </View>
-      ) : null}
-
-      {profileQuery.isError ? (
-        <ProfileErrorBlock
-          error={profileQuery.error}
-          onRetry={() => void profileQuery.refetch()}
-          rebuildAction={
-            canOfferRebuild ? <RebuildAction rebuild={rebuild} /> : null
-          }
-        />
-      ) : null}
-
-      {profileQuery.isSuccess && profileQuery.data ? (
-        <>
-          <ProfilePanel profile={profileQuery.data} />
-          <ScopeSection
-            title="Acciones de tu perfil"
-            description="Compartir genera una vista pública resumida. Actualizar recompone tu perfil con la información ya disponible."
-          >
-            <ScopeCard style={styles.actionsCard}>
-              <ShareAction
-                testID="profile-share-action"
-                label="Compartir perfil"
-                description="Quien reciba el enlace verá una versión pública y resumida de tu perfil. No incluye tu email ni evidencias crudas."
-                pending={share.pending}
-                feedback={share.feedback}
-                onShare={() => void share.share()}
-                onCopyLink={() => void share.copyLink()}
-                onOpenPublicView={() => void share.openPublicView()}
-              />
-              <ScopeButton
-                testID="profile-share-management"
-                variant="ghost"
-                label="Gestionar enlaces compartidos"
-                onPress={() => router.push('/profile-shares')}
-                accessibilityHint="Consulta, recupera o revoca enlaces de tu perfil"
-              />
-              <RebuildAction rebuild={rebuild} />
-            </ScopeCard>
-          </ScopeSection>
-        </>
-      ) : null}
-
-      {profileQuery.isSuccess && !profileQuery.data ? (
-        <ScopeEmptyState
-          icon="analytics-outline"
-          title="Tu perfil todavía no está disponible"
-          description="Scope construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible."
-          action={canOfferRebuild ? <RebuildAction rebuild={rebuild} /> : null}
-        />
-      ) : null}
-
-      {/*
-        Objetivos va ENTRE el perfil y las credenciales: el perfil responde
-        "quién soy" y el objetivo es la pregunta siguiente, no la primera.
-        Se muestra siempre, incluso sin perfil todavía: preparar un objetivo
-        no depende de que exista una proyección de perfil.
-      */}
-      <ObjectiveEntryCard />
-
-      <ScopeSection
-        title="Tus credenciales"
-        description="Estas credenciales forman la base de evidencia de tu trayectoria."
-        action={
-          credentials.length > 0 ? (
-            <ScopeButton
-              variant="ghost"
-              label="Ver todas"
-              onPress={() => router.push('/credentials')}
-              accessibilityHint="Abre la lista completa de tus credenciales"
-            />
-          ) : null
+    <>
+      {/* La banda es oscura en los dos temas: mientras el inicio está a la
+          vista, la barra de estado usa íconos claros. */}
+      {focused ? <StatusBar style="light" /> : null}
+      <ScopeScreen
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        hero={
+          <ProfileWelcomeBand
+            displayLabel={displayLabel}
+            profile={profile ?? null}
+            sharePending={share.pending}
+            onAnalyze={() => router.push('/objectives/new')}
+            onShare={profile ? () => void share.share() : null}
+          />
         }
       >
-        {credentialsQuery.isLoading ? (
-          <ScopeLoadingState label="Cargando credenciales" />
-        ) : null}
+        <View style={styles.lifted}>
+          <LatestObjectiveCard state={latestObjective.state} />
+        </View>
 
-        {credentialsQuery.isError ? (
-          <CredentialsErrorBlock
-            error={credentialsQuery.error}
-            onRetry={() => void credentialsQuery.refetch()}
-          />
-        ) : null}
-
-        {credentialsQuery.isSuccess && credentials.length === 0 ? (
-          <ScopeEmptyState
-            icon="document-text-outline"
-            title="Todavía no tenés credenciales formativas"
-            description="Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio."
-          />
-        ) : null}
-
-        {credentialsQuery.isSuccess && credentials.length > 0 ? (
-          <View style={styles.credentialList}>
-            {credentials
-              .slice(0, CREDENTIAL_PREVIEW_COUNT)
-              .map((credential) => (
-                <CredentialCard
-                  key={credential.credentialReference}
-                  credential={credential}
-                  onPress={openCredential}
-                />
-              ))}
+        {profileQuery.isLoading ? (
+          <View style={styles.skeletonGroup}>
+            <ScopeSkeletonBlock height={72} />
+            <ScopeSkeletonBlock height={160} />
           </View>
         ) : null}
-      </ScopeSection>
-    </ScopeScreen>
+
+        {profileQuery.isError ? (
+          <ProfileErrorBlock
+            error={profileQuery.error}
+            onRetry={() => void profileQuery.refetch()}
+            rebuildAction={
+              canOfferRebuild ? <RebuildAction rebuild={rebuild} /> : null
+            }
+          />
+        ) : null}
+
+        {profile ? (
+          <>
+            <ProfileCoverageNotice profile={profile} />
+            <ProfileTrajectory
+              profile={profile}
+              footer={<RebuildAction rebuild={rebuild} />}
+            />
+          </>
+        ) : null}
+
+        {profileQuery.isSuccess && !profileQuery.data ? (
+          <ScopeEmptyState
+            icon="analytics-outline"
+            title="Tu perfil todavía no está disponible"
+            description="Scope construye tu perfil a partir de las credenciales que te emiten. El análisis semántico lo enriquece con áreas, habilidades y conceptos cuando está disponible."
+            action={canOfferRebuild ? <RebuildAction rebuild={rebuild} /> : null}
+          />
+        ) : null}
+
+        <ScopeSection
+          title="Tus credenciales"
+          description={
+            credentialsQuery.isSuccess && credentials.length > 0
+              ? `${issuedCount} ${issuedCount === 1 ? 'emitida' : 'emitidas'} · ${revokedCount} ${revokedCount === 1 ? 'revocada' : 'revocadas'} · ${analyzedCount} con análisis. Son la base de evidencia de tu trayectoria.`
+              : 'Estas credenciales forman la base de evidencia de tu trayectoria.'
+          }
+          action={
+            credentials.length > 0 ? (
+              <ScopeButton
+                variant="ghost"
+                label="Ver todas"
+                onPress={() => router.push('/credentials')}
+                accessibilityHint="Abre la lista completa de tus credenciales"
+              />
+            ) : null
+          }
+        >
+          {credentialsQuery.isLoading ? (
+            <ScopeLoadingState label="Cargando credenciales" />
+          ) : null}
+
+          {credentialsQuery.isError ? (
+            <CredentialsErrorBlock
+              error={credentialsQuery.error}
+              onRetry={() => void credentialsQuery.refetch()}
+            />
+          ) : null}
+
+          {credentialsQuery.isSuccess && credentials.length === 0 ? (
+            <ScopeEmptyState
+              icon="document-text-outline"
+              title="Todavía no tenés credenciales formativas"
+              description="Cuando una institución emita una credencial a tu nombre, aparecerá en este espacio."
+            />
+          ) : null}
+
+          {credentialsQuery.isSuccess && credentials.length > 0 ? (
+            <View style={styles.credentialList}>
+              {credentials
+                .slice(0, CREDENTIAL_PREVIEW_COUNT)
+                .map((credential) => (
+                  <CredentialCard
+                    key={credential.credentialReference}
+                    credential={credential}
+                    onPress={openCredential}
+                  />
+                ))}
+            </View>
+          ) : null}
+        </ScopeSection>
+
+        {profile ? <PublicProfileSection share={share} /> : null}
+      </ScopeScreen>
+      {/* Fondo fijo detrás de la barra de estado: al desplazar, los íconos
+          claros nunca quedan sobre el contenido claro. */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.statusScrim,
+          { height: insets.top, backgroundColor: colors.band.start }
+        ]}
+      />
+    </>
   );
 }
 
-function ProfileHeading({ displayLabel }: { displayLabel: string | null }) {
+/**
+ * Perfil público. Compartir se inicia desde la banda; acá quedan las
+ * acciones sobre ese enlace y su administración, con el mismo texto que
+ * explica qué ve quien lo recibe.
+ */
+function PublicProfileSection({
+  share
+}: {
+  share: ReturnType<typeof useProfileShare>;
+}) {
+  const { colors } = useTheme();
   const styles = useStyles();
+  const router = useRouter();
+
   return (
-    <View style={styles.profileHeading}>
-      <ScopeText variant="overline" tone="teal">
-        Espacio personal
-      </ScopeText>
-      {displayLabel ? (
-        <ScopeText testID="profile-current-user-label" variant="smallStrong" tone="strong">
-          {displayLabel}
-        </ScopeText>
-      ) : null}
-      <ScopeText variant="screenTitle" tone="strong" accessibilityRole="header">
-        Mi perfil formativo
-      </ScopeText>
-      <ScopeText variant="small" tone="muted">
-        Tu trayectoria construida a partir de tus credenciales y de los análisis disponibles en Scope.
-      </ScopeText>
-    </View>
+    <ScopeSection
+      title="Perfil público"
+      description="Quien reciba el enlace verá una versión pública y resumida de tu perfil. No incluye tu email ni evidencias crudas."
+    >
+      <ScopeCard style={styles.publicCard} testID="profile-public-section">
+        <View style={styles.publicActions}>
+          <ScopeButton
+            variant="ghost"
+            label="Copiar enlace"
+            onPress={() => void share.copyLink()}
+            disabled={share.pending}
+            style={styles.leadingAction}
+          />
+          <ScopeButton
+            variant="ghost"
+            label="Ver vista pública"
+            onPress={() => void share.openPublicView()}
+            disabled={share.pending}
+            accessibilityHint="Abre la vista pública en el navegador"
+          />
+        </View>
+        {share.feedback.kind === 'copied' ? (
+          <ScopeText variant="small" tone="success" accessibilityLiveRegion="polite">
+            Enlace copiado.
+          </ScopeText>
+        ) : null}
+        {share.feedback.kind === 'error' ? (
+          <ScopeNotice tone="warning" title="No pudimos compartir">
+            <ScopeText variant="small" style={{ color: colors.status.warning }}>
+              {share.feedback.message}
+            </ScopeText>
+          </ScopeNotice>
+        ) : null}
+        <ScopeButton
+          testID="profile-share-management"
+          variant="secondary"
+          fullWidth
+          label="Gestionar enlaces compartidos"
+          onPress={() => router.push('/profile-shares')}
+          accessibilityHint="Consulta, recupera o revoca enlaces de tu perfil"
+          icon={
+            <Ionicons
+              name="link-outline"
+              size={18}
+              color={colors.text.strong}
+              accessibilityElementsHidden
+              importantForAccessibility="no"
+            />
+          }
+        />
+      </ScopeCard>
+    </ScopeSection>
   );
 }
 
@@ -297,8 +372,14 @@ function CredentialsErrorBlock({
 }
 
 const useStyles = makeStyles(() => ({
-  profileHeading: {
-    gap: spacing.xs
+  statusScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0
+  },
+  lifted: {
+    marginTop: -WELCOME_BAND_OVERLAP
   },
   skeletonGroup: {
     gap: spacing.md
@@ -306,8 +387,18 @@ const useStyles = makeStyles(() => ({
   credentialList: {
     gap: spacing.md
   },
-  actionsCard: {
-    gap: spacing.lg
+  publicCard: {
+    gap: spacing.sm,
+    borderRadius: radii.card
+  },
+  publicActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.xs
+  },
+  leadingAction: {
+    marginLeft: -spacing.lg
   },
   rebuildBlock: {
     gap: spacing.sm

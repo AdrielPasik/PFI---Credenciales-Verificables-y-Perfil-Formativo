@@ -67,5 +67,7 @@ export const queryKeys = {
   objectives: ['holder', 'objectives'] as const,
   objective: (objectiveReference: string) =>
     ['holder', 'objectives', objectiveReference] as const,
-  reasoningRuns: ['holder', 'reasoning-runs'] as const
+  reasoningRuns: ['holder', 'reasoning-runs'] as const,
+  reasoningRun: (reasoningRunReference: string) =>
+    ['holder', 'reasoning-runs', reasoningRunReference] as const
 };

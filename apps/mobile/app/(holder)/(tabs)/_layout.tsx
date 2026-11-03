@@ -43,6 +43,9 @@ export default function HolderTabsLayout() {
         name="index"
         options={{
           title: 'Perfil',
+          // El inicio dibuja su propia banda de bienvenida, con el menú de
+          // cuenta adentro: no lleva el encabezado plano de las pestañas.
+          headerShown: false,
           tabBarAccessibilityLabel: 'Perfil formativo',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" color={color} size={size} />

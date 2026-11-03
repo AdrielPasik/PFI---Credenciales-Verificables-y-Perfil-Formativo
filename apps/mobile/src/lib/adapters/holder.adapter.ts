@@ -569,6 +569,8 @@ export function adaptMyCurrentProfile(
       totalOfficialHours === null
         ? null
         : `${formatNumber(totalOfficialHours)} horas oficiales declaradas`,
+    totalOfficialHoursValue:
+      totalOfficialHours === null ? null : formatNumber(totalOfficialHours),
     hoursCoverageNoticeLabel:
       credentialsWithoutHours !== null && credentialsWithoutHours > 0
         ? `${credentialsWithoutHours} ${pluralCredential(
