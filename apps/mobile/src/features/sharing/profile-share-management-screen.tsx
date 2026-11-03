@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useCallback, useState } from 'react';
-import { Alert, Linking, Share, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Share, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 
@@ -19,11 +19,13 @@ import { useAuthenticatedRequest } from '@/lib/auth/session-provider';
 import { useAppConfig } from '@/lib/config/app-config-provider';
 import { queryKeys } from '@/lib/query/query-client';
 import { buildProfileShareMessage, buildProfileShareUrl, isSafeExternalUrl } from '@/features/sharing/share-links';
-import { colors, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { spacing } from '@/lib/theme/tokens';
 import type { ProfileShareSummaryVM } from '@/types/sharing';
 
 /** Gestión holder-only: los tokens no se cargan ni persisten con la lista. */
 export function ProfileShareManagementScreen() {
+  const styles = useStyles();
   const request = useAuthenticatedRequest();
   const { webBaseUrl } = useAppConfig();
   const queryClient = useQueryClient();
@@ -139,6 +141,8 @@ function ShareCard({
   revoke: ReturnType<typeof useMutation<void, Error, string>>;
   onConfigurePolicy: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const active = share.status === 'ACTIVE';
@@ -201,8 +205,8 @@ function ShareCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   stack: { gap: spacing.md },
   card: { gap: spacing.sm },
   actions: { gap: spacing.sm, marginTop: spacing.xs }
-});
+}));

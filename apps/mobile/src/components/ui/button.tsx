@@ -1,14 +1,14 @@
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   View,
   type StyleProp,
   type ViewStyle
 } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { type ScopeColors, layout, radii, spacing } from '@/lib/theme/tokens';
 
 export type ScopeButtonVariant = 'primary' | 'secondary' | 'ghost';
 
@@ -40,8 +40,10 @@ export function ScopeButton({
   style,
   testID
 }: ScopeButtonProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const isDisabled = disabled || loading;
-  const palette = PALETTE[variant];
+  const palette = buttonPalette(colors)[variant];
   const visibleLabel = loading ? (loadingLabel ?? label) : label;
 
   return (
@@ -82,28 +84,30 @@ export function ScopeButton({
   );
 }
 
-const PALETTE: Record<
+function buttonPalette(colors: ScopeColors): Record<
   ScopeButtonVariant,
   { background: string; border: string; foreground: string }
-> = {
-  primary: {
-    background: colors.brand.navy,
-    border: colors.brand.navy,
-    foreground: colors.text.onInverse
-  },
-  secondary: {
-    background: colors.surface.card,
-    border: colors.border.strong,
-    foreground: colors.text.strong
-  },
-  ghost: {
-    background: 'transparent',
-    border: 'transparent',
-    foreground: colors.brand.teal
-  }
-};
+> {
+  return {
+    primary: {
+      background: colors.action.primary,
+      border: colors.action.primaryBorder,
+      foreground: colors.action.onPrimary
+    },
+    secondary: {
+      background: colors.surface.card,
+      border: colors.border.strong,
+      foreground: colors.text.strong
+    },
+    ghost: {
+      background: 'transparent',
+      border: 'transparent',
+      foreground: colors.brand.teal
+    }
+  };
+}
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   base: {
     minHeight: layout.touchTarget,
     justifyContent: 'center',
@@ -133,4 +137,4 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.55
   }
-});
+}));

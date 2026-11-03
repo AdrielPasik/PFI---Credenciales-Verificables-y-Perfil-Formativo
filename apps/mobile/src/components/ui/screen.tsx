@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import {
   RefreshControl,
   ScrollView,
-  StyleSheet,
   View,
   type StyleProp,
   type ViewStyle
@@ -10,7 +9,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 
 /**
  * Contenedor de pantalla.
@@ -35,6 +35,8 @@ export function ScopeScreen({
   onRefresh?: () => void;
   contentContainerStyle?: StyleProp<ViewStyle>;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const bottomPadding = spacing.xxxl + insets.bottom;
 
@@ -87,6 +89,7 @@ export function ScopeScreenHeading({
   description?: string;
   action?: ReactNode;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.heading}>
       <View style={styles.headingText}>
@@ -113,7 +116,7 @@ export function ScopeScreenHeading({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     backgroundColor: colors.surface.background
@@ -139,4 +142,4 @@ const styles = StyleSheet.create({
   headingText: {
     gap: spacing.xs
   }
-});
+}));

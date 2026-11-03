@@ -1,8 +1,9 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeText } from '@/components/ui/text';
 import type { AppConfigError } from '@/lib/config/app-config';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 
 /**
  * Arranque con configuración inválida o ausente.
@@ -15,6 +16,7 @@ import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
  * Lo que NUNCA se hace es caer en silencio a `localhost`.
  */
 export function ConfigErrorScreen({ error }: { error: AppConfigError }) {
+  const styles = useStyles();
   return (
     <View style={styles.root}>
       <View style={styles.card}>
@@ -50,7 +52,7 @@ export function ConfigErrorScreen({ error }: { error: AppConfigError }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     alignItems: 'center',
@@ -74,4 +76,4 @@ const styles = StyleSheet.create({
     borderRadius: radii.control,
     backgroundColor: colors.surface.muted
   }
-});
+}));

@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   View,
   type TextInput
 } from 'react-native';
@@ -15,7 +14,8 @@ import { ScopeNotice } from '@/components/ui/states';
 import { ScopeText } from '@/components/ui/text';
 import { ScopeTextField } from '@/components/ui/text-field';
 import type { LoginCommand } from '@/lib/api/scope-api';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 import type { AuthFeedback } from '@/types/auth';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,6 +46,7 @@ export function LoginScreen({
   submitting: boolean;
   initialFeedback: AuthFeedback | null;
 }) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -219,7 +220,7 @@ export function LoginScreen({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     backgroundColor: colors.surface.background
@@ -262,4 +263,4 @@ const styles = StyleSheet.create({
   errorText: {
     color: colors.status.error
   }
-});
+}));

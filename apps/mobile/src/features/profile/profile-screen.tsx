@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeScreen } from '@/components/ui/screen';
@@ -25,7 +25,8 @@ import {
 import { ShareAction } from '@/features/sharing/share-action';
 import { useSession } from '@/lib/auth/session-provider';
 import { useProfileShare } from '@/features/sharing/use-share';
-import { colors, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { spacing } from '@/lib/theme/tokens';
 
 /** Cuántas credenciales se anticipan en el perfil antes de "Ver todas". */
 const CREDENTIAL_PREVIEW_COUNT = 2;
@@ -40,6 +41,7 @@ const CREDENTIAL_PREVIEW_COUNT = 2;
  * perfil: eso es una mutación aparte y explícita (sección 23).
  */
 export function ProfileScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const { state: sessionState } = useSession();
   const profileQuery = useCurrentProfile();
@@ -198,6 +200,7 @@ export function ProfileScreen() {
 }
 
 function ProfileHeading({ displayLabel }: { displayLabel: string | null }) {
+  const styles = useStyles();
   return (
     <View style={styles.profileHeading}>
       <ScopeText variant="overline" tone="teal">
@@ -227,6 +230,8 @@ function RebuildAction({
 }: {
   rebuild: ReturnType<typeof useProfileRebuild>;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.rebuildBlock}>
       <ScopeButton
@@ -258,6 +263,7 @@ function ProfileErrorBlock({
   onRetry: () => void;
   rebuildAction: React.ReactNode;
 }) {
+  const styles = useStyles();
   const state = mapHolderError(error, 'profile');
 
   return (
@@ -290,7 +296,7 @@ function CredentialsErrorBlock({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   profileHeading: {
     gap: spacing.xs
   },
@@ -309,4 +315,4 @@ const styles = StyleSheet.create({
   errorBlock: {
     gap: spacing.md
   }
-});
+}));

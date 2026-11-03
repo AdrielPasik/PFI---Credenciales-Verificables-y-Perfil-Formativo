@@ -1,10 +1,11 @@
 import { Redirect, Stack, usePathname } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeLoadingState } from '@/components/ui/states';
 import { useSession } from '@/lib/auth/session-provider';
 import { safeHolderDestination } from '@/lib/navigation/return-destination';
-import { colors, layout, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, spacing } from '@/lib/theme/tokens';
 
 /**
  * Guardia de navegación del espacio del titular.
@@ -17,6 +18,8 @@ import { colors, layout, spacing } from '@/lib/theme/tokens';
  * y cada petición viaja con su Bearer (sección 104).
  */
 export default function HolderLayout() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { state } = useSession();
   const pathname = usePathname();
 
@@ -76,7 +79,7 @@ export default function HolderLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   centered: {
     flex: 1,
     justifyContent: 'center',
@@ -84,4 +87,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.screenPaddingHorizontal,
     backgroundColor: colors.surface.background
   }
-});
+}));

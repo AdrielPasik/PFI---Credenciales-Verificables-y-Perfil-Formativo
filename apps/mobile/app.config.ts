@@ -22,9 +22,11 @@ const config: ExpoConfig = {
   scheme: 'scope',
   version: APP_VERSION,
   orientation: 'portrait',
-  // v1 se entrega solo en tema claro: Scope Web todavia no define un tema
-  // oscuro completo y un dark mode a medias seria peor que ninguno.
-  userInterfaceStyle: 'light',
+  // Claro, oscuro o segun el sistema: la eleccion vive en la app
+  // (`src/lib/theme`). `automatic` deja que el sistema informe su apariencia
+  // y que los componentes nativos (alertas, teclado) la acompanen. Cambiar
+  // este valor requiere una build nativa nueva: no viaja por EAS Update.
+  userInterfaceStyle: 'automatic',
   platforms: ['android', 'ios'],
   icon: './assets/icon.png',
   backgroundColor: '#EEF2F5',
@@ -35,6 +37,7 @@ const config: ExpoConfig = {
   // (mas abajo); el campo `splash` de nivel superior quedo obsoleto.
   assetBundlePatterns: ['**/*'],
   ios: {
+    userInterfaceStyle: 'automatic',
     bundleIdentifier: 'com.scope.holder',
     buildNumber: IOS_BUILD_NUMBER,
     supportsTablet: true,
@@ -43,6 +46,7 @@ const config: ExpoConfig = {
     }
   },
   android: {
+    userInterfaceStyle: 'automatic',
     package: 'com.scope.holder',
     versionCode: ANDROID_VERSION_CODE,
     adaptiveIcon: {
@@ -53,6 +57,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-secure-store',
+    'expo-system-ui',
     [
       'expo-splash-screen',
       {

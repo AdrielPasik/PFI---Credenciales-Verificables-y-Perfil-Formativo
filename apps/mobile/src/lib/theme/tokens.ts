@@ -6,10 +6,17 @@
  * constantes nativas. Si la marca cambia en Web, este archivo es el único
  * lugar que hay que actualizar en mobile (ver `06-design-system-mobile.md`).
  *
- * Ningún componente debe escribir un color literal: siempre `colors.*`.
+ * Los colores existen en dos paletas con la MISMA forma: `lightColors` (la
+ * apariencia original de la app) y `darkColors` (azul tinta y petróleo, la
+ * paleta oscura aprobada en Web). Cada clave es un rol, no un tono: en oscuro
+ * toma el valor que cumple ese rol con contraste suficiente.
+ *
+ * Ningún componente debe escribir un color literal ni importar una paleta
+ * directamente: siempre `useTheme().colors` o `makeStyles` (ver
+ * `theme-provider.tsx`).
  */
 
-export const colors = {
+export const lightColors = {
   brand: {
     navy: '#0B1D3A',
     navyStrong: '#12315C',
@@ -19,11 +26,19 @@ export const colors = {
     tealBright: '#2097A1',
     cyan: '#BFE6EA'
   },
+  /** Acción principal (botón primario, opción elegida). */
+  action: {
+    primary: '#0B1D3A',
+    primaryBorder: '#0B1D3A',
+    onPrimary: '#FFFFFF'
+  },
   surface: {
     background: '#EEF2F5',
     card: '#FFFFFF',
     muted: '#F7FAFB',
-    inverse: '#0B1D3A'
+    inverse: '#0B1D3A',
+    /** Fondo del fragmento citado dentro de un texto. */
+    highlight: '#BFE6EA'
   },
   text: {
     strong: '#0B1D3A',
@@ -31,12 +46,14 @@ export const colors = {
     muted: '#5F7084',
     subtle: '#7B8998',
     onInverse: '#FFFFFF',
-    onInverseMuted: '#D5E6EA'
+    onInverseMuted: '#D5E6EA',
+    onHighlight: '#0B1D3A'
   },
   border: {
     default: '#D9E3E8',
     strong: '#BDCCD5',
-    onInverse: 'rgba(255, 255, 255, 0.18)'
+    onInverse: 'rgba(255, 255, 255, 0.18)',
+    inverse: '#12315C'
   },
   status: {
     issued: '#2563A6',
@@ -57,8 +74,79 @@ export const colors = {
     neutralSoft: '#EFF2F3'
   },
   focusRing: '#256087',
-  overlay: 'rgba(11, 29, 58, 0.45)'
-} as const;
+  overlay: 'rgba(11, 29, 58, 0.45)',
+  shadow: '#0B1D3A'
+};
+
+export type ScopeColors = typeof lightColors;
+
+/**
+ * Paleta oscura: fondo azul tinta, superficies diferenciadas y acento
+ * petróleo. Valores tomados de `:root[data-theme="dark"]` de Scope Web.
+ *
+ * En oscuro, `brand.teal` y `brand.navy` dejan de ser colores de relleno y
+ * pasan a ser color de texto/ícono legible sobre la tinta; los rellenos
+ * sólidos de acción usan `action.*`.
+ */
+export const darkColors: ScopeColors = {
+  brand: {
+    navy: '#EEF3F8',
+    navyStrong: '#A9D2D8',
+    navySoft: '#C6D2DF',
+    tint: '#173842',
+    teal: '#82BCC4',
+    tealBright: '#A9D2D8',
+    cyan: '#2F7F8A'
+  },
+  action: {
+    primary: '#24727E',
+    primaryBorder: '#9FD0D6',
+    onPrimary: '#FFFFFF'
+  },
+  surface: {
+    background: '#0A1424',
+    card: '#101D33',
+    muted: '#0C182B',
+    inverse: '#0E223F',
+    highlight: '#24546A'
+  },
+  text: {
+    strong: '#EEF3F8',
+    default: '#C6D2DF',
+    muted: '#97A8BB',
+    subtle: '#8394A8',
+    onInverse: '#FFFFFF',
+    onInverseMuted: '#C6D2DF',
+    onHighlight: '#EEF3F8'
+  },
+  border: {
+    default: '#24364F',
+    strong: '#314A6A',
+    onInverse: 'rgba(255, 255, 255, 0.16)',
+    inverse: '#1D3A5F'
+  },
+  status: {
+    issued: '#93B6E0',
+    issuedSoft: '#142840',
+    analysis: '#80C0BC',
+    analysisSoft: '#0F2A2D',
+    success: '#7CC7A2',
+    successSoft: '#112B22',
+    warning: '#E3B56E',
+    warningSoft: '#30240F',
+    warningBorder: '#6B5226',
+    error: '#F0999D',
+    errorSoft: '#3A181C',
+    errorBorder: '#6E3439',
+    revoked: '#F09AA8',
+    revokedSoft: '#3A1822',
+    neutral: '#A9B6C1',
+    neutralSoft: '#1A2431'
+  },
+  focusRing: '#8FB8D8',
+  overlay: 'rgba(2, 6, 14, 0.68)',
+  shadow: '#000000'
+};
 
 export const spacing = {
   xs: 4,
@@ -92,31 +180,36 @@ export const layout = {
 
 /**
  * Elevación discreta. Android usa `elevation`, iOS usa shadow*: por eso los
- * tokens llevan ambas familias de propiedades.
+ * tokens llevan ambas familias de propiedades. El color de sombra depende de
+ * la paleta: navy en claro, negro en oscuro.
  */
-export const elevation = {
-  none: {
-    shadowColor: 'transparent',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0
-  },
-  card: {
-    shadowColor: colors.brand.navy,
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2
-  },
-  raised: {
-    shadowColor: colors.brand.navy,
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4
-  }
-} as const;
+export function createElevation(colors: ScopeColors) {
+  return {
+    none: {
+      shadowColor: 'transparent',
+      shadowOpacity: 0,
+      shadowRadius: 0,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 0
+    },
+    card: {
+      shadowColor: colors.shadow,
+      shadowOpacity: colors === lightColors ? 0.06 : 0.35,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2
+    },
+    raised: {
+      shadowColor: colors.shadow,
+      shadowOpacity: colors === lightColors ? 0.1 : 0.42,
+      shadowRadius: 18,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 4
+    }
+  } as const;
+}
+
+export type ScopeElevation = ReturnType<typeof createElevation>;
 
 export const fontFamilies = {
   regular: 'Inter_400Regular',
@@ -150,15 +243,3 @@ export const typography = {
   },
   technical: { fontFamily: fontFamilies.mono, fontSize: 12, lineHeight: 19 }
 } as const;
-
-export const theme = {
-  colors,
-  spacing,
-  radii,
-  layout,
-  elevation,
-  typography,
-  fontFamilies
-} as const;
-
-export type ScopeTheme = typeof theme;

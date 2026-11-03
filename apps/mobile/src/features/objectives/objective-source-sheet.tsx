@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeText } from '@/components/ui/text';
 import { splitAroundRange } from '@/features/objectives/review-draft';
 import type { ObjectiveSourceRangeVM } from '@/types/objectives';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 
 /**
  * Fragmento exacto del objetivo, con la opción de verlo en su contexto.
@@ -34,6 +35,7 @@ export function ObjectiveSourceSheet({
   sectionLabel: string | null;
   onClose: () => void;
 }) {
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const [showFullSource, setShowFullSource] = useState(false);
 
@@ -140,7 +142,7 @@ export function ObjectiveSourceSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     padding: spacing.md
   },
   mark: {
-    color: colors.brand.navy,
-    backgroundColor: colors.brand.cyan
+    color: colors.text.onHighlight,
+    backgroundColor: colors.surface.highlight
   }
-});
+}));

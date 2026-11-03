@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeChip } from '@/components/ui/badge';
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import type { HolderProfileProvenanceVM } from '@/types/holder';
 
 /**
@@ -22,6 +23,7 @@ export function DeclaredTextList({
   items: string[];
   testID?: string;
 }) {
+  const styles = useStyles();
   if (items.length === 0) return null;
 
   return (
@@ -64,6 +66,7 @@ export function TaxonomyList({
   emptyLabel?: string;
   testID?: string;
 }) {
+  const styles = useStyles();
   if (items.length === 0 && !emptyLabel) return null;
 
   return (
@@ -108,6 +111,8 @@ export function ProvenanceIndicator({
 }: {
   provenance: HolderProfileProvenanceVM;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.provenanceRow}>
       {provenance.issuerReviewedLabel ? (
@@ -159,6 +164,8 @@ export function TechnicalValue({
   onCopy?: () => void;
   copyAccessibilityLabel?: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.technicalRow}>
       <ScopeText variant="overline" tone="muted">
@@ -198,7 +205,7 @@ export function TechnicalValue({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   block: {
     gap: spacing.sm
   },
@@ -255,4 +262,4 @@ const styles = StyleSheet.create({
   copyButtonPressed: {
     opacity: 0.6
   }
-});
+}));

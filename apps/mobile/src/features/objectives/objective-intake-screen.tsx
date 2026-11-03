@@ -6,7 +6,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   TextInput,
   View
 } from 'react-native';
@@ -47,13 +46,8 @@ import {
   mapObjectiveProposalError
 } from '@/lib/errors/objective-error-mapper';
 import { queryKeys } from '@/lib/query/query-client';
-import {
-  colors,
-  layout,
-  radii,
-  spacing,
-  typography
-} from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing, typography } from '@/lib/theme/tokens';
 import {
   OBJECTIVE_TYPE_LABELS,
   OBJECTIVE_TYPES,
@@ -96,6 +90,7 @@ const CONFIRM_MESSAGES: Record<ConfirmValidationCode, string> = {
  * limitación aceptada.
  */
 export function ObjectiveIntakeScreen() {
+  const styles = useStyles();
   const router = useRouter();
   const queryClient = useQueryClient();
   const request = useAuthenticatedRequest();
@@ -344,6 +339,8 @@ function IntakeForm({
   onChangeField: (field: 'title' | 'rawObjectiveText', value: string) => void;
   onAnalyze: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.form}>
       <View style={styles.block}>
@@ -372,7 +369,7 @@ function IntakeForm({
                 <ScopeText
                   variant="small"
                   style={{
-                    color: selected ? colors.text.onInverse : colors.text.default
+                    color: selected ? colors.action.onPrimary : colors.text.default
                   }}
                 >
                   {OBJECTIVE_TYPE_LABELS[type]}
@@ -484,6 +481,7 @@ function ReviewList({
   onDiscard: () => void;
   onConfirm: () => void;
 }) {
+  const styles = useStyles();
   const [replacing, setReplacing] = useState<string | null>(null);
   const full = items.length >= MAX_OBJECTIVE_REQUIREMENTS;
   return (
@@ -655,7 +653,7 @@ function ReviewList({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     backgroundColor: colors.surface.background
@@ -693,8 +691,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm
   },
   typeOptionSelected: {
-    backgroundColor: colors.brand.navy,
-    borderColor: colors.brand.navy
+    backgroundColor: colors.action.primary,
+    borderColor: colors.action.primaryBorder
   },
   textarea: {
     minHeight: 200,
@@ -721,4 +719,4 @@ const styles = StyleSheet.create({
   warningText: {
     color: colors.status.warning
   }
-});
+}));

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeCard } from '@/components/ui/surfaces';
 import { ScopeText } from '@/components/ui/text';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import {
   CREDENTIAL_CURRENT_STATUS_LABELS,
   FINAL_STATE_LABELS,
@@ -102,6 +103,7 @@ export function ObjectiveSynthesisOverview({
   synthesis: ObjectiveSynthesisVM;
   completedAtLabel: string | null;
 }) {
+  const styles = useStyles();
   const [showRemaining, setShowRemaining] = useState(false);
 
   const visibleConclusions = showRemaining
@@ -234,6 +236,7 @@ function PositiveConclusion({
   conclusion: ObjectiveSynthesisVM['positiveConclusions'][number];
   synthesis: ObjectiveSynthesisVM;
 }) {
+  const styles = useStyles();
   // Se resuelve POR REFERENCIA contra lo que el servidor ya vinculó. Nunca por
   // título ni por parecido.
   const supportingCredentials = conclusion.supportingCredentialReferences
@@ -286,7 +289,7 @@ function PositiveConclusion({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     gap: spacing.xl
   },
@@ -332,4 +335,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface.card,
     padding: spacing.md
   }
-});
+}));

@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeCard } from '@/components/ui/surfaces';
@@ -27,7 +27,8 @@ import {
   mapReasoningRunActionError,
   mapReasoningRunReadError
 } from '@/lib/errors/reasoning-run-error-mapper';
-import { colors, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { radii, spacing } from '@/lib/theme/tokens';
 import type {
   ReasoningRunDetailVM,
   ReasoningRunSummaryVM
@@ -61,6 +62,7 @@ export function ObjectiveReasoningPanel({
 }: {
   objectiveReference: string;
 }) {
+  const styles = useStyles();
   const request = useAuthenticatedRequest();
   const router = useRouter();
 
@@ -284,6 +286,7 @@ export function ObjectiveReasoningPanel({
 }
 
 function AbsentState({ onStart }: { onStart: () => void }) {
+  const styles = useStyles();
   return (
     <ScopeCard style={styles.block}>
       <ScopeText variant="sectionTitle" tone="strong" accessibilityRole="header">
@@ -312,6 +315,7 @@ function AbsentState({ onStart }: { onStart: () => void }) {
  * etapas ni el proveedor.
  */
 function ExecutingState() {
+  const styles = useStyles();
   return (
     <ScopeCard style={styles.block}>
       <ScopeText
@@ -343,6 +347,7 @@ function RunState({
   onStartNew: () => void;
   onOpenCredential: (credentialReference: string) => void;
 }) {
+  const styles = useStyles();
   if (run.status === 'pending') {
     return (
       <ScopeCard style={styles.block}>
@@ -472,6 +477,7 @@ function CompletedRunHistory({
   history: readonly ReasoningRunSummaryVM[];
   currentRunReference: string;
 }) {
+  const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
   const previous = history.filter(
     (entry) => entry.reasoningRunReference !== currentRunReference
@@ -519,7 +525,7 @@ function CompletedRunHistory({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     gap: spacing.lg
   },
@@ -554,4 +560,4 @@ const styles = StyleSheet.create({
   warningText: {
     color: colors.status.warning
   }
-});
+}));

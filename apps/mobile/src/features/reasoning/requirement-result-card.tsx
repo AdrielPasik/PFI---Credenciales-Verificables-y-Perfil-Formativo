@@ -1,10 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { ScopeBadge, type ScopeBadgeTone } from '@/components/ui/badge';
 import { ScopeText } from '@/components/ui/text';
 import { evidencePresentationFor } from '@/features/reasoning/evidence-presentation';
 import { ReasoningEvidenceList } from '@/features/reasoning/reasoning-evidence-list';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 import {
   FINAL_STATE_DESCRIPTIONS,
   FINAL_STATE_LABELS,
@@ -41,6 +42,7 @@ export function RequirementResultCard({
   index: number;
   onOpenCredential: (credentialReference: string) => void;
 }) {
+  const styles = useStyles();
   const presentation = evidencePresentationFor(
     result.finalState,
     result.evidence.length
@@ -105,7 +107,7 @@ export function RequirementResultCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     gap: spacing.sm,
     borderRadius: radii.card,
@@ -131,4 +133,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.sm
   }
-});
+}));

@@ -1,13 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScopeButton } from '@/components/ui/button';
 import { ScopeDivider } from '@/components/ui/surfaces';
 import { ScopeText } from '@/components/ui/text';
+import { AppearanceSelector } from '@/features/auth/appearance-selector';
 import { useSession } from '@/lib/auth/session-provider';
-import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
+import { makeStyles, useTheme } from '@/lib/theme/theme-provider';
+import { layout, radii, spacing } from '@/lib/theme/tokens';
 
 /**
  * Menú de cuenta del encabezado.
@@ -20,6 +22,8 @@ import { colors, layout, radii, spacing } from '@/lib/theme/tokens';
  * `did`): no se infiere un nombre a partir del correo (sección 196).
  */
 export function AccountMenuButton() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { state, logout } = useSession();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -36,7 +40,7 @@ export function AccountMenuButton() {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Cuenta de ${currentUser.displayLabel}`}
-        accessibilityHint="Abre la información de tu cuenta y la opción de cerrar sesión"
+        accessibilityHint="Abre la información de tu cuenta, la apariencia y la opción de cerrar sesión"
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.trigger, pressed && styles.pressed]}
         testID="account-menu-button"
@@ -89,6 +93,10 @@ export function AccountMenuButton() {
 
             <ScopeDivider style={styles.divider} />
 
+            <AppearanceSelector />
+
+            <ScopeDivider style={styles.divider} />
+
             <ScopeButton
               testID="logout-button"
               fullWidth
@@ -115,7 +123,7 @@ export function AccountMenuButton() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   trigger: {
     minWidth: layout.touchTarget,
     minHeight: layout.touchTarget,
@@ -149,4 +157,4 @@ const styles = StyleSheet.create({
   divider: {
     marginVertical: spacing.md
   }
-});
+}));
