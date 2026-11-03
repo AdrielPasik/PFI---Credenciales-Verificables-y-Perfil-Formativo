@@ -43,23 +43,77 @@ jest.mock('@expo-google-fonts/inter', () => ({
 }));
 
 jest.mock('expo-router', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    back: jest.fn()
-  }),
-  useLocalSearchParams: () => ({}),
-  Redirect: () => null,
+  useRouter: () => mockRouter,
+  useLocalSearchParams: () => mockRouteState.searchParams,
+  usePathname: () => mockRouteState.pathname,
+  Redirect: ({ href }: { href: unknown }) => {
+    mockRouteState.redirects.push(href);
+    return null;
+  },
   Stack: Object.assign(() => null, { Screen: () => null }),
   Tabs: Object.assign(() => null, { Screen: () => null }),
   Link: () => null
 }));
+
+/**
+ * Navegacion simulada. `usePreventRemove` registra la guarda vigente y
+ * `simulateLeave` reproduce lo que hace el stack nativo ante la flecha del
+ * header, el Atras de Android o el gesto de iOS: si la salida esta prevenida,
+ * llama al callback; si no, despacha la accion.
+ */
+const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn() };
+const mockRouteState = {
+  searchParams: {} as Record<string, string | undefined>,
+  pathname: '/',
+  redirects: [] as unknown[]
+};
+const mockNavigation = {
+  dispatch: jest.fn(),
+  prevent: null as null | {
+    enabled: boolean;
+    callback: (options: { data: { action: unknown } }) => void;
+  }
+};
+
+jest.mock('expo-router/react-navigation', () => ({
+  useNavigation: () => mockNavigation,
+  usePreventRemove: (
+    enabled: boolean,
+    callback: (options: { data: { action: unknown } }) => void
+  ) => {
+    mockNavigation.prevent = { enabled, callback };
+  }
+}));
+
+export const testNavigation = {
+  router: mockRouter,
+  route: mockRouteState,
+  navigation: mockNavigation,
+  simulateLeave(action: unknown = { type: 'GO_BACK' }) {
+    if (mockNavigation.prevent?.enabled) {
+      mockNavigation.prevent.callback({ data: { action } });
+    } else {
+      mockNavigation.dispatch(action);
+    }
+  },
+  reset() {
+    mockRouter.push.mockReset();
+    mockRouter.replace.mockReset();
+    mockRouter.back.mockReset();
+    mockNavigation.dispatch.mockReset();
+    mockNavigation.prevent = null;
+    mockRouteState.searchParams = {};
+    mockRouteState.pathname = '/';
+    mockRouteState.redirects = [];
+  }
+};
 
 export function resetSecureStore() {
   mockSecureStoreValues.clear();
 }
 
 beforeEach(() => {
+  testNavigation.reset();
   resetSecureStore();
 });
 

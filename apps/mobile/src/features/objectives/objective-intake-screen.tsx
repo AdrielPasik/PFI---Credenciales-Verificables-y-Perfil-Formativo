@@ -35,6 +35,7 @@ import {
   type ConfirmValidationCode,
   type IntakeValidationCode
 } from '@/features/objectives/review-draft';
+import { useDiscardGuard } from '@/features/objectives/use-discard-guard';
 import { useObjectiveFlow } from '@/features/objectives/use-objective-flow';
 import {
   createObjectiveRequest,
@@ -115,6 +116,13 @@ export function ObjectiveIntakeScreen() {
   const [sourceItem, setSourceItem] = useState<ReviewItem | null>(null);
 
   const reviewActive = state.phase === 'review' && state.draft !== null;
+  // Hay algo que perder: datos cargados en el intake o una revision en curso.
+  const hasUnsavedWork =
+    reviewActive ||
+    state.intake.objectiveType !== null ||
+    state.intake.title.trim().length > 0 ||
+    state.intake.rawObjectiveText.trim().length > 0;
+  const discardGuard = useDiscardGuard(hasUnsavedWork);
 
   useEffect(
     () => () => {
@@ -204,8 +212,11 @@ export function ObjectiveIntakeScreen() {
         buildCreateObjectiveBody(state.draft)
       );
       await queryClient.invalidateQueries({ queryKey: queryKeys.objectives });
-      router.replace(
-        `/objectives/${encodeURIComponent(objective.objectiveReference)}`
+      // Salida legitima: el objetivo ya esta guardado, no se pregunta.
+      discardGuard.leave(() =>
+        router.replace(
+          `/objectives/${encodeURIComponent(objective.objectiveReference)}`
+        )
       );
     } catch (error) {
       // El borrador queda intacto y la propuesta NO se vuelve a pedir: el
@@ -219,7 +230,7 @@ export function ObjectiveIntakeScreen() {
     } finally {
       confirmLockRef.current = false;
     }
-  }, [dispatch, queryClient, request, router, state.confirming, state.draft]);
+  }, [discardGuard, dispatch, queryClient, request, router, state.confirming, state.draft]);
 
   const showSource = useCallback((item: ReviewItem) => {
     setSourceItem(item);

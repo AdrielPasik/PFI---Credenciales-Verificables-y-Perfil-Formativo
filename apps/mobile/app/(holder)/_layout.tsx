@@ -1,8 +1,9 @@
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, usePathname } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ScopeLoadingState } from '@/components/ui/states';
 import { useSession } from '@/lib/auth/session-provider';
+import { safeHolderDestination } from '@/lib/navigation/return-destination';
 import { colors, layout, spacing } from '@/lib/theme/tokens';
 
 /**
@@ -17,9 +18,12 @@ import { colors, layout, spacing } from '@/lib/theme/tokens';
  */
 export default function HolderLayout() {
   const { state } = useSession();
+  const pathname = usePathname();
 
   if (state.status === 'unauthenticated') {
-    return <Redirect href="/login" />;
+    // Enlace profundo sin sesion: el destino viaja al login para volver a el.
+    const next = safeHolderDestination(pathname);
+    return <Redirect href={next ? { pathname: '/login', params: { next } } : '/login'} />;
   }
 
   if (state.status !== 'authenticated') {
