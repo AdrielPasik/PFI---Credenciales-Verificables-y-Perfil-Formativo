@@ -1,5 +1,8 @@
 import HolderLayout from '../../../app/(holder)/_layout';
+import { fireEvent, screen } from '@testing-library/react-native';
+
 import LoginRoute from '../../../app/login';
+import RegisterRoute from '../../../app/register';
 import { HOLDER_HOME, safeHolderDestination } from '@/lib/navigation/return-destination';
 import { renderWithProviders } from '@/test/render';
 import { testNavigation } from '@/test/setup';
@@ -74,6 +77,43 @@ describe('enlace profundo sin sesión', () => {
 
   it('sin destino vuelve al Perfil', async () => {
     await renderWithProviders(<LoginRoute />);
+
+    expect(testNavigation.route.redirects.at(-1)).toBe(HOLDER_HOME);
+  });
+});
+
+describe('registro desde un enlace profundo', () => {
+  it('"Crear cuenta" lleva el destino al registro', async () => {
+    testNavigation.route.searchParams = { next: '/credentials/cred-123' };
+    await renderWithProviders(<LoginRoute />, { accessToken: null });
+
+    await fireEvent.press(await screen.findByTestId('login-create-account'));
+
+    expect(testNavigation.router.push).toHaveBeenCalledWith({
+      pathname: '/register',
+      params: { next: '/credentials/cred-123' }
+    });
+  });
+
+  it('sin destino válido el registro se abre sin parámetro', async () => {
+    testNavigation.route.searchParams = { next: '/admin' };
+    await renderWithProviders(<LoginRoute />, { accessToken: null });
+
+    await fireEvent.press(await screen.findByTestId('login-create-account'));
+
+    expect(testNavigation.router.push).toHaveBeenCalledWith('/register');
+  });
+
+  it('después de registrarse vuelve al destino permitido', async () => {
+    testNavigation.route.searchParams = { next: '/objectives' };
+    await renderWithProviders(<RegisterRoute />);
+
+    expect(testNavigation.route.redirects.at(-1)).toBe('/objectives');
+  });
+
+  it('con un destino inválido el registro vuelve al Perfil', async () => {
+    testNavigation.route.searchParams = { next: '//evil.example' };
+    await renderWithProviders(<RegisterRoute />);
 
     expect(testNavigation.route.redirects.at(-1)).toBe(HOLDER_HOME);
   });
