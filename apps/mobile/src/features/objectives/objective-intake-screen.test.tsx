@@ -1,4 +1,5 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 
 import { ObjectiveIntakeScreen } from '@/features/objectives/objective-intake-screen';
 import {
@@ -7,6 +8,7 @@ import {
 } from '@/test/objective-fixtures';
 import type { RouteMap, StubResponse } from '@/test/http';
 import { renderWithProviders } from '@/test/render';
+import { testNavigation } from '@/test/setup';
 
 const PROPOSAL_ROUTE = 'POST /me/objective-requirement-proposals';
 const CREATE_ROUTE = 'POST /me/objectives';
@@ -439,5 +441,100 @@ describe('revisión de requisitos', () => {
     expect(
       screen.queryByText(/UNIQUE|NOT_FOUND|AMBIGUOUS|PROPOSAL_ONLY/)
     ).toBeNull();
+  });
+});
+
+describe('protección de cambios sin guardar', () => {
+  // `simulateLeave` reproduce flecha del header, Atrás de Android y gesto de
+  // iOS: los tres llegan al stack como el mismo intento de quitar la pantalla.
+  function alertButtons() {
+    const call = alertSpy.mock.calls.at(-1);
+    return (call?.[2] ?? []) as { text: string; onPress?: () => void }[];
+  }
+
+  let alertSpy: jest.SpyInstance;
+  beforeEach(() => {
+    alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+  });
+  afterEach(() => alertSpy.mockRestore());
+
+  it('sin cambios deja salir sin preguntar', async () => {
+    await renderIntake();
+
+    testNavigation.simulateLeave();
+
+    expect(alertSpy).not.toHaveBeenCalled();
+    expect(testNavigation.navigation.dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('con texto cargado pregunta antes de salir y "Seguir editando" conserva todo', async () => {
+    await renderIntake();
+    await fillIntake();
+
+    testNavigation.simulateLeave();
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+    expect(alertSpy.mock.calls[0][0]).toBe('¿Salir sin guardar?');
+    expect(alertButtons().map((button) => button.text)).toEqual(['Seguir editando', 'Salir y descartar']);
+
+    await act(async () => alertButtons()[0]?.onPress?.());
+
+    expect(testNavigation.navigation.dispatch).not.toHaveBeenCalled();
+    expect(screen.getByTestId('objective-title').props.value).toBe('Analista de datos');
+  });
+
+  it('"Salir y descartar" completa la salida pedida', async () => {
+    await renderIntake();
+    await fillIntake();
+    const action = { type: 'GO_BACK' };
+
+    testNavigation.simulateLeave(action);
+    await act(async () => alertButtons()[1]?.onPress?.());
+
+    expect(testNavigation.navigation.dispatch).toHaveBeenCalledWith(action);
+  });
+
+  it('un segundo intento mientras el diálogo está abierto no abre otro', async () => {
+    await renderIntake();
+    await fillIntake();
+
+    testNavigation.simulateLeave();
+    testNavigation.simulateLeave();
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('protege también la revisión de requisitos', async () => {
+    await renderIntake();
+    await fillIntake();
+    await fireEvent.press(screen.getByTestId('objective-analyze'));
+    await screen.findByText('Confirmar objetivo');
+
+    testNavigation.simulateLeave();
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('después de confirmar con éxito navega al objetivo sin preguntar', async () => {
+    await renderIntake();
+    await fillIntake();
+    await fireEvent.press(screen.getByTestId('objective-analyze'));
+    await fireEvent.press(await screen.findByText('Confirmar objetivo'));
+
+    await waitFor(() => expect(testNavigation.router.replace).toHaveBeenCalledTimes(1));
+    expect(testNavigation.navigation.prevent?.enabled).toBe(false);
+    expect(alertSpy).not.toHaveBeenCalled();
+  });
+
+  it('si la confirmación falla, el borrador sigue protegido', async () => {
+    await renderIntake(routes({ create: { status: 500 } }));
+    await fillIntake();
+    await fireEvent.press(screen.getByTestId('objective-analyze'));
+    await fireEvent.press(await screen.findByText('Confirmar objetivo'));
+    await waitFor(() => expect(testNavigation.router.replace).not.toHaveBeenCalled());
+
+    testNavigation.simulateLeave();
+
+    expect(alertSpy).toHaveBeenCalledTimes(1);
   });
 });
