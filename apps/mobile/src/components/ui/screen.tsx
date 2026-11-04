@@ -21,15 +21,21 @@ import { layout, spacing } from '@/lib/theme/tokens';
  *
  * El área segura superior la maneja el header de Expo Router; acá sólo se
  * agrega el inset inferior, que las barras de tabs no siempre cubren.
+ *
+ * `hero` es una franja a todo el ancho que se desplaza con el contenido (la
+ * banda de bienvenida del inicio). Cuando existe, la pantalla no tiene header
+ * propio y el área segura superior pasa a ser responsabilidad de esa franja.
  */
 export function ScopeScreen({
   children,
   scrollable = true,
   refreshing,
   onRefresh,
-  contentContainerStyle
+  contentContainerStyle,
+  hero
 }: {
   children: ReactNode;
+  hero?: ReactNode;
   scrollable?: boolean;
   refreshing?: boolean;
   onRefresh?: () => void;
@@ -53,6 +59,7 @@ export function ScopeScreen({
       style={styles.root}
       contentContainerStyle={[
         styles.scrollContent,
+        hero ? styles.scrollContentWithHero : null,
         { paddingBottom: bottomPadding },
         contentContainerStyle
       ]}
@@ -68,7 +75,10 @@ export function ScopeScreen({
         ) : undefined
       }
     >
-      <View style={styles.content}>{children}</View>
+      {hero}
+      <View style={[styles.content, hero ? styles.contentWithHero : null]}>
+        {children}
+      </View>
     </ScrollView>
   );
 }
@@ -130,6 +140,13 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.xl,
     paddingHorizontal: layout.screenPaddingHorizontal,
     alignItems: 'center'
+  },
+  scrollContentWithHero: {
+    paddingTop: 0,
+    paddingHorizontal: 0
+  },
+  contentWithHero: {
+    paddingHorizontal: layout.screenPaddingHorizontal
   },
   content: {
     width: '100%',

@@ -299,7 +299,7 @@ describe('resultado completado', () => {
       screen.getByText(/encontró respaldo formativo para 1 requisito/i)
     ).toBeTruthy();
     expect(screen.getByText('1 respaldado')).toBeTruthy();
-    expect(screen.getByText('1 no evaluables con evidencia formativa')).toBeTruthy();
+    expect(screen.getByText('1 no evaluable con evidencia formativa')).toBeTruthy();
   });
 
   it('NUNCA muestra un porcentaje de compatibilidad ni un puntaje', async () => {

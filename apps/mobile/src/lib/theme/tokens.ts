@@ -73,6 +73,27 @@ export const lightColors = {
     neutral: '#56636C',
     neutralSoft: '#EFF2F3'
   },
+  /**
+   * Banda de bienvenida del inicio: degradado azul tinta con halos petróleo.
+   * Es una superficie inversa en los dos temas; en oscuro se funde con el
+   * fondo y los halos bajan de intensidad.
+   */
+  band: {
+    start: '#0B1D3A',
+    end: '#12315C',
+    halo: 'rgba(47, 143, 153, 0.42)',
+    haloSecondary: 'rgba(37, 96, 135, 0.38)',
+    text: '#FFFFFF',
+    muted: '#D5E6EA',
+    eyebrow: '#9FD0D6',
+    tile: 'rgba(255, 255, 255, 0.08)',
+    tileBorder: 'rgba(255, 255, 255, 0.16)',
+    action: '#24727E',
+    actionBorder: '#9FD0D6',
+    onAction: '#FFFFFF',
+    secondary: 'rgba(255, 255, 255, 0.08)',
+    secondaryBorder: 'rgba(255, 255, 255, 0.28)'
+  },
   focusRing: '#256087',
   overlay: 'rgba(11, 29, 58, 0.45)',
   shadow: '#0B1D3A'
@@ -142,6 +163,22 @@ export const darkColors: ScopeColors = {
     revokedSoft: '#3A1822',
     neutral: '#A9B6C1',
     neutralSoft: '#1A2431'
+  },
+  band: {
+    start: '#0E223F',
+    end: '#0A1424',
+    halo: 'rgba(47, 143, 153, 0.30)',
+    haloSecondary: 'rgba(37, 96, 135, 0.24)',
+    text: '#FFFFFF',
+    muted: '#C6D2DF',
+    eyebrow: '#9FD0D6',
+    tile: 'rgba(255, 255, 255, 0.06)',
+    tileBorder: 'rgba(255, 255, 255, 0.14)',
+    action: '#24727E',
+    actionBorder: '#9FD0D6',
+    onAction: '#FFFFFF',
+    secondary: 'rgba(255, 255, 255, 0.06)',
+    secondaryBorder: 'rgba(255, 255, 255, 0.24)'
   },
   focusRing: '#8FB8D8',
   overlay: 'rgba(2, 6, 14, 0.68)',

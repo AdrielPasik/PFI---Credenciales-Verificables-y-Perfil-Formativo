@@ -29,7 +29,7 @@ import {
 
 const VISIBLE_CONCLUSIONS = 3;
 
-const STATE_DESCRIPTORS: {
+export const STATE_DESCRIPTORS: {
   key: keyof ObjectiveSynthesisVM['stateSummary'];
   label: (count: number) => string;
 }[] = [
@@ -52,7 +52,8 @@ const STATE_DESCRIPTORS: {
   },
   {
     key: 'notAssessableCount',
-    label: (count) => `${count} no evaluables con evidencia formativa`
+    label: (count) =>
+      `${count} ${count === 1 ? 'no evaluable' : 'no evaluables'} con evidencia formativa`
   }
 ];
 

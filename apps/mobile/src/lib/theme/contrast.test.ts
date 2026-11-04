@@ -67,6 +67,36 @@ describe('contraste del tema oscuro', () => {
   });
 });
 
+/**
+ * Banda de bienvenida: el texto se lee sobre los dos extremos del degradado.
+ * Los halos sólo suman luz petróleo translúcida y no se cuentan acá.
+ */
+function bandPairs(c: ScopeColors): [string, string, string][] {
+  const b = c.band;
+  return [
+    ['saludo / inicio de la banda', b.text, b.start],
+    ['saludo / final de la banda', b.text, b.end],
+    ['frase y métricas / inicio de la banda', b.muted, b.start],
+    ['frase y métricas / final de la banda', b.muted, b.end],
+    ['etiqueta / inicio de la banda', b.eyebrow, b.start],
+    ['etiqueta / final de la banda', b.eyebrow, b.end],
+    ['acción principal de la banda', b.onAction, b.action]
+  ];
+}
+
+describe.each([
+  ['claro', lightColors],
+  ['oscuro', darkColors]
+] as const)('contraste de la banda de bienvenida (%s)', (_theme, palette) => {
+  it.each(bandPairs(palette))('%s alcanza 4.5:1', (_name, fg, bg) => {
+    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('el borde de la acción principal se distingue de la banda (3:1)', () => {
+    expect(contrastRatio(palette.band.actionBorder, palette.band.end)).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('contraste del tema claro', () => {
   it.each(textPairs(lightColors))('%s alcanza 4.5:1', (_name, fg, bg) => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);

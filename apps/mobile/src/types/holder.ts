@@ -134,6 +134,8 @@ export interface HolderProfileVM {
   credentialsCount: number;
   /** Suma de horas declaradas por las credenciales, nunca una estimación. */
   totalOfficialHoursLabel: string | null;
+  /** El mismo total, sólo el número formateado ("240"), para métricas compactas. */
+  totalOfficialHoursValue: string | null;
   hoursCoverageNoticeLabel: string | null;
   semanticCoverageNoticeLabel: string | null;
   reviewedInterpretationNoticeLabel: string | null;
