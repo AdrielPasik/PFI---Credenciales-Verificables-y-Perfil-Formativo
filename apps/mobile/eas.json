@@ -24,8 +24,8 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "SET_ME",
-        "EXPO_PUBLIC_WEB_BASE_URL": "SET_ME"
+        "EXPO_PUBLIC_API_BASE_URL": "https://api.scopeedu.technology",
+        "EXPO_PUBLIC_WEB_BASE_URL": "https://scopeedu.technology"
       }
     },
     "production": {

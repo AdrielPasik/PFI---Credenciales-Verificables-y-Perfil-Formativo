@@ -79,9 +79,9 @@ const config: ExpoConfig = {
   },
   extra: {
     eas: {
-      // Se completa con `eas init` cuando el proyecto se registre en EAS.
-      // Hasta entonces queda vacio a proposito: no inventamos un projectId.
-      projectId: undefined
+      // Proyecto EAS @apasik/scope-holder. Identificador publico: no es un
+      // secreto, solo vincula la app con su proyecto en EAS.
+      projectId: 'fdbaa050-5f52-413f-bd70-4a249eca067a'
     }
   }
 };
