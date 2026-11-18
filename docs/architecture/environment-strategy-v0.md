@@ -1,65 +1,50 @@
 # Estrategia de ambientes v0
 
+> **Vigencia.** Se conserva esta ruta por continuidad documental. La estrategia
+> se alinea con la arquitectura AWS definida en el repositorio; el estado de
+> cada entorno desplegado requiere comprobación externa.
+
 ## Proposito
 
-Definir diferencias explicitas entre local, demo/staging y produccion futura sin
-permitir fallbacks silenciosos entre servicios o secretos.
+Separar desarrollo local, infraestructura definida para AWS y antecedentes de
+demo, evitando que variables, secretos o servicios de un entorno se usen como
+fallback silencioso en otro.
 
 ## Decision
 
-| Capacidad | Local | Demo/staging | Produccion futura |
+| Capacidad | Desarrollo local | Infraestructura AWS definida | Estado externo por comprobar |
 | --- | --- | --- | --- |
-| Frontend | Next.js `127.0.0.1:3000` | Vercel | Vercel Pro o equivalente |
-| API | NestJS `127.0.0.1:3001` | Render Web Service | servicio dimensionado y observable |
-| DB | PostgreSQL Docker | Neon demo | Neon plan productivo o equivalente |
-| Storage | local default o S3 explicito | S3 privado | S3 privado con lifecycle/auditoria |
-| IA | FastAPI local | Render Web Service Free temporal + JWT | servicio privado dimensionado/worker |
-| Blockchain | mock o Anvil | mock/Anvil garantizado | testnet/mainnet segun ADR futura |
-| Secrets | `.env` local no versionado | secret manager del proveedor | KMS/workload identity cuando aplique |
-| Migraciones | `migrate dev` solo desarrollo | `migrate deploy` | pipeline controlado + backup |
-| Seed | datos demo locales | seed demo explicito e idempotente | no seed demo automatico |
-
-Base Sepolia es stretch posterior de la demo; no reemplaza mock/Anvil hasta que
-emision, idempotencia y reconciliacion esten cerradas.
+| Web | Next.js local. | El repositorio no fija el proveedor de alojamiento web. Vercel puede participar en previews o hosting. | Hosting, dominio y origen CORS efectivos. |
+| API | NestJS local. | Imagen en ECR y tarea ECS/Fargate detrás de ALB. | Imagen seleccionada, tarea saludable, listener y DNS. |
+| IA | FastAPI local. | Imagen en ECR y tarea ECS/Fargate separada, comunicada internamente por la API. | Capacidad, conectividad interna y configuración activa. |
+| Datos | PostgreSQL local o de prueba. | RDS PostgreSQL. | Instancia, migraciones, backups y credenciales operativas. |
+| Evidencia documental | Storage local o S3 configurado. | S3 privado consumido por la API. | Bucket, permisos por prefijo y ciclo de vida. |
+| Secretos | `.env` no versionado. | SSM y Secrets Manager, entregados a tareas por roles acotados. | Valores cargados y permisos efectivos. |
+| Observabilidad | Logs locales. | CloudWatch Logs y alarmas habilitables. | Retención, alarmas y monitoreo activos. |
+| Blockchain | `mock` o Anvil. | Target configurable independiente de la infraestructura AWS. | RPC, contrato, signer y evidencia on-chain. |
 
 ## Reglas
 
-- no copiar secretos entre ambientes;
-- no usar `NEXT_PUBLIC_*` para secretos;
-- no habilitar fallback demo -> local o IA -> mock silencioso;
-- URLs y origins deben ser allowlists explicitas;
-- migraciones se aplican antes de arrancar una version que las requiere;
-- el seed demo nunca forma parte del boot productivo;
-- artifacts y catalogos importados conservan version/checksum.
-
-P4f agrega scripts separados para `migrate status`, `migrate deploy`, seed con
-`DATABASE_URL` ya cargada y verificacion sanitaria read-only. Neon puede proveer
-una URL pooled para runtime y otra directa para migraciones; ambas se configuran
-fuera del repo y nunca se intercambian mediante fallback silencioso.
-
-P4g concreta el Web Service NestJS desde la raiz del monorepo: build reproducible
-con `npm ci`, Prisma Client generado antes de compilar, start mediante el script
-workspace y migraciones manuales/one-off fuera del arranque. Render usa la URL
-pooled de Neon, S3 privado, `WEB_ORIGIN` exacto y blockchain `mock`. El detalle
-operativo esta en `render-api-deployment-runbook-v0.md`.
-
-El Web Service P4g ya esta operativo. P4h prepara Vercel con Root Directory
-`apps/web`, instalacion npm workspace detectada, build Next.js y una unica
-variable publica: `NEXT_PUBLIC_API_BASE_URL` apuntando a Render. Despues del
-primer deploy, Render debe recibir el origin HTTPS exacto de Vercel en
-`WEB_ORIGIN`. El detalle esta en `vercel-frontend-deployment-runbook-v0.md`.
+- No copiar secretos entre entornos ni publicarlos mediante `NEXT_PUBLIC_*`.
+- La API es la única frontera de dominio para web, móvil, IA y blockchain.
+- Las tareas solo reciben los secretos que necesitan; Terraform declara nombres
+  y permisos, no valores secretos.
+- Las migraciones no forman parte del arranque de API o AI Service. El workflow
+  de migración y sus pasos requieren revisión operativa.
+- El estado `mock`, Anvil o Base Sepolia no se infiere de la existencia de
+  código o manifests; depende de la configuración y verificación del entorno.
 
 ## Variables por responsabilidad
 
-Frontend solo conoce URL publica de API. NestJS conoce DB, S3, FastAPI y signer
-del ambiente. FastAPI conoce su JWT interno y configuracion analitica, pero no
-credenciales de usuarios, DB de dominio, S3 o blockchain en P5 inicial.
+Frontend solo conoce la URL pública de API. NestJS conoce DB, S3, FastAPI y
+signer del ambiente. FastAPI conoce su JWT interno y configuración analítica,
+pero no credenciales de usuarios, DB de dominio, S3 o blockchain.
 
 ## Alcance
 
-- matriz de servicios, secretos, migraciones y seeds;
-- estrategia reproducible para demo;
-- frontera de variables publicas/privadas.
+- matriz de servicios, secretos y responsabilidades;
+- frontera de variables públicas/privadas;
+- distinción entre configuración versionada y estado externo.
 
 ## Fuera de alcance
 
@@ -70,25 +55,20 @@ credenciales de usuarios, DB de dominio, S3 o blockchain en P5 inicial.
 
 ## Impacto en modulos actuales
 
-Los modulos actuales deben leer configuracion explicita. P4e ya permite
-`DOCUMENT_STORAGE_PROVIDER=local|s3`, valida las variables S3 obligatorias y no
-instancia AWS en local. P4f deja operativas migraciones deploy, seed y
-verificacion demo, ya validadas contra un Neon real administrado fuera del repo.
-P4g ya opera en Render y P4h deja preparada la web sin ejecutar el deploy;
-P4i-4 deja documentada la configuracion del servicio IA privado, su URL interna,
-JWT service-to-service, smoke y rollback. P4i-6a registra que la demo real usa
-temporalmente HTTPS publico + JWT por una restriccion operativa/costo observada
-en el entorno actual. La red privada sigue siendo el objetivo.
+Los módulos leen configuración explícita. `DOCUMENT_STORAGE_PROVIDER=local|s3`
+evita instanciar AWS durante desarrollo local. API y AI Service validan su
+configuración antes de atender solicitudes; una configuración incompleta falla
+de forma controlada y no debe degradar a otro proveedor.
 
 ## Riesgos
 
-- drift de schema entre local y Neon;
-- seed demo en base equivocada;
-- CORS de previews;
-- private service inaccesible por region/red;
-- abuso o scanning sobre la URL publica temporal del AI Service;
-- confundir variables publicas con secretos.
+- drift de schema, secretos o imágenes entre el código y el entorno;
+- CORS de previews u orígenes de web no confirmados;
+- conectividad interna o capacidad insuficiente del AI Service;
+- confundir configuración declarada con recursos activos;
+- confundir variables públicas con secretos.
 
 ## Proximos slices relacionados
 
-P4e-P4i, ejecucion del deploy IA y hardening posterior.
+La revisión de runbooks demo, migraciones SQL y documentación blockchain se
+mantiene como trabajo posterior.

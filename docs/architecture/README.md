@@ -10,19 +10,24 @@ Documentacion de arquitectura logica del sistema.
 - `canonicalization-and-hashing-v0.md`: estrategia versionada de canonizacion y hashing.
 - `auth-and-permissions-v0.md`: estrategia inicial de actores, roles y permisos.
 - `platform-administration-and-institutional-authority-v1.md`: plano de plataforma (`PlatformAdmin`), autoridad institucional (`IssuerMembership`) y alta administrativa de instituciones.
-- `production-deployment-readiness-v1.md`: checklist operativo del lote incremental S1-S7b sobre la infraestructura AWS ya corriendo (migraciones, grants, bootstrap, orden de rollout, smokes y rollback).
-- `deployment-architecture-v0.md`: arquitectura logica, deployment demo y ambientes.
-- `document-storage-decision-v0.md`: port de storage, adapter S3 futuro y privacidad.
-- `neon-demo-database-runbook-v0.md`: migraciones, seed y verificacion sanitaria de la base demo Neon.
-- `render-api-deployment-runbook-v0.md`: configuracion y operacion segura del Web Service NestJS en Render.
-- `render-ai-private-service-runbook-v0.md`: readiness y operacion segura del FastAPI privado en Render.
-- `render-ai-cloud-deployment-record-v0.md`: estado cloud real, desviacion demo y smoke sanitizado del AI Service.
-- `vercel-frontend-deployment-runbook-v0.md`: configuracion y smoke seguro del frontend Next.js en Vercel.
+- `deployment-architecture-v0.md`: arquitectura AWS definida, fronteras de
+  integración y límites de comprobación externa.
+- `environment-strategy-v0.md`: separación entre desarrollo local, arquitectura
+  AWS y antecedentes de demo.
+- `production-deployment-readiness-v1.md`: checklist técnico de transición AWS;
+  debe leerse junto con Terraform y no prueba por sí solo recursos activos.
+- `document-storage-decision-v0.md`: port de storage, adapter S3 y privacidad.
+- `neon-demo-database-runbook-v0.md`, `render-api-deployment-runbook-v0.md` y
+  `render-ai-private-service-runbook-v0.md`: antecedentes operativos de la
+  etapa demo, no arquitectura AWS vigente.
+- `render-ai-cloud-deployment-record-v0.md`: registro histórico de incidente y
+  controles del AI Service en la demo anterior.
+- `vercel-frontend-deployment-runbook-v0.md`: procedimiento de web y previews;
+  no confirma alojamiento productivo.
 - `ai-service-integration-v1.md`: evolucion IA para documento, texto y combinado.
 - `analysis-job-lifecycle-v0.md`: `AnalysisRun` sincrono inicial y worker posterior.
 - `semantic-analysis-source-traceability-v0.md`: fuentes exactas de artifacts IA.
 - `ai-assisted-review-v0.md`: propuestas IA separadas y revision humana.
-- `environment-strategy-v0.md`: local, demo/staging y produccion futura.
 - `security-and-secrets-deployment-v0.md`: secretos, auth interna, IAM y logs.
 - `academic-catalog-pipeline-v0.md`: pipeline offline versionado e idempotente.
 

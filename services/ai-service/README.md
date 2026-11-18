@@ -14,12 +14,10 @@ P4i-2 consolido los comandos del workspace, el puerto configurable y la
 validacion de artifacts generados por Python contra los JSON Schemas
 compartidos del monorepo.
 
-P4i-3 agrego autenticacion JWT interna opcional. P4i-4 deja documentada la
-configuracion recomendada para un servicio privado, pero no ejecuta el deploy.
-P4i-6a registra el deploy demo real como Web Service Free con HTTPS publico y
-JWT interno, una excepcion temporal; la red privada sigue siendo el objetivo.
-El servicio todavia no tiene conexion automatica de `DocumentEvidence` o
-`TextEvidence`.
+P4i-3 agregó autenticación JWT interna. Los antecedentes de despliegue demo en
+Render se conservan como documentación histórica, pero la arquitectura definida
+en el repositorio ejecuta API y AI Service como tareas AWS separadas. El estado
+efectivo de esas tareas y su conectividad se comprueba fuera del repositorio.
 
 ## Endpoints
 
@@ -280,23 +278,16 @@ npm run docker:build --workspace @credential-intelligence/ai-service
 docker run --rm -p 8000:8000 -e PORT=8000 traza-ai-service:local
 ```
 
-Para demo se recomienda desplegar este Dockerfile desde el contexto
-`services/ai-service`, conservar su CMD y usar `/health`. El runbook completo,
-incluidas variables, URL interna, smoke y rollback, esta en
-`../../docs/architecture/render-ai-private-service-runbook-v0.md`. P4i-4 no es
-confirmacion de que el servicio real haya sido creado o desplegado.
+La imagen puede publicarse en ECR y ejecutarse como tarea ECS/Fargate separada
+de la API. La API es su único consumidor de dominio: envía solicitudes internas
+con JWT de servicio y el navegador nunca llama a FastAPI. `/health` es un
+liveness liviano y no sustituye la comprobación de conectividad, capacidad o
+configuración del entorno.
 
-El estado cloud real, smoke sanitizado, riesgos y controles compensatorios se
-documentan en
-`../../docs/architecture/render-ai-cloud-deployment-record-v0.md`. La URL
-publica demo no habilita llamadas directas desde frontend.
-
-En la demo cloud se observo un cold start/gateway temporal antes de que FastAPI
-pudiera devolver JSON: el backend registro un `AnalysisRun` fallido seguro y
-el health posterior fue exitoso. Antes de una demo IA, consultar `/health` para
-despertar el servicio si corresponde. No incluir URL real, token, PDF ni logs
-sensibles en comandos o documentacion. Una instancia sin spin-down y Private
-Service o equivalente son la mejora estructural futura.
+Terraform y GitHub Actions describen imágenes, tareas, permisos y
+automatización; no confirman desde el repositorio que una tarea esté activa. No
+incluir URL real, token, PDF ni logs sensibles en comandos o documentación. Ver
+[`deployment-architecture-v0.md`](../../docs/architecture/deployment-architecture-v0.md).
 
 ## Limites
 

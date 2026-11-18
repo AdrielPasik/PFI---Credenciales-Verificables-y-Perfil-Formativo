@@ -336,9 +336,8 @@ extendido de forma aditiva) nunca expone el snapshot completo -- solo
 
 **Migracion no aplicada en este slice**: la migracion
 `20260811193253_add_approved_semantic_snapshot_to_issuer_course_template`
-fue creada con `prisma migrate dev --create-only` (nunca ejecutada contra la
-base remota) porque `DATABASE_URL` en este entorno resuelve a un Neon
-compartido -- ver seccion de migraciones mas abajo. Queda pendiente que el
+fue creada con `prisma migrate dev --create-only` (nunca ejecutada contra una
+base remota) para evitar aplicar una migración durante su preparación. Queda pendiente que el
 usuario la aplique manualmente (`prisma migrate dev` o `prisma migrate
 deploy`) cuando lo decida.
 
@@ -889,20 +888,13 @@ HTTP si existe, causa de red segura y un detalle sanitizado/truncado. Para
 analisis documentales, `X-Analysis-Run-Id` transporta la correlacion interna;
 no contiene identidad de usuario ni secretos.
 
-En cloud demo se observo un fallo transitorio de cold start/gateway del Web
-Service Free: un run automatico registro `ai_invalid_response` con HTTP `502`
-antes de recibir JSON valido. Health posterior y un nuevo analisis funcionaron.
-La emision no se revierte porque el analisis es best-effort. Antes de una demo
-IA, consultar el health tecnico del AI Service; no registrar ni compartir URL,
-token, storage key, PDF ni logs crudos. La solucion estructural futura es una
-instancia sin spin-down y Private Service o equivalente cuando sea viable.
-
-En demo, P4i-6a registra temporalmente una URL HTTPS publica del Web Service
-FastAPI; `AI_SERVICE_AUTH_MODE` permanece en `jwt` y el browser nunca consume
-esa URL. La red privada sigue siendo el objetivo. `none` es solo local, no una
-estrategia de rollback. Ver
-`../../docs/architecture/render-ai-cloud-deployment-record-v0.md` y el runbook
-privado para configuracion, smoke y migracion futura.
+El incidente de cold start documentado durante una demo anterior no altera esta
+frontera: un fallo de análisis sigue siendo best-effort y no revierte la
+emisión. La arquitectura AWS definida separa API y AI Service en tareas
+distintas; la disponibilidad real, conectividad interna y capacidad se
+verifican fuera del repositorio. `none` es solo local, no una estrategia de
+rollback. Ver
+[`deployment-architecture-v0.md`](../../docs/architecture/deployment-architecture-v0.md).
 
 ## Desarrollo
 
@@ -962,31 +954,24 @@ Pruebas: `npm run test:password-recovery` (la parte de PostgreSQL se omite sin
 `TEST_DATABASE_URL`; ver el encabezado de `password-reset.pg.test.ts`) y `npm run test:mail`.
 Ninguna prueba envia correos reales ni toca la red.
 
-## Deployment Render
+## Despliegue e infraestructura
 
-P4g deja preparada la API para un Render Web Service, sin crear ni desplegar el
-servicio. La configuracion recomendada usa la raiz del monorepo para conservar
-`package-lock.json` y los workspaces.
+La arquitectura definida en el repositorio publica la API NestJS detrás de un
+ALB y la ejecuta como tarea ECS/Fargate. La imagen se construye desde
+`services/api/Dockerfile` y se publica en ECR mediante workflows protegidos.
+RDS conserva PostgreSQL, S3 privado conserva evidencia documental y las tareas
+reciben configuración mediante SSM y Secrets Manager con permisos acotados.
 
-Build command:
+El contenedor no ejecuta migraciones ni seed al iniciar. Las operaciones de
+migración están separadas en un workflow controlado y requieren revisión
+operativa. `GET /health` es un liveness liviano; no confirma por sí mismo base
+de datos, storage, AI Service ni blockchain.
 
-```text
-npm ci && npm run prisma:generate --workspace @credential-intelligence/api && npm run build --workspace @credential-intelligence/api
-```
-
-Start command:
-
-```text
-npm run start --workspace @credential-intelligence/api
-```
-
-Health check: `GET /health`. El runtime usa pooled `DATABASE_URL`, storage `s3`,
-`WEB_ORIGIN` exacto y blockchain `mock`. Migraciones y seed no se ejecutan en el
-start; `prisma:migrate:deploy` se corre manualmente/one-off con la conexion
-administrativa apropiada y `db:verify-demo` permanece como smoke read-only.
-
-Variables, orden operativo, rollback y troubleshooting estan documentados en
-`docs/architecture/render-api-deployment-runbook-v0.md`.
+Terraform y los workflows describen la topología y la automatización, no el
+estado live de ECS, RDS, ALB, DNS o secretos. Esa comprobación requiere acceso
+autorizado al entorno. Ver
+[`deployment-architecture-v0.md`](../../docs/architecture/deployment-architecture-v0.md)
+e [`infra/terraform/README.md`](../../infra/terraform/README.md).
 
 Operaciones demo/staging de base:
 
@@ -1155,11 +1140,11 @@ reparar/asegurar esa identidad especifica.
 
 Usar `services/api/.env.example` como referencia. `.env` no debe versionarse.
 
-Para Neon demo/staging, configurar `DATABASE_URL` fuera del repositorio y usar
-`prisma:migrate:deploy`; nunca ejecutar `migrate dev` o `migrate reset`. Neon
-puede entregar una URL pooled de runtime y una URL directa para migraciones. El
-procedimiento completo esta en
-`docs/architecture/neon-demo-database-runbook-v0.md`.
+Para una base remota, configurar `DATABASE_URL` fuera del repositorio y usar la
+operación de migración aprobada; nunca ejecutar `migrate dev` o `migrate reset`.
+La infraestructura AWS definida separa la credencial de runtime de la
+credencial administrativa administrada por RDS. La disponibilidad y el estado
+de esa base se verifican fuera del repositorio.
 
 El storage documental local usa por default
 `services/api/.local-storage/document-evidence`, fuera de rutas publicas y de
