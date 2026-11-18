@@ -2,6 +2,9 @@
 
 > Una nueva forma de entender tu trayectoria.
 
+Proyecto Final de Ingeniería Informática - Universidad Argentina de la Empresa,
+2026.
+
 Scope es un sistema de credenciales educativas verificables que aborda dos
 problemas relacionados: la dificultad para comprobar la autenticidad de una
 credencial y la falta de información estructurada para comprender qué
@@ -18,14 +21,20 @@ análisis inteligente, manteniendo una distinción entre la validez de una
 credencial, la interpretación de su contenido y las conclusiones que pueden
 obtenerse a partir de ella.
 
+La aplicación web demostrativa puede consultarse en
+[scopeedu.technology](https://scopeedu.technology), según la disponibilidad
+del entorno desplegado.
+
 ## Alcance del prototipo
 
 Scope permite que instituciones autorizadas creen borradores, incorporen
 evidencia, emitan credenciales y gestionen su revocación. Las personas titulares
 pueden consultar sus credenciales y su perfil formativo desde la web y la
-aplicación móvil. Un tercero puede consultar de forma pública el estado técnico
-de una credencial emitida o revocada, sin acceder a datos privados ni a la
-evidencia en bruto.
+aplicación móvil Android. Esta última está desarrollada con React Native y Expo
+y admite distribución demostrativa mediante un archivo APK instalable; no se
+presenta como una publicación comercial en tiendas. Un tercero puede consultar
+de forma pública el estado técnico de una credencial emitida o revocada, sin
+acceder a datos privados ni a la evidencia en bruto.
 
 El análisis inteligente procesa información formativa para identificar áreas,
 habilidades y conceptos. También puede organizar la evidencia disponible frente
@@ -41,14 +50,14 @@ información académica, documental y personal permanece fuera de la cadena.
 ## Arquitectura
 
 ```text
-Portal web Next.js      Aplicación móvil Expo      Verificación pública
-          \                    |                    /
-           \                   |                   /
-            -------------- API NestJS --------------
-              |             |              |       \
-              |             |              |        \__ evidencia técnica
-         PostgreSQL   almacenamiento   FastAPI          de integridad
-                       de evidencia   análisis
+Scope Web (portal y verificación pública)   Aplicación móvil Android
+                    \                           (React Native / Expo)
+                     \                                  /
+                      ----------- API NestJS -----------
+                        |           |           |      \
+                        |           |           |       \__ evidencia técnica
+                   PostgreSQL  almacenamiento  FastAPI      de integridad
+                                de evidencia  análisis
 ```
 
 La API NestJS concentra autenticación, permisos, reglas de negocio, emisión,
@@ -118,8 +127,12 @@ npm run dev --workspace @credential-intelligence/api
 npm run dev --workspace @credential-intelligence/ai-service
 ```
 
-Cada servicio incluye un archivo `.env.example`. No se deben versionar valores
-reales de conexión, tokens, claves de firma ni credenciales de infraestructura.
+Cada servicio incluye un archivo `.env.example`. Estos comandos inician los
+procesos locales, pero no garantizan un flujo integrado: la API, el
+almacenamiento documental y las integraciones externas requieren las variables
+y dependencias locales indicadas en sus respectivos README. No se deben
+versionar valores reales de conexión, tokens, claves de firma ni credenciales
+de infraestructura.
 
 ## Pruebas y validaciones
 
