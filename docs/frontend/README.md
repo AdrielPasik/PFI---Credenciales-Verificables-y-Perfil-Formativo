@@ -25,17 +25,6 @@ con una especificación de interfaz.
   alcance y criterios de evolución de la aplicación móvil implementada en
   `apps/mobile`.
 
-## Documentación histórica o de planificación
-
-Los siguientes documentos conservan contexto de decisiones anteriores y no son
-la fuente de verdad para el sistema actual: `frontend-brand-and-design-system-v0.md`,
-`frontend-roadmap-v0.md`, `scope-holder-mobile-handoff-v0.md` y
-`ui-ux-handoff-context-v0.md`.
-
-`frontend-roadmap-post-f1c-v1.md` registra una secuencia de planificación con
-fecha de corte. Debe leerse como contexto de evolución, no como una lista de
-capacidades vigentes.
-
 Para ejecutar o revisar la aplicación web, consultar también
 [`apps/web/README.md`](../../apps/web/README.md). La aplicación móvil se
 desarrolla con React Native y Expo; sus instrucciones viven junto al código en

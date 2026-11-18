@@ -52,11 +52,8 @@ documentación inspeccionada:
   docs/frontend/frontend-information-architecture-v0.md
   docs/frontend/frontend-data-and-view-models-v0.md
   docs/frontend/frontend-component-inventory-v0.md
-  docs/frontend/frontend-roadmap-v0.md
   docs/frontend/scope-ui-ux-handoff-context-v1.md
   docs/demo/ai-end-to-end-demo-script-v0.md
-  docs/architecture/ai-frontend-ready-flow-v0.md
-  docs/architecture/ai-http-backend-integration-v0.md
 ```
 
 Esta screen specification corresponde a ese snapshot. Debe revisarse si

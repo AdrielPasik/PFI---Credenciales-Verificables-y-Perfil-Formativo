@@ -78,8 +78,7 @@ Aplicar este orden ante contradicciones:
    permisos y respuestas realmente implementadas.
 2. `frontend-brand-and-design-system-v1.md` para marca, terminología, tono,
    estados visuales y responsive.
-3. `ai-frontend-ready-flow-v0.md` y
-   `ai-http-backend-integration-v0.md` para integración IA vigente.
+3. `docs/ai/README.md` y `api-contracts-v0.md` para la integración IA vigente.
 4. `auth-and-permissions-v0.md`, documentación de módulos y guion de demo para
    intención de producto y pruebas ya realizadas.
 5. `architecture-v1.md`, `api-contracts-v0.md` y documentos de flujos como
@@ -117,8 +116,6 @@ Actualizaciones posteriores al snapshot base:
 | Fuente histórica | Estado más reciente | Decisión aplicada |
 |---|---|---|
 | `architecture-v1.md` propone `/verifier` | El controller real expone `GET /verify/credentials/:id` | Usar `/verify`, no `/verifier` |
-| `frontend-roadmap-v0.md` y el handoff anterior dicen `desktop-first` | El design system vigente define Portal del Emisor web responsive | El portal es responsive y no excluye mobile |
-| `backend-implemented-slices-v0.md` y algunos README dicen que no existe IA HTTP | Controllers y documentación posterior exponen endpoints IA protegidos | Considerar IA HTTP implementada |
 | `api-contracts-v0.md` enumera rutas candidatas | Varias no tienen controller real | No tratarlas como implementadas |
 | Flujos históricos asumen link, QR, auditoría y consulta on-chain | El runtime actual resuelve por ID y evidencia persistida | Clasificarlos como futuro o dependencia |
 | Fuentes antiguas indican que no existen sharing links | Runtime expone profile grant opaco y vista pública allowlisted | Profile sharing es actual; QR, gestión de grants y sharing contextual siguen pendientes |

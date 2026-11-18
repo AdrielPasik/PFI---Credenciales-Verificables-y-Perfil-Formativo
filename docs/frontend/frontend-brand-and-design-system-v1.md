@@ -11,11 +11,9 @@ tagline: Una nueva forma de entender tu trayectoria.
 ```
 
 Este documento es la fuente de verdad activa para la marca, el sistema visual,
-el tono, las decisiones de responsive y los componentes de Scope. Reemplaza
-`frontend-brand-and-design-system-v0.md`, que permanece como snapshot histórico
-de la etapa Traza. No habilita cambios de comportamiento, rutas, datos, permisos
-ni contratos: el backend y sus DTOs reales tienen precedencia sobre toda
-decisión de presentación.
+el tono, las decisiones de responsive y los componentes de Scope. No habilita
+cambios de comportamiento, rutas, datos, permisos ni contratos: el backend y
+sus DTOs reales tienen precedencia sobre toda decisión de presentación.
 
 Ante una contradicción, aplicar este orden:
 
@@ -478,11 +476,10 @@ Una pantalla Scope está lista para revisión cuando:
 
 ## 23. Reglas históricas descartadas
 
-Las siguientes reglas de `frontend-brand-and-design-system-v0.md` no se
-promueven a Scope: nombre y tagline de Traza, assets históricos, paleta y
-prefijos Traza, ámbar como acento identitario, motivos de trazos, conexiones e
-hitos, y cualquier metáfora visual de red o blockchain. El documento v0 se
-conserva para trazabilidad, no como guía de implementación activa.
+Las siguientes reglas históricas no se promueven a Scope: nombre y tagline de
+Traza, assets anteriores, paleta y prefijos Traza, ámbar como acento
+identitario, motivos de trazos, conexiones e hitos, y cualquier metáfora visual
+de red o blockchain.
 
 ## 24. Evolución controlada
 

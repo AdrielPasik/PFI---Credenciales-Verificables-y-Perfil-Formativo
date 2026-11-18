@@ -71,7 +71,6 @@ docs/frontend/frontend-data-and-view-models-v0.md
 Contexto adicional consultado:
 
 ```text
-docs/frontend/frontend-roadmap-v0.md
 docs/frontend/scope-ui-ux-handoff-context-v1.md
 ```
 

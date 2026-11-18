@@ -25,8 +25,8 @@ técnicos y fases sin elegir framework ni crear una aplicación.
 Precedencia: contratos y permisos reales del backend; producto en
 scope-product-positioning-v1.md; diseño compartido en
 frontend-brand-and-design-system-v1.md; arquitectura web en
-frontend-information-architecture-v0.md. Este documento reemplaza al handoff
-inicial scope-holder-mobile-handoff-v0.md como fuente principal mobile.
+frontend-information-architecture-v0.md. Este documento es la fuente principal
+para la aplicación móvil.
 
 ## 2. Clasificación de fidelidad
 
@@ -448,9 +448,6 @@ scope-ui-ux-handoff-context-v1.md
 
 scope-holder-mobile-app-blueprint-v1.md
   -> blueprint maestro mobile activo
-
-scope-holder-mobile-handoff-v0.md
-  -> handoff inicial histórico/preliminar
 ~~~
 
 Ante cambios de contrato Holder, actualizar esta clasificación, matriz de gaps y
@@ -728,8 +725,7 @@ Reglas adicionales:
 ## 28. Document Graph and Maintenance Rule
 
 `scope-holder-mobile-app-blueprint-v1.md` sigue siendo la única fuente
-normativa mobile activa. `scope-holder-mobile-handoff-v0.md` es histórico y no
-define el layout Web ni contratos Mobile.
+normativa mobile activa. No define el layout Web ni contratos Mobile.
 
 ```text
 scope-product-positioning-v1.md
@@ -744,8 +740,6 @@ frontend-component-inventory-v0.md
   -> inventario conceptual Web y límites de componentes
 scope-holder-mobile-app-blueprint-v1.md
   -> blueprint Mobile normativo y contratos de pantalla
-scope-holder-mobile-handoff-v0.md
-  -> antecedente histórico/preliminar
 ```
 
 Cuando cambie un endpoint, DTO, grant o comportamiento Holder, primero

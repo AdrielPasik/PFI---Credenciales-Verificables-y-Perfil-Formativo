@@ -4,7 +4,6 @@ Documentacion de arquitectura logica del sistema.
 
 ## Contenido
 
-- `architecture-v0.md`: mapa funcional, responsabilidades, flujos y riesgos tecnicos de la primera version documental.
 - `architecture-v1.md`: arquitectura de dominio v1 orientada a implementacion incremental.
 - `data-model-v0.md`: modelo conceptual de datos previo a Prisma.
 - `api-contracts-v0.md`: contratos HTTP iniciales por dominio.
@@ -26,8 +25,6 @@ Documentacion de arquitectura logica del sistema.
 - `environment-strategy-v0.md`: local, demo/staging y produccion futura.
 - `security-and-secrets-deployment-v0.md`: secretos, auth interna, IAM y logs.
 - `academic-catalog-pipeline-v0.md`: pipeline offline versionado e idempotente.
-- `cost-model-demo-v0.md`: supuestos y drivers de costo no contractuales.
-- `deployment-and-ai-roadmap-v0.md`: secuencia P4d-P8.
 
 La arquitectura de deployment v0 es una decision para demo/PFI. El hardening
 productivo permanece explicitamente fuera de alcance.
