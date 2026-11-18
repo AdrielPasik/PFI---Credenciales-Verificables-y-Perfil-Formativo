@@ -1,26 +1,34 @@
 # Arquitectura de despliegue v0
 
+> **Vigencia.** Se conserva esta ruta por continuidad documental. El contenido
+> describe la arquitectura AWS definida en el repositorio; no confirma por sí
+> mismo qué recursos se encuentran activos en un proveedor externo.
+
 ## Proposito
 
-Definir el despliegue recomendado para la demo/PFI de Traza sin cambiar la
-arquitectura modular actual ni convertir decisiones futuras en estado
-implementado.
+Explicar cómo se relacionan los componentes de Scope en el despliegue definido
+en código, sin confundir esa arquitectura con los entornos demo anteriores ni
+con el estado operativo observable solo fuera del repositorio.
 
 ## Decision
 
-| Componente | Destino demo |
+| Componente | Responsabilidad definida |
 | --- | --- |
-| Next.js | Vercel |
-| NestJS | Render Web Service |
-| FastAPI | Render Private Service |
-| PostgreSQL | Neon |
-| Evidencia documental | Amazon S3 privado |
-| Blockchain local | `mock` o Anvil |
-| Blockchain testnet | Base Sepolia, stretch posterior |
-| Catalogo academico | pipeline offline de importacion |
+| Aplicación web | Portal institucional, wallet y verificación pública; su alojamiento efectivo se configura fuera del repositorio. |
+| ALB | Recibe tráfico HTTPS hacia la API cuando listeners, DNS y servicios están habilitados. |
+| API NestJS | Tarea ECS/Fargate y frontera pública de dominio. |
+| AI Service | Tarea ECS/Fargate separada, consumida internamente por la API. |
+| RDS | Persistencia PostgreSQL del dominio. |
+| S3 privado | Evidencia documental fuera de la base de datos. |
+| ECR | Imágenes versionadas de API y AI Service. |
+| SSM y Secrets Manager | Configuración no secreta, secretos de aplicación y credencial administrada de RDS. |
+| CloudWatch | Logs de tareas y alarmas habilitables. |
+| GitHub Actions | Publicación de imágenes y operaciones controladas mediante OIDC. |
 
-NestJS conserva autenticacion, autorizacion, reglas de dominio, persistencia y
-orquestacion. El navegador solo consume DTOs seguros de NestJS.
+NestJS conserva autenticación, autorización, reglas de dominio, persistencia,
+emisión y coordinación de integraciones. El navegador y la aplicación móvil
+consumen solo esa API; no acceden directamente a RDS, S3, el AI Service ni la
+capa blockchain.
 
 ## Arquitectura logica
 
@@ -40,67 +48,72 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    Browser["Navegador"] -->|"HTTPS"| Vercel["Vercel - Next.js"]
-    Vercel -->|"HTTPS"| RenderApi["Render Web Service - NestJS"]
-    RenderApi -->|"TLS"| Neon[("Neon PostgreSQL")]
-    RenderApi -->|"AWS SDK"| S3[("S3 privado")]
-    RenderApi -->|"Red privada"| RenderAi["Render Private Service - FastAPI"]
-    RenderApi -->|"RPC"| Chain["Anvil local / Base Sepolia stretch"]
+    Client["Web o móvil"] -->|"HTTPS"| Alb["ALB"]
+    Alb --> Api["API NestJS ECS/Fargate"]
+    Api --> Rds[("RDS PostgreSQL")]
+    Api --> S3[("S3 privado")]
+    Api -->|"red interna + JWT de servicio"| Ai["AI Service ECS/Fargate"]
+    Api --> Chain["Evidencia blockchain configurada"]
+    Ecr["ECR"] --> Api
+    Ecr --> Ai
+    Actions["GitHub Actions + OIDC"] --> Ecr
 ```
 
-NestJS y FastAPI deben desplegarse en la misma region cuando Render lo permita.
-Neon y S3 deben elegirse en regiones cercanas para reducir latencia y egress.
+Terraform declara esta topología en `infra/terraform/prod/`. Las compuertas de
+capacidad, DNS, certificados y secretos impiden asumir que un recurso está en
+servicio solo porque existe en el código.
 
 ## Ambientes
 
 ```mermaid
 flowchart LR
-    L["Local: Next + Nest + PostgreSQL + storage local + FastAPI + Anvil"]
-    D["Demo: Vercel + Render + Neon + S3 + mock/Anvil"]
-    P["Futuro productivo: servicios dimensionados + worker + testnet/mainnet"]
-    L -->|"mismos contratos"| D
-    D -->|"hardening y medicion"| P
+    L["Local: procesos locales + PostgreSQL + storage local + mock/Anvil"]
+    A["AWS definido: ALB + ECS + RDS + S3 + ECR + SSM"]
+    X["Estado externo: capacidad, DNS, secretos y salud"]
+    L -->|"mismos contratos"| A
+    A -->|"verificación operativa"| X
 ```
 
-La configuracion completa se detalla en
-`environment-strategy-v0.md`. El despliegue no cambia los contratos publicos
-existentes por si mismo.
+Render y Neon pertenecen a una etapa demo anterior. Vercel puede intervenir en
+previews o alojamiento web según configuración externa; una integración o
+preview no prueba por sí misma alojamiento productivo. La configuración de
+ambientes se detalla en `environment-strategy-v0.md`.
 
 ## Alcance
 
-- objetivo de despliegue para demo y staging;
-- fronteras de red y responsabilidad;
-- direccion para P4e-P4i;
+- responsabilidades y fronteras de red;
+- infraestructura y automatización definidas en código;
+- límites entre evidencia versionada y estado externo;
 - continuidad de modos blockchain locales.
 
 ## Fuera de alcance
 
-- manifiestos ejecutables de Vercel, Render, Neon o AWS;
-- provisionamiento, dominios o observabilidad productiva;
-- Base Sepolia operativa;
+- estado Terraform, provisionamiento efectivo, dominios o disponibilidad;
+- consultas a AWS, Vercel, proveedores de base de datos o blockchain;
+- Base Sepolia operativa o configurada en runtime;
 - mainnet, MetaMask o firma desde frontend;
 - separacion de NestJS en microservicios.
 
 ## Impacto en modulos actuales
 
-- `apps/web` seguira usando `NEXT_PUBLIC_API_BASE_URL`;
-- `services/api` seguira siendo la unica API publica de dominio;
-- `DocumentStoragePort` permitira alternar local/S3;
-- `AiServiceClient` apuntara al servicio privado;
-- Prisma usara una URL PostgreSQL de Neon;
-- blockchain conservara `mock` y Anvil como rutas garantizadas.
+- `apps/web` consume `NEXT_PUBLIC_API_BASE_URL` y no recibe secretos;
+- `services/api` sigue siendo la única API pública de dominio;
+- `DocumentStoragePort` permite alternar local/S3;
+- `AiServiceClient` usa una URL interna configurada y JWT de servicio;
+- Prisma recibe una URL PostgreSQL configurada fuera del repositorio;
+- blockchain mantiene `mock` y Anvil para desarrollo; Base Sepolia requiere
+  verificación independiente.
 
 ## Riesgos
 
-- cold starts y memoria insuficiente en FastAPI;
-- limites de conexiones Prisma/Neon;
-- egress entre proveedores;
-- CORS incorrecto entre Vercel y Render;
+- capacidad o conectividad no confirmadas de tareas ECS;
+- drift entre Terraform, secretos, migraciones e imágenes publicadas;
+- CORS incorrecto entre el origen web efectivo y la API;
 - secretos ausentes o expuestos;
-- introducir Base Sepolia antes de idempotencia y reconciliacion.
+- introducir Base Sepolia sin configuración, preflight y reconciliación.
 
 ## Proximos slices relacionados
 
-P4e S3, P4f Neon, P4g Render API, P4h Vercel web, P4i FastAPI privado y P7
-testnet.
+La revisión de runbooks demo, migraciones SQL y documentación blockchain se
+mantiene como trabajo posterior y no se resuelve en este documento.
 

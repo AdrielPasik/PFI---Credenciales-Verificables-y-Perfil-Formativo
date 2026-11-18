@@ -535,27 +535,22 @@ independiente. La Wallet no afirma que una credencial concreta haya sido fuente
 de un perfil mientras no exista una relación de procedencia segura expuesta por
 el backend; presenta ambas vistas como información disponible para el titular.
 
-## Deployment en Vercel
+## Despliegue y previews
 
-P4h deja preparado el workspace para un proyecto Vercel conectado al
-monorepo, sin ejecutar el deploy desde el repositorio:
+La web se construye como aplicación Next.js y consume exclusivamente la URL
+pública de la API NestJS mediante `NEXT_PUBLIC_API_BASE_URL`. No recibe
+secretos, acceso a RDS, S3, AI Service ni blockchain.
 
-- Framework Preset: `Next.js`;
-- Root Directory: `apps/web`;
-- Install Command: deteccion automatica de npm workspaces y del lockfile raiz;
-- Build Command: `npm run build`;
-- Output Directory: valor predeterminado de Next.js;
-- Node.js: `24.x`, compatible con el rango declarado por el workspace;
-- variable publica: `NEXT_PUBLIC_API_BASE_URL=https://<render-api-domain>`.
+La configuración versionada no fija el proveedor de alojamiento de producción
+de la web. Vercel puede utilizarse para previews o alojamiento cuando exista
+una configuración externa aprobada; la presencia de previews no prueba por sí
+misma ese alojamiento. La arquitectura principal definida para la API y el AI
+Service se encuentra en AWS.
 
-El frontend solo recibe la URL publica de NestJS. JWT secret, base de datos,
-AWS, S3, IA y blockchain permanecen fuera de Vercel. Despues del primer deploy
-de produccion, Render debe configurar `WEB_ORIGIN` con el origin HTTPS exacto
-de Vercel, sin trailing slash ni wildcard. Los previews dinamicos no quedan
-habilitados automaticamente por la politica CORS de un unico origin.
-
-El procedimiento completo y el smoke Vercel -> Render -> Neon/S3 estan en
-[`vercel-frontend-deployment-runbook-v0.md`](../../docs/architecture/vercel-frontend-deployment-runbook-v0.md).
+El origen web efectivo debe coincidir con la configuración CORS de la API, sin
+wildcards. La disponibilidad de hosting, dominio y previews se comprueba fuera
+del repositorio. Ver
+[`deployment-architecture-v0.md`](../../docs/architecture/deployment-architecture-v0.md).
 V2 mantiene `/verify` sin sesión: se puede pegar un enlace público o una
 referencia de credencial. La huella canónica se muestra como evidencia técnica
 del resultado, pero no se acepta como código de consulta.
