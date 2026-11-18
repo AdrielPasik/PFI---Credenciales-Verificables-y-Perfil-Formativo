@@ -17,9 +17,6 @@ Documentacion de arquitectura logica del sistema.
 - `production-deployment-readiness-v1.md`: checklist técnico de transición AWS;
   debe leerse junto con Terraform y no prueba por sí solo recursos activos.
 - `document-storage-decision-v0.md`: port de storage, adapter S3 y privacidad.
-- `neon-demo-database-runbook-v0.md`, `render-api-deployment-runbook-v0.md` y
-  `render-ai-private-service-runbook-v0.md`: antecedentes operativos de la
-  etapa demo, no arquitectura AWS vigente.
 - `render-ai-cloud-deployment-record-v0.md`: registro histórico de incidente y
   controles del AI Service en la demo anterior.
 - `vercel-frontend-deployment-runbook-v0.md`: procedimiento de web y previews;

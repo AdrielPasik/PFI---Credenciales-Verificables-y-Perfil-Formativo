@@ -875,18 +875,13 @@ destroy, pero **nada** sobre un checkpoint antes de una tanda de migraciones.
 El checklist lo marca como decisión explícita del operador en GATE 2 en vez de
 asumir que existe.
 
-### 12.6 Runbooks de deployment obsoletos
+### 12.6 Procedimientos de despliegue anteriores
 
-`docs/architecture/` contiene `render-api-deployment-runbook-v0.md`,
-`render-ai-private-service-runbook-v0.md`,
-`render-ai-cloud-deployment-record-v0.md` y
-`neon-demo-database-runbook-v0.md`, que describen un stack **anterior**
-(Render + Neon). El stack actual es AWS ECS + RDS.
-`vercel-frontend-deployment-runbook-v0.md` sigue siendo pertinente para la
-web.
-
-No los toqué. **Limpieza pendiente**, a decidir si se archivan o se marcan
-como históricos.
+Los procedimientos específicos del stack demo Render + Neon se retiraron del
+árbol actual. La arquitectura documentada se concentra en AWS ECS + RDS.
+`render-ai-cloud-deployment-record-v0.md` se conserva como registro de un
+incidente técnico real y `vercel-frontend-deployment-runbook-v0.md` permanece
+pendiente de revisión independiente.
 
 ### 12.7 README raíz — recordatorio
 

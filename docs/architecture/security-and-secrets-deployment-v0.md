@@ -77,17 +77,17 @@ ejecuta migraciones ni seed. Con P4i-3, una `AI_SERVICE_BASE_URL` configurada y
 el modo de auth se validan al construir el cliente; en modo `jwt` la URL es
 obligatoria. Un deployment que aun no tenga FastAPI debe coordinar esas
 variables antes de activar JWT, en lugar de publicar un servicio temporal.
-La configuracion completa se encuentra en
-`render-api-deployment-runbook-v0.md`. La configuracion coordinada del servicio
-IA privado se encuentra en `render-ai-private-service-runbook-v0.md`.
+Las fronteras de configuración vigentes se describen en
+`deployment-architecture-v0.md`, `services/api/README.md` y
+`services/ai-service/README.md`.
 El deployment demo real, sus riesgos y controles compensatorios se registran en
 `render-ai-cloud-deployment-record-v0.md`.
 
-Vercel recibe solamente `NEXT_PUBLIC_API_BASE_URL`, que es publica por diseno y
+La web recibe solamente `NEXT_PUBLIC_API_BASE_URL`, que es pública por diseño y
 apunta a NestJS. No recibe JWT secret, DB, AWS, IA o blockchain. El access token
 de usuario se obtiene en runtime y conserva el alcance demo-grade actual en
-`sessionStorage`; no es una variable de deployment. Render debe allowlistar el
-origin Vercel exacto. Los previews no quedan autorizados automaticamente ni
+`sessionStorage`; no es una variable de deployment. La API debe allowlistar el
+origen web efectivo. Los previews no quedan autorizados automáticamente ni
 justifican un wildcard CORS. Ver `vercel-frontend-deployment-runbook-v0.md`.
 
 ## Alcance
