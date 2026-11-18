@@ -10,7 +10,7 @@ Problema que resuelve: hoy "confidence" llega de formas heterogéneas
 Esta capa NO reemplaza `confidence.global` del artifact -- lo interpreta
 y lo complementa con una banda cualitativa explicable.
 
-Ver docs/architecture/confidence_model_v0.md para la explicación completa
+Ver docs/ai/taxonomy-quality-and-profile-v1.md para la explicación vigente
 de las reglas y sus límites.
 
 Puramente funcional: no hace I/O, no muta los artifacts/aggregate de
@@ -387,7 +387,7 @@ def interpret_artifact_confidence(artifact: dict[str, Any]) -> dict[str, Any]:
         "hasConceptEvidence": concept_evidence_count > 0,
         "textForEmbeddingLength": len(text_for_embedding.strip()),
         "textForEmbeddingQuality": "poor" if text_poor else "sufficient",
-        # qualityFlags: señal auxiliar, no decide la banda (ver docs/architecture/confidence_model_v0.md).
+        # qualityFlags: señal auxiliar, no decide la banda (ver docs/ai/taxonomy-quality-and-profile-v1.md).
         "qualityFlags": list(artifact.get("qualityFlags") or []),
         # Códigos crudos preservados para trazabilidad -- `overallConfidence.limitations`
         # ya trae la version legible/traducida de estos mismos codigos.

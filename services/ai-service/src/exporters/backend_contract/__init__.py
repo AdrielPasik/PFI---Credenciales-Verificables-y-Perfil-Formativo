@@ -5,8 +5,8 @@ Lee JSON ya existentes de `output_json/` (PDF academico) y
 `output/online_courses_json/` (cursos online) y los transforma en el
 artifact `semantic_analysis_v1` definido en
 `docs/architecture/ai-backend-integration-contract-v0.md` (repo backend,
-addendum de integracion por fases) y evaluado en
-`docs/architecture/ai-exporter-backend-contract-viability-v0.md`
+addendum de integracion por fases) y documentado en
+`docs/ai/ai-service-runtime-and-contracts-v1.md`
 (este repo).
 
 No modifica `raw_normalized` ni `semantic_final`. No escribe dentro de
