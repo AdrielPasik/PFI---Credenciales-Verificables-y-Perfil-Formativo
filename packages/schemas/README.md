@@ -71,9 +71,10 @@ y uno sin confidence numerica disponible.
 
 Artifact de extraccion source-addressable: texto canonico direccionable de una
 fuente productiva, con identidad de extraccion, coverage de observacion,
-segmentos direccionables y diagnosticos estructurados. Contrato congelado por
-`mejoras post 50%/evidence-reasoning-f0-source-addressability-design.md`
-(`F0_EPISTEMIC_CONTRACT: FROZEN_FOR_IMPLEMENTATION`), slice F0.1.
+segmentos direccionables y diagnosticos estructurados. Su decisión de
+trazabilidad se conserva en
+`docs/decisions/0011-ai-artifact-source-traceability.md`; el contrato
+ejecutable y sus pruebas son la fuente de verdad.
 
 Es deliberadamente **no semantico**: no contiene EvidenceUnit, area, skill,
 concept, confidence, Requirement, relacion ni estado de razonamiento. Produce

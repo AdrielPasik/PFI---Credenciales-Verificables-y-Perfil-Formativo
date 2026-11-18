@@ -255,41 +255,31 @@ def test_la_vista_del_modelo_no_lleva_coordenadas():
 # Regresion contra el corpus congelado
 # ---------------------------------------------------------------------------
 
-CORPUS = (
-    pathlib.Path(__file__).resolve().parents[4]
-    / "mejoras post 50%"
-    / "b241-full-dev-reexecution"
-    / "runs"
+REGRESSION_FIXTURE = (
+    pathlib.Path(__file__).resolve().parents[1]
+    / "fixtures"
+    / "contextual_reasoning"
+    / "requirement_anchoring_regression_v1.json"
 )
 
 
-@pytest.mark.skipif(not CORPUS.is_dir(), reason="corpus congelado no disponible")
-def test_las_122_bases_historicas_siguen_siendo_representables():
-    """Si una base aceptada historicamente no se puede anclar, el diseño falla.
+def test_las_bases_historicas_distintas_siguen_siendo_representables():
+    """El fixture versionado conserva los pares distintos del corpus B2.4.1.
 
-    No se comprueba que el modelo elegiria ese rango — se comprueba que el
-    mecanismo PUEDE expresar todo lo que el sistema ya acepto como valido.
+    El corpus de ejecuciones completo es un artefacto local de investigacion;
+    esta regresion compacta mantiene el contrato de anclaje en un clon limpio.
     """
-    total = reproducible = 0
-    for path in sorted(CORPUS.glob("*.json")):
-        run = json.loads(path.read_text(encoding="utf-8"))
-        requirements = (
-            (run.get("03_objective_analysis") or {})
-            .get("proposal", {})
-            .get("requirements")
-            or []
-        )
-        contextual = run.get("05_unified_contextual_reasoning")
-        if not requirements or not isinstance(contextual, list):
-            continue
-        text = requirements[0]["requirementQuote"]
-        for item in contextual:
-            for facet in item.get("facets") or []:
-                for historical in facet.get("requirementBasisPhrases") or []:
-                    total += 1
-                    start, end = find_range(text, historical)
-                    assert phrase(text, start, end) == historical
-                    reproducible += 1
+    fixture = json.loads(REGRESSION_FIXTURE.read_text(encoding="utf-8"))
+    assert fixture["schemaVersion"] == "requirement_anchoring_regression_v1"
 
-    assert total == 122, f"el corpus cambio: {total} frases"
+    total = reproducible = 0
+    for case in fixture["cases"]:
+        text = case["requirementQuote"]
+        for historical in case["requirementBasisPhrases"]:
+            total += 1
+            start, end = find_range(text, historical)
+            assert phrase(text, start, end) == historical
+            reproducible += 1
+
+    assert total == 61, f"el fixture cambio: {total} pares distintos"
     assert reproducible == total
