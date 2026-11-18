@@ -166,6 +166,7 @@ configurado.
 
 ## Documentación relevante
 
+- [Índice general de documentación](docs/README.md)
 - [Arquitectura y decisiones](docs/architecture/README.md)
 - [ADRs](docs/decisions/README.md)
 - [Servicio y evolución de IA](docs/ai/README.md)

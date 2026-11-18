@@ -2,9 +2,10 @@
 `formative_profile_result_v0` (experimental) — resultado semántico del
 perfil formativo, agnóstico de UI, pensado para que backend lo persista o
 lo exponga por API. Reemplaza a `formative_profile_frontend_payload.py`
-como contrato principal de esta capa (ver
-docs/architecture/formative_profile_result_v0.md, sección "por qué no es
-un frontend payload"). `formative_profile_frontend_payload.py` NO se
+como contrato principal de esta capa. El documento
+docs/ai/taxonomy-quality-and-profile-v1.md describe la narrativa y la
+reconstrucción del perfil; este resultado no es un frontend payload.
+`formative_profile_frontend_payload.py` NO se
 borró -- queda como demo auxiliar, no como contrato principal.
 
 Esta capa NO decide nada de render: no arma cards, no calcula uiHints, no
@@ -160,7 +161,7 @@ def build_formative_profile_result(artifacts: list[dict[str, Any]]) -> dict[str,
             "band": band,
             # Nivel portfolio: nunca se fabrica un score numérico único al
             # mezclar fuentes PDF (medidas) y online (unavailable) -- misma
-            # garantía que Fase 3A/3B, ver docs/architecture/confidence_model_v0.md.
+            # garantía que Fase 3A/3B, ver docs/ai/taxonomy-quality-and-profile-v1.md.
             "score": None,
             "scoreMethod": score_method,
             "explanation": aggregate_confidence["explanation"],

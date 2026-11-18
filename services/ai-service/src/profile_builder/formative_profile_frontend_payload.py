@@ -11,7 +11,7 @@ puramente una capa de PRESENTACIÓN sobre un dict que Fase 5B ya produjo.
 Puramente funcional: no hace I/O, no muta el `profile` de entrada, no
 importa `profile_builder.py`/`course_adapter.py` productivos.
 
-Ver docs/architecture/formative_profile_frontend_payload_v0.md.
+No forma parte del contrato vigente del perfil formativo.
 """
 from __future__ import annotations
 

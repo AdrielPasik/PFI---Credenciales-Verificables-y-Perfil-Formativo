@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 # Valores aceptados para confidenceMethod — ver ai-backend-integration-contract-v0.md
-# addendum y docs/architecture/ai-exporter-backend-contract-viability-v0.md seccion "Confidence".
+# addendum y docs/ai/taxonomy-quality-and-profile-v1.md, seccion de confianza.
 CONFIDENCE_METHODS = ("measured", "derived", "heuristic", "unavailable")
 
 STATUS_VALUES = ("completed", "partial")

@@ -6,8 +6,9 @@ outputs internos del pipeline (`output_json/`, `output/online_courses_json/`).
 
 Esta capa NO construye un `UserProfile`/`FormativeProfile` final, NO
 escribe en `profiles/`, y NO reemplaza `profile_builder.py` ni
-`course_adapter.py` (que siguen siendo el camino productivo actual). Ver
-docs/architecture/profile_builder_semantic_analysis_v1_adapter.md.
+`course_adapter.py` (que siguen siendo el camino productivo actual). La
+reconstruccion productiva del perfil se describe en
+`docs/ai/taxonomy-quality-and-profile-v1.md`.
 
 Puramente funcional: no lee ni escribe archivos (eso vive en
 `artifact_loader.py`), no muta los artifacts de entrada.

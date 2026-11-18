@@ -1,0 +1,42 @@
+# Frontend de Scope
+
+La documentación de esta carpeta describe la experiencia web de instituciones,
+titulares y verificadores, además de la evolución de la aplicación móvil. El
+código y los contratos de la API tienen precedencia cuando exista una diferencia
+con una especificación de interfaz.
+
+## Documentación actual
+
+- [Posicionamiento de producto](scope-product-positioning-v1.md): propósito,
+  audiencias y lenguaje de Scope.
+- [Sistema visual](frontend-brand-and-design-system-v1.md): identidad,
+  accesibilidad, componentes y adaptación a distintos tamaños de pantalla.
+- [Contexto UI/UX](scope-ui-ux-handoff-context-v1.md): criterios de diseño para
+  portal institucional, perfil del titular y verificación pública.
+- [Arquitectura de información](frontend-information-architecture-v0.md),
+  [datos y modelos de vista](frontend-data-and-view-models-v0.md) e
+  [inventario de componentes](frontend-component-inventory-v0.md): referencias
+  técnicas de pantallas, datos y componentes. Deben contrastarse con el código
+  y los contratos de la API cuando describan comportamientos concretos.
+- [Especificación del portal del emisor](frontend-issuer-portal-screen-spec-v0.md)
+  y [guía de implementación](frontend-ui-implementation-guidelines-v1.md):
+  composición y límites de implementación.
+- [Blueprint móvil del titular](scope-holder-mobile-app-blueprint-v1.md):
+  alcance y criterios de evolución de la aplicación móvil implementada en
+  `apps/mobile`.
+
+## Documentación histórica o de planificación
+
+Los siguientes documentos conservan contexto de decisiones anteriores y no son
+la fuente de verdad para el sistema actual: `frontend-brand-and-design-system-v0.md`,
+`frontend-roadmap-v0.md`, `scope-holder-mobile-handoff-v0.md` y
+`ui-ux-handoff-context-v0.md`.
+
+`frontend-roadmap-post-f1c-v1.md` registra una secuencia de planificación con
+fecha de corte. Debe leerse como contexto de evolución, no como una lista de
+capacidades vigentes.
+
+Para ejecutar o revisar la aplicación web, consultar también
+[`apps/web/README.md`](../../apps/web/README.md). La aplicación móvil se
+desarrolla con React Native y Expo; sus instrucciones viven junto al código en
+`apps/mobile`.

@@ -11,7 +11,7 @@ construido sobre las capas experimentales ya existentes:
 Esta capa NO reemplaza `profile_builder.py`/`course_adapter.py`, NO
 construye `UserProfile`, NO escribe en `profiles/`, NO genera
 credenciales ni toca nada de blockchain/hash. Ver
-docs/architecture/formative_profile_narrative_v0.md.
+docs/ai/taxonomy-quality-and-profile-v1.md.
 
 Puramente funcional: no hace I/O, no muta los artifacts de entrada.
 
