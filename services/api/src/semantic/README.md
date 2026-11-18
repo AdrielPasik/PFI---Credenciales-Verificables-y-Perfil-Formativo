@@ -58,9 +58,10 @@ Comportamiento:
   se cargan desde la base;
 - no modifica ninguna tabla ni dispara logica semantica nueva.
 
-Hasta F1.5 esta ruta no tenia `AuthGuard` ni comprobacion de autoridad, y
-devolvia el artifact crudo del pipeline: conocer un `credentialId` bastaba para
-leerlo. Ver `mejoras post 50%/evidence-reasoning-f1.5-privacy-hardening-record.md`.
+En su versión inicial esta ruta no tenia `AuthGuard` ni comprobacion de
+autoridad, y devolvia el artifact crudo del pipeline. Los tests de esta
+superficie y los contratos actuales son la fuente de verdad de los limites
+holder-safe vigentes.
 
 Principios:
 

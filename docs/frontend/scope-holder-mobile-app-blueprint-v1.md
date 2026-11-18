@@ -1,9 +1,8 @@
 # Scope: Holder Mobile Application Blueprint v1
 
 > **PLANIFICACIÓN / SUPERSEDIDO POR LA IMPLEMENTACIÓN (2026-09-07).** La
-> aplicación móvil del Titular ya está implementada en `apps/mobile`. La
-> documentación de implementación vigente vive en
-> `mejoras post 50%/Implementación a aplicación móvil/` y es la fuente de
+> aplicación móvil del Titular ya está implementada en `apps/mobile`. El código,
+> los contratos backend que consume y sus pruebas versionadas son la fuente de
 > verdad cuando este blueprint y el runtime difieran. Este documento se
 > conserva por su razonamiento de producto y de diseño, que sigue siendo
 > válido; sus supuestos técnicos, en cambio, fueron reemplazados por lo que

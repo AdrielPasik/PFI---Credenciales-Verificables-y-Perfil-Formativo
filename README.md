@@ -1,75 +1,186 @@
-# Plataforma de crecenciales verificables y perfil formativo
+# Scope
 
-Repositorio monorepo para el Proyecto Final de Ingenieria Informatica orientado a credenciales educativas digitales verificables con soporte de blockchain y analisis semantico del perfil formativo.
+> Una nueva forma de entender tu trayectoria.
 
-## Objetivo
+Proyecto Final de Ingeniería Informática - Universidad Argentina de la Empresa,
+2026.
 
-Preparar una base tecnica ordenada para evolucionar el sistema en fases, manteniendo separadas las responsabilidades de frontend, backend, inteligencia artificial, smart contracts, contratos de datos y documentacion arquitectonica.
+Scope es un sistema de credenciales educativas verificables que aborda dos
+problemas relacionados: la dificultad para comprobar la autenticidad de una
+credencial y la falta de información estructurada para comprender qué
+formación representa dentro de una trayectoria.
 
-## Alcance actual del repositorio
+La propuesta integra la emisión y verificación de credenciales con el análisis
+de sus contenidos formativos. A partir de la información declarada y de las
+evidencias disponibles, Scope construye perfiles que reúnen áreas de
+conocimiento, habilidades y conceptos identificados, y permite relacionar esas
+evidencias con requisitos de objetivos académicos o profesionales.
 
-El estado actual es de bootstrap tecnico. Este repositorio incluye:
+El sistema combina mecanismos de verificabilidad basados en blockchain con
+análisis inteligente, manteniendo una distinción entre la validez de una
+credencial, la interpretación de su contenido y las conclusiones que pueden
+obtenerse a partir de ella.
 
-- estructura inicial del monorepo;
-- documentacion base de arquitectura y flujos;
-- ADRs iniciales;
-- JSON Schemas para credenciales, analisis semantico, perfil formativo y evidencia blockchain;
-- placeholders minimos para app web, API, servicio de IA y contratos.
+La aplicación web demostrativa puede consultarse en
+[scopeedu.technology](https://scopeedu.technology), según la disponibilidad
+del entorno desplegado.
 
-## Modulos principales
+## Alcance del prototipo
 
-- `apps/web`: aplicacion web Next.js prevista para las rutas `/issuer`, `/verifier` y `/wallet`.
-- `services/api`: backend orquestador en NestJS con Prisma y PostgreSQL.
-- `services/ai-service`: servicio Python/FastAPI desacoplado para analisis semantico.
-- `contracts`: smart contracts Solidity con Foundry para registro verificable on-chain.
-- `packages/schemas`: contratos JSON Schema versionados para intercambio entre modulos.
-- `docs`: documentacion tecnica, flujos y decisiones de arquitectura.
-- `data`: muestras sinteticas y futuros insumos de procesamiento controlado.
-- `infra`: preparacion para entornos locales y despliegues posteriores.
+Scope permite que instituciones autorizadas creen borradores, incorporen
+evidencia, emitan credenciales y gestionen su revocación. Las personas titulares
+pueden consultar sus credenciales y su perfil formativo desde la web y la
+aplicación móvil Android. Esta última está desarrollada con React Native y Expo
+y admite distribución demostrativa mediante un archivo APK instalable; no se
+presenta como una publicación comercial en tiendas. Un tercero puede consultar
+de forma pública el estado técnico de una credencial emitida o revocada, sin
+acceder a datos privados ni a la evidencia en bruto.
 
-## Stack definido
+El análisis inteligente procesa información formativa para identificar áreas,
+habilidades y conceptos. También puede organizar la evidencia disponible frente
+a requisitos de un objetivo, indicando si existe soporte, soporte parcial,
+evidencia insuficiente, abstención o imposibilidad de evaluación. Estos
+resultados orientan la lectura de la trayectoria: no sustituyen las reglas de
+dominio, la revisión humana ni la decisión de una institución.
 
-- Frontend: Next.js, TypeScript, Tailwind CSS, mobile-first, PWA.
-- Backend: Node.js, NestJS, TypeScript, Prisma.
-- Base de datos: PostgreSQL.
-- IA: Python, FastAPI.
-- Blockchain: Solidity, Foundry, Anvil local, Base Sepolia.
+La evidencia de integridad se construye a partir de una representación canónica
+de la credencial y se registra mediante el modo de blockchain configurado. La
+información académica, documental y personal permanece fuera de la cadena.
 
-## Estado actual
-
-Este repositorio todavia no implementa la logica de negocio final ni las aplicaciones ejecutables completas. Se priorizo dejar:
-
-- una separacion clara por dominios y responsabilidades;
-- contratos de datos iniciales;
-- documentacion para orientar la implementacion incremental;
-- decisiones tecnicas explicitadas.
-
-## Organizacion general
+## Arquitectura
 
 ```text
-apps/        Frontend web
-services/    Backend API y servicio de IA
-contracts/   Smart contracts y configuracion Foundry
-packages/    Contratos compartidos y artefactos comunes
-data/        Datos sinteticos, muestras y futuros procesados
-docs/        Arquitectura, flujos, ADRs y notas tecnicas
-infra/       Preparacion para dockerizacion y despliegues
+Scope Web (portal y verificación pública)   Aplicación móvil Android
+                    \                           (React Native / Expo)
+                     \                                  /
+                      ----------- API NestJS -----------
+                        |           |           |      \
+                        |           |           |       \__ evidencia técnica
+                   PostgreSQL  almacenamiento  FastAPI      de integridad
+                                de evidencia  análisis
 ```
 
-## Que no esta implementado todavia
+La API NestJS concentra autenticación, permisos, reglas de negocio, emisión,
+canonicalización y coordinación de integraciones. La web y la aplicación móvil
+consumen esta API; no se conectan directamente con el servicio de análisis ni
+con la capa de blockchain. FastAPI procesa el análisis semántico interno, y el
+almacenamiento documental conserva la evidencia asociada a las credenciales.
 
-- pantallas funcionales de emision, verificacion o wallet;
-- modulos NestJS productivos;
-- endpoints reales del AI service;
-- contrato de blockchain con reglas completas;
-- schema Prisma final;
-- integracion real entre frontend, backend, IA y blockchain;
-- despliegue productivo.
+## Inteligencia artificial y trazabilidad
 
-## Proximo uso recomendado
+El servicio de IA normaliza y analiza contenido formativo proveniente de
+documentos, fuentes textuales o datos declarados por el emisor. Su resultado
+identifica áreas, habilidades, conceptos y observaciones de calidad. Cuando se
+analiza un objetivo, Scope vincula los requisitos con evidencia direccionable y
+expone un resultado prudente para cada uno.
 
-1. Scaffold real de `apps/web` con Next.js y Tailwind.
-2. Scaffold real de `services/api` con NestJS y Prisma.
-3. Evolucion de `services/ai-service` con auth interna y deployment privado.
-4. Evolucion de los schemas y definicion del modelo Prisma.
-5. Implementacion incremental de los flujos documentados en `docs/`.
+El análisis no certifica competencias ni modifica por sí mismo una credencial
+emitida. Su finalidad es aportar una interpretación trazable de la información
+formativa y hacer visibles sus límites cuando la evidencia no resulta suficiente.
+
+## Componentes del repositorio
+
+| Ruta | Responsabilidad |
+| --- | --- |
+| `apps/web` | Portal institucional, wallet web, verificación y superficies públicas. |
+| `apps/mobile` | Aplicación Expo del titular. |
+| `services/api` | API NestJS, Prisma, permisos, emisión, verificación y orquestación. |
+| `services/ai-service` | FastAPI, análisis semántico, extracción de fuentes y razonamiento. |
+| `contracts` | Contrato Solidity y tooling de evidencia verificable. |
+| `packages` | Schemas, tipos y constantes compartidas. |
+| `infra/terraform` | Infraestructura AWS y procedimientos de operación versionados. |
+| `docs` | Arquitectura, decisiones, contratos, flujos, IA y material de defensa. |
+
+## Tecnologías principales
+
+- TypeScript, Next.js, React y Tailwind CSS para la web.
+- Expo y React Native para la aplicación móvil.
+- NestJS, Prisma y PostgreSQL para la API y la persistencia.
+- Python y FastAPI para análisis semántico, extracción y razonamiento.
+- Solidity y Foundry para los contratos de evidencia verificable.
+- AWS, Terraform, Docker y GitHub Actions para infraestructura y operación.
+
+## Cómo revisar y ejecutar el proyecto
+
+El repositorio es un monorepo con workspaces npm. Para revisar la web y la API
+se necesita una versión de Node compatible con los paquetes del workspace. El
+servicio de IA recomienda Python 3.12; las pruebas de contratos requieren
+Foundry. Las integraciones que usan base de datos, almacenamiento o servicios
+externos requieren la configuración local descrita en cada servicio.
+
+```powershell
+npm ci
+
+Set-Location services/ai-service
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-api-dev.txt
+.\.venv\Scripts\Activate.ps1
+Set-Location ../..
+```
+
+Con el entorno Python activo, los servicios de desarrollo se inician desde la
+raíz del monorepo:
+
+```powershell
+npm run dev --workspace @credential-intelligence/web
+npm run dev --workspace @credential-intelligence/api
+npm run dev --workspace @credential-intelligence/ai-service
+```
+
+Cada servicio incluye un archivo `.env.example`. Estos comandos inician los
+procesos locales, pero no garantizan un flujo integrado: la API, el
+almacenamiento documental y las integraciones externas requieren las variables
+y dependencias locales indicadas en sus respectivos README. No se deben
+versionar valores reales de conexión, tokens, claves de firma ni credenciales
+de infraestructura.
+
+## Pruebas y validaciones
+
+Los comandos se mantienen por workspace para que cada componente pueda
+validarse de forma independiente.
+
+```powershell
+npm run typecheck --workspace @credential-intelligence/web
+npm run lint --workspace @credential-intelligence/web
+npm run test --workspace @credential-intelligence/web
+npm run build --workspace @credential-intelligence/web
+
+npm run test --workspace @credential-intelligence/api
+npm run build --workspace @credential-intelligence/api
+npm run prisma:validate --workspace @credential-intelligence/api
+
+npm run test --workspace @credential-intelligence/ai-service
+npm run python:check --workspace @credential-intelligence/ai-service
+```
+
+Para los contratos:
+
+```powershell
+Set-Location contracts
+forge test
+```
+
+Las pruebas unitarias y contractuales no deben requerir secretos reales. Las
+pruebas de integración se ejecutan únicamente cuando su entorno local está
+configurado.
+
+## Documentación relevante
+
+- [Arquitectura y decisiones](docs/architecture/README.md)
+- [ADRs](docs/decisions/README.md)
+- [Servicio y evolución de IA](docs/ai/README.md)
+- [Flujos de emisión, análisis y verificación](docs/flows/README.md)
+
+Cuando exista una diferencia entre documentación histórica y comportamiento
+actual, el código, los contratos y las pruebas versionadas son la fuente de
+verdad.
+
+## Estado y límites
+
+Scope es un prototipo académico en evolución. La validez académica de una
+credencial depende de su emisor. La evidencia blockchain registra información
+técnica de integridad y el análisis de IA aporta interpretación sobre la
+formación disponible; ninguno de los dos mecanismos reemplaza esa autoridad.
+
+La documentación de arquitectura y los ADRs registran las capacidades
+implementadas, las dependencias de entorno y las líneas de evolución pendientes.

@@ -4,7 +4,10 @@
 
 ## Por qué existe
 
-El `terraform.tfvars` local (ignorado por git, modificado el 2026-10-11) **no** representa lo desplegado: el último `apply` fue el 2026-10-22 y movió la API a otra imagen. Un `apply` con ese archivo apagaría API e IA (`desired_count = enable_services ? N : 0`, sin `ignore_changes`), devolvería imágenes anteriores, dejaría `WEB_ORIGIN` vacío (CORS apagado) y cambiaría la configuración de blockchain. El diagnóstico completo está en `mejoras post 50%/recuperacion-de-cuenta/07-auditoria-5-1-reconciliacion-aws.md`.
+Un `terraform.tfvars` local e ignorado no representa necesariamente el estado
+desplegado. Antes de cualquier `apply`, generar y revisar un plan fresco contra
+el estado remoto, siguiendo `PLAN-PROCEDURE.md`; un archivo local desactualizado
+puede cambiar imágenes, cantidades deseadas, CORS o configuración de blockchain.
 
 Esta carpeta contiene:
 

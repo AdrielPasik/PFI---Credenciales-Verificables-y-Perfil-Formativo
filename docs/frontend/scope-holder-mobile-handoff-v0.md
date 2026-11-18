@@ -5,8 +5,8 @@
 > transición y no define el layout vigente de Holder Web.
 >
 > **Actualización 2026-09-07:** la aplicación móvil ya está implementada en
-> `apps/mobile`. La documentación vigente es
-> `mejoras post 50%/Implementación a aplicación móvil/`.
+> `apps/mobile`. Cuando este handoff difiera del runtime, prevalecen el código,
+> los contratos backend que consume y sus pruebas versionadas.
 
 ## Propósito
 

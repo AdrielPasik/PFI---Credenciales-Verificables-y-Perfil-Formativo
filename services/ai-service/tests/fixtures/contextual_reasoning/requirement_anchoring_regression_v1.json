@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "requirement_anchoring_regression_v1",
+  "description": "Distinct requirement/basis phrase pairs compacted from the frozen B2.4.1 development corpus. The original corpus remains local and is not required by this test.",
+  "cases": [
+    { "requirementQuote": "Kubernetes.", "requirementBasisPhrases": ["Kubernetes."] },
+    { "requirementQuote": "Requisito formativo: Kubernetes.", "requirementBasisPhrases": ["Requisito formativo: Kubernetes."] },
+    { "requirementQuote": "Requisito formativo: desarrollo de sistemas embebidos con microcontroladores ARM.", "requirementBasisPhrases": ["con microcontroladores ARM", "desarrollo de sistemas embebidos", "desarrollo de sistemas embebidos con microcontroladores ARM"] },
+    { "requirementQuote": "Requisito formativo: dise\u00f1o de biorreactores con control de par\u00e1metros operativos.", "requirementBasisPhrases": ["con control de par\u00e1metros operativos", "dise\u00f1o de biorreactores"] },
+    { "requirementQuote": "Requisito formativo: dise\u00f1o e implementaci\u00f3n de APIs REST.", "requirementBasisPhrases": ["APIs REST", "dise\u00f1o", "dise\u00f1o e implementaci\u00f3n de APIs REST", "implementaci\u00f3n"] },
+    { "requirementQuote": "Requisito formativo: dise\u00f1o estructural sismorresistente avanzado.", "requirementBasisPhrases": ["avanzado", "dise\u00f1o estructural sismorresistente", "dise\u00f1o estructural sismorresistente avanzado"] },
+    { "requirementQuote": "Requisito formativo: dise\u00f1o estructural sismorresistente.", "requirementBasisPhrases": ["dise\u00f1o estructural sismorresistente"] },
+    { "requirementQuote": "Requisito formativo: dise\u00f1o pr\u00e1ctico de PCB.", "requirementBasisPhrases": ["Requisito formativo", "dise\u00f1o pr\u00e1ctico de PCB", "formativo", "pr\u00e1ctico"] },
+    { "requirementQuote": "Requisito formativo: fundamentos del an\u00e1lisis de procesos t\u00e9rmicos.", "requirementBasisPhrases": ["Requisito formativo", "an\u00e1lisis de procesos t\u00e9rmicos", "fundamentos", "fundamentos del an\u00e1lisis de procesos t\u00e9rmicos"] },
+    { "requirementQuote": "Requisito formativo: microbiolog\u00eda industrial.", "requirementBasisPhrases": ["Requisito formativo", "formativo", "industrial", "microbiolog\u00eda", "microbiolog\u00eda industrial"] },
+    { "requirementQuote": "Requisito formativo: simulaci\u00f3n CFD de flujos turbulentos.", "requirementBasisPhrases": ["Requisito formativo", "de flujos turbulentos", "flujos turbulentos", "simulaci\u00f3n CFD", "simulaci\u00f3n CFD de flujos turbulentos"] },
+    { "requirementQuote": "Requisito: tres a\u00f1os de experiencia profesional supervisando obras.", "requirementBasisPhrases": ["experiencia profesional", "supervisando obras", "tres a\u00f1os"] },
+    { "requirementQuote": "desarrollo de sistemas embebidos con microcontroladores ARM.", "requirementBasisPhrases": ["con microcontroladores ARM", "desarrollo de sistemas embebidos"] },
+    { "requirementQuote": "dise\u00f1o de biorreactores con control de par\u00e1metros operativos.", "requirementBasisPhrases": ["con control de par\u00e1metros operativos", "dise\u00f1o de biorreactores"] },
+    { "requirementQuote": "dise\u00f1o e implementaci\u00f3n de APIs REST", "requirementBasisPhrases": ["APIs REST", "dise\u00f1o", "implementaci\u00f3n"] },
+    { "requirementQuote": "dise\u00f1o e implementaci\u00f3n de APIs REST.", "requirementBasisPhrases": ["APIs REST", "dise\u00f1o", "implementaci\u00f3n"] },
+    { "requirementQuote": "dise\u00f1o estructural sismorresistente avanzado.", "requirementBasisPhrases": ["avanzado", "dise\u00f1o estructural sismorresistente avanzado"] },
+    { "requirementQuote": "dise\u00f1o estructural sismorresistente.", "requirementBasisPhrases": ["dise\u00f1o estructural", "dise\u00f1o estructural sismorresistente", "sismorresistente"] },
+    { "requirementQuote": "dise\u00f1o pr\u00e1ctico de PCB.", "requirementBasisPhrases": ["dise\u00f1o pr\u00e1ctico de PCB", "dise\u00f1o pr\u00e1ctico de PCB.", "pr\u00e1ctico"] },
+    { "requirementQuote": "fundamentos del an\u00e1lisis de procesos t\u00e9rmicos.", "requirementBasisPhrases": ["fundamentos del an\u00e1lisis de procesos t\u00e9rmicos"] },
+    { "requirementQuote": "microbiolog\u00eda industrial.", "requirementBasisPhrases": ["microbiolog\u00eda industrial."] },
+    { "requirementQuote": "simulaci\u00f3n CFD de flujos turbulentos.", "requirementBasisPhrases": ["de flujos turbulentos", "simulaci\u00f3n CFD de flujos turbulentos."] },
+    { "requirementQuote": "tres a\u00f1os de experiencia profesional supervisando obras.", "requirementBasisPhrases": ["experiencia profesional", "supervisando obras", "tres a\u00f1os"] }
+  ]
+}
