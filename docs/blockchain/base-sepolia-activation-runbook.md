@@ -1,9 +1,15 @@
 # Activacion de Base Sepolia en produccion (S8) -- runbook
 
-> Estado documentado: el repositorio usa `mock` como valor predeterminado y
-> contiene un manifiesto canónico de Base Sepolia. La configuración efectiva de
-> producción no se conoce desde el repositorio y debe comprobarse antes de
-> cualquier activación. Ningún paso se ejecuta por un despliegue común.
+> Estado documentado: el repositorio usa `mock` como valor predeterminado. El
+> despliegue de `CredentialRegistry` en Base Sepolia fue confirmado mediante
+> consultas públicas de solo lectura el 18 de noviembre de 2026: [transacción](https://sepolia.basescan.org/tx/0x8a1f893cc75e989044cc6b961a2e427b9bea195b4594a7c09a81fc543177713c),
+> [contrato](https://sepolia.basescan.org/address/0xCb7401e268f61b1242B17fE141453471CFbdc6e1)
+> y [bloque](https://sepolia.basescan.org/block/47934147). Antes de cualquier
+> cambio, debe comprobarse la configuración efectiva del entorno y determinar
+> si el modo `credential_registry` ya se encuentra habilitado. La existencia de
+> credenciales de Scope registradas en Base Sepolia debe verificarse por
+> separado, ya que el despliegue del contrato no demuestra que el sistema lo
+> esté utilizando. Ningún paso se ejecuta por un despliegue común.
 
 Objetivo del primer E2E: **UNA** credencial `course` emitida por
 `055bb876-b98d-4925-a38c-e7e65aeea535`, anclada en Base Sepolia (`84532`) en
