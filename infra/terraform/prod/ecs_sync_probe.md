@@ -1,6 +1,6 @@
 # Isolated ECS sync integration probe
 
-This is a future, independent resource set that validates the observable
+This is an independent resource set that validates the observable
 behavior of Step Functions ecs:runTask.sync before any persistent provisioning
 workflow is given a caller. The variable default remains disabled with
 enable_ecs_sync_probe = false. Production desired state is explicitly enabled
@@ -55,7 +55,7 @@ authorized observer must inspect Step Functions execution history, ECS task
 metadata and probe logs. The caller cannot query or alter the persistent
 workflow.
 
-## Required deployment review
+## Deployment and caller review
 
 Before the infrastructure can exist in AWS, the versioned production desired
 state provides:
@@ -74,12 +74,21 @@ infra/docker/ecs-sync-probe, is linux/amd64, and exists in the separate
 repository. Verify the OIDC claim behavior with an actual GitHub-issued token
 before relying on the immutable ID and workflow claim conditions.
 
-After one manually authorized exit-zero execution and one separately
-authorized exit-nonzero execution, record the raw execution history, ECS task
-stopped reason, container exit code and log events. Do not infer an exit-code
-path from documentation. No real persistent operation is eligible for a caller
-until those observations demonstrate the required semantics.
+## Completed isolated evidence — 2026-10-16
 
+The two isolated experiments closed the ECS `.sync` contract used by the
+probe. Each experiment submitted exactly one ECS task and no retries occurred.
+`exit-zero` produced `TaskSucceeded` with
+`$.Containers[0].ExitCode = 0` in the Step Functions output. `exit-nonzero`
+produced `States.TaskFailed`; its parsed cause contained
+`$.Containers[0].ExitCode = 23`. The terminal
+`PROBE_REQUIRES_INSPECTION` event was the probe's explicit application-defined
+`Fail` state, not the raw integration error.
+
+These results verify the production provisioner's narrow parsing contract:
+accept only an explicit zero exit code and route a nonzero or differently
+shaped result to `INSPECT_FIRST`. They do not establish anything about
+persistent issuer, signer, or database side effects.
 The auto-loaded file must remain in the canonical production checkout after
 deployment. Removing it, or changing `enable_ecs_sync_probe` to false, makes a
 normal Terraform plan propose removal of the probe resources. It contains only

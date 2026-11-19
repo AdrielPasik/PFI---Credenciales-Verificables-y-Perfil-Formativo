@@ -407,22 +407,22 @@ test('S8c11.4c1-7: el exito exige ExitCode presente Y igual a 0, en dos Choice s
   assert.deepEqual(pointingAtSuccess, ['CheckExitCodeZero']);
 });
 
-test('S8c11.4c1-8: la hipotesis del path de ExitCode queda documentada como NO verificada', () => {
+test('S8c11.4c1-8: la evidencia aislada de Fargate confirma el contrato de ExitCode sin debilitar el fallback', () => {
   const rawTf = readTf('provisioner_invocation.tf');
 
   for (const text of [rawTf, TEMPLATE_TEXT]) {
-    assert.match(text, /ECS_SYNC_EXIT_CODE_PATH = HYPOTHESIS_NOT_LIVE_VERIFIED/);
-    assert.match(text, /ECS_SYNC_NONZERO_EXIT_SEMANTICS = NOT_LIVE_VERIFIED/);
+    assert.match(text, /ECS_SYNC_EXIT_CODE_PATH = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16/);
+    assert.match(text, /ECS_SYNC_NONZERO_EXIT_SEMANTICS = LIVE_VERIFIED_ISOLATED_FARGATE_2026-10-16/);
   }
   assert.match(
     rawTf,
-    /ECS_SYNC_OUTPUT_LIVE_VERIFICATION_REQUIRED_BEFORE_CALLER = true/
+    /ECS_SYNC_OUTPUT_LIVE_VERIFICATION = PASS_ISOLATED_FARGATE_2026-10-16/
   );
   assert.match(rawTf, /PROVISIONER_ARTIFACT_INTEGRITY = NOT_YET_PROVEN/);
   assert.match(rawTf, /PROVISIONER_EXTERNAL_CALLER = NOT_IMPLEMENTED/);
   assert.match(rawTf, /PROVISIONER_NETWORK_EGRESS_CONFINEMENT = PARTIAL/);
-  assert.match(states.CheckExitCodePresent.Comment, /NOT demonstrated by official documentation/);
-  assert.match(states.CheckExitCodePresent.Comment, /never a false success/);
+  assert.match(states.CheckExitCodePresent.Comment, /Live-isolated Fargate evidence/);
+  assert.match(states.CheckExitCodePresent.Comment, /still fails closed to INSPECT_FIRST/);
 });
 
 // ---------------------------------------------------------------------------
