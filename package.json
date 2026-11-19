@@ -2,7 +2,7 @@
   "name": "credential-intelligence-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "Monorepo bootstrap para credenciales verificables y perfil formativo.",
+  "description": "Monorepo de Scope para credenciales educativas verificables y perfil formativo.",
   "workspaces": [
     "apps/*",
     "services/*",

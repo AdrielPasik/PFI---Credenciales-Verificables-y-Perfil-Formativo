@@ -10,12 +10,32 @@ npm run dev --workspace @credential-intelligence/ai-service
 python -m src.api.run
 ```
 
-`src/api/run.py` lee `PORT` y usa `8000` por defecto. El runtime HTTP es FastAPI/Uvicorn. Sus dependencias directas son deliberadamente pequeñas:
+`src/api/run.py` lee `PORT` y usa `8000` por defecto. El runtime HTTP es FastAPI/Uvicorn. Sus dependencias base son deliberadamente pequeñas:
 
 - `fastapi`, `uvicorn`, `python-multipart` y `PyJWT` para el adaptador HTTP;
 - `pdfplumber` con fallback `pypdf` para extraer PDF.
 
-No hay dependencias de OpenAI, `transformers`, PyTorch, `sentence-transformers`, scikit-learn, spaCy ni una base vectorial en el runtime actual. El campo `textForEmbedding` es preparación de texto para una evolución posterior; hoy no se genera ni consulta un embedding.
+Las etapas de análisis de objetivos, unidades de evidencia, razonamiento
+contextual y propuesta de requisitos usan clientes HTTP propios sobre la
+Responses API de OpenAI. No requieren un SDK adicional: cada cliente usa la
+biblioteca estándar y solo puede operar cuando su clave y modelo de etapa están
+configurados. Si faltan, el servicio devuelve un error controlado sin inventar
+un resultado.
+
+La imagen del servicio instala además las dependencias de embeddings locales
+(`torch`, `transformers` y el snapshot fijado de E5). El reranking híbrido de
+áreas utiliza la configuración seleccionada en una campaña versionada sobre un
+conjunto de referencia de 116 casos, dividido en desarrollo (77) y reserva
+(39): `lambda=0,8` y margen relativo `0,0`. La reserva final obtuvo 66,7 %
+Top-1 frente a 59,0 % de la línea base determinística, sin cambios perjudiciales.
+La codificación de fuentes alimenta la persistencia de
+representaciones de perfil de 384 dimensiones en NestJS. Ambas capacidades se
+habilitan por separado mediante flags: el valor predeterminado no determina el
+estado efectivo de un entorno desplegado.
+
+No existe una base vectorial ni una búsqueda vectorial en el runtime.
+`textForEmbedding` continúa siendo un dato interno: no es una API pública ni
+una autorización para persistir o exponer texto adicional.
 
 ## Endpoints
 
@@ -25,8 +45,14 @@ No hay dependencias de OpenAI, `transformers`, PyTorch, `sentence-transformers`,
 | `POST /v1/semantic-analysis/pdf` | Sí en modo JWT | `multipart/form-data` con PDF | Artifact `semantic_analysis_v1` |
 | `POST /v1/semantic-analysis/text` | Sí en modo JWT | JSON con texto y metadata mínima | Artifact `semantic_analysis_v1` |
 | `POST /v1/formative-profile/build` | Sí en modo JWT | Lista de artifacts válidos | Artifact de perfil histórico `formative_profile_result_v0` |
+| `POST /v1/profile-embedding/source` | Sí en modo JWT | Texto fuente ya autorizado | Vector local de fuente, si el flag está habilitado |
+| `POST /v1/source-extraction/pdf` y `/text` | Sí en modo JWT | Fuente PDF o textual | Artifact `source_extraction_v1` |
+| `POST /v1/objective-analysis` | Sí en modo JWT | Objetivo congelado | Artifact `objective_analysis_v1` |
+| `POST /v1/evidence-units` | Sí en modo JWT | Fuentes extraídas de un run | Artifact `evidence_units_v1` |
+| `POST /v1/contextual-reasoning` | Sí en modo JWT | Un requisito y evidencia direccionable | Resultado `contextual_reasoning_v1` |
+| `POST /v1/objective-requirement-proposal` | Sí en modo JWT | Objetivo apto para interpretación | Propuesta `objective_requirement_proposal_v1` |
 
-Los endpoints `/v1/*` son internos: no son una API pública para el navegador ni un contrato directo para apps externas. El profile builder FastAPI continúa disponible por compatibilidad/contrato, pero la reconstrucción operativa de perfil de Traza la realiza NestJS en PostgreSQL.
+Los endpoints `/v1/*` son internos: no son una API pública para el navegador ni un contrato directo para apps externas. El profile builder FastAPI continúa disponible por compatibilidad/contrato, pero la reconstrucción operativa de perfil de Scope la realiza NestJS en PostgreSQL.
 
 ## Autenticación interna
 
@@ -138,7 +164,7 @@ PDF o texto
   -> exporter semantic_analysis_v1
 ```
 
-La semántica vive principalmente en:
+La semántica determinista vive principalmente en:
 
 - `src/semantic_builder.py`;
 - `src/semantic_ontology.py`;
@@ -149,7 +175,10 @@ La semántica vive principalmente en:
 - `config/semantic/area_anchor_requirements.json`;
 - `config/semantic/skill_evidence_patterns.json`.
 
-No introducir traducción libre, un LLM o una heurística global en un ajuste de taxonomía sin fixtures, métricas y una decisión explícita de contrato.
+No introducir traducción libre ni sustituir estas reglas por un modelo generativo
+en un ajuste de taxonomía sin fixtures, métricas y una decisión explícita de
+contrato. Las etapas asistidas por proveedor tienen contratos y validaciones
+propios; no reemplazan el pipeline determinista de clasificación.
 
 ## Errores y observabilidad
 

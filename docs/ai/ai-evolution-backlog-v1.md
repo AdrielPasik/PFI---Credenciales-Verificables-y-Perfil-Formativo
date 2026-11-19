@@ -2,7 +2,11 @@
 
 ## Principio de evolución
 
-La prioridad es mejorar evidencia, trazabilidad y calidad medible sin convertir la IA en autoridad académica ni introducir datos sensibles en fronteras incorrectas. Cada slice debe empezar por una hipótesis comprobable, una fixture representativa y una regresión negativa; no por un cambio de copy o de modelo aislado.
+La prioridad es mejorar evidencia, trazabilidad y calidad medible sin convertir
+la IA en autoridad académica ni introducir datos sensibles en fronteras
+incorrectas. Cada evolución debe partir de una hipótesis comprobable, una
+fixture representativa y una regresión negativa; no de un cambio aislado de
+copy o de modelo.
 
 ## Estado y deuda conocida
 
@@ -13,7 +17,8 @@ La prioridad es mejorar evidencia, trazabilidad y calidad medible sin convertir 
 | Texto academic/degree | No hay automatismo equivalente. | Diseñar fuente y reglas específicas antes de habilitarlo. |
 | Combined | Enum y modelo preparados. | Definir dos fuentes, dedupe, weighting y contrato antes de ejecutar. |
 | Taxonomía | Reglas deterministas, incluidos patrones ágiles. | Métricas por dominio, revisión de falsos positivos/negativos. |
-| Embeddings | Solo `textForEmbedding` preparado. | Elegir modelo, almacenamiento, versionado, privacidad y evaluación. |
+| Embeddings | Reranking híbrido de áreas y codificación/persistencia de fuentes y perfiles de 384 dimensiones implementados. Sobre el conjunto de referencia de 116 casos, la reserva final (39) obtuvo 66,7 % Top-1 frente a 59,0 % de la línea base determinística. | Activación por entorno con evidencia operacional, observabilidad y evaluación posterior a cambios de taxonomía o modelo. |
+| Razonamiento asistido | Análisis de objetivos, unidades de evidencia, razonamiento contextual y propuesta de requisitos integrados mediante contratos internos. | Configuración operativa por etapa, evaluación de calidad y seguimiento de fallos de proveedor. |
 | Profile | Rebuild determinista post-emisión/análisis. | Observabilidad de generaciones y UX de cobertura. |
 | Templates | Interpretación revisada reusable permitida. | Aplicación a futuras credenciales/C4b solo con reglas de provenance. |
 | Cloud | HTTPS público temporal + JWT interno. | Servicio privado/no spin-down, rate limiting y observabilidad. |
@@ -59,19 +64,23 @@ No habilitar `combined` mediante concatenación local. Antes de hacerlo se debe 
 
 El análisis textual para otros tipos de credencial requiere primero declarar qué campos forman una fuente fiable y cuáles deben excluirse. No reutilizar el constructor de `course` por conveniencia.
 
-### 5. Embeddings o componentes generativos
+### 5. Operación de embeddings y etapas asistidas por proveedor
 
-Antes de añadir embeddings, LLM o RAG, resolver explícitamente:
+Antes de habilitar una etapa existente en un entorno, cambiar un modelo o
+ampliar sus responsabilidades, resolver explícitamente:
 
 - consentimiento y clasificación de los datos enviados;
 - proveedor/modelo, versión, región y retención;
 - límite de contenido, redacción de PII y políticas de logging;
-- storage de vectores, borrado, aislamiento por issuer/holder y costos;
+- persistencia o recuperación vectorial, si se propusieran: hoy no existen y
+  requieren diseño de borrado, aislamiento por issuer/holder y costos;
 - evaluación offline y métricas de recuperación/calidad;
 - cómo se versiona el resultado y se mantiene reproducibilidad;
 - fallback seguro cuando el proveedor no está disponible.
 
-Un modelo generativo debe producir propuestas revisables, no escribir automáticamente credenciales, competencias emitidas, hash canónico o perfil sin reglas de aprobación claras.
+Los resultados asistidos por proveedor deben seguir siendo trazables y
+revisables. No pueden escribir automáticamente credenciales, competencias
+emitidas, hash canónico o perfil sin reglas de aprobación claras.
 
 ## Cambios que requieren una decisión de dominio previa
 
@@ -108,7 +117,7 @@ npm run test:protected-issuance --workspace @credential-intelligence/api
 npm run build --workspace @credential-intelligence/api
 ```
 
-## Checklist de seguridad para otro chat
+## Checklist de seguridad para futuras evoluciones
 
 Antes de editar, responder explícitamente:
 
@@ -122,7 +131,8 @@ Antes de editar, responder explícitamente:
 8. ¿Hay test de regresión semántica y un caso negativo cercano?
 9. ¿La propuesta afecta `canon_v1`, blockchain, verificadores o privacidad?
 
-Si la respuesta a la última pregunta es sí, el cambio no es un slice IA local: requiere revisión de dominio, seguridad y contratos.
+Si la respuesta a la última pregunta es sí, el cambio excede al subsistema de
+IA y requiere revisión de dominio, seguridad y contratos.
 
 ## Prueba manual de referencia
 

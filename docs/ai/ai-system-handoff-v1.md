@@ -1,10 +1,35 @@
-# Handoff técnico: sistema de IA de Traza v1
+# Sistema de IA de Scope v1
 
 ## Propósito y alcance
 
-Traza usa IA como apoyo para interpretar evidencia formativa. El resultado no certifica competencias, no sustituye la decisión del emisor y no participa en la validez criptográfica de una credencial. Este documento describe cómo está construido el sistema hoy para que otro equipo o chat pueda evolucionarlo sin mezclar fronteras de seguridad ni cambiar accidentalmente el dominio.
+Scope usa IA como apoyo para interpretar evidencia formativa. El resultado no
+certifica competencias, no sustituye la decisión del emisor y no participa en
+la validez criptográfica de una credencial. Este documento describe la
+arquitectura implementada, sus fronteras de seguridad y las decisiones que
+deben preservarse en evoluciones posteriores.
 
-El alcance actual incluye análisis semántico de PDF y texto, persistencia de ejecuciones, resultados versionados y agregación de perfil. No incluye LLM, embeddings activos, búsqueda vectorial, OCR general, análisis combinado, propuestas automáticas ni emisión automática.
+El alcance actual combina dos capacidades. El análisis semántico de PDF y texto
+usa un pipeline determinista de extracción, normalización, taxonomías y reglas.
+Por otra parte, el servicio ofrece etapas internas de análisis de objetivos,
+unidades de evidencia, razonamiento contextual y propuesta de requisitos. Estas
+etapas pueden utilizar la Responses API de OpenAI con salida estructurada, pero
+solo se ejecutan cuando cada una cuenta con configuración válida de proveedor y
+modelo.
+
+También se implementaron embeddings locales para el reranking híbrido de áreas
+y para fuentes y perfiles formativos de 384 dimensiones. El clasificador se
+evaluó sobre un conjunto de referencia independiente de 116 casos, separado en
+desarrollo (77) y reserva (39). En reserva, el híbrido obtuvo 26/39 aciertos
+(66,7 % Top-1), frente a 23/39 (59,0 %) de la línea base determinística, con
+tres rescates correctos y sin cambios perjudiciales. El resultado describe esa
+evaluación, no una garantía de desempeño poblacional.
+La generación y persistencia de embeddings de fuentes y perfiles tienen
+provenance y validaciones de dimensión propias. Ambos usos se habilitan mediante
+flags independientes; su estado efectivo en AWS requiere comprobación externa y
+no constituye una búsqueda vectorial.
+
+El sistema no incluye OCR general, análisis combinado de fuentes, emisión
+automática ni una decisión institucional delegada a un modelo.
 
 ## Arquitectura implementada
 
@@ -16,7 +41,10 @@ Browser
        -> DocumentStoragePort (solo para bytes PDF vigentes)
        -> AiServiceClient
             -> FastAPI AI Service
-                 -> extracción / normalización / taxonomía / reglas
+                 -> análisis semántico determinista
+                 -> extracción estructurada de fuentes
+                 -> etapas de objetivo y razonamiento asistidas por proveedor
+                 -> embeddings locales opcionales
 
 La IA nunca llama a PostgreSQL, S3, blockchain ni al navegador.
 ```
@@ -28,7 +56,7 @@ La IA nunca llama a PostgreSQL, S3, blockchain ni al navegador.
 | `apps/web` | Presenta estados allowlisted y llama solo NestJS. | Llamar FastAPI, S3, blockchain o interpretar artifacts crudos. |
 | NestJS `src/analysis-run` | Autoriza, fija fuente, crea/ejecuta runs y persiste resultados. | Delegar permisos al servicio IA. |
 | NestJS `src/ai` | Cliente HTTP, JWT interno, timeout, validación y mapeo seguro. | Reenviar JWT humano. |
-| FastAPI `services/ai-service` | Analiza contenido y exporta `semantic_analysis_v1`. | Acceder a DB, storage, contratos o credenciales de usuario. |
+| FastAPI `services/ai-service` | Ejecuta análisis semántico, extracción estructurada, embeddings locales opcionales y etapas internas de razonamiento. | Acceder a DB, storage, contratos o credenciales de usuario. |
 | PostgreSQL | Conserva evidencia, runs, artifacts y perfiles. | Ejecutar inferencia. |
 | Document storage | Conserva bytes documentales privados. | Entregar URL pública a FastAPI o browser. |
 
@@ -76,6 +104,9 @@ El modo `combined` existe en el enum para evolución, pero la ejecución actual 
 | --- | --- |
 | FastAPI | `services/ai-service/src/api/main.py`, `service.py`, `models.py`, `internal_auth.py` |
 | Pipeline | `services/ai-service/src/pipeline.py`, `semantic_builder.py`, `semantic_ontology.py`, `section_detector.py` |
+| Extracción de fuentes | `services/ai-service/src/api/source_extraction_transport.py`, `services/api/src/source-extraction/` |
+| Razonamiento sobre objetivos | `services/ai-service/src/api/objective_analysis/`, `evidence_units/`, `contextual_reasoning/`, `objective_understanding/` y `services/api/src/reasoning-run/` |
+| Embeddings | `services/ai-service/src/area_embedding_reranker.py` y `services/api/src/profile-embedding/` |
 | Exporter | `services/ai-service/src/exporters/backend_contract/semantic_analysis_exporter.py` |
 | Cliente NestJS | `services/api/src/ai/ai-service.client.ts`, `ai-service-internal-auth.ts`, `ai-service-http-error.mapper.ts` |
 | Runs | `services/api/src/analysis-run/analysis-run.service.ts`, `analysis-run-execution.service.ts` |
