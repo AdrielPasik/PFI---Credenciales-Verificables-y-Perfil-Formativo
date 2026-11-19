@@ -1,7 +1,8 @@
-# Traza AI Service
+# Scope AI Service
 
-Servicio Python/FastAPI desacoplado que expone el analisis semantico y la
-construccion de perfiles formativos de Traza.
+Servicio Python/FastAPI desacoplado que expone análisis semántico,
+extracción estructurada de fuentes, embeddings locales opcionales y etapas de
+razonamiento interno para Scope.
 
 ## Estado
 
@@ -19,6 +20,16 @@ Render se conservan como documentación histórica, pero la arquitectura definid
 en el repositorio ejecuta API y AI Service como tareas AWS separadas. El estado
 efectivo de esas tareas y su conectividad se comprueba fuera del repositorio.
 
+El clasificador híbrido de áreas combina candidatos léxicos y taxonómicos con
+reranking semántico local E5. La evaluación utilizó un conjunto de referencia
+independiente de 116 casos, dividido en desarrollo (77) y reserva (39). En la
+reserva final, alcanzó 66,7 % Top-1 frente a 59,0 % de la línea base
+determinística, con tres rescates correctos y sin cambios perjudiciales. Las
+representaciones vectoriales de fuentes y
+perfiles formativos son de 384 dimensiones y se validan antes de persistirse.
+Estos resultados demuestran la implementación y evaluación; los flags no
+permiten inferir por sí solos qué capacidades están activas en AWS.
+
 ## Endpoints
 
 - `GET /health`: health liviano, sin ejecutar pipelines.
@@ -35,6 +46,15 @@ efectivo de esas tareas y su conectividad se comprueba fuera del repositorio.
 - `POST /v1/profile-embedding/source`: codifica texto fuente canónico ya
   autorizado por NestJS para Profile Embedding V1; requiere JWT interno y no
   persiste vectores ni acepta artifacts semánticos, perfiles o labels.
+- `POST /v1/source-extraction/pdf` y `/text`: construyen un artifact
+  estructurado y validable de la fuente para su uso interno posterior.
+- `POST /v1/objective-analysis`, `/v1/evidence-units` y
+  `/v1/contextual-reasoning`: forman las etapas internas que relacionan un
+  objetivo, sus requisitos y evidencia direccionable. Usan proveedor solo
+  cuando la configuración específica de cada etapa está disponible.
+- `POST /v1/objective-requirement-proposal`: propone una estructura revisable
+  de requisitos para un objetivo; no modifica el objetivo ni crea resultados
+  finales por sí solo.
 
 ### `POST /v1/profile-embedding/source`
 
@@ -136,8 +156,11 @@ Los JSON Schemas autoritativos no se duplican en este servicio. Permanecen en:
 ## Requisitos
 
 - Python 3.12 recomendado;
-- no requiere LLM externo;
-- no requiere embeddings;
+- el análisis semántico determinista no requiere un LLM ni embeddings;
+- las etapas asistidas por proveedor requieren configuración local específica
+  de cada etapa y no se habilitan por la sola presencia de dependencias;
+- los embeddings locales requieren `requirements-embeddings.txt`, un snapshot
+  de modelo válido y el flag correspondiente;
 - no requiere Neon, S3, blockchain ni secretos en modo local actual.
 
 Crear un entorno local ignorado e instalar dependencias de desarrollo:

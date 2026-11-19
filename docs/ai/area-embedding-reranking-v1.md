@@ -2,8 +2,27 @@
 
 ## Estado
 
-La implementación está disponible pero desactivada. No hay valores de
-producción para `lambda` ni para el margen relativo. `semantic_analysis_v1` no
+La implementación está integrada y fue evaluada mediante una campaña versionada
+sobre un conjunto de referencia independiente de 116 casos curriculares. La
+partición separó 77 casos para desarrollo y 39 para reserva, sin solapamientos.
+En desarrollo, la línea base determinística obtuvo 35/77 aciertos (45,5 %) y el
+híbrido 42/77 (54,5 %), una mejora de 9,0 puntos porcentuales. Tras comparar 72
+configuraciones, se seleccionaron `lambda=0,8` y margen relativo `0,0`.
+
+En la evaluación final de reserva, la línea base determinística obtuvo 23/39
+aciertos (59,0 %) y el híbrido 26/39 (66,7 %), una mejora de 7,7 puntos
+porcentuales. Se registraron tres rescates correctos y ningún cambio
+perjudicial. Estas métricas describen el conjunto de referencia evaluado y no
+constituyen una garantía de desempeño poblacional.
+
+El corpus de 31.059 cursos externos se utilizó para desarrollo y
+experimentación complementaria. No forma parte de los 116 casos de referencia,
+no es un conjunto de entrenamiento de E5 y no se utiliza para calcular estas
+métricas.
+
+La activación del reranker se controla por entorno mediante
+`AI_AREA_EMBEDDINGS_ENABLED`; el valor predeterminado desactivado no permite
+inferir si un despliegue concreto lo está utilizando. `semantic_analysis_v1` no
 cambia y no expone diagnósticos de embeddings.
 
 ## Alcance y punto de integración
