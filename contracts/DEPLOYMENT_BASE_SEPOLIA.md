@@ -1,6 +1,6 @@
 # CredentialRegistry → Base Sepolia: evidencia de despliegue y runbook (S8c10)
 
-> **Evidencia versionada.** El manifiesto canónico
+> **Despliegue verificado públicamente.** El manifiesto canónico
 > [`deployments/base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json`](deployments/base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json)
 > declara un despliegue de `CredentialRegistry` en `base_sepolia` (`84532`), en
 > `0xCb7401e268f61b1242B17fE141453471CFbdc6e1`, mediante la transacción
@@ -8,10 +8,20 @@
 > `47934147`. El archivo también conserva hash de bloque, timestamp, deployer y
 > hashes de bytecode observados por la herramienta de despliegue.
 >
-> El manifiesto es evidencia conservada por el repositorio, no una comprobación
-> actual de Base Sepolia. Quedan pendientes la verificación directa de la
-> transacción y bytecode en red, la confirmación de la configuración efectiva del
-> backend y la existencia de credenciales realmente registradas en la red.
+> El 18 de noviembre de 2026, consultas públicas de solo lectura confirmaron la
+> red `84532`, la transacción y su recibo exitoso, la dirección creada, el bloque
+> y su hash. El bytecode obtenido de la red coincide, mediante Keccak-256, con
+> el `runtimeBytecodeHash` del manifiesto:
+> `0x69899c6edebeee4029d2e057d0125ece794217a14db7c33c805bed3b58d33c93`.
+> La evidencia puede consultarse en
+> BaseScan: [transacción](https://sepolia.basescan.org/tx/0x8a1f893cc75e989044cc6b961a2e427b9bea195b4594a7c09a81fc543177713c),
+> [contrato](https://sepolia.basescan.org/address/0xCb7401e268f61b1242B17fE141453471CFbdc6e1)
+> y [bloque](https://sepolia.basescan.org/block/47934147). La verificación de
+> fuente publicada en el explorador no fue comprobada.
+>
+> Continúan pendientes la configuración efectiva del backend, la activación de
+> `credential_registry` contra Base Sepolia y la existencia de credenciales de
+> Scope realmente registradas en la red.
 >
 > La integración backend está implementada, pero su activación efectiva contra
 > Base Sepolia no se infiere de este documento ni del manifiesto. `mock` es el

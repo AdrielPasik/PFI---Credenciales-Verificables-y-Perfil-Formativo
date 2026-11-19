@@ -18,12 +18,15 @@ Registrar evidencia minima verificable on-chain sin almacenar el contenido compl
 - integración backend de lectura, escritura, preflight y reconciliación mediante
   `ethers`.
 
-## Activacion y verificacion pendientes
+## Estado de despliegue y activación
 
-- comprobación directa del contrato y de la transacción en Base Sepolia;
+- el 18 de noviembre de 2026 se confirmó públicamente el despliegue declarado
+  en el manifiesto: transacción exitosa, dirección, bloque y hash de bytecode
+  coincidentes; ver [registro de despliegue](DEPLOYMENT_BASE_SEPOLIA.md);
+- la verificación de fuente publicada en BaseScan no fue comprobada;
 - configuración efectiva del backend contra la red de prueba;
+- activación del modo `credential_registry` contra Base Sepolia;
 - confirmación de registros reales de credenciales en la red;
-- verificación de fuente en explorador, opcional y no bloqueante.
 
 ## Alcance futuro
 
@@ -34,7 +37,7 @@ Registrar evidencia minima verificable on-chain sin almacenar el contenido compl
 
 - desarrollo local con Anvil;
 - tests con Forge;
-- Base Sepolia como red de prueba declarada por el manifiesto;
+- Base Sepolia como red de prueba con despliegue públicamente confirmado;
 - backend activable mediante configuración externa validada.
 
 ## Estado actual
