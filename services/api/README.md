@@ -1192,13 +1192,14 @@ issuer persistido. Para una demo sin datos historicos, usar una base local
 nueva, aplicar las migraciones existentes y ejecutar el seed; el seed no
 resetea ni limpia la base automaticamente.
 
-## Limites
+## Límites de la integración blockchain
 
-El backend no tiene frontend para evidencia textual, descarga/preview,
-Firebase/cloud storage, mobile, MetaMask, Base Sepolia, sharing/link/QR,
-revocacion completa ni hardening productivo blockchain. El modo
-`credential_registry_anvil` es exclusivamente local/dev; `mock` sigue siendo
-el comportamiento por default.
+La evidencia blockchain se opera en `mock` por defecto. El registro mediante
+`credential_registry` exige seleccionar explícitamente `anvil` o
+`base_sepolia` y contar con una configuración completa validada. La activación
+efectiva contra Base Sepolia y la existencia de registros reales requieren
+comprobación externa. Esta integración aporta evidencia técnica de integridad;
+no certifica el contenido académico ni sustituye las reglas de emisión.
 ## V2: perfil compartido
 
 - `POST /me/profile/share` requiere sesión y crea un `SharingGrant` de scope

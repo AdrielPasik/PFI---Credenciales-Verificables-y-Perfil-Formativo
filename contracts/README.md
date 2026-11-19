@@ -6,27 +6,36 @@ Modulo blockchain del proyecto basado en Solidity + Foundry.
 
 Registrar evidencia minima verificable on-chain sin almacenar el contenido completo de las credenciales.
 
-## Alcance implementado en v0
+## Alcance implementado
 
 - contrato `CredentialRegistry.sol`;
 - registro on-chain de hashes de credenciales;
 - revocacion on-chain del hash por el registrant original;
 - consulta simple de estado por hash;
 - tests locales con Forge.
+- herramientas locales con Anvil;
+- manifiesto canónico de despliegue en Base Sepolia;
+- integración backend de lectura, escritura, preflight y reconciliación mediante
+  `ethers`.
+
+## Activacion y verificacion pendientes
+
+- comprobación directa del contrato y de la transacción en Base Sepolia;
+- configuración efectiva del backend contra la red de prueba;
+- confirmación de registros reales de credenciales en la red;
+- verificación de fuente en explorador, opcional y no bloqueante.
 
 ## Alcance futuro
 
 - emisores autorizados;
-- integracion backend real contra contrato;
-- despliegue controlado a redes de prueba;
 - politicas mas finas de autorizacion.
 
-## Entorno esperado
+## Entornos
 
 - desarrollo local con Anvil;
 - tests con Forge;
-- despliegue de pruebas en Base Sepolia;
-- integracion inicial desde backend mediante ethers.js.
+- Base Sepolia como red de prueba declarada por el manifiesto;
+- backend activable mediante configuración externa validada.
 
 ## Estado actual
 
@@ -45,4 +54,7 @@ Estado actual del slice:
   - texto sensible
   - `revocationReason` como `string`
 
-Este contrato es deliberadamente un registry minimo de hashes, no un NFT, no un DID registry y no un contrato de negocio completo.
+Este contrato es deliberadamente un registry minimo de hashes, no un NFT, no un
+DID registry y no un contrato de negocio completo. El registro blockchain aporta
+evidencia técnica de integridad; no certifica por sí solo el contenido académico
+ni reemplaza la autoridad del emisor.

@@ -83,51 +83,34 @@ durante la ventana de prueba. Para uso sostenido sigue pendiente una decision de
 arquitectura (coordinacion de nonce entre procesos o una politica de recuperacion de
 `pending`); no se resuelve aqui.
 
-Responsabilidad actual:
+Responsabilidad vigente:
 
-- adaptador de evidencia blockchain;
 - persistencia y consulta de `BlockchainRecord`;
-- consulta read-only a `CredentialRegistry` en Anvil;
-- escritura local/dev a `CredentialRegistry` en Anvil;
-- integracion posterior con escritura real hacia Anvil o Base Sepolia;
-- resolver record-bound para reconciliacion segura de evidencia on-chain.
+- administración de evidencia técnica, sin decidir las reglas de emisión de
+  credenciales;
+- modo `mock` separado, sin I/O de red;
+- modo `credential_registry` con red explícita `anvil` o `base_sepolia`;
+- preflight de red y contrato antes de escritura;
+- registro, revocación, lectura y reconciliación record-bound;
+- clientes `ethers` encapsulados y coordinación por perfil de firma de anclaje.
 
-Alcance actual:
+El modo real requiere `CREDENTIAL_REGISTRY_NETWORK`,
+`CREDENTIAL_REGISTRY_CHAIN_ID`, `CREDENTIAL_REGISTRY_RPC_URL`,
+`CREDENTIAL_REGISTRY_CONTRACT_ADDRESS` y `CREDENTIAL_REGISTRY_DEPLOYMENT_ID`.
+Una configuración incompleta o incompatible falla cerrada y no degrada a
+`mock`. La existencia del manifiesto Base Sepolia no activa esas variables ni
+confirma su valor efectivo en runtime.
 
-- modulo NestJS minimo;
-- `BlockchainEvidenceService` para mock/local DB ya existente;
-- `BlockchainEvidenceService` con modo configurable para mock o `credential_registry_anvil`;
-- `CredentialRegistryReadClient` read-only contra contrato EVM;
-- `CredentialRegistryWriteClient` para transacciones locales de prueba contra Anvil;
-- `CredentialRegistryDeploymentResolver`: resuelve un deployment solo cuando
-  `BlockchainRecord.network`, `chainId` y `contractAddress` coinciden
-  exactamente con una configuracion Anvil allowlisted;
-- `BlockchainRecordReconciliationService`: clasifica de forma read-only la
-  relacion entre estado PostgreSQL y el registro on-chain, sin mutar ninguno;
-- `ethers@6.15.0` se usa solo dentro de los clientes blockchain encapsulados;
-- CLI local `blockchain:status` para consultar `getCredentialStatus(bytes32)`;
-- CLI local `blockchain:register` para ejecutar `registerCredential(bytes32)`;
-- CLI local `blockchain:revoke` para ejecutar `revokeCredential(bytes32)`;
-- revocacion coordinada issuer-scoped desde `CredentialsModule`, solo para un
-  record Anvil resuelto y corroborado record-bound;
-- sin integracion con el flujo de emision;
-- sin cambios en `Credential`, `BlockchainRecord` o endpoints existentes;
-- sin persistencia real on-chain desde backend;
-- sin persistencia real en DB desde estas operaciones;
-- sin dependencia de ABI generada en runtime;
-- sin Base Sepolia configurada;
-- sin MetaMask.
+`CREDENTIAL_REGISTRY_PRIVATE_KEY` queda limitado a las CLI locales. El runtime
+usa el perfil de firma de anclaje del emisor; el navegador nunca firma ni recibe
+secretos.
 
-Principios:
-
-- `blockchain` maneja evidencia tecnica, no ownership de `Credential`;
-- no debe decidir reglas de emision;
-- debe evitar dependencias circulares con `credentials`;
-- la integracion Web3 queda encapsulada dentro de clientes propios del backend;
-- no se exportan tipos de `ethers` fuera del cliente;
-- `CREDENTIAL_REGISTRY_PRIVATE_KEY` se usa solo para pruebas locales/dev con Anvil;
-- nunca deben commitearse private keys ni usarse claves reales en este slice;
-- cuando haya implementacion real, deberia recibir datos normalizados desde el modulo orquestador.
+PostgreSQL y la cadena no comparten una transacción atómica. Antes de escribir
+en la red, el servicio persiste un intento `pending`; la escritura y su
+confirmación ocurren después del commit. Si el envío falla o el comprobante no
+queda disponible, no se revierte la credencial ni se reenvía automáticamente:
+el intento permanece pendiente para su reconciliación. Solo una evidencia
+confirmada actualiza el registro a `registered`.
 
 ## Foundation de revocacion record-bound
 
@@ -210,29 +193,19 @@ npm run blockchain:revoke --workspace @credential-intelligence/api -- --hash 0x1
 
 Notas de uso:
 
-- `BLOCKCHAIN_EVIDENCE_MODE=mock` es el default, incluso si la variable no existe;
-- `BLOCKCHAIN_EVIDENCE_MODE=credential_registry_anvil` activa registro on-chain local/dev;
-- si `BLOCKCHAIN_EVIDENCE_MODE` tiene otro valor, el backend falla con error claro;
-- si falta RPC URL, contract address o private key en contract mode, no hay fallback silencioso a mock;
-- `blockchain:register` y `blockchain:revoke` son solo para Anvil/local-dev;
-- no escriben en la base de datos;
-- no crean `BlockchainRecord`;
-- no se integran todavia con `POST /credentials/:id/issue`;
-- el estado final de una credencial debe consultarse luego con `blockchain:status`;
-- no hay Base Sepolia ni signer productivo en este slice.
+- `BLOCKCHAIN_EVIDENCE_MODE=mock` es el default cuando la variable falta;
+- `BLOCKCHAIN_EVIDENCE_MODE=credential_registry` habilita el mecanismo real y
+  exige una red explícita `anvil` o `base_sepolia`;
+- el valor legado `credential_registry_anvil` se rechaza;
+- las CLI `blockchain:status`, `blockchain:register` y `blockchain:revoke` son
+  herramientas locales y no crean `BlockchainRecord`;
+- el flujo de emisión y la revocación issuer-scoped usan servicios de registro
+  y reconciliación propios, con persistencia de intención antes de la escritura.
 
-Integracion con `BlockchainEvidenceService`:
-
-- en `mock`, el comportamiento sigue siendo el actual: tx hash deterministico local y `BlockchainRecord` local;
-- en `credential_registry_anvil`, el service llama a `registerCredential(bytes32)` mediante `CredentialRegistryWriteClient`;
-- solo despues de una tx `success` se crea `BlockchainRecord` con `txHash` real de Anvil;
-- no hay read-after-write obligatorio en el issue flow.
-
-Riesgo conocido:
-
-- DB transaction != blockchain transaction;
-- si la tx on-chain sale bien y luego falla el write de `BlockchainRecord` en PostgreSQL, la blockchain no puede rollbackearse;
-- para este slice local/dev se acepta esa limitacion, pero queda documentada como deuda tecnica para una estrategia futura de reconciliacion/idempotencia/outbox.
+La operación contra una cadena no forma parte de la transacción de dominio. Si
+la escritura o su confirmación falla, el registro queda pendiente o se
+reconcilia; nunca se presenta como evidencia on-chain confirmada sin lectura
+del contrato.
 
 La salida se normaliza a tipos serializables:
 

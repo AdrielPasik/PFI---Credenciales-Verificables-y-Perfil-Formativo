@@ -1,15 +1,29 @@
-# CredentialRegistry → Base Sepolia: deployment runbook (S8c10)
+# CredentialRegistry → Base Sepolia: evidencia de despliegue y runbook (S8c10)
 
-> **Status: tooling prepared, NOTHING deployed.** S8c10.1 produced local tooling
-> only. This document describes the procedure for the later real deployment
-> (S8c10.2). Following it is a separate, explicitly approved operation. Until that
-> operation happens, `CredentialRegistry` is **not** deployed to Base Sepolia, Scope
-> is **not** live there, AWS is **not** configured for it and no blockchain
-> end-to-end flow has been proven.
+> **Evidencia versionada.** El manifiesto canónico
+> [`deployments/base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json`](deployments/base-sepolia-84532-0xcb7401e268f61b1242b17fe141453471cfbdc6e1.json)
+> declara un despliegue de `CredentialRegistry` en `base_sepolia` (`84532`), en
+> `0xCb7401e268f61b1242B17fE141453471CFbdc6e1`, mediante la transacción
+> `0x8a1f893cc75e989044cc6b961a2e427b9bea195b4594a7c09a81fc543177713c`, bloque
+> `47934147`. El archivo también conserva hash de bloque, timestamp, deployer y
+> hashes de bytecode observados por la herramienta de despliegue.
+>
+> El manifiesto es evidencia conservada por el repositorio, no una comprobación
+> actual de Base Sepolia. Quedan pendientes la verificación directa de la
+> transacción y bytecode en red, la confirmación de la configuración efectiva del
+> backend y la existencia de credenciales realmente registradas en la red.
+>
+> La integración backend está implementada, pero su activación efectiva contra
+> Base Sepolia no se infiere de este documento ni del manifiesto. `mock` es el
+> modo de evidencia simulada y el valor predeterminado de la configuración;
+> Anvil es una red local de pruebas.
 
-Final target of the project: `evidenceMode = credential_registry`,
-`network = base_sepolia`, `chainId = 84532`. Mock and Anvil remain development and
-test modes; they do not satisfy final blockchain acceptance.
+Las secciones siguientes conservan los controles del procedimiento de despliegue
+canónico. No autorizan retransmitir ni desplegar nuevamente el contrato declarado
+por el manifiesto.
+
+La configuración operativa prevista, cuando se active, es
+`evidenceMode = credential_registry`, `network = base_sepolia`, `chainId = 84532`.
 
 ## 0. Frozen decisions
 

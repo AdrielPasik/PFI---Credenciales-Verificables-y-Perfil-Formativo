@@ -1,7 +1,9 @@
 # Activacion de Base Sepolia en produccion (S8) -- runbook
 
-> Estado: **el repositorio esta listo; produccion sigue en `mock`**. Este documento
-> ordena la activacion posterior. Ningun paso se ejecuta por un despliegue comun.
+> Estado documentado: el repositorio usa `mock` como valor predeterminado y
+> contiene un manifiesto canónico de Base Sepolia. La configuración efectiva de
+> producción no se conoce desde el repositorio y debe comprobarse antes de
+> cualquier activación. Ningún paso se ejecuta por un despliegue común.
 
 Objetivo del primer E2E: **UNA** credencial `course` emitida por
 `055bb876-b98d-4925-a38c-e7e65aeea535`, anclada en Base Sepolia (`84532`) en
@@ -17,7 +19,7 @@ Objetivo del primer E2E: **UNA** credencial `course` emitida por
 Mientras **B** valga `mock`, la API emite con evidencia simulada. **Emitir una
 credencial real en `mock` crea evidencia irreversible**: no existe re-anclaje.
 
-## FASE 1 -- capacidad, produccion en mock
+## FASE 1 -- capacidad con el modo operativo confirmado en `mock`
 
 1. Imagen de la API con este cambio (incluye `contracts/deployments/base-sepolia-*.json`).
 2. Migraciones al dia (`prisma migrate deploy` via el migrator). Confirmar el head.
@@ -70,7 +72,8 @@ Detalles que importan:
   abajo, y es seguro.
 - **El primer apply de un entorno NUEVO debe hacerse con `mock`**: el parametro se crea con
   el valor de la variable, y crearlo ya en `credential_registry` activaria el modo real.
-  Produccion ya tiene el parametro en `mock`, asi que no aplica.
+  Para un entorno existente, comprobar primero el valor efectivo del parámetro;
+  no inferirlo de los valores por defecto versionados.
 - El servicio de la API declara `depends_on` de `aws_ssm_parameter.managed_strings` y de
   `aws_iam_role_policy.execution`: en un mismo apply, los parametros nuevos y el permiso
   existen **antes** de que el despliegue lance tareas. (Antes de S8 no habia esa dependencia.)
@@ -89,7 +92,8 @@ Detalles que importan:
 
 Secuencia segura completa:
 
-- **A0 -- produccion en `mock`.** Punto de partida; ninguna escritura real posible.
+- **A0 -- modo operativo confirmado en `mock`.** Punto de partida requerido;
+  ninguna escritura real es posible mientras esa comprobación sea válida.
 - **A1 -- crear la SecureString del RPC PRIMERO**, fuera de banda
   (`/scope/prod/api/CREDENTIAL_REGISTRY_RPC_URL`, clave administrada `alias/aws/ssm`).
   No exponer ni imprimir su valor. Todavia ninguna task definition activa la referencia.
