@@ -1,12 +1,10 @@
 # Scope: Holder Mobile Application Blueprint v1
 
-> **PLANIFICACIÓN / SUPERSEDIDO POR LA IMPLEMENTACIÓN (2026-09-07).** La
-> aplicación móvil del Titular ya está implementada en `apps/mobile`. El código,
-> los contratos backend que consume y sus pruebas versionadas son la fuente de
-> verdad cuando este blueprint y el runtime difieran. Este documento se
-> conserva por su razonamiento de producto y de diseño, que sigue siendo
-> válido; sus supuestos técnicos, en cambio, fueron reemplazados por lo que
-> se verificó contra el backend real.
+> **ANTECEDENTE DE DISEÑO.** La aplicación móvil del Titular está implementada
+> en `apps/mobile`. Cuando exista una diferencia, el código, los contratos
+> backend que consume y las pruebas versionadas prevalecen sobre este documento.
+> El blueprint se conserva como referencia de las decisiones de producto y
+> diseño que guiaron su implementación.
 
 ## 1. Estado, propósito y precedencia
 
@@ -18,15 +16,15 @@ marca: Scope
 tagline: Una nueva forma de entender tu trayectoria.
 ~~~
 
-Este es el blueprint maestro para una futura aplicación móvil del Titular. Define
-objetivos, arquitectura de información, límites, dependencias, criterios
-técnicos y fases sin elegir framework ni crear una aplicación.
+Este blueprint registra los objetivos, la arquitectura de información, los
+límites y los criterios de diseño que orientaron la aplicación móvil del
+Titular. La implementación vigente se encuentra en `apps/mobile`.
 
 Precedencia: contratos y permisos reales del backend; producto en
 scope-product-positioning-v1.md; diseño compartido en
 frontend-brand-and-design-system-v1.md; arquitectura web en
-frontend-information-architecture-v0.md. Este documento es la fuente principal
-para la aplicación móvil.
+frontend-information-architecture-v0.md. Este documento aporta contexto de
+diseño, pero no reemplaza el código ni los contratos vigentes.
 
 ## 2. Clasificación de fidelidad
 
@@ -724,8 +722,9 @@ Reglas adicionales:
 
 ## 28. Document Graph and Maintenance Rule
 
-`scope-holder-mobile-app-blueprint-v1.md` sigue siendo la única fuente
-normativa mobile activa. No define el layout Web ni contratos Mobile.
+`scope-holder-mobile-app-blueprint-v1.md` se conserva como antecedente de
+diseño y mantenimiento documental. No define por sí solo el runtime, el layout
+web ni los contratos móviles.
 
 ```text
 scope-product-positioning-v1.md

@@ -26,6 +26,5 @@ con una especificación de interfaz.
   `apps/mobile`.
 
 Para ejecutar o revisar la aplicación web, consultar también
-[`apps/web/README.md`](../../apps/web/README.md). La aplicación móvil se
-desarrolla con React Native y Expo; sus instrucciones viven junto al código en
-`apps/mobile`.
+[`apps/web/README.md`](../../apps/web/README.md). Para la aplicación móvil,
+consultar [`apps/mobile/README.md`](../../apps/mobile/README.md).

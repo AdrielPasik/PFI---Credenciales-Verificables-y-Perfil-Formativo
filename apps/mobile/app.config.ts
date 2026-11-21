@@ -5,8 +5,8 @@ import type { ExpoConfig } from 'expo/config';
  *
  * IDENTIFICADORES DE TIENDA: `com.scope.holder` es PROVISIONAL. Debe
  * confirmarse (y, si corresponde, reemplazarse por el dominio real que
- * controle el proyecto) ANTES de cualquier publicacion en Play Store o App
- * Store. Ver `10-plan-de-deployment.md`.
+ * controle el proyecto) antes de cualquier publicación en Play Store o App
+ * Store. Ver `README.md` en este directorio.
  *
  * Nada en este archivo es secreto: solo configuracion publica de la app.
  * Las URLs de backend se leen de variables `EXPO_PUBLIC_*` en runtime

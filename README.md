@@ -171,6 +171,7 @@ configurado.
 - [ADRs](docs/decisions/README.md)
 - [Servicio y evolución de IA](docs/ai/README.md)
 - [Flujos de emisión, análisis y verificación](docs/flows/README.md)
+- [Aplicación móvil](apps/mobile/README.md)
 
 Cuando exista una diferencia entre documentación histórica y comportamiento
 actual, el código, los contratos y las pruebas versionadas son la fuente de
